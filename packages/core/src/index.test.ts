@@ -2906,6 +2906,101 @@ title: User Detail
   assert.deepEqual(result.diagnostics, []);
 });
 
+test("loads partial documents with self PartialRequest without circular dependency diagnostics", () => {
+  const projectSource = `---
+id: PRJ-PARTIAL-SELF
+type: project
+title: Partial Self Refresh
+screens:
+  - id: SCR-POINTS
+    path: screens/points.vspec.md
+---
+
+# PRJ-PARTIAL-SELF Partial Self Refresh
+`;
+  const screenSource = `---
+id: SCR-POINTS
+type: screen
+title: Points
+references:
+  partials:
+    PRT-POINTS-CONTENT: ../partials/points-content.vspec.md
+---
+
+# SCR-POINTS Points
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-PointsHost Points Host
+
+- stack
+- partial:
+  - id: PRT-POINTS-CONTENT
+`;
+  const partialSource = `---
+id: PRT-POINTS-CONTENT
+type: partial
+title: Points Content
+---
+
+# PRT-POINTS-CONTENT Points Content
+
+## States
+
+- loaded*
+
+## Layout: mobile
+
+### L-PointsContent Points Content
+
+- stack
+
+#### Items
+
+- E-Refresh
+
+## Elements
+
+### E-Refresh Button
+
+- label: Refresh
+
+## Actions
+
+### A-Refresh Refresh
+
+- Triggered
+  - E-Refresh.click
+- From
+  - loaded
+- Process
+  - PartialRequest
+    - request: GET /points/content
+    - partial: PRT-POINTS-CONTENT
+    - update:
+      - target: L-PointsContent
+      - mode: replace
+`;
+  const files = new Map([
+    ["project/screens/points.vspec.md", screenSource],
+    ["project/partials/points-content.vspec.md", partialSource]
+  ]);
+  const result = loadMarkVSpecProject(projectSource, {
+    projectPath: "project/vspec.project.md",
+    readFile: (path) => files.get(path)
+  });
+
+  assert.deepEqual(result.diagnostics, []);
+  assert.deepEqual(
+    result.documentGraph.edges.filter((edge) => edge.kind === "document-partial").map((edge) => [edge.fromPath, edge.toPath, edge.documentId]),
+    [["project/screens/points.vspec.md", "project/partials/points-content.vspec.md", "PRT-POINTS-CONTENT"]]
+  );
+});
+
 test("loads project templates and composes screen slot content", () => {
   const projectSource = `---
 id: PRJ-MYPAGE

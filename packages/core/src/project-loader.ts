@@ -445,7 +445,10 @@ function partialIdsReferencedBy(result: MarkVSpecParseResult): Set<string> {
   }
   for (const action of result.actions) {
     for (const step of action.processSteps) {
-      collectPartialId(ids, processStepDetail(step, "partial"));
+      const partialId = processStepDetail(step, "partial");
+      if (!isSelfPartialRequest(result, step, partialId)) {
+        collectPartialId(ids, partialId);
+      }
       collectPartialId(ids, step.content);
       for (const outcome of step.outcomes) {
         collectPartialId(ids, outcome.content);
@@ -473,6 +476,15 @@ function collectPartialId(ids: Set<string>, value: string | undefined): void {
 
 function processStepDetail(step: MarkVSpecProcessStep, key: string): string | undefined {
   return step.details.find((detail) => detail.key === key)?.value;
+}
+
+function isSelfPartialRequest(result: MarkVSpecParseResult, step: MarkVSpecProcessStep, partialId: string | undefined): boolean {
+  return result.screen.type === "partial" && result.screen.id === partialId && isPartialRequestStep(step.name);
+}
+
+function isPartialRequestStep(name: string): boolean {
+  const normalized = name.trim().replace(/\s+/g, " ").toLowerCase();
+  return normalized === "partial request" || normalized === "partialrequest";
 }
 
 function loadProjectEntries(

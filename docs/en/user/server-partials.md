@@ -14,6 +14,13 @@ partials through its own `references.partials`, and preview resolves nested
 partials recursively. Circular partial references are invalid, and nesting is
 limited to 10 levels to keep preview rendering bounded.
 
+A partial may also describe a self refresh action. In that case, a
+`PartialRequest` may use `partial: <its own PRT-ID>` to mean "request this
+partial again and replace the current partial root." This is request/update
+behavior, not child partial composition, so it does not create a nested partial
+dependency. A layout-level `partial:` reference to the same partial is still
+recursive composition and remains invalid.
+
 ## Principle
 
 Use these layers:
@@ -98,6 +105,33 @@ route: /mypage/partials/notices
 Architecture-specific words such as `bridge` are not MarkVSpec reserved words.
 Use them only as project-specific details under process steps such as
 `ServerCall` when needed.
+
+For htmx-style self replacement inside a partial, model the refresh as a
+`PartialRequest` action on that partial:
+
+```markdown
+---
+id: PRT-POINTS-CONTENT
+type: partial
+title: Points Content
+---
+
+# PRT-POINTS-CONTENT Points Content
+
+## Actions
+
+### A-RefreshPoints Refresh points
+
+- Triggered
+  - E-Refresh.click
+- Process
+  - PartialRequest
+    - request: GET /points/content
+    - partial: PRT-POINTS-CONTENT
+    - update:
+      - target: L-PointsContent
+      - mode: replace
+```
 
 ## Request Modeling
 

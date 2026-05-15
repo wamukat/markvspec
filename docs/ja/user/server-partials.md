@@ -17,6 +17,12 @@ partial 文書は再利用可能な HTML fragment です。partial 自身も
 partial を再帰的に解決します。循環参照は無効で、preview の負荷を抑えるため
 nesting は最大 10 階層までです。
 
+partial 文書は、自分自身を再取得して置き換える self refresh action も表現できます。
+この場合、`PartialRequest` の `partial: <自身の PRT-ID>` は「同じ partial を再取得し、
+現在の partial root を置き換える」という request/update の意味です。これは child partial
+の合成ではないため、nested partial dependency にはしません。一方、layout の
+`partial:` で自分自身を参照する場合は recursive composition であり、引き続き無効です。
+
 ## 原則
 
 次の層で書き分けます。
@@ -103,6 +109,33 @@ route: /mypage/partials/notices
 
 `bridge` のような特定アーキテクチャの語は MarkVSpec の予約語にしません。
 必要な場合は `ServerCall` などの処理詳細にプロジェクト固有名として書きます。
+
+htmx 風に partial 自身を置き換える場合は、その partial 上の `PartialRequest`
+action として refresh を表現します。
+
+```markdown
+---
+id: PRT-POINTS-CONTENT
+type: partial
+title: Points Content
+---
+
+# PRT-POINTS-CONTENT Points Content
+
+## Actions
+
+### A-RefreshPoints Refresh points
+
+- Triggered
+  - E-Refresh.click
+- Process
+  - PartialRequest
+    - request: GET /points/content
+    - partial: PRT-POINTS-CONTENT
+    - update:
+      - target: L-PointsContent
+      - mode: replace
+```
 
 ## リクエストモデリング
 

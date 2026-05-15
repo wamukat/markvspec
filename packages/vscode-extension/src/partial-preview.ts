@@ -203,6 +203,9 @@ function partialIdsReferencedBy(result: MarkVSpecParseResult): Set<string> {
     for (const step of action.processSteps) {
       for (const detail of step.details) {
         if (detail.key === "partial" && isPartialId(detail.value)) {
+          if (isSelfPartialRequest(result, step.name, detail.value)) {
+            continue;
+          }
           ids.add(detail.value);
         }
       }
@@ -323,6 +326,15 @@ function partialFileCandidates(directory: string): string[] {
 
 function isPartialId(value: string): boolean {
   return /^PRT-[\p{L}\p{N}-]+$/u.test(value);
+}
+
+function isSelfPartialRequest(result: MarkVSpecParseResult, stepName: string, partialId: string): boolean {
+  return result.screen.type === "partial" && result.screen.id === partialId && isPartialRequestStep(stepName);
+}
+
+function isPartialRequestStep(name: string): boolean {
+  const normalized = name.trim().replace(/\s+/g, " ").toLowerCase();
+  return normalized === "partial request" || normalized === "partialrequest";
 }
 
 function embedPartialPreviewsForResult(

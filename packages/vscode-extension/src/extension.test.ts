@@ -4074,6 +4074,94 @@ references:
   }
 });
 
+test("loads partial preview dependencies for self PartialRequest without circular diagnostics", () => {
+  const root = mkdtempSync(join(tmpdir(), "markvspec-self-partial-request-"));
+  try {
+    const screenPath = join(root, "screens", "points.vspec.md");
+    const partialPath = join(root, "partials", "points-content.vspec.md");
+    mkdirSync(join(root, "screens"), { recursive: true });
+    mkdirSync(join(root, "partials"), { recursive: true });
+    writeFileSync(partialPath, `---
+id: PRT-POINTS-CONTENT
+type: partial
+title: Points Content
+---
+
+# PRT-POINTS-CONTENT Points Content
+
+## States
+
+- loaded*
+
+## Layout: mobile
+
+### L-PointsContent Points Content
+
+- stack
+
+#### Items
+
+- E-Refresh
+
+## Elements
+
+### E-Refresh Button
+
+- label: Refresh
+
+## Actions
+
+### A-Refresh Refresh
+
+- Triggered
+  - E-Refresh.click
+- From
+  - loaded
+- Process
+  - PartialRequest
+    - request: GET /points/content
+    - partial: PRT-POINTS-CONTENT
+    - update:
+      - target: L-PointsContent
+      - mode: replace
+`);
+    const source = `---
+id: SCR-POINTS
+type: screen
+title: Points
+references:
+  partials:
+    PRT-POINTS-CONTENT: ../partials/points-content.vspec.md
+---
+
+# SCR-POINTS Points
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-PointsHost Points Host
+
+- stack
+- partial:
+  - id: PRT-POINTS-CONTENT
+
+#### Items
+`;
+    const loaded = loadScreenDocumentResult(createTextDocument(source, screenPath) as vscode.TextDocument);
+    const html = renderDesignDocumentHtml(loaded.result, "", loaded.focus ? { focus: loaded.focus } : undefined);
+    const messages = loaded.result.diagnostics.map((diagnostic) => diagnostic.message);
+
+    assert.match(html, /data-mm-partial-id="PRT-POINTS-CONTENT"/);
+    assert.match(html, /Refresh/);
+    assert(!messages.some((message) => message.includes("Circular partial reference detected")));
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("reports invalid Front Matter document references", () => {
   const root = mkdtempSync(join(tmpdir(), "markvspec-bad-references-"));
   try {
