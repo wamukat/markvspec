@@ -1,18 +1,18 @@
 {
   "name": "@markvspec/cli",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Command line tools for validating and exporting MarkVSpec screen specifications.",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "markvspec": "./dist/index.js"
+    "markvspec": "dist/index.js"
   },
   "files": [
     "dist/index.js"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/wamukat/MarkVSpec.git",
+    "url": "git+https://github.com/wamukat/MarkVSpec.git",
     "directory": "packages/cli"
   },
   "homepage": "https://github.com/wamukat/MarkVSpec#readme",

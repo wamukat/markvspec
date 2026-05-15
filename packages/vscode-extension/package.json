@@ -2,11 +2,10 @@
   "name": "markvspec",
   "displayName": "MarkVSpec",
   "description": "Live preview and diagnostics for MarkVSpec screen specifications.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "publisher": "wamukat",
   "icon": "assets/markvspec-icon.png",
   "type": "module",
-  "preview": true,
   "license": "MIT",
   "repository": {
     "type": "git",
