@@ -1,0 +1,1825 @@
+# MarkVSpec DSL リファレンス
+
+## この文書の位置づけ
+
+この文書は、MarkVSpec の記法を確認するための主リファレンスです。設計書を書き始める人、
+レビューする人、実装・共有に必要な入力を整える人が対象です。
+
+最初に全体像を見たい場合は [日本語ドキュメント索引](../README.md) に戻ってください。
+実例から探す場合は [サンプルギャラリー](example-gallery.md) を先に読むと早いです。
+
+この文書は MarkVSpec リリース版の日本語リファレンスです。通常の設計作業では、この文書を入口にできます。
+
+MarkVSpec DSL は、普通の Markdown を制約付きで解釈する形式です。作者は Markdown を書き、ツールはルールに合う部分だけを構造化して読み取ります。
+formatter と lint の方針は [書きやすさと品質](../maintainers/authoring-quality.md) に記録しています。
+
+## ファイル
+
+1 ファイルは 1 つの設計対象を表します。設計対象は `screen`、`template`、`partial` のいずれかです。
+
+```text
+*.vspec.md
+```
+
+基本形です。
+
+```markdown
+---
+id: SCR-LOGIN
+type: screen
+title: ログイン画面
+route: /login
+---
+
+# SCR-LOGIN ログイン画面
+
+## States
+
+## Layout: mobile
+
+## Elements
+
+## Actions
+```
+
+## Front Matter
+
+Front Matter は YAML です。文書全体のメタデータだけを書きます。
+
+必須項目です。
+
+- `id`: 画面 ID、テンプレート ID、partial ID。例: `SCR-LOGIN`、`TPL-MYPAGE-SHELL`、`PRT-NOTICE-LIST-CARD`。
+- `type`: `screen`、`template`、`partial`。
+- `title`: 人間向けの設計対象名。
+
+任意項目です。
+
+- `template`: 画面が利用するテンプレート参照。`id` と `src` を持つ map として指定します。
+- `references`: 画面が参照する設計書 ID とファイルパスの対応表。`partials` をサポートします。
+- `route`: 画面の URL パス。動的 segment は `/users/:userId` のように `:param` で書きます。
+- `owner`
+- `viewport`
+- `locale`: 生成される設計書の表示言語。`en` と `ja` をサポートします。
+- `status`
+- `tags`
+- `version`
+
+画面が利用する template は `template.id` / `template.src` で指定します。Partial は設計書 ID で読みやすく書き、
+プレビューでは実ファイルを読み込みたい場合に `references.partials` を使います。
+
+```yaml
+---
+id: SCR-MYPAGE-HOME
+type: screen
+title: マイページ ホーム
+template:
+  id: TPL-MYPAGE-SHELL
+  src: ../templates/mypage-shell.vspec.md
+references:
+  partials:
+    PRT-MEMBER-PROFILE-CARD: ../partials/mypage-member-profile-card.vspec.md
+---
+```
+
+### route と route parameter
+
+`route` は画面の URL パスです。動的 segment は `:param` で書きます。
+旧来の `{param}` 形式はサポートしません。
+
+```yaml
+route: /users/:userId
+```
+
+対象画面内で route parameter を参照する場合は、`${route.userId}` のように
+`route` 名前空間の不透明な式として書きます。API request の path も同じ
+`:param` 記法に揃え、実際に渡す値は直後の parameter 行に書きます。
+
+```markdown
+- HttpRequest
+  - GET /users/:userId
+    - userId: ${route.userId}
+```
+
+別画面へ遷移するときは、遷移先 screen ID と `params` を併記します。
+`params` のキーは遷移先 route の `:param` 名と一致している必要があります。
+また、`${route.userId}` の `userId` が現在の画面 route に存在しない場合は
+diagnostic warning の対象です。
+
+```markdown
+- navigate: SCR-USER-DETAIL
+- params:
+  - userId: ${model.user.userId}
+```
+
+partial ホストのネストした `partial` ブロックは、まず `references.partials`
+の対応先を読み込みます。対応ファイルが存在しない、ID が一致しない、`type:
+partial` ではない場合は VS Code プレビューで diagnostic を表示します。画面要素
+サマリの partial ID は、VS Code プレビュー上で参照先ファイルへ遷移できるリンクになります。
+
+partial 文書は再利用可能な HTML fragment です。`type: partial` の文書も
+`references.partials` を持ち、Layout 内の partial host から child partial を
+参照できます。プレビューは依存 partial を再帰的に解決し、見つからない child
+partial は diagnostic と placeholder で示します。循環参照は diagnostic として
+止めます。partial nesting の最大深さは 10 階層です。
+
+`locale` は生成される設計書の見出し、表ヘッダなどの
+固定文言を切り替えます。`## Elements` や Action のグループ名などの DSL
+キーワードは、パースとサンプル共有を安定させるため翻訳しません。
+
+## 文書単位
+
+MarkVSpec の設計書単位です。
+
+- `template`: 共通 shell、slot、共通ナビゲーションなどを表します。単独でプレビュー / 印刷できます。
+- `screen`: URL で到達する初期画面を表します。template の利用、初期 DOM、partial 呼び出し、画面内状態遷移を書きます。
+- `partial`: 再利用可能なサーバレンダリング HTML fragment を表します。返却 HTML のレイアウト、要素、サーバ側処理、空 / エラー状態を書きます。`references.partials` で child partial を合成できます。
+
+screen から partial を呼ぶ場合、screen 側は「どのアクションで、どの領域を、どの
+partial 由来の内容で置き換えるか」を書きます。partial 側は「返却される HTML
+そのものの仕様」を書きます。
+
+## セクション
+
+現行リリースが構造として認識する level-2 セクションです。
+
+- `## States`
+- `## Layout: <viewport>`
+- `## Slot: <name>`
+- `## Slots`
+- `## Elements`
+- `## Form Groups`
+- `## Actions`
+- `## Model Samples`
+- `## Validations`
+- `## Business Rules`
+- `## Error Codes`
+- `## History Fields`
+- `## History`
+
+`# <ID> <Title>` 直後から最初の level-2 セクションまでの本文は、画面または
+パーシャル自体の説明として扱います。上記以外の level-2 セクションは自由記述
+セクションです。MarkVSpec は内容を意味解釈せず、通常の Markdown として
+生成される設計書ビューに残します。
+
+履歴は `History` と `History Fields` を使うと構造化して扱えます。
+業務ルールは `Business Rules`、エラー表示契約は `Error Codes` に書きます。
+項目定義、メッセージ、権限、API 契約、テスト観点は、構造化記法を
+定義してから改めて追加します。現時点ではそれらの標準セクション名はありません。
+
+### 構造化セクション内の説明文
+
+構造化セクションでも、Markdown の本文、表、コードブロックを補足説明として書けます。
+ただし、どこに所属する説明かを安定して判断できる位置に置く必要があります。
+
+セクション全体の説明です。
+
+- `## States` のような構造化セクション見出しの直後、最初の構造化データより前に置いた本文は Section Overview です。
+- 構造化データの後に置いた本文は、section notes として表示します。
+- `Elements`、`Actions`、`Form Groups`、`Validations`、`Business Rules`、`Error Codes` のように
+  `###` entity 見出しを持つセクションで、セクション全体の後置補足を書きたい場合は
+  `### Section Notes` 見出しを使います。
+
+entity ごとの説明です。
+
+- `### E-*`、`### A-*`、`### V-*` などの entity 見出し直下、最初の構造化リストより前の本文は Entity Overview です。
+- 構造化リストの後に置いた本文は Entity Notes です。
+- Action の Overview は自動生成しません。Action の要約を出したい場合は、Action 見出し直下に本文として書きます。
+- Action の補足、設計上の注意、記法で表しきれない背景は、Action の構造化リストの後に本文として書きます。
+
+次の例では、`States` の前置本文が Section Overview、状態リスト後の本文が Section Notes です。
+
+```markdown
+## States
+
+ログイン画面は、未入力、認証待ち、入力エラー、認証エラーを画面内 state として扱います。
+
+- idle*
+- wait-auth
+- validation-error
+- auth-error
+
+`wait-auth` 中はフォームを無効化し、二重送信を防ぎます。
+```
+
+次の例では、Action 見出し直下の本文が Action Overview、構造化リスト後の本文が Action Notes です。
+
+```markdown
+## Actions
+
+### A1:A-SubmitLogin Submit login
+
+入力内容を検証し、送信できた場合だけ認証待ちへ遷移します。
+
+- Triggered
+  - E-SignInButton.click
+- From
+  - idle
+- Process
+  - HttpRequest
+    - POST /login
+      - email: E-EmailInput.value
+      - password: E-PasswordInput.value
+    - cases:
+      - sent:
+        - state: wait-auth
+      - send-failed:
+        - state: auth-error
+
+送信失敗は HTTP response ではなく、request を送信できなかったケースとして扱います。
+```
+
+所有先が曖昧な説明文は warning の対象です。たとえば、entity 型セクションで不正な
+`###` 見出しの後に本文を書くと、その本文をどの entity に属させるか判断できません。
+また、構造化セクション内の HTML block、水平線、未知の Markdown block は、プレビューや
+印刷で安定して扱えないため warning の対象です。`Notes` のような未予約セクション内の
+通常本文に、`error`、`transition`、`validation` などの語が含まれるだけでは warning になりません。
+
+## 予約語
+
+MarkVSpec が構造として解釈する語です。通常の本文や説明文では自由に使えますが、
+見出し、箇条書きのグループ名、プロパティ名、型名として書いた場合は DSL の意味を持ちます。
+
+level-2 セクション名です。
+
+- `States`
+- `Layout`
+- `Elements`
+- `Form Groups`
+- `Actions`
+- `Model Samples`
+- `Validations`
+- `Business Rules`
+- `Error Codes`
+- `History Fields`
+- `History`
+
+Template / Slot のセクション名です。
+
+- `Slot`
+- `Slots`
+
+Front Matter の主なキーです。
+
+- `id`
+- `type`
+- `title`
+- `route`
+- `owner`
+- `viewport`
+- `default-state`
+- `status`
+- `template`
+- `locale`
+
+Action のグループ名です。
+
+- `Triggered`
+- `From`
+- `Process`
+- `Effects`
+
+Action の処理、結果、部分更新で使う主な語です。
+
+- `HttpRequest`
+- `PartialRequest`
+- `ServerCall`
+- `response`
+- `state`
+- `navigate`
+- `params`
+- `update`
+- `target`
+- `mode`
+- `fragment`
+- `content`
+
+イベント名です。`E-SignInButton.click` のようなイベント参照では、`.` は ID と
+イベント名を区切る構文文字で、予約語は `click` 側です。
+
+- `click`
+- `blur`
+- `change`
+- `submit`
+
+Layout kind です。
+
+- `stack`
+- `row`
+- `grid`
+- `inline`
+
+Element type です。
+
+- `Heading`
+- `Paragraph`
+- `Text`
+- `Input`
+- `Textarea`
+- `Button`
+- `Link`
+- `Select`
+- `MultiSelect`
+- `Checkbox`
+- `CheckboxGroup`
+- `Switch`
+- `RadioGroup`
+- `List`
+- `Table`
+- `Banner`
+- `Dialog`
+- `Badge`
+- `Image`
+- `Icon`
+- `Spinner`
+- `Divider`
+- `FileUpload`
+- `FileInput`
+- `DatePicker`
+- `DateInput`
+- `TimeInput`
+- `NumberInput`
+
+Element property の主なキーです。
+
+- `marker`
+- `sample`
+- `label`
+- `label src`
+- `value`
+- `src`
+- `format`
+- `initial value`
+- `required`
+- `visible when`
+- `hidden when`
+- `disabled when`
+- `variant`
+- `tone`
+- `validation`
+- `error text`
+- `action`
+
+Element のリストグループ名です。
+
+- `options`
+- `Columns`
+- `Sample Rows`
+- `Row`
+
+共通プロパティ名です。
+
+- `marker`
+- `value`
+- `label`
+- `variant`
+- `tone`
+- `visible when`
+- `hidden when`
+- `disabled when`
+
+レイアウト用プロパティ名です。
+
+- `gap`
+- `align`
+- `justify`
+- `overlay`
+- `partial`
+- `id`
+- `states`
+
+`variant` と `tone` の値です。
+
+- `primary`
+- `danger`
+- `success`
+- `warning`
+- `info`
+
+## ID
+
+ID prefix は次の通りです。
+
+- `SCR-*`: 画面。
+- `TPL-*`: テンプレート。
+- `PRT-*`: partial。
+- `L-*`: レイアウトグループ。
+- `P-*`: 表示調整だけの presentation panel。
+- `E-*`: 画面要素。
+- `A-*`: アクション。
+- `R-*`: ルール。
+
+ID は通し番号ではなく意味のある名前にします。
+
+```text
+L-LoginForm
+P-LoginFields
+E-EmailInput
+A-SubmitLogin
+R-RequiredFields
+```
+
+prefix の後ろには日本語も使えます。
+
+```text
+E-ページヘッダ
+A-ログイン実行
+L-メッセージ領域
+```
+
+ID にはスペース、`.`、`:` を入れません。これらは MarkVSpec の構文上の区切りに使います。
+
+## marker
+
+marker はプレビューや設計書上に表示する短い番号です。ID とは別物です。現在の英語版サンプルでは、
+Mermaid label、document symbol、plain text review comment で読みやすいように `1`、`L1`、`A1` のような ASCII marker を優先します。
+
+```markdown
+### 2:E-EmailInput Input*
+
+- value: ${model.email}
+- initial value: "test@example.com"
+```
+
+ルールです。
+
+- 見出しでは `<marker>:<id>` と書きます。
+- 推奨 marker は、英数字、underscore、hyphen で構成する 1-12 文字です。先頭は英数字にします。それ以外の marker は互換のため読み取りますが warning にします。
+- 参照には marker ではなく ID を使います。
+- marker は Layout、Element、Action で使えます。
+- marker 表示は Layout、Element、Action ごとに ON / OFF できる想定です。
+- marker の重複は少なくとも同じカテゴリ内で警告します。
+- rule と validation の見出しは、`### R-AccessControl Access control` や
+  `### V-RequiredEmail Required email` のように安定 ID を直接使います。
+
+## States
+
+画面内状態を箇条書きで書きます。
+
+```markdown
+## States
+
+- idle*
+- validation-error
+  - クライアント側の入力検証でエラーを表示する状態。
+- wait-auth
+- auth-error
+  - 認証失敗メッセージを表示する状態。
+- loaded
+- recovered
+  - 認証失敗後に復帰した状態。
+```
+
+形式です。
+
+```text
+- <state>
+- <state>*
+- <state>
+  - <description>
+```
+
+`state` は画面内状態です。フォーム値のような画面データは `${model.email}` のような不透明な式として扱います。
+初期状態は状態名末尾の `*` で示します。説明は状態の下にネストしたリストとして書きます。
+state 配下のネストした箇条書きは自由記述の説明です。プレビューの基準状態は定義しません。
+
+## Layout
+
+Layout はビューポート単位で書きます。`## Layout: mobile` や
+`## Layout: desktop` のように、必ずビューポート名を付けます。
+単独の `## Layout` はリリース構文ではありません。
+
+レイアウトグループは level-3 見出しで書きます。
+
+```markdown
+## Layout: mobile
+
+### L1:L-Page Page
+
+- stack
+- align: center
+- gap: md
+
+#### Items
+
+- E-ページヘッダ
+- L-EmailField
+- E-SignInButton
+```
+
+Front Matter の `viewport` が Layout のビューポート名と一致する場合は、
+それを基準ビューポートとして扱います。一致しない場合は、最初の
+`## Layout: <viewport>` が基準です。設計書出力では印刷や PDF 化を前提に
+すべてのビューポートを表示し、各ビューポート/状態ごとの現在の仕様として
+要素一覧とアクション一覧を表示します。同じ内容が前の状態にも出ている行には
+repeated マーカーが付くことがあります。同じ layout ID を複数ビューポートに
+書く場合、marker は同じ値に揃えます。
+
+## Template と Slot
+
+Template は、共通のページ枠を表す独立した設計書です。Template 単体でも
+プレビュー／印刷でき、未解決の slot はプレースホルダーとして表示します。
+
+```markdown
+---
+id: TPL-MYPAGE-SHELL
+type: template
+title: マイページ共通レイアウト
+viewport: desktop
+---
+
+# TPL-MYPAGE-SHELL マイページ共通レイアウト
+
+## Layout: desktop
+
+### L-Shell Page Shell
+
+- row
+
+#### Items
+
+- L-LeftPane
+- L-RightPane
+
+### L-RightPane Right Pane
+
+- stack
+
+#### Items
+
+- L-Header
+- slot: content
+- L-Footer
+
+## Slots
+
+### content Main Content
+
+- purpose: Page-specific main content.
+- required
+```
+
+画面側は Front Matter で `template` ファイルを指定し、`## Slot: <name>` に
+差し込むコンテンツだけを書きます。viewport 別に差し替える場合は
+`## Slot: <name>: <viewport>` と書きます。
+
+```markdown
+---
+id: SCR-MYPAGE-HOME
+type: screen
+title: マイページ ホーム
+template:
+  id: TPL-MYPAGE-SHELL
+  src: ../templates/mypage-shell.vspec.md
+---
+
+# SCR-MYPAGE-HOME マイページ ホーム
+
+## Slot: content
+
+### L-HomeContent Home Content
+
+- stack
+
+#### Items
+
+- E-PageTitle
+
+## Slot: content: desktop
+
+### L-DesktopHomeContent Desktop Home Content
+
+- grid
+
+#### Items
+
+- E-PageTitle
+```
+
+画面ファイルを直接プレビューすると、template ファイルを読み込んで slot content を
+shell に合成します。生成される設計書では、画面側の slot content を主な仕様対象とし、
+template 側の要素やアクションは共通 shell の文脈として扱います。Slot 定義や
+slot content の一覧表は読者向けプレビュー章としては表示せず、合成結果を
+ワイヤーフレーム上で確認します。
+
+template layout が `slot: content` を描画するとき、MarkVSpec は同じ slot 名かつ
+描画中の layout viewport と一致する slot content を優先します。viewport 指定の
+slot content がなければ、viewport 未指定の `## Slot: content` に fallback します。
+同じ slot 名と viewport の slot content を複数定義すると診断が出ます。
+template layout ID と screen slot content の layout ID は、template 合成時には別スコープとして扱います。
+この境界をまたいで同じ layout ID があっても重複診断にはしません。Element、Action、Validation、
+Business Rule、Error Code の ID は合成後の画面で同じ名前空間として扱います。
+
+見出し形式です。
+
+```text
+### [<marker>:]<layout-id> <name>
+### P-<panel-id> <name>
+```
+
+末尾の文字列は Layout name です。Layout は構造であり、画面上の表示文言では
+ないことが多いため、生成される Action Details では Layout target を
+Layout marker とこの name で参照します。その箇所では Layout ID を重複表示しません。
+
+見た目の配置だけに使うコンテナは `P-*` の presentation panel として書きます。
+presentation panel は layout 種別と `#### Items` を持てますが、ワイヤーフレームでは
+border、padding、layout marker を表示しません。生成される Layout 一覧にも出しません。
+`visible when`、`hidden when`、`disabled when`、partial host、validation、error code、
+action update の target には使えません。表示制御や仕様上の意味を持たせたい場合は
+`L-*` の Layout を使います。
+
+レイアウト種別です。
+
+- `stack`
+- `row`
+- `grid`
+- `inline`
+
+配置です。
+
+```markdown
+- align: start|center|end|stretch
+- justify: start|center|end|between|around
+- gap: none|xs|sm|md|lg|xl
+- overlay: area|screen
+- partial:
+  - id: PRT-*
+  - states:
+    - <screen-state>: <partial-state>
+```
+
+`gap` はワイヤーフレーム描画の余白を整える visual hint です。DSL では許容され、
+プレビューのワイヤーフレームには反映されますが、生成される設計書のレイアウト属性表や
+サマリでは主要仕様として表示しません。配置や構造の意味を表す属性は `align`、
+`justify`、`overlay`、`visible when` / `hidden when` / `disabled when` を使います。
+
+`overlay: area` は親レイアウト領域を覆う待機表示、`overlay: screen` は全画面を覆う待機表示を表します。通常は `visible when` と組み合わせて、特定の画面内状態のときだけ表示します。
+
+待機中にフォーム全体を操作不可にする場合は、対象レイアウトに `disabled when` を書きます。
+
+screen 側で partial のプレビューを埋め込む場合は、置き換え先 layout に
+ネストした `partial` ブロックを書きます。画面状態ごとに partial の表示状態を
+変えたい場合は `states` に対応を書きます。
+
+```markdown
+### L-MemberProfilePartial Member Profile Partial
+
+- stack
+- partial:
+  - id: PRT-MEMBER-PROFILE-CARD
+  - states:
+    - initializing: loading
+    - idle: loaded
+```
+
+```markdown
+### L-LoginControls Login Controls
+
+- stack
+- disabled when: wait-auth
+
+#### Items
+
+- L-EmailField
+- L-PasswordField
+- E-SignInButton
+- L-AuthProgress
+
+### L-AuthProgress Auth Progress
+
+- stack
+- overlay: area
+- visible when: wait-auth
+
+#### Items
+
+- E-AuthSpinner
+```
+
+子要素や子レイアウトは必ず `#### Items` の下に書きます。
+
+```markdown
+#### Items
+
+- E-Heading
+- L-EmailField
+```
+
+ラベルと入力欄の組み合わせは quoted field mapping で書きます。
+
+```markdown
+#### Items
+
+- "メールアドレス": E-EmailInput
+```
+
+ラベルは引用符で囲みます。
+
+## Elements
+
+画面要素は level-3 見出しで書きます。
+
+```markdown
+## Elements
+
+### 5:E-SignInButton Button
+
+- label: ログイン
+- variant: primary
+- action: A-SubmitLogin
+```
+
+見出し形式です。
+
+```text
+### [<marker>:]<element-id> <element-type>[*]
+```
+
+末尾の文字列は Element name ではなく element type です。MarkVSpec は
+Element の表示名を別途定義しません。Element の `name` property は form field
+name など要素固有の property として扱います。生成される Action Details では、
+Element 参照を Element marker と Element ID で識別し、element type や
+表示内容要約は原則として足しません。
+
+`*` は generated design document の表で required として表すための
+メタデータです。wireframe preview では native `required` attribute や
+自動の `*` marker としては描画しません。画面上に必須マークを見せたい場合は、
+label 文字列に自分で書きます。
+
+```markdown
+### 3:E-EmailInput Input*
+```
+
+現行リリースの要素種別です。
+
+- `Heading`
+- `Paragraph`
+- `Text`
+- `Input`
+- `Textarea`
+- `Button`
+- `Link`
+- `Select`
+- `MultiSelect`
+- `Checkbox`
+- `CheckboxGroup`
+- `Switch`
+- `RadioGroup`
+- `List`
+- `Table`
+- `Banner`
+- `Dialog`
+- `Badge`
+- `Image`
+- `Icon`
+- `Spinner`
+- `Divider`
+- `FileUpload`
+- `FileInput`
+- `DatePicker`
+- `DateInput`
+- `TimeInput`
+- `NumberInput`
+
+未知の Element type は warning です。カスタムの要素を意図して使う場合は、
+`custom:Map` のような `custom:*` 形式を使います。
+
+`Paragraph` は説明文、本文、空状態メッセージなどの block の文章に使います。
+`Text` は短いラベル、値、日時、件数などの inline またはコンパクトな表示に使います。
+
+主なプロパティです。
+
+```markdown
+- label: ログイン
+- label src: ${i18n.login.signIn}
+- sample: ログイン
+- type: password
+- visible when: auth-error
+- hidden when: idle
+- disabled when: E-EmailInput is empty
+- variant: primary
+- tone: danger
+- validation: メールアドレス形式であること。
+- error text: 正しいメールアドレスを入力してください。
+```
+
+`Heading` は `level` で見出しレベルを表します。
+
+```markdown
+### E-Heading Heading
+
+- level: 1
+- label: ログイン
+```
+
+`visible when` / `hidden when` / `disabled when` には画面内状態だけでなく
+`${model.memberProfile.loaded}` のような不透明な式も書けます。API 取得後に Loading 表示から実値表示へ
+切り替えるような場合は、画面状態ではなくデータ条件で表します。
+
+```markdown
+### E-Greeting Text
+
+- sample: こんにちは「山田 太郎さん」
+- src: ${model.memberProfile.displayName}
+- format: こんにちは「{displayName}さん」
+- visible when: ${model.memberProfile.loaded}
+
+### E-GreetingLoading Text
+
+- sample: 読み込み中...
+- visible when: not ${model.memberProfile.loaded}
+```
+
+表示値まわりの責務は次のように分けます。
+
+- `label`: 見出し、ボタン、リンク、フォーム項目名など、ユーザーに見せる静的な文言。
+- `label src`: `label` の取得元。主に `${i18n.login.heading}` のような不透明な式。
+- `placeholder`: 入力欄などに表示する補助文言。
+- `placeholder src`: `placeholder` の取得元。主に `${i18n.login.email}` のような不透明な式。
+- `sample`: 動的データが実際に表示される時の代表表示例。
+- `src`: `sample` の取得元またはバインド先。`${model.notice.title}` や `${route.noticeId}` のような不透明な式。
+- `value`: 送信値、選択肢値、hidden value などの機械的な値。単なる表示サンプルには使いません。
+
+`format` は `src` の値を `sample` の形へ整形する規則です。生成される設計書では
+`label src`、`placeholder src`、`src`、`sample`、`value`、`format` を
+`表示内容仕様` に分離して表示します。入力フォーム仕様には入力制約を置き、
+label、placeholder、option label などの文言取得元は混ぜません。
+
+`validation` と `error text` は generated Elements table に表示するための
+仕様情報です。wireframe preview では form control の近くに自動表示しません。
+画面上に validation message や error message を出したい場合は、`visible when`
+を持つ `Text` や `Banner` として明示的に定義します。
+
+## Form Groups
+
+`## Form Groups` は、フォーム単位の入力検証や送信責務を表す意味的なグループです。
+画面上の見た目や DOM の置き換え対象ではありません。FormGroup ID は `F-*` で書きます。
+
+```markdown
+## Form Groups
+
+### F-LoginForm Login form
+
+- fields:
+  - E-EmailInput
+  - E-PasswordInput
+  - E-RememberMe
+- submit: A-SubmitLogin
+```
+
+`fields` には FormGroup に含める入力 Element ID を並べます。`submit` は送信
+Action を示します。FormGroup には Layout との紐づけを書きません。表示・更新対象は
+`L-*`、検証対象は `F-*` として分けます。
+
+`F-*` は Validation の `target` としてだけ使います。Action の update target や
+partial update target には `L-*` の Layout ID を使います。複数項目にまたがる
+フォーム検証は `target: F-LoginForm` のように FormGroup を対象にすると、どの
+入力群に対する検証かが設計書上で明確になります。
+
+## データ式と初期値
+
+入力値は `${model.email}` のような不透明な式として表します。
+
+```markdown
+### 3:E-EmailInput Input*
+
+- value: ${model.email}
+- initial value: "test@example.com"
+```
+
+これは次を意味します。
+
+- 画面データ: `${model.email}`
+- 初期表示値: `test@example.com`
+
+初期値が不要な場合は次のように書けます。
+
+```markdown
+- value: ${model.email}
+```
+
+`Checkbox` でも同じ `initial value` property を使えます。
+
+```markdown
+### 10:E-RememberMe Checkbox
+
+- label: Remember me
+- value: ${model.rememberMe}
+- initial value: ${cookie.remember.present}
+```
+
+排他的な選択肢は `RadioGroup` として書きます。値域は `options` の下に
+Markdown のネストリストで書き、初期選択は `{初期値}` で表します。
+選択肢の表示名が i18n などの参照元を持つ場合は、項目の後ろに `:` で
+参照元を書けます。
+
+```markdown
+### 4:E-ReadStatusFilter RadioGroup
+
+- label: 既読状態
+- label src: ${i18n.search.read-status}
+- name: readStatus
+- value: ${model.noticeSearch.readStatus}
+- initial value: "すべて"
+- options:
+  - すべて: ${i18n.search.all}
+  - 未読のみ: ${i18n.search.unread-only}
+  - 既読のみ: ${i18n.search.read-only}
+```
+
+単体の `Radio` 要素は廃止しました。排他的な選択肢は常に `RadioGroup` で表し、
+値の参照元、初期値、選択肢一覧を 1 つの要素にまとめます。
+
+`Select` の選択肢は `options:` の下に Markdown のリストとして書きます。
+各項目は表示ラベルを書き、プレビューでは同じ文字列を option value として扱います。
+表示ラベルに参照元がある場合は、項目の後ろに `:` で書きます。
+
+```markdown
+### E-RoleSelect Select*
+
+- value: ${model.role}
+- initial value: "Administrator"
+- options:
+  - 閲覧者: ${i18n.roles.viewer}
+  - 管理者: ${i18n.roles.administrator}
+  - オーナー: ${i18n.roles.owner}
+```
+
+`Table` は Markdown table ではなく、ネストした Markdown リストで列とサンプル行を書きます。
+区切り文字を使った文字列操作を避け、設計書として読みやすい形を優先します。モデルに紐づくテーブルは
+`source` と list 形式の `## Model Samples` を使うと、active state のサンプルデータから preview の行が生成されます。
+
+ネストした Element ブロックの開始は `options:`, `Columns:`, `Sample Rows:`, `params:`, `input rule:` のようにコロン付きで書きます。
+
+```markdown
+### E-Users Table
+
+- label: Users
+- source: ${model.users.items}
+- Columns:
+  - name: 名前
+    sortable: true
+    sort: asc
+  - email: メール
+    sortable: true
+  - role: 権限
+
+## Model Samples
+
+### idle
+
+#### ${model.users.items}
+
+- name: Alice
+  email: alice@example.com
+  role: Admin
+- name: Bob
+  email: bob@example.com
+  role: Viewer
+```
+
+`Columns:` では `- key: 表示名` と書くことで、サンプルデータの key と表示ヘッダーを分けられます。
+`sortable: true` は sort 可能な列、`sort: asc` / `sort: desc` は現在の sort 方向を preview に表示します。
+モデルを使わない静的なテーブルでは、従来の `Sample Rows:` ブロックも互換として利用できます。
+
+## variant と tone
+
+`variant` は表示優先度、`tone` は意味的な意図です。
+
+```markdown
+### E-SubmitButton Button
+
+- label: 送信
+- variant: primary
+
+### E-ErrorBanner Banner
+
+- tone: danger
+- sample: メールアドレスまたはパスワードが正しくありません。
+```
+
+現行リリースの `variant` です。
+
+- `primary`
+- `secondary`
+- `tertiary`
+
+現行リリースの `tone` です。
+
+- `neutral`
+- `info`
+- `success`
+- `warning`
+- `danger`
+
+サイズ、色、CSS class のようなデザインシステム詳細は書きません。
+
+## Spinner
+
+`Spinner` は、認証待ちや検索中のような待機状態を表す要素です。
+
+```markdown
+### E-AuthSpinner Spinner
+
+- label: Signing in...
+- visible when: wait-auth
+```
+
+`label` は読み上げや低 fidelity preview の表示に使います。
+
+`Textarea`、`MultiSelect`、`CheckboxGroup`、`Switch` は、汎用 custom element
+に逃がすと入力仕様が曖昧になりやすいフォームプリミティブです。`MultiSelect` は
+コンパクトな複数選択、`CheckboxGroup` は選択肢を常時見せたい複数選択、`Switch`
+は boolean 設定に使います。
+
+```markdown
+### E-Notes Textarea
+
+- label: メモ
+- width: full
+- rows: 4
+- placeholder: 内部メモ
+
+### E-Permissions MultiSelect
+
+- label: 権限
+- initial value: ユーザー管理, レポート出力
+- options:
+  - ユーザー管理
+  - レポート出力
+  - 請求
+
+### E-Notifications CheckboxGroup
+
+- label: 通知
+- initial value: プロダクト更新, セキュリティ通知
+- options:
+  - プロダクト更新
+  - セキュリティ通知
+  - 請求通知
+
+### E-EmailSwitch Switch
+
+- label: メール通知
+- initial value: true
+```
+
+## 実務補助要素
+
+`Divider`、`FileUpload`、`FileInput`、`DatePicker`、`DateInput`、`TimeInput`、
+`NumberInput` は、実務画面でよく出る細かな
+UI 部品を、フレームワーク固有の widget 名に寄せずに表現するための要素です。
+
+```markdown
+### E-ProfileDivider Divider
+
+- label: プロフィール設定
+
+### E-EmptyUsers Paragraph
+
+- sample: 該当するユーザーはありません。条件を変更して再検索してください。
+- visible when: empty
+
+### E-AvatarUpload FileUpload
+
+- label: アバターをアップロード
+- accept: image/png,image/jpeg
+- sample: PNG または JPEG、2 MB まで。
+
+### E-StartDate DatePicker
+
+- value: ${model.startDate}
+- initial value: 2026-05-01
+- min: 2020-01-01
+- max: 2030-12-31
+
+### E-RequestedDate DateInput*
+
+- value: ${model.requestedDate}
+- initial value: 2026-06-01
+- min: 2026-05-13
+- max: 2026-12-31
+
+### E-StartTime TimeInput
+
+- value: ${model.startTime}
+- initial value: 09:30
+- min: 09:00
+- max: 18:00
+
+### E-Headcount NumberInput*
+
+- value: ${model.headcount}
+- initial value: 2
+- min: 1
+- max: 20
+- step: 1
+
+### E-Evidence FileInput
+
+- label: 証憑ファイル
+- accept: application/pdf,image/png,image/jpeg
+- sample: PDF または画像を添付します。
+```
+
+## Actions
+
+アクションは level-3 見出しで書きます。
+
+```markdown
+## Actions
+
+### A1:A-SubmitLogin ログイン送信
+
+- Triggered
+  - E-SignInButton.click
+- From
+  - idle
+  - auth-error
+- Process
+  - Validate: V-LoginForm
+    - cases:
+      - invalid:
+        - state: validation-error
+        - stop
+      - valid:
+        - continue
+  - Preprocess
+    - when: state is auth-error
+    - update:
+      - target: L-MessageArea
+      - content: Empty message
+  - HttpRequest
+    - POST /login
+      - email: E-EmailInput.value
+      - password: E-PasswordInput.value
+    - cases:
+      - sent:
+        - state: wait-auth
+        - stop
+      - send-failed:
+        - state: auth-error
+        - stop
+
+### A2:A-HandleLoginResponse ログイン応答処理
+
+ログイン API の非同期応答を受け取り、成功時はホームへ遷移し、失敗時は認証エラーを表示します。
+
+- Triggered
+  - A-SubmitLogin.response
+- From
+  - wait-auth
+- Process
+  - HttpResponse
+    - cases:
+      - success:
+        - response: 2xx 認証成功
+        - navigate: SCR-DASHBOARD
+        - stop
+      - failure:
+        - response: 401 invalid credentials
+        - state: auth-error
+        - stop
+
+認証失敗時のメッセージ文言は、表示要素またはエラーコード契約に紐づけて管理します。
+```
+
+見出し形式です。
+
+```text
+### [<marker>:]<action-id> <action-name>
+```
+
+主なグループです。
+
+- `Triggered`: 何をきっかけに実行するか。
+- `From`: どの画面内状態から実行できるか。
+- `Process`: 処理ステップ。
+- `Effects`: request を伴わない即時効果。HTTP request の待機状態は、request step の送信結果として書きます。
+
+Action レベルの `When` / guard はサポートしません。操作可否は要素の
+`disabled when` に寄せ、入力検証は `Validations` と `Validate` process
+step に書きます。HTTP request を伴う Action では、送信できたかどうかを
+`HttpRequest` の `sent` / `send-failed` のような case に書き、レスポンス完了後の
+部分更新や画面遷移は `A-SubmitLogin.response` のような別 Action に分けます。
+非同期結果によって遷移が分かれる場合は、該当する process step の `cases:` に
+`ready` / `still-loading` のような結果名を置いて表現します。特定の処理
+ステップだけに関係する条件は、process step の `when` / `skip when` として
+書けますが、Action 全体の遷移条件にはなりません。
+
+process step の `cases:` 配下では、case の最後に `stop` または `continue` を
+書けます。`stop` はその case で Action の処理を終了すること、`continue` は
+次の process step に進むことを表します。省略時は `continue` として扱います。
+たとえば `Validate.invalid` は `stop` にして後続の request を送らず、
+`Validate.valid` は `continue` にして次の step に進めます。任意の step へ
+ジャンプする `next` 指定は現行仕様では扱いません。
+
+複数の処理を並列に開始し、全完了後にまとめて判定する場合は process step に
+`parallel: <group-id>` を書き、同じ group に参加させます。集約判定は
+`Resolve: <group-id>` step に書きます。parallel step の case は結果や
+model update を残して `continue` し、最終的な `state` / `navigate` / `stop` は
+`Resolve` step に寄せます。parallel step の case に `stop`、`state`、`navigate`
+を書くと診断で警告します。
+
+```markdown
+- Process
+  - ServerCall
+    - parallel: initial-load
+    - MemberQueryService.findSelfProfile()
+    - cases:
+      - success:
+        - response: 200 member profile
+        - ${model.memberProfile.loaded}: true
+        - continue
+      - failure:
+        - response: 5xx or timeout
+        - continue
+  - ServerCall
+    - parallel: initial-load
+    - PointQueryService.findSelfPoints()
+    - cases:
+      - success:
+        - response: 200 points
+        - ${model.points.loaded}: true
+        - continue
+      - failure:
+        - response: 5xx or timeout
+        - continue
+  - Resolve: initial-load
+    - cases:
+      - ready:
+        - response: profile and points loaded
+        - state: idle
+        - stop
+      - failed:
+        - response: one or more calls failed
+        - state: load-error
+        - stop
+```
+
+Action 見出し直下の自由記述は、その Action の概要として扱います。
+Action 詳細の `Overview` は自動生成しません。概要が必要な場合は、構造化リストの前に
+本文を書いてください。構造化リストの後ろに置いた自由記述は、これまでどおり
+`Notes` として表示します。
+Action 直下のトップレベル箇条書きは DSL の構造化リストとして扱うため、概要には
+通常の本文、表、コードブロックを使ってください。
+
+イベント例です。
+
+- `E-SignInButton.click`
+- `E-EmailInput.blur`
+- `A-SubmitLogin.response`
+- `screen.load`
+- `partial.render`
+
+現行リリースの要素イベントです。
+
+- `click`
+- `change`
+- `submit`
+- `focus`
+- `blur`
+- `open`
+- `close`
+
+画面表示時の取得処理や、サーバ側ライブラリ呼び出しを表す場合は
+`ServerCall` を使います。ブラウザから直接 HTTP request を投げるのではなく、
+UI アプリが `MemberQueryService.findSelfProfile()` のような service を呼び、
+戻り値を `${model.value}` 形式の式に詰めるケースを表現するための処理ステップです。
+以降の画面要素は、この処理で格納した値を `${model.memberProfile.displayName}` のように参照します。
+`notice.title` のような裸の alias は出処が追いにくいため、設計書上は避けます。
+戻り値を model に入れる記述は、通常 `success` case の中に書きます。失敗時にも実行される
+共通 detail に見えないよう、結果に依存する model 更新は該当する `cases:` 配下へ置きます。
+呼び出し行は `client:` のようなラベルを付けずに書きます。引数がある場合は呼び出し行の子として
+1 段深くインデントします。
+
+```markdown
+- Process
+  - ServerCall
+    - MemberQueryService.findSelfProfile()
+      - includePreferences: true
+    - cases:
+      - success:
+        - response: 200 member profile
+        - ${model.memberProfile.displayName}: MemberProfileDto.displayName
+        - ${model.memberProfile.loaded}: true
+        - state: idle
+      - failure:
+        - response: 5xx or timeout
+        - state: load-error
+```
+
+複数の `ServerCall` が揃ってから通常表示へ遷移する場合は、画面状態を
+API ごとの組み合わせで増やさず、初期状態を `initializing`、通常表示を
+`idle` のように分けます。API ごとの完了は `${model.memberProfile.loaded}` や
+`${model.points.loaded}` のようなモデル条件として扱い、各 response 後に同じ
+完了判定アクションを置きます。
+
+表示文字列は、preview で人間が読めるサンプルと、実データの参照元を分けて書けます。
+`sample` はワイヤーフレームに表示する canonical なサンプル文字列、`src` は実装時に
+参照する `${model.value}` 形式の式、`format` は表示整形ルールです。`value` や `label` はフォーム値や
+UI ラベルには使いますが、動的な表示文字列は `sample` と `src` を分けて書きます。
+
+入力系要素は semantic な幅 preset を指定できます。`width` は `Input`、`Textarea`、
+`Select`、`MultiSelect`、`DatePicker`、`DateInput`、`TimeInput`、
+`NumberInput`、`FileUpload`、`FileInput` で使えます。
+
+```markdown
+### E-PostalCodeInput Input
+
+- width: short
+- placeholder: 100-0001
+
+### E-AddressInput Input
+
+- width: full
+- placeholder: Street address
+```
+
+`short` は郵便番号、電話番号、数量、コードなど、`medium` は氏名や検索語、
+`long` / `full` は住所、メール、説明文などに使います。`Button` は横幅指定ではなく
+visual weight として `size` preset を指定できます。
+
+```markdown
+### E-SearchAddressButton Button
+
+- label: Search address
+- size: small
+
+### E-SaveButton Button
+
+- label: Save
+- variant: primary
+- size: large
+```
+
+配列データの行やカードを表す場合は、`## Model Samples` に状態別のサンプルデータを定義します。
+行ごとに `E-Notice1Link` / `E-Notice2Link` のような個別 ID を採番せず、
+繰り返される構造を1セットだけ定義し、プレビューがサンプルデータの件数に応じて展開します。
+通常の記述では list 形式を主導線にします。項目が増えても Markdown table より編集しやすいためです。
+生成される設計書では、Model Samples は独立章ではなく、該当 state の Wireframe 直前に表示されます。
+各サンプルはモデルパスを小見出しとして表示し、`Rows: n` や `Sample Data` のような汎用ラベルは表示しません。
+ヘッダのみの table は明示的な空配列として扱われ、モデルパスだけで項目定義がない場合は未定義として diagnostic が出ます。
+
+```markdown
+### L-NoticeRows Notice Rows
+
+- stack
+- visible when: loaded
+
+#### Items
+
+- L-NoticeRow
+
+### L-NoticeRow Notice Row
+
+- row
+- gap: sm
+- align: center
+
+#### Items
+
+- E-NoticeStatusBadge
+- E-NoticeLink
+- E-NoticePublishedAt
+
+## Model Samples
+
+### empty
+
+#### ${model.noticeList.items}
+
+| noticeId | title | publishedAt | read |
+|---|---|---|---|
+
+### loaded
+
+#### ${model.noticeList.items}
+
+- noticeId: N-001
+  title: メンテナンスのお知らせ
+  publishedAt: 2026-05-01
+  read: false
+- noticeId: N-002
+  title: 利用規約改定のお知らせ
+  publishedAt: 2026-04-20
+  read: true
+```
+
+`### <state>` は画面または partial の状態、`#### <model path>` はモデルパスを表します。
+通常のサンプルデータは、項目が増えても読みやすい list 形式を優先します。
+データ行が 0 行の table は明示的な空配列、複数行の table はコンパクトな表形式データとして扱えます。
+`${model.noticeList.items}` の行 alias は `${model.notice}` になるため、行内の要素は
+`src: ${model.notice.title}` のように参照できます。
+
+```markdown
+### E-NoticeTitle Link
+
+- sample: メンテナンスのお知らせ
+- src: ${model.notice.title}
+- href: SCR-NOTICE-DETAIL
+- params:
+  - noticeId: ${model.notice.noticeId}
+
+### E-NoticePublishedAt Text
+
+- sample: 2026/05/01
+- src: ${model.notice.publishedAt}
+- format: date yyyy/MM/dd
+```
+
+ワイヤーフレームには `sample` を表示し、生成される設計書の
+画面要素一覧には `src` と `format` を表示します。
+
+`Link` が画面 ID を指す場合、画面遷移に渡すパラメータは `params` 配下に
+記載します。値は表示文字列ではなくデータ参照です。対象画面が project 内で
+読み込まれている場合、対象画面の route プレースホルダと名前が一致するかを
+検証します。
+
+Action で画面遷移する場合も、同じように `params` をネストして記載します。
+
+```markdown
+### A-OpenNotice Open notice
+
+- Triggered
+  - E-NoticeTitle.click
+- From
+  - loaded
+- Effects
+  - navigate: SCR-NOTICE-DETAIL
+  - params:
+    - noticeId: ${model.notice.noticeId}
+```
+
+例外として、`Image` の `src` は画像 asset の参照元を表します。`Text`、`Link`、
+`Heading` などの表示系要素では `src` はデータ参照元、`Image` では asset 参照元
+として扱います。
+
+お知らせ一覧のような繰り返しデータでは、タイトルや日付が違うだけの行に
+marker を採番しない方針にします。ID はバインディングや操作対象として維持しつつ、
+表示 marker はレビュー上の意味がある対象や、既読 / 未読のような値域のバリエーションに
+絞ります。
+
+```markdown
+## States
+
+- initializing*
+- idle
+- load-error
+
+### A3:A-ResolveHomeData Resolve home data
+
+- Triggered
+  - A-LoadMemberProfile.response
+- From
+  - initializing
+- Process
+  - EvaluateHomeData
+    - cases:
+      - ready:
+        - response: ${model.memberProfile.loaded} and ${model.points.loaded}
+        - state: idle
+      - still-loading:
+        - response: one or more required client calls are still loading
+        - state: initializing
+```
+
+現行リリースのアクションライフサイクルイベントです。
+
+- `response`
+
+`response` は `<action-id>.response` の形で使います。HTTP request を開始した Action と、
+非同期レスポンスで partial update や画面遷移を行う Action を分けるための trigger です。
+`E-EmailInput.response` のような要素イベントとしては扱いません。
+
+## Cases
+
+処理ステップの結果は、該当する process step の `cases:` に書きます。
+HTTP request の場合、クリック Action 側の `cases:` は送信処理の結果を表します。
+レスポンス本文や HTTP status による分岐は、`A-SubmitLogin.response` のような
+レスポンス処理 Action に分けます。
+
+```markdown
+### A1:A-SubmitLogin ログイン送信
+
+- Triggered
+  - E-SignInButton.click
+- From
+  - idle
+- Process
+  - Validate: V-LoginForm
+    - cases:
+      - invalid:
+        - state: validation-error
+  - HttpRequest
+    - POST /login
+      - email: E-EmailInput.value
+      - password: E-PasswordInput.value
+    - cases:
+      - sent:
+        - state: wait-auth
+      - send-failed:
+        - state: auth-error
+
+### A2:A-HandleLoginResponse ログイン応答処理
+
+- Triggered
+  - A-SubmitLogin.response
+- From
+  - wait-auth
+- Process
+  - HttpResponse
+    - cases:
+      - success:
+        - response: 2xx 認証成功
+        - navigate: SCR-DASHBOARD
+      - failure:
+        - response: 401 invalid credentials
+        - state: auth-error
+        - update:
+          - target: L-MessageArea
+          - content: Authentication error message
+```
+
+`state` は画面内状態の変更、`navigate` は別画面への遷移です。画面遷移は状態遷移図では終端として扱います。
+
+各 case には、少なくとも `response`、`state`、`navigate`、または `update` を書きます。空の case は、その結果が何を意味するのか設計書から読めないため警告になります。
+
+## 部分更新
+
+Thymeleaf や htmx による部分更新は、実装属性ではなく意味として書きます。
+
+```markdown
+### A2:A-HandleLoginResponse ログイン応答処理
+
+- Triggered
+  - A-SubmitLogin.response
+- From
+  - wait-auth
+- Process
+  - HttpResponse
+    - cases:
+      - failure:
+        - response: 401 invalid credentials
+        - state: auth-error
+        - update:
+          - target: L-MessageArea
+          - content: Authentication error message
+```
+
+必要なら `mode` や `fragment` を補足できます。
+
+```markdown
+- update:
+  - target: L-MessageArea
+  - mode: replace
+  - fragment: auth/login :: message
+```
+
+ただし、`hx-post` や `hx-target` のような htmx 属性そのものを主 DSL に書くことは避けます。
+
+## モデル更新処理
+
+モデル更新そのものは Action の中に書きます。どの契機でデータが変わるかは
+Action が一次情報だからです。一方で、生成される設計書ビューでは `${model.value}` 形式の式への
+更新を横断的に集約し、「モデル更新処理」として表示します。
+
+「モデル更新処理」は Action 単位にグルーピングされます。Action marker、Action
+名、trigger はグループ見出しで一度だけ示し、グループ内の表は context/process/case、
+model path、update 内容に絞ります。
+
+集約対象は、`Process` 配下の明示的な `${model.value}` 形式の代入と、結果ごとの `update`
+配下にある `${model.value}` 形式の式を含む `side effect` です。
+
+```markdown
+- Process
+  - ServerCall
+    - NoticeQueryService.findNotice()
+      - noticeId: ${route.noticeId}
+    - cases:
+      - success:
+        - response: 200 notice
+        - ${model.notice}: NoticeDetailResult
+        - update:
+          - target: L-NoticeBody
+          - side effect: お知らせ本文を ${model.notice} に格納する
+```
+
+screen/template/partial から partial を利用する場合、layout partial host、`PartialRequest`、
+update `content` のいずれで使う `PRT-*` partial ID も Front Matter
+`references.partials` に定義します。未定義の partial ID は実務投入向け validation gate
+では error になります。
+partial の循環参照と 10 階層を超える nesting は無効です。
+
+validation gate は core package の `evaluateMarkVSpecDiagnostics()` が返す
+`exitCode` を基準にします。デフォルトでは error がある場合に失敗し、strict mode では
+warning も失敗扱いにできます。
+
+`HttpRequest` には、パラメータだけでなくリクエスト行も書きます。次の例は、送信値は分かりますが、どこにどのメソッドで送るのかが分からないため警告になります。
+
+```markdown
+- Process
+  - HttpRequest
+    - email: E-EmailInput.value
+```
+
+次のようにリクエスト行を明示します。
+パラメータはリクエスト行の子として 1 段深くインデントします。これにより、
+複数の request step がある Action でも「どのリクエストに渡す値か」が読み取りやすくなります。
+
+```markdown
+- Process
+  - HttpRequest
+    - POST /login
+      - email: E-EmailInput.value
+```
+
+## Validations
+
+`## Validations` は、単項目と複合の入力検証契約を書きます。要素側の
+`input rule` は type、長さ、範囲、pattern、IME、accept、step などの入力仕様に
+限定し、検証条件とメッセージはこの章に置きます。
+
+```markdown
+## Validations
+
+### V-PasswordConfirmation パスワード確認
+
+- target: E-PasswordInput
+- target: E-PasswordConfirmInput
+- trigger: A-SaveUser
+- scope: composite
+- run: client
+- condition: E-PasswordInput.value equals E-PasswordConfirmInput.value
+- message: パスワードと確認用パスワードが一致していること。
+- error code: ERR-PASSWORD-CONFIRMATION
+```
+
+生成される設計書ビューでは、`target`、`trigger`、`condition`、`message`、`error code`
+を Validations として表示します。`scope` は `single` / `field` または `composite` /
+`cross-field`、`run` は `client` / `server` / `server-response` を使います。設計書では
+クライアント単項目検証、クライアント複合項目検証、サーバ単項目検証、サーバ複合項目検証
+の4表に分類し、該当データがない表は表示しません。`trigger` は `A-SaveUser` のような
+Action ID または `E-EmailInput.blur` のような要素イベントを参照します。
+
+フォーム全体の検証は `## Form Groups` で `F-*` を定義し、Validation の `target`
+に FormGroup ID を指定します。`target: L-*` は表示レイアウトと検証責務が混ざるため、
+複合検証の対象としては使いません。
+
+```markdown
+## Form Groups
+
+### F-LoginForm Login form
+
+- fields:
+  - E-EmailInput
+  - E-PasswordInput
+- submit: A-SubmitLogin
+
+## Validations
+
+### V-LoginForm Login form validation
+
+- target: F-LoginForm
+- trigger: A-SubmitLogin
+- scope: composite
+- run: client
+- message: メールアドレスとパスワードは必須です。
+```
+
+## Business Rules
+
+業務ルールは複数の要素や状態にまたがる振る舞いを書きます。
+
+```markdown
+## Business Rules
+
+### R-RequiredFields
+
+- The submit button must stay disabled until required fields are valid.
+```
+
+## Error Codes
+
+`## Error Codes` はサーバ応答や検証失敗を UI 表示契約に対応付けます。
+
+```markdown
+## Error Codes
+
+### ERR-PASSWORD-CONFIRMATION パスワード確認
+
+- business rule: R-RequiredFields
+- target: E-PasswordConfirmInput
+- message: パスワードと確認用パスワードが一致していること。
+- display: inline
+```
+
+Validation は `error code` でエラーコードを参照できます。Action の応答ケースにも
+`error code: ERR-*` を書くことで、サーバ応答と UI メッセージ契約を接続できます。
+
+## History
+
+`## History` は仕様書の変更履歴を構造化して扱います。`###` 見出しを履歴 entry の
+version / ID とし、entry 冒頭の metadata bullet を schema に従って検証します。
+標準 schema は次の通りです。
+
+- `date`: 必須。`YYYY-MM-DD`
+- `author`: 必須文字列
+- `reviewer`: 任意文字列
+- `reason`: 任意文字列
+
+metadata の後に書いた本文は自由 Markdown として生成設計書に表示されます。
+
+```markdown
+## History
+
+### ver 1.0
+
+- date: 2026-05-13
+- author: 佐藤
+- reviewer: 田中
+- reason: 初版作成
+
+初版としてログイン画面を追加しました。
+
+- ログインフォーム
+- エラー表示
+```
+
+プロジェクトで履歴列を増やしたい場合は `## History Fields` を定義します。同じ key
+を定義すると標準 schema を上書きし、それ以外は追加 field になります。
+
+```markdown
+## History Fields
+
+- date
+  label: Date
+  required: true
+  type: date
+
+- author
+  label: Author
+  required: true
+  type: string
+
+- ticket
+  label: Ticket
+  required: false
+  type: string
+
+- approvedBy
+  label: Approved By
+  required: false
+  type: string
+```
+
+## 説明文と自由記述セクション
+
+`# <ID> <Title>` 直後から最初の `##` 見出しまでの本文は、画面または
+パーシャル自体の説明です。生成設計書では Screen / Partial の説明として表示し、
+自由記述セクションにはしません。
+
+```markdown
+# PRT-POINTS-CONTENT ポイントコンテンツ
+
+HTMX の `hx-get="/points/content"` に応答して返される部分 HTML。
+ポイント残高サマリーを提供する。
+
+## States
+```
+
+MarkVSpec は、予約されていない level-2 見出しを自由記述セクションとして扱います。
+自由記述セクションは Markdown として保持し、生成される設計書ビューに表示しますが、
+MarkVSpec は内容を検証、集計、実装契約として解釈しません。
+
+```markdown
+## Project Memo
+
+- Error copy still needs product review.
+- First release uses server-side rendering.
+```
+
+上の `Project Memo` は例示用の自由記述セクション名です。MarkVSpec の標準セクション名ではありません。
+未決事項を自由記述として残すことはできます。ただし、未決事項がある設計書をそのまま
+実装や受け入れ判定の入力にしないでください。実装契約として扱う情報は、
+`Actions`、`Validations`、`Business Rules`、`Error Codes` など、
+構造化された該当セクションへ移します。
+
+## サンプル
+
+実際にパーサーで検証されるサンプルは `examples/` に学習順で配置しています。
+
+- `examples/01-basics/hello-screen.vspec.md`
+- `examples/01-basics/login-basic.vspec.md`
+- `examples/02-states/async-loading.vspec.md`
+- `examples/02-states/model-samples.vspec.md`
+- `examples/02-states/responsive-profile.vspec.md`
+- `examples/03-actions/event-triggers.vspec.md`
+- `examples/03-actions/form-submit-flow.vspec.md`
+- `examples/03-actions/parallel-initial-load.vspec.md`
+- `examples/04-real-world-screens/notice-detail.vspec.md`
+- `examples/04-real-world-screens/profile-edit-rich.vspec.md`
+- `examples/04-real-world-screens/search-list.vspec.md`
+- `examples/05-reuse/template-shell.vspec.md`
+- `examples/05-reuse/profile-page-with-template.vspec.md`
+- `examples/05-reuse/profile-summary.partial.vspec.md`
+- `examples/06-structured-sections/history-and-errors.vspec.md`

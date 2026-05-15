@@ -1,0 +1,40 @@
+{
+  "name": "@markvspec/cli",
+  "version": "0.3.0",
+  "description": "Command line tools for validating and exporting MarkVSpec screen specifications.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "markvspec": "./dist/index.js"
+  },
+  "files": [
+    "dist/index.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wamukat/MarkVSpec.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/wamukat/MarkVSpec#readme",
+  "bugs": {
+    "url": "https://github.com/wamukat/MarkVSpec/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -b tsconfig.json",
+    "bundle": "npm run build && esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dist/index.js --banner:js='import { createRequire } from \"node:module\";const require = createRequire(import.meta.url);'",
+    "prepack": "npm run bundle",
+    "test": "npm run build && node --test dist/**/*.test.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@markvspec/core": "file:../core",
+    "@markvspec/exporter": "file:../exporter",
+    "esbuild": "^0.28.0"
+  }
+}

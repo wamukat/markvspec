@@ -1,0 +1,316 @@
+# MarkVSpec
+
+<p>
+  <img src="assets/markvspec-icon.svg" alt="MarkVSpec" width="96">
+</p>
+
+MarkVSpec is a screen-specification tool for writing UI specs in Markdown,
+previewing them in VS Code, and sharing them as HTML/PDF.
+
+It is not a high-fidelity design tool like Figma. It is built for managing the
+screens, states, interactions, and validation rules that implementation needs as
+Git-friendly text. A `.vspec.md` file stays readable as a human design document
+while also being structured enough for tools to interpret.
+
+Because the source stays Markdown, teams can review diffs, let AI agents read
+the spec, preview it in VS Code, validate it, and export it as HTML/PDF from the
+same file.
+
+日本語の説明は [README.ja.md](README.ja.md) を参照してください。
+
+## Preview
+
+This image shows the Markdown source from
+[Login Basic](examples/01-basics/login-basic.vspec.md) next to the wireframe in
+the generated static HTML preview. The same `.vspec.md` source can be opened in
+VS Code preview, exported to HTML, and exported to PDF.
+
+![Login Basic Markdown source next to the generated MarkVSpec static HTML preview](docs/assets/readme-hello-screen-preview.png)
+
+## Why It Helps
+
+- Keeps Markdown as the source of truth for screen specifications.
+- Gives stable IDs to screens, layouts, elements, states, actions, and rules.
+- Shows state-specific previews and generated design-document views while you
+  write in VS Code.
+- Lets reviews, implementation tasks, and generated output refer to the same
+  screen parts by ID.
+- Keeps the spec readable for both humans and AI agents.
+
+MarkVSpec ships a VS Code extension and a CLI. The CLI command is `markvspec`.
+
+## Good Fit
+
+MarkVSpec is for teams that want to keep screen specifications in Markdown while
+using the same source for review, implementation, and export.
+
+- Manage screens, states, interactions, and validation rules in one document.
+- Refer to screen parts from review comments and implementation tasks by stable
+  ID.
+- Preview while authoring in VS Code, then share HTML or PDF output.
+- Ask AI to read the spec, explain diffs, or turn the screen design into
+  implementation tasks.
+
+MarkVSpec is not a visual design tool. It focuses on accurately managing screen
+specs, states, interactions, and validation rules as text rather than polishing
+pixel-level UI design.
+
+It is not a good fit for:
+
+- Creating high-fidelity visual design.
+- Replacing Figma for pixel-level layout work.
+- Making implementation component boundaries the main design-document concern.
+
+## Quick Start
+
+The shortest path is to install MarkVSpec from the VS Code Marketplace, create a
+`.vspec.md` file, and open the Preview. CLI details are covered later.
+
+### 1. Install from Marketplace
+
+Install
+[MarkVSpec from VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=wamukat.markvspec)
+in VS Code.
+
+```sh
+code --install-extension wamukat.markvspec
+```
+
+### 2. Create `login.vspec.md`
+
+Paste this minimal screen. It keeps states, screen elements, an action, and
+validation in one Markdown file.
+
+```markdown
+---
+id: SCR-LOGIN
+type: screen
+title: Login
+route: /login
+---
+
+# SCR-LOGIN Login
+
+## States
+
+- idle*
+- wait-auth
+- validation-error
+- send-error
+
+## Layout: mobile
+
+### L1:L-Page Page
+
+- stack
+- align: center
+- gap: md
+
+#### Items
+
+- E-PageTitle
+- E-EmailInput
+- E-SignInButton
+
+## Elements
+
+### 1:E-PageTitle Heading
+
+- level: 1
+- value: Sign in
+
+### 2:E-EmailInput Input*
+
+- value: ${model.email}
+- initial value: "test@example.com"
+- validation: Must be an email address.
+
+### 3:E-SignInButton Button
+
+- label: Sign in
+- variant: primary
+- action: A-SubmitLogin
+
+## Form Groups
+
+### F-LoginForm Login form
+
+- fields:
+  - E-EmailInput
+- submit: A-SubmitLogin
+
+## Actions
+
+### A1:A-SubmitLogin Submit login
+
+- Triggered
+  - E-SignInButton.click
+- From
+  - idle
+- Process
+  - Validate: V-LoginForm
+    - cases:
+      - invalid:
+        - state: validation-error
+  - HttpRequest
+    - POST /login
+      - email: E-EmailInput.value
+    - cases:
+      - sent:
+        - state: wait-auth
+      - send-failed:
+        - state: send-error
+
+## Validations
+
+### V-LoginForm Login form validation
+
+- target: F-LoginForm
+- message: Email is required.
+```
+
+For more realistic examples, see [Login Basic](examples/01-basics/login-basic.vspec.md)
+and the [Example Gallery](docs/en/user/example-gallery.md).
+
+### 3. Open the Preview
+
+Open the `.vspec.md` file in VS Code, then use one of these entry points:
+
+- Run `MarkVSpec: Open Preview` from the Command Palette.
+- Click the preview icon in the editor title.
+- Right-click the file in Explorer and select `Open Preview`.
+
+The preview shows the generated screen structure and state-specific design
+document view.
+
+## Install And Choose a Path
+
+### Prerequisites
+
+- VS Code 1.100.0 or later.
+- Node.js 22 or later when using the CLI or building from source.
+- The VS Code `code` command enabled when installing from the command line.
+
+### Current Distribution Status
+
+- VS Code extension: install `wamukat.markvspec` from
+  [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=wamukat.markvspec).
+- CLI: use `npx` or install `@markvspec/cli` from npm.
+
+Release maintainers must run `npm run check:readme-release` before tagging. The
+check fails when README package versions or Marketplace links drift from the
+release metadata.
+
+### Choose a Path
+
+| Goal | Start here |
+| --- | --- |
+| Fastest local preview | [Install from Marketplace](#1-install-from-marketplace), [Create `login.vspec.md`](#2-create-loginvspecmd), then [Open the Preview](#3-open-the-preview) |
+| Install the VS Code extension | [Install from Marketplace](#1-install-from-marketplace) |
+| Validate or export from the CLI | [CLI](#cli) |
+| Learn the syntax | [IDs and Markers](#ids-and-markers), [DSL reference](docs/en/user/dsl.md) |
+| Find examples by feature | [Examples](#examples) |
+
+## Common Tasks
+
+For CLI commands, use `npx @markvspec/cli@latest` or install `@markvspec/cli`
+from npm.
+
+| Goal | Action |
+| --- | --- |
+| Preview while writing | Open a `.vspec.md` file in VS Code and run `MarkVSpec: Open Preview`. |
+| Validate syntax | Run `npx @markvspec/cli@latest validate <file>`. |
+| Share HTML | Use `MarkVSpec: Export Static HTML` or `npx @markvspec/cli@latest export html <file> --out <dir>`. |
+| Create a PDF | Use `MarkVSpec: Export PDF` or `npx @markvspec/cli@latest export pdf <file> --out <dir>`. |
+
+## CLI
+
+The CLI requires Node.js 22 or later.
+
+### From npm
+
+Run it against your local `login.vspec.md` file:
+
+```sh
+npx @markvspec/cli@latest validate login.vspec.md
+npx @markvspec/cli@latest export html login.vspec.md --out markvspec-html
+npx @markvspec/cli@latest export pdf login.vspec.md --out markvspec-pdf
+```
+
+If you prefer a local install, add `@markvspec/cli` as a development dependency
+and run it through your package manager.
+
+## IDs and Markers
+
+`E-EmailInput` and `A-SubmitLogin` are stable IDs used by reviews,
+implementation tasks, generated documents, and tests. Prefixes such as `1:`,
+`L1:`, and `A1:` are short visual markers for the preview. References still use
+IDs, not markers.
+
+```markdown
+### L1:L-Page Page
+### 1:E-PageTitle Heading
+### A1:A-SubmitLogin Submit login
+```
+
+## Examples
+
+The `examples/` directory is organized as a learning path:
+
+- [examples/01-basics/hello-screen.vspec.md](examples/01-basics/hello-screen.vspec.md): minimum screen.
+- [examples/01-basics/login-basic.vspec.md](examples/01-basics/login-basic.vspec.md): form layout, validation feedback, and auth states.
+- [examples/02-states/async-loading.vspec.md](examples/02-states/async-loading.vspec.md): request send and response states.
+- [examples/02-states/model-samples.vspec.md](examples/02-states/model-samples.vspec.md): list-first Model Samples with supplemental empty table syntax.
+- [examples/02-states/responsive-profile.vspec.md](examples/02-states/responsive-profile.vspec.md): mobile and desktop layouts.
+- [examples/03-actions/event-triggers.vspec.md](examples/03-actions/event-triggers.vspec.md): non-click element events and lifecycle triggers.
+- [examples/03-actions/form-submit-flow.vspec.md](examples/03-actions/form-submit-flow.vspec.md): validate, update model, server call, and navigation.
+- [examples/03-actions/parallel-initial-load.vspec.md](examples/03-actions/parallel-initial-load.vspec.md): parallel server calls and `Resolve`.
+- [examples/04-real-world-screens/notice-detail.vspec.md](examples/04-real-world-screens/notice-detail.vspec.md): Display Content Spec fields for wording, data sources, formatting, values, and params.
+- [examples/04-real-world-screens/profile-edit-rich.vspec.md](examples/04-real-world-screens/profile-edit-rich.vspec.md): extended form, media, list, and dialog element types.
+- [examples/04-real-world-screens/search-list.vspec.md](examples/04-real-world-screens/search-list.vspec.md): search, filters, pagination, empty result, and row action.
+- [examples/05-reuse/template-shell.vspec.md](examples/05-reuse/template-shell.vspec.md): template shell and slot basics.
+- [examples/05-reuse/profile-page-with-template.vspec.md](examples/05-reuse/profile-page-with-template.vspec.md): template composition, route params, and partial refresh.
+- [examples/05-reuse/profile-summary.partial.vspec.md](examples/05-reuse/profile-summary.partial.vspec.md): partial route and partial-local states.
+- [examples/06-structured-sections/history-and-errors.vspec.md](examples/06-structured-sections/history-and-errors.vspec.md): Error Codes, History Fields, and History.
+
+For full coverage and a smoke path, see
+[English example gallery](docs/en/user/example-gallery.md).
+
+## Troubleshooting
+
+| Symptom | Check |
+| --- | --- |
+| `code` command is missing | In VS Code, run `Shell Command: Install 'code' command in PATH`. |
+| VS Code extension install fails | Confirm that VS Code is 1.100.0 or later and that Marketplace extension ID `wamukat.markvspec` is available. |
+| `npm install` or build fails | Confirm that Node.js 22 or later is active. |
+| `npx @markvspec/cli@latest` cannot find the package | Confirm that your npm registry can resolve `@markvspec/cli`. |
+| PDF export fails | Check [Known limitations](docs/en/user/limitations.md), then export static HTML if PDF output is blocked in your environment. |
+| Preview does not open | Confirm that the file name ends with `.vspec.md` or `.vspec.project.md`. |
+| ID-reference diagnostics appear | Check that `Items`, `action`, and `Triggered` entries refer to `E-*`, `L-*`, or `A-*` IDs, not markers. |
+
+## Next Reading
+
+| Goal | Document |
+| --- | --- |
+| Browse all English documentation | [English documentation index](docs/en/README.md) |
+| Read the full syntax | [DSL reference](docs/en/user/dsl.md) |
+| Browse practical examples | [Example gallery](docs/en/user/example-gallery.md) |
+| Understand PDF constraints | [PDF export approach](docs/en/user/pdf-export.md) |
+| Check current limitations | [Known limitations](docs/en/user/limitations.md) |
+| See release changes | [Changelog](CHANGELOG.md) |
+
+## Development
+
+```sh
+npm run typecheck
+npm test
+npm run build
+```
+
+Internal design and release notes live under `docs/en/maintainers/` and
+`docs/ja/maintainers/`.
+
+MarkVSpec is screen-first. Componentization and implementation component
+boundaries are treated as downstream implementation concerns, not primary
+authoring concepts. Markdown remains the canonical source; tables and large YAML
+blocks are avoided as the main editing surface.

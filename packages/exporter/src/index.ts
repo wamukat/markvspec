@@ -1,0 +1,689 @@
+import { execFile } from "node:child_process";
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+import {
+  composeMarkVSpecTemplate,
+  evaluateMarkVSpecDiagnostics,
+  loadMarkVSpecProject,
+  parseMarkVSpec,
+  resolveRendererMessages,
+  resolveProjectPath
+} from "@markvspec/core";
+import {
+  baseWireframeViewportCss,
+  printWireframeViewportCss,
+  printScrollbarSuppressCss,
+  renderStaticDesignDocumentHtml,
+  standardPrintPolicyCss,
+  wireframePrintSectionCss
+} from "@markvspec/document-renderer";
+import type { MarkVSpecDiagnostic, MarkVSpecParseResult, MarkVSpecValidationGateOptions, RendererMessages, ResolvedRendererMessages } from "@markvspec/core";
+
+export interface MarkVSpecExportFileResult {
+  sourcePath: string;
+  outputPath: string;
+  diagnostics: MarkVSpecDiagnostic[];
+  messageSourcePath?: string;
+}
+
+export interface MarkVSpecExportOptions {
+  messagesPath?: string;
+}
+
+export interface MarkVSpecValidateFileResult {
+  sourcePath: string;
+  diagnostics: MarkVSpecDiagnostic[];
+}
+
+export interface MarkVSpecValidateResult {
+  files: MarkVSpecValidateFileResult[];
+  errorCount: number;
+  warningCount: number;
+  passed: boolean;
+  exitCode: 0 | 1;
+}
+
+export interface PdfBrowserCommand {
+  command: string;
+  args: string[];
+}
+
+export function validateMarkVSpecFiles(
+  patterns: readonly string[],
+  options: MarkVSpecValidationGateOptions = {}
+): MarkVSpecValidateResult {
+  const input = resolveMarkVSpecFileInputs(patterns);
+  const files = input.files.map((sourcePath) => ({
+    sourcePath,
+    diagnostics: diagnosticsForFile(sourcePath)
+  }));
+  const diagnostics = [...input.diagnostics.map((entry) => entry.diagnostic), ...files.flatMap((file) => file.diagnostics)];
+  const gate = evaluateMarkVSpecDiagnostics(diagnostics, options);
+  return {
+    files: [
+      ...input.diagnostics.map((entry) => ({ sourcePath: entry.sourcePath, diagnostics: [entry.diagnostic] })),
+      ...files
+    ],
+    errorCount: gate.errorCount,
+    warningCount: gate.warningCount,
+    passed: gate.passed,
+    exitCode: gate.exitCode
+  };
+}
+
+export function exportMarkVSpecHtmlFiles(patterns: readonly string[], outDir: string, options: MarkVSpecExportOptions = {}): MarkVSpecExportFileResult[] {
+  const files = requireMarkVSpecFiles(patterns);
+  const outputPaths = outputPathsBySource(files, outDir, ".html");
+  mkdirSync(outDir, { recursive: true });
+  return files.map((sourcePath) => {
+    const outputPath = outputPaths.get(sourcePath) ?? join(outDir, `${defaultExportHtmlBaseName(sourcePath)}.html`);
+    const { html, diagnostics, messageSourcePath } = renderStandaloneHtmlForFile(sourcePath, options);
+    writeFileSync(outputPath, html, "utf8");
+    return { sourcePath, outputPath, diagnostics, messageSourcePath };
+  });
+}
+
+export async function exportMarkVSpecPdfFiles(
+  patterns: readonly string[],
+  outDir: string,
+  options: MarkVSpecExportOptions & { tempDir?: string; browsers?: PdfBrowserCommand[] } = {}
+): Promise<MarkVSpecExportFileResult[]> {
+  const files = requireMarkVSpecFiles(patterns);
+  const outputPaths = outputPathsBySource(files, outDir, ".pdf");
+  const browsers = options.browsers ?? resolvePdfBrowserCommands(process.platform);
+  if (browsers.length === 0) {
+    throw new Error("No Chrome-compatible browser was found for PDF export.");
+  }
+
+  mkdirSync(outDir, { recursive: true });
+  const tempDir = options.tempDir ?? outDir;
+  mkdirSync(tempDir, { recursive: true });
+  const results: MarkVSpecExportFileResult[] = [];
+
+  for (const sourcePath of files) {
+    const baseName = defaultExportHtmlBaseName(sourcePath);
+    const htmlPath = join(tempDir, `${baseName}.pdf-source.html`);
+    const outputPath = outputPaths.get(sourcePath) ?? join(outDir, `${baseName}.pdf`);
+    const { html, diagnostics, messageSourcePath } = renderStandaloneHtmlForFile(sourcePath, options);
+    writeFileSync(htmlPath, html, "utf8");
+    await exportPdfFromHtmlWithFallback(htmlPath, outputPath, browsers);
+    results.push({ sourcePath, outputPath, diagnostics, messageSourcePath });
+  }
+
+  return results;
+}
+
+export function renderStandaloneHtmlForFile(sourcePath: string, options: MarkVSpecExportOptions = {}): { html: string; diagnostics: MarkVSpecDiagnostic[]; messageSourcePath?: string } {
+  const source = readFileSync(sourcePath, "utf8");
+  if (isMarkVSpecProjectPath(sourcePath)) {
+    const project = loadMarkVSpecProject(source, {
+      projectPath: sourcePath,
+      readFile: readTextFile
+    });
+    const frontMatterMessages = resolveFrontMatterMessagesPath(sourcePath, project.project.project.frontMatter["messages"]);
+    const resolvedMessages = resolveExportRendererMessages({
+      sourcePath,
+      locale: project.project.project.frontMatter["locale"],
+      frontMatterPath: frontMatterMessages.path,
+      explicitPath: options.messagesPath,
+      searchBoundaryPath: dirname(sourcePath)
+    });
+    const diagnostics = [
+      ...project.diagnostics,
+      ...frontMatterMessages.diagnostics,
+      ...markVSpecDiagnosticsForRendererMessages(resolvedMessages)
+    ];
+    const title = project.project.project.title ?? project.project.project.id ?? basename(sourcePath);
+    const content = [
+      `<h1>${escapeHtml(title)}</h1>`,
+      project.screens
+        .map((screen) => screen.result
+          ? `<section class="mm-export-section"><h2>${escapeHtml(screen.result.screen.title ?? screen.result.screen.id ?? screen.index.id ?? resolvedMessages.messages.screen)}</h2>${renderStaticDesignDocumentHtml(screen.result, { messages: resolvedMessages.messages })}</section>`
+          : "")
+        .join(""),
+      renderDiagnostics(diagnostics, resolvedMessages.messages)
+    ].join("\n");
+    return {
+      html: standaloneHtml(title, content, {
+        locale: resolvedMessages.locale,
+        messageSourcePath: resolvedMessages.sourcePath
+      }),
+      diagnostics,
+      messageSourcePath: resolvedMessages.sourcePath
+    };
+  }
+
+  const result = loadScreenResultForFile(source, sourcePath);
+  const frontMatterMessages = resolveFrontMatterMessagesPath(sourcePath, result.screen.frontMatter["messages"]);
+  const resolvedMessages = resolveExportRendererMessages({
+    sourcePath,
+    locale: result.screen.locale,
+    frontMatterPath: frontMatterMessages.path,
+    explicitPath: options.messagesPath
+  });
+  const diagnostics = [
+    ...result.diagnostics,
+    ...frontMatterMessages.diagnostics,
+    ...markVSpecDiagnosticsForRendererMessages(resolvedMessages)
+  ];
+  const title = result.screen.title ?? result.screen.id ?? basename(sourcePath);
+  const content = [
+    `<h1>${escapeHtml(title)}</h1>`,
+    renderStaticDesignDocumentHtml(result, { messages: resolvedMessages.messages }),
+    renderDiagnostics(diagnostics, resolvedMessages.messages)
+  ].join("\n");
+  return {
+    html: standaloneHtml(title, content, {
+      locale: resolvedMessages.locale,
+      messageSourcePath: resolvedMessages.sourcePath
+    }),
+    diagnostics,
+    messageSourcePath: resolvedMessages.sourcePath
+  };
+}
+
+export function expandMarkVSpecFiles(patterns: readonly string[]): string[] {
+  const matches = new Set<string>();
+  for (const pattern of patterns.length > 0 ? patterns : ["."]) {
+    for (const file of expandPattern(pattern)) {
+      if (isMarkVSpecFilePath(file)) {
+        matches.add(resolve(file));
+      }
+    }
+  }
+
+  return [...matches].sort();
+}
+
+export function defaultExportHtmlBaseName(filePath: string): string {
+  const fileName = basename(filePath);
+  if (fileName === "vspec.project.md") {
+    return "vspec.project";
+  }
+
+  if (fileName.endsWith(".vspec.project.md")) {
+    return `${fileName.slice(0, -".vspec.project.md".length)}.project`;
+  }
+
+  if (fileName.endsWith(".vspec.md")) {
+    return fileName.slice(0, -".vspec.md".length);
+  }
+
+  return fileName.replace(/\.md$/u, "");
+}
+
+export function resolvePdfBrowserCommand(platform: NodeJS.Platform): PdfBrowserCommand | undefined {
+  return resolvePdfBrowserCommands(platform)[0];
+}
+
+export function resolvePdfBrowserCommands(platform: NodeJS.Platform): PdfBrowserCommand[] {
+  return pdfBrowserCandidates(platform).filter((candidate) => isPathCommand(candidate.command) ? existsSync(candidate.command) : true);
+}
+
+export function pdfBrowserCandidates(platform: NodeJS.Platform): PdfBrowserCommand[] {
+  if (platform === "darwin") {
+    return [
+      { command: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", args: [] },
+      { command: "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge", args: [] },
+      { command: "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser", args: [] },
+      { command: "/Applications/Chromium.app/Contents/MacOS/Chromium", args: [] }
+    ];
+  }
+
+  if (platform === "win32") {
+    const localAppData = process.env["LOCALAPPDATA"];
+    const programFiles = process.env["PROGRAMFILES"];
+    const programFilesX86 = process.env["PROGRAMFILES(X86)"];
+    const candidates: Array<PdfBrowserCommand | undefined> = [
+      localAppData ? { command: join(localAppData, "Google", "Chrome", "Application", "chrome.exe"), args: [] } : undefined,
+      programFiles ? { command: join(programFiles, "Google", "Chrome", "Application", "chrome.exe"), args: [] } : undefined,
+      programFilesX86 ? { command: join(programFilesX86, "Google", "Chrome", "Application", "chrome.exe"), args: [] } : undefined,
+      programFiles ? { command: join(programFiles, "Microsoft", "Edge", "Application", "msedge.exe"), args: [] } : undefined,
+      programFilesX86 ? { command: join(programFilesX86, "Microsoft", "Edge", "Application", "msedge.exe"), args: [] } : undefined,
+      localAppData ? { command: join(localAppData, "BraveSoftware", "Brave-Browser", "Application", "brave.exe"), args: [] } : undefined,
+      programFiles ? { command: join(programFiles, "BraveSoftware", "Brave-Browser", "Application", "brave.exe"), args: [] } : undefined,
+      programFilesX86 ? { command: join(programFilesX86, "BraveSoftware", "Brave-Browser", "Application", "brave.exe"), args: [] } : undefined,
+      localAppData ? { command: join(localAppData, "Chromium", "Application", "chrome.exe"), args: [] } : undefined,
+      programFiles ? { command: join(programFiles, "Chromium", "Application", "chrome.exe"), args: [] } : undefined,
+      programFilesX86 ? { command: join(programFilesX86, "Chromium", "Application", "chrome.exe"), args: [] } : undefined
+    ];
+    return candidates.filter((candidate): candidate is PdfBrowserCommand => Boolean(candidate));
+  }
+
+  if (platform === "linux" || platform === "freebsd" || platform === "openbsd") {
+    return [
+      { command: "google-chrome", args: [] },
+      { command: "google-chrome-stable", args: [] },
+      { command: "chromium", args: [] },
+      { command: "chromium-browser", args: [] },
+      { command: "microsoft-edge", args: [] },
+      { command: "brave-browser", args: [] }
+    ];
+  }
+
+  return [];
+}
+
+export function pdfBrowserArgs(htmlPath: string, pdfPath: string): string[] {
+  return [
+    "--headless=new",
+    "--disable-gpu",
+    "--run-all-compositor-stages-before-draw",
+    "--virtual-time-budget=5000",
+    "--no-pdf-header-footer",
+    `--print-to-pdf=${pdfPath}`,
+    pathToFileURL(htmlPath).toString()
+  ];
+}
+
+export async function exportPdfFromHtmlWithFallback(htmlPath: string, pdfPath: string, browsers: PdfBrowserCommand[]): Promise<void> {
+  const failures: string[] = [];
+  for (const browser of browsers) {
+    try {
+      await exportPdfFromHtml(htmlPath, pdfPath, browser);
+      return;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      failures.push(`${browser.command}: ${message}`);
+    }
+  }
+
+  throw new Error(failures.join("; "));
+}
+
+function diagnosticsForFile(sourcePath: string): MarkVSpecDiagnostic[] {
+  const source = readFileSync(sourcePath, "utf8");
+  if (isMarkVSpecProjectPath(sourcePath)) {
+    return loadMarkVSpecProject(source, {
+      projectPath: sourcePath,
+      readFile: readTextFile
+    }).diagnostics;
+  }
+
+  return loadScreenResultForFile(source, sourcePath).diagnostics;
+}
+
+function loadScreenResultForFile(source: string, sourcePath: string): MarkVSpecParseResult {
+  const screen = parseMarkVSpec(source);
+  const templateRef = screen.screen.template;
+  const templateSrc = screen.screen.templateSrc;
+  if (!templateRef && !templateSrc) {
+    return screen;
+  }
+
+  const templateReference = resolveTemplatePath(sourcePath, templateRef, templateSrc);
+  if (!templateReference) {
+    screen.diagnostics.push({
+      severity: "error",
+      message: `Template reference ${templateRef ?? templateSrc} could not be resolved for ${basename(sourcePath)}.`
+    });
+    return screen;
+  }
+
+  const templateSource = readTextFile(templateReference.path);
+  if (templateSource === undefined) {
+    screen.diagnostics.push({
+      severity: "error",
+      message: `Template file ${templateReference.path} could not be read.`
+    });
+    return screen;
+  }
+
+  const template = parseMarkVSpec(templateSource);
+  screen.diagnostics.push(...template.diagnostics);
+  if (templateReference.expectedId && template.screen.id !== templateReference.expectedId) {
+    screen.diagnostics.push({
+      severity: "error",
+      message: `Template reference ${templateReference.expectedId} points to file with template ID ${template.screen.id ?? "missing"}.`
+    });
+    return screen;
+  }
+  if (template.screen.type !== "template") {
+    screen.diagnostics.push({
+      severity: "error",
+      message: `Template reference ${templateRef} points to a ${template.screen.type} document.`
+    });
+    return screen;
+  }
+
+  return composeMarkVSpecTemplate(template, screen);
+}
+
+function resolveMarkVSpecFileInputs(patterns: readonly string[]): { files: string[]; diagnostics: Array<{ sourcePath: string; diagnostic: MarkVSpecDiagnostic }> } {
+  const files = expandMarkVSpecFiles(patterns);
+  const diagnostics: Array<{ sourcePath: string; diagnostic: MarkVSpecDiagnostic }> = [];
+  const effectivePatterns = patterns.length > 0 ? patterns : ["."];
+
+  for (const pattern of effectivePatterns) {
+    if (!hasGlob(pattern) && !existsSync(pattern)) {
+      diagnostics.push({
+        sourcePath: pattern,
+        diagnostic: {
+          severity: "error",
+          message: `Input path does not exist: ${pattern}.`
+        }
+      });
+    }
+  }
+
+  if (files.length === 0 && diagnostics.length === 0) {
+    diagnostics.push({
+      sourcePath: effectivePatterns.join(", "),
+      diagnostic: {
+        severity: "error",
+        message: "No MarkVSpec files matched the input."
+      }
+    });
+  }
+
+  return { files, diagnostics };
+}
+
+function requireMarkVSpecFiles(patterns: readonly string[]): string[] {
+  const input = resolveMarkVSpecFileInputs(patterns);
+  if (input.diagnostics.length > 0) {
+    throw new Error(input.diagnostics.map((entry) => entry.diagnostic.message).join("\n"));
+  }
+  return input.files;
+}
+
+function outputPathsBySource(files: readonly string[], outDir: string, extension: ".html" | ".pdf"): Map<string, string> {
+  const paths = new Map<string, string>();
+  const seen = new Map<string, string>();
+  for (const sourcePath of files) {
+    const outputPath = join(outDir, `${defaultExportHtmlBaseName(sourcePath)}${extension}`);
+    const existingSource = seen.get(outputPath);
+    if (existingSource) {
+      throw new Error(`Export output collision: ${existingSource} and ${sourcePath} both map to ${outputPath}.`);
+    }
+    seen.set(outputPath, sourcePath);
+    paths.set(sourcePath, outputPath);
+  }
+  return paths;
+}
+
+function resolveTemplatePath(
+  sourcePath: string,
+  templateRef: string | undefined,
+  templateSrc: string | undefined
+): { path: string; expectedId?: string } | undefined {
+  if (templateSrc) {
+    return { path: resolveProjectPath(sourcePath, templateSrc), expectedId: templateRef };
+  }
+
+  return undefined;
+}
+
+function exportPdfFromHtml(htmlPath: string, pdfPath: string, browser: PdfBrowserCommand): Promise<void> {
+  return new Promise((resolvePromise, reject) => {
+    execFile(browser.command, [...browser.args, ...pdfBrowserArgs(htmlPath, pdfPath)], (error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolvePromise();
+    });
+  });
+}
+
+function expandPattern(pattern: string): string[] {
+  if (!hasGlob(pattern)) {
+    if (!existsSync(pattern)) {
+      return [];
+    }
+    const stat = statSync(pattern);
+    return stat.isDirectory() ? walkFiles(pattern) : [pattern];
+  }
+
+  const baseDirectory = globBaseDirectory(pattern);
+  const regex = globRegex(pattern);
+  return walkFiles(baseDirectory).filter((file) => regex.test(normalizePath(file)));
+}
+
+function walkFiles(root: string): string[] {
+  if (!existsSync(root)) {
+    return [];
+  }
+
+  const stat = statSync(root);
+  if (!stat.isDirectory()) {
+    return [root];
+  }
+
+  const files: string[] = [];
+  for (const entry of readdirSync(root, { withFileTypes: true })) {
+    if (entry.name === "node_modules" || entry.name === ".git") {
+      continue;
+    }
+    const path = join(root, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...walkFiles(path));
+    } else if (entry.isFile()) {
+      files.push(path);
+    }
+  }
+  return files;
+}
+
+function globBaseDirectory(pattern: string): string {
+  const normalized = normalizePath(pattern);
+  const segments = normalized.split("/");
+  const baseSegments: string[] = [];
+  for (const segment of segments) {
+    if (/[*?[]/u.test(segment)) {
+      break;
+    }
+    baseSegments.push(segment);
+  }
+  return baseSegments.length > 0 ? baseSegments.join("/") : ".";
+}
+
+function globRegex(pattern: string): RegExp {
+  const normalized = normalizePath(pattern);
+  let source = "";
+  for (let index = 0; index < normalized.length; index += 1) {
+    const char = normalized[index];
+    const next = normalized[index + 1];
+    if (char === "*" && next === "*") {
+      source += ".*";
+      index += 1;
+    } else if (char === "*") {
+      source += "[^/]*";
+    } else if (char === "?") {
+      source += "[^/]";
+    } else {
+      source += escapeRegex(char);
+    }
+  }
+  return new RegExp(`^${source}$`, "u");
+}
+
+function standaloneHtml(
+  title: string,
+  content: string,
+  options: { locale?: string; messageSourcePath?: string } = {}
+): string {
+  const messageMetadata = options.messageSourcePath
+    ? `\n    <!-- MarkVSpec messages: ${escapeHtml(options.messageSourcePath).replace(/--/gu, "- -")} -->`
+    : "";
+  return `<!doctype html>
+<html lang="${escapeHtml(options.locale ?? "en")}">
+  <head>
+    <meta charset="utf-8">
+    ${messageMetadata.trim()}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>${escapeHtml(title)}</title>
+    <style>
+      :root { --markvspec-heading-state-views: 20px; --markvspec-heading-viewport: 17px; --markvspec-heading-state: 15px; --markvspec-heading-detail: 13px; --markvspec-heading-badge: 11px; }
+      body { margin: 0; background: #f8fafc; color: #111827; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      main { max-width: 1120px; margin: 0 auto; padding: 32px 20px 56px; }
+      h1 { font-size: 28px; margin: 0 0 24px; }
+      h2 { font-size: var(--markvspec-heading-state-views); margin: 28px 0 12px; }
+      .mm-export-section { margin-top: 28px; }
+      .state-screen-section { margin: 28px 0; }
+      .state-viewport-section { margin: 18px 0 24px; }
+      .state-viewport-section > h3 { font-size: var(--markvspec-heading-viewport); margin: 22px 0 8px; }
+      .state-screen-heading { font-size: var(--markvspec-heading-state); margin: 0 0 12px; }
+      .state-screen-subheading { color: #334155; font-size: var(--markvspec-heading-detail); font-weight: 700; margin: 0 0 12px; }
+      .state-screen-detail-heading { color: #475569; font-size: 12px; font-weight: 700; margin: 0 0 8px; }
+      .state-screen-section h2, .state-screen-section h3, .state-screen-section h4, .state-screen-section h5, .state-screen-section h6 { margin: 0 0 12px; }
+      .state-badge { background: #dbeafe; border: 1px solid #60a5fa; border-radius: 999px; color: #1e3a8a; font-size: var(--markvspec-heading-badge); font-weight: 600; padding: 1px 6px; }
+      .model-sample-block { margin: 18px 0; }
+      .model-sample-block h3 { align-items: baseline; display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
+      .spec-empty { color: #6b7280; font-size: 12px; font-weight: 400; }
+      .spec-table-wrap { max-width: 100%; overflow: auto; }
+      .spec-table { border-collapse: collapse; font-size: 12px; width: 100%; }
+      .spec-table th, .spec-table td { border: 1px solid #d1d5db; padding: 6px 8px; text-align: left; vertical-align: top; }
+      .spec-table th { background: #f9fafb; font-weight: 600; white-space: nowrap; }
+      .wireframe-section { max-width: 100%; overflow-x: auto; overflow-y: visible; padding-bottom: 4px; scrollbar-color: #9ca3af #f3f4f6; scrollbar-width: thin; }
+      .wireframe-section::-webkit-scrollbar { height: 10px; width: 10px; }
+      .wireframe-section::-webkit-scrollbar-track { background: #f3f4f6; }
+      .wireframe-section::-webkit-scrollbar-thumb { background: #9ca3af; border: 2px solid #f3f4f6; border-radius: 999px; }
+      ${baseWireframeViewportCss({ spaced: true })}
+      .mm-export-diagnostics { margin-top: 24px; padding: 16px; border: 1px solid #d1d5db; background: #fff; }
+      .mm-export-diagnostics table { width: 100%; border-collapse: collapse; }
+      .mm-export-diagnostics th, .mm-export-diagnostics td { border-bottom: 1px solid #e5e7eb; padding: 8px; text-align: left; }
+      @media print {
+        @page { margin: 14mm; size: A4 landscape; }
+        :root { --markvspec-heading-state-views: 15pt; --markvspec-heading-viewport: 12.5pt; --markvspec-heading-state: 11.5pt; --markvspec-heading-detail: 10pt; --markvspec-heading-badge: 8.5pt; }
+        ${standardPrintPolicyCss({ spaced: true })}
+        ${printScrollbarSuppressCss({ spaced: true })}
+        .wireframe-section { overflow: visible; }
+        ${wireframePrintSectionCss({ spaced: true })}
+        .wireframe-section .mm-wireframe { border: 1px solid #d1d5db; box-shadow: none; box-sizing: border-box; max-width: 100% !important; min-width: 0 !important; outline: 0; width: 100% !important; }
+        ${printWireframeViewportCss({ spaced: true })}
+        .wireframe-section .mm-element-wrap-table { align-self: stretch !important; box-sizing: border-box !important; display: block !important; max-width: 100% !important; min-width: 0 !important; width: 100% !important; }
+        .wireframe-section .mm-element-table { max-width: 100% !important; min-width: 0 !important; table-layout: fixed !important; width: 100% !important; }
+        .wireframe-section .mm-element-table th,
+        .wireframe-section .mm-element-table td { box-sizing: border-box; overflow-wrap: anywhere; word-break: break-word; }
+        .spec-table-wrap { overflow: visible; }
+        .spec-table { font-size: 8.5pt; table-layout: fixed; width: 100%; }
+        .spec-table thead { display: table-header-group; }
+        .spec-table th,
+        .spec-table td { box-sizing: border-box; overflow-wrap: anywhere; padding: 4pt 5pt; word-break: break-word; }
+        .spec-table th { white-space: normal; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      ${content}
+    </main>
+    <style>
+      @media print {
+        .wireframe-section .mm-wireframe { border: 1px solid #d1d5db !important; box-shadow: none !important; box-sizing: border-box !important; max-width: 100% !important; min-width: 0 !important; outline: 0 !important; width: 100% !important; }
+        .wireframe-section .mm-wireframe { max-width: 100% !important; width: 100% !important; }
+        ${printWireframeViewportCss({ importantZoom: true, spaced: true })}
+        .wireframe-section .mm-element-wrap-table { align-self: stretch !important; box-sizing: border-box !important; display: block !important; max-width: 100% !important; min-width: 0 !important; width: 100% !important; }
+        .wireframe-section .mm-element-table { max-width: 100% !important; min-width: 0 !important; table-layout: fixed !important; width: 100% !important; }
+        .wireframe-section .mm-element-table th,
+        .wireframe-section .mm-element-table td { box-sizing: border-box !important; overflow-wrap: anywhere !important; word-break: break-word !important; }
+      }
+    </style>
+  </body>
+</html>`;
+}
+
+function renderDiagnostics(diagnostics: readonly MarkVSpecDiagnostic[], messages: RendererMessages): string {
+  if (diagnostics.length === 0) {
+    return "";
+  }
+
+  const rows = diagnostics.map((diagnostic) => `<tr><td>${escapeHtml(diagnostic.severity)}</td><td>${diagnostic.line ?? ""}</td><td>${escapeHtml(diagnostic.message)}</td></tr>`).join("");
+  return `<section class="mm-export-diagnostics"><h2>${escapeHtml(messages.diagnostics)}</h2><table><thead><tr><th>${escapeHtml(messages.severity)}</th><th>${escapeHtml(messages.line)}</th><th>${escapeHtml(messages.message)}</th></tr></thead><tbody>${rows}</tbody></table></section>`;
+}
+
+function resolveExportRendererMessages(options: {
+  sourcePath: string;
+  locale?: string;
+  explicitPath?: string;
+  frontMatterPath?: string;
+  searchBoundaryPath?: string;
+}): ResolvedRendererMessages {
+  return resolveRendererMessages({
+    ...options,
+    readFile: readTextFile
+  });
+}
+
+function markVSpecDiagnosticsForRendererMessages(resolvedMessages: ResolvedRendererMessages): MarkVSpecDiagnostic[] {
+  return resolvedMessages.diagnostics.map((diagnostic) => ({
+    severity: diagnostic.severity,
+    message: diagnostic.sourcePath ? `${diagnostic.message} (${diagnostic.sourcePath})` : diagnostic.message,
+    line: 1
+  }));
+}
+
+function resolveFrontMatterMessagesPath(sourcePath: string, frontMatterPath: string | undefined): { path?: string; diagnostics: MarkVSpecDiagnostic[] } {
+  if (!frontMatterPath) {
+    return { diagnostics: [] };
+  }
+  if (isAbsolute(frontMatterPath)) {
+    return {
+      diagnostics: [{
+        severity: "warning",
+        message: `Renderer message file in front matter must be relative to the MarkVSpec file: ${frontMatterPath}.`,
+        line: 1
+      }]
+    };
+  }
+
+  const sourceDir = dirname(resolve(sourcePath));
+  const resolvedPath = resolve(sourceDir, frontMatterPath);
+  if (!isPathWithin(resolvedPath, sourceDir)) {
+    return {
+      diagnostics: [{
+        severity: "warning",
+        message: `Renderer message file in front matter is outside the MarkVSpec file directory: ${frontMatterPath}.`,
+        line: 1
+      }]
+    };
+  }
+
+  return { path: frontMatterPath, diagnostics: [] };
+}
+
+function readTextFile(path: string): string | undefined {
+  try {
+    return readFileSync(path, "utf8");
+  } catch {
+    return undefined;
+  }
+}
+
+function isMarkVSpecFilePath(path: string): boolean {
+  return path.endsWith(".vspec.md") || path.endsWith(".vspec.project.md");
+}
+
+function isMarkVSpecProjectPath(path: string): boolean {
+  return path.endsWith(".vspec.project.md") || basename(path) === "vspec.project.md";
+}
+
+function hasGlob(value: string): boolean {
+  return /[*?[]/u.test(value);
+}
+
+function normalizePath(path: string): string {
+  return path.replace(/\\/gu, "/");
+}
+
+function isPathWithin(path: string, root: string): boolean {
+  const absolutePath = resolve(path);
+  const absoluteRoot = resolve(root);
+  const relativePath = relative(absoluteRoot, absolutePath);
+  return relativePath === "" || Boolean(relativePath && !relativePath.startsWith("..") && !isAbsolute(relativePath));
+}
+
+function isPathCommand(command: string): boolean {
+  return command.includes("/") || command.includes("\\");
+}
+
+function escapeRegex(value: string): string {
+  return value.replace(/[|\\{}()[\]^$+?.]/gu, "\\$&");
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/&/gu, "&amp;").replace(/</gu, "&lt;").replace(/>/gu, "&gt;").replace(/"/gu, "&quot;");
+}

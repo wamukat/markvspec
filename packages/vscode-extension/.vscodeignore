@@ -1,0 +1,13 @@
+../**
+../../**
+src/**
+*.tsbuildinfo
+test-vscode-loader.mjs
+tsconfig.json
+dist/**/*.map
+dist/**/*.d.ts
+dist/**/*.d.ts.map
+**/*.test.js
+**/*.test.d.ts
+**/*.test.js.map
+**/*.test.d.ts.map

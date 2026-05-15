@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@markvspec/core": [
+        "packages/core/src/index.ts"
+      ],
+      "@markvspec/document-renderer": [
+        "packages/document-renderer/src/index.ts"
+      ],
+      "@markvspec/exporter": [
+        "packages/exporter/src/index.ts"
+      ]
+    },
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}

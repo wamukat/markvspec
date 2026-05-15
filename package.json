@@ -1,0 +1,28 @@
+{
+  "name": "markvspec",
+  "private": true,
+  "version": "0.3.0",
+  "description": "Markdown-first screen specification format with live preview tooling.",
+  "license": "MIT",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "check:readme-release": "node scripts/check-readme-release-state.mjs",
+    "check:print-regression": "bash scripts/markvspec-print-regression.sh",
+    "smoke:vscode-devhost": "bash scripts/markvspec-vscode-devhost-smoke.sh",
+    "smoke:vscode-vsix": "bash scripts/markvspec-vscode-vsix-smoke.sh",
+    "test": "npm run test -w @markvspec/core && npm run test -w @markvspec/document-renderer && npm run test -w @markvspec/exporter && npm run test -w @markvspec/cli && npm run test -w packages/vscode-extension",
+    "typecheck": "npm run typecheck -w @markvspec/core && npm run build -w @markvspec/core && npm run typecheck -w @markvspec/document-renderer && npm run build -w @markvspec/document-renderer && npm run typecheck -w @markvspec/exporter && npm run build -w @markvspec/exporter && npm run typecheck -w @markvspec/cli && npm run build -w @markvspec/cli && npm run typecheck -w packages/vscode-extension"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "@types/vscode": "1.100.0",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

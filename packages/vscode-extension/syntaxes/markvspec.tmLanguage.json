@@ -1,0 +1,397 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "MarkVSpec",
+  "scopeName": "source.markvspec",
+  "patterns": [
+    {
+      "include": "#front-matter"
+    },
+    {
+      "include": "#headings"
+    },
+    {
+      "include": "#action-groups"
+    },
+    {
+      "include": "#request-lines"
+    },
+    {
+      "include": "#field-items"
+    },
+    {
+      "include": "#properties"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#references"
+    }
+  ],
+  "repository": {
+    "front-matter": {
+      "name": "meta.front-matter.markvspec",
+      "begin": "\\A---\\s*$",
+      "end": "^---\\s*$",
+      "patterns": [
+        {
+          "name": "keyword.other.front-matter.key.markvspec",
+          "match": "^([A-Za-z][A-Za-z0-9_-]*)(?=\\s*:)"
+        },
+        {
+          "name": "punctuation.separator.key-value.markvspec",
+          "match": ":"
+        },
+        {
+          "include": "#strings"
+        },
+        {
+          "include": "#references"
+        }
+      ]
+    },
+    "headings": {
+      "patterns": [
+        {
+          "name": "markup.heading.screen.markvspec",
+          "match": "^(#)\\s+((?:SCR|TPL|PRT)-[\\p{L}\\p{N}-]+)\\s+(.+)$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.heading.markvspec"
+            },
+            "2": {
+              "name": "entity.name.type.screen.markvspec"
+            },
+            "3": {
+              "name": "entity.name.section.screen-title.markvspec"
+            }
+          }
+        },
+        {
+          "name": "markup.heading.section.markvspec",
+          "match": "^(##)\\s+(Layout|Slot)(:)\\s*([^\\s].*)\\s*$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.heading.markvspec"
+            },
+            "2": {
+              "name": "entity.name.section.markvspec"
+            },
+            "3": {
+              "name": "punctuation.separator.key-value.markvspec"
+            },
+            "4": {
+              "name": "constant.other.viewport.markvspec"
+            }
+          }
+        },
+        {
+          "name": "markup.heading.section.markvspec",
+          "match": "^(##)\\s+(States|Layout|Slots|Elements|Form Groups|Actions|Model Samples|Validations|Business Rules|Error Codes|History Fields|History)\\s*$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.heading.markvspec"
+            },
+            "2": {
+              "name": "entity.name.section.markvspec"
+            }
+          }
+        },
+        {
+          "name": "markup.heading.object.markvspec",
+          "match": "^(###)\\s+(?:([A-Za-z0-9][A-Za-z0-9_-]{0,11})(:))?((?:L|P|E|F|A|V|R)-[\\p{L}\\p{N}-]+|[A-Za-z][A-Za-z0-9_-]*)(?:\\s+(.+?))?(\\*)?\\s*$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.heading.markvspec"
+            },
+            "2": {
+              "name": "constant.other.marker.markvspec"
+            },
+            "3": {
+              "name": "punctuation.separator.marker.markvspec"
+            },
+            "4": {
+              "name": "entity.name.tag.id.markvspec"
+            },
+            "5": {
+              "name": "entity.name.section.object-title.markvspec"
+            },
+            "6": {
+              "name": "keyword.operator.required.markvspec"
+            }
+          }
+        },
+        {
+          "name": "markup.heading.subsection.markvspec",
+          "match": "^(####)\\s+(Items)\\s*$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.heading.markvspec"
+            },
+            "2": {
+              "name": "entity.name.section.markvspec"
+            }
+          }
+        },
+        {
+          "name": "markup.heading.subsection.markvspec",
+          "match": "^(####)\\s+(\\$\\{model\\.[^}]+\\})\\s*$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.heading.markvspec"
+            },
+            "2": {
+              "name": "variable.other.model-path.markvspec"
+            }
+          }
+        },
+        {
+          "name": "markup.heading.object.markvspec",
+          "match": "^(###)\\s+([\\p{L}\\p{N}_.-]+)\\s*$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.heading.markvspec"
+            },
+            "2": {
+              "name": "entity.name.section.object-title.markvspec"
+            }
+          }
+        }
+      ]
+    },
+    "action-groups": {
+      "patterns": [
+        {
+          "name": "meta.action-group.markvspec",
+          "match": "^(\\s*-\\s+)(Triggered|From|Process|Effects|Otherwise|Cases)\\s*:?\\s*$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.list.begin.markvspec"
+            },
+            "2": {
+              "name": "keyword.control.action-group.markvspec"
+            }
+          }
+        },
+        {
+          "name": "meta.action-update.markvspec",
+          "match": "^(\\s*-\\s+)(update|params|parallel)(:)?\\s*.*$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.list.begin.markvspec"
+            },
+            "2": {
+              "name": "keyword.control.update.markvspec"
+            },
+            "3": {
+              "name": "punctuation.separator.key-value.markvspec"
+            }
+          }
+        },
+        {
+          "name": "meta.process-step.markvspec",
+          "match": "^(\\s*-\\s+)(HttpRequest|PartialRequest|ServerCall|Preprocess|Resolve)(?::\\s*([A-Za-z][A-Za-z0-9_-]*))?\\s*$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.list.begin.markvspec"
+            },
+            "2": {
+              "name": "support.function.process-step.markvspec"
+            },
+            "3": {
+              "name": "entity.name.tag.parallel-group.markvspec"
+            }
+          }
+        },
+        {
+          "name": "meta.action-case.markvspec",
+          "match": "^(\\s*-\\s+)([A-Za-z][A-Za-z0-9_-]*)(:)\\s*$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.list.begin.markvspec"
+            },
+            "2": {
+              "name": "variable.parameter.case.markvspec"
+            },
+            "3": {
+              "name": "punctuation.separator.key-value.markvspec"
+            }
+          }
+        },
+        {
+          "name": "meta.condition-group.markvspec",
+          "match": "^(\\s*-\\s+)(all|any|and|or)(:)\\s*$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.list.begin.markvspec"
+            },
+            "2": {
+              "name": "keyword.operator.logical.markvspec"
+            },
+            "3": {
+              "name": "punctuation.separator.key-value.markvspec"
+            }
+          }
+        },
+        {
+          "name": "meta.action-flow.markvspec",
+          "match": "^(\\s*-\\s+)(stop|continue)\\s*$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.list.begin.markvspec"
+            },
+            "2": {
+              "name": "keyword.control.flow.markvspec"
+            }
+          }
+        }
+      ]
+    },
+    "request-lines": {
+      "patterns": [
+        {
+          "name": "meta.http-request.markvspec",
+          "match": "^(\\s*-\\s+)(GET|POST|PUT|PATCH|DELETE)\\s+(.+)$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.list.begin.markvspec"
+            },
+            "2": {
+              "name": "keyword.other.http-method.markvspec"
+            },
+            "3": {
+              "name": "string.unquoted.route.markvspec"
+            }
+          }
+        }
+      ]
+    },
+    "field-items": {
+      "patterns": [
+        {
+          "name": "meta.layout-field.markvspec",
+          "match": "^(\\s*-\\s+)(\"[^\"]+\")(:)\\s*((?:E)-[\\p{L}\\p{N}-]+)\\s*$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.list.begin.markvspec"
+            },
+            "2": {
+              "name": "string.quoted.double.label.markvspec"
+            },
+            "3": {
+              "name": "punctuation.separator.key-value.markvspec"
+            },
+            "4": {
+              "name": "variable.other.element-id.markvspec"
+            }
+          }
+        },
+        {
+          "name": "meta.layout-slot.markvspec",
+          "match": "^(\\s*-\\s+)(slot)(:)\\s*([A-Za-z][A-Za-z0-9_-]*)\\s*$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.list.begin.markvspec"
+            },
+            "2": {
+              "name": "support.type.property-name.markvspec"
+            },
+            "3": {
+              "name": "punctuation.separator.key-value.markvspec"
+            },
+            "4": {
+              "name": "variable.other.slot-name.markvspec"
+            }
+          }
+        }
+      ]
+    },
+    "properties": {
+      "patterns": [
+        {
+          "name": "meta.property.marker.markvspec",
+          "match": "^(\\s*-\\s+)(marker)(:)\\s*([A-Za-z0-9][A-Za-z0-9_-]{0,11})\\s*$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.list.begin.markvspec"
+            },
+            "2": {
+              "name": "support.type.property-name.markvspec"
+            },
+            "3": {
+              "name": "punctuation.separator.key-value.markvspec"
+            },
+            "4": {
+              "name": "constant.other.marker.markvspec"
+            }
+          }
+        },
+        {
+          "name": "meta.property.markvspec",
+          "match": "^(\\s*-\\s+)([A-Za-z][A-Za-z0-9 -]*)(:)\\s*(.*)$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.list.begin.markvspec"
+            },
+            "2": {
+              "name": "support.type.property-name.markvspec"
+            },
+            "3": {
+              "name": "punctuation.separator.key-value.markvspec"
+            },
+            "4": {
+              "patterns": [
+                {
+                  "include": "#strings"
+                },
+                {
+                  "include": "#references"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.markvspec",
+          "match": "\"[^\"]*\""
+        }
+      ]
+    },
+    "references": {
+      "patterns": [
+        {
+          "name": "entity.name.type.screen.markvspec",
+          "match": "\\b(?:SCR|TPL|PRT)-[\\p{L}\\p{N}-]+\\b"
+        },
+        {
+          "name": "variable.other.layout-id.markvspec",
+          "match": "\\b(?:L|P)-[\\p{L}\\p{N}-]+\\b"
+        },
+        {
+          "name": "variable.other.element-id.markvspec",
+          "match": "\\bE-[\\p{L}\\p{N}-]+\\b"
+        },
+        {
+          "name": "variable.other.action-id.markvspec",
+          "match": "\\bA-[\\p{L}\\p{N}-]+\\b"
+        },
+        {
+          "name": "variable.other.form-group-id.markvspec",
+          "match": "\\bF-[\\p{L}\\p{N}-]+\\b"
+        },
+        {
+          "name": "variable.other.validation-id.markvspec",
+          "match": "\\bV-[\\p{L}\\p{N}-]+\\b"
+        },
+        {
+          "name": "variable.other.rule-id.markvspec",
+          "match": "\\bR-[\\p{L}\\p{N}-]+\\b"
+        }
+      ]
+    }
+  }
+}

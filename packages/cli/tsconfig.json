@@ -1,0 +1,28 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "baseUrl": "../..",
+    "paths": {
+      "@markvspec/core": [
+        "packages/core/src/index.ts"
+      ],
+      "@markvspec/exporter": [
+        "packages/exporter/src/index.ts"
+      ]
+    },
+    "composite": true
+  },
+  "references": [
+    {
+      "path": "../core"
+    },
+    {
+      "path": "../exporter"
+    }
+  ],
+  "include": [
+    "src/**/*.ts"
+  ]
+}

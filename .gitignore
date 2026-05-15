@@ -1,0 +1,10 @@
+node_modules/
+dist/
+packages/*/dist/
+packages/vscode-extension/media/
+coverage/
+.vscode-test/
+.markvspec-regression/
+.work/
+*.tsbuildinfo
+.DS_Store

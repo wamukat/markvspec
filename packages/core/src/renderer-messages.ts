@@ -1,0 +1,840 @@
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { parseDocument } from "yaml";
+
+export type MarkVSpecLocale = "en" | "ja";
+
+export type MessageKey =
+  | "action"
+  | "actionDetails"
+  | "actionTransitions"
+  | "actionable"
+  | "autoUpdate"
+  | "autoUpdatePreview"
+  | "actions"
+  | "all"
+  | "any"
+  | "availability"
+  | "basicInfo"
+  | "bind"
+  | "businessRule"
+  | "businessRules"
+  | "case"
+  | "clientCrossFieldValidations"
+  | "clientFieldValidations"
+  | "columns"
+  | "condition"
+  | "conditionAnd"
+  | "conditionDisabledShort"
+  | "conditionEnabledShort"
+  | "conditionHiddenShort"
+  | "conditionNot"
+  | "conditions"
+  | "conditionOr"
+  | "conditionVisibleShort"
+  | "conditionWhenShort"
+  | "content"
+  | "contents"
+  | "contentsEmpty"
+  | "contentsError"
+  | "contentsLoading"
+  | "default"
+  | "definitionContent"
+  | "definitionDefinitions"
+  | "diagnostics"
+  | "description"
+  | "disabledWhen"
+  | "display"
+  | "displayLayoutOnlyChanged"
+  | "displayCondition"
+  | "displayContentSpec"
+  | "displayLocation"
+  | "displaySource"
+  | "displayValue"
+  | "emptyArray"
+  | "element"
+  | "elementSummary"
+  | "elements"
+  | "embeddedPreview"
+  | "enabledWhen"
+  | "error"
+  | "errorCode"
+  | "errorCodes"
+  | "feedback"
+  | "field"
+  | "fields"
+  | "format"
+  | "formGroups"
+  | "formControls"
+  | "fragmentContent"
+  | "from"
+  | "history"
+  | "hideContents"
+  | "id"
+  | "initial"
+  | "initialValueSource"
+  | "inputFormSpec"
+  | "inputSpec"
+  | "items"
+  | "kind"
+  | "label"
+  | "labelSrc"
+  | "layout"
+  | "layouts"
+  | "level"
+  | "line"
+  | "locale"
+  | "loaded"
+  | "marker"
+  | "markerVisibility"
+  | "mermaidHideSource"
+  | "mermaidRenderFailed"
+  | "mermaidRendering"
+  | "mermaidShowSource"
+  | "markers"
+  | "message"
+  | "missing"
+  | "model"
+  | "modelSamples"
+  | "modelUpdates"
+  | "name"
+  | "noSampleFieldsDefined"
+  | "noVisibleElements"
+  | "none"
+  | "notes"
+  | "freeFormSections"
+  | "object"
+  | "options"
+  | "other"
+  | "otherMetadata"
+  | "outcome"
+  | "overview"
+  | "owner"
+  | "partial"
+  | "partialReferences"
+  | "partialUpdates"
+  | "path"
+  | "preview"
+  | "previewUpdate"
+  | "process"
+  | "project"
+  | "projectTransitionDiagram"
+  | "projectTransitions"
+  | "properties"
+  | "purpose"
+  | "parameters"
+  | "required"
+  | "requiredYes"
+  | "request"
+  | "references"
+  | "readonly"
+  | "refresh"
+  | "refreshPreview"
+  | "responses"
+  | "result"
+  | "repeated"
+  | "rootLayouts"
+  | "route"
+  | "routeParameters"
+  | "run"
+  | "rows"
+  | "rule"
+  | "ruleText"
+  | "screen"
+  | "screens"
+  | "screenTransitions"
+  | "serverCrossFieldValidations"
+  | "serverFieldValidations"
+  | "severity"
+  | "sample"
+  | "scope"
+  | "sideEffects"
+  | "showRepeatedContent"
+  | "showContents"
+  | "slot"
+  | "slots"
+  | "src"
+  | "state"
+  | "stateFlow"
+  | "stateTransitionTableReference"
+  | "stateViews"
+  | "states"
+  | "status"
+  | "statusIdMismatch"
+  | "statusWrongType"
+  | "submit"
+  | "systemEvents"
+  | "target"
+  | "targetType"
+  | "template"
+  | "templates"
+  | "templateReference"
+  | "textValue"
+  | "title"
+  | "to"
+  | "toggleContents"
+  | "toggleMarker"
+  | "tone"
+  | "trigger"
+  | "transitions"
+  | "triggeredActions"
+  | "type"
+  | "update"
+  | "validation"
+  | "validationRules"
+  | "value"
+  | "valueModel"
+  | "view"
+  | "viewport"
+  | "when"
+  | "visibleWhen"
+  | "wireframe";
+
+const en: Record<MessageKey, string> = {
+  action: "Action",
+  actionDetails: "Action Details",
+  actionTransitions: "State Transitions",
+  actionable: "Actionable",
+  autoUpdate: "Auto update",
+  autoUpdatePreview: "Toggle auto preview update",
+  actions: "Actions",
+  all: "All",
+  any: "Any",
+  availability: "Availability",
+  basicInfo: "Basic Info",
+  bind: "Bind",
+  businessRule: "Business Rule",
+  businessRules: "Business Rules",
+  case: "Case",
+  clientCrossFieldValidations: "Client Cross-field Validations",
+  clientFieldValidations: "Client Field Validations",
+  columns: "Columns",
+  condition: "Condition",
+  conditionAnd: "and",
+  conditionDisabledShort: "disabled",
+  conditionEnabledShort: "enabled",
+  conditionHiddenShort: "hidden",
+  conditionNot: "not",
+  conditions: "Conditions",
+  conditionOr: "or",
+  conditionVisibleShort: "visible",
+  conditionWhenShort: "when",
+  content: "Content",
+  contents: "Contents",
+  contentsEmpty: "No sections.",
+  contentsError: "Unable to build contents.",
+  contentsLoading: "Building contents...",
+  default: "Default",
+  definitionContent: "Content",
+  definitionDefinitions: "Definitions",
+  diagnostics: "Diagnostics",
+  description: "Description",
+  disabledWhen: "Disabled When",
+  display: "Display",
+  displayLayoutOnlyChanged: "Only repeated specifications are hidden.",
+  displayCondition: "Display Condition",
+  displayContentSpec: "Display Content Spec",
+  displayLocation: "Display Location",
+  displaySource: "Source",
+  displayValue: "Display Content",
+  emptyArray: "Empty array",
+  element: "Element",
+  elementSummary: "Element Summary",
+  elements: "Elements",
+  embeddedPreview: "Embedded preview",
+  enabledWhen: "Enabled When",
+  error: "Error",
+  errorCode: "Error Code",
+  errorCodes: "Error Codes",
+  feedback: "Status Display",
+  field: "Field",
+  fields: "Fields",
+  format: "Format",
+  formGroups: "Form Groups",
+  formControls: "Form Controls",
+  fragmentContent: "Fragment / Content",
+  from: "From",
+  history: "History",
+  hideContents: "Hide contents",
+  id: "ID",
+  initial: "initial",
+  initialValueSource: "Initial / Source",
+  inputFormSpec: "Input Form Spec",
+  inputSpec: "Input Spec",
+  items: "Items",
+  kind: "Kind",
+  label: "Label",
+  labelSrc: "Label Source",
+  layout: "Layout",
+  layouts: "Layouts",
+  level: "Level",
+  line: "Line",
+  locale: "Locale",
+  loaded: "loaded",
+  marker: "Marker",
+  markerVisibility: "Marker visibility",
+  mermaidHideSource: "Hide source",
+  mermaidRenderFailed: "Unable to render Mermaid diagram.",
+  mermaidRendering: "Rendering Mermaid diagram...",
+  mermaidShowSource: "Show source",
+  markers: "Markers",
+  message: "Message",
+  missing: "missing",
+  model: "Model",
+  modelSamples: "Model Samples",
+  modelUpdates: "Model Updates",
+  name: "Name",
+  noSampleFieldsDefined: "No sample fields defined",
+  noVisibleElements: "No visible elements",
+  none: "None.",
+  notes: "Notes",
+  freeFormSections: "Free-form Sections",
+  object: "Object",
+  options: "Options",
+  other: "Other",
+  otherMetadata: "Other Metadata",
+  outcome: "Outcome",
+  overview: "Overview",
+  owner: "Owner",
+  partial: "Partial",
+  partialReferences: "Partial References",
+  partialUpdates: "Partial Updates",
+  path: "Path",
+  preview: "Preview",
+  previewUpdate: "Preview update",
+  process: "Process",
+  properties: "Properties",
+  project: "Project",
+  projectTransitionDiagram: "Project Transition Diagram",
+  projectTransitions: "Project Transitions",
+  purpose: "Purpose",
+  parameters: "Parameters",
+  required: "Required",
+  requiredYes: "yes",
+  request: "Request",
+  references: "References",
+  readonly: "Read-only",
+  refresh: "Refresh",
+  refreshPreview: "Refresh preview",
+  responses: "Responses",
+  result: "Result",
+  repeated: "Repeated",
+  rootLayouts: "Root Layouts",
+  route: "Route",
+  routeParameters: "Route Parameters",
+  run: "Run",
+  rows: "Rows",
+  rule: "Rule",
+  ruleText: "Rule Text",
+  screen: "Screen",
+  screens: "Screens",
+  screenTransitions: "Screen Transitions",
+  serverCrossFieldValidations: "Server Cross-field Validations",
+  serverFieldValidations: "Server Field Validations",
+  severity: "Severity",
+  sample: "Sample",
+  scope: "Scope",
+  sideEffects: "Side effects",
+  showRepeatedContent: "Show repeated content",
+  showContents: "Show contents",
+  slot: "Slot",
+  slots: "Slots",
+  src: "Source",
+  state: "State",
+  stateFlow: "State Flow",
+  stateTransitionTableReference: "See State Transitions for details.",
+  stateViews: "State Views",
+  states: "States",
+  status: "Status",
+  statusIdMismatch: "id mismatch",
+  statusWrongType: "wrong type",
+  submit: "Submit",
+  systemEvents: "System Events",
+  target: "Target",
+  targetType: "Target Type",
+  template: "Template",
+  templates: "Templates",
+  templateReference: "Template",
+  textValue: "Text / Value",
+  title: "Title",
+  to: "To",
+  toggleContents: "Toggle contents",
+  toggleMarker: "Toggle markers",
+  tone: "Tone",
+  trigger: "Trigger",
+  transitions: "Transitions",
+  triggeredActions: "Triggered Actions",
+  type: "Type",
+  update: "Update",
+  validation: "Validation",
+  validationRules: "Validations",
+  value: "Value",
+  valueModel: "Value / Source",
+  view: "View",
+  viewport: "Viewport",
+  when: "When",
+  visibleWhen: "Visible When",
+  wireframe: "Wireframe"
+};
+
+const ja: Record<MessageKey, string> = {
+  action: "アクション",
+  actionDetails: "アクション詳細",
+  actionTransitions: "状態遷移表",
+  actionable: "操作要素",
+  autoUpdate: "自動更新",
+  autoUpdatePreview: "プレビューの自動更新を切り替え",
+  actions: "アクション",
+  all: "すべて",
+  any: "いずれか",
+  availability: "有効条件",
+  basicInfo: "基本情報",
+  bind: "bind",
+  businessRule: "業務ルール",
+  businessRules: "業務ルール",
+  case: "ケース",
+  clientCrossFieldValidations: "クライアント複合項目検証",
+  clientFieldValidations: "クライアント単項目検証",
+  columns: "列",
+  condition: "条件",
+  conditionAnd: "かつ",
+  conditionDisabledShort: "無効",
+  conditionEnabledShort: "有効",
+  conditionHiddenShort: "非表示",
+  conditionNot: "not",
+  conditions: "条件",
+  conditionOr: "または",
+  conditionVisibleShort: "表示",
+  conditionWhenShort: "条件",
+  content: "コンテンツ",
+  contents: "目次",
+  contentsEmpty: "表示できる章がありません。",
+  contentsError: "目次を生成できませんでした。",
+  contentsLoading: "目次を生成しています...",
+  default: "デフォルト",
+  definitionContent: "差し込み内容",
+  definitionDefinitions: "定義",
+  diagnostics: "診断",
+  description: "説明",
+  disabledWhen: "無効条件",
+  display: "表示",
+  displayLayoutOnlyChanged: "既出の仕様のみ非表示",
+  displayCondition: "表示条件",
+  displayContentSpec: "表示内容仕様",
+  displayLocation: "表示箇所",
+  displaySource: "取得元",
+  displayValue: "表示内容",
+  emptyArray: "空配列",
+  element: "画面要素",
+  elementSummary: "画面要素サマリー",
+  elements: "画面要素",
+  embeddedPreview: "埋め込みプレビュー",
+  enabledWhen: "有効条件",
+  error: "エラー",
+  errorCode: "エラーコード",
+  errorCodes: "エラーコード",
+  feedback: "状態表示",
+  field: "項目",
+  fields: "項目",
+  format: "表示形式",
+  formGroups: "フォームグループ",
+  formControls: "フォーム要素",
+  fragmentContent: "差し替え内容",
+  from: "遷移元",
+  history: "変更履歴",
+  hideContents: "目次を隠す",
+  id: "ID",
+  initial: "初期",
+  initialValueSource: "初期値(参照元)",
+  inputFormSpec: "入力フォーム仕様",
+  inputSpec: "入力仕様",
+  items: "項目",
+  kind: "種別",
+  label: "表示名",
+  labelSrc: "表示名参照元",
+  layout: "レイアウト",
+  layouts: "レイアウト",
+  level: "レベル",
+  line: "行",
+  locale: "ロケール",
+  loaded: "読み込み済み",
+  marker: "番号",
+  markerVisibility: "マーカー表示",
+  mermaidHideSource: "ソースを隠す",
+  mermaidRenderFailed: "Mermaid 図を描画できませんでした。",
+  mermaidRendering: "Mermaid 図を描画しています...",
+  mermaidShowSource: "ソースを表示",
+  markers: "マーカー",
+  message: "メッセージ",
+  missing: "未検出",
+  model: "モデル",
+  modelSamples: "モデルサンプル",
+  modelUpdates: "モデル更新処理",
+  name: "名前",
+  noSampleFieldsDefined: "サンプル項目が定義されていません",
+  noVisibleElements: "表示される要素はありません",
+  none: "なし。",
+  notes: "備考",
+  freeFormSections: "自由記述セクション",
+  object: "対象",
+  options: "選択肢",
+  other: "その他",
+  otherMetadata: "その他メタ情報",
+  outcome: "結果",
+  overview: "概要",
+  owner: "担当",
+  partial: "partial",
+  partialReferences: "Partial参照",
+  partialUpdates: "部分更新",
+  path: "パス",
+  preview: "プレビュー",
+  previewUpdate: "プレビュー更新",
+  process: "処理",
+  properties: "属性",
+  project: "プロジェクト",
+  projectTransitionDiagram: "プロジェクト遷移図",
+  projectTransitions: "プロジェクト遷移",
+  purpose: "目的",
+  parameters: "パラメータ",
+  required: "必須",
+  requiredYes: "はい",
+  request: "リクエスト",
+  references: "参照設計書",
+  readonly: "読み取り専用",
+  refresh: "更新",
+  refreshPreview: "プレビューを更新",
+  responses: "レスポンス",
+  result: "結果",
+  repeated: "既出",
+  rootLayouts: "ルートレイアウト",
+  route: "ルート",
+  routeParameters: "ルートパラメータ",
+  run: "実行",
+  rows: "行数",
+  rule: "ルール",
+  ruleText: "ルール内容",
+  screen: "画面",
+  screens: "画面",
+  screenTransitions: "画面遷移",
+  serverCrossFieldValidations: "サーバ複合項目検証",
+  serverFieldValidations: "サーバ単項目検証",
+  severity: "重要度",
+  sample: "サンプル",
+  scope: "範囲",
+  sideEffects: "副作用",
+  showRepeatedContent: "既出を表示",
+  showContents: "目次を表示",
+  slot: "スロット",
+  slots: "スロット",
+  src: "参照元",
+  state: "状態",
+  stateFlow: "状態遷移図",
+  stateTransitionTableReference: "詳細は状態遷移表を参照",
+  stateViews: "状態ビュー",
+  states: "状態",
+  status: "ステータス",
+  statusIdMismatch: "ID不一致",
+  statusWrongType: "種別不一致",
+  submit: "送信",
+  systemEvents: "自動イベント",
+  target: "対象",
+  targetType: "対象種別",
+  template: "テンプレート",
+  templates: "テンプレート",
+  templateReference: "テンプレート",
+  textValue: "テキスト / 値",
+  title: "タイトル",
+  to: "遷移先",
+  toggleContents: "目次を切り替え",
+  toggleMarker: "マーカーを切り替え",
+  tone: "意味",
+  trigger: "トリガー",
+  transitions: "遷移",
+  triggeredActions: "関連アクション",
+  type: "種別",
+  update: "更新",
+  validation: "検証",
+  validationRules: "Validations",
+  value: "値",
+  valueModel: "値 / 参照元",
+  view: "表示",
+  viewport: "ビューポート",
+  when: "条件",
+  visibleWhen: "表示条件",
+  wireframe: "ワイヤーフレーム"
+};
+
+export type RendererMessageKey = MessageKey;
+export type RendererMessages = Record<RendererMessageKey, string>;
+
+export interface RendererMessageDiagnostic {
+  severity: "warning";
+  message: string;
+  sourcePath?: string;
+  key?: string;
+}
+
+export interface ResolveRendererMessagesOptions {
+  locale?: string;
+  sourcePath?: string;
+  explicitPath?: string;
+  frontMatterPath?: string;
+  searchBoundaryPath?: string;
+  workspaceRoot?: string;
+  readFile?: (path: string) => string | undefined;
+  fileExists?: (path: string) => boolean;
+}
+
+export interface ResolvedRendererMessages {
+  locale: MarkVSpecLocale;
+  messages: RendererMessages;
+  sourcePath?: string;
+  diagnostics: RendererMessageDiagnostic[];
+}
+
+const dictionaries: Record<MarkVSpecLocale, RendererMessages> = { en, ja };
+const supportedMessageKeys = new Set(Object.keys(en));
+const ignoredDeprecatedMessageKeys = new Set([
+  "pdfExportNotes",
+  "printNoteBrowser",
+  "printNoteMermaid",
+  "printNoteTables"
+]);
+
+export function resolveLocale(locale: string | undefined): MarkVSpecLocale {
+  return locale?.toLowerCase().startsWith("ja") ? "ja" : "en";
+}
+
+export function messagesForLocale(locale: string | undefined): RendererMessages {
+  return dictionaries[resolveLocale(locale)];
+}
+
+export function resolveRendererMessages(options: ResolveRendererMessagesOptions = {}): ResolvedRendererMessages {
+  const locale = resolveLocale(options.locale);
+  const diagnostics: RendererMessageDiagnostic[] = [];
+  const readFile = options.readFile ?? readTextFile;
+  const fileExists = options.fileExists ?? existsSync;
+  const candidate = resolveMessageFileCandidate(options, locale, fileExists, diagnostics);
+  const loaded = candidate ? loadRendererMessageFile(candidate, locale, readFile, diagnostics) : undefined;
+
+  return {
+    locale,
+    messages: {
+      ...messagesForLocale(locale),
+      ...(loaded?.messages ?? {})
+    },
+    sourcePath: loaded?.sourcePath,
+    diagnostics
+  };
+}
+
+export function supportedRendererMessageKeys(): RendererMessageKey[] {
+  return [...supportedMessageKeys].sort() as RendererMessageKey[];
+}
+
+function resolveMessageFileCandidate(
+  options: ResolveRendererMessagesOptions,
+  locale: MarkVSpecLocale,
+  fileExists: (path: string) => boolean,
+  diagnostics: RendererMessageDiagnostic[]
+): string | undefined {
+  if (options.explicitPath) {
+    const candidate = resolvePath(process.cwd(), options.explicitPath);
+    if (!isInsideWorkspace(candidate, options.workspaceRoot)) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Renderer message file is outside the workspace: ${candidate}.`,
+        sourcePath: candidate
+      });
+      return undefined;
+    }
+    return candidate;
+  }
+
+  const sourceDir = options.sourcePath ? dirname(resolve(options.sourcePath)) : process.cwd();
+  if (options.frontMatterPath) {
+    const candidate = resolvePath(sourceDir, options.frontMatterPath);
+    if (!isInsideWorkspace(candidate, options.workspaceRoot)) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Renderer message file is outside the workspace: ${candidate}.`,
+        sourcePath: candidate
+      });
+      return undefined;
+    }
+    return candidate;
+  }
+
+  return findDefaultMessagesFile(sourceDir, locale, options, fileExists);
+}
+
+function findDefaultMessagesFile(
+  sourceDir: string,
+  locale: MarkVSpecLocale,
+  options: ResolveRendererMessagesOptions,
+  fileExists: (path: string) => boolean
+): string | undefined {
+  const boundary = resolveSearchBoundary(sourceDir, options);
+  let current = sourceDir;
+  while (true) {
+    for (const fileName of defaultMessageFileNames(locale)) {
+      const candidate = join(current, fileName);
+      if (isInsideWorkspace(candidate, options.workspaceRoot) && fileExists(candidate)) {
+        return candidate;
+      }
+    }
+
+    if (current === boundary) {
+      return undefined;
+    }
+    const parent = dirname(current);
+    if (parent === current || !isPathWithin(current, boundary)) {
+      return undefined;
+    }
+    current = parent;
+  }
+}
+
+function resolveSearchBoundary(sourceDir: string, options: ResolveRendererMessagesOptions): string {
+  if (options.workspaceRoot) {
+    return resolve(options.workspaceRoot);
+  }
+  if (options.searchBoundaryPath) {
+    return resolve(options.searchBoundaryPath);
+  }
+  const cwd = process.cwd();
+  return isPathWithin(sourceDir, cwd) ? cwd : sourceDir;
+}
+
+function defaultMessageFileNames(locale: MarkVSpecLocale): string[] {
+  return [
+    `markvspec.messages.${locale}.yml`,
+    `markvspec.messages.${locale}.yaml`,
+    `markvspec.messages.${locale}.json`,
+    "markvspec.messages.yml",
+    "markvspec.messages.yaml",
+    "markvspec.messages.json"
+  ];
+}
+
+function loadRendererMessageFile(
+  path: string,
+  locale: MarkVSpecLocale,
+  readFile: (path: string) => string | undefined,
+  diagnostics: RendererMessageDiagnostic[]
+): { messages: Partial<RendererMessages>; sourcePath?: string } {
+  const raw = readFile(path);
+  if (raw === undefined) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Renderer message file could not be read: ${path}.`,
+      sourcePath: path
+    });
+    return { messages: {} };
+  }
+
+  const data = parseRendererMessageFile(raw, path, diagnostics);
+  if (!isRecord(data)) {
+    return { messages: {} };
+  }
+
+  const fileLocale = typeof data["locale"] === "string" ? resolveLocale(data["locale"]) : undefined;
+  if (fileLocale && fileLocale !== locale) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Renderer message file locale ${fileLocale} does not match document locale ${locale}.`,
+      sourcePath: path
+    });
+  }
+
+  const messages = data["messages"];
+  if (!isRecord(messages)) {
+    diagnostics.push({
+      severity: "warning",
+      message: "Renderer message file must contain a messages object.",
+      sourcePath: path
+    });
+    return { messages: {} };
+  }
+
+  const override: Partial<RendererMessages> = {};
+  for (const [key, value] of Object.entries(messages)) {
+    if (!supportedMessageKeys.has(key)) {
+      if (ignoredDeprecatedMessageKeys.has(key)) {
+        continue;
+      }
+      diagnostics.push({
+        severity: "warning",
+        message: `Unknown renderer message key: ${key}.`,
+        sourcePath: path,
+        key
+      });
+      continue;
+    }
+    if (typeof value !== "string") {
+      diagnostics.push({
+        severity: "warning",
+        message: `Renderer message key ${key} must be a string.`,
+        sourcePath: path,
+        key
+      });
+      continue;
+    }
+    override[key as RendererMessageKey] = value;
+  }
+
+  return { messages: override, sourcePath: path };
+}
+
+function parseRendererMessageFile(raw: string, path: string, diagnostics: RendererMessageDiagnostic[]): unknown {
+  if (path.endsWith(".json")) {
+    try {
+      return JSON.parse(raw) as unknown;
+    } catch (error) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Invalid renderer message JSON: ${error instanceof Error ? error.message : String(error)}`,
+        sourcePath: path
+      });
+      return undefined;
+    }
+  }
+
+  const document = parseDocument(raw, { uniqueKeys: false });
+  if (document.errors.length > 0) {
+    diagnostics.push(...document.errors.map((error) => ({
+      severity: "warning" as const,
+      message: `Invalid renderer message YAML: ${error.message}`,
+      sourcePath: path
+    })));
+    return undefined;
+  }
+  return document.toJS() as unknown;
+}
+
+function readTextFile(path: string): string | undefined {
+  try {
+    return readFileSync(path, "utf8");
+  } catch {
+    return undefined;
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function resolvePath(baseDir: string, path: string): string {
+  return isAbsolute(path) ? path : resolve(baseDir, path);
+}
+
+function isInsideWorkspace(path: string, workspaceRoot: string | undefined): boolean {
+  return workspaceRoot ? isPathWithin(path, workspaceRoot) : true;
+}
+
+function isPathWithin(path: string, root: string): boolean {
+  const absolutePath = resolve(path);
+  const absoluteRoot = resolve(root);
+  const relativePath = relative(absoluteRoot, absolutePath);
+  return relativePath === "" || Boolean(relativePath && !relativePath.startsWith("..") && !isAbsolute(relativePath));
+}

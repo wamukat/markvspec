@@ -1,0 +1,163 @@
+{
+  "name": "markvspec",
+  "displayName": "MarkVSpec",
+  "description": "Live preview and diagnostics for MarkVSpec screen specifications.",
+  "version": "0.3.0",
+  "publisher": "wamukat",
+  "icon": "assets/markvspec-icon.png",
+  "type": "module",
+  "preview": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wamukat/MarkVSpec.git"
+  },
+  "homepage": "https://github.com/wamukat/MarkVSpec#readme",
+  "bugs": {
+    "url": "https://github.com/wamukat/MarkVSpec/issues"
+  },
+  "main": "./dist/extension.js",
+  "categories": [
+    "Programming Languages",
+    "Visualization",
+    "Snippets"
+  ],
+  "keywords": [
+    "markvspec",
+    "markdown",
+    "wireframe",
+    "design-spec"
+  ],
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "Preview and diagnostics are available in untrusted workspaces, but opening referenced local files from the webview is blocked until the workspace is trusted."
+    }
+  },
+  "activationEvents": [
+    "onLanguage:markvspec",
+    "onCommand:markvspec.openPreview",
+    "onCommand:markvspec.formatStructure",
+    "onCommand:markvspec.exportHtml",
+    "onCommand:markvspec.exportPdf",
+    "onCommand:markvspec.refreshPreview"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "markvspec",
+        "aliases": [
+          "MarkVSpec"
+        ],
+        "extensions": [
+          ".vspec.md",
+          ".vspec.project.md"
+        ],
+        "configuration": "./language-configuration/markvspec.configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "markvspec",
+        "scopeName": "source.markvspec",
+        "path": "./syntaxes/markvspec.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "markvspec",
+        "path": "./snippets/markvspec.code-snippets"
+      }
+    ],
+    "commands": [
+      {
+        "command": "markvspec.openPreview",
+        "title": "Open Preview",
+        "category": "MarkVSpec",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "markvspec.formatStructure",
+        "title": "Format Structure",
+        "category": "MarkVSpec",
+        "icon": "$(symbol-structure)"
+      },
+      {
+        "command": "markvspec.exportHtml",
+        "title": "Export Static HTML",
+        "category": "MarkVSpec",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "markvspec.exportPdf",
+        "title": "Export PDF",
+        "category": "MarkVSpec",
+        "icon": "$(file-pdf)"
+      },
+      {
+        "command": "markvspec.refreshPreview",
+        "title": "Refresh Preview",
+        "category": "MarkVSpec",
+        "icon": "$(refresh)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "markvspec.openPreview",
+          "when": "resourceFilename =~ /(^|\\.)vspec(\\.project)?\\.md$/",
+          "group": "navigation"
+        },
+        {
+          "command": "markvspec.exportHtml",
+          "when": "resourceFilename =~ /(^|\\.)vspec(\\.project)?\\.md$/",
+          "group": "navigation@2"
+        },
+        {
+          "command": "markvspec.exportPdf",
+          "when": "resourceFilename =~ /(^|\\.)vspec(\\.project)?\\.md$/",
+          "group": "navigation@3"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "markvspec.openPreview",
+          "when": "resourceFilename =~ /(^|\\.)vspec(\\.project)?\\.md$/",
+          "group": "navigation"
+        },
+        {
+          "command": "markvspec.exportHtml",
+          "when": "resourceFilename =~ /(^|\\.)vspec(\\.project)?\\.md$/",
+          "group": "navigation@2"
+        },
+        {
+          "command": "markvspec.exportPdf",
+          "when": "resourceFilename =~ /(^|\\.)vspec(\\.project)?\\.md$/",
+          "group": "navigation@3"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "bundle": "esbuild src/extension.ts --bundle --platform=node --format=esm --external:vscode --alias:yaml=../../node_modules/yaml/browser/index.js --outfile=dist/extension.js --sourcemap",
+    "copy:webview-assets": "mkdir -p media && cp ../../node_modules/mermaid/dist/mermaid.min.js media/mermaid.min.js",
+    "build": "tsc -b tsconfig.json && npm run bundle && npm run copy:webview-assets",
+    "package:vsix": "npm run build && mkdir -p ../../dist && vsce package --out ../../dist/markvspec-${npm_package_version}.vsix",
+    "test": "npm run build && node --loader ./test-vscode-loader.mjs --test dist/**/*.test.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@markvspec/document-renderer": "file:../document-renderer",
+    "@markvspec/exporter": "file:../exporter",
+    "mermaid": "^11.14.0"
+  },
+  "devDependencies": {
+    "@markvspec/core": "file:../core",
+    "@types/vscode": "1.100.0",
+    "@vscode/vsce": "^3.9.1",
+    "esbuild": "^0.28.0"
+  }
+}
