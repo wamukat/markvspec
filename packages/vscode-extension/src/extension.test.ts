@@ -4074,6 +4074,141 @@ references:
   }
 });
 
+test("embeds nested partial previews after viewport fallback", () => {
+  const root = mkdtempSync(join(tmpdir(), "markvspec-nested-partial-viewport-fallback-"));
+  try {
+    const screenPath = join(root, "screens", "points.vspec.md");
+    const parentPath = join(root, "partials", "points-content.vspec.md");
+    const childPath = join(root, "partials", "points-panel.vspec.md");
+    mkdirSync(join(root, "screens"), { recursive: true });
+    mkdirSync(join(root, "partials"), { recursive: true });
+    writeFileSync(childPath, `---
+id: PRT-POINTS-PANEL
+type: partial
+title: Points Panel
+default-state: idle
+---
+
+# PRT-POINTS-PANEL Points Panel
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Panel Points Panel
+
+- stack
+
+#### Items
+
+- E-PanelContent
+
+## Elements
+
+### E-PanelContent Text
+
+- value: Nested panel rendered through viewport fallback
+`);
+    writeFileSync(parentPath, `---
+id: PRT-POINTS-CONTENT
+type: partial
+title: Points Content
+default-state: panel-loaded
+references:
+  partials:
+    PRT-POINTS-PANEL: ./points-panel.vspec.md
+---
+
+# PRT-POINTS-CONTENT Points Content
+
+## States
+
+- panel-loaded*
+
+## Layout: mobile
+
+### L-Content Points Content
+
+- stack
+
+#### Items
+
+- L-PanelHost
+
+### L-PanelHost Points Panel Host
+
+- stack
+- partial:
+  - id: PRT-POINTS-PANEL
+  - states:
+    - panel-loaded: idle
+
+#### Items
+`);
+    const source = `---
+id: SCR-POINTS
+type: screen
+title: Points
+viewport: mobile
+references:
+  partials:
+    PRT-POINTS-CONTENT: ../partials/points-content.vspec.md
+---
+
+# SCR-POINTS Points
+
+## States
+
+- loaded*
+
+## Layout: mobile
+
+### L-MobileHost Mobile Host
+
+- stack
+- partial:
+  - id: PRT-POINTS-CONTENT
+  - states:
+    - loaded: panel-loaded
+
+#### Items
+
+## Layout: desktop
+
+### L-DesktopHost Desktop Host
+
+- stack
+- partial:
+  - id: PRT-POINTS-CONTENT
+  - states:
+    - loaded: panel-loaded
+
+#### Items
+`;
+    const loaded = loadScreenDocumentResult(createTextDocument(source, screenPath) as vscode.TextDocument);
+    const html = renderPreviewHtml(
+      loaded,
+      {
+        cspSource: "vscode-resource:",
+        asWebviewUri: (uri: unknown) => uri
+      } as never,
+      { layout: true, element: true, action: true },
+      undefined,
+      "screens/points.vspec.md"
+    );
+    const desktopSection = viewportStateSection(html, "loaded", "desktop");
+
+    assert.match(desktopSection, /data-mm-id="L-DesktopHost"/);
+    assert.match(desktopSection, /data-mm-id="L-PanelHost"/);
+    assert.match(desktopSection, /data-mm-partial-id="PRT-POINTS-PANEL"/);
+    assert.match(desktopSection, /Nested panel rendered through viewport fallback/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("loads partial preview dependencies for self PartialRequest without circular diagnostics", () => {
   const root = mkdtempSync(join(tmpdir(), "markvspec-self-partial-request-"));
   try {

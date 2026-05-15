@@ -48,6 +48,10 @@ interface PartialTarget {
   line?: number;
 }
 
+interface PartialTargetOptions {
+  resolveViewportFallback?: boolean;
+}
+
 const partialPreviewsByResult = new WeakMap<MarkVSpecParseResult, Map<string, MarkVSpecParseResult>>();
 const partialPreviewPathsByResult = new WeakMap<MarkVSpecParseResult, Map<string, string>>();
 const PARTIAL_PREVIEW_MAX_DEPTH = 10;
@@ -349,7 +353,7 @@ function embedPartialPreviewsForResult(
   depth: number
 ): string {
   let output = html;
-  for (const target of partialTargets(result, viewport)) {
+  for (const target of partialTargets(result, viewport, { resolveViewportFallback: true })) {
     const { targetId, partialId } = target;
     if (stack.includes(partialId)) {
       output = replaceLayoutContents(output, targetId, renderPartialPreviewPlaceholder(`Circular partial reference: ${[...stack, partialId].join(" -> ")}`), partialId, paths?.get(partialId));
@@ -390,11 +394,11 @@ function namespacePartialPreviewRenderKeys(html: string, targetId: string, parti
     .replace(/<!--mm-render-key:([^>]+)-->/gu, (_match, renderKey: string) => `<!--mm-render-key:${prefix}${renderKey}-->`);
 }
 
-function partialTargets(result: MarkVSpecParseResult, viewport?: string): PartialTarget[] {
+function partialTargets(result: MarkVSpecParseResult, viewport?: string, options: PartialTargetOptions = {}): PartialTarget[] {
   const targets: PartialTarget[] = [];
   const seen = new Set<string>();
-  for (const group of allResolvedLayoutGroups(result)) {
-    if (viewport && group.viewport && group.viewport !== viewport) {
+  for (const group of layoutGroupsForPartialTargets(result, viewport, options)) {
+    if (!options.resolveViewportFallback && viewport && group.viewport && group.viewport !== viewport) {
       continue;
     }
     const partialId = group.partial?.id;
@@ -441,6 +445,33 @@ function partialTargets(result: MarkVSpecParseResult, viewport?: string): Partia
     }
   }
   return targets;
+}
+
+function layoutGroupsForPartialTargets(
+  result: MarkVSpecParseResult,
+  viewport: string | undefined,
+  options: PartialTargetOptions
+): MarkVSpecParseResult["layoutGroups"] {
+  const groups = allResolvedLayoutGroups(result);
+  if (!options.resolveViewportFallback) {
+    return groups;
+  }
+
+  const activeViewport = resolvePreviewViewport(result, viewport);
+  return activeViewport === undefined
+    ? groups
+    : groups.filter((group) => group.viewport === activeViewport || !group.viewport);
+}
+
+function resolvePreviewViewport(result: MarkVSpecParseResult, requestedViewport: string | undefined): string | undefined {
+  const viewports = [...new Set(result.layoutGroups.map((group) => group.viewport))];
+  if (requestedViewport && viewports.includes(requestedViewport)) {
+    return requestedViewport;
+  }
+  if (result.screen.viewport && viewports.includes(result.screen.viewport)) {
+    return result.screen.viewport;
+  }
+  return viewports[0];
 }
 
 function partialTargetFromLayout(group: MarkVSpecParseResult["layoutGroups"][number]): PartialTarget {
