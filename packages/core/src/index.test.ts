@@ -1573,6 +1573,80 @@ Use **strong** text and [help](./help.md).
   assert.deepEqual(result.diagnostics, []);
 });
 
+test("ignores standalone HTML comments in structured prose areas", () => {
+  const source = `---
+id: SCR-COMMENT-PROSE
+type: screen
+title: Comment Prose
+viewport: mobile
+---
+
+# SCR-COMMENT-PROSE Comment Prose
+
+## States
+
+- idle*
+
+## Elements
+
+<!-- section overview hidden -->
+
+Elements overview stays visible.
+
+### E-SubmitButton Button
+
+- label: Submit
+
+### Section Notes
+
+<!--
+section notes hidden
+-->
+
+Elements section notes stay visible.
+
+## Actions
+
+### A-Submit Submit
+
+<!-- action overview hidden -->
+
+<!--
+multi-line hidden action note
+-->
+
+Visible action overview <!-- inline comment remains visible source -->.
+
+- Triggered
+  - E-SubmitButton.click
+- From
+  - idle
+- Process P1: Submit request
+  - Effects
+    - state: idle
+
+<div>non-comment html keeps existing prose behavior</div>
+
+## Notes
+
+Visible note.
+
+<!-- generated notes hidden -->
+`;
+  const result = parseMarkVSpec(source);
+  const elementsProse = result.sectionProse.find((candidate) => candidate.title === "Elements");
+
+  assert.deepEqual(elementsProse?.overview, ["Elements overview stays visible."]);
+  assert.deepEqual(elementsProse?.notes, ["Elements section notes stay visible."]);
+  assert.deepEqual(result.actions[0]?.overview, ["Visible action overview <!-- inline comment remains visible source -->."]);
+  assert.deepEqual(result.actions[0]?.notes, ["<div>non-comment html keeps existing prose behavior</div>"]);
+  assert(result.notes[0]?.lines.includes("Visible note."));
+  assert(!result.diagnostics.some((diagnostic) => diagnostic.message.includes("unsupported Markdown block html")));
+  assert(!JSON.stringify(result.sectionProse).includes("hidden"));
+  assert(!JSON.stringify(result.actions[0]).includes("hidden"));
+  assert(!JSON.stringify(result.notes).includes("hidden"));
+});
+
 test("unifies entity overview and notes across structured entity sections", () => {
   const source = `---
 id: SCR-ENTITY-PROSE
@@ -1853,6 +1927,8 @@ title: History prose
 
 ## History Fields
 
+<!-- history fields overview hidden -->
+
 History fields overview.
 
 - ticket
@@ -1866,9 +1942,13 @@ type: date
 
 ### Section Notes
 
+<!-- history fields notes hidden -->
+
 History fields section notes.
 
 ## History
+
+<!-- history overview hidden -->
 
 History section overview.
 
@@ -1883,6 +1963,8 @@ Initial release.
 - Added the first screen.
 
 ### Section Notes
+
+<!-- history notes hidden -->
 
 History section notes.
 `;
@@ -1899,6 +1981,7 @@ History section notes.
   assert.deepEqual(result.historyEntries[0]?.bodyLines, ["Initial release.", "", "- Added the first screen."]);
   assert.deepEqual(historyProse?.overview, ["History section overview."]);
   assert.deepEqual(historyProse?.notes, ["History section notes."]);
+  assert(!JSON.stringify(result.sectionProse).includes("hidden"));
 });
 
 test("warns for unowned structured section prose and unsupported prose blocks", () => {

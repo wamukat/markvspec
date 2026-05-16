@@ -1955,7 +1955,7 @@ function parseHistoryFieldsSection(document: MarkdownDocument, sections: Section
   let inTrailingNotes = false;
   let inSectionNotes = false;
 
-  for (const line of sectionBodyLines(document, sections, section)) {
+  for (const line of sectionBodyLinesWithoutStandaloneHtmlComments(document, sections, section)) {
     if (/^\s*###\s+Section Notes\s*$/.test(line.text)) {
       inSectionNotes = true;
       inTrailingNotes = false;
@@ -2035,7 +2035,7 @@ interface MutableHistoryField extends MarkVSpecHistoryFieldSchema {
 }
 
 function parseHistorySection(document: MarkdownDocument, sections: SectionAst[], section: SectionAst): Pick<SectionSemanticResult, "historyEntries" | "sectionProse"> {
-  const lines = sectionBodyLines(document, sections, section);
+  const lines = sectionBodyLinesWithoutStandaloneHtmlComments(document, sections, section);
   const entries: MarkVSpecHistoryEntry[] = [];
   const overviewLines: string[] = [];
   const noteLines: string[] = [];
@@ -3105,8 +3105,25 @@ function parseNoteSection(document: MarkdownDocument, sections: SectionAst[], se
   return {
     title: section.title,
     line: section.heading.range.start.line,
-    lines: sectionBodyLines(document, sections, section).map((line) => line.text)
+    lines: sectionBodyLinesWithoutStandaloneHtmlComments(document, sections, section).map((line) => line.text)
   };
+}
+
+function sectionBodyLinesWithoutStandaloneHtmlComments(
+  document: MarkdownDocument,
+  sections: SectionAst[],
+  section: SectionAst
+): Array<{ text: string; line: number }> {
+  const commentLines = new Set<number>();
+  for (const block of section.blocks) {
+    if (!isStandaloneHtmlCommentBlock(block) || !block.range) {
+      continue;
+    }
+    for (let line = block.range.start.line; line <= block.range.end.line; line += 1) {
+      commentLines.add(line);
+    }
+  }
+  return sectionBodyLines(document, sections, section).filter((line) => !commentLines.has(line.line));
 }
 
 function listSectionProse(section: SectionAst, renderKeys: string[]): MarkVSpecSectionProse[] {
@@ -3166,6 +3183,9 @@ function proseBlocksToLines(blocks: BlockAst[]): string[] {
 }
 
 function proseBlockToLines(block: BlockAst): string[] {
+  if (isStandaloneHtmlCommentBlock(block)) {
+    return [];
+  }
   if (block.sourceLines && block.sourceLines.length > 0) {
     return block.sourceLines;
   }
@@ -3197,12 +3217,19 @@ function appendEntityProseLines(entity: { overview?: string[]; notes?: string[] 
 }
 
 function isEntityNoteBlock(block: BlockAst): boolean {
+  if (isStandaloneHtmlCommentBlock(block)) {
+    return false;
+  }
   return block.type === "paragraph"
     || block.type === "table"
     || block.type === "code"
     || block.type === "blockquote"
     || block.type === "thematicBreak"
     || block.type === "html";
+}
+
+function isStandaloneHtmlCommentBlock(block: BlockAst): boolean {
+  return block.type === "html" && /^<!--[\s\S]*-->$/u.test(block.text.trim());
 }
 
 function firstActionStructuredListItemLine(block: BlockAst): number | undefined {
