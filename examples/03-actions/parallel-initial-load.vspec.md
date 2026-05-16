@@ -12,7 +12,7 @@ status: draft
 # SCR-PARALLEL-INITIAL-LOAD Parallel Initial Load
 
 This example teaches parallel process groups. Two server calls start together and
-the `Resolve: initial-load` step owns the final state transition.
+the `Process: Resolve` step owns the final state transition.
 
 ## States
 
@@ -80,43 +80,44 @@ the `Resolve: initial-load` step owns the final state transition.
   - screen.load
 - From
   - loading
-- Process
-  - ServerCall
-    - parallel: initial-load
-    - MemberQueryService.findSelfProfile()
-    - cases:
-      - success:
-        - response: 200 member profile
-        - ${model.memberProfile.loaded}: true
-        - ${model.memberProfile.name}: result.name
-        - continue
-      - failure:
-        - response: 5xx or timeout
-        - ${model.memberProfile.loaded}: false
-        - continue
-  - ServerCall
-    - parallel: initial-load
-    - PointQueryService.findSelfPoints()
-    - cases:
-      - success:
-        - response: 200 points
-        - ${model.points.loaded}: true
-        - ${model.points.balance}: result.balance
-        - continue
-      - failure:
-        - response: 5xx or timeout
-        - ${model.points.loaded}: false
-        - continue
-  - Resolve: initial-load
-    - cases:
-      - ready:
-        - response: profile and points loaded
-        - state: idle
-        - stop
-      - failed:
-        - response: one or more calls failed
-        - state: load-error
-        - stop
+- Process: ServerCall
+  - group: initial-load
+  - MemberQueryService.findSelfProfile()
+  - case: success
+    - response: 200 member profile
+    - Effects
+      - model: ${model.memberProfile.loaded} = true
+      - model: ${model.memberProfile.name} = result.name
+    - continue
+  - case: failure
+    - response: 5xx or timeout
+    - Effects
+      - model: ${model.memberProfile.loaded} = false
+    - continue
+- Process: ServerCall
+  - group: initial-load
+  - PointQueryService.findSelfPoints()
+  - case: success
+    - response: 200 points
+    - Effects
+      - model: ${model.points.loaded} = true
+      - model: ${model.points.balance} = result.balance
+    - continue
+  - case: failure
+    - response: 5xx or timeout
+    - Effects
+      - model: ${model.points.loaded} = false
+    - continue
+- Process: Resolve
+  - group: initial-load
+  - case: ready
+    - response: profile and points loaded
+    - state: idle
+    - stop
+  - case: failed
+    - response: one or more calls failed
+    - state: load-error
+    - stop
 
 ## Model Samples
 

@@ -23,6 +23,10 @@ export function renderMarkVSpecHtml(result: MarkVSpecParseResult, options: MarkV
   const actionMarkersByElementId = mapActionMarkersByElementId(result.actions, result.elements, activeState);
   const containedLayoutIds = new Set<string>();
   const context = renderContextForState(result, activeState);
+  const renderOptions = {
+    ...options,
+    viewValues: options.viewValues ?? defaultViewValues(result)
+  };
 
   for (const group of layoutGroups) {
     for (const item of group.items) {
@@ -35,8 +39,8 @@ export function renderMarkVSpecHtml(result: MarkVSpecParseResult, options: MarkV
   const uncontainedGroups = layoutGroups.filter((group) => !containedLayoutIds.has(group.id));
   const rootGroups = uncontainedGroups.length > 0 ? uncontainedGroups : layoutGroups.slice(0, 1);
   const renderedBody = rootGroups.length > 0
-    ? rootGroups.map((group) => renderLayoutGroup(group, result, layoutById, slotContentsByName, elementById, actionMarkersByElementId, activeState, stateNames, options, new Set(), context)).join("")
-    : result.elements.map((element) => renderElement(element, actionMarkersByElementId, activeState, stateNames, options, false, context)).join("");
+    ? rootGroups.map((group) => renderLayoutGroup(group, result, layoutById, slotContentsByName, elementById, actionMarkersByElementId, activeState, stateNames, renderOptions, new Set(), context)).join("")
+    : result.elements.map((element) => renderElement(element, actionMarkersByElementId, activeState, stateNames, renderOptions, false, context)).join("");
   const isEmpty = renderedBody.trim().length === 0;
   const body = isEmpty ? renderEmptyWireframePlaceholder(result, options) : renderedBody;
 
@@ -69,7 +73,7 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
 
     return {
       renderKey,
-      html: renderElement(element, actionMarkersByElementId, activeState, stateNames, options, false, renderContextForState(result, activeState))
+      html: renderElement(element, actionMarkersByElementId, activeState, stateNames, { ...options, viewValues: options.viewValues ?? defaultViewValues(result) }, false, renderContextForState(result, activeState))
     };
   }
 
@@ -93,7 +97,7 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
         actionMarkersByElementId,
         activeState,
         stateNames,
-        options,
+        { ...options, viewValues: options.viewValues ?? defaultViewValues(result) },
         new Set(),
         renderContextForState(result, activeState),
         false,
@@ -133,7 +137,7 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
         actionMarkersByElementId,
         activeState,
         stateNames,
-        options,
+        { ...options, viewValues: options.viewValues ?? defaultViewValues(result) },
         new Set(),
         {
           ...renderContextForState(result, activeState),
@@ -301,6 +305,8 @@ function renderLayoutGroupOnce(
     group.properties["overlay"] ? "mm-layout-overlay" : "",
     group.properties["overlay"] ? cssClass("mm-layout-overlay", group.properties["overlay"]) : "",
     isLayoutDisabled(group, activeState, stateNames, options) ? "mm-layout-disabled" : "",
+    isLayoutSelected(group, activeState, stateNames, options) ? "mm-layout-selected" : "",
+    isLayoutActive(group, activeState, stateNames, options) ? "mm-layout-active" : "",
     layoutDepthClass(depth)
   ].filter(Boolean).join(" ");
   const depthStyle = layoutDepthStyle(depth);
@@ -911,13 +917,23 @@ function isLayoutDisabled(group: MarkVSpecLayoutGroup, activeState: string | und
   return Boolean(disabledWhen && isActiveCondition(disabledWhen, activeState, stateNames, options));
 }
 
+function isLayoutSelected(group: MarkVSpecLayoutGroup, activeState: string | undefined, stateNames: Set<string>, options: MarkVSpecRenderOptions): boolean {
+  const selectedWhen = group.properties["selected when"];
+  return Boolean(selectedWhen && isActiveCondition(selectedWhen, activeState, stateNames, options));
+}
+
+function isLayoutActive(group: MarkVSpecLayoutGroup, activeState: string | undefined, stateNames: Set<string>, options: MarkVSpecRenderOptions): boolean {
+  const activeWhen = group.properties["active when"];
+  return Boolean(activeWhen && isActiveCondition(activeWhen, activeState, stateNames, options));
+}
+
 function isShownForCondition(condition: string | undefined, activeState: string | undefined, stateNames: Set<string>, options: MarkVSpecRenderOptions): boolean {
   if (!condition) {
     return true;
   }
 
-  if (isModelCondition(condition)) {
-    return isActiveModelCondition(condition, options);
+  if (isNamespacedCondition(condition)) {
+    return isActiveNamespacedCondition(condition, activeState, options);
   }
 
   if (!isStateScopedCondition(condition, stateNames)) {
@@ -932,8 +948,8 @@ function isActiveCondition(condition: string | undefined, activeState: string | 
     return false;
   }
 
-  if (isModelCondition(condition)) {
-    return isActiveModelCondition(condition, options);
+  if (isNamespacedCondition(condition)) {
+    return isActiveNamespacedCondition(condition, activeState, options);
   }
 
   return isActiveStateCondition(condition, activeState, stateNames);
@@ -957,17 +973,65 @@ function isStateScopedCondition(condition: string, stateNames: Set<string>): boo
   return normalized.startsWith("state is ") || stateNames.has(normalized);
 }
 
-function isModelCondition(condition: string): boolean {
-  return /^(not\s+)?\$\{[^}]+\}$/u.test(condition.trim());
+function isNamespacedCondition(condition: string): boolean {
+  return /^(not\s+)?\$\{(?:model|view|state)\.[^}]+\}(?:\s*=\s*[^=].*)?$/u.test(condition.trim());
 }
 
-function isActiveModelCondition(condition: string, options: MarkVSpecRenderOptions): boolean {
+function isActiveNamespacedCondition(condition: string, activeState: string | undefined, options: MarkVSpecRenderOptions): boolean {
   const normalized = condition.trim();
   const negated = normalized.startsWith("not ");
-  const key = negated ? normalized.slice(4).trim() : normalized;
-  const value = options.modelValues?.[key] ?? options.modelValues?.[opaqueExpressionBody(key) ?? key];
-  const active = value === undefined ? false : Boolean(value);
+  const expression = negated ? normalized.slice(4).trim() : normalized;
+  const equality = /^(\$\{(?:model|view|state)\.[^}]+\})\s*=\s*(.+)$/u.exec(expression);
+  const key = equality?.[1] ?? expression;
+  const expected = equality?.[2]?.trim();
+  const body = opaqueExpressionBody(key) ?? key;
+  let value: boolean | number | string | undefined;
+  if (body.startsWith("model.")) {
+    value = options.modelValues?.[key] ?? options.modelValues?.[body];
+  } else if (body.startsWith("view.")) {
+    const viewKey = body.slice("view.".length);
+    value = options.viewValues?.[key] ?? options.viewValues?.[body] ?? options.viewValues?.[viewKey];
+  } else if (body.startsWith("state.")) {
+    const stateName = body.slice("state.".length);
+    value = activeState === stateName;
+  }
+  const active = expected === undefined
+    ? (value === undefined ? false : Boolean(value))
+    : String(value) === expected;
   return negated ? !active : active;
+}
+
+function defaultViewValues(result: MarkVSpecParseResult): Record<string, boolean | number | string> {
+  const sample = result.viewContextSamples.find((candidate) => candidate.name === "default");
+  const values: Record<string, boolean | number | string> = {};
+  for (const definition of result.viewContexts) {
+    const rawValue = sample?.values[definition.name] ?? definition.defaultValue ?? definition.values[0]?.value;
+    if (rawValue === undefined) {
+      continue;
+    }
+    const value = coerceViewValue(rawValue, definition.type);
+    values[definition.name] = value;
+    values[`view.${definition.name}`] = value;
+    values["${view." + definition.name + "}"] = value;
+  }
+  if (sample) {
+    for (const [name, rawValue] of Object.entries(sample.values)) {
+      if (values[name] !== undefined) {
+        continue;
+      }
+      values[name] = rawValue;
+      values[`view.${name}`] = rawValue;
+      values["${view." + name + "}"] = rawValue;
+    }
+  }
+  return values;
+}
+
+function coerceViewValue(value: string, type: string | undefined): boolean | string {
+  if (type === "boolean") {
+    return value === "true";
+  }
+  return value;
 }
 
 function stringProperty(element: MarkVSpecElement, key: string): string {
@@ -1220,6 +1284,8 @@ function renderDefaultStyles(): string {
 .mm-layout-grid{display:grid;grid-template-columns:minmax(0,max-content) minmax(0,1fr)}
 .mm-layout-inline{align-items:center;display:inline-flex}
 .mm-layout-disabled{opacity:.72}
+.mm-layout-selected{border-color:#2563eb}
+.mm-layout-active{box-shadow:inset 0 0 0 1px #2563eb}
 .mm-layout-overlay{align-items:center;background:rgba(249,250,251,.82);border-color:#d1d5db;border-style:dashed;display:flex;justify-content:center;margin:0;z-index:4}
 .mm-layout-overlay-area{inset:0;position:absolute}
 .mm-layout-overlay-screen{inset:0;position:fixed;z-index:10}
@@ -1244,6 +1310,7 @@ function renderDefaultStyles(): string {
 .mm-element{border:1px solid #d1d5db;border-radius:4px;margin:3px 0;min-height:28px;padding:6px 8px}
 .mm-element-heading,.mm-element-paragraph,.mm-element-text{border:0;padding:0}
 .mm-element-input,.mm-element-textarea,.mm-element-select,.mm-element-multiselect,.mm-element-datepicker,.mm-element-dateinput,.mm-element-timeinput,.mm-element-numberinput{background:white;min-width:0;width:min(220px,100%)}
+.mm-element-link{align-items:center;display:inline-flex;line-height:1.2}
 .mm-element-textarea{font:inherit;min-height:72px;resize:vertical}
 .mm-width-short,.mm-width-medium,.mm-width-long,.mm-width-full{max-width:100%;width:100%}
 .mm-element-fileupload,.mm-element-fileinput{align-items:center;background:#fff;display:inline-flex;gap:8px}
@@ -1264,8 +1331,7 @@ function renderDefaultStyles(): string {
 .mm-marker-link{display:inline-flex;pointer-events:auto;text-decoration:none}
 .mm-marker-link .mm-id{pointer-events:none}
 .mm-element-wrap-button .mm-annotation-row,.mm-element-wrap-link .mm-annotation-row,.mm-element-wrap-text .mm-annotation-row,.mm-element-wrap-badge .mm-annotation-row{left:auto;right:0;top:50%;transform:translate(calc(100% + 4px),-50%)}
-.mm-element-wrap-annotated.mm-element-wrap-heading,.mm-layout-row > .mm-element-wrap-annotated,.mm-layout-grid > .mm-element-wrap-annotated,.mm-layout-inline > .mm-element-wrap-annotated,.mm-field-row > .mm-element-wrap-annotated{padding-top:18px}
-.mm-element-wrap-annotated.mm-element-wrap-heading > .mm-annotation-row,.mm-layout-row > .mm-element-wrap-annotated > .mm-annotation-row,.mm-layout-grid > .mm-element-wrap-annotated > .mm-annotation-row,.mm-layout-inline > .mm-element-wrap-annotated > .mm-annotation-row,.mm-field-row > .mm-element-wrap-annotated > .mm-annotation-row{left:0;right:auto;top:0;transform:none}
+.mm-layout-row > .mm-element-wrap-annotated > .mm-annotation-row,.mm-layout-grid > .mm-element-wrap-annotated > .mm-annotation-row,.mm-layout-inline > .mm-element-wrap-annotated > .mm-annotation-row,.mm-field-row > .mm-element-wrap-annotated > .mm-annotation-row{left:50%;right:auto;top:0;transform:translate(-50%,-55%)}
 .mm-element-list{padding-left:24px}
 .mm-element-table{border-collapse:collapse;width:100%}
 .mm-element-wrap-table .mm-element-table{table-layout:fixed;width:100%}
@@ -1288,6 +1354,7 @@ function renderDefaultStyles(): string {
 .mm-element-button{align-items:center;background:#f3f4f6;border-color:#9ca3af;box-shadow:inset 0 -1px 0 rgba(17,24,39,.18);color:#111827;cursor:default;display:inline-flex;font-weight:600;justify-content:center;line-height:1.2;min-height:34px;padding:8px 14px;text-align:center}
 .mm-element-button.mm-size-small{font-size:12px;min-height:28px;padding:5px 10px}.mm-element-button.mm-size-medium{min-height:34px;padding:8px 14px}.mm-element-button.mm-size-large{font-size:15px;min-height:42px;padding:11px 18px}
 .mm-layout-stack > .mm-element-wrap{align-self:stretch;width:auto}
+.mm-layout-stack.mm-variant-navigation:not(.mm-gap-xs):not(.mm-gap-sm):not(.mm-gap-md):not(.mm-gap-lg):not(.mm-gap-xl){gap:var(--mm-gap-sm,8px)}
 .mm-layout-stack > .mm-element-button,.mm-layout-stack > .mm-element-link,.mm-layout-stack > .mm-element-wrap-button,.mm-layout-stack > .mm-element-wrap-link{align-self:flex-start;max-width:100%;white-space:normal;width:max-content}
 .mm-layout-stack > .mm-element-wrap-heading,.mm-layout-stack > .mm-element-wrap-paragraph,.mm-layout-stack > .mm-element-wrap-text,.mm-layout-stack > .mm-element-wrap-checkbox{align-self:flex-start;max-width:100%;width:max-content}
 .mm-layout-stack > .mm-element-wrap-button > .mm-element-button,.mm-layout-stack > .mm-element-wrap-link > .mm-element-link{max-width:100%;white-space:normal;width:max-content}

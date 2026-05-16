@@ -105,11 +105,11 @@ viewport while keeping state behavior shared.
   - E-EditButton.click
 - From
   - idle
-- Process
-  - ModelUpdate
-    - ${model.profileMode}: editing
-  - Transition
-    - state: editing
+- Process: ModelUpdate
+  - Effects
+    - model: ${model.profileMode} = editing
+- Process: Transition
+  - state: editing
 
 ### A2:A-SaveProfile Save profile
 
@@ -117,13 +117,10 @@ viewport while keeping state behavior shared.
   - E-SaveButton.click
 - From
   - editing
-- Process
-  - ServerCall
-    - ProfileService.save()
-      - email: ${model.email}
-    - cases:
-      - success:
-        - state: idle
-      - failure:
-        - state: editing
-
+- Process: ServerCall
+  - ProfileService.save()
+    - email: ${model.email}
+  - case: success
+    - state: idle
+  - case: failure
+    - state: editing

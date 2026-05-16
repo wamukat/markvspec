@@ -279,36 +279,35 @@ request. This action does not decide whether credentials are correct.
   - validation-error
   - request-error
   - auth-error
-- Process
-  - Validate: V-LoginForm
-    - cases:
-      - invalid:
-        - state: validation-error
-        - stop
-        - update:
-          - target: L-MessageArea
-          - mode: replace
-          - content: Required field message
-      - valid:
-        - continue
-  - ModelUpdate
-    - ${model.email}: E-EmailInput.value
-    - ${model.password}: E-PasswordInput.value
-    - ${model.rememberMe}: E-RememberMe.value
-  - HttpRequest
-    - POST /login
-      - email: ${model.email}
-      - password: ${model.password}
-      - rememberMe: ${model.rememberMe}
-    - cases:
-      - sent:
-        - state: wait-auth
-      - send-failed:
-        - state: request-error
-        - update:
-          - target: L-MessageArea
-          - mode: replace
-          - content: Login request could not be sent
+- Process: Validate
+  - target: V-LoginForm
+  - case: invalid
+    - state: validation-error
+    - stop
+    - update:
+      - target: L-MessageArea
+      - mode: replace
+      - content: Required field message
+  - case: valid
+    - continue
+- Process: ModelUpdate
+  - Effects
+    - model: ${model.email} = E-EmailInput.value
+    - model: ${model.password} = E-PasswordInput.value
+    - model: ${model.rememberMe} = E-RememberMe.value
+- Process: HttpRequest
+  - POST /login
+    - email: ${model.email}
+    - password: ${model.password}
+    - rememberMe: ${model.rememberMe}
+  - case: sent
+    - state: wait-auth
+  - case: send-failed
+    - state: request-error
+    - update:
+      - target: L-MessageArea
+      - mode: replace
+      - content: Login request could not be sent
 
 The `sent` case means only that the browser submitted the request. Authentication
 success or failure is handled by `A-HandleLoginResponse`.
@@ -319,19 +318,17 @@ success or failure is handled by `A-HandleLoginResponse`.
   - A-SubmitLogin.response
 - From
   - wait-auth
-- Process
-  - HttpResponse
-    - cases:
-      - success:
-        - response: 200 authenticated
-        - navigate: SCR-HOME
-      - failure:
-        - response: 401 invalid credentials
-        - state: auth-error
-        - update:
-          - target: L-MessageArea
-          - mode: replace
-          - content: Authentication error message
+- Process: HttpResponse
+  - case: success
+    - response: 200 authenticated
+    - navigate: SCR-HOME
+  - case: failure
+    - response: 401 invalid credentials
+    - state: auth-error
+    - update:
+      - target: L-MessageArea
+      - mode: replace
+      - content: Authentication error message
 
 ### A3:A-ForgotPassword Open password reset
 
@@ -339,8 +336,10 @@ success or failure is handled by `A-HandleLoginResponse`.
   - E-ForgotPasswordLink.click
 - From
   - idle
-- Effects
-  - navigate: SCR-PASSWORD-RESET
+- Process: Immediate
+  - case: done
+    - Effects
+      - navigate: SCR-PASSWORD-RESET
 
 ## Validations
 

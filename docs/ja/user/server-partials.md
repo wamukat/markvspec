@@ -46,19 +46,17 @@ screen 側の Action では、リクエストと画面上の置き換え結果�
   - E-SignInButton.click
 - From
   - idle
-- Process
-  - HttpRequest
-    - POST /login
-    - cases:
-      - sent:
-        - state: wait-auth
-      - send-failed:
-        - state: auth-error
-        - update:
-          - target: L-MessageArea
-          - content: Authentication error message
-          - mode: replace
-          - fragment: auth/login :: message
+- Process: HttpRequest
+  - POST /login
+  - case: sent
+    - state: wait-auth
+  - case: send-failed
+    - state: auth-error
+    - update:
+      - target: L-MessageArea
+      - content: Authentication error message
+      - mode: replace
+      - fragment: auth/login :: message
 ```
 
 `content` が設計上の契約です。`fragment` は設計と Thymeleaf をつなぐ実装ヒントです。
@@ -97,14 +95,12 @@ route: /mypage/partials/notices
 
 - Triggered
   - partial.render
-- Process
-  - ServerCall
-    - NoticeQueryService.findLatest()
-    - cases:
-      - success:
-        - response: 200 notices
-        - ${model.notices.items}: result.items
-        - ${model.notice}: ${model.notices.items} の現在行
+- Process: ServerCall
+  - NoticeQueryService.findLatest()
+  - case: success
+    - response: 200 notices
+    - model: ${model.notices.items} = result.items
+    - model: ${model.notice} = ${model.notices.items} の現在行
 ```
 
 `bridge` のような特定アーキテクチャの語は MarkVSpec の予約語にしません。
@@ -128,10 +124,10 @@ title: Points Content
 
 - Triggered
   - E-Refresh.click
-- Process
-  - PartialRequest
-    - request: GET /points/content
-    - partial: PRT-POINTS-CONTENT
+- Process: PartialRequest
+  - request: GET /points/content
+  - partial: PRT-POINTS-CONTENT
+  - case: success
     - update:
       - target: L-PointsContent
       - mode: replace
@@ -139,14 +135,13 @@ title: Points Content
 
 ## リクエストモデリング
 
-request は `Process` に書きます。
+request は `Process: HttpRequest` に書きます。
 
 ```markdown
-- Process
-  - HttpRequest
-    - POST /login
-      - email: E-EmailInput.value
-      - password: E-PasswordInput.value
+- Process: HttpRequest
+  - POST /login
+    - email: E-EmailInput.value
+    - password: E-PasswordInput.value
 ```
 
 これは implementation-aware ですが、htmx syntax を設計書へ直接持ち込みません。
@@ -163,18 +158,16 @@ response は、`A-SubmitLogin.response` のような response handler Action に
   - A-SubmitLogin.response
 - From
   - wait-auth
-- Process
-  - HttpResponse
-    - cases:
-      - success:
-        - response: 2xx authenticated user
-        - navigate: SCR-DASHBOARD
-      - failure:
-        - response: 401 with message fragment
-        - state: auth-error
-        - update:
-          - target: L-MessageArea
-          - content: Authentication error message
+- Process: HttpResponse
+  - case: success
+    - response: 2xx authenticated user
+    - navigate: SCR-DASHBOARD
+  - case: failure
+    - response: 401 with message fragment
+    - state: auth-error
+    - update:
+      - target: L-MessageArea
+      - content: Authentication error message
 ```
 
 現在画面の状態が変わる場合は `state`、別画面へ移る場合は `navigate` を使います。

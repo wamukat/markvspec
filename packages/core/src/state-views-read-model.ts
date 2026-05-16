@@ -1,5 +1,6 @@
 import { actionAppliesToState } from "./action-applicability.js";
 import { resolveLayoutGroupsForViewport } from "./layout-resolution.js";
+import { aliasForModelPath, sourcePathKey } from "./model-paths.js";
 import { stateViewLayoutSignature } from "./state-view-signatures.js";
 import type { MarkVSpecParseResult } from "./types.js";
 
@@ -46,6 +47,7 @@ export interface StateScreenReadModel {
   readonly message?: string;
   readonly focus?: FocusScope;
   readonly modelValues: Record<string, boolean>;
+  readonly viewValues: Record<string, boolean | number | string>;
   readonly renderedIds: RenderedIds;
   readonly actionIds: Set<string>;
   readonly stateNames: Set<string>;
@@ -125,8 +127,9 @@ export function buildStateScreenReadModels(
   const label = options.label ?? defaultLabel;
   const displayStateName = primaryDisplayState(result)?.name;
   const displayModelValues = modelValuesForState(wireframeResult, displayStateName);
+  const displayViewValues = viewValuesForScenario(wireframeResult, undefined);
   if (result.states.length === 0) {
-    const ids = stateScreenRenderedIdsFromReadModel(wireframeResult, viewport, "", displayModelValues);
+    const ids = stateScreenRenderedIdsFromReadModel(wireframeResult, viewport, "", displayModelValues, displayViewValues);
     const actionIds = relevantActionIdsForState(wireframeResult, "", ids.elementIds);
     return [{
       stateName: undefined,
@@ -136,6 +139,7 @@ export function buildStateScreenReadModels(
       message: undefined,
       focus,
       modelValues: displayModelValues,
+      viewValues: displayViewValues,
       renderedIds: ids,
       actionIds,
       stateNames: new Set(),
@@ -147,6 +151,7 @@ export function buildStateScreenReadModels(
         message: undefined,
         focus,
         modelValues: displayModelValues,
+        viewValues: displayViewValues,
         renderedIds: ids,
         actionIds,
         stateNames: new Set(),
@@ -156,13 +161,14 @@ export function buildStateScreenReadModels(
   }
 
   const stateNames = new Set(result.states.map((state) => state.name));
-  const stateRenderings = new Map<string, { ids: RenderedIds; actionIds: Set<string>; modelValues: Record<string, boolean> }>();
+  const stateRenderings = new Map<string, { ids: RenderedIds; actionIds: Set<string>; modelValues: Record<string, boolean>; viewValues: Record<string, boolean | number | string> }>();
   if (displayStateName) {
-    const displayIds = stateScreenRenderedIdsFromReadModel(wireframeResult, viewport, displayStateName, displayModelValues);
+    const displayIds = stateScreenRenderedIdsFromReadModel(wireframeResult, viewport, displayStateName, displayModelValues, displayViewValues);
     stateRenderings.set(displayStateName, {
       ids: displayIds,
       actionIds: relevantActionIdsForState(wireframeResult, displayStateName, displayIds.elementIds),
-      modelValues: displayModelValues
+      modelValues: displayModelValues,
+      viewValues: displayViewValues
     });
   }
   const renderState = (stateName: string) => {
@@ -171,35 +177,67 @@ export function buildStateScreenReadModels(
       return existing;
     }
     const stateModelValues = modelValuesForState(wireframeResult, stateName);
-    const ids = stateScreenRenderedIdsFromReadModel(wireframeResult, viewport, stateName, stateModelValues);
+    const stateViewValues = viewValuesForScenario(wireframeResult, undefined);
+    const ids = stateScreenRenderedIdsFromReadModel(wireframeResult, viewport, stateName, stateModelValues, stateViewValues);
     const actionIds = relevantActionIdsForState(wireframeResult, stateName, ids.elementIds);
-    const rendered = { ids, actionIds, modelValues: stateModelValues };
+    const rendered = { ids, actionIds, modelValues: stateModelValues, viewValues: stateViewValues };
     stateRenderings.set(stateName, rendered);
     return rendered;
   };
+  const renderScenario = (
+    scenarioResult: MarkVSpecParseResult,
+    scenarioViewport: string | undefined,
+    stateName: string,
+    modelName: string | undefined,
+    viewName: string | undefined
+  ) => {
+    const modelValues = modelValuesForState(scenarioResult, modelName ?? stateName);
+    const viewValues = viewValuesForScenario(scenarioResult, viewName);
+    const ids = stateScreenRenderedIdsFromReadModel(scenarioResult, scenarioViewport, stateName, modelValues, viewValues);
+    return {
+      ids,
+      actionIds: relevantActionIdsForState(scenarioResult, stateName, ids.elementIds),
+      modelValues,
+      viewValues
+    };
+  };
 
-  return orderedDisplayStates(result)
-    .map((state, index) => {
-      const current = renderState(state.name);
+  const displays = result.previewScenarios.length > 0
+    ? result.previewScenarios.map((scenario) => ({
+        state: result.states.find((candidate) => candidate.name === scenario.state),
+        scenario
+      })).filter((entry): entry is { state: NonNullable<typeof entry.state>; scenario: typeof entry.scenario } => Boolean(entry.state))
+    : orderedDisplayStates(result).map((state) => ({ state, scenario: undefined }));
+
+  return displays
+    .map((display, index) => {
+      const current = display.scenario
+        ? renderScenario(wireframeResult, viewport, display.state.name, display.scenario.model, display.scenario.view)
+        : renderState(display.state.name);
+      const title = display.scenario
+        ? display.scenario.name
+        : index === 0 && viewport ? `${label("default")} ${label("viewport")} ${viewport}` : display.state.name;
       return {
-        stateName: state.name,
+        stateName: display.state.name,
         viewport,
-        title: index === 0 && viewport ? `${label("default")} ${label("viewport")} ${viewport}` : state.name,
-        initial: state.initial,
-        message: state.message,
+        title,
+        initial: display.state.initial,
+        message: display.state.message,
         focus,
         modelValues: current.modelValues,
+        viewValues: current.viewValues,
         renderedIds: current.ids,
         actionIds: current.actionIds,
         stateNames,
         repeatedContent: repeatedContentState(result, {
-          stateName: state.name,
+          stateName: display.state.name,
           viewport,
-          title: index === 0 && viewport ? `${label("default")} ${label("viewport")} ${viewport}` : state.name,
-          initial: state.initial,
-          message: state.message,
+          title,
+          initial: display.state.initial,
+          message: display.state.message,
           focus,
           modelValues: current.modelValues,
+          viewValues: current.viewValues,
           renderedIds: current.ids,
           actionIds: current.actionIds,
           stateNames,
@@ -278,7 +316,7 @@ function repeatedContentState(
 ): StateScreenRepeatedContent {
   const layouts = stateScreenLayoutsForModel(result, model);
   const elements = stateScreenElementsForModel(result, model);
-  const elementGroups = stateScreenElementGroups(elements);
+  const elementGroups = stateScreenElementGroups(elements, result, model.stateName);
   const actions = stateScreenActionsForModel(result, model);
   const systemEvents = systemEventActionsForState(result, model.renderedIds.elementIds, model.stateName, model.initial, model.focus);
   const layoutSpecEmptyWhenRepeatedHidden = everyIdRepeated(layouts, repeatedLayoutIds, (layout) => layout.id);
@@ -333,13 +371,17 @@ export function stateScreenActionsForModel(result: MarkVSpecParseResult, model: 
   return result.actions.filter((action) => model.actionIds.has(action.id) && (!model.focus || model.focus.actionIds.has(action.id)));
 }
 
-export function stateScreenElementGroups(elements: ParsedElement[]): {
+export function stateScreenElementGroups(
+  elements: ParsedElement[],
+  result?: MarkVSpecParseResult,
+  stateName?: string
+): {
   formControls: ParsedElement[];
   displayContentRows: DisplayContentSpecRow[];
   other: ParsedElement[];
 } {
   const formControls = elements.filter((element) => isFormControlElement(element.type));
-  const displayContentRows = displayContentSpecRows(elements);
+  const displayContentRows = displayContentSpecRows(elements, result, stateName);
   const categorizedIds = new Set([
     ...formControls.map((element) => element.id),
     ...displayContentRows.map((row) => row.element.id)
@@ -435,16 +477,28 @@ function elementDefinitionSignature(result: MarkVSpecParseResult, id: string): s
   });
 }
 
-function displayContentSpecRows(elements: ParsedElement[]): DisplayContentSpecRow[] {
+function displayContentSpecRows(
+  elements: ParsedElement[],
+  result: MarkVSpecParseResult | undefined,
+  stateName: string | undefined
+): DisplayContentSpecRow[] {
   return elements.flatMap((element) => {
     const properties = element.properties;
     const rows: DisplayContentSpecRow[] = [];
+    const displaySource = properties["src"];
+    const displaySample = properties["sample"] ?? modelSampleValueForSource(rawStringProperty(displaySource), result, stateName);
+    if (element.type === "Table") {
+      pushDisplayPropertyRow(rows, element, "table rows", "see wireframe", properties["source"]);
+      for (const column of element.tableColumns) {
+        pushDisplayPropertyRow(rows, element, `column: ${column.label}`, column.label, column.source);
+      }
+    }
     pushDisplayPropertyRow(rows, element, "label", properties["label"], properties["label src"]);
     pushDisplayPropertyRow(rows, element, "placeholder", properties["placeholder"], properties["placeholder src"]);
     pushDisplayPropertyRow(rows, element, "help", properties["help"], properties["help src"]);
     pushDisplayPropertyRow(rows, element, "message", properties["message"], properties["message src"]);
     pushDisplayPropertyRow(rows, element, "error text", properties["error text"]);
-    pushDisplayPropertyRow(rows, element, "sample", properties["sample"], properties["src"], rawStringProperty(properties["format"]));
+    pushDisplayPropertyRow(rows, element, "sample", displaySample, displaySource, rawStringProperty(properties["format"]));
     pushDisplayPropertyRow(rows, element, "value", displayValueProperty(element), displayValueSource(element), rawStringProperty(properties["format"]));
     pushDisplayPropertyRow(rows, element, "content", properties["content"]);
     pushDisplayPropertyRow(rows, element, "text", properties["text"]);
@@ -461,6 +515,34 @@ function displayContentSpecRows(elements: ParsedElement[]): DisplayContentSpecRo
     }
     return rows;
   });
+}
+
+function modelSampleValueForSource(
+  source: string | undefined,
+  result: MarkVSpecParseResult | undefined,
+  stateName: string | undefined
+): string | undefined {
+  if (!source || !result || !stateName) {
+    return undefined;
+  }
+
+  const sourceKey = sourcePathKey(source);
+  for (const sample of result.modelSamples) {
+    if (sample.state !== stateName || sample.rows.length !== 1) {
+      continue;
+    }
+    const alias = aliasForModelPath(sample.path, { stripCollectionSuffix: true });
+    if (!sourceKey.startsWith(`${alias}.`)) {
+      continue;
+    }
+    const key = sourceKey.slice(alias.length + 1);
+    const value = sample.rows[0]?.values[key];
+    if (value !== undefined) {
+      return value;
+    }
+  }
+
+  return undefined;
 }
 
 function pushDisplayPropertyRow(
@@ -663,17 +745,43 @@ export function modelValuesForState(result: MarkVSpecParseResult, state: string 
 
 function literalTrueModelValues(action: MarkVSpecParseResult["actions"][number]): Record<string, boolean> {
   const values: Record<string, boolean> = {};
+  for (const sideEffect of action.sideEffects) {
+    assignLiteralTrueModelValue(values, literalTrueModelSideEffect(sideEffect));
+  }
   for (const step of action.processSteps) {
     for (const detail of step.details) {
       const modelKey = positiveModelCondition(detail.key);
-      if (modelKey && detail.value.trim().toLowerCase() === "true") {
-        values[modelKey] = true;
-        values["${" + modelKey + "}"] = true;
+      assignLiteralTrueModelValue(values, detail.value.trim().toLowerCase() === "true" ? modelKey : undefined);
+    }
+    for (const sideEffect of step.sideEffects) {
+      assignLiteralTrueModelValue(values, literalTrueModelSideEffect(sideEffect));
+    }
+    for (const outcome of step.outcomes) {
+      for (const sideEffect of outcome.sideEffects) {
+        assignLiteralTrueModelValue(values, literalTrueModelSideEffect(sideEffect));
       }
+    }
+  }
+  for (const outcome of action.outcomes) {
+    for (const sideEffect of outcome.sideEffects) {
+      assignLiteralTrueModelValue(values, literalTrueModelSideEffect(sideEffect));
     }
   }
 
   return values;
+}
+
+function assignLiteralTrueModelValue(values: Record<string, boolean>, modelKey: string | undefined): void {
+  if (!modelKey) {
+    return;
+  }
+  values[modelKey] = true;
+  values["${" + modelKey + "}"] = true;
+}
+
+function literalTrueModelSideEffect(sideEffect: string): string | undefined {
+  const match = /^model:\s*(\$\{model\.[^}]+\})\s*=\s*true\s*$/iu.exec(sideEffect.trim());
+  return match ? positiveModelCondition(match[1]) : undefined;
 }
 
 function positiveModelCondition(condition: string): string | undefined {
@@ -686,12 +794,13 @@ function stateScreenRenderedIdsFromReadModel(
   result: MarkVSpecParseResult,
   viewport: string | undefined,
   stateName: string | undefined,
-  modelValues: Record<string, boolean>
+  modelValues: Record<string, boolean>,
+  viewValues: Record<string, boolean | number | string> = defaultViewValues(result)
 ): RenderedIds {
   const elementIds = new Set<string>();
   const layoutIds = new Set<string>();
   const stateNames = new Set(result.states.map((state) => state.name));
-  const options = { modelValues };
+  const options = { modelValues, viewValues };
   const activeViewport = stateScreenActiveViewport(result, viewport);
   const layoutGroups = activeViewport ? result.layoutGroups.filter((group) => group.viewport === activeViewport) : [];
   const layoutById = new Map(layoutGroups.map((group) => [group.id, group]));
@@ -862,7 +971,7 @@ function isStateScreenElementVisible(
   element: ParsedElement,
   activeState: string | undefined,
   stateNames: Set<string>,
-  options: { modelValues: Record<string, boolean> }
+  options: StateScreenConditionOptions
 ): boolean {
   if (element.visibleWhen.length > 0 && !element.visibleWhen.some((condition) => isStateScreenShownForCondition(condition, activeState, stateNames, options))) {
     return false;
@@ -877,7 +986,7 @@ function isStateScreenLayoutVisible(
   group: ParsedLayout,
   activeState: string | undefined,
   stateNames: Set<string>,
-  options: { modelValues: Record<string, boolean> }
+  options: StateScreenConditionOptions
 ): boolean {
   const visibleWhen = group.properties["visible when"];
   if (visibleWhen && !isStateScreenShownForCondition(visibleWhen, activeState, stateNames, options)) {
@@ -894,13 +1003,13 @@ function isStateScreenShownForCondition(
   condition: string | undefined,
   activeState: string | undefined,
   stateNames: Set<string>,
-  options: { modelValues: Record<string, boolean> }
+  options: StateScreenConditionOptions
 ): boolean {
   if (!condition) {
     return true;
   }
-  if (isStateScreenModelCondition(condition)) {
-    return isStateScreenActiveModelCondition(condition, options);
+  if (isStateScreenNamespacedCondition(condition)) {
+    return isStateScreenActiveNamespacedCondition(condition, activeState, options);
   }
   if (!isStateScreenStateScopedCondition(condition, stateNames)) {
     return true;
@@ -912,13 +1021,13 @@ function isStateScreenActiveCondition(
   condition: string | undefined,
   activeState: string | undefined,
   stateNames: Set<string>,
-  options: { modelValues: Record<string, boolean> }
+  options: StateScreenConditionOptions
 ): boolean {
   if (!condition) {
     return false;
   }
-  if (isStateScreenModelCondition(condition)) {
-    return isStateScreenActiveModelCondition(condition, options);
+  if (isStateScreenNamespacedCondition(condition)) {
+    return isStateScreenActiveNamespacedCondition(condition, activeState, options);
   }
   return isStateScreenActiveStateCondition(condition, activeState);
 }
@@ -936,16 +1045,67 @@ function isStateScreenStateScopedCondition(condition: string, stateNames: Set<st
   return normalized.startsWith("state is ") || stateNames.has(normalized);
 }
 
-function isStateScreenModelCondition(condition: string): boolean {
-  return /^(not\s+)?\$\{[^}]+\}$/u.test(condition.trim());
+interface StateScreenConditionOptions {
+  modelValues: Record<string, boolean>;
+  viewValues: Record<string, boolean | number | string>;
 }
 
-function isStateScreenActiveModelCondition(condition: string, options: { modelValues: Record<string, boolean> }): boolean {
+function isStateScreenNamespacedCondition(condition: string): boolean {
+  return /^(not\s+)?\$\{(?:model|view|state)\.[^}]+\}(?:\s*=\s*[^=].*)?$/u.test(condition.trim());
+}
+
+function isStateScreenActiveNamespacedCondition(condition: string, activeState: string | undefined, options: StateScreenConditionOptions): boolean {
   const normalized = condition.trim();
   const negated = normalized.startsWith("not ");
-  const key = negated ? normalized.slice(4).trim() : normalized;
+  const expression = negated ? normalized.slice(4).trim() : normalized;
+  const equality = /^(\$\{(?:model|view|state)\.[^}]+\})\s*=\s*(.+)$/u.exec(expression);
+  const key = equality?.[1] ?? expression;
+  const expected = equality?.[2]?.trim();
   const body = key.startsWith("${") && key.endsWith("}") ? key.slice(2, -1).trim() : key;
-  const value = options.modelValues[key] ?? options.modelValues[body];
-  const active = value === undefined ? false : Boolean(value);
+  let value: boolean | number | string | undefined;
+  if (body.startsWith("model.")) {
+    value = options.modelValues[key] ?? options.modelValues[body];
+  } else if (body.startsWith("view.")) {
+    const viewKey = body.slice("view.".length);
+    value = options.viewValues[key] ?? options.viewValues[body] ?? options.viewValues[viewKey];
+  } else if (body.startsWith("state.")) {
+    const stateName = body.slice("state.".length);
+    value = activeState === stateName;
+  }
+  const active = expected === undefined
+    ? (value === undefined ? false : Boolean(value))
+    : String(value) === expected;
   return negated ? !active : active;
+}
+
+function defaultViewValues(result: MarkVSpecParseResult): Record<string, boolean | number | string> {
+  return viewValuesForScenario(result, undefined);
+}
+
+function viewValuesForScenario(result: MarkVSpecParseResult, sampleName: string | undefined): Record<string, boolean | number | string> {
+  const sample = sampleName
+    ? result.viewContextSamples.find((candidate) => candidate.name === sampleName)
+    : result.viewContextSamples.find((candidate) => candidate.name === "default");
+  const values: Record<string, boolean | number | string> = {};
+  for (const definition of result.viewContexts) {
+    const rawValue = sample?.values[definition.name] ?? definition.defaultValue ?? definition.values[0]?.value;
+    if (rawValue === undefined) {
+      continue;
+    }
+    const value = definition.type === "boolean" ? rawValue === "true" : rawValue;
+    values[definition.name] = value;
+    values[`view.${definition.name}`] = value;
+    values["${view." + definition.name + "}"] = value;
+  }
+  if (sample) {
+    for (const [name, rawValue] of Object.entries(sample.values)) {
+      if (values[name] !== undefined) {
+        continue;
+      }
+      values[name] = rawValue;
+      values[`view.${name}`] = rawValue;
+      values["${view." + name + "}"] = rawValue;
+    }
+  }
+  return values;
 }

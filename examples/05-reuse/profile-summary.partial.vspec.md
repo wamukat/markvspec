@@ -62,16 +62,15 @@ example.
   - partial.render
 - From
   - loading
-- Process
-  - ServerCall
-    - MemberQueryService.findCurrent()
-    - cases:
-      - success:
-        - response: 200 member profile
-        - ${model.member}: result.member
-        - state: loaded
-        - stop
-      - failure:
-        - response: 5xx or timeout
-        - state: load-error
-        - stop
+- Process: ServerCall
+  - MemberQueryService.findCurrent()
+  - case: success
+    - response: 200 member profile
+    - Effects
+      - model: ${model.member} = result.member
+    - state: loaded
+    - stop
+  - case: failure
+    - response: 5xx or timeout
+    - state: load-error
+    - stop

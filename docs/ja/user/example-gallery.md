@@ -13,7 +13,7 @@
 
 - 段階順に読み、最小画面から状態、アクション、実務寄りの一覧、再利用へ進める。
 - 1つのサンプルで学ぶ主題を絞り、複数機能を詰め込みすぎない。
-- `States`、responsive layout、slot、主要 element type、Action の `Triggered` / `Process`、process step の `cases:`、`Model Samples` を段階的にカバーする。
+- `States`、responsive layout、slot、主要 element type、Action の `Triggered` / `Process: <type>`、process step の `case: <name>`、`Model Samples` を段階的にカバーする。
 
 ## marker 方針
 

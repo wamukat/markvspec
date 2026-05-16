@@ -2,12 +2,14 @@ import { preferredLayoutGroupForViewport } from "./layout-resolution.js";
 import type { MarkVSpecLayoutGroup, MarkVSpecParseResult } from "./types.js";
 
 export const STATE_VIEW_AFFECTING_LAYOUT_PROPERTY_KEYS = [
+  "active when",
   "align",
   "disabled when",
   "gap",
   "hidden when",
   "justify",
   "overlay",
+  "selected when",
   "variant",
   "visible when"
 ] as const;

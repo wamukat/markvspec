@@ -263,6 +263,48 @@ export interface MarkVSpecModelSampleRow {
   raw: string;
 }
 
+export type MarkVSpecViewContextType = "boolean" | "enum";
+
+export interface MarkVSpecViewContextValue {
+  value: string;
+  isDefault: boolean;
+  location: SourceLocation;
+  raw: string;
+}
+
+export interface MarkVSpecViewContextDefinition {
+  name: string;
+  type?: MarkVSpecViewContextType;
+  values: MarkVSpecViewContextValue[];
+  defaultValue?: string;
+  properties: Record<string, string | true>;
+  propertyLocations: Record<string, SourceLocation[]>;
+  overview?: string[];
+  notes?: string[];
+  location: SourceLocation;
+}
+
+export interface MarkVSpecViewContextSample {
+  name: string;
+  values: Record<string, string>;
+  valueLocations: Record<string, SourceLocation[]>;
+  overview?: string[];
+  notes?: string[];
+  location: SourceLocation;
+}
+
+export interface MarkVSpecPreviewScenario {
+  name: string;
+  state?: string;
+  model?: string;
+  view?: string;
+  properties: Record<string, string>;
+  propertyLocations: Record<string, SourceLocation[]>;
+  overview?: string[];
+  notes?: string[];
+  location: SourceLocation;
+}
+
 export interface MarkVSpecTransition {
   from: string;
   to: string;
@@ -451,6 +493,9 @@ export interface MarkVSpecParseResult {
   historyEntries: MarkVSpecHistoryEntry[];
   modelSampleGroups: MarkVSpecModelSampleGroup[];
   modelSamples: MarkVSpecModelSampleSet[];
+  viewContexts: MarkVSpecViewContextDefinition[];
+  viewContextSamples: MarkVSpecViewContextSample[];
+  previewScenarios: MarkVSpecPreviewScenario[];
   sectionProse: MarkVSpecSectionProse[];
   notes: MarkVSpecNoteSection[];
   diagnostics: MarkVSpecDiagnostic[];
@@ -531,6 +576,7 @@ export interface MarkVSpecRenderOptions {
   state?: string;
   viewport?: string;
   modelValues?: Record<string, boolean | number | string>;
+  viewValues?: Record<string, boolean | number | string>;
   messages?: Partial<Pick<RendererMessages, "noVisibleElements">>;
   showIds?: boolean;
   includeConditionalContent?: boolean;

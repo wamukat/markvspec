@@ -260,17 +260,15 @@ confirmation dialog that are not covered by the smaller examples.
 - From
   - editing
   - save-error
-- Process
-  - ServerCall
-    - ProfileService.save()
-      - bio: ${model.bio}
-      - reviewDate: ${model.reviewDate}
-      - visibility: ${model.visibility}
-    - cases:
-      - sent:
-        - state: saving
-      - send-failed:
-        - state: save-error
+- Process: ServerCall
+  - ProfileService.save()
+    - bio: ${model.bio}
+    - reviewDate: ${model.reviewDate}
+    - visibility: ${model.visibility}
+  - case: sent
+    - state: saving
+  - case: send-failed
+    - state: save-error
 
 ### A2:A-OpenDiscardDialog Open discard dialog
 
@@ -279,8 +277,10 @@ confirmation dialog that are not covered by the smaller examples.
 - From
   - editing
   - save-error
-- Process
-  - ModelUpdate
-    - ${model.discardRequested}: true
-- Effects
-  - state: confirm-discard
+- Process: ModelUpdate
+  - Effects
+    - model: ${model.discardRequested} = true
+- Process: Immediate
+  - case: done
+    - Effects
+      - state: confirm-discard

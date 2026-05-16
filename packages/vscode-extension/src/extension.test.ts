@@ -337,10 +337,11 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(responseActionDetail, new RegExp(`<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response 200 authenticated[\\s\\S]*effect navigate to ${documentRef("SCR-HOME")}`));
   assert.match(responseActionDetail, new RegExp(`<strong>${docLabel("failure", "result")}</strong>[\\s\\S]*response 401 invalid credentials[\\s\\S]*effect set state ${docLabel("auth-error", "state")}`));
   assert.match(html, /stateDiagram-v2\n  direction TB/);
-  assert.match(html, /Handle login response \/ success \/ navigate/);
+  assert.doesNotMatch(html, /Handle login response \/ success \/ navigate/);
+  assert.match(html, /Handle login response \/ failure/);
   assert.match(html, new RegExp(`${actionBadge("A1", "A-SubmitLogin")}[\\s\\S]*Submit login[\\s\\S]*${docLabel("idle", "state")}[\\s\\S]*${docLabel("sent", "result")}[\\s\\S]*${docLabel("wait-auth", "state")}`));
   assert.match(html, new RegExp(`<td>${actionBadge("A2", "A-HandleLoginResponse")}</td><td>Handle login response</td><td>${actionBadge("A1", "A-SubmitLogin")}\\.response</td><td>${docLabel("wait-auth", "state")}</td><td>${docLabel("success", "result")}</td><td>screen</td><td>${documentRef("SCR-HOME")}</td>`));
-  assert.match(html, new RegExp(`<td>${actionBadge("A3", "A-ForgotPassword")}</td><td>Open password reset</td><td>${markerBadge("8", "element")}\\.click</td><td>${docLabel("idle", "state")}</td><td>-</td><td>screen</td><td>${documentRef("SCR-PASSWORD-RESET")}</td>`));
+  assert.match(html, new RegExp(`<td>${actionBadge("A3", "A-ForgotPassword")}</td><td>Open password reset</td><td>${markerBadge("8", "element")}\\.click</td><td>${docLabel("idle", "state")}</td><td>${docLabel("done", "result")}</td><td>screen</td><td>${documentRef("SCR-PASSWORD-RESET")}</td>`));
   assert.match(html, /<section class="doc-section state-screen-section" data-section-number="3\.1\.2" data-state="wait-auth" data-viewport="mobile" style="--markvspec-viewport-width:390px;--markvspec-print-scale:1">/);
   const waitAuthSection = viewportStateSection(html, "wait-auth", "mobile");
   assert.match(waitAuthSection, /<h6 class="state-screen-detail-heading">Element Summary<\/h6>/);
@@ -642,8 +643,9 @@ default-state: loaded
   - screen.load
 - From
   - initializing
-- Effects
-  - state: loading
+- Process: Immediate
+  - Effects
+    - state: loading
 
 ### A2:A-HandleLoadResponse Handle load response
 
@@ -651,11 +653,11 @@ default-state: loaded
   - A-StartLoad.response
 - From
   - loading
-- Cases
-  - success:
+- Process: Immediate
+  - case: success
     - response: 200
     - state: loaded
-  - failure:
+  - case: failure
     - response: 500
     - state: load-error
 
@@ -666,8 +668,9 @@ default-state: loaded
 - From
   - loading
   - initializing
-- Effects
-  - state: ready
+- Process: Immediate
+  - Effects
+    - state: ready
 
 ### A4:A-ResolveReadyAuto Resolve ready automatically
 
@@ -676,8 +679,9 @@ default-state: loaded
 - From
   - loading
   - initializing
-- Effects
-  - state: ready-auto
+- Process: Immediate
+  - Effects
+    - state: ready-auto
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -776,11 +780,10 @@ locale: en
   - screen.load
 - From
   - idle
-- Process
-  - ModelUpdate
-    - \${model.loaded}: true
-- Effects
-  - state: loaded
+- Process: Immediate
+  - case: success
+    - model: \${model.loaded} = true
+    - state: loaded
 `;
   const result = parseMarkVSpec(source);
   const models = buildStateScreenReadModels(result, result, "mobile", undefined, {
@@ -876,9 +879,8 @@ viewport: mobile
 - From
   - idle
   - loaded
-- Process
-  - HttpRequest
-    - POST /submit
+- Process: HttpRequest
+  - POST /submit
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -973,8 +975,9 @@ locale: en
 - From
   - idle
   - loaded
-- Effects
-  - state: loaded
+- Process: Immediate
+  - Effects
+    - state: loaded
 
 ### A2:A-Removed Removed action
 
@@ -982,8 +985,9 @@ locale: en
   - screen.load
 - From
   - idle
-- Effects
-  - state: idle
+- Process: Immediate
+  - Effects
+    - state: idle
 
 ### A3:A-New New action
 
@@ -991,8 +995,9 @@ locale: en
   - screen.load
 - From
   - loaded
-- Effects
-  - state: idle
+- Process: Immediate
+  - Effects
+    - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -1118,8 +1123,9 @@ locale: ja
   - screen.load
 - From
   - loaded
-- Effects
-  - state: idle
+- Process: Immediate
+  - Effects
+    - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -1407,6 +1413,11 @@ test("does not render viewport filter controls in the preview shell", () => {
   assert.match(html, /\.doc-section>\.spec-table-wrap\+\.entity-notes,\.doc-section>\.spec-empty\+\.entity-notes,\.doc-section>\.form-group-spec-fragment\+\.entity-notes,\.element-spec-fragment>\.spec-table-wrap\+\.entity-notes,\.action-spec-fragment>\.spec-table-wrap\+\.entity-notes\{margin-top:12px\}/);
   assert.doesNotMatch(html, /\.spec-table td \.entity-overview\{margin-top:12px\}/);
   assert.doesNotMatch(html, /\.spec-table td \.entity-notes\{margin-top:12px\}/);
+  assert.match(html, /\.screen-overview\{border:1px solid #d1d5db;border-radius:6px;margin:0 0 12px;padding:12px\}/);
+  assert.match(html, /\.screen-overview-main\{min-width:0\}/);
+  assert.match(html, /\.screen-description\{color:#374151;font-size:13px;line-height:1\.6;overflow-wrap:anywhere\}/);
+  assert.doesNotMatch(html, /\.screen-description\{[^}]*max-width:72ch/);
+  assert.match(html, /\.screen-overview-badges\{align-items:center;display:flex;float:right;flex-wrap:wrap;gap:6px;justify-content:flex-end;margin:0 0 6px 12px\}/);
   assert.match(html, /\.screen-id code,\.mm-document-ref-id\{align-items:center;background:#fff;border:1px solid #111827;border-left:3px solid #111827;border-radius:4px;color:#111827;display:inline-flex;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size:11px;font-variant-numeric:tabular-nums;font-weight:700;justify-content:center;letter-spacing:0;line-height:1\.2;min-height:18px;padding:1px 6px;vertical-align:baseline;white-space:nowrap;width:max-content\}/);
   assert.doesNotMatch(html, /\.spec-table code\.mm-marker-element\{/);
   assert.doesNotMatch(html, /\.spec-table code\.mm-marker-action\{/);
@@ -1605,6 +1616,7 @@ title: ユーザー編集
   assert.equal(result.screen.description, "管理者がユーザ情報を編集するための画面。");
   assert.match(html, /<div class="screen-title">ユーザー編集<\/div>/);
   assert.match(html, /<div class="screen-description"><p class="note-paragraph">管理者がユーザ情報を編集するための画面。<\/p><\/div>/);
+  assert.match(html, /<div class="screen-overview">\s*<div class="screen-overview-badges">[\s\S]*?<\/div>\s*<div class="screen-overview-main">/);
 });
 
 test("extracts preview render key fragments for partial updates", () => {
@@ -2402,10 +2414,11 @@ title: List
   - E-お知らせリンク.click
 - From
   - idle
-- Effects
-  - navigate: SCR-NOTICE-DETAIL
-  - params:
-    - noticeId: \${model.notice.noticeId}
+- Process: Immediate
+  - case: success
+    - navigate: SCR-NOTICE-DETAIL
+    - params:
+      - noticeId: \${model.notice.noticeId}
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -2416,7 +2429,7 @@ title: List
   assert.doesNotMatch(actionableDetails, /<th>Route Parameters<\/th>/);
   assert.match(html, new RegExp(`noticeId: ${sourceCodePattern("${model.notice.noticeId}")}`));
   assert.match(html, new RegExp(sourceCodePattern("${route.noticeId}")));
-  assert.match(html, new RegExp(`<dt>Route Parameters</dt><dd><ul><li>noticeId: ${sourceCodePattern("${model.notice.noticeId}")}</li></ul></dd>`));
+  assert.match(html, new RegExp(`Route Parameters <ul><li>noticeId: ${sourceCodePattern("${model.notice.noticeId}")}</li></ul>`));
 });
 
 test("renders model update summary from action process and outcomes", () => {
@@ -2443,19 +2456,17 @@ locale: ja
   - screen.load
 - From
   - loading
-- Process
-  - ServerCall
-    - NoticeQueryService.findNotice()
-      - noticeId: \${route.noticeId}
-    - cases:
-      - success:
-        - response: 200 お知らせ本文
-        - \${model.notice}: NoticeDetailResult
-        - \${model.notice.noticeId}: \${route.noticeId}
-        - state: idle
-      - failure:
-        - response: 404
-        - state: error
+- Process: ServerCall
+  - NoticeQueryService.findNotice()
+    - noticeId: \${route.noticeId}
+  - case: success
+    - response: 200 お知らせ本文
+    - model: \${model.notice} = NoticeDetailResult
+    - model: \${model.notice.noticeId} = \${route.noticeId}
+    - state: idle
+  - case: failure
+    - response: 404
+    - state: error
 
 ### A2:A-RefreshMeta メタ情報更新
 
@@ -2463,9 +2474,9 @@ locale: ja
   - manual.refresh
 - From
   - idle
-- Process
-  - RefreshMeta
-    - \${model.noticeMeta}: NoticeMetaResult
+- Process: RefreshMeta
+  - case: success
+    - model: \${model.noticeMeta} = NoticeMetaResult
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -2477,9 +2488,9 @@ locale: ja
   assert.equal((section.match(/<article class="model-update-group">/g) ?? []).length, 2);
   assert.match(section, /<th>処理<\/th><th>モデル<\/th><th>更新<\/th>/);
   assert.doesNotMatch(section, /<th>アクション<\/th>|<th>トリガー<\/th>/);
-  assert.match(section, new RegExp(`<td>success</td><td>${inlineTokenPattern("${model.notice}")}</td><td>${sourceCodePattern("${model.notice}")}: NoticeDetailResult</td>`));
-  assert.match(section, new RegExp(`<td>${inlineTokenPattern("${model.notice.noticeId}")}</td><td>${sourceCodePattern("${model.notice.noticeId}")}: ${sourceCodePattern("${route.noticeId}")}</td>`));
-  assert.match(section, new RegExp(`<h3>${actionBadge("A2", "A-RefreshMeta")} メタ情報更新</h3>[\\s\\S]*<p class="model-update-meta"><span class="meta-label">トリガー:<\\/span> ${docLabel("manual.refresh", "trigger")}</p>[\\s\\S]*<td>RefreshMeta</td><td>${inlineTokenPattern("${model.noticeMeta}")}</td><td>NoticeMetaResult</td>`));
+  assert.match(section, new RegExp(`<td>success</td><td>${inlineTokenPattern("${model.notice}")}</td><td>model: ${sourceCodePattern("${model.notice}")} = NoticeDetailResult</td>`));
+  assert.match(section, new RegExp(`<td>${inlineTokenPattern("${model.notice.noticeId}")}</td><td>model: ${sourceCodePattern("${model.notice.noticeId}")} = ${sourceCodePattern("${route.noticeId}")}</td>`));
+  assert.match(section, new RegExp(`<h3>${actionBadge("A2", "A-RefreshMeta")} メタ情報更新</h3>[\\s\\S]*<p class="model-update-meta"><span class="meta-label">トリガー:<\\/span> ${docLabel("manual.refresh", "trigger")}</p>[\\s\\S]*<td>success</td><td>${inlineTokenPattern("${model.noticeMeta}")}</td><td>model: ${sourceCodePattern("${model.noticeMeta}")} = NoticeMetaResult</td>`));
   assert.match(actionDetailsSection, new RegExp(`NoticeQueryService\\.findNotice\\(\\)<ul class="spec-list spec-nested-list"><li>noticeId: ${sourceCodePattern("${route.noticeId}")}</li></ul>`));
   assert.equal((section.match(/お知らせ取得/g) ?? []).length, 1);
   assert.equal((section.match(/screen\.load/g) ?? []).length, 1);
@@ -2529,18 +2540,17 @@ locale: ja
   - E-検索ボタン.click
 - From
   - idle
-- Process
-  - PartialRequest
-    - request: POST /users/search
-    - update
-      - target: L-UserTable
-      - content: 更新後のユーザー一覧
-      - mode: replace
-      - side effect: レスポンスのユーザー一覧を \${model.users.items} に格納する
-      - side effect: レスポンスのページ番号を \${model.page} に格納する
-      - side effect: \${model.error} を空にする
-- Cases
-  - success:
+- Process: PartialRequest
+  - request: POST /users/search
+  - update
+    - target: L-UserTable
+    - content: 更新後のユーザー一覧
+    - mode: replace
+    - side effect: レスポンスのユーザー一覧を \${model.users.items} に格納する
+    - side effect: レスポンスのページ番号を \${model.page} に格納する
+    - side effect: \${model.error} を空にする
+- Process: Immediate
+  - case: success
     - response: 200 ユーザー一覧
     - state: idle
     - update:
@@ -3042,8 +3052,9 @@ title: Transition Matrix
   - E-SubmitButton.click
 - From
   - idle
-- Effects
-  - state: submitting
+- Process: Immediate
+  - Effects
+    - state: submitting
 
 ### A2:A-SubmitResponse Submit response
 
@@ -3051,11 +3062,11 @@ title: Transition Matrix
   - A-Submit.response
 - From
   - submitting
-- Cases
-  - failure:
+- Process: Immediate
+  - case: failure
     - response: 500
     - state: error
-  - success:
+  - case: success
     - response: 200
     - navigate: SCR-DONE
 `;
@@ -3094,60 +3105,70 @@ title: State Flow Aggregate
 
 - From
   - idle
-- Effects
-  - state: loading
+- Process: Immediate
+  - Effects
+    - state: loading
 
 ### A2:A-PollResponse Poll response
 
 - From
   - loading
-- Cases
-  - success:
+- Process: Immediate
+  - case: success
     - state: idle
-  - failure:
+  - case: failure
     - state: error
-  - done:
+  - case: done
     - navigate: SCR-DONE
 
 ### A3:A-RefreshResponse Refresh response
 
 - From
   - loading
-- Cases
-  - success:
+- Process: Immediate
+  - case: success
     - state: idle
-  - failure:
+  - case: failure
     - state: error
-  - done:
+  - case: done
     - navigate: SCR-DONE
 
 ### A4:A-DuplicateFailure Duplicate; failure
 
 - From
   - loading
-- Effects
-  - state: error
-  - state: error
+- Process: Immediate
+  - Effects
+    - state: error
+    - state: error
 
 ### A5:A-Cancel Cancel
 
 - From
   - idle
-- Effects
-  - navigate: SCR-DONE
+- Process: Immediate
+  - Effects
+    - navigate: SCR-DONE
+
+### A6:A-KeepLoading Keep loading
+
+- From
+  - loading
+- Process: Immediate
+  - Effects
+    - state: loading
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
   const mermaidSource = html.match(/<pre class="mermaid-source" data-mermaid-source><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/)?.[1] ?? "";
 
-  assert.equal([...mermaidSource.matchAll(/S0 --&gt; \[\*\]:/g)].length, 1);
+  assert.equal([...mermaidSource.matchAll(/S0 --&gt; \[\*\]:/g)].length, 0);
   assert.equal([...mermaidSource.matchAll(/S1 --&gt; S0:/g)].length, 1);
   assert.equal([...mermaidSource.matchAll(/S1 --&gt; S2:/g)].length, 1);
-  assert.equal([...mermaidSource.matchAll(/S1 --&gt; \[\*\]:/g)].length, 1);
-  assert.match(mermaidSource, /S0 --&gt; \[\*\]: A5 Cancel \/ navigate/);
+  assert.doesNotMatch(mermaidSource, /--&gt; \[\*\]/);
   assert.match(mermaidSource, /S1 --&gt; S0: A2 Poll response \/ success, A3 Refresh response \/ success/);
   assert.match(mermaidSource, /S1 --&gt; S2: A2 Poll response \/ failure, A3 Refresh response \/ failure, A4 Duplicate, failure/);
-  assert.match(mermaidSource, /S1 --&gt; \[\*\]: A2 Poll response \/ done \/ navigate, A3 Refresh response \/ done \/ navigate/);
+  assert.doesNotMatch(mermaidSource, /S1 --&gt; S1:/);
   assert.doesNotMatch(mermaidSource, /S\d+ --&gt; [^\n]*;/);
   assert.equal([...mermaidSource.matchAll(/A4 Duplicate, failure/g)].length, 1);
 });
@@ -3240,8 +3261,9 @@ viewport: mobile
   - E-Name.change
 - From
   - idle
-- Effects
-  - state: editing
+- Process: Immediate
+  - Effects
+    - state: editing
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -3410,8 +3432,9 @@ title: Any Model
   - screen.load
 - From
   - loading
-- Effects
-  - state: idle
+- Process: Immediate
+  - Effects
+    - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, "");
@@ -3467,11 +3490,10 @@ title: Opaque Model
   - screen.load
 - From
   - loading
-- Process
-  - ModelUpdate
-    - \${model.profile.loaded}: true
-- Effects
-  - state: ready
+- Process: Immediate
+  - case: success
+    - model: \${model.profile.loaded} = true
+    - state: ready
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, "");
@@ -3570,14 +3592,12 @@ title: Home
   - screen.load
 - From
   - idle
-- Process
-  - PartialRequest
-    - request: GET /profile-card
-    - partial: PRT-PROFILE-CARD
-    - cases:
-      - sent:
-        - ${"${model.profile.loaded}"}: true
-        - state: idle
+- Process: PartialRequest
+  - request: GET /profile-card
+  - partial: PRT-PROFILE-CARD
+  - case: sent
+    - model: ${"${model.profile.loaded}"} = true
+    - state: idle
 `);
   const composed = composeMarkVSpecTemplate(template, screen);
   const html = renderDesignDocumentHtml(composed, "", {
@@ -3595,7 +3615,7 @@ title: Home
   assert.match(html, /PartialRequest/);
   assert.match(html, /GET \/profile-card/);
   assert.match(html, /partial: PRT-PROFILE-CARD/);
-  assert.match(html, new RegExp(`${sourceCodePattern("${model.profile.loaded}")}: true`));
+  assert.match(html, new RegExp(`model: ${sourceCodePattern("${model.profile.loaded}")} = true`));
   assert.doesNotMatch(html, /partial-update-meta|partial-update-group/);
 });
 
@@ -4252,13 +4272,12 @@ title: Points Content
   - E-Refresh.click
 - From
   - loaded
-- Process
-  - PartialRequest
-    - request: GET /points/content
-    - partial: PRT-POINTS-CONTENT
-    - update:
-      - target: L-PointsContent
-      - mode: replace
+- Process: PartialRequest
+  - request: GET /points/content
+  - partial: PRT-POINTS-CONTENT
+  - update:
+    - target: L-PointsContent
+    - mode: replace
 `);
     const source = `---
 id: SCR-POINTS
@@ -4536,6 +4555,21 @@ default-state: loaded
   assert.doesNotMatch(html, /PRT-NOTIC<code/);
 });
 
+test("renders src-only model sample values in display content spec", () => {
+  const source = readFileSync(resolve("../../examples/02-states/model-samples.vspec.md"), "utf8");
+  const html = renderDesignDocumentHtml(parseMarkVSpec(source), "");
+  const loadedSection = stateSection(html, "loaded");
+  const displayContent = loadedSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.match(displayContent, new RegExp(`<td>${markerBadge("2", "element")}</td><td>${detailIdRef("E-MemberName")}</td><td>sample</td><td>Morgan Lee</td><td>${sourceCodePattern("${model.member.name}")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>${markerBadge("3", "element")}</td><td>${detailIdRef("E-PlanName")}</td><td>sample</td><td>Team Pro</td><td>${sourceCodePattern("${model.account.plan}")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>${markerBadge("4", "element")}</td><td>${detailIdRef("E-SeatCount")}</td><td>sample</td><td>12</td><td>${sourceCodePattern("${model.account.seats}")}</td>`));
+  assert.match(displayContent, new RegExp(`<td rowspan="4">${markerBadge("6", "element")}</td><td rowspan="4">${detailIdRef("E-SubscriptionTable")}</td><td>table rows</td><td>see wireframe</td><td>${sourceCodePattern("${model.subscriptions.items}")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>column: Product</td><td>Product</td><td>${plainCodePattern("product")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>column: Seats</td><td>Seats</td><td>${plainCodePattern("seats")}</td>`));
+  assert.doesNotMatch(loadedSection, /<h6 class="state-screen-detail-heading">Other<\/h6>/);
+});
+
 test("builds browser command candidates and arguments for PDF export", () => {
   const previousLocalAppData = process.env["LOCALAPPDATA"];
   const previousProgramFiles = process.env["PROGRAMFILES"];
@@ -4624,10 +4658,11 @@ route: /users
   - E-OpenDetail.click
 - From
   - idle
-- Effects
-  - navigate: SCR-USER-DETAIL
-  - params:
-    - id: user.id
+- Process: Immediate
+  - case: success
+    - navigate: SCR-USER-DETAIL
+    - params:
+      - id: user.id
 `;
   const detailSource = `---
 id: SCR-USER-DETAIL
@@ -4687,9 +4722,9 @@ route: /users/:id
   assert.match(documentHtml, new RegExp(`<td>${documentRef("SCR-USERS")}</td><td>Users</td><td>/users</td>`));
   assert.match(documentHtml, /<h2>Project Transition Diagram<\/h2>/);
   assert.match(documentHtml, /flowchart LR/);
-  assert.match(documentHtml, /SCR_USERS --&gt;\|&quot;A7 Open detail&quot;\| SCR_USER_DETAIL/);
+  assert.match(documentHtml, /SCR_USERS --&gt;\|&quot;A7 Open detail \/ success&quot;\| SCR_USER_DETAIL/);
   assert.match(documentHtml, /<h2>Project Transitions<\/h2>/);
-  assert.match(documentHtml, new RegExp(`<td>A7 Open detail</td><td><code>idle</code></td><td>-</td><td>screen</td><td>${documentRef("SCR-USER-DETAIL")}</td>`));
+  assert.match(documentHtml, new RegExp(`<td>A7 Open detail</td><td><code>idle</code></td><td>success</td><td>screen</td><td>${documentRef("SCR-USER-DETAIL")}</td>`));
   assert.match(documentHtml, /<h2>Diagnostics<\/h2>/);
   assert.match(documentHtml, /<p class="spec-empty">None\.<\/p>/);
   assert.match(localizedProjectHtml, /<h2>プロジェクト<\/h2>/);
@@ -4822,28 +4857,24 @@ title: Multi Request
   - E-NextPageButton.click
 - From
   - idle
-- Process
-  - ModelUpdate
-    - \${model.requestedPage}: \${model.nextPage}
-  - HttpRequest
-    - GET /users?filter=<active>
-      - page: \${model.requestedPage}
-    - cases:
-      - success:
-        - response: HTTP 200 users
-        - state: loaded
-        - stop
-  - HttpRequest
-    - GET /roles
-      - requestedPage: \${model.requestedPage}
-    - cases:
-      - success:
-        - response: HTTP 200 roles
-        - state: roles-loaded
-        - continue
-      - failure:
-        - response: HTTP error
-        - state: load-error
+- Process: HttpRequest
+  - GET /users?filter=<active>
+    - page: \${model.requestedPage}
+  - case: success
+    - response: HTTP 200 users
+    - model: \${model.requestedPage} = \${model.nextPage}
+    - state: loaded
+    - stop
+- Process: HttpRequest
+  - GET /roles
+    - requestedPage: \${model.requestedPage}
+  - case: success
+    - response: HTTP 200 roles
+    - state: roles-loaded
+    - continue
+  - case: failure
+    - response: HTTP error
+    - state: load-error
 `;
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
@@ -4882,31 +4913,28 @@ title: Parallel Process
   - screen.load
 - From
   - loading
-- Process
-  - ServerCall
-    - parallel: initial-load
-    - MemberQueryService.findSelfProfile()
-    - cases:
-      - success:
-        - response: 200 member profile
-        - continue
-  - ServerCall
-    - parallel: initial-load
-    - PointQueryService.findSelfPoints()
-    - cases:
-      - success:
-        - response: 200 points
-        - continue
-  - Resolve: initial-load
-    - cases:
-      - ready:
-        - response: profile and points loaded
-        - state: idle
-        - stop
-      - failed:
-        - response: one or more calls failed
-        - state: load-error
-        - stop
+- Process: ServerCall
+  - group: initial-load
+  - MemberQueryService.findSelfProfile()
+  - case: success
+    - response: 200 member profile
+    - continue
+- Process: ServerCall
+  - group: initial-load
+  - PointQueryService.findSelfPoints()
+  - case: success
+    - response: 200 points
+    - continue
+- Process: Resolve
+  - group: initial-load
+  - case: ready
+    - response: profile and points loaded
+    - state: idle
+    - stop
+  - case: failed
+    - response: one or more calls failed
+    - state: load-error
+    - stop
 `;
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
@@ -4963,11 +4991,11 @@ viewport: mobile
   - E-NextPageButton.click
 - From
   - idle
-- Process
-  - HttpRequest
-    - GET /users
-- Effects
-  - state: loading
+- Process: HttpRequest
+  - GET /users
+- Process: Immediate
+  - Effects
+    - state: loading
 
 備考をこういうところに書きたいよね。
 `;
@@ -5029,8 +5057,9 @@ Action overview.
   - E-EmailInput.submit
 - From
   - idle
-- Effects
-  - state: idle
+- Process: Immediate
+  - Effects
+    - state: idle
 
 Action notes.
 
@@ -5259,8 +5288,9 @@ viewport: mobile
   - E-SubmitButton.click
 - From
   - idle
-- Effects
-  - state: idle
+- Process: Immediate
+  - Effects
+    - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -5311,8 +5341,9 @@ locale: en
   - screen.load
 - From
   - idle
-- Effects
-  - state: idle
+- Process: Immediate
+  - Effects
+    - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -5350,9 +5381,10 @@ locale: en
   - idle
   - empty
   - load-error
-- Effects
-  - state: loading
-  - navigate: SCR-RESULTS
+- Process: Immediate
+  - Effects
+    - state: loading
+    - navigate: SCR-RESULTS
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -5427,11 +5459,10 @@ locale: en
 - From
   - idle
   - error
-- Process
-  - HttpRequest
-    - POST /submit
-- Cases
-  - failure:
+- Process: HttpRequest
+  - POST /submit
+- Process: Immediate
+  - case: failure
     - from: idle
     - response: 400 invalid
     - state: error
@@ -5443,8 +5474,8 @@ locale: en
 
 - Triggered
   - E-OutcomeOnlyButton.click
-- Cases
-  - failure:
+- Process: Immediate
+  - case: failure
     - response: 422 invalid
     - state: error
     - update:
@@ -5503,14 +5534,14 @@ locale: en
 
 - Triggered
   - E-SubmitButton.click
-- Cases
-  - retry:
+- Process: Immediate
+  - case: retry
     - from: error
     - state: loading
-  - sent:
+  - case: sent
     - from: idle
     - state: loading
-  - failed:
+  - case: failed
     - from: idle
     - state: error
 `;
@@ -5766,8 +5797,9 @@ Use **strong** text, *emphasis*, [help](./my_file_name.md), and \`token\`.
   - form.submit
 - From
   - idle
-- Effects
-  - state: idle
+- Process: Immediate
+  - Effects
+    - state: idle
 
 ![Diagram](./diagram.png)
 
@@ -6550,7 +6582,10 @@ test("declares MarkVSpec syntax highlighting contributions", () => {
   assert(snippets["MarkVSpec Select Element"].body?.includes("- options:"));
   assert(snippets["MarkVSpec Select Element"].body?.includes("  - ${4:Active}"));
   assert(snippets["MarkVSpec Action"].body?.includes("- Triggered"));
-  assert(snippets["MarkVSpec Action"].body?.includes("  - HttpRequest"));
+  assert(snippets["MarkVSpec Action"].body?.includes("- Process: HttpRequest"));
+  assert(snippets["MarkVSpec Action"].body?.includes("  - case: ${10:sent}"));
+  assert(!snippets["MarkVSpec Action"].body?.includes("- Effects"));
+  assert(!snippets["MarkVSpec Action"].body?.includes("- Cases"));
 
   const expandedScreenSnippet = expandSnippetBody(snippets["MarkVSpec Screen"].body ?? []);
   assert.deepEqual(parseMarkVSpec(expandedScreenSnippet).diagnostics, []);

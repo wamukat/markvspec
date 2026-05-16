@@ -130,14 +130,12 @@ status: draft
   - E-LogoutButton.click
 - From
   - ready
-- Process
-  - HttpRequest
-    - POST /logout
-    - cases:
-      - sent:
-        - state: signing-out
-      - send-failed:
-        - state: ready
+- Process: HttpRequest
+  - POST /logout
+  - case: sent
+    - state: signing-out
+  - case: send-failed
+    - state: ready
 
 ### A2:A-HandleSignOutResponse Handle sign out response
 
@@ -145,12 +143,10 @@ status: draft
   - A-SignOut.response
 - From
   - signing-out
-- Process
-  - HttpResponse
-    - cases:
-      - success:
-        - response: 204 signed out
-        - navigate: SCR-LOGIN
-      - failure:
-        - response: 5xx
-        - state: ready
+- Process: HttpResponse
+  - case: success
+    - response: 204 signed out
+    - navigate: SCR-LOGIN
+  - case: failure
+    - response: 5xx
+    - state: ready

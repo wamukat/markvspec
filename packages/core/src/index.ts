@@ -62,6 +62,9 @@ export type {
   MarkVSpecTableRow,
   MarkVSpecTransition,
   MarkVSpecValidationRule,
+  MarkVSpecViewContextDefinition,
+  MarkVSpecViewContextSample,
+  MarkVSpecPreviewScenario,
   SourceLocation
 } from "./types.js";
 export type {
@@ -161,6 +164,9 @@ export function parseMarkVSpec(source: string): MarkVSpecParseResult {
     historyEntries: [],
     modelSampleGroups: [],
     modelSamples: [],
+    viewContexts: [],
+    viewContextSamples: [],
+    previewScenarios: [],
     sectionProse: [],
     notes: [],
     diagnostics
@@ -223,6 +229,9 @@ function applySmallSectionSemantics(
 ): void {
   result.states = semantics.states;
   result.modelSamples = semantics.modelSamples;
+  result.viewContexts = semantics.viewContexts;
+  result.viewContextSamples = semantics.viewContextSamples;
+  result.previewScenarios = semantics.previewScenarios;
   result.formGroups = semantics.formGroups;
   result.validations = semantics.validations;
   result.rules = semantics.rules;

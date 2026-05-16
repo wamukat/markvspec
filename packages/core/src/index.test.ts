@@ -682,12 +682,14 @@ Free-form section body.
 
 test("limits State Views layout signatures to state-view-affecting properties in core", () => {
   assert.deepEqual([...STATE_VIEW_AFFECTING_LAYOUT_PROPERTY_KEYS], [
+    "active when",
     "align",
     "disabled when",
     "gap",
     "hidden when",
     "justify",
     "overlay",
+    "selected when",
     "variant",
     "visible when"
   ]);
@@ -1341,12 +1343,10 @@ title: Action AST
   - E-SubmitButton.click
 - From
   - idle
-- Process
-  - HttpRequest
-    - POST /login
-      - email: E-メールアドレス入力.value
-- Cases
-  - success:
+- Process: HttpRequest
+  - POST /login
+    - email: E-メールアドレス入力.value
+  - case: success
     - response: 2xx authenticated
     - state: done
     - params:
@@ -1355,7 +1355,7 @@ title: Action AST
       - target: L-Message
       - mode: replace
       - content: PRT-SUCCESS
-  - failure:
+  - case: failure
     - from: idle
     - state: error
 `;
@@ -1375,25 +1375,24 @@ title: Action AST
   assert.deepEqual(action?.processSteps.map((step) => [step.name, step.details.map((detail) => [detail.key, detail.value])]), [
     ["HttpRequest", [["request", "POST /login"], ["email", "E-メールアドレス入力.value"]]]
   ]);
-  assert.deepEqual(action?.responses, [
-    { result: "success", definition: "2xx authenticated", location: { line: lineNumber(source, "    - response: 2xx authenticated") } }
-  ]);
+  assert.deepEqual(action?.responses, []);
   assert.deepEqual(action?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
     ["idle", "success", "done"],
     ["idle", "failure", "error"]
   ]);
-  assert.deepEqual(action?.outcomes.map((outcome) => [outcome.result, outcome.target, outcome.mode, outcome.content]), [
+  assert.deepEqual(action?.outcomes, []);
+  assert.deepEqual(action?.processSteps[0]?.outcomes.map((outcome) => [outcome.result, outcome.target, outcome.mode, outcome.content]), [
     ["success", "L-Message", "replace", "PRT-SUCCESS"],
     ["failure", undefined, undefined, undefined]
   ]);
-  assert.deepEqual(action?.outcomes.find((outcome) => outcome.result === "success")?.routeParams, [
+  assert.deepEqual(action?.processSteps[0]?.outcomes.find((outcome) => outcome.result === "success")?.routeParams, [
     { name: "id", source: "E-UserId.value", location: { line: lineNumber(source, "      - id: E-UserId.value") } }
   ]);
   assert.deepEqual(action?.propertyLocations["marker"], [{ line: lineNumber(source, "### main:A-Submit Submit") }]);
   assert.equal(action?.propertyLocations["request"], undefined);
   assert.equal(action?.propertyLocations["param email"], undefined);
-  assert.deepEqual(action?.processSteps[0]?.propertyLocations["request"], [{ line: lineNumber(source, "    - POST /login") }]);
-  assert.deepEqual(action?.processSteps[0]?.propertyLocations["email"], [{ line: lineNumber(source, "      - email: E-メールアドレス入力.value") }]);
+  assert.deepEqual(action?.processSteps[0]?.propertyLocations["request"], [{ line: lineNumber(source, "  - POST /login") }]);
+  assert.deepEqual(action?.processSteps[0]?.propertyLocations["email"], [{ line: lineNumber(source, "    - email: E-メールアドレス入力.value") }]);
   assert.deepEqual(parseResult.actions, astResult.actions);
   assert.deepEqual(astResult.sectionResults.map((result) => [result.sectionId, result.renderKeys]), [
     ["section:Actions", ["actions:list", "action:A-Submit"]]
@@ -1429,21 +1428,21 @@ title: Multi Request
   - E-NextPageButton.click
 - From
   - idle
-- Process
-  - ModelUpdate
-    - \${model.requestedPage}: \${model.nextPage}
-  - HttpRequest
-    - GET /users
-      - page: \${model.requestedPage}
-  - HttpRequest
-    - GET /roles
-      - userId: \${model.userId}
+- Process: ModelUpdate
+  - Effects
+    - model: \${model.requestedPage} = \${model.nextPage}
+- Process: HttpRequest
+  - GET /users
+    - page: \${model.requestedPage}
+- Process: HttpRequest
+  - GET /roles
+    - userId: \${model.userId}
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions[0];
 
   assert.deepEqual(action?.processSteps.map((step) => [step.name, step.details.map((detail) => [detail.key, detail.value])]), [
-    ["ModelUpdate", [["${model.requestedPage}", "${model.nextPage}"]]],
+    ["ModelUpdate", []],
     ["HttpRequest", [["request", "GET /users"], ["page", "${model.requestedPage}"]]],
     ["HttpRequest", [["request", "GET /roles"], ["userId", "${model.userId}"]]]
   ]);
@@ -1497,14 +1496,13 @@ overview code block
   - E-NextPageButton.click
 - From
   - idle
-- Process
-  - ModelUpdate
-    - \${model.requestedPage}: \${model.nextPage}
-  - HttpRequest
-    - GET /users
-      - page: \${model.requestedPage}
-- Effects
-  - state: loading
+- Process: HttpRequest
+  - GET /users
+    - page: \${model.requestedPage}
+- Process: Immediate
+  - case: success
+    - model: \${model.requestedPage} = \${model.nextPage}
+    - state: loading
 
 備考をこういうところに書きたいよね。
 `;
@@ -1548,8 +1546,9 @@ Use **strong** text and [help](./help.md).
   - E-SubmitButton.click
 - From
   - idle
-- Effects
-  - state: idle
+- Process: Immediate
+  - Effects
+    - state: idle
 
 #### Additional note
 
@@ -1985,8 +1984,7 @@ title: Action AST Diagnostics
 
 - request: POST /login
   - E-メールアドレス入力.click
-- Process
-  - POST /login
+- Process: POST /login
 `;
   const diagnostics: MarkVSpecDiagnostic[] = [];
   const document = parseMarkdownDocument(source, diagnostics);
@@ -1994,9 +1992,9 @@ title: Action AST Diagnostics
   const parseResult = parseMarkVSpec(source);
   const expectedDiagnostics = [
     ["warning", "Malformed Action heading. Expected ### [<marker>:]A-* <name>.", lineNumber(source, "### Submit without ID")],
-    ["warning", "Action A-Submit has unsupported top-level entry: request: POST /login. Use Triggered, From, Process, Effects, Otherwise, or Cases.", lineNumber(source, "- request: POST /login")],
+    ["warning", "Action A-Submit has unsupported top-level entry: request: POST /login. Use Triggered, From, Process: <type>, or Otherwise.", lineNumber(source, "- request: POST /login")],
     ["warning", "Action A-Submit has nested entry outside a recognized block: E-メールアドレス入力.click.", lineNumber(source, "  - E-メールアドレス入力.click")],
-    ["warning", "Action A-Submit has malformed Process entry: POST /login. Put request lines under an HttpRequest step.", lineNumber(source, "  - POST /login")]
+    ["warning", "Action A-Submit has malformed Process entry: POST /login. Put request lines under an HttpRequest step.", lineNumber(source, "- Process: POST /login")]
   ];
 
   assert.deepEqual(
@@ -2457,11 +2455,10 @@ title: Invalidation Action
   - E-Submit.click
 - From
   - idle
-- Process
-  - ServerCall
-    - submit form
+- Process: ServerCall
+  - submit form
 `;
-  const current = previous.replace("    - submit form", "    - submit updated form");
+  const current = previous.replace("  - submit form", "  - submit updated form");
   const invalidation = computeMarkVSpecRenderInvalidation(previous, current);
 
   assert.deepEqual(invalidation.changedSectionIds, ["section:Actions"]);
@@ -2875,8 +2872,9 @@ title: Users
   - E-OpenDetail.click
 - From
   - idle
-- Effects
-  - navigate: SCR-USER-DETAIL
+- Process: Immediate
+  - Effects
+    - navigate: SCR-USER-DETAIL
 `;
   const detailSource = `---
 id: SCR-USER-DETAIL
@@ -2977,13 +2975,12 @@ title: Points Content
   - E-Refresh.click
 - From
   - loaded
-- Process
-  - PartialRequest
-    - request: GET /points/content
-    - partial: PRT-POINTS-CONTENT
-    - update:
-      - target: L-PointsContent
-      - mode: replace
+- Process: PartialRequest
+  - request: GET /points/content
+  - partial: PRT-POINTS-CONTENT
+  - update:
+    - target: L-PointsContent
+    - mode: replace
 `;
   const files = new Map([
     ["project/screens/points.vspec.md", screenSource],
@@ -3540,8 +3537,9 @@ title: Users Actual
   - E-OpenMissing.click
 - From
   - idle
-- Effects
-  - navigate: SCR-NOT-IN-PROJECT
+- Process: Immediate
+  - Effects
+    - navigate: SCR-NOT-IN-PROJECT
 `;
   const result = loadMarkVSpecProject(projectSource, {
     projectPath: "project/vspec.project.md",
@@ -3553,7 +3551,7 @@ title: Users Actual
     [
       ["error", "Project screen SCR-USERS points to file with screen ID SCR-USERS-ACTUAL.", lineNumber(projectSource, "  - id: SCR-USERS")],
       ["error", "Project screen SCR-MISSING-FILE file not found: screens/missing.vspec.md.", lineNumber(projectSource, "    path: screens/missing.vspec.md")],
-      ["error", "Project transition from SCR-USERS-ACTUAL action A-OpenMissing targets missing screen SCR-NOT-IN-PROJECT.", lineNumber(usersSource, "  - navigate: SCR-NOT-IN-PROJECT")]
+      ["error", "Project transition from SCR-USERS-ACTUAL action A-OpenMissing targets missing screen SCR-NOT-IN-PROJECT.", lineNumber(usersSource, "    - navigate: SCR-NOT-IN-PROJECT")]
     ]
   );
 });
@@ -3601,10 +3599,11 @@ title: List
   - E-お知らせリンク.click
 - From
   - idle
-- Effects
-  - navigate: SCR-DETAIL
-  - params:
-    - noticeId: \${model.notice.noticeId}
+- Process: Immediate
+  - case: success
+    - navigate: SCR-DETAIL
+    - params:
+      - noticeId: \${model.notice.noticeId}
 
 ### A-StepOpenNotice Open notice after request
 
@@ -3612,14 +3611,12 @@ title: List
   - E-お知らせリンク.click
 - From
   - idle
-- Process
-  - HttpRequest
-    - GET /notices/current
-    - cases:
-      - success:
-        - navigate: SCR-DETAIL
-        - params:
-          - extra: \${model.notice.extra}
+- Process: HttpRequest
+  - GET /notices/current
+  - case: success
+    - navigate: SCR-DETAIL
+    - params:
+      - extra: \${model.notice.extra}
 `;
   const detailSource = `---
 id: SCR-DETAIL
@@ -3648,8 +3645,8 @@ route: /notices/:noticeId
     [
       ["error", "Project navigation from SCR-LIST element E-お知らせリンク to SCR-DETAIL is missing route parameter noticeId.", lineNumber(listSource, "  - extra: \${model.notice.extra}")],
       ["warning", "Project navigation from SCR-LIST element E-お知らせリンク to SCR-DETAIL defines route parameter extra, but target route /notices/:noticeId has no matching placeholder.", lineNumber(listSource, "  - extra: \${model.notice.extra}")],
-      ["error", "Project navigation from SCR-LIST action A-StepOpenNotice to SCR-DETAIL is missing route parameter noticeId.", lineNumber(listSource, "        - navigate: SCR-DETAIL")],
-      ["warning", "Project navigation from SCR-LIST action A-StepOpenNotice to SCR-DETAIL defines route parameter extra, but target route /notices/:noticeId has no matching placeholder.", lineNumber(listSource, "          - extra: \${model.notice.extra}")]
+      ["error", "Project navigation from SCR-LIST action A-StepOpenNotice to SCR-DETAIL is missing route parameter noticeId.", lineNumber(listSource, "  - GET /notices/current") + 2],
+      ["warning", "Project navigation from SCR-LIST action A-StepOpenNotice to SCR-DETAIL defines route parameter extra, but target route /notices/:noticeId has no matching placeholder.", lineNumber(listSource, "      - extra: \${model.notice.extra}")]
     ]
   );
 });
@@ -3711,10 +3708,9 @@ route: /users/:userId
   - screen.load
 - From
   - loading
-- Process
-  - HttpRequest
-    - GET /users/:userId
-      - userId: \${route.missingUserId}
+- Process: HttpRequest
+  - GET /users/:userId
+    - userId: \${route.missingUserId}
 
 ## Validations
 
@@ -3729,7 +3725,7 @@ route: /users/:userId
     [
       ["warning", "Route parameter reference ${route.accountId} does not match any :param in screen route.", lineNumber(source, "- src: ${route.accountId}")],
       ["warning", "Route parameter reference ${route.tableUserId} does not match any :param in screen route.", lineNumber(source, "  - Route ID: ${route.tableUserId}")],
-      ["warning", "Route parameter reference ${route.missingUserId} does not match any :param in screen route.", lineNumber(source, "      - userId: ${route.missingUserId}")],
+      ["warning", "Route parameter reference ${route.missingUserId} does not match any :param in screen route.", lineNumber(source, "    - userId: ${route.missingUserId}")],
       ["warning", "Route parameter reference ${route.validationUserId} does not match any :param in screen route.", lineNumber(source, "- condition: ${route.validationUserId}")]
     ]
   );
@@ -3809,8 +3805,9 @@ title: Users
   - E-OpenDetail.click
 - From
   - idle
-- Effects
-  - navigate: SCR-USER-DETAIL
+- Process: Immediate
+  - Effects
+    - navigate: SCR-USER-DETAIL
 
 ### A6:A-OpenNewUser Open new user
 
@@ -3818,8 +3815,9 @@ title: Users
   - E-NewUser.click
 - From
   - idle
-- Effects
-  - navigate: /users/new
+- Process: Immediate
+  - Effects
+    - navigate: /users/new
 `;
   const detailSource = `---
 id: SCR-USER-DETAIL
@@ -3907,8 +3905,9 @@ title: Users
   - E-OpenMissing.click
 - From
   - idle
-- Effects
-  - navigate: SCR-MISSING
+- Process: Immediate
+  - Effects
+    - navigate: SCR-MISSING
 `;
   const project = loadMarkVSpecProject(projectSource, {
     projectPath: "project/vspec.project.md",
@@ -4709,7 +4708,7 @@ test("parses the login screen example", () => {
     ["send-failed", undefined, "request-error"]
   ]);
   assert.deepEqual(action?.processSteps.map((step) => [step.name, step.when, step.target, step.content]), [
-    ["Validate", [], undefined, undefined],
+    ["Validate", [], "V-LoginForm", undefined],
     ["ModelUpdate", [], undefined, undefined],
     ["HttpRequest", [], undefined, undefined]
   ]);
@@ -4726,7 +4725,7 @@ test("parses the login screen example", () => {
   assert.equal(forgotPasswordAction?.triggeredBy, "E-ForgotPasswordLink.click");
   assert.deepEqual(forgotPasswordAction?.trigger, { elementId: "E-ForgotPasswordLink", event: "click" });
   assert.deepEqual(forgotPasswordAction?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
-    ["idle", undefined, "SCR-PASSWORD-RESET"]
+    ["idle", "done", "SCR-PASSWORD-RESET"]
   ]);
 });
 
@@ -5014,12 +5013,12 @@ title: Japanese IDs
   - E-保存ボタン.click
 - From
   - idle
-- Process
-  - HttpRequest
-    - POST /save
-      - email: E-メール入力.value
-- Effects
-  - state: validation-error
+- Process: HttpRequest
+  - POST /save
+    - email: E-メール入力.value
+- Process: Immediate
+  - Effects
+    - state: validation-error
 `;
   const result = parseMarkVSpec(source);
 
@@ -5156,17 +5155,17 @@ title: Broken
   - E-999.click
 - From
   - idle
-- Process
-  - Preprocess
-    - update:
-      - target: L-999
-      - content: Missing
-  - Render
-    - update:
-      - target: F-001
-      - content: Invalid form target
-- Effects
-  - state: missing
+- Process: Preprocess
+  - update:
+    - target: L-999
+    - content: Missing
+- Process: Render
+  - update:
+    - target: F-001
+    - content: Invalid form target
+- Process: Immediate
+  - Effects
+    - state: missing
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
@@ -5186,12 +5185,12 @@ title: Broken
   assert.equal(
     result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-001 process step Preprocess targets missing layout or element L-999.")
       ?.line,
-    lineNumber(source, "      - target: L-999")
+    lineNumber(source, "    - target: L-999")
   );
   assert.equal(
     result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-001 process step Render cannot target FormGroup F-001. Use an L-* layout target for updates.")
       ?.line,
-    lineNumber(source, "      - target: F-001")
+    lineNumber(source, "    - target: F-001")
   );
   assert.equal(
     result.diagnostics.find((diagnostic) => diagnostic.message === "Condition references missing ID E-404.")?.severity,
@@ -5323,7 +5322,7 @@ title: Section Order
     result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
     [[
       "warning",
-      "Section ## Layout: mobile appears after a later section. Recommended order is States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Actions, Model Samples, Validations, Business Rules, Error Codes, History Fields, History.",
+      "Section ## Layout: mobile appears after a later section. Recommended order is States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Actions, Model Samples, View Context, View Context Samples, Preview Scenarios, Validations, Business Rules, Error Codes, History Fields, History.",
       lineNumber(source, "## Layout: mobile")
     ]]
   );
@@ -5577,10 +5576,9 @@ title: Input Contract
   - E-メールアドレス入力.submit
 - From
   - idle
-- Process
-  - Validate: V-EmailFormat
-- Cases
-  - validationError:
+- Process: Validate: V-EmailFormat
+- Process: Immediate
+  - case: validationError
     - state: idle
     - error code: ERR-EMAIL-FORMAT
 
@@ -5622,7 +5620,7 @@ title: Input Contract
   assert.equal(result.errorCodes[0]?.id, "ERR-EMAIL-FORMAT");
   assert.equal(result.errorCodes[0]?.properties["business rule"], "R-EMAIL");
   assert.equal(result.actions[0]?.processSteps[0]?.details[0]?.value, "V-EmailFormat");
-  assert.deepEqual(result.actions[0]?.outcomes[0]?.errorCodes, ["ERR-EMAIL-FORMAT"]);
+  assert.deepEqual(result.actions[0]?.processSteps.find((step) => step.name === "Immediate")?.outcomes[0]?.errorCodes, ["ERR-EMAIL-FORMAT"]);
 });
 
 test("preserves free-form business rules and validates error code contract fields", () => {
@@ -5808,8 +5806,9 @@ title: Missing Trigger
 
 - From
   - idle
-- Effects
-  - state: idle
+- Process: Immediate
+  - Effects
+    - state: idle
 `;
   const result = parseMarkVSpec(source);
 
@@ -5907,8 +5906,9 @@ title: Event
   - E-001.hover
 - From
   - idle
-- Effects
-  - state: idle
+- Process: Immediate
+  - Effects
+    - state: idle
 `;
   const result = parseMarkVSpec(source);
 
@@ -5945,8 +5945,8 @@ title: Outcome
 
 - Triggered
   - service.response
-- Cases
-  - failure:
+- Process: Immediate
+  - case: failure
     - update:
       - target: L-Message
       - content: Failure message
@@ -5963,7 +5963,7 @@ title: Outcome
       ],
       [
         "warning",
-        "Action A-Submit defines failure outcome details but has no failure transition.",
+        "Action A-Submit process step Immediate defines failure outcome details but has no failure transition.",
         lineNumber(source, "      - target: L-Message")
       ]
     ]
@@ -6004,12 +6004,11 @@ title: Nested Action
     - E-Submit.click
 - From
     - idle
-- Process
-    - HttpRequest
-        - POST /submit
+- Process: HttpRequest
+    - POST /submit
         - email: E-Submit.value
-- Cases:
-    - failure:
+- Process: Immediate
+    - case: failure
         - response: 400
         - state: error
         - update:
@@ -6021,9 +6020,9 @@ title: Nested Action
 
   assert.equal(result.diagnostics.length, 0);
   assert.deepEqual(action?.processSteps.find((step) => step.name === "HttpRequest")?.details.filter((detail) => detail.key !== "request").map((detail) => [detail.key, detail.value]), [["email", "E-Submit.value"]]);
-  assert.deepEqual(action?.responses.map((response) => [response.result, response.definition]), [["failure", "400"]]);
+  assert.deepEqual(action?.responses, []);
   assert.deepEqual(action?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [["idle", "failure", "error"]]);
-  assert.deepEqual(action?.outcomes.map((outcome) => [outcome.result, outcome.target, outcome.content]), [
+  assert.deepEqual(action?.processSteps.find((step) => step.name === "Immediate")?.outcomes.map((outcome) => [outcome.result, outcome.target, outcome.content]), [
     ["failure", "L-MessageArea", "Failure message"]
   ]);
 });
@@ -6063,8 +6062,9 @@ title: Otherwise
   - E-Submit.click
 - From
   - idle
-- Effects
-  - state: wait-auth
+- Process: Immediate
+  - Effects
+    - state: wait-auth
 - Otherwise
   - state: validation-error
   - update:
@@ -6132,9 +6132,9 @@ title: Conditions
   const action = result.actions.find((candidate) => candidate.id === "A-Submit");
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Action A-Submit has unsupported top-level entry: When. Use Triggered, From, Process, Effects, Otherwise, or Cases."));
+  assert(messages.includes("Action A-Submit has unsupported top-level entry: When. Use Triggered, From, Process: <type>, or Otherwise."));
   assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit has unsupported top-level entry: When. Use Triggered, From, Process, Effects, Otherwise, or Cases.")?.line,
+    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit has unsupported top-level entry: When. Use Triggered, From, Process: <type>, or Otherwise.")?.line,
     lineNumber(source, "- When")
   );
   assert.equal(action?.id, "A-Submit");
@@ -6172,11 +6172,11 @@ title: Action Aliases
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Action A-Submit has unsupported top-level entry: Effect. Use Triggered, From, Process, Effects, Otherwise, or Cases."));
-  assert(messages.includes("Action A-Submit has unsupported top-level entry: Case. Use Triggered, From, Process, Effects, Otherwise, or Cases."));
-  assert(messages.includes("Action A-Submit has unsupported top-level entry: Else. Use Triggered, From, Process, Effects, Otherwise, or Cases."));
+  assert(messages.includes("Action A-Submit has unsupported top-level entry: Effect. Use Triggered, From, Process: <type>, or Otherwise."));
+  assert(messages.includes("Action A-Submit has unsupported top-level entry: Case. Use Triggered, From, Process: <type>, or Otherwise."));
+  assert(messages.includes("Action A-Submit has unsupported top-level entry: Else. Use Triggered, From, Process: <type>, or Otherwise."));
   assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit has unsupported top-level entry: Effect. Use Triggered, From, Process, Effects, Otherwise, or Cases.")?.line,
+    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit has unsupported top-level entry: Effect. Use Triggered, From, Process: <type>, or Otherwise.")?.line,
     lineNumber(source, "- Effect")
   );
 });
@@ -6204,10 +6204,77 @@ title: Removed Action Group
   const result = parseMarkVSpec(source);
 
   assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit has unsupported top-level entry: When. Use Triggered, From, Process, Effects, Otherwise, or Cases.")?.line,
+    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit has unsupported top-level entry: When. Use Triggered, From, Process: <type>, or Otherwise.")?.line,
     lineNumber(source, "- When")
   );
   assert.equal(result.actions.find((candidate) => candidate.id === "A-Submit")?.overview?.length ?? 0, 0);
+});
+
+test("rejects removed legacy action DSL forms directly", () => {
+  const source = `---
+id: SCR-LEGACY-ACTION-DSL
+type: screen
+title: Legacy Action DSL
+---
+
+# SCR-LEGACY-ACTION-DSL Legacy Action DSL
+
+## States
+
+- idle*
+- loading
+- done
+
+## Actions
+
+### A-Legacy Legacy
+
+- Triggered
+  - E-Submit.click
+- From
+  - idle
+- Effects
+  - state: loading
+- Cases
+  - success:
+    - state: done
+- Process
+  - HttpRequest
+    - POST /legacy
+    - cases:
+      - sent:
+        - state: loading
+- Resolve: load-group
+- Process: ServerCall
+  - Service.call()
+  - case: success
+    - \${model.member.loaded}: true
+  - cases:
+    - old:
+      - state: done
+`;
+  const result = parseMarkVSpec(source);
+  const action = result.actions.find((candidate) => candidate.id === "A-Legacy");
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert(messages.includes("Action A-Legacy has unsupported top-level entry: Effects. Use Triggered, From, Process: <type>, or Otherwise."));
+  assert(messages.includes("Action A-Legacy has unsupported top-level entry: Cases. Use Triggered, From, Process: <type>, or Otherwise."));
+  assert(messages.includes("Action A-Legacy has unsupported top-level entry: Process. Use Triggered, From, Process: <type>, or Otherwise."));
+  assert(messages.includes("Action A-Legacy has unsupported top-level entry: Resolve: load-group. Use Triggered, From, Process: <type>, or Otherwise."));
+  assert(messages.includes("Action A-Legacy process step ServerCall uses removed cases block syntax. Use direct case: <name> entries under Process: ServerCall."));
+  assert(messages.includes("Action A-Legacy has unsupported process step ServerCall case success entry: ${model.member.loaded}: true. Use state, navigate, response, from, params, update, stop, or continue."));
+  assert.equal(
+    result.diagnostics.find((diagnostic) => diagnostic.message.includes("unsupported top-level entry: Effects"))?.line,
+    lineNumber(source, "- Effects")
+  );
+  assert.equal(
+    result.diagnostics.find((diagnostic) => diagnostic.message.includes("removed cases block syntax"))?.line,
+    lineNumber(source, "  - cases:")
+  );
+  assert.deepEqual(action?.transitions, []);
+  assert.deepEqual(action?.sideEffects, []);
+  assert.deepEqual(action?.outcomes, []);
+  assert.deepEqual(action?.processSteps.find((step) => step.name === "ServerCall")?.outcomes.find((outcome) => outcome.result === "success")?.sideEffects, []);
 });
 
 test("reports process condition references on the leaf line", () => {
@@ -6241,14 +6308,13 @@ title: Condition Ref
   - E-Submit.click
 - From
   - idle
-- Process
-  - Preprocess
-    - when: E-Missing is not empty
+- Process: Preprocess
+  - when: E-Missing is not empty
 `;
   const result = parseMarkVSpec(source);
   const diagnostic = result.diagnostics.find((candidate) => candidate.message === "Condition references missing ID E-Missing.");
 
-  assert.equal(diagnostic?.line, lineNumber(source, "    - when: E-Missing is not empty"));
+  assert.equal(diagnostic?.line, lineNumber(source, "  - when: E-Missing is not empty"));
 });
 
 test("parses screen load server call actions", () => {
@@ -6284,15 +6350,13 @@ title: Server Call
   - screen.load
 - From
   - idle
-- Process
-  - ServerCall
-    - MemberQueryService.findSelfProfile()
-      - includePreferences: true
-    - cases:
-      - success:
-        - response: ApiBridgeResult.Success<MemberProfileDto>
-        - \${model.memberProfile.displayName}: MemberProfileDto.displayName
-        - state: idle
+- Process: ServerCall
+  - MemberQueryService.findSelfProfile()
+    - includePreferences: true
+  - case: success
+    - response: ApiBridgeResult.Success<MemberProfileDto>
+    - model: \${model.memberProfile.displayName} = MemberProfileDto.displayName
+    - state: idle
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-Load");
@@ -6324,10 +6388,9 @@ title: Client Call Removed
 
 ### A-Load Load
 
-- Process
-  - ClientCall
-    - MemberQueryService.findSelfProfile()
-    - includePreferences: true
+- Process: ClientCall
+  - MemberQueryService.findSelfProfile()
+  - includePreferences: true
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-Load");
@@ -6349,9 +6412,8 @@ title: Server Call Client Label
 
 ### A-Load Load
 
-- Process
-  - ServerCall
-    - client: MemberQueryService.findSelfProfile()
+- Process: ServerCall
+  - client: MemberQueryService.findSelfProfile()
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-Load");
@@ -6398,14 +6460,12 @@ route: /mypage/partials/notices
   - partial.render
 - From
   - loaded
-- Process
-  - ServerCall
-    - NoticeQueryService.findLatest()
-    - cases:
-      - success:
-        - response: 200 notices
-        - \${model.notices.items}: result.items
-        - state: loaded
+- Process: ServerCall
+  - NoticeQueryService.findLatest()
+  - case: success
+    - response: 200 notices
+    - model: \${model.notices.items} = result.items
+    - state: loaded
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-Build");
@@ -6414,7 +6474,7 @@ route: /mypage/partials/notices
   assert.equal(result.screen.type, "partial");
   assert.equal(result.diagnostics.length, 0);
   assert.equal(action?.triggeredBy, "partial.render");
-  assert.deepEqual(success?.sideEffects, ["${model.notices.items}: result.items"]);
+  assert.deepEqual(success?.sideEffects, ["model: ${model.notices.items} = result.items"]);
 });
 
 test("reports missing process step references", () => {
@@ -6445,15 +6505,15 @@ title: Process Refs
   - E-Submit.click
 - From
   - idle
-- Process
-  - Preprocess
-    - when: E-Missing is present
-    - skip when: E-Other is hidden
-    - update:
-      - target: L-Missing
-      - content: Missing
-- Effects
-  - state: done
+- Process: Preprocess
+  - when: E-Missing is present
+  - skip when: E-Other is hidden
+  - update:
+    - target: L-Missing
+    - content: Missing
+- Process: Immediate
+  - Effects
+    - state: done
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
@@ -6463,7 +6523,7 @@ title: Process Refs
   assert(messages.includes("Action A-Submit process step Preprocess targets missing layout or element L-Missing."));
   assert.equal(
     result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit process step Preprocess targets missing layout or element L-Missing.")?.line,
-    lineNumber(source, "      - target: L-Missing")
+    lineNumber(source, "    - target: L-Missing")
   );
 });
 
@@ -6520,15 +6580,15 @@ title: Viewport Targets
   - E-Submit.click
 - From
   - idle
-- Process
-  - Preprocess
-    - update:
-      - target: L-Message
-      - content: Clear
-- Effects
-  - state: error
-- Cases
-  - failure:
+- Process: Preprocess
+  - update:
+    - target: L-Message
+    - content: Clear
+- Process: Immediate
+  - Effects
+    - state: error
+- Process: Immediate
+  - case: failure
     - transition: idle -> error
     - update:
       - target: L-Message
@@ -6538,7 +6598,7 @@ title: Viewport Targets
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
   assert(messages.includes("Action A-Submit process step Preprocess targets layout L-Message, but it is missing from viewport desktop."));
-  assert(messages.includes("Action A-Submit failure outcome targets layout L-Message, but it is missing from viewport desktop."));
+  assert(messages.includes("Action A-Submit process step Immediate failure outcome targets layout L-Message, but it is missing from viewport desktop."));
 });
 
 test("allows action partial update targets inside slot content", () => {
@@ -6586,8 +6646,8 @@ title: Slot Target
   - screen.load
 - From
   - initializing
-- Cases
-  - success:
+- Process: Immediate
+  - case: success
     - response: ok
     - state: idle
     - update:
@@ -6620,12 +6680,12 @@ title: Params
   - service.submit
 - From
   - idle
-- Process
-  - HttpRequest
-    - POST /login
-      - email: E-Missing.value
-- Effects
-  - state: idle
+- Process: HttpRequest
+  - POST /login
+    - email: E-Missing.value
+- Process: Immediate
+  - Effects
+    - state: idle
 `;
   const result = parseMarkVSpec(source);
 
@@ -6640,7 +6700,7 @@ title: Params
       [
         "error",
         "Action A-Submit request parameter email references missing source E-Missing.",
-        lineNumber(source, "      - email: E-Missing.value")
+        lineNumber(source, "    - email: E-Missing.value")
       ]
     ]
   );
@@ -6673,8 +6733,8 @@ title: Route Params
   - E-Link.click
 - From
   - idle
-- Cases
-  - success:
+- Process: Immediate
+  - case: success
     - navigate: SCR-DETAIL
     - params:
       - id: E-Missing.value
@@ -6686,7 +6746,7 @@ title: Route Params
     [
       [
         "error",
-        "Action A-Open case success route parameter id references missing source E-Missing.",
+        "Action A-Open process step Immediate case success route parameter id references missing source E-Missing.",
         lineNumber(source, "      - id: E-Missing.value")
       ]
     ]
@@ -6714,10 +6774,10 @@ title: Response
   - service.response
 - From
   - idle
-- Cases
-  - success:
+- Process: Immediate
+  - case: success
     - response: 2xx
-  - failure:
+  - case: failure
     - state: idle
 `;
   const result = parseMarkVSpec(source);
@@ -6732,7 +6792,7 @@ title: Response
       ],
       [
         "warning",
-        "Action A-Submit defines success response but has no success transition.",
+        "Action A-Submit process step Immediate defines success response but has no success transition.",
         lineNumber(source, "    - response: 2xx")
       ]
     ]
@@ -6770,11 +6830,10 @@ title: Incomplete Action
   - E-Submit.click
 - From
   - idle
-- Process
-  - HttpRequest
-    - email: E-メールアドレス入力.value
-- Cases
-  - success:
+- Process: HttpRequest
+  - email: E-メールアドレス入力.value
+- Process: Immediate
+  - case: success
     - stop
 `;
   const result = parseMarkVSpec(source);
@@ -6785,22 +6844,12 @@ title: Incomplete Action
     [
       [
         "warning",
-        "Action A-Submit case success has unsupported flow directive stop. Use stop or continue only under a process step cases block.",
-        lineNumber(source, "    - stop")
-      ],
-      [
-        "warning",
         "Action A-Submit HttpRequest step has no request line such as POST /path.",
-        lineNumber(source, "  - HttpRequest")
-      ],
-      [
-        "warning",
-        "Action A-Submit defines success case but it has no response, state, navigate, or update details.",
-        lineNumber(source, "  - success:")
+        lineNumber(source, "- Process: HttpRequest")
       ]
     ]
   );
-  assert.equal(action?.outcomes.find((outcome) => outcome.result === "success")?.flow, undefined);
+  assert.equal(action?.processSteps.find((step) => step.name === "Immediate")?.outcomes.find((outcome) => outcome.result === "success")?.flow, "stop");
 });
 
 test("warns for an HttpRequest step without its own request line", () => {
@@ -6830,11 +6879,10 @@ title: Incomplete Request Step
   - E-Submit.click
 - From
   - idle
-- Process
-  - HttpRequest
-    - page: \${model.page}
-  - HttpRequest
-    - GET /users
+- Process: HttpRequest
+  - page: \${model.page}
+- Process: HttpRequest
+  - GET /users
 `;
   const result = parseMarkVSpec(source);
 
@@ -6844,7 +6892,7 @@ title: Incomplete Request Step
       [
         "warning",
         "Action A-Submit HttpRequest step has no request line such as POST /path.",
-        lineNumber(source, "  - HttpRequest")
+        lineNumber(source, "- Process: HttpRequest")
       ]
     ]
   );
@@ -6903,8 +6951,9 @@ title: Fallback
   assert.match(html, /\.mm-annotation-row \.mm-id\{margin-right:0;pointer-events:none\}/);
   assert.match(html, /\.mm-marker-link \.mm-id\{pointer-events:none\}/);
   assert.match(html, /\.mm-element-wrap-button \.mm-annotation-row,\.mm-element-wrap-link \.mm-annotation-row,\.mm-element-wrap-text \.mm-annotation-row,\.mm-element-wrap-badge \.mm-annotation-row\{left:auto;right:0;top:50%;transform:translate\(calc\(100% \+ 4px\),-50%\)\}/);
-  assert.match(html, /\.mm-element-wrap-annotated\.mm-element-wrap-heading,\.mm-layout-row > \.mm-element-wrap-annotated,\.mm-layout-grid > \.mm-element-wrap-annotated,\.mm-layout-inline > \.mm-element-wrap-annotated,\.mm-field-row > \.mm-element-wrap-annotated\{padding-top:18px\}/);
-  assert.match(html, /\.mm-element-wrap-annotated\.mm-element-wrap-heading > \.mm-annotation-row,\.mm-layout-row > \.mm-element-wrap-annotated > \.mm-annotation-row,\.mm-layout-grid > \.mm-element-wrap-annotated > \.mm-annotation-row,\.mm-layout-inline > \.mm-element-wrap-annotated > \.mm-annotation-row,\.mm-field-row > \.mm-element-wrap-annotated > \.mm-annotation-row\{left:0;right:auto;top:0;transform:none\}/);
+  assert.match(html, /\.mm-layout-row > \.mm-element-wrap-annotated > \.mm-annotation-row,\.mm-layout-grid > \.mm-element-wrap-annotated > \.mm-annotation-row,\.mm-layout-inline > \.mm-element-wrap-annotated > \.mm-annotation-row,\.mm-field-row > \.mm-element-wrap-annotated > \.mm-annotation-row\{left:50%;right:auto;top:0;transform:translate\(-50%,-55%\)\}/);
+  assert.doesNotMatch(html, /padding-top:18px/);
+  assert.doesNotMatch(html, /\.mm-element-wrap-annotated[^}]+\{[^}]*padding-top/);
   assert.doesNotMatch(html, /\.mm-element-wrap\{[^}]*display:inline-flex/);
   assert.match(html, /<!--mm-render-key:element:E-Title--><div class="mm-element-wrap mm-element-wrap-heading mm-element-wrap-annotated" data-mm-render-key="element:E-Title"><h1 class="mm-element mm-element-heading" data-mm-id="E-Title">Title<\/h1><span class="mm-annotation-row"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">1<\/code><\/span><\/div><!--mm-render-key:element:E-Body--><div class="mm-element-wrap mm-element-wrap-paragraph mm-element-wrap-annotated" data-mm-render-key="element:E-Body"><p class="mm-element mm-element-paragraph" data-mm-id="E-Body">Body text<\/p><span class="mm-annotation-row"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">2<\/code><\/span><\/div>/);
 });
@@ -7709,8 +7758,8 @@ viewport: mobile
   - screen.load
 - From
   - idle
-- Cases
-  - success:
+- Process: Immediate
+  - case: success
     - update:
       - target: P-Fields
       - content: refreshed fields
@@ -7721,7 +7770,7 @@ viewport: mobile
   assert(messages.includes("Presentation panel P-Fields ignores marker. Use an L-* Layout when a layout marker is needed."));
   assert(messages.includes("Presentation panel P-Fields cannot use visible when. Use an L-* Layout when visibility or disabled control is needed."));
   assert(messages.includes("Presentation panel P-Fields cannot use disabled when. Use an L-* Layout when visibility or disabled control is needed."));
-  assert(messages.includes("Action A-Refresh success outcome cannot target presentation panel P-Fields. Use an L-* Layout when a targetable layout is needed."));
+  assert(messages.includes("Action A-Refresh process step Immediate success outcome cannot target presentation panel P-Fields. Use an L-* Layout when a targetable layout is needed."));
 });
 
 test("keeps stack buttons and links from stretching without overriding row alignment", () => {
@@ -7779,7 +7828,9 @@ title: Button Link Sizing
   const html = renderMarkVSpecHtml(result);
 
   assert.match(html, /\.mm-element-button\{align-items:center;background:#f3f4f6;border-color:#9ca3af;box-shadow:inset 0 -1px 0 rgba\(17,24,39,\.18\);color:#111827;cursor:default;display:inline-flex;font-weight:600;justify-content:center;line-height:1\.2;min-height:34px;padding:8px 14px;text-align:center\}/);
+  assert.match(html, /\.mm-element-link\{align-items:center;display:inline-flex;line-height:1\.2\}/);
   assert.match(html, /\.mm-layout-stack > \.mm-element-wrap\{align-self:stretch;width:auto\}/);
+  assert.match(html, /\.mm-layout-stack\.mm-variant-navigation:not\(\.mm-gap-xs\):not\(\.mm-gap-sm\):not\(\.mm-gap-md\):not\(\.mm-gap-lg\):not\(\.mm-gap-xl\)\{gap:var\(--mm-gap-sm,8px\)\}/);
   assert.match(html, /\.mm-layout-stack > \.mm-element-button,\.mm-layout-stack > \.mm-element-link,\.mm-layout-stack > \.mm-element-wrap-button,\.mm-layout-stack > \.mm-element-wrap-link\{align-self:flex-start;max-width:100%;white-space:normal;width:max-content\}/);
   assert.match(html, /\.mm-layout-stack > \.mm-element-wrap-heading,\.mm-layout-stack > \.mm-element-wrap-paragraph,\.mm-layout-stack > \.mm-element-wrap-text,\.mm-layout-stack > \.mm-element-wrap-checkbox\{align-self:flex-start;max-width:100%;width:max-content\}/);
   assert.match(html, /\.mm-layout-stack > \.mm-element-wrap-button > \.mm-element-button,\.mm-layout-stack > \.mm-element-wrap-link > \.mm-element-link\{max-width:100%;white-space:normal;width:max-content\}/);
@@ -7955,8 +8006,9 @@ title: Markers
   - E-One.click
 - From
   - idle
-- Effects
-  - state: idle
+- Process: Immediate
+  - Effects
+    - state: idle
 
 ### Do:A-Two two
 
@@ -7964,8 +8016,9 @@ title: Markers
   - E-Two.click
 - From
   - idle
-- Effects
-  - state: idle
+- Process: Immediate
+  - Effects
+    - state: idle
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
@@ -8016,8 +8069,9 @@ title: Marker Shape
   - E-Title.click
 - From
   - idle
-- Effects
-  - state: idle
+- Process: Immediate
+  - Effects
+    - state: idle
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
@@ -8239,12 +8293,11 @@ title: Partial Reference
   - screen.load
 - From
   - idle
-- Process
-  - PartialRequest
-    - request: GET /partials/notices
-    - partial: PRT-OTHER-LIST
-- Cases:
-  - success:
+- Process: PartialRequest
+  - request: GET /partials/notices
+  - partial: PRT-OTHER-LIST
+- Process: Immediate
+  - case: success
     - state: idle
     - update:
       - target: L-PartialHost
@@ -8297,13 +8350,12 @@ title: Self Partial
   - E-Refresh.click
 - From
   - idle
-- Process
-  - PartialRequest
-    - request: GET /partials/self
-    - partial: PRT-SELF
-    - update:
-      - target: L-Self
-      - mode: replace
+- Process: PartialRequest
+  - request: GET /partials/self
+  - partial: PRT-SELF
+  - update:
+    - target: L-Self
+    - mode: replace
 `;
   const result = parseMarkVSpec(source);
 
@@ -8517,8 +8569,9 @@ default-state: loaded
   - E-お知らせタイトル.click
 - From
   - loaded
-- Effects
-  - navigate: SCR-NOTICE-DETAIL
+- Process: Immediate
+  - Effects
+    - navigate: SCR-NOTICE-DETAIL
 
 ## Model Samples
 
@@ -8955,28 +9008,28 @@ title: Malformed Action
 
 - request: POST /login
   - E-メールアドレス入力.click
-- Process
-  - POST /login
-  - email: E-メールアドレス入力.value
-  - Preprocess
-    - request: POST /unsupported
-    - target: L-MessageArea
-    - update:
-      - target: L-FirstMessageArea
-    - target: L-SecondMessageArea
-  - HttpRequest
-    - POST /submit
-    - target: L-HttpMessageArea
-    - message: E-メールアドレス入力.value
-- Cases
-  - response: 2xx authenticated user
-  - success:
-  - state: done
-- Effects
+- Process: POST /login
+- Process: email: E-メールアドレス入力.value
+- Process: Preprocess
   - request: POST /unsupported
   - target: L-MessageArea
-- Cases
-  - failure:
+  - update:
+    - target: L-FirstMessageArea
+  - target: L-SecondMessageArea
+- Process: HttpRequest
+  - POST /submit
+  - target: L-HttpMessageArea
+  - message: E-メールアドレス入力.value
+- Process: Immediate
+  - response: 2xx authenticated user
+  - case: success
+  - state: done
+- Process: Immediate
+  - Effects
+    - request: POST /unsupported
+    - target: L-MessageArea
+- Process: Immediate
+  - case: failure
     - update:
       - target: L-FirstMessageArea
     - target: L-MessageArea
@@ -8985,25 +9038,23 @@ title: Malformed Action
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Action A-Submit has unsupported top-level entry: request: POST /login. Use Triggered, From, Process, Effects, Otherwise, or Cases."));
+  assert(messages.includes("Action A-Submit has unsupported top-level entry: request: POST /login. Use Triggered, From, Process: <type>, or Otherwise."));
   assert(messages.includes("Action A-Submit has nested entry outside a recognized block: E-メールアドレス入力.click."));
   assert(messages.includes("Action A-Submit has malformed Process entry: POST /login. Put request lines under an HttpRequest step."));
   assert(messages.includes("Action A-Submit has malformed Process entry: email: E-メールアドレス入力.value. Start with a process step such as HttpRequest."));
   assert(messages.includes("Action A-Submit process step Preprocess has unsupported entry: target: L-MessageArea. Put update details under an update block."));
   assert(messages.includes("Action A-Submit process step Preprocess has unsupported entry: target: L-SecondMessageArea. Put update details under an update block."));
-  assert(messages.includes("Action A-Submit HttpRequest has unsupported entry: target: L-HttpMessageArea. Use request parameter entries or move update details under a Cases update block."));
-  assert(messages.includes("Action A-Submit has malformed Cases entry: response: 2xx authenticated user. Start each case with a result name such as success:."));
-  assert(messages.includes("Action A-Submit has malformed Cases entry: state: done. Nest case details under success."));
-  assert(messages.includes("Action A-Submit has unsupported Effects entry: request: POST /unsupported. Use state, navigate, response, from, params, or update."));
-  assert(messages.includes("Action A-Submit has unsupported Effects entry: target: L-MessageArea. Put update details under an update block."));
-  assert(messages.includes("Action A-Submit has unsupported case failure entry: target: L-MessageArea. Put update details under an update block."));
-  assert(messages.includes("Action A-Submit has unsupported case failure entry: request: POST /unsupported. Use state, navigate, response, from, params, update, stop, or continue."));
+  assert(messages.includes("Action A-Submit HttpRequest has unsupported entry: target: L-HttpMessageArea. Use request parameter entries or move update details under a case update block."));
+  assert(messages.includes("Action A-Submit process step Immediate has unsupported Effects entry: request: POST /unsupported. Use model, view, state, navigate, or update."));
+  assert(messages.includes("Action A-Submit process step Immediate has unsupported Effects entry: target: L-MessageArea. Put update details under an update block."));
+  assert(messages.includes("Action A-Submit has unsupported process step Immediate case failure entry: target: L-MessageArea. Put update details under an update block."));
+  assert(messages.includes("Action A-Submit has unsupported process step Immediate case failure entry: request: POST /unsupported. Use state, navigate, response, from, params, update, stop, or continue."));
   const action = result.actions.find((candidate) => candidate.id === "A-Submit");
   assert.equal(action?.target, undefined);
   assert.deepEqual(action?.processSteps.find((step) => step.name === "HttpRequest")?.details.map((detail) => [detail.key, detail.value]), [["request", "POST /submit"], ["message", "E-メールアドレス入力.value"]]);
   assert.deepEqual(action?.processSteps.find((step) => step.name === "Preprocess")?.details.map((detail) => [detail.key, detail.value]), [["request", "POST /unsupported"]]);
   assert.equal(action?.processSteps.find((step) => step.name === "Preprocess")?.target, "L-FirstMessageArea");
-  assert.equal(action?.outcomes.find((outcome) => outcome.result === "failure")?.target, "L-FirstMessageArea");
+  assert.equal(action?.processSteps.flatMap((step) => step.outcomes).find((outcome) => outcome.result === "failure")?.target, "L-FirstMessageArea");
   assert.equal(
     result.diagnostics.find((diagnostic) => diagnostic.message.startsWith("Action A-Submit has unsupported top-level entry"))?.line,
     lineNumber(source, "- request: POST /login")
@@ -9013,24 +9064,20 @@ title: Malformed Action
     lineNumber(source, "  - E-メールアドレス入力.click")
   );
   assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.startsWith("Action A-Submit has malformed Cases entry"))?.line,
-    lineNumber(source, "  - response: 2xx authenticated user")
+    result.diagnostics.find((diagnostic) => diagnostic.message.includes("unsupported Effects entry: request: POST /unsupported"))?.line,
+    lineNumber(source, "    - request: POST /unsupported")
   );
   assert.equal(
     result.diagnostics.find((diagnostic) => diagnostic.message.includes("Put request lines under an HttpRequest step"))?.line,
-    lineNumber(source, "  - POST /login")
+    lineNumber(source, "- Process: POST /login")
   );
   assert.equal(
     result.diagnostics.find((diagnostic) => diagnostic.message.includes("email: E-メールアドレス入力.value. Start with a process step"))?.line,
-    lineNumber(source, "  - email: E-メールアドレス入力.value")
+    lineNumber(source, "- Process: email: E-メールアドレス入力.value")
   );
   assert.equal(
     result.diagnostics.find((diagnostic) => diagnostic.message.includes("HttpRequest has unsupported entry: target: L-HttpMessageArea"))?.line,
-    lineNumber(source, "    - target: L-HttpMessageArea")
-  );
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("Nest case details under success"))?.line,
-    lineNumber(source, "  - state: done")
+    lineNumber(source, "  - target: L-HttpMessageArea")
   );
 });
 
@@ -9064,12 +9111,11 @@ references:
   - screen.load
 - From
   - initializing
-- Process
-  - PartialRequest
-    - request: GET /partials/profile
-    - partial: PRT-PROFILE
-- Cases
-  - success:
+- Process: PartialRequest
+  - request: GET /partials/profile
+  - partial: PRT-PROFILE
+- Process: Immediate
+  - case: success
     - response: 200 partial HTML
     - state: initializing
     - update:
@@ -9085,7 +9131,7 @@ references:
     ["request", "GET /partials/profile"],
     ["partial", "PRT-PROFILE"]
   ]);
-  assert.equal(partialAction?.outcomes.find((outcome) => outcome.result === "success")?.mode, "replace");
+  assert.equal(partialAction?.processSteps[1]?.outcomes.find((outcome) => outcome.result === "success")?.mode, "replace");
 });
 
 test("parses process step cases under request steps", () => {
@@ -9121,27 +9167,25 @@ references:
   - screen.load
 - From
   - loading
-- Process
-  - PartialRequest
-    - request: GET /points/panel
-    - partial: PRT-POINTS-PANEL
-    - params:
-      - page: 1
-    - update:
-      - target: L-PointsPanel
-      - mode: replace
-    - cases:
-      - success-items:
-        - response: HTTP 200 items > 0
-        - state: idle
-        - Stop
-      - success-empty:
-        - response: HTTP 200 items = 0
-        - state: empty
-        - Continue
-      - failure:
-        - response: HTTP error
-        - state: load-error
+- Process: PartialRequest
+  - request: GET /points/panel
+  - partial: PRT-POINTS-PANEL
+  - params:
+    - page: 1
+  - update:
+    - target: L-PointsPanel
+    - mode: replace
+  - case: success-items
+    - response: HTTP 200 items > 0
+    - state: idle
+    - Stop
+  - case: success-empty
+    - response: HTTP 200 items = 0
+    - state: empty
+    - Continue
+  - case: failure
+    - response: HTTP error
+    - state: load-error
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-LoadPoints");
@@ -9196,39 +9240,36 @@ title: Parallel Process
   - screen.load
 - From
   - loading
-- Process
-  - ServerCall
-    - parallel: initial-load
-    - MemberQueryService.findSelfProfile()
-    - cases:
-      - success:
-        - response: 200 member profile
-        - \${model.memberProfile.loaded}: true
-        - continue
-      - failure:
-        - response: 5xx or timeout
-        - continue
-  - ServerCall
-    - parallel: initial-load
-    - PointQueryService.findSelfPoints()
-    - cases:
-      - success:
-        - response: 200 points
-        - \${model.points.loaded}: true
-        - continue
-      - failure:
-        - response: 5xx or timeout
-        - continue
-  - Resolve: initial-load
-    - cases:
-      - ready:
-        - response: profile and points loaded
-        - state: idle
-        - stop
-      - failed:
-        - response: one or more calls failed
-        - state: load-error
-        - stop
+- Process: ServerCall
+  - group: initial-load
+  - MemberQueryService.findSelfProfile()
+  - case: success
+    - response: 200 member profile
+    - model: \${model.memberProfile.loaded} = true
+    - continue
+  - case: failure
+    - response: 5xx or timeout
+    - continue
+- Process: ServerCall
+  - group: initial-load
+  - PointQueryService.findSelfPoints()
+  - case: success
+    - response: 200 points
+    - model: \${model.points.loaded} = true
+    - continue
+  - case: failure
+    - response: 5xx or timeout
+    - continue
+- Process: Resolve
+  - group: initial-load
+  - case: ready
+    - response: profile and points loaded
+    - state: idle
+    - stop
+  - case: failed
+    - response: one or more calls failed
+    - state: load-error
+    - stop
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-InitialLoad");
@@ -9243,7 +9284,7 @@ title: Parallel Process
     ["call", "MemberQueryService.findSelfProfile()"]
   ]);
   assert.deepEqual(profile?.outcomes.find((outcome) => outcome.result === "success")?.sideEffects, [
-    "${model.memberProfile.loaded}: true"
+    "model: ${model.memberProfile.loaded} = true"
   ]);
   assert.deepEqual(resolve?.outcomes.map((outcome) => [outcome.result, outcome.to, outcome.flow]), [
     ["ready", "idle", "stop"],
@@ -9278,22 +9319,20 @@ title: Bad Parallel Process
   - screen.load
 - From
   - loading
-- Process
-  - ServerCall
-    - parallel: initial-load
-    - MemberQueryService.findSelfProfile()
-    - cases:
-      - success:
-        - response: 200 member profile
-        - state: idle
-        - stop
-  - Resolve: missing-load
-    - cases:
-      - failed:
-        - response: missing group
-        - state: load-error
-        - stop
-  - Resolve
+- Process: ServerCall
+  - group: initial-load
+  - MemberQueryService.findSelfProfile()
+  - case: success
+    - response: 200 member profile
+    - state: idle
+    - stop
+- Process: Resolve
+  - group: missing-load
+  - case: failed
+    - response: missing group
+    - state: load-error
+    - stop
+- Process: Resolve
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
@@ -9301,7 +9340,7 @@ title: Bad Parallel Process
   assert(messages.includes("Action A-InitialLoad parallel process step ServerCall case success should not set state or navigate. Use a Resolve step for final transitions."));
   assert(messages.includes("Action A-InitialLoad parallel process step ServerCall case success should continue and leave final state decisions to a Resolve step."));
   assert(messages.includes("Action A-InitialLoad Resolve step references missing parallel group missing-load."));
-  assert(messages.includes("Action A-InitialLoad Resolve step must specify a parallel group such as Resolve: initial-load."));
+  assert(messages.includes("Action A-InitialLoad Resolve step must specify a parallel group with group: initial-load."));
 });
 
 test("warns for malformed headings and indented non-action bullets", () => {
@@ -9347,8 +9386,9 @@ title: Malformed Sections
   - A-Missing.response
 - From
   - idle
-- Effects
-  - state: idle
+- Process: Immediate
+  - Effects
+    - state: idle
 `;
   const result = parseMarkVSpec(source);
 
@@ -9398,8 +9438,9 @@ title: Action Lifecycle
   - E-Submit.click
 - From
   - idle
-- Effects
-  - state: wait
+- Process: Immediate
+  - Effects
+    - state: wait
 
 ### A-HandleResponse Handle response
 
@@ -9407,8 +9448,9 @@ title: Action Lifecycle
   - A-Submit.response
 - From
   - wait
-- Effects
-  - state: idle
+- Process: Immediate
+  - Effects
+    - state: idle
 
 ### A-HandleProgress Handle progress
 
@@ -9416,8 +9458,9 @@ title: Action Lifecycle
   - A-Submit.progress
 - From
   - wait
-- Effects
-  - state: idle
+- Process: Immediate
+  - Effects
+    - state: idle
 `;
   const result = parseMarkVSpec(source);
 
@@ -9536,6 +9579,8 @@ title: Wait
 
 - stack
 - disabled when: waiting
+- selected when: \${state.waiting}
+- active when: \${state.waiting}
 
 #### Items
 
@@ -9573,12 +9618,14 @@ title: Wait
   const styledWaitingHtml = renderMarkVSpecHtml(result, { state: "waiting" });
 
   assert.equal(result.diagnostics.length, 0);
-  assert.match(waitingHtml, /<section class="mm-layout mm-layout-stack mm-layout-disabled" data-mm-id="L-Form" data-mm-render-key="layout:mobile:L-Form">/);
+  assert.match(waitingHtml, /<section class="mm-layout mm-layout-stack mm-layout-disabled mm-layout-selected mm-layout-active" data-mm-id="L-Form" data-mm-render-key="layout:mobile:L-Form">/);
   assert.match(waitingHtml, /<input class="mm-element mm-element-input" data-mm-id="E-メールアドレス入力" type="text" placeholder="" value="\$\{model\.email\}" disabled>/);
   assert.match(waitingHtml, /<button class="mm-element mm-element-button" data-mm-id="E-SubmitButton" disabled>/);
   assert.match(waitingHtml, /<section class="[^"]*\bmm-layout-overlay-area\b[^"]*\bmm-layout-depth-1\b[^"]*"[^>]*style="--mm-layout-margin-block:6px;--mm-layout-padding:12px;--mm-gap-xs:3px;--mm-gap-sm:6px;--mm-gap-md:9px;--mm-gap-lg:12px;--mm-gap-xl:18px"[^>]*data-mm-id="L-Progress"[^>]*data-mm-render-key="layout:mobile:L-Progress"/);
   assert.match(waitingHtml, /<span class="mm-element mm-element-spinner" data-mm-id="E-WaitSpinner" role="status" aria-label="Waiting">/);
   assert.match(styledWaitingHtml, /\.mm-layout-overlay\{align-items:center;background:rgba\(249,250,251,\.82\);border-color:#d1d5db;border-style:dashed;display:flex;justify-content:center;margin:0;z-index:4\}/);
+  assert.match(styledWaitingHtml, /\.mm-layout-selected\{border-color:#2563eb\}/);
+  assert.match(styledWaitingHtml, /\.mm-layout-active\{box-shadow:inset 0 0 0 1px #2563eb\}/);
   assert.doesNotMatch(idleHtml, /mm-layout-overlay-area/);
   assert.doesNotMatch(idleHtml, / disabled>/);
 });
@@ -9955,6 +10002,274 @@ messages:
     rmSync(workspace, { recursive: true, force: true });
     rmSync(outside, { recursive: true, force: true });
   }
+});
+
+test("parses view context definitions, samples, and preview scenarios", () => {
+  const source = `---
+id: SCR-VIEW-CONTEXT
+type: screen
+title: View Context
+---
+# SCR-VIEW-CONTEXT View Context
+
+## States
+
+- idle*
+- loaded
+
+## View Context
+
+### isHelpPanelOpen
+
+- type: boolean
+- values:
+  - false*
+  - true
+
+### selectedTab
+
+- type: enum
+- values:
+  - results*
+  - billing
+
+## View Context Samples
+
+### default
+
+- \${view.isHelpPanelOpen}: false
+- \${view.selectedTab}: results
+
+### help-open
+
+- \${view.isHelpPanelOpen}: true
+- \${view.selectedTab}: billing
+
+## Model Samples
+
+### loaded
+
+#### \${model.member}
+
+- name: Jane Doe
+
+## Preview Scenarios
+
+### idle
+
+- state: idle
+- view: default
+
+### loaded-help
+
+- state: loaded
+- model: loaded
+- view: help-open
+`;
+
+  const result = parseMarkVSpec(source);
+
+  assert.deepEqual(result.viewContexts.map((context) => [context.name, context.type, context.defaultValue]), [
+    ["isHelpPanelOpen", "boolean", "false"],
+    ["selectedTab", "enum", "results"]
+  ]);
+  assert.deepEqual(result.viewContextSamples.map((sample) => [sample.name, sample.values]), [
+    ["default", { isHelpPanelOpen: "false", selectedTab: "results" }],
+    ["help-open", { isHelpPanelOpen: "true", selectedTab: "billing" }]
+  ]);
+  assert.deepEqual(result.previewScenarios.map((scenario) => [scenario.name, scenario.state, scenario.model, scenario.view]), [
+    ["idle", "idle", undefined, "default"],
+    ["loaded-help", "loaded", "loaded", "help-open"]
+  ]);
+  assert(!result.diagnostics.some((diagnostic) => diagnostic.severity === "error"));
+});
+
+test("validates view context values and preview scenario coverage", () => {
+  const source = `---
+id: SCR-BAD-VIEW-CONTEXT
+type: screen
+title: Bad View Context
+---
+# SCR-BAD-VIEW-CONTEXT Bad View Context
+
+## States
+
+- idle*
+- loaded
+
+## View Context
+
+### isHelpPanelOpen
+
+- type: boolean
+- values:
+  - open*
+  - closed*
+
+### trueFalseMode
+
+- type: enum
+- values:
+  - true
+  - false
+
+## View Context Samples
+
+### default
+
+- \${view.isHelpPanelOpen}: maybe
+- \${view.missing}: true
+
+## Preview Scenarios
+
+### idle
+
+- state: idle
+- view: missing
+
+## Actions
+
+### A-ToggleHelp Toggle help
+
+- Triggered
+  - screen.load
+- From
+  - idle
+- Process: Immediate
+  - Effects
+    - view: \${view.isHelpPanelOpen} = true
+    - view: \${view.missingActionView} = true
+`;
+
+  const messages = parseMarkVSpec(source).diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert(messages.includes("View Context isHelpPanelOpen has multiple default values marked with *."));
+  assert(messages.includes("View Context isHelpPanelOpen boolean value must be true or false, not open."));
+  assert(messages.includes("View Context isHelpPanelOpen boolean value must be true or false, not closed."));
+  assert(messages.includes("View Context trueFalseMode enum only defines true and false. Use type: boolean for binary flags."));
+  assert(messages.includes("View Context Sample default sets isHelpPanelOpen to unsupported value maybe."));
+  assert(messages.includes("View Context Sample default references missing view context missing."));
+  assert(messages.includes("Preview Scenario idle references missing view context sample missing."));
+  assert(messages.includes("Preview Scenarios must include state loaded."));
+  assert(messages.includes("View effect sets isHelpPanelOpen to unsupported value true."));
+  assert(messages.includes("View effect references missing view context missingActionView."));
+});
+
+test("renders namespaced state and view conditions", () => {
+  const source = `---
+id: SCR-VIEW-RENDER
+type: screen
+title: View Render
+---
+# SCR-VIEW-RENDER View Render
+
+## States
+
+- idle*
+- loaded
+
+## Layout: desktop
+
+### L-Root Root
+
+#### Items
+
+- E-IdleText
+- E-HelpPanel
+
+## Elements
+
+### E-IdleText Paragraph
+
+- sample: Idle
+- visible when: \${state.idle}
+
+### E-HelpPanel Paragraph
+
+- sample: Help
+- visible when: \${view.isHelpPanelOpen}
+
+## View Context
+
+### isHelpPanelOpen
+
+- type: boolean
+- values:
+  - false*
+  - true
+
+## View Context Samples
+
+### default
+
+- \${view.isHelpPanelOpen}: true
+`;
+
+  const result = parseMarkVSpec(source);
+  const html = renderMarkVSpecHtml(result, { includeStyles: false });
+
+  assert.match(html, /Idle/);
+  assert.match(html, /Help/);
+});
+
+test("parses compact process syntax with process cases and view effects", () => {
+  const source = `---
+id: SCR-COMPACT-ACTION
+type: screen
+title: Compact Action
+---
+# SCR-COMPACT-ACTION Compact Action
+
+## States
+
+- idle*
+- loading
+- loaded
+
+## Elements
+
+### E-SearchButton Button
+
+- label: Search
+
+## Actions
+
+### A-Search Search
+
+- Triggered
+  - E-SearchButton.click
+- From
+  - idle
+- Process: Immediate
+  - Effects
+    - view: \${view.selectedTab} = results
+- Process: ModelUpdate
+  - Effects
+    - model: \${model.searchRequest.keyword} = E-KeywordInput.value
+- Process: HttpRequest
+  - GET /search
+    - keyword: E-KeywordInput.value
+  - case: success
+    - response: 200 search result
+    - Effects
+      - model: \${model.searchResult.items} = response.items
+      - state: loaded
+`;
+
+  const result = parseMarkVSpec(source);
+  const action = result.actions[0];
+
+  assert.deepEqual(action.processSteps.map((step) => step.name), ["Immediate", "ModelUpdate", "HttpRequest"]);
+  assert.deepEqual(action.processSteps[0]?.sideEffects, ["view: ${view.selectedTab} = results"]);
+  assert.deepEqual(action.processSteps[1]?.sideEffects, ["model: ${model.searchRequest.keyword} = E-KeywordInput.value"]);
+  assert.deepEqual(action.processSteps[2]?.details.map((detail) => [detail.key, detail.value]), [
+    ["request", "GET /search"],
+    ["keyword", "E-KeywordInput.value"]
+  ]);
+  assert.deepEqual(action.processSteps[2]?.outcomes[0]?.sideEffects, ["model: ${model.searchResult.items} = response.items"]);
+  assert.deepEqual(action.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
+    ["idle", "success", "loaded"]
+  ]);
 });
 
 function lineNumber(source: string, needle: string, occurrence = 1): number {

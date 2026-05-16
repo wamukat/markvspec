@@ -220,20 +220,19 @@ parameters visibly separate.
 - From
   - loaded
   - search-error
-- Process
-  - ModelUpdate
-    - ${model.search.keyword}: E-KeywordInput.value
-    - ${model.search.readStatus}: E-ReadStatusSelect.value
-  - HttpRequest
-    - GET /notices
-      - keyword: ${model.search.keyword}
-      - readStatus: ${model.search.readStatus}
-      - relatedTo: ${route.noticeId}
-    - cases:
-      - sent:
-        - state: searching
-      - send-failed:
-        - state: search-error
+- Process: ModelUpdate
+  - Effects
+    - model: ${model.search.keyword} = E-KeywordInput.value
+    - model: ${model.search.readStatus} = E-ReadStatusSelect.value
+- Process: HttpRequest
+  - GET /notices
+    - keyword: ${model.search.keyword}
+    - readStatus: ${model.search.readStatus}
+    - relatedTo: ${route.noticeId}
+  - case: sent
+    - state: searching
+  - case: send-failed
+    - state: search-error
 
 ### A2:A-HandleRelatedSearchResponse Handle related search response
 
@@ -241,15 +240,13 @@ parameters visibly separate.
   - A-SearchRelatedNotices.response
 - From
   - searching
-- Process
-  - HttpResponse
-    - cases:
-      - success:
-        - response: 200 related notices
-        - state: loaded
-      - failure:
-        - response: 4xx or 5xx
-        - state: search-error
+- Process: HttpResponse
+  - case: success
+    - response: 200 related notices
+    - state: loaded
+  - case: failure
+    - response: 4xx or 5xx
+    - state: search-error
 
 ## Business Rules
 

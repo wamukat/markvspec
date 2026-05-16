@@ -120,28 +120,25 @@ referenced from the same flow.
   - validation-error
   - save-error
   - saved
-- Process
-  - Validate
-    - cases:
-      - invalid:
-        - response: required field missing
-        - error code: ERR-ACCOUNT-REQUIRED
-        - state: validation-error
-        - stop
-      - valid:
-        - response: all required fields are present
-        - continue
-  - ServerCall
-    - AccountSettingsService.save()
-      - displayName: E-DisplayNameInput.value
-      - email: E-EmailInput.value
-    - cases:
-      - sent:
-        - state: idle
-      - send-failed:
-        - response: network error
-        - error code: ERR-ACCOUNT-SAVE-FAILED
-        - state: save-error
+- Process: Validate
+  - case: invalid
+    - response: required field missing
+    - error code: ERR-ACCOUNT-REQUIRED
+    - state: validation-error
+    - stop
+  - case: valid
+    - response: all required fields are present
+    - continue
+- Process: ServerCall
+  - AccountSettingsService.save()
+    - displayName: E-DisplayNameInput.value
+    - email: E-EmailInput.value
+  - case: sent
+    - state: idle
+  - case: send-failed
+    - response: network error
+    - error code: ERR-ACCOUNT-SAVE-FAILED
+    - state: save-error
 
 ### A2:A-HandleSaveResponse Handle save response
 
@@ -149,18 +146,16 @@ referenced from the same flow.
   - A-SaveAccount.response
 - From
   - idle
-- Process
-  - ServerResponse
-    - cases:
-      - success:
-        - response: 200 saved
-        - state: saved
-        - stop
-      - failure:
-        - response: 409 or 5xx
-        - error code: ERR-ACCOUNT-SAVE-FAILED
-        - state: save-error
-        - stop
+- Process: ServerResponse
+  - case: success
+    - response: 200 saved
+    - state: saved
+    - stop
+  - case: failure
+    - response: 409 or 5xx
+    - error code: ERR-ACCOUNT-SAVE-FAILED
+    - state: save-error
+    - stop
 
 ## Validations
 

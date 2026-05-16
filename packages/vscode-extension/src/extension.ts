@@ -3719,7 +3719,7 @@ function renderStateScreenWireframe(
   model: StateScreenReadModel,
   index: number
 ): string {
-  return renderWireframeFor(wireframeResult, model.viewport, model.stateName, index === 0, model.focus, model.modelValues);
+  return renderWireframeFor(wireframeResult, model.viewport, model.stateName, index === 0, model.focus, model.modelValues, model.viewValues);
 }
 
 function stateViewsRenderContext(result: ReturnType<typeof parseMarkVSpec>): StateViewsRenderContext {
@@ -3781,13 +3781,15 @@ function renderWireframeFor(
   state: string | undefined,
   includeStyles: boolean,
   focus?: FocusScope,
-  modelValues?: Record<string, boolean | number | string>
+  modelValues?: Record<string, boolean | number | string>,
+  viewValues?: Record<string, boolean | number | string>
 ): string {
   const html = renderMarkVSpecHtml(result, {
     includeConditionalContent: false,
     viewport,
     state,
     modelValues,
+    viewValues,
     messages: rendererMessagesForResult(result),
     markerVisibility: {
       layout: true,
@@ -3943,14 +3945,14 @@ function renderScreenSpec(result: ReturnType<typeof parseMarkVSpec>): string {
   return `<section class="doc-section screen-spec-section">
     <h2>${heading}</h2>
     <div class="screen-overview">
+      <div class="screen-overview-badges">
+        ${renderSemanticChip(screen.type ?? "screen", undefined, "type")}
+        ${screen.status ? renderSemanticChip(screen.status, screen.status) : ""}
+      </div>
       <div class="screen-overview-main">
         ${screen.id ? `<div class="screen-id">${code(screen.id)}</div>` : ""}
         ${title ? `<div class="screen-title">${text(title)}</div>` : ""}
         ${screen.description ? `<div class="screen-description">${renderMarkdownSectionContent(screen.description.split(/\r?\n/u))}</div>` : ""}
-      </div>
-      <div class="screen-overview-badges">
-        ${renderSemanticChip(screen.type ?? "screen", undefined, "type")}
-        ${screen.status ? renderSemanticChip(screen.status, screen.status) : ""}
       </div>
     </div>
     ${facts.length > 0 ? `<section class="screen-meta-block"><h3>${label(result, "basicInfo")}</h3>${renderDefinitionList(facts)}</section>` : ""}
@@ -4517,8 +4519,14 @@ function renderMermaidStateDiagram(result: ReturnType<typeof parseMarkVSpec>): s
       if (!from) {
         continue;
       }
+      if (transition.from === transition.to) {
+        continue;
+      }
+      if (isTerminalTransitionTarget(transition.to)) {
+        continue;
+      }
 
-      const to = isTerminalTransitionTarget(transition.to) ? "[*]" : aliases.get(transition.to);
+      const to = aliases.get(transition.to);
       if (!to) {
         continue;
       }

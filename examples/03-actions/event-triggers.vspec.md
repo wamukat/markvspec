@@ -205,19 +205,18 @@ used around a form-like preferences screen.
   - screen.load
 - From
   - loading
-- Process
-  - ServerCall
-    - PreferencesQueryService.findSaved()
-    - cases:
-      - success:
-        - response: 200 saved preferences
-        - ${model.keyword}: result.keyword
-        - ${model.email}: result.email
-        - ${model.deliveryCadence}: result.deliveryCadence
-        - state: editing
-      - failure:
-        - response: 5xx or timeout
-        - state: load-error
+- Process: ServerCall
+  - PreferencesQueryService.findSaved()
+  - case: success
+    - response: 200 saved preferences
+    - Effects
+      - model: ${model.keyword} = result.keyword
+      - model: ${model.email} = result.email
+      - model: ${model.deliveryCadence} = result.deliveryCadence
+    - state: editing
+  - case: failure
+    - response: 5xx or timeout
+    - state: load-error
 
 ### A2:A-UpdateKeyword Update keyword
 
@@ -227,11 +226,13 @@ used around a form-like preferences screen.
   - editing
   - help-visible
   - validation-error
-- Process
-  - ModelUpdate
-    - ${model.keyword}: E-SearchInput.value
-- Effects
-  - state: editing
+- Process: ModelUpdate
+  - Effects
+    - model: ${model.keyword} = E-SearchInput.value
+- Process: Immediate
+  - case: done
+    - Effects
+      - state: editing
 
 ### A3:A-ValidateEmail Validate email on blur
 
@@ -241,17 +242,16 @@ used around a form-like preferences screen.
   - editing
   - help-visible
   - validation-error
-- Process
-  - Validate: V-PreferencesForm
-    - cases:
-      - invalid:
-        - response: email is empty or malformed
-        - state: validation-error
-        - stop
-      - valid:
-        - response: email is valid
-        - state: editing
-        - stop
+- Process: Validate
+  - target: V-PreferencesForm
+  - case: invalid
+    - response: email is empty or malformed
+    - state: validation-error
+    - stop
+  - case: valid
+    - response: email is valid
+    - state: editing
+    - stop
 
 ### A4:A-ShowDeliveryHelp Show delivery help
 
@@ -259,8 +259,10 @@ used around a form-like preferences screen.
   - E-HelpIcon.focus
 - From
   - editing
-- Effects
-  - state: help-visible
+- Process: Immediate
+  - case: done
+    - Effects
+      - state: help-visible
 
 ### A5:A-RequestDiscardDialog Request discard dialog
 
@@ -270,8 +272,10 @@ used around a form-like preferences screen.
   - editing
   - validation-error
   - save-error
-- Effects
-  - state: confirm-discard
+- Process: Immediate
+  - case: done
+    - Effects
+      - state: confirm-discard
 
 ### A6:A-PrepareDiscardDialog Prepare discard dialog
 
@@ -279,9 +283,9 @@ used around a form-like preferences screen.
   - E-ConfirmDialog.open
 - From
   - confirm-discard
-- Process
-  - ModelUpdate
-    - ${model.discardRequested}: true
+- Process: ModelUpdate
+  - Effects
+    - model: ${model.discardRequested} = true
 
 ### A7:A-CloseDiscardDialog Close discard dialog
 
@@ -289,11 +293,13 @@ used around a form-like preferences screen.
   - E-ConfirmDialog.close
 - From
   - confirm-discard
-- Process
-  - ModelUpdate
-    - ${model.discardRequested}: false
-- Effects
-  - state: editing
+- Process: ModelUpdate
+  - Effects
+    - model: ${model.discardRequested} = false
+- Process: Immediate
+  - case: done
+    - Effects
+      - state: editing
 
 ### A8:A-SubmitPreferences Submit preferences
 
@@ -303,30 +309,29 @@ used around a form-like preferences screen.
   - editing
   - validation-error
   - save-error
-- Process
-  - Validate: V-PreferencesForm
-    - cases:
-      - invalid:
-        - response: required field missing or invalid
-        - state: validation-error
-        - stop
-      - valid:
-        - response: form fields are valid
-        - continue
-  - ModelUpdate
-    - ${model.keyword}: E-SearchInput.value
-    - ${model.email}: E-EmailInput.value
-    - ${model.deliveryCadence}: E-DeliverySelect.value
-  - ServerCall
-    - PreferencesCommandService.save()
-      - keyword: ${model.keyword}
-      - email: ${model.email}
-      - deliveryCadence: ${model.deliveryCadence}
-    - cases:
-      - sent:
-        - state: saving
-      - send-failed:
-        - state: save-error
+- Process: Validate
+  - target: V-PreferencesForm
+  - case: invalid
+    - response: required field missing or invalid
+    - state: validation-error
+    - stop
+  - case: valid
+    - response: form fields are valid
+    - continue
+- Process: ModelUpdate
+  - Effects
+    - model: ${model.keyword} = E-SearchInput.value
+    - model: ${model.email} = E-EmailInput.value
+    - model: ${model.deliveryCadence} = E-DeliverySelect.value
+- Process: ServerCall
+  - PreferencesCommandService.save()
+    - keyword: ${model.keyword}
+    - email: ${model.email}
+    - deliveryCadence: ${model.deliveryCadence}
+  - case: sent
+    - state: saving
+  - case: send-failed
+    - state: save-error
 
 ### A9:A-HandleSaveResponse Handle save response
 
@@ -334,15 +339,13 @@ used around a form-like preferences screen.
   - A-SubmitPreferences.response
 - From
   - saving
-- Process
-  - ServerResponse
-    - cases:
-      - success:
-        - response: 200 saved preferences
-        - state: saved
-      - failure:
-        - response: 4xx or 5xx
-        - state: save-error
+- Process: ServerResponse
+  - case: success
+    - response: 200 saved preferences
+    - state: saved
+  - case: failure
+    - response: 4xx or 5xx
+    - state: save-error
 
 ## Validations
 

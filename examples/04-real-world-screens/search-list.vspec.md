@@ -163,25 +163,24 @@ and pagination actions.
   - idle
   - empty
   - load-error
-- Process
-  - ModelUpdate
-    - ${model.keyword}: E-KeywordInput.value
-    - ${model.status}: E-StatusFilter.value
-    - ${model.page}: 1
-  - HttpRequest
-    - GET /users
-      - keyword: ${model.keyword}
-      - status: ${model.status}
-      - page: ${model.page}
-    - cases:
-      - sent:
-        - state: loading
-      - send-failed:
-        - state: load-error
-        - update:
-          - target: L-StatusArea
-          - mode: replace
-          - content: Search request failure banner
+- Process: ModelUpdate
+  - Effects
+    - model: ${model.keyword} = E-KeywordInput.value
+    - model: ${model.status} = E-StatusFilter.value
+    - model: ${model.page} = 1
+- Process: HttpRequest
+  - GET /users
+    - keyword: ${model.keyword}
+    - status: ${model.status}
+    - page: ${model.page}
+  - case: sent
+    - state: loading
+  - case: send-failed
+    - state: load-error
+    - update:
+      - target: L-StatusArea
+      - mode: replace
+      - content: Search request failure banner
 
 ### A2:A-HandleSearchUsersResponse Handle search users response
 
@@ -189,30 +188,28 @@ and pagination actions.
   - A-SearchUsers.response
 - From
   - loading
-- Process
-  - HttpResponse
-    - cases:
-      - success:
-        - response: 200 with one or more rows
-        - state: idle
-        - update:
-          - target: L-Results
-          - mode: replace
-          - content: Updated result rows
-      - empty:
-        - response: 200 with no rows
-        - state: empty
-        - update:
-          - target: L-Results
-          - mode: replace
-          - content: Empty result message
-      - failure:
-        - response: 5xx or timeout
-        - state: load-error
-        - update:
-          - target: L-StatusArea
-          - mode: replace
-          - content: Load failure banner
+- Process: HttpResponse
+  - case: success
+    - response: 200 with one or more rows
+    - state: idle
+    - update:
+      - target: L-Results
+      - mode: replace
+      - content: Updated result rows
+  - case: empty
+    - response: 200 with no rows
+    - state: empty
+    - update:
+      - target: L-Results
+      - mode: replace
+      - content: Empty result message
+  - case: failure
+    - response: 5xx or timeout
+    - state: load-error
+    - update:
+      - target: L-StatusArea
+      - mode: replace
+      - content: Load failure banner
 
 ### A3:A-NextPage Next page
 
@@ -220,19 +217,18 @@ and pagination actions.
   - E-NextPageButton.click
 - From
   - idle
-- Process
-  - ModelUpdate
-    - ${model.page}: ${model.nextPage}
-  - HttpRequest
-    - GET /users
-      - keyword: ${model.keyword}
-      - status: ${model.status}
-      - page: ${model.page}
-    - cases:
-      - sent:
-        - state: loading
-      - send-failed:
-        - state: load-error
+- Process: ModelUpdate
+  - Effects
+    - model: ${model.page} = ${model.nextPage}
+- Process: HttpRequest
+  - GET /users
+    - keyword: ${model.keyword}
+    - status: ${model.status}
+    - page: ${model.page}
+  - case: sent
+    - state: loading
+  - case: send-failed
+    - state: load-error
 
 ### A4:A-PreviousPage Previous page
 
@@ -240,19 +236,18 @@ and pagination actions.
   - E-PreviousPageButton.click
 - From
   - idle
-- Process
-  - ModelUpdate
-    - ${model.page}: ${model.previousPage}
-  - HttpRequest
-    - GET /users
-      - keyword: ${model.keyword}
-      - status: ${model.status}
-      - page: ${model.page}
-    - cases:
-      - sent:
-        - state: loading
-      - send-failed:
-        - state: load-error
+- Process: ModelUpdate
+  - Effects
+    - model: ${model.page} = ${model.previousPage}
+- Process: HttpRequest
+  - GET /users
+    - keyword: ${model.keyword}
+    - status: ${model.status}
+    - page: ${model.page}
+  - case: sent
+    - state: loading
+  - case: send-failed
+    - state: load-error
 
 ### A5:A-HandleNextPageResponse Handle next page response
 
@@ -260,30 +255,28 @@ and pagination actions.
   - A-NextPage.response
 - From
   - loading
-- Process
-  - HttpResponse
-    - cases:
-      - success:
-        - response: 200 with one or more rows
-        - state: idle
-        - update:
-          - target: L-Results
-          - mode: replace
-          - content: Next page result rows
-      - empty:
-        - response: 200 with no rows
-        - state: empty
-        - update:
-          - target: L-Results
-          - mode: replace
-          - content: Empty result message
-      - failure:
-        - response: 5xx or timeout
-        - state: load-error
-        - update:
-          - target: L-StatusArea
-          - mode: replace
-          - content: Load failure banner
+- Process: HttpResponse
+  - case: success
+    - response: 200 with one or more rows
+    - state: idle
+    - update:
+      - target: L-Results
+      - mode: replace
+      - content: Next page result rows
+  - case: empty
+    - response: 200 with no rows
+    - state: empty
+    - update:
+      - target: L-Results
+      - mode: replace
+      - content: Empty result message
+  - case: failure
+    - response: 5xx or timeout
+    - state: load-error
+    - update:
+      - target: L-StatusArea
+      - mode: replace
+      - content: Load failure banner
 
 ### A6:A-HandlePreviousPageResponse Handle previous page response
 
@@ -291,30 +284,28 @@ and pagination actions.
   - A-PreviousPage.response
 - From
   - loading
-- Process
-  - HttpResponse
-    - cases:
-      - success:
-        - response: 200 with one or more rows
-        - state: idle
-        - update:
-          - target: L-Results
-          - mode: replace
-          - content: Previous page result rows
-      - empty:
-        - response: 200 with no rows
-        - state: empty
-        - update:
-          - target: L-Results
-          - mode: replace
-          - content: Empty result message
-      - failure:
-        - response: 5xx or timeout
-        - state: load-error
-        - update:
-          - target: L-StatusArea
-          - mode: replace
-          - content: Load failure banner
+- Process: HttpResponse
+  - case: success
+    - response: 200 with one or more rows
+    - state: idle
+    - update:
+      - target: L-Results
+      - mode: replace
+      - content: Previous page result rows
+  - case: empty
+    - response: 200 with no rows
+    - state: empty
+    - update:
+      - target: L-Results
+      - mode: replace
+      - content: Empty result message
+  - case: failure
+    - response: 5xx or timeout
+    - state: load-error
+    - update:
+      - target: L-StatusArea
+      - mode: replace
+      - content: Load failure banner
 
 ## Model Samples
 

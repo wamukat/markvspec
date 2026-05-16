@@ -111,32 +111,30 @@ server, and navigates only after a successful response.
   - idle
   - validation-error
   - submit-error
-- Process
-  - Validate
-    - cases:
-      - invalid:
-        - response: required field missing
-        - state: validation-error
-        - stop
-        - update:
-          - target: L-MessageArea
-          - mode: replace
-          - content: Validation message
-      - valid:
-        - response: all required fields are valid
-        - continue
-  - ModelUpdate
-    - ${model.email}: E-EmailInput.value
-    - ${model.plan}: E-PlanSelect.value
-  - ServerCall
-    - SubscriptionService.create()
-      - email: ${model.email}
-      - plan: ${model.plan}
-    - cases:
-      - sent:
-        - state: submitting
-      - send-failed:
-        - state: submit-error
+- Process: Validate
+  - case: invalid
+    - response: required field missing
+    - state: validation-error
+    - stop
+    - update:
+      - target: L-MessageArea
+      - mode: replace
+      - content: Validation message
+  - case: valid
+    - response: all required fields are valid
+    - continue
+- Process: ModelUpdate
+  - Effects
+    - model: ${model.email} = E-EmailInput.value
+    - model: ${model.plan} = E-PlanSelect.value
+- Process: ServerCall
+  - SubscriptionService.create()
+    - email: ${model.email}
+    - plan: ${model.plan}
+  - case: sent
+    - state: submitting
+  - case: send-failed
+    - state: submit-error
 
 ### A2:A-HandleSubmitResponse Handle submit response
 
@@ -144,12 +142,10 @@ server, and navigates only after a successful response.
   - A-SubmitRequest.response
 - From
   - submitting
-- Process
-  - ServerResponse
-    - cases:
-      - success:
-        - response: 201 created
-        - navigate: SCR-THANK-YOU
-      - failure:
-        - response: 4xx or 5xx
-        - state: submit-error
+- Process: ServerResponse
+  - case: success
+    - response: 201 created
+    - navigate: SCR-THANK-YOU
+  - case: failure
+    - response: 4xx or 5xx
+    - state: submit-error

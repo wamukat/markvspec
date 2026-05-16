@@ -150,6 +150,9 @@ partial 由来の内容で置き換えるか」を書きます。partial 側は�
 - `## Form Groups`
 - `## Actions`
 - `## Model Samples`
+- `## View Context`
+- `## View Context Samples`
+- `## Preview Scenarios`
 - `## Validations`
 - `## Business Rules`
 - `## Error Codes`
@@ -214,16 +217,14 @@ entity ごとの説明です。
   - E-SignInButton.click
 - From
   - idle
-- Process
-  - HttpRequest
-    - POST /login
-      - email: E-EmailInput.value
-      - password: E-PasswordInput.value
-    - cases:
-      - sent:
-        - state: wait-auth
-      - send-failed:
-        - state: auth-error
+- Process: HttpRequest
+  - POST /login
+    - email: E-EmailInput.value
+    - password: E-PasswordInput.value
+  - case: sent
+    - state: wait-auth
+  - case: send-failed
+    - state: auth-error
 
 送信失敗は HTTP response ではなく、request を送信できなかったケースとして扱います。
 ```
@@ -1135,30 +1136,27 @@ UI 部品を、フレームワーク固有の widget 名に寄せずに表現す
 - From
   - idle
   - auth-error
-- Process
-  - Validate: V-LoginForm
-    - cases:
-      - invalid:
-        - state: validation-error
-        - stop
-      - valid:
-        - continue
-  - Preprocess
-    - when: state is auth-error
-    - update:
-      - target: L-MessageArea
-      - content: Empty message
-  - HttpRequest
-    - POST /login
-      - email: E-EmailInput.value
-      - password: E-PasswordInput.value
-    - cases:
-      - sent:
-        - state: wait-auth
-        - stop
-      - send-failed:
-        - state: auth-error
-        - stop
+- Process: Validate: V-LoginForm
+  - case: invalid
+    - state: validation-error
+    - stop
+  - case: valid
+    - continue
+- Process: Preprocess
+  - when: state is auth-error
+  - update:
+    - target: L-MessageArea
+    - content: Empty message
+- Process: HttpRequest
+  - POST /login
+    - email: E-EmailInput.value
+    - password: E-PasswordInput.value
+  - case: sent
+    - state: wait-auth
+    - stop
+  - case: send-failed
+    - state: auth-error
+    - stop
 
 ### A2:A-HandleLoginResponse ログイン応答処理
 
@@ -1168,17 +1166,15 @@ UI 部品を、フレームワーク固有の widget 名に寄せずに表現す
   - A-SubmitLogin.response
 - From
   - wait-auth
-- Process
-  - HttpResponse
-    - cases:
-      - success:
-        - response: 2xx 認証成功
-        - navigate: SCR-DASHBOARD
-        - stop
-      - failure:
-        - response: 401 invalid credentials
-        - state: auth-error
-        - stop
+- Process: HttpResponse
+  - case: success
+    - response: 2xx 認証成功
+    - navigate: SCR-DASHBOARD
+    - stop
+  - case: failure
+    - response: 401 invalid credentials
+    - state: auth-error
+    - stop
 
 認証失敗時のメッセージ文言は、表示要素またはエラーコード契約に紐づけて管理します。
 ```
@@ -1193,20 +1189,20 @@ UI 部品を、フレームワーク固有の widget 名に寄せずに表現す
 
 - `Triggered`: 何をきっかけに実行するか。
 - `From`: どの画面内状態から実行できるか。
-- `Process`: 処理ステップ。
-- `Effects`: request を伴わない即時効果。HTTP request の待機状態は、request step の送信結果として書きます。
+- `Process: <type>`: 処理ステップ。
+- `Otherwise`: どの case にも当てはまらない場合の fallback。
 
 Action レベルの `When` / guard はサポートしません。操作可否は要素の
 `disabled when` に寄せ、入力検証は `Validations` と `Validate` process
 step に書きます。HTTP request を伴う Action では、送信できたかどうかを
 `HttpRequest` の `sent` / `send-failed` のような case に書き、レスポンス完了後の
 部分更新や画面遷移は `A-SubmitLogin.response` のような別 Action に分けます。
-非同期結果によって遷移が分かれる場合は、該当する process step の `cases:` に
+非同期結果によって遷移が分かれる場合は、該当する process step の `case: <name>` に
 `ready` / `still-loading` のような結果名を置いて表現します。特定の処理
 ステップだけに関係する条件は、process step の `when` / `skip when` として
 書けますが、Action 全体の遷移条件にはなりません。
 
-process step の `cases:` 配下では、case の最後に `stop` または `continue` を
+process step の `case: <name>` 配下では、case の最後に `stop` または `continue` を
 書けます。`stop` はその case で Action の処理を終了すること、`continue` は
 次の process step に進むことを表します。省略時は `continue` として扱います。
 たとえば `Validate.invalid` は `stop` にして後続の request を送らず、
@@ -1214,46 +1210,47 @@ process step の `cases:` 配下では、case の最後に `stop` または `con
 ジャンプする `next` 指定は現行仕様では扱いません。
 
 複数の処理を並列に開始し、全完了後にまとめて判定する場合は process step に
-`parallel: <group-id>` を書き、同じ group に参加させます。集約判定は
-`Resolve: <group-id>` step に書きます。parallel step の case は結果や
+`group: <group-id>` を書き、同じ group に参加させます。集約判定は
+同じ `group` を持つ `Process: Resolve` step に書きます。parallel step の case は結果や
 model update を残して `continue` し、最終的な `state` / `navigate` / `stop` は
-`Resolve` step に寄せます。parallel step の case に `stop`、`state`、`navigate`
+resolve step に寄せます。parallel step の case に `stop`、`state`、`navigate`
 を書くと診断で警告します。
 
 ```markdown
-- Process
-  - ServerCall
-    - parallel: initial-load
-    - MemberQueryService.findSelfProfile()
-    - cases:
-      - success:
-        - response: 200 member profile
-        - ${model.memberProfile.loaded}: true
-        - continue
-      - failure:
-        - response: 5xx or timeout
-        - continue
-  - ServerCall
-    - parallel: initial-load
-    - PointQueryService.findSelfPoints()
-    - cases:
-      - success:
-        - response: 200 points
-        - ${model.points.loaded}: true
-        - continue
-      - failure:
-        - response: 5xx or timeout
-        - continue
-  - Resolve: initial-load
-    - cases:
-      - ready:
-        - response: profile and points loaded
-        - state: idle
-        - stop
-      - failed:
-        - response: one or more calls failed
-        - state: load-error
-        - stop
+- Process: ServerCall
+  - group: initial-load
+  - MemberQueryService.findSelfProfile()
+  - case: success
+    - response: 200 member profile
+    - Effects
+      - model: ${model.memberProfile.loaded} = true
+    - continue
+  - case: failure
+    - response: 5xx or timeout
+    - continue
+- Process: ServerCall
+  - group: initial-load
+  - PointQueryService.findSelfPoints()
+  - case: success
+    - response: 200 points
+    - Effects
+      - model: ${model.points.loaded} = true
+    - continue
+  - case: failure
+    - response: 5xx or timeout
+    - continue
+- Process: Resolve
+  - group: initial-load
+  - case: ready
+    - response: profile and points loaded
+    - Effects
+      - state: idle
+    - stop
+  - case: failed
+    - response: one or more calls failed
+    - Effects
+      - state: load-error
+    - stop
 ```
 
 Action 見出し直下の自由記述は、その Action の概要として扱います。
@@ -1288,24 +1285,22 @@ UI アプリが `MemberQueryService.findSelfProfile()` のような service を�
 以降の画面要素は、この処理で格納した値を `${model.memberProfile.displayName}` のように参照します。
 `notice.title` のような裸の alias は出処が追いにくいため、設計書上は避けます。
 戻り値を model に入れる記述は、通常 `success` case の中に書きます。失敗時にも実行される
-共通 detail に見えないよう、結果に依存する model 更新は該当する `cases:` 配下へ置きます。
+共通 detail に見えないよう、結果に依存する model 更新は該当する `case: <name>` 配下へ置きます。
 呼び出し行は `client:` のようなラベルを付けずに書きます。引数がある場合は呼び出し行の子として
 1 段深くインデントします。
 
 ```markdown
-- Process
-  - ServerCall
-    - MemberQueryService.findSelfProfile()
-      - includePreferences: true
-    - cases:
-      - success:
-        - response: 200 member profile
-        - ${model.memberProfile.displayName}: MemberProfileDto.displayName
-        - ${model.memberProfile.loaded}: true
-        - state: idle
-      - failure:
-        - response: 5xx or timeout
-        - state: load-error
+- Process: ServerCall
+  - MemberQueryService.findSelfProfile()
+    - includePreferences: true
+  - case: success
+    - response: 200 member profile
+    - model: ${model.memberProfile.displayName} = MemberProfileDto.displayName
+    - model: ${model.memberProfile.loaded} = true
+    - state: idle
+  - case: failure
+    - response: 5xx or timeout
+    - state: load-error
 ```
 
 複数の `ServerCall` が揃ってから通常表示へ遷移する場合は、画面状態を
@@ -1444,10 +1439,11 @@ Action で画面遷移する場合も、同じように `params` をネストし
   - E-NoticeTitle.click
 - From
   - loaded
-- Effects
-  - navigate: SCR-NOTICE-DETAIL
-  - params:
-    - noticeId: ${model.notice.noticeId}
+- Process: Immediate
+  - Effects
+    - navigate: SCR-NOTICE-DETAIL
+    - params:
+      - noticeId: ${model.notice.noticeId}
 ```
 
 例外として、`Image` の `src` は画像 asset の参照元を表します。`Text`、`Link`、
@@ -1472,15 +1468,13 @@ marker を採番しない方針にします。ID はバインディングや操�
   - A-LoadMemberProfile.response
 - From
   - initializing
-- Process
-  - EvaluateHomeData
-    - cases:
-      - ready:
-        - response: ${model.memberProfile.loaded} and ${model.points.loaded}
-        - state: idle
-      - still-loading:
-        - response: one or more required client calls are still loading
-        - state: initializing
+- Process: EvaluateHomeData
+  - case: ready
+    - response: ${model.memberProfile.loaded} and ${model.points.loaded}
+    - state: idle
+  - case: still-loading
+    - response: one or more required client calls are still loading
+    - state: initializing
 ```
 
 現行リリースのアクションライフサイクルイベントです。
@@ -1493,8 +1487,8 @@ marker を採番しない方針にします。ID はバインディングや操�
 
 ## Cases
 
-処理ステップの結果は、該当する process step の `cases:` に書きます。
-HTTP request の場合、クリック Action 側の `cases:` は送信処理の結果を表します。
+処理ステップの結果は、該当する process step の `case: <name>` に書きます。
+HTTP request の場合、クリック Action 側の `case: sent` / `case: send-failed` は送信処理の結果を表します。
 レスポンス本文や HTTP status による分岐は、`A-SubmitLogin.response` のような
 レスポンス処理 Action に分けます。
 
@@ -1505,20 +1499,17 @@ HTTP request の場合、クリック Action 側の `cases:` は送信処理の�
   - E-SignInButton.click
 - From
   - idle
-- Process
-  - Validate: V-LoginForm
-    - cases:
-      - invalid:
-        - state: validation-error
-  - HttpRequest
-    - POST /login
-      - email: E-EmailInput.value
-      - password: E-PasswordInput.value
-    - cases:
-      - sent:
-        - state: wait-auth
-      - send-failed:
-        - state: auth-error
+- Process: Validate: V-LoginForm
+  - case: invalid
+    - state: validation-error
+- Process: HttpRequest
+  - POST /login
+    - email: E-EmailInput.value
+    - password: E-PasswordInput.value
+  - case: sent
+    - state: wait-auth
+  - case: send-failed
+    - state: auth-error
 
 ### A2:A-HandleLoginResponse ログイン応答処理
 
@@ -1526,18 +1517,16 @@ HTTP request の場合、クリック Action 側の `cases:` は送信処理の�
   - A-SubmitLogin.response
 - From
   - wait-auth
-- Process
-  - HttpResponse
-    - cases:
-      - success:
-        - response: 2xx 認証成功
-        - navigate: SCR-DASHBOARD
-      - failure:
-        - response: 401 invalid credentials
-        - state: auth-error
-        - update:
-          - target: L-MessageArea
-          - content: Authentication error message
+- Process: HttpResponse
+  - case: success
+    - response: 2xx 認証成功
+    - navigate: SCR-DASHBOARD
+  - case: failure
+    - response: 401 invalid credentials
+    - state: auth-error
+    - update:
+      - target: L-MessageArea
+      - content: Authentication error message
 ```
 
 `state` は画面内状態の変更、`navigate` は別画面への遷移です。画面遷移は状態遷移図では終端として扱います。
@@ -1555,15 +1544,13 @@ Thymeleaf や htmx による部分更新は、実装属性ではなく意味と�
   - A-SubmitLogin.response
 - From
   - wait-auth
-- Process
-  - HttpResponse
-    - cases:
-      - failure:
-        - response: 401 invalid credentials
-        - state: auth-error
-        - update:
-          - target: L-MessageArea
-          - content: Authentication error message
+- Process: HttpResponse
+  - case: failure
+    - response: 401 invalid credentials
+    - state: auth-error
+    - update:
+      - target: L-MessageArea
+      - content: Authentication error message
 ```
 
 必要なら `mode` や `fragment` を補足できます。
@@ -1591,17 +1578,15 @@ model path、update 内容に絞ります。
 配下にある `${model.value}` 形式の式を含む `side effect` です。
 
 ```markdown
-- Process
-  - ServerCall
-    - NoticeQueryService.findNotice()
-      - noticeId: ${route.noticeId}
-    - cases:
-      - success:
-        - response: 200 notice
-        - ${model.notice}: NoticeDetailResult
-        - update:
-          - target: L-NoticeBody
-          - side effect: お知らせ本文を ${model.notice} に格納する
+- Process: ServerCall
+  - NoticeQueryService.findNotice()
+    - noticeId: ${route.noticeId}
+  - case: success
+    - response: 200 notice
+    - model: ${model.notice} = NoticeDetailResult
+    - update:
+      - target: L-NoticeBody
+      - side effect: お知らせ本文を ${model.notice} に格納する
 ```
 
 screen/template/partial から partial を利用する場合、layout partial host、`PartialRequest`、
@@ -1617,9 +1602,8 @@ warning も失敗扱いにできます。
 `HttpRequest` には、パラメータだけでなくリクエスト行も書きます。次の例は、送信値は分かりますが、どこにどのメソッドで送るのかが分からないため警告になります。
 
 ```markdown
-- Process
-  - HttpRequest
-    - email: E-EmailInput.value
+- Process: HttpRequest
+  - email: E-EmailInput.value
 ```
 
 次のようにリクエスト行を明示します。
@@ -1627,10 +1611,9 @@ warning も失敗扱いにできます。
 複数の request step がある Action でも「どのリクエストに渡す値か」が読み取りやすくなります。
 
 ```markdown
-- Process
-  - HttpRequest
-    - POST /login
-      - email: E-EmailInput.value
+- Process: HttpRequest
+  - POST /login
+    - email: E-EmailInput.value
 ```
 
 ## Validations
@@ -1771,6 +1754,94 @@ metadata の後に書いた本文は自由 Markdown として生成設計書に�
   required: false
   type: string
 ```
+
+## View Context セクション
+
+`## View Context` は、画面 state ではないが表示を変える UI ローカルな文脈を定義します。
+例として、選択中のタブ、表示モード、ヘルプパネルの開閉があります。永続的な業務データは
+`Model Samples` に置き、View Context は一時的な UI 文脈に限定します。
+
+```markdown
+## View Context
+
+### isHelpPanelOpen
+
+- type: boolean
+- values:
+  - false*
+  - true
+
+### selectedTab
+
+- type: enum
+- values:
+  - results*
+  - billing
+```
+
+定義できる型は `boolean` と `enum` です。`boolean` の値は `true` / `false` のみです。
+`*` はデフォルト値を示します。`*` がない場合、MarkVSpec は先頭の値を fallback として使います。
+
+Elements、Layouts、Actions から View Context を参照するときは `${view.<name>}` を使います。
+
+```markdown
+- visible when: ${view.isHelpPanelOpen}
+```
+
+Action から View Context を更新するときは、process case の中に `view:` effect を書きます。
+
+```markdown
+- Process: Immediate
+  - case: opened
+    - view: ${view.isHelpPanelOpen} = true
+    - view: ${view.selectedTab} = results
+```
+
+## View Context Samples セクション
+
+`## View Context Samples` は、preview/export で利用する View Context の値セットに名前を付けます。
+
+```markdown
+## View Context Samples
+
+### default
+
+- ${view.isHelpPanelOpen}: false
+- ${view.selectedTab}: results
+
+### help-open
+
+- ${view.isHelpPanelOpen}: true
+- ${view.selectedTab}: billing
+```
+
+Preview Scenario が `view` を指定しない場合、preview/export はまず
+`View Context Samples.default` を使います。それがなければ `## View Context` のデフォルト値を使い、
+`*` がない View Context 定義では先頭の値を使います。
+
+## Preview Scenarios セクション
+
+`## Preview Scenarios` は、state preview に使う `state`、`model`、`view` の組み合わせを明示します。
+このセクションがある場合、`## States` に存在するすべての state を少なくとも 1 つの scenario に含める必要があります。
+
+```markdown
+## Preview Scenarios
+
+### idle
+
+- state: idle
+- view: default
+
+### loaded-help
+
+- state: loaded
+- model: loaded
+- view: help-open
+```
+
+`## Preview Scenarios` がない場合、preview/export はすべての state を表示します。
+View Context の fallback は、`View Context Samples.default`、View Context のデフォルト値、
+`*` がない View Context 定義の先頭値の順です。
 
 ## 説明文と自由記述セクション
 

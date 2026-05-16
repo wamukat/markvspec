@@ -13,12 +13,15 @@ import type {
   MarkVSpecModelSampleSet,
   MarkVSpecModelSampleGroup,
   MarkVSpecNoteSection,
+  MarkVSpecPreviewScenario,
   MarkVSpecRule,
   MarkVSpecSectionProse,
   MarkVSpecSlotContent,
   MarkVSpecSlotDefinition,
   MarkVSpecState,
   MarkVSpecValidationRule,
+  MarkVSpecViewContextDefinition,
+  MarkVSpecViewContextSample,
   SourceLocation
 } from "./types.js";
 import { applyActionBulletToContext, createActionParseContext } from "./action-parser.js";
@@ -46,6 +49,9 @@ export interface SectionSemanticResult {
   states: MarkVSpecState[];
   modelSamples: MarkVSpecModelSampleSet[];
   modelSampleGroups: MarkVSpecModelSampleGroup[];
+  viewContexts: MarkVSpecViewContextDefinition[];
+  viewContextSamples: MarkVSpecViewContextSample[];
+  previewScenarios: MarkVSpecPreviewScenario[];
   formGroups: MarkVSpecFormGroup[];
   validations: MarkVSpecValidationRule[];
   rules: MarkVSpecRule[];
@@ -63,6 +69,9 @@ export interface SmallSectionSemanticResult {
   states: MarkVSpecState[];
   modelSamples: MarkVSpecModelSampleSet[];
   modelSampleGroups: MarkVSpecModelSampleGroup[];
+  viewContexts: MarkVSpecViewContextDefinition[];
+  viewContextSamples: MarkVSpecViewContextSample[];
+  previewScenarios: MarkVSpecPreviewScenario[];
   formGroups: MarkVSpecFormGroup[];
   validations: MarkVSpecValidationRule[];
   rules: MarkVSpecRule[];
@@ -141,6 +150,9 @@ export function parseSmallSectionSemantics(document: MarkdownDocument): SmallSec
     states: sectionResults.flatMap((result) => result.states),
     modelSamples: sectionResults.flatMap((result) => result.modelSamples),
     modelSampleGroups: sectionResults.flatMap((result) => result.modelSampleGroups),
+    viewContexts: sectionResults.flatMap((result) => result.viewContexts),
+    viewContextSamples: sectionResults.flatMap((result) => result.viewContextSamples),
+    previewScenarios: sectionResults.flatMap((result) => result.previewScenarios),
     formGroups: sectionResults.flatMap((result) => result.formGroups),
     validations: sectionResults.flatMap((result) => result.validations),
     rules: sectionResults.flatMap((result) => result.rules),
@@ -154,7 +166,7 @@ export function parseSmallSectionSemantics(document: MarkdownDocument): SmallSec
   };
 }
 
-const recommendedSectionOrder = "States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Actions, Model Samples, Validations, Business Rules, Error Codes, History Fields, History";
+const recommendedSectionOrder = "States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Actions, Model Samples, View Context, View Context Samples, Preview Scenarios, Validations, Business Rules, Error Codes, History Fields, History";
 
 function semanticSectionOrderDiagnostics(sections: SectionAst[]): MarkVSpecDiagnostic[] {
   const diagnostics: MarkVSpecDiagnostic[] = [];
@@ -196,16 +208,22 @@ function sectionOrderRank(kind: SectionKind): number {
       return 6;
     case "ModelSamples":
       return 7;
-    case "Validations":
+    case "ViewContext":
       return 8;
-    case "BusinessRules":
+    case "ViewContextSamples":
       return 9;
-    case "ErrorCodes":
+    case "PreviewScenarios":
       return 10;
-    case "HistoryFields":
+    case "Validations":
       return 11;
-    case "History":
+    case "BusinessRules":
       return 12;
+    case "ErrorCodes":
+      return 13;
+    case "HistoryFields":
+      return 14;
+    case "History":
+      return 15;
     case "Unknown":
       return 0;
   }
@@ -259,6 +277,9 @@ function isSmallSemanticSection(kind: SectionKind): boolean {
   return kind === "States" ||
     kind === "FormGroups" ||
     kind === "ModelSamples" ||
+    kind === "ViewContext" ||
+    kind === "ViewContextSamples" ||
+    kind === "PreviewScenarios" ||
     kind === "Validations" ||
     kind === "BusinessRules" ||
     kind === "ErrorCodes" ||
@@ -275,6 +296,12 @@ function parseSmallSection(document: MarkdownDocument, sections: SectionAst[], s
       return resultFor(section, parseFormGroupsSection(section), ["form-groups:list"]);
     case "ModelSamples":
       return resultFor(section, parseModelSamplesSection(section), ["model-samples"]);
+    case "ViewContext":
+      return resultFor(section, parseViewContextSection(section), ["view-context"]);
+    case "ViewContextSamples":
+      return resultFor(section, parseViewContextSamplesSection(section), ["view-context-samples"]);
+    case "PreviewScenarios":
+      return resultFor(section, parsePreviewScenariosSection(section), ["preview-scenarios"]);
     case "Validations":
       return resultFor(section, parseValidationsSection(section), ["validations:list"]);
     case "BusinessRules":
@@ -960,7 +987,7 @@ function parseActionsSection(section: SectionAst): ActionSectionSemanticResult {
 
 function resultFor(
   section: SectionAst,
-  values: Partial<Pick<SectionSemanticResult, "states" | "modelSamples" | "modelSampleGroups" | "formGroups" | "validations" | "rules" | "errorCodes" | "historyFields" | "historyEntries" | "notes" | "sectionProse" | "diagnostics" | "dependencies">>,
+  values: Partial<Pick<SectionSemanticResult, "states" | "modelSamples" | "modelSampleGroups" | "viewContexts" | "viewContextSamples" | "previewScenarios" | "formGroups" | "validations" | "rules" | "errorCodes" | "historyFields" | "historyEntries" | "notes" | "sectionProse" | "diagnostics" | "dependencies">>,
   renderKeys: string[]
 ): SectionSemanticResult {
   const diagnostics = [
@@ -973,6 +1000,9 @@ function resultFor(
     states: values.states ?? [],
     modelSamples: values.modelSamples ?? [],
     modelSampleGroups: values.modelSampleGroups ?? [],
+    viewContexts: values.viewContexts ?? [],
+    viewContextSamples: values.viewContextSamples ?? [],
+    previewScenarios: values.previewScenarios ?? [],
     formGroups: values.formGroups ?? [],
     validations: values.validations ?? [],
     rules: values.rules ?? [],
@@ -1249,6 +1279,349 @@ function parseModelSampleRow(columns: string[], cells: string[], raw: string, li
     values: Object.fromEntries(columns.map((column, index) => [column, cells[index] ?? ""])),
     location: { line },
     raw
+  };
+}
+
+function parseViewContextSection(section: SectionAst): Pick<SectionSemanticResult, "viewContexts" | "sectionProse" | "diagnostics"> {
+  const viewContexts: MarkVSpecViewContextDefinition[] = [];
+  const diagnostics: MarkVSpecDiagnostic[] = [];
+  let current: MarkVSpecViewContextDefinition | undefined;
+  let nestedProperty: string | undefined;
+  let currentHasStructuredContent = false;
+  let hasSeenEntity = false;
+  let inSectionNotes = false;
+  const sectionOverviewBlocks: BlockAst[] = [];
+  const sectionNoteBlocks: BlockAst[] = [];
+
+  for (const block of section.blocks) {
+    if (isSectionNotesHeading(block)) {
+      current = undefined;
+      nestedProperty = undefined;
+      currentHasStructuredContent = false;
+      inSectionNotes = true;
+      hasSeenEntity = true;
+      continue;
+    }
+    if (inSectionNotes) {
+      if (isEntityNoteBlock(block)) {
+        sectionNoteBlocks.push(block);
+      }
+      continue;
+    }
+    if (block.type === "heading" && block.depth === 3) {
+      hasSeenEntity = true;
+      current = {
+        name: block.text.trim(),
+        values: [],
+        properties: {},
+        propertyLocations: {},
+        location: locationFromBlock(block)
+      };
+      viewContexts.push(current);
+      nestedProperty = undefined;
+      currentHasStructuredContent = false;
+      continue;
+    }
+    if (!current) {
+      if (!hasSeenEntity && isEntityNoteBlock(block)) {
+        sectionOverviewBlocks.push(block);
+      }
+      continue;
+    }
+    if (isEntityNoteBlock(block)) {
+      appendEntityProseLines(current, block, currentHasStructuredContent);
+      continue;
+    }
+    if (block.type !== "list") {
+      continue;
+    }
+    currentHasStructuredContent = true;
+    for (const item of listItems([block])) {
+      const bullet = parsedBulletFromListItem(item);
+      if (bullet.indent === 0) {
+        nestedProperty = applyViewContextBullet(current, bullet, diagnostics);
+        continue;
+      }
+      if (nestedProperty === "values") {
+        applyViewContextValueBullet(current, bullet);
+        continue;
+      }
+      diagnostics.push({
+        severity: "warning",
+        message: `View Context ${current.name} has indented property entry: ${bullet.text}. Use it under values or make it an unindented property.`,
+        line: bullet.location.line
+      });
+    }
+  }
+
+  for (const context of viewContexts) {
+    finalizeViewContextDefinition(context, diagnostics);
+  }
+
+  return {
+    viewContexts,
+    sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["view-context"]),
+    diagnostics
+  };
+}
+
+function applyViewContextBullet(
+  context: MarkVSpecViewContextDefinition,
+  bullet: ParsedBullet,
+  diagnostics: MarkVSpecDiagnostic[]
+): string | undefined {
+  const [keyPart, valuePart] = splitKeyValue(bullet.text);
+  const key = keyPart.trim();
+  const value = valuePart?.trim();
+  if (key === "values" && value !== undefined && value.length === 0) {
+    return "values";
+  }
+  if (key === "type" && value !== undefined) {
+    if (value === "boolean" || value === "enum") {
+      context.type = value;
+    } else {
+      diagnostics.push({
+        severity: "error",
+        message: `View Context ${context.name} type must be boolean or enum.`,
+        line: bullet.location.line
+      });
+    }
+    context.properties[key] = value;
+    addPropertyLocation(context.propertyLocations, key, bullet.location);
+    return undefined;
+  }
+  if (value !== undefined) {
+    context.properties[key] = value;
+    addPropertyLocation(context.propertyLocations, key, bullet.location);
+    return undefined;
+  }
+  context.properties[key] = true;
+  addPropertyLocation(context.propertyLocations, key, bullet.location);
+  return undefined;
+}
+
+function applyViewContextValueBullet(context: MarkVSpecViewContextDefinition, bullet: ParsedBullet): void {
+  const raw = bullet.text.trim();
+  const isDefault = raw.endsWith("*");
+  const value = isDefault ? raw.slice(0, -1).trim() : raw;
+  context.values.push({
+    value,
+    isDefault,
+    location: bullet.location,
+    raw: bullet.text
+  });
+}
+
+function finalizeViewContextDefinition(context: MarkVSpecViewContextDefinition, diagnostics: MarkVSpecDiagnostic[]): void {
+  if (!context.type) {
+    diagnostics.push({
+      severity: "error",
+      message: `View Context ${context.name} must define type: boolean or type: enum.`,
+      line: context.location.line
+    });
+  }
+
+  if (context.values.length === 0) {
+    diagnostics.push({
+      severity: "error",
+      message: `View Context ${context.name} must define values.`,
+      line: context.location.line
+    });
+    return;
+  }
+
+  const defaultValues = context.values.filter((value) => value.isDefault);
+  if (defaultValues.length > 1) {
+    diagnostics.push({
+      severity: "error",
+      message: `View Context ${context.name} has multiple default values marked with *.`,
+      line: defaultValues[1]?.location.line ?? context.location.line
+    });
+  }
+  context.defaultValue = defaultValues[0]?.value ?? context.values[0]?.value;
+
+  if (context.type === "boolean") {
+    for (const value of context.values) {
+      if (value.value !== "true" && value.value !== "false") {
+        diagnostics.push({
+          severity: "error",
+          message: `View Context ${context.name} boolean value must be true or false, not ${value.value}.`,
+          line: value.location.line
+        });
+      }
+    }
+  }
+
+  if (context.type === "enum") {
+    const uniqueValues = new Set(context.values.map((value) => value.value));
+    if (uniqueValues.size === 2 && uniqueValues.has("true") && uniqueValues.has("false")) {
+      diagnostics.push({
+        severity: "warning",
+        message: `View Context ${context.name} enum only defines true and false. Use type: boolean for binary flags.`,
+        line: context.location.line
+      });
+    }
+  }
+}
+
+function parseViewContextSamplesSection(section: SectionAst): Pick<SectionSemanticResult, "viewContextSamples" | "sectionProse" | "diagnostics"> {
+  const samples: MarkVSpecViewContextSample[] = [];
+  const diagnostics: MarkVSpecDiagnostic[] = [];
+  let current: MarkVSpecViewContextSample | undefined;
+  let currentHasStructuredContent = false;
+  let hasSeenEntity = false;
+  let inSectionNotes = false;
+  const sectionOverviewBlocks: BlockAst[] = [];
+  const sectionNoteBlocks: BlockAst[] = [];
+
+  for (const block of section.blocks) {
+    if (isSectionNotesHeading(block)) {
+      current = undefined;
+      currentHasStructuredContent = false;
+      inSectionNotes = true;
+      hasSeenEntity = true;
+      continue;
+    }
+    if (inSectionNotes) {
+      if (isEntityNoteBlock(block)) {
+        sectionNoteBlocks.push(block);
+      }
+      continue;
+    }
+    if (block.type === "heading" && block.depth === 3) {
+      hasSeenEntity = true;
+      current = {
+        name: block.text.trim(),
+        values: {},
+        valueLocations: {},
+        location: locationFromBlock(block)
+      };
+      samples.push(current);
+      currentHasStructuredContent = false;
+      continue;
+    }
+    if (!current) {
+      if (!hasSeenEntity && isEntityNoteBlock(block)) {
+        sectionOverviewBlocks.push(block);
+      }
+      continue;
+    }
+    if (isEntityNoteBlock(block)) {
+      appendEntityProseLines(current, block, currentHasStructuredContent);
+      continue;
+    }
+    if (block.type !== "list") {
+      continue;
+    }
+    currentHasStructuredContent = true;
+    for (const item of listItems([block]).filter((candidate) => candidate.depth === 0)) {
+      const bullet = parsedBulletFromListItem(item);
+      const [keyPart, valuePart] = splitKeyValue(bullet.text);
+      if (valuePart === undefined) {
+        diagnostics.push({
+          severity: "warning",
+          message: `View Context Sample ${current.name} has malformed value entry: ${bullet.text}. Use ${"${view.name}"}: value.`,
+          line: bullet.location.line
+        });
+        continue;
+      }
+      const key = viewContextSampleKey(keyPart.trim());
+      current.values[key] = valuePart.trim();
+      addPropertyLocation(current.valueLocations, key, bullet.location);
+    }
+  }
+
+  return {
+    viewContextSamples: samples,
+    sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["view-context-samples"]),
+    diagnostics
+  };
+}
+
+function viewContextSampleKey(key: string): string {
+  const match = /^\$\{view\.([^}]+)\}$/u.exec(key);
+  return match?.[1]?.trim() ?? key;
+}
+
+function parsePreviewScenariosSection(section: SectionAst): Pick<SectionSemanticResult, "previewScenarios" | "sectionProse" | "diagnostics"> {
+  const scenarios: MarkVSpecPreviewScenario[] = [];
+  const diagnostics: MarkVSpecDiagnostic[] = [];
+  let current: MarkVSpecPreviewScenario | undefined;
+  let currentHasStructuredContent = false;
+  let hasSeenEntity = false;
+  let inSectionNotes = false;
+  const sectionOverviewBlocks: BlockAst[] = [];
+  const sectionNoteBlocks: BlockAst[] = [];
+
+  for (const block of section.blocks) {
+    if (isSectionNotesHeading(block)) {
+      current = undefined;
+      currentHasStructuredContent = false;
+      inSectionNotes = true;
+      hasSeenEntity = true;
+      continue;
+    }
+    if (inSectionNotes) {
+      if (isEntityNoteBlock(block)) {
+        sectionNoteBlocks.push(block);
+      }
+      continue;
+    }
+    if (block.type === "heading" && block.depth === 3) {
+      hasSeenEntity = true;
+      current = {
+        name: block.text.trim(),
+        properties: {},
+        propertyLocations: {},
+        location: locationFromBlock(block)
+      };
+      scenarios.push(current);
+      currentHasStructuredContent = false;
+      continue;
+    }
+    if (!current) {
+      if (!hasSeenEntity && isEntityNoteBlock(block)) {
+        sectionOverviewBlocks.push(block);
+      }
+      continue;
+    }
+    if (isEntityNoteBlock(block)) {
+      appendEntityProseLines(current, block, currentHasStructuredContent);
+      continue;
+    }
+    if (block.type !== "list") {
+      continue;
+    }
+    currentHasStructuredContent = true;
+    for (const item of listItems([block]).filter((candidate) => candidate.depth === 0)) {
+      const bullet = parsedBulletFromListItem(item);
+      const [keyPart, valuePart] = splitKeyValue(bullet.text);
+      const key = keyPart.trim();
+      const value = valuePart?.trim();
+      if (value === undefined) {
+        diagnostics.push({
+          severity: "warning",
+          message: `Preview Scenario ${current.name} has malformed entry: ${bullet.text}. Use state, model, or view.`,
+          line: bullet.location.line
+        });
+        continue;
+      }
+      current.properties[key] = value;
+      addPropertyLocation(current.propertyLocations, key, bullet.location);
+      if (key === "state") {
+        current.state = value;
+      } else if (key === "model") {
+        current.model = value;
+      } else if (key === "view") {
+        current.view = value;
+      }
+    }
+  }
+
+  return {
+    previewScenarios: scenarios,
+    sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["preview-scenarios"]),
+    diagnostics
   };
 }
 
@@ -2769,7 +3142,7 @@ function isEntityNoteBlock(block: BlockAst): boolean {
 
 function firstActionStructuredListItemLine(block: BlockAst): number | undefined {
   const item = listItems([block]).find((candidate) =>
-    candidate.depth === 0 && /^(?:Triggered|From|Process|Effects|Otherwise|Cases|When|Effect|Case|Else)\s*:?\s*$/iu.test(candidate.text)
+    candidate.depth === 0 && /^(?:Triggered|From|Process(?:\s*:.*)?|Effects|Otherwise|Cases|When|Effect|Case|Else)\s*$/iu.test(candidate.text)
   );
   return item?.range?.start.line;
 }

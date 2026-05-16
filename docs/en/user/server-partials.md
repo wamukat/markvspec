@@ -45,8 +45,8 @@ replacement:
   - A-SubmitLogin.response
 - From
   - wait-auth
-- Cases
-  - failure:
+- Process: HttpResponse
+  - case: failure
     - response: 401 invalid credentials
     - state: auth-error
     - update:
@@ -95,11 +95,12 @@ route: /mypage/partials/notices
 
 - Triggered
   - partial.render
-- Process
-  - ServerCall
-    - client: NoticeQueryService.findLatest()
-    - ${model.notices.items}: result.items
-    - ${model.notice}: current item from ${model.notices.items}
+- Process: ServerCall
+  - NoticeQueryService.findLatest()
+  - case: success
+    - response: 200 notices
+    - model: ${model.notices.items} = result.items
+    - model: ${model.notice} = current item from ${model.notices.items}
 ```
 
 Architecture-specific words such as `bridge` are not MarkVSpec reserved words.
@@ -124,10 +125,10 @@ title: Points Content
 
 - Triggered
   - E-Refresh.click
-- Process
-  - PartialRequest
-    - request: GET /points/content
-    - partial: PRT-POINTS-CONTENT
+- Process: PartialRequest
+  - request: GET /points/content
+  - partial: PRT-POINTS-CONTENT
+  - case: success
     - update:
       - target: L-PointsContent
       - mode: replace
@@ -135,12 +136,11 @@ title: Points Content
 
 ## Request Modeling
 
-Requests belong under `Process`:
+Requests belong under `Process: HttpRequest`:
 
 ```markdown
-- Process
-  - HttpRequest
-    - POST /login
+- Process: HttpRequest
+  - POST /login
     - email: E-EmailInput.value
     - password: E-PasswordInput.value
 ```
@@ -150,14 +150,14 @@ An implementation may map it to a normal form post, `fetch`, or htmx.
 
 ## Response Modeling
 
-Responses belong under `Cases`:
+Responses belong under `case: <name>` branches on the relevant response process:
 
 ```markdown
-- Cases
-  - success:
+- Process: HttpResponse
+  - case: success
     - response: 2xx authenticated user
     - navigate: SCR-DASHBOARD
-  - failure:
+  - case: failure
     - response: 401 with message fragment
     - state: auth-error
     - update:

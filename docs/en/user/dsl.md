@@ -167,6 +167,9 @@ Recognized level-2 sections:
 - `## Form Groups`
 - `## Actions`
 - `## Model Samples`
+- `## View Context`
+- `## View Context Samples`
+- `## Preview Scenarios`
 - `## Validations`
 - `## Business Rules`
 - `## Error Codes`
@@ -221,16 +224,14 @@ Validate the input and move to auth wait only when the request can be sent.
   - E-SignInButton.click
 - From
   - idle
-- Process
-  - HttpRequest
-    - POST /login
-      - email: E-EmailInput.value
-      - password: E-PasswordInput.value
-    - cases:
-      - sent:
-        - state: wait-auth
-      - send-failed:
-        - state: auth-error
+- Process: HttpRequest
+  - POST /login
+    - email: E-EmailInput.value
+    - password: E-PasswordInput.value
+  - case: sent
+    - state: wait-auth
+  - case: send-failed
+    - state: auth-error
 
 Send failure means the request could not be sent, not an HTTP response failure.
 ```
@@ -1057,10 +1058,11 @@ Use the same nested `params` block for action-driven screen navigation.
   - E-NoticeTitle.click
 - From
   - loaded
-- Effects
-  - navigate: SCR-NOTICE-DETAIL
-  - params:
-    - noticeId: ${model.notice.noticeId}
+- Process: Immediate
+  - Effects
+    - navigate: SCR-NOTICE-DETAIL
+    - params:
+      - noticeId: ${model.notice.noticeId}
 ```
 
 Exception: `Image` uses `src` for the image asset source. For display elements
@@ -1393,8 +1395,8 @@ screen does, not the exact htmx attributes.
 
 - Triggered
   - E-EmailInput.blur
-- Cases
-  - empty:
+- Process: Immediate
+  - case: empty
     - from: idle
     - state: validation-error
     - update:
@@ -1431,12 +1433,14 @@ MarkVSpec includes explicit `${model.value}` process details and outcome side
 effects that mention `${model.value}`.
 
 ```markdown
-- Process
-  - ServerCall
-    - client: NoticeQueryService.findNotice(${route.noticeId})
-    - ${model.notice}: NoticeDetailResult
-- Cases
-  - success:
+- Process: ServerCall
+  - NoticeQueryService.findNotice()
+    - noticeId: ${route.noticeId}
+  - case: success
+    - response: 200 notice
+    - model: ${model.notice} = NoticeDetailResult
+- Process: Immediate
+  - case: success
     - update:
       - target: L-NoticeBody
       - side effect: Store the response body in ${model.notice}
@@ -1527,30 +1531,27 @@ process steps.
 - From
   - idle
   - auth-error
-- Process
-  - Validate: V-LoginForm
-    - cases:
-      - invalid:
-        - state: validation-error
-        - stop
-      - valid:
-        - continue
-  - Preprocess
-    - when: state is auth-error
-    - update:
-      - target: L-MessageArea
-      - content: Empty message
-  - HttpRequest
-    - POST /login
-      - email: E-EmailInput.value
-      - password: E-PasswordInput.value
-    - cases:
-      - sent:
-        - state: wait-auth
-        - stop
-      - send-failed:
-        - state: auth-error
-        - stop
+- Process: Validate: V-LoginForm
+  - case: invalid
+    - state: validation-error
+    - stop
+  - case: valid
+    - continue
+- Process: Preprocess
+  - when: state is auth-error
+  - update:
+    - target: L-MessageArea
+    - content: Empty message
+- Process: HttpRequest
+  - POST /login
+    - email: E-EmailInput.value
+    - password: E-PasswordInput.value
+  - case: sent
+    - state: wait-auth
+    - stop
+  - case: send-failed
+    - state: auth-error
+    - stop
 
 ### A2:A-AuthResponse Handle auth response
 
@@ -1558,20 +1559,18 @@ process steps.
   - A-SubmitLogin.response
 - From
   - wait-auth
-- Process
-  - HttpResponse
-    - cases:
-      - success:
-        - response: 2xx authenticated user
-        - navigate: SCR-DASHBOARD
-        - stop
-      - failure:
-        - response: 401 invalid credentials
-        - state: auth-error
-        - stop
-        - update:
-          - target: L-MessageArea
-          - content: Authentication error message
+- Process: HttpResponse
+  - case: success
+    - response: 2xx authenticated user
+    - navigate: SCR-DASHBOARD
+    - stop
+  - case: failure
+    - response: 401 invalid credentials
+    - state: auth-error
+    - stop
+    - update:
+      - target: L-MessageArea
+      - content: Authentication error message
 
 ### A4:A-ValidateEmail Validate email
 
@@ -1580,19 +1579,17 @@ process steps.
 - From
   - idle
   - validation-error
-- Process
-  - Validate: V-Email
-    - cases:
-      - empty:
-        - state: validation-error
-        - update:
-          - target: L-EmailValidation
-          - content: Email is required.
-      - valid:
-        - state: idle
-        - update:
-          - target: L-EmailValidation
-          - content: Empty email validation
+- Process: Validate: V-Email
+  - case: empty
+    - state: validation-error
+    - update:
+      - target: L-EmailValidation
+      - content: Email is required.
+  - case: valid
+    - state: idle
+    - update:
+      - target: L-EmailValidation
+      - content: Empty email validation
 ```
 
 Action heading form:
@@ -1610,92 +1607,91 @@ Preferred action groups:
   - screen.load
 - From
   - <state>
-- Process
-  - Validate: <validation-id>
-    - cases:
-      - <result>:
-        - state: <state>
-        - stop | continue
-  - <step-name>
-    - when: <condition>
-    - skip when: <condition>
+- Process: Validate: <validation-id>
+  - case: <result>
+    - state: <state>
+    - stop | continue
+- Process: <step-name>
+  - when: <condition>
+  - skip when: <condition>
+  - update:
+    - target: <layout-id-or-element-id>
+    - content: <description>
+- Process: HttpRequest
+  - <method> <path>
+    - <name>: <source>
+  - case: sent
+    - state: <state>
+    - stop
+- Process: ServerCall
+  - <service-method>
+  - case: success
+    - response: <definition>
+    - model: ${model.<name>} = <source-field>
+    - model: ${model.<name>.loaded} = true
+- Process: HttpResponse
+  - case: <result>
+    - response: <definition>
+    - state: <state>
+    - navigate: <screen-id>
     - update:
       - target: <layout-id-or-element-id>
       - content: <description>
-  - HttpRequest
-    - <method> <path>
-      - <name>: <source>
-    - cases:
-      - sent:
-        - state: <state>
-        - stop
-  - ServerCall
-    - <service-method>
-    - ${model.<name>}: <source-field>
-    - ${model.<name>.loaded}: true
-  - HttpResponse
-    - cases:
-      - <result>:
-        - response: <definition>
-        - state: <state>
-        - navigate: <screen-id>
-        - update:
-          - target: <layout-id-or-element-id>
-          - content: <description>
 ```
 
 Request parameter bullets define how a request payload or form submission is
 built. Use element sources such as `E-EmailInput.value` when the value comes
 from a visible input.
 
-Under a process step `cases:` block, add `stop` or `continue` to describe what
-happens after that case. `stop` ends the action process at that case.
+Under a process step `case: <name>` branch, add `stop` or `continue` to
+describe what happens after that case. `stop` ends the action process at that case.
 `continue` advances to the next process step, and omitted flow is treated as
 `continue`. For example, `Validate.invalid` should usually `stop` so the
 request step is not sent, while `Validate.valid` can `continue`. Arbitrary
 jumps such as `next: <step>` are not part of the current DSL.
 
 When an action starts multiple operations in parallel and decides after all of
-them complete, add `parallel: <group-id>` to each participating process step and
-put the aggregate decision in `Resolve: <group-id>`. Parallel step cases should
+them complete, add `group: <group-id>` to each participating `Process:` step and
+put the aggregate decision in `Process: Resolve` with the same `group`. Parallel step cases should
 record their response or model updates and `continue`; final `state`,
-`navigate`, and `stop` decisions belong in the `Resolve` step. MarkVSpec warns
+`navigate`, and `stop` decisions belong in the resolve step. MarkVSpec warns
 when a parallel step case uses `stop`, `state`, or `navigate`.
 
 ```markdown
-- Process
-  - ServerCall
-    - parallel: initial-load
-    - MemberQueryService.findSelfProfile()
-    - cases:
-      - success:
-        - response: 200 member profile
-        - ${model.memberProfile.loaded}: true
-        - continue
-      - failure:
-        - response: 5xx or timeout
-        - continue
-  - ServerCall
-    - parallel: initial-load
-    - PointQueryService.findSelfPoints()
-    - cases:
-      - success:
-        - response: 200 points
-        - ${model.points.loaded}: true
-        - continue
-      - failure:
-        - response: 5xx or timeout
-        - continue
-  - Resolve: initial-load
-    - cases:
-      - ready:
-        - response: profile and points loaded
-        - state: idle
-        - stop
-      - failed:
-        - response: one or more calls failed
-        - state: load-error
-        - stop
+- Process: ServerCall
+  - group: initial-load
+  - MemberQueryService.findSelfProfile()
+  - case: success
+    - response: 200 member profile
+    - Effects
+      - model: ${model.memberProfile.loaded} = true
+    - continue
+  - case: failure
+    - response: 5xx or timeout
+    - continue
+- Process: ServerCall
+  - group: initial-load
+  - PointQueryService.findSelfPoints()
+  - case: success
+    - response: 200 points
+    - Effects
+      - model: ${model.points.loaded} = true
+    - continue
+  - case: failure
+    - response: 5xx or timeout
+    - continue
+- Process: Resolve
+  - group: initial-load
+  - case: ready
+    - response: profile and points loaded
+    - Effects
+      - state: idle
+    - stop
+  - case: failed
+    - response: one or more calls failed
+    - Effects
+      - state: load-error
+    - stop
 ```
 
 Use `ServerCall` when the screen behavior calls an application library or
@@ -1727,36 +1723,33 @@ ready.
   - A-LoadMemberProfile.response
 - From
   - initializing
-- Process
-  - EvaluateHomeData
-    - cases:
-      - ready:
-        - response: ${model.memberProfile.loaded} and ${model.points.loaded}
-        - state: idle
-      - still-loading:
-        - response: one or more required client calls are still loading
-        - state: initializing
+- Process: EvaluateHomeData
+  - case: ready
+    - response: ${model.memberProfile.loaded} and ${model.points.loaded}
+    - state: idle
+  - case: still-loading
+    - response: one or more required client calls are still loading
+    - state: initializing
 ```
 
 Action-level `When` guards are not supported. Keep operation availability close
 to the element (`disabled when`) and keep validation rules under
 `Validations`. When an asynchronous result has conditional outcomes, model that
-branching under a process step `cases:` block with named results such as `ready` and
+branching under process step `case: <name>` branches such as `ready` and
 `still-loading`. Use a process-step `when` only when the condition belongs to a
 specific step, such as skipping a preprocessing update; it does not guard the
 action transition itself.
 
 ```markdown
-- Process
-  - HttpRequest
-    - POST /login
-      - email: E-EmailInput.value
-      - password: E-PasswordInput.value
+- Process: HttpRequest
+  - POST /login
+    - email: E-EmailInput.value
+    - password: E-PasswordInput.value
 ```
 
 ## Cases
 
-Process step outcomes belong under the `cases:` block for that process step.
+Process step outcomes belong under `case: <name>` branches for that process step.
 For HTTP requests, cases on the click action describe whether the request could
 be sent. Branches based on HTTP status or response body should be modeled in a
 separate response-handling action such as `A-SubmitLogin.response`.
@@ -1768,20 +1761,17 @@ separate response-handling action such as `A-SubmitLogin.response`.
   - E-SignInButton.click
 - From
   - idle
-- Process
-  - Validate: V-LoginForm
-    - cases:
-      - invalid:
-        - state: validation-error
-  - HttpRequest
-    - POST /login
-      - email: E-EmailInput.value
-      - password: E-PasswordInput.value
-    - cases:
-      - sent:
-        - state: wait-auth
-      - send-failed:
-        - state: auth-error
+- Process: Validate: V-LoginForm
+  - case: invalid
+    - state: validation-error
+- Process: HttpRequest
+  - POST /login
+    - email: E-EmailInput.value
+    - password: E-PasswordInput.value
+  - case: sent
+    - state: wait-auth
+  - case: send-failed
+    - state: auth-error
 
 ### A2:A-HandleLoginResponse Handle login response
 
@@ -1789,18 +1779,16 @@ separate response-handling action such as `A-SubmitLogin.response`.
   - A-SubmitLogin.response
 - From
   - wait-auth
-- Process
-  - HttpResponse
-    - cases:
-      - success:
-        - response: 2xx authenticated user
-        - navigate: SCR-DASHBOARD
-      - failure:
-        - response: 401 invalid credentials
-        - state: auth-error
-        - update:
-          - target: L-MessageArea
-          - content: Authentication error message
+- Process: HttpResponse
+  - case: success
+    - response: 2xx authenticated user
+    - navigate: SCR-DASHBOARD
+  - case: failure
+    - response: 401 invalid credentials
+    - state: auth-error
+    - update:
+      - target: L-MessageArea
+      - content: Authentication error message
 ```
 
 Each result case should also contain at least one meaningful detail:
@@ -1834,15 +1822,13 @@ Partial update bullets:
   - A-SubmitLogin.response
 - From
   - wait-auth
-- Process
-  - HttpResponse
-    - cases:
-      - failure:
-        - response: 401 invalid credentials
-        - state: auth-error
-        - update:
-          - target: L-MessageArea
-          - content: Authentication error message
+- Process: HttpResponse
+  - case: failure
+    - response: 401 invalid credentials
+    - state: auth-error
+    - update:
+      - target: L-MessageArea
+      - content: Authentication error message
 ```
 
 These bullets are intended to model htmx-style partial updates without making
@@ -1853,18 +1839,16 @@ parameters. The following is incomplete because the payload source is present,
 but the request itself is not defined:
 
 ```markdown
-- Process
-  - HttpRequest
-    - email: E-EmailInput.value
+- Process: HttpRequest
+  - email: E-EmailInput.value
 ```
 
 Write the request line explicitly:
 
 ```markdown
-- Process
-  - HttpRequest
-    - POST /login
-      - email: E-EmailInput.value
+- Process: HttpRequest
+  - POST /login
+    - email: E-EmailInput.value
 ```
 
 Use process-step cases when only one outcome updates part of the screen:
@@ -1876,18 +1860,16 @@ Use process-step cases when only one outcome updates part of the screen:
   - A-SubmitLogin.response
 - From
   - wait-auth
-- Process
-  - HttpResponse
-    - cases:
-      - success:
-        - response: 2xx authenticated user
-        - navigate: SCR-DASHBOARD
-      - failure:
-        - response: 401 invalid credentials
-        - state: auth-error
-        - update:
-          - target: L-MessageArea
-          - content: Authentication error message
+- Process: HttpResponse
+  - case: success
+    - response: 2xx authenticated user
+    - navigate: SCR-DASHBOARD
+  - case: failure
+    - response: 401 invalid credentials
+    - state: auth-error
+    - update:
+      - target: L-MessageArea
+      - content: Authentication error message
 ```
 
 In this example, success navigates to `SCR-DASHBOARD`, while failure changes the
@@ -1920,9 +1902,9 @@ followed by the element and action lists relevant to that state. Other states
 are rendered below it with their own wireframes, followed by current element and
 action specifications for that state. MarkVSpec does not need an all-content
 mock mode in the design document. State-specific rendering uses the `States`
-section and visibility conditions such as `visible when: auth-error`; non-state
-conditions remain documented as rules or availability instead of hiding content
-from the mock.
+section and visibility conditions such as `visible when: ${state.auth-error}`.
+Non-state conditions use namespaced sources such as `${view.isHelpPanelOpen}` or
+`${model.profile.loaded}`.
 
 Implementation mapping to htmx/Thymeleaf can be added later without changing the
 main design language:
@@ -1936,6 +1918,100 @@ main design language:
 Supported update modes:
 
 - `replace`
+
+## View Context Section
+
+Use `## View Context` for UI-local display context that changes the view but is
+not a screen state. Examples include the selected tab, current display mode, or
+whether a help panel is open. Keep durable business data in `Model Samples`; use
+View Context for temporary UI context.
+
+```markdown
+## View Context
+
+### isHelpPanelOpen
+
+- type: boolean
+- values:
+  - false*
+  - true
+
+### selectedTab
+
+- type: enum
+- values:
+  - results*
+  - billing
+```
+
+Supported types are `boolean` and `enum`. Boolean values must be `true` or
+`false`. The `*` marker identifies the default value. If no value is marked,
+MarkVSpec falls back to the first listed value.
+
+Use `${view.<name>}` when Elements, Layouts, or Actions refer to View Context:
+
+```markdown
+- visible when: ${view.isHelpPanelOpen}
+```
+
+Actions update View Context with `view:` effects inside a process case:
+
+```markdown
+- Process: Immediate
+  - case: opened
+    - view: ${view.isHelpPanelOpen} = true
+    - view: ${view.selectedTab} = results
+```
+
+## View Context Samples Section
+
+Use `## View Context Samples` to name reusable view-context value sets for
+preview/export.
+
+```markdown
+## View Context Samples
+
+### default
+
+- ${view.isHelpPanelOpen}: false
+- ${view.selectedTab}: results
+
+### help-open
+
+- ${view.isHelpPanelOpen}: true
+- ${view.selectedTab}: billing
+```
+
+If no Preview Scenario specifies `view`, preview/export first uses a sample named
+`default`. If that sample is absent, it uses the default values from
+`## View Context`. View Context definitions without a `*` default fall back to
+their first listed value.
+
+## Preview Scenarios Section
+
+Use `## Preview Scenarios` when state previews need explicit `state`, `model`,
+and `view` combinations. When this section exists, every state in `## States`
+must appear in at least one scenario.
+
+```markdown
+## Preview Scenarios
+
+### idle
+
+- state: idle
+- view: default
+
+### loaded-help
+
+- state: loaded
+- model: loaded
+- view: help-open
+```
+
+If `## Preview Scenarios` is absent, preview/export renders all states. View
+Context fallback follows the same order: `View Context Samples.default`, then
+View Context default values. View Context definitions without a `*` default fall
+back to their first listed value.
 
 ## Validations Section
 
@@ -2203,7 +2279,7 @@ Warnings:
 ```text
 file              = front_matter document_heading section*
 document_heading  = "# " document_id " " title
-section           = states | layout | slot | elements | form_groups | actions | model_samples | validations | business_rules | error_codes | history_fields | history | markdown
+section           = states | layout | slot | elements | form_groups | actions | model_samples | view_context | view_context_samples | preview_scenarios | validations | business_rules | error_codes | history_fields | history | markdown
 states            = "## States" state_bullet*
 layout            = "## Layout:" viewport layout_group*
 slot              = "## Slot:" slot_name (":" viewport)? layout_group*
@@ -2211,6 +2287,12 @@ elements          = "## Elements" element*
 form_groups       = "## Form Groups" form_group*
 actions           = "## Actions" action*
 model_samples     = "## Model Samples" model_sample_set*
+view_context      = "## View Context" view_context_entry*
+view_context_entry = "### " view_name bullet*
+view_context_samples = "## View Context Samples" view_context_sample*
+view_context_sample = "### " sample_name key_value*
+preview_scenarios = "## Preview Scenarios" preview_scenario*
+preview_scenario = "### " scenario_name key_value*
 validations       = "## Validations" validation*
 business_rules    = "## Business Rules" rule*
 error_codes       = "## Error Codes" error_code*
@@ -2220,14 +2302,12 @@ marker_prefix     = marker ":"
 layout_group      = "### " marker_prefix? layout_id " " name bullet*
 element           = "### " marker_prefix? element_id " " element_type required_suffix? bullet*
 action            = "### " marker_prefix? action_id " " action_name action_group*
-action_group      = triggered_group | from_group | process_group | effects_group
+action_group      = triggered_group | from_group | process_group | otherwise_group
 triggered_group   = "- Triggered" nested_bullet*
 from_group        = "- From" nested_bullet*
-process_group     = "- Process" process_step*
-effects_group     = "- Effects" nested_bullet*
-process_step      = nested_bullet process_cases?
-process_cases     = indent "- cases:" result_case*
-result_case       = indent "- " result_name ":" nested_bullet*
+process_group     = "- Process:" process_type process_detail*
+process_case      = indent "- case:" result_name nested_bullet*
+otherwise_group   = "- Otherwise" nested_bullet*
 validation        = "### " validation_id name? bullet*
 rule              = "### " marker_prefix? rule_id name? bullet*
 required_suffix   = "*"

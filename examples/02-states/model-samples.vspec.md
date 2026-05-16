@@ -106,14 +106,12 @@ empty-array syntax.
 - From
   - loaded
   - empty
-- Process
-  - HttpRequest
-    - GET /sample-account
-    - cases:
-      - sent:
-        - state: loaded
-      - send-failed:
-        - state: empty
+- Process: HttpRequest
+  - GET /sample-account
+  - case: sent
+    - state: loaded
+  - case: send-failed
+    - state: empty
 
 ## Model Samples
 

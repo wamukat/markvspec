@@ -25,6 +25,7 @@ import type {
   MarkVSpecLayoutGroup,
   MarkVSpecParseResult,
   MarkVSpecProcessStep,
+  MarkVSpecViewContextDefinition,
   SourceLocation
 } from "./types.js";
 
@@ -53,6 +54,9 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   const validationIds = new Set(result.validations.map((validation) => validation.id));
   const errorCodeIds = new Set(result.errorCodes.map((errorCode) => errorCode.id));
   const stateNames = new Set(result.states.map((state) => state.name));
+  const viewContextNames = new Set(result.viewContexts.map((context) => context.name));
+  const viewContextSampleNames = new Set(result.viewContextSamples.map((sample) => sample.name));
+  const modelSampleGroupNames = new Set(result.modelSampleGroups.map((group) => group.state));
   const localIds = new Set([...semanticLayoutIds, ...semanticSlotContentLayoutIds, ...elementIds, ...actionIds, ...validationIds, ...ruleIds, ...errorCodeIds]);
   const referencedPartialIds = new Map<string, SourceLocation>();
   const allLayoutGroups = [...result.layoutGroups, ...result.slotContents.flatMap((slot) => slot.layoutGroups)];
@@ -65,6 +69,10 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   checkDuplicates(result.rules, "rule", diagnostics);
   checkDuplicates(result.errorCodes, "error code", diagnostics);
   checkDuplicates(result.states.map((state) => ({ id: state.name, location: state.location })), "state", diagnostics);
+  checkDuplicates(result.viewContexts.map((context) => ({ id: context.name, location: context.location })), "view context", diagnostics);
+  checkDuplicates(result.viewContextSamples.map((sample) => ({ id: sample.name, location: sample.location })), "view context sample", diagnostics);
+  checkDuplicates(result.previewScenarios.map((scenario) => ({ id: scenario.name, location: scenario.location })), "preview scenario", diagnostics);
+  validateViewContexts(result, viewContextNames, viewContextSampleNames, stateNames, modelSampleGroupNames, diagnostics);
   checkDuplicateLayoutMarkers(result.layoutGroups.filter((group) => !isPresentationPanelId(group.id)), diagnostics);
   checkConsistentLayoutMarkers(result.layoutGroups.filter((group) => !isPresentationPanelId(group.id)), diagnostics);
   checkMarkers(
@@ -428,7 +436,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
         if (!step.resolveGroup) {
           diagnostics.push({
             severity: "warning",
-            message: `Action ${action.id} Resolve step must specify a parallel group such as Resolve: initial-load.`,
+            message: `Action ${action.id} Resolve step must specify a parallel group with group: initial-load.`,
             line: step.location.line
           });
         } else if (!parallelGroups.has(step.resolveGroup)) {
@@ -566,6 +574,14 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
             severity: "warning",
             message: `Action ${action.id} process step ${step.name} defines ${outcome.result} outcome details but has no ${outcome.result} transition.`,
             line: firstOutcomeLine(outcome) ?? step.location.line
+          });
+        }
+
+        if (isImmediateStep(step.name) && outcome.response && !transitionResults.has(outcome.result)) {
+          diagnostics.push({
+            severity: "warning",
+            message: `Action ${action.id} process step ${step.name} defines ${outcome.result} response but has no ${outcome.result} transition.`,
+            line: outcome.response.location.line
           });
         }
 
@@ -1444,6 +1460,186 @@ function checkConditionReferences(
   }
 }
 
+function validateViewContexts(
+  result: MarkVSpecParseResult,
+  viewContextNames: Set<string>,
+  viewContextSampleNames: Set<string>,
+  stateNames: Set<string>,
+  modelSampleGroupNames: Set<string>,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  const viewContextByName = new Map(result.viewContexts.map((context) => [context.name, context]));
+
+  for (const sample of result.viewContextSamples) {
+    for (const [name, value] of Object.entries(sample.values)) {
+      const definition = viewContextByName.get(name);
+      if (!definition) {
+        diagnostics.push({
+          severity: "error",
+          message: `View Context Sample ${sample.name} references missing view context ${name}.`,
+          line: sample.valueLocations[name]?.[0]?.line ?? sample.location.line
+        });
+        continue;
+      }
+
+      if (!definition.values.some((candidate) => candidate.value === value)) {
+        diagnostics.push({
+          severity: "error",
+          message: `View Context Sample ${sample.name} sets ${name} to unsupported value ${value}.`,
+          line: sample.valueLocations[name]?.[0]?.line ?? sample.location.line
+        });
+      }
+    }
+  }
+
+  if (result.previewScenarios.length > 0) {
+    const coveredStates = new Set<string>();
+    for (const scenario of result.previewScenarios) {
+      if (!scenario.state) {
+        diagnostics.push({
+          severity: "error",
+          message: `Preview Scenario ${scenario.name} must specify state.`,
+          line: scenario.location.line
+        });
+      } else if (!stateNames.has(scenario.state)) {
+        diagnostics.push({
+          severity: "error",
+          message: `Preview Scenario ${scenario.name} references missing state ${scenario.state}.`,
+          line: firstPropertyLine(scenario, "state") ?? scenario.location.line
+        });
+      } else {
+        coveredStates.add(scenario.state);
+      }
+
+      if (scenario.model && !modelSampleGroupNames.has(scenario.model)) {
+        diagnostics.push({
+          severity: "error",
+          message: `Preview Scenario ${scenario.name} references missing model sample ${scenario.model}.`,
+          line: firstPropertyLine(scenario, "model") ?? scenario.location.line
+        });
+      }
+
+      if (scenario.view && !viewContextSampleNames.has(scenario.view)) {
+        diagnostics.push({
+          severity: "error",
+          message: `Preview Scenario ${scenario.name} references missing view context sample ${scenario.view}.`,
+          line: firstPropertyLine(scenario, "view") ?? scenario.location.line
+        });
+      }
+    }
+
+    for (const state of result.states) {
+      if (!coveredStates.has(state.name)) {
+        diagnostics.push({
+          severity: "error",
+          message: `Preview Scenarios must include state ${state.name}.`,
+          line: state.location.line
+        });
+      }
+    }
+  }
+
+  validateConditionNamespaces(result, viewContextNames, stateNames, diagnostics);
+  validateViewContextActionEffects(result, viewContextByName, diagnostics);
+}
+
+function validateConditionNamespaces(
+  result: MarkVSpecParseResult,
+  viewContextNames: Set<string>,
+  stateNames: Set<string>,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  const check = (condition: string, line: number): void => {
+    for (const reference of condition.matchAll(/\$\{(state|view)\.([^}]+)\}/gu)) {
+      const [, namespace, name] = reference;
+      const trimmed = name.trim();
+      if (namespace === "state" && !stateNames.has(trimmed)) {
+        diagnostics.push({
+          severity: "error",
+          message: `Condition references missing state ${trimmed}.`,
+          line
+        });
+      }
+      if (namespace === "view" && !viewContextNames.has(trimmed)) {
+        diagnostics.push({
+          severity: "error",
+          message: `Condition references missing view context ${trimmed}.`,
+          line
+        });
+      }
+    }
+  };
+
+  for (const element of result.elements) {
+    for (const [key, conditions] of [
+      ["visible when", element.visibleWhen],
+      ["hidden when", element.hiddenWhen],
+      ["disabled when", element.disabledWhen]
+    ] as const) {
+      conditions.forEach((condition, index) => check(condition, element.propertyLocations[key]?.[index]?.line ?? element.location.line));
+    }
+  }
+  for (const layout of [...result.layoutGroups, ...result.slotContents.flatMap((slot) => slot.layoutGroups)]) {
+    for (const key of ["visible when", "hidden when", "disabled when", "selected when", "active when"]) {
+      const value = layout.properties[key];
+      if (typeof value === "string") {
+        check(value, firstPropertyLine(layout, key) ?? layout.location.line);
+      }
+    }
+  }
+}
+
+function validateViewContextActionEffects(
+  result: MarkVSpecParseResult,
+  viewContextByName: Map<string, MarkVSpecViewContextDefinition>,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  const check = (sideEffect: string, line: number | undefined): void => {
+    const match = /^view:\s*\$\{view\.([^}]+)\}\s*=\s*(.+)$/u.exec(sideEffect.trim());
+    if (!match) {
+      return;
+    }
+
+    const [, name, rawValue] = match;
+    const value = rawValue.trim();
+    const definition = viewContextByName.get(name.trim());
+    if (!definition) {
+      diagnostics.push({
+        severity: "error",
+        message: `View effect references missing view context ${name.trim()}.`,
+        line
+      });
+      return;
+    }
+
+    if (!definition.values.some((candidate) => candidate.value === value)) {
+      diagnostics.push({
+        severity: "error",
+        message: `View effect sets ${name.trim()} to unsupported value ${value}.`,
+        line
+      });
+    }
+  };
+
+  for (const action of result.actions) {
+    for (const outcome of action.outcomes) {
+      outcome.sideEffects.forEach((sideEffect, index) => {
+        check(sideEffect, outcome.propertyLocations["view"]?.[index]?.line ?? outcome.location?.line);
+      });
+    }
+    for (const step of action.processSteps) {
+      step.sideEffects.forEach((sideEffect, index) => {
+        check(sideEffect, step.propertyLocations["view"]?.[index]?.line ?? step.location.line);
+      });
+      for (const outcome of step.outcomes) {
+        outcome.sideEffects.forEach((sideEffect, index) => {
+          check(sideEffect, outcome.propertyLocations["view"]?.[index]?.line ?? outcome.location?.line);
+        });
+      }
+    }
+  }
+}
+
 function isConditionProperty(key: string): boolean {
   return key === "visible when" || key === "hidden when" || key === "disabled when" || key === "enabled when";
 }
@@ -1476,6 +1672,10 @@ function isHttpRequestStep(name: string): boolean {
 function isPartialRequestStep(name: string): boolean {
   const normalized = name.trim().replace(/\s+/g, " ").toLowerCase();
   return normalized === "partial request" || normalized === "partialrequest";
+}
+
+function isImmediateStep(name: string): boolean {
+  return name.trim().replace(/\s+/g, " ").toLowerCase() === "immediate";
 }
 
 function isResolveStep(name: string): boolean {

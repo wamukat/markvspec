@@ -60,8 +60,10 @@ wireframe and Action Details without introducing request handling.
   - E-ContinueButton.click
 - From
   - idle
-- Process
-  - ModelUpdate
-    - ${model.lastAction}: continue
-- Effects
-  - navigate: SCR-NEXT
+- Process: ModelUpdate
+  - Effects
+    - model: ${model.lastAction} = continue
+- Process: Immediate
+  - case: done
+    - Effects
+      - navigate: SCR-NEXT

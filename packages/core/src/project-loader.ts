@@ -597,6 +597,9 @@ export function composeMarkVSpecTemplate(template: MarkVSpecParseResult, screen:
     historyEntries: [...template.historyEntries, ...screen.historyEntries],
     modelSampleGroups: [...template.modelSampleGroups, ...screen.modelSampleGroups],
     modelSamples: [...template.modelSamples, ...screen.modelSamples],
+    viewContexts: [...template.viewContexts, ...screen.viewContexts],
+    viewContextSamples: [...template.viewContextSamples, ...screen.viewContextSamples],
+    previewScenarios: [...template.previewScenarios, ...screen.previewScenarios],
     sectionProse: composeSectionProse(template, screen),
     notes: [...template.notes, ...screen.notes],
     diagnostics

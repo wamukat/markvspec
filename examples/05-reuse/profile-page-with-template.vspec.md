@@ -83,24 +83,22 @@ It also demonstrates route parameters through `${route.memberId}`.
 - From
   - idle
   - refresh-error
-- Process
-  - PartialRequest
-    - request: GET /members/${route.memberId}/profile-summary
-    - params:
-      - memberId: ${route.memberId}
-    - partial: PRT-PROFILE-SUMMARY
-    - update:
-      - target: L-ProfileSummaryHost
-      - mode: replace
-    - cases:
-      - sent:
-        - response: request accepted
-        - state: refreshing
-        - stop
-      - send-failed:
-        - response: network error
-        - state: refresh-error
-        - stop
+- Process: PartialRequest
+  - request: GET /members/${route.memberId}/profile-summary
+  - params:
+    - memberId: ${route.memberId}
+  - partial: PRT-PROFILE-SUMMARY
+  - update:
+    - target: L-ProfileSummaryHost
+    - mode: replace
+  - case: sent
+    - response: request accepted
+    - state: refreshing
+    - stop
+  - case: send-failed
+    - response: network error
+    - state: refresh-error
+    - stop
 
 ### A2:A-HandleProfileSummaryResponse Handle profile summary response
 
@@ -108,18 +106,16 @@ It also demonstrates route parameters through `${route.memberId}`.
   - A-RefreshProfile.response
 - From
   - refreshing
-- Process
-  - PartialResponse
-    - cases:
-      - success:
-        - response: 200 partial HTML
-        - state: idle
-        - update:
-          - target: L-ProfileSummaryHost
-          - mode: replace
-          - content: PRT-PROFILE-SUMMARY
-        - stop
-      - failure:
-        - response: 5xx or timeout
-        - state: refresh-error
-        - stop
+- Process: PartialResponse
+  - case: success
+    - response: 200 partial HTML
+    - state: idle
+    - update:
+      - target: L-ProfileSummaryHost
+      - mode: replace
+      - content: PRT-PROFILE-SUMMARY
+    - stop
+  - case: failure
+    - response: 5xx or timeout
+    - state: refresh-error
+    - stop

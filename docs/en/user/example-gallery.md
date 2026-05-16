@@ -23,7 +23,7 @@ smallest useful reference:
 - `Form Submit Flow` teaches validation, ModelUpdate, ServerCall,
   stop/continue flow, and success navigation.
 - `Parallel Initial Load` teaches parallel process groups and
-  `Resolve: <group-id>` final state decisions.
+  `Process: Resolve` final state decisions.
 - `Search List` teaches admin list patterns: filters, Select options, Tables,
   paging, loading/empty/error states, Model Updates, Model Samples, and
   response-driven result updates.
@@ -65,7 +65,7 @@ unambiguous.
 | [Responsive Profile](../../../examples/02-states/responsive-profile.vspec.md) | Same content in mobile and desktop layouts. | Viewport-specific layout groups and state-aware actions. |
 | [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | Non-click events and lifecycle triggers. | `change`, `submit`, `focus`, `blur`, `open`, `close`, `screen.load`, and `A-*.response` in one preferences flow. |
 | [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md) | Submit action lifecycle. | Validate, ModelUpdate, ServerCall, flow stop/continue, and success navigation. |
-| [Parallel Initial Load](../../../examples/03-actions/parallel-initial-load.vspec.md) | Parallel server calls with a final resolver. | `parallel: initial-load`, `Resolve: initial-load`, model side effects, and final state decisions. |
+| [Parallel Initial Load](../../../examples/03-actions/parallel-initial-load.vspec.md) | Parallel server calls with a final resolver. | `group: initial-load`, `Process: Resolve`, model side effects, and final state decisions. |
 | [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md) | Display Content Spec field coverage. | `label src`, `placeholder src`, `sample`, `src`, `format`, machine `value`, and navigation `params`. |
 | [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md) | Element type coverage screen using a realistic profile/settings form. | `Textarea`, `MultiSelect`, `CheckboxGroup`, `Switch`, `RadioGroup`, `List`, `Dialog`, `Image`, `Icon`, `Divider`, file inputs, date/time inputs, and number input. |
 | [Search List](../../../examples/04-real-world-screens/search-list.vspec.md) | Search screen with filters and pagination. | Desktop toolbar, Select options, Table, empty state, load-error state, ModelUpdate, Model Samples, and fragment replacement. |

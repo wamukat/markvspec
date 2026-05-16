@@ -292,8 +292,9 @@ viewport: mobile
 
 - From
   - init
-- Effects
-  - state: idle
+- Process: Immediate
+  - Effects
+    - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -418,8 +419,9 @@ viewport: mobile
 - From
   - idle
   - loaded
-- Effects
-  - state: loaded
+- Process: Immediate
+  - Effects
+    - state: loaded
 `;
   const result = parseMarkVSpec(source);
   const loadedModel = buildViewportStateScreenReadModels(result, result)
@@ -656,9 +658,8 @@ viewport: mobile
   - screen.load
 - From
   - idle
-- Process
-  - ServerCall
-    - LoadService.fetch()
+- Process: ServerCall
+  - LoadService.fetch()
 `;
   const result = parseMarkVSpec(source);
   const desktopModel = buildViewportStateScreenReadModels(result, result)
@@ -723,8 +724,8 @@ viewport: mobile
   - screen.load
 - From
   - idle
-- Cases
-  - background:
+- Process: Immediate
+  - case: background
     - from: loading
     - state: idle
 `;
@@ -795,8 +796,9 @@ viewport: mobile
   - E-IdleText.click
 - From
   - idle
-- Effects
-  - state: loading
+- Process: Immediate
+  - Effects
+    - state: loading
 
 ### A2:A-HandleSubmitResponse Handle submit response
 
@@ -804,8 +806,8 @@ viewport: mobile
   - A-Submit.response
 - From
   - loading
-- Cases
-  - success:
+- Process: Immediate
+  - case: success
     - response: 200
     - state: idle
 `;
@@ -907,12 +909,14 @@ viewport: mobile
 
 test("limits State Views layout signatures to state-view-affecting properties and child structure", () => {
   assert.deepEqual([...STATE_VIEW_AFFECTING_LAYOUT_PROPERTY_KEYS], [
+    "active when",
     "align",
     "disabled when",
     "gap",
     "hidden when",
     "justify",
     "overlay",
+    "selected when",
     "variant",
     "visible when"
   ]);
@@ -1042,12 +1046,12 @@ title: Markerless
   - E-SubmitButton.click
 - From
   - idle
-- Process
-  - HttpRequest
-    - POST /login
-      - email: E-メールアドレス入力.value
-- Effects
-  - state: wait-auth
+- Process: HttpRequest
+  - POST /login
+    - email: E-メールアドレス入力.value
+- Process: Immediate
+  - Effects
+    - state: wait-auth
 `;
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });

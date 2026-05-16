@@ -55,6 +55,7 @@ MarkVSpec では、Markdown で画面仕様を書き、VS Code で状態別プ�
 - [書きやすさと品質](maintainers/authoring-quality.md): lint、formatter、validation gate の考え方。
 - [HTML と Markdown 記述の比較](maintainers/html-vs-markdown.md): HTML を主記法にしない理由と使い分け。
 - [プレビュー情報設計](maintainers/preview-information-architecture.md): preview の情報構造を決める内部設計。
+- [View Context 設計メモ](maintainers/view-context.md): `States` からダイアログ表示、選択中タブなどの UI 表示文脈を分離する設計案。
 - [プロジェクト索引設計](maintainers/project-index.md): 複数画面 project index の将来設計。
 - [プロジェクト遷移図](maintainers/project-transition-diagrams.md): project transition diagram の将来設計。
 - [印刷回帰チェック](maintainers/print-regression.md): 印刷・PDF 回帰確認の手順。

@@ -96,19 +96,17 @@ handling. The click action only reaches `loading` after the request is sent.
   - loaded
   - empty
   - load-error
-- Process
-  - HttpRequest
-    - GET /items
-      - page: ${model.page}
-    - cases:
-      - sent:
-        - state: loading
-      - send-failed:
-        - state: load-error
-        - update:
-          - target: L-StatusArea
-          - mode: replace
-          - content: Request could not be sent.
+- Process: HttpRequest
+  - GET /items
+    - page: ${model.page}
+  - case: sent
+    - state: loading
+  - case: send-failed
+    - state: load-error
+    - update:
+      - target: L-StatusArea
+      - mode: replace
+      - content: Request could not be sent.
 
 ### A2:A-HandleItemsResponse Handle items response
 
@@ -116,22 +114,20 @@ handling. The click action only reaches `loading` after the request is sent.
   - A-RefreshItems.response
 - From
   - loading
-- Process
-  - HttpResponse
-    - cases:
-      - success:
-        - response: HTTP 200 with rows
-        - state: loaded
-        - update:
-          - target: E-ItemsTable
-          - mode: replace
-          - content: Latest item rows
-      - empty:
-        - response: HTTP 200 with no rows
-        - state: empty
-      - failure:
-        - response: HTTP error or timeout
-        - state: load-error
+- Process: HttpResponse
+  - case: success
+    - response: HTTP 200 with rows
+    - state: loaded
+    - update:
+      - target: E-ItemsTable
+      - mode: replace
+      - content: Latest item rows
+  - case: empty
+    - response: HTTP 200 with no rows
+    - state: empty
+  - case: failure
+    - response: HTTP error or timeout
+    - state: load-error
 
 ## Model Samples
 

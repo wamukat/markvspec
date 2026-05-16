@@ -11,9 +11,7 @@ type ActionBlock =
   | "triggered"
   | "from"
   | "process"
-  | "effects"
-  | "otherwise"
-  | "cases";
+  | "otherwise";
 
 type ActionNestedBlock = "update" | "params";
 
@@ -25,9 +23,9 @@ export interface ActionParseContext {
   nestedBlockIndent?: number;
   processStep?: MarkVSpecProcessStep;
   rejectedProcessStepIndent?: number;
-  processCaseBlockIndent?: number;
   processOutcome?: string;
   processOutcomeIndent?: number;
+  processEffectsIndent?: number;
 }
 
 export function createActionParseContext(): ActionParseContext {
@@ -41,6 +39,53 @@ export function applyActionBulletToContext(
   diagnostics: MarkVSpecDiagnostic[] = []
 ): ActionParseContext {
   if (bullet.indent === 0) {
+    const inlineProcess = parseInlineProcess(bullet.text);
+    if (inlineProcess) {
+      const normalizedProcess = normalizeBlockLabel(inlineProcess);
+      if (isHttpRequestLine(inlineProcess)) {
+        diagnostics.push({
+          severity: "warning",
+          message: `Action ${action.id} has malformed Process entry: ${inlineProcess}. Put request lines under an HttpRequest step.`,
+          line: bullet.location.line
+        });
+        return { block: "process", rejectedProcessStepIndent: bullet.indent };
+      }
+      const [inlineProcessKey, inlineProcessValue] = splitKeyValue(inlineProcess);
+      const normalizedInlineProcessKey = normalizeBlockLabel(inlineProcessKey);
+      if (inlineProcessValue !== undefined && normalizedInlineProcessKey !== "validate" && normalizedInlineProcessKey !== "resolve") {
+        diagnostics.push({
+          severity: "warning",
+          message: `Action ${action.id} has malformed Process entry: ${inlineProcess}. Start with a process step such as HttpRequest.`,
+          line: bullet.location.line
+        });
+        return { block: "process", rejectedProcessStepIndent: bullet.indent };
+      }
+      if (normalizedProcess === "client call" || normalizedProcess === "clientcall") {
+        diagnostics.push({
+          severity: "warning",
+          message: `Action ${action.id} process step ${inlineProcess} is not supported. Use ServerCall instead.`,
+          line: bullet.location.line
+        });
+        return { block: "process", rejectedProcessStepIndent: bullet.indent };
+      }
+
+      const step = createProcessStep(inlineProcessValue === undefined ? inlineProcess : inlineProcessKey.trim(), bullet.indent, bullet.location);
+      if (inlineProcessValue !== undefined && normalizedInlineProcessKey === "validate") {
+        step.details.push({
+          key: "validation",
+          value: inlineProcessValue.trim(),
+          location: bullet.location
+        });
+        addPropertyLocation(step.propertyLocations, "validation", bullet.location);
+      }
+      if (inlineProcessValue !== undefined && normalizedInlineProcessKey === "resolve") {
+        step.resolveGroup = inlineProcessValue.trim();
+        addPropertyLocation(step.propertyLocations, "resolve", bullet.location);
+      }
+      action.processSteps.push(step);
+      return { block: "process", processStep: step };
+    }
+
     const block = parseActionBlock(bullet.text);
     if (block) {
       return { block, outcome: block === "otherwise" ? "otherwise" : undefined };
@@ -48,7 +93,7 @@ export function applyActionBulletToContext(
 
     diagnostics.push({
       severity: "warning",
-      message: `Action ${action.id} has unsupported top-level entry: ${bullet.text}. Use Triggered, From, Process, Effects, Otherwise, or Cases.`,
+      message: `Action ${action.id} has unsupported top-level entry: ${bullet.text}. Use Triggered, From, Process: <type>, or Otherwise.`,
       line: bullet.location.line
     });
     return {};
@@ -73,11 +118,6 @@ export function applyActionBulletToContext(
     action.properties["from"] = action.fromStates.join(", ");
     addPropertyLocation(action.propertyLocations, "from", bullet.location);
     return { block: context.block };
-  }
-
-  if (context.block === "effects") {
-    applyActionStructuredEffect(action, undefined, bullet, activeNestedBlock(context, bullet), diagnostics);
-    return { block: context.block, ...nextNestedContext(bullet, context) };
   }
 
   if (context.block === "otherwise") {
@@ -138,12 +178,42 @@ export function applyActionBulletToContext(
         return { block: context.block, processStep: context.processStep, ...nextNestedContext(bullet, context) };
       }
 
-      if (context.processCaseBlockIndent !== undefined && bullet.indent > context.processCaseBlockIndent) {
-        return applyProcessStepCaseBullet(action, context.processStep, bullet, context, diagnostics);
+      if (context.processOutcome && context.processOutcomeIndent !== undefined && bullet.indent > context.processOutcomeIndent) {
+        return applyProcessStepDirectCaseBullet(action, context.processStep, bullet, context, diagnostics);
+      }
+
+      if (context.processEffectsIndent !== undefined && bullet.indent > context.processEffectsIndent) {
+        applyProcessStepEffect(action, context.processStep, bullet, activeNestedBlock(context, bullet), diagnostics);
+        return {
+          block: context.block,
+          processStep: context.processStep,
+          processEffectsIndent: context.processEffectsIndent,
+          ...nextNestedContext(bullet, context)
+        };
+      }
+
+      const directCaseName = parseDirectCaseName(bullet.text);
+      if (directCaseName) {
+        getProcessStepOutcome(context.processStep, directCaseName, bullet.location);
+        return {
+          block: context.block,
+          processStep: context.processStep,
+          processOutcome: directCaseName,
+          processOutcomeIndent: bullet.indent
+        };
       }
 
       if (isCasesBlock(bullet.text)) {
-        return { block: context.block, processStep: context.processStep, processCaseBlockIndent: bullet.indent };
+        diagnostics.push({
+          severity: "warning",
+          message: `Action ${action.id} process step ${context.processStep.name} uses removed cases block syntax. Use direct case: <name> entries under Process: ${context.processStep.name}.`,
+          line: bullet.location.line
+        });
+        return { block: context.block, processStep: context.processStep, rejectedProcessStepIndent: bullet.indent };
+      }
+
+      if (normalizeBlockLabel(bullet.text) === "effects") {
+        return { block: context.block, processStep: context.processStep, processEffectsIndent: bullet.indent };
       }
 
       applyProcessStepBullet(action, context.processStep, bullet, activeNestedBlock(context, bullet), diagnostics);
@@ -152,35 +222,6 @@ export function applyActionBulletToContext(
     diagnostics.push({
       severity: "warning",
       message: `Action ${action.id} has malformed Process entry: ${bullet.text}. Start with a process step such as HttpRequest.`,
-      line: bullet.location.line
-    });
-    return { block: context.block };
-  }
-
-  if (context.block === "cases") {
-    const outcomeName = context.outcome && isProcessCaseFlowDirective(bullet.text) ? undefined : parseOutcomeName(bullet.text);
-    if (outcomeName && !isStructuredEffectKey(bullet.text)) {
-      getActionOutcome(action, outcomeName, bullet.location);
-      return { block: context.block, outcome: outcomeName, outcomeIndent: bullet.indent };
-    }
-
-    if (context.outcome) {
-      if (context.outcomeIndent !== undefined && bullet.indent <= context.outcomeIndent) {
-        diagnostics.push({
-          severity: "warning",
-          message: `Action ${action.id} has malformed Cases entry: ${bullet.text}. Nest case details under ${context.outcome}.`,
-          line: bullet.location.line
-        });
-        return { block: context.block, outcome: context.outcome, outcomeIndent: context.outcomeIndent, ...nextNestedContext(bullet, context) };
-      }
-
-      applyActionStructuredEffect(action, context.outcome, bullet, activeNestedBlock(context, bullet), diagnostics);
-      return { block: context.block, outcome: context.outcome, outcomeIndent: context.outcomeIndent, ...nextNestedContext(bullet, context) };
-    }
-
-    diagnostics.push({
-      severity: "warning",
-      message: `Action ${action.id} has malformed Cases entry: ${bullet.text}. Start each case with a result name such as success:.`,
       line: bullet.location.line
     });
     return { block: context.block };
@@ -201,33 +242,33 @@ function parseActionBlock(text: string): ActionBlock | undefined {
   if (normalized === "from") {
     return "from";
   }
-  if (normalized === "process") {
-    return "process";
-  }
-  if (normalized === "effects") {
-    return "effects";
-  }
   if (normalized === "otherwise") {
     return "otherwise";
-  }
-  if (normalized === "cases") {
-    return "cases";
   }
   return undefined;
 }
 
-function parseOutcomeName(text: string): string | undefined {
-  const normalized = text.trim().replace(/:$/, "").trim();
-  return /^[A-Za-z][A-Za-z0-9_-]*$/.test(normalized) ? normalized : undefined;
+function parseInlineProcess(text: string): string | undefined {
+  const [key, value] = splitKeyValue(text);
+  return normalizeBlockLabel(key) === "process" && value !== undefined && value.trim()
+    ? value.trim()
+    : undefined;
+}
+
+function parseDirectCaseName(text: string): string | undefined {
+  const [key, value] = splitKeyValue(text);
+  return normalizeBlockLabel(key) === "case" && value !== undefined && /^[A-Za-z][A-Za-z0-9_-]*$/.test(value.trim())
+    ? value.trim()
+    : undefined;
+}
+
+function normalizeBlockLabel(text: string): string {
+  return text.trim().replace(/:$/, "").trim().toLowerCase();
 }
 
 function isProcessCaseFlowDirective(text: string): boolean {
   const normalized = text.trim().toLowerCase();
   return normalized === "stop" || normalized === "continue";
-}
-
-function normalizeBlockLabel(text: string): string {
-  return text.trim().replace(/:$/, "").trim().toLowerCase();
 }
 
 function parseProcessStepName(text: string): string | undefined {
@@ -309,15 +350,15 @@ function applyProcessStepBullet(
 
   const isHttpRequestStep = normalizedStep === "http request" || normalizedStep === "httprequest";
 
-  if (key === "parallel" && value !== undefined) {
-    step.parallelGroup = value;
-    addPropertyLocation(step.propertyLocations, "parallel", bullet.location);
+  if (normalizedStep === "resolve" && (key === "resolve" || key === "group") && value !== undefined) {
+    step.resolveGroup = value;
+    addPropertyLocation(step.propertyLocations, key, bullet.location);
     return;
   }
 
-  if (normalizedStep === "resolve" && key === "resolve" && value !== undefined) {
-    step.resolveGroup = value;
-    addPropertyLocation(step.propertyLocations, "resolve", bullet.location);
+  if ((key === "parallel" || key === "group") && value !== undefined) {
+    step.parallelGroup = value;
+    addPropertyLocation(step.propertyLocations, key, bullet.location);
     return;
   }
 
@@ -325,7 +366,7 @@ function applyProcessStepBullet(
     if (value !== undefined && isUpdateEffectKey(key)) {
       diagnostics.push({
         severity: "warning",
-        message: `Action ${action.id} HttpRequest has unsupported entry: ${bullet.text}. Use request parameter entries or move update details under a Cases update block.`,
+        message: `Action ${action.id} HttpRequest has unsupported entry: ${bullet.text}. Use request parameter entries or move update details under a case update block.`,
         line: bullet.location.line
       });
       return;
@@ -368,6 +409,12 @@ function applyProcessStepBullet(
   if (key === "skip when") {
     step.skipWhen.push(value);
     addPropertyLocation(step.propertyLocations, "skip when", bullet.location);
+    return;
+  }
+
+  if (key === "target" && normalizeBlockLabel(step.name) === "validate") {
+    step.target = value;
+    addPropertyLocation(step.propertyLocations, "target", bullet.location);
     return;
   }
 
@@ -420,59 +467,43 @@ function isServerCallStep(normalizedStep: string): boolean {
   return normalizedStep === "server call" || normalizedStep === "servercall";
 }
 
-function applyProcessStepCaseBullet(
+function applyProcessStepDirectCaseBullet(
   action: MarkVSpecAction,
   step: MarkVSpecProcessStep,
   bullet: ActionBulletInput,
   context: ActionParseContext,
   diagnostics: MarkVSpecDiagnostic[]
 ): ActionParseContext {
-  const outcomeName = isProcessCaseFlowDirective(bullet.text) ? undefined : parseOutcomeName(bullet.text);
-  if (outcomeName && !isStructuredEffectKey(bullet.text)) {
-    getProcessStepOutcome(step, outcomeName, bullet.location);
+  const outcomeName = context.processOutcome;
+  if (!outcomeName || context.processOutcomeIndent === undefined) {
+    return { block: "process", processStep: step };
+  }
+
+  if (bullet.indent <= context.processOutcomeIndent) {
+    return { block: "process", processStep: step };
+  }
+
+  const normalized = normalizeBlockLabel(bullet.text);
+  if (normalized === "effects") {
     return {
       block: "process",
       processStep: step,
-      processCaseBlockIndent: context.processCaseBlockIndent,
       processOutcome: outcomeName,
-      processOutcomeIndent: bullet.indent
-    };
-  }
-
-  if (context.processOutcome) {
-    if (context.processOutcomeIndent !== undefined && bullet.indent <= context.processOutcomeIndent) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Action ${action.id} process step ${step.name} has malformed cases entry: ${bullet.text}. Nest case details under ${context.processOutcome}.`,
-        line: bullet.location.line
-      });
-      return {
-        block: "process",
-        processStep: step,
-        processCaseBlockIndent: context.processCaseBlockIndent,
-        processOutcome: context.processOutcome,
-        processOutcomeIndent: context.processOutcomeIndent,
-        ...nextNestedContext(bullet, context)
-      };
-    }
-
-    applyProcessStepCaseEffect(action, step, context.processOutcome, bullet, activeNestedBlock(context, bullet), diagnostics);
-    return {
-      block: "process",
-      processStep: step,
-      processCaseBlockIndent: context.processCaseBlockIndent,
-      processOutcome: context.processOutcome,
       processOutcomeIndent: context.processOutcomeIndent,
-      ...nextNestedContext(bullet, context)
+      processEffectsIndent: bullet.indent
     };
   }
 
-  diagnostics.push({
-    severity: "warning",
-    message: `Action ${action.id} process step ${step.name} has malformed cases entry: ${bullet.text}. Start each case with a result name such as success:.`,
-    line: bullet.location.line
-  });
-  return { block: "process", processStep: step, processCaseBlockIndent: context.processCaseBlockIndent };
+  const nestedBlock = activeNestedBlock(context, bullet);
+  applyProcessStepCaseEffect(action, step, outcomeName, bullet, nestedBlock, diagnostics);
+  return {
+    block: "process",
+    processStep: step,
+    processOutcome: outcomeName,
+    processOutcomeIndent: context.processOutcomeIndent,
+    processEffectsIndent: context.processEffectsIndent,
+    ...nextNestedContext(bullet, context)
+  };
 }
 
 function applyProcessStepCaseEffect(
@@ -485,6 +516,65 @@ function applyProcessStepCaseEffect(
 ): void {
   const outcome = getProcessStepOutcome(step, result, bullet.location);
   applyStructuredEffectToOutcome(action, outcome, result, bullet, currentNestedBlock, diagnostics, `process step ${step.name} case ${result}`);
+}
+
+function applyProcessStepEffect(
+  action: MarkVSpecAction,
+  step: MarkVSpecProcessStep,
+  bullet: ActionBulletInput,
+  currentNestedBlock: ActionNestedBlock | undefined,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  const [keyPart, valuePart] = splitKeyValue(bullet.text);
+  const key = keyPart.trim();
+  const value = valuePart?.trim();
+
+  if (value === undefined) {
+    return;
+  }
+
+  const sideEffect = structuredSideEffect(key, value);
+  if (sideEffect) {
+    step.sideEffects.push(sideEffect);
+    addPropertyLocation(step.propertyLocations, key, bullet.location);
+    return;
+  }
+
+  if (key === "state" || key === "navigate") {
+    for (const from of action.fromStates) {
+      action.transitions.push({
+        from,
+        to: value,
+        location: bullet.location,
+        raw: `${key}: ${value}`
+      });
+    }
+    return;
+  }
+
+  if (key === "update") {
+    return;
+  }
+
+  if (isUpdateEffectKey(key)) {
+    if (currentNestedBlock === "update") {
+      applyActionEffect(step, key, value, bullet.location);
+      return;
+    }
+
+    diagnostics.push({
+      severity: "warning",
+      message: `Action ${action.id} process step ${step.name} has unsupported Effects entry: ${bullet.text}. Put update details under an update block.`,
+      line: bullet.location.line
+    });
+    return;
+  }
+
+  diagnostics.push({
+    severity: "warning",
+    message: `Action ${action.id} process step ${step.name} has unsupported Effects entry: ${bullet.text}. Use model, view, state, navigate, or update.`,
+    line: bullet.location.line
+  });
 }
 
 function applyActionStructuredEffect(
@@ -501,7 +591,7 @@ function applyActionStructuredEffect(
   if (value === undefined && result && isProcessCaseFlowDirective(key)) {
     diagnostics.push({
       severity: "warning",
-      message: `Action ${action.id} case ${result} has unsupported flow directive ${key}. Use stop or continue only under a process step cases block.`,
+      message: `Action ${action.id} case ${result} has unsupported flow directive ${key}. Use stop or continue only under a process case block.`,
       line: bullet.location.line
     });
     return;
@@ -610,8 +700,9 @@ function applyStructuredEffectToOutcome(
     return;
   }
 
-  if (isModelAssignmentKey(key)) {
-    outcome.sideEffects.push(`${key}: ${value}`);
+  const sideEffect = structuredSideEffect(key, value);
+  if (sideEffect) {
+    outcome.sideEffects.push(sideEffect);
     addPropertyLocation(outcome.propertyLocations, key, bullet.location);
     return;
   }
@@ -685,8 +776,14 @@ function isUpdateEffectKey(key: string): boolean {
   return key === "target" || key === "mode" || key === "fragment" || key === "content" || key === "side effect";
 }
 
-function isModelAssignmentKey(key: string): boolean {
-  return /^\$\{model\.[^}]+\}$/.test(key);
+function structuredSideEffect(key: string, value: string): string | undefined {
+  if (key === "model" && /^\$\{model\.[^}]+\}\s*=/.test(value)) {
+    return `${key}: ${value}`;
+  }
+  if (key === "view" && /^\$\{view\.[^}]+\}\s*=/.test(value)) {
+    return `${key}: ${value}`;
+  }
+  return undefined;
 }
 
 function applyActionEffect(
@@ -749,15 +846,6 @@ function nextNestedContext(bullet: ActionBulletInput, context: ActionParseContex
   }
 
   return {};
-}
-
-function isStructuredEffectKey(text: string): boolean {
-  const [key, value] = splitKeyValue(text);
-  const normalized = key.trim();
-  if (normalized === "params") {
-    return true;
-  }
-  return value !== undefined && ["response", "from", "state", "navigate", "update", "target", "mode", "fragment", "content", "side effect"].includes(normalized);
 }
 
 function getActionOutcome(action: MarkVSpecAction, result: string, location?: SourceLocation): MarkVSpecActionOutcome {
