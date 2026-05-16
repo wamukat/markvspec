@@ -1505,8 +1505,9 @@ overview code block
     - page: \${model.requestedPage}
 - Process P1: Submit request
   - case: success
-    - model: \${model.requestedPage} = \${model.nextPage}
-    - state: loading
+    - Effects
+      - model: \${model.requestedPage} = \${model.nextPage}
+      - state: loading
 
 備考をこういうところに書きたいよね。
 `;
@@ -3607,9 +3608,10 @@ title: List
   - idle
 - Process: Immediate
   - case: success
-    - navigate: SCR-DETAIL
     - params:
       - noticeId: \${model.notice.noticeId}
+    - Effects
+      - navigate: SCR-DETAIL
 
 ### A-StepOpenNotice Open notice after request
 
@@ -3620,9 +3622,10 @@ title: List
 - Process: HttpRequest
   - GET /notices/current
   - case: success
-    - navigate: SCR-DETAIL
     - params:
       - extra: \${model.notice.extra}
+    - Effects
+      - navigate: SCR-DETAIL
 `;
   const detailSource = `---
 id: SCR-DETAIL
@@ -3651,7 +3654,7 @@ route: /notices/:noticeId
     [
       ["error", "Project navigation from SCR-LIST element E-お知らせリンク to SCR-DETAIL is missing route parameter noticeId.", lineNumber(listSource, "  - extra: \${model.notice.extra}")],
       ["warning", "Project navigation from SCR-LIST element E-お知らせリンク to SCR-DETAIL defines route parameter extra, but target route /notices/:noticeId has no matching placeholder.", lineNumber(listSource, "  - extra: \${model.notice.extra}")],
-      ["error", "Project navigation from SCR-LIST action A-StepOpenNotice to SCR-DETAIL is missing route parameter noticeId.", lineNumber(listSource, "  - GET /notices/current") + 2],
+      ["error", "Project navigation from SCR-LIST action A-StepOpenNotice to SCR-DETAIL is missing route parameter noticeId.", lineNumber(listSource, "      - navigate: SCR-DETAIL", 2)],
       ["warning", "Project navigation from SCR-LIST action A-StepOpenNotice to SCR-DETAIL defines route parameter extra, but target route /notices/:noticeId has no matching placeholder.", lineNumber(listSource, "      - extra: \${model.notice.extra}")]
     ]
   );
@@ -5620,8 +5623,9 @@ title: Input Contract
 - Process: Validate: V-メール形式.result
 - Process: Immediate
   - case: validationError
-    - state: idle
     - error code: ERR-EMAIL-FORMAT
+    - Effects
+      - state: idle
 
 ## Validations
 
@@ -5990,9 +5994,10 @@ title: Outcome
   - service.response
 - Process: Immediate
   - case: failure
-    - update:
-      - target: L-Message
-      - content: Failure message
+    - Effects
+      - update:
+        - target: L-Message
+        - content: Failure message
 `;
   const result = parseMarkVSpec(source);
 
@@ -6007,7 +6012,7 @@ title: Outcome
       [
         "warning",
         "Action A-Submit process step Immediate defines failure outcome details but has no failure transition.",
-        lineNumber(source, "      - target: L-Message")
+        lineNumber(source, "        - target: L-Message")
       ]
     ]
   );
@@ -6399,8 +6404,9 @@ title: Server Call
     - includePreferences: true
   - case: success
     - response: ApiBridgeResult.Success<MemberProfileDto>
-    - model: \${model.memberProfile.displayName} = MemberProfileDto.displayName
-    - state: idle
+    - Effects
+      - model: \${model.memberProfile.displayName} = MemberProfileDto.displayName
+      - state: idle
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-Load");
@@ -6508,8 +6514,9 @@ route: /mypage/partials/notices
   - NoticeQueryService.findLatest()
   - case: success
     - response: 200 notices
-    - model: \${model.notices.items} = result.items
-    - state: loaded
+    - Effects
+      - model: \${model.notices.items} = result.items
+      - state: loaded
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-Build");
@@ -6634,9 +6641,10 @@ title: Viewport Targets
 - Process: Immediate
   - case: failure
     - transition: idle -> error
-    - update:
-      - target: L-Message
-      - content: Failed
+    - Effects
+      - update:
+        - target: L-Message
+        - content: Failed
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
@@ -6693,10 +6701,11 @@ title: Slot Target
 - Process: Immediate
   - case: success
     - response: ok
-    - state: idle
-    - update:
-      - target: L-Card
-      - content: Ready content
+    - Effects
+      - state: idle
+      - update:
+        - target: L-Card
+        - content: Ready content
 `;
   const result = parseMarkVSpec(source);
 
@@ -6799,9 +6808,10 @@ title: Route Params
   - idle
 - Process: Immediate
   - case: success
-    - navigate: SCR-DETAIL
     - params:
       - id: E-Missing.value
+    - Effects
+      - navigate: SCR-DETAIL
 `;
   const result = parseMarkVSpec(source);
 
@@ -6842,7 +6852,8 @@ title: Response
   - case: success
     - response: 2xx
   - case: failure
-    - state: idle
+    - Effects
+      - state: idle
 `;
   const result = parseMarkVSpec(source);
 
@@ -6914,6 +6925,75 @@ title: Incomplete Action
     ]
   );
   assert.equal(action?.processSteps.find((step) => step.name === "Immediate")?.outcomes.find((outcome) => outcome.result === "success")?.flow, "stop");
+});
+
+test("validates process case flow directive placement", () => {
+  const source = `---
+id: SCR-FLOW-PLACEMENT
+type: screen
+title: Flow Placement
+---
+
+# SCR-FLOW-PLACEMENT Flow Placement
+
+## States
+
+- idle*
+- done
+
+## Actions
+
+### A-Valid Valid flow
+
+- Triggered
+  - screen.load
+- From
+  - idle
+- Process: Immediate
+  - case: success
+    - Effects
+      - state: done
+    - stop
+
+### A-Invalid Invalid flow
+
+- Triggered
+  - screen.load
+- From
+  - idle
+- Process: Immediate
+  - case: under-effects
+    - Effects
+      - state: done
+      - stop
+  - case: non-final
+    - stop
+    - Effects
+      - state: done
+  - case: both
+    - continue
+    - stop
+`;
+  const result = parseMarkVSpec(source);
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert(!messages.some((message) => message.includes("A-Valid") && message.includes("flow")));
+  assert(messages.includes("Action A-Invalid process step Immediate case under-effects has stop under Effects. Put stop directly under the case as the final entry."));
+  assert(messages.includes("Action A-Invalid process step Immediate case non-final has entries after stop. Put stop as the final entry in the case."));
+  assert(messages.includes("Action A-Invalid process step Immediate case both has both stop and continue. Use only one flow directive."));
+  assert(messages.includes("Action A-Invalid process step Immediate case both has entries after continue. Put continue as the final entry in the case."));
+  assert.equal(
+    result.diagnostics.find((diagnostic) => diagnostic.message.includes("under-effects has stop under Effects"))?.line,
+    lineNumber(source, "      - stop")
+  );
+  assert.equal(
+    result.diagnostics.find((diagnostic) => diagnostic.message.includes("non-final has entries after stop"))?.line,
+    lineNumber(source, "      - state: done", 3)
+  );
+  assert.equal(
+    result.diagnostics.find((diagnostic) => diagnostic.message.includes("both has both stop and continue"))?.line,
+    lineNumber(source, "    - stop", 3)
+  );
 });
 
 test("warns for an HttpRequest step without its own request line", () => {
@@ -7824,9 +7904,10 @@ viewport: mobile
   - idle
 - Process: Immediate
   - case: success
-    - update:
-      - target: P-Fields
-      - content: refreshed fields
+    - Effects
+      - update:
+        - target: P-Fields
+        - content: refreshed fields
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
@@ -8362,11 +8443,12 @@ title: Partial Reference
   - partial: PRT-OTHER-LIST
 - Process: Immediate
   - case: success
-    - state: idle
-    - update:
-      - target: L-PartialHost
-      - mode: replace
-      - content: PRT-RESULT-LIST
+    - Effects
+      - state: idle
+      - update:
+        - target: L-PartialHost
+        - mode: replace
+        - content: PRT-RESULT-LIST
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
@@ -9094,8 +9176,9 @@ title: Malformed Action
     - target: L-MessageArea
 - Process: Immediate
   - case: failure
-    - update:
-      - target: L-FirstMessageArea
+    - Effects
+      - update:
+        - target: L-FirstMessageArea
     - target: L-MessageArea
     - request: POST /unsupported
 `;
@@ -9181,11 +9264,12 @@ references:
 - Process: Immediate
   - case: success
     - response: 200 partial HTML
-    - state: initializing
-    - update:
-      - target: L-PartialHost
-      - mode: replace
-      - content: PRT-PROFILE
+    - Effects
+      - state: initializing
+      - update:
+        - target: L-PartialHost
+        - mode: replace
+        - content: PRT-PROFILE
 `;
   const result = parseMarkVSpec(source);
   const partialAction = result.actions.find((action) => action.id === "A-LoadPartial");
@@ -9241,15 +9325,18 @@ references:
     - mode: replace
   - case: success-items
     - response: HTTP 200 items > 0
-    - state: idle
+    - Effects
+      - state: idle
     - Stop
   - case: success-empty
     - response: HTTP 200 items = 0
-    - state: empty
+    - Effects
+      - state: empty
     - Continue
   - case: failure
     - response: HTTP error
-    - state: load-error
+    - Effects
+      - state: load-error
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-LoadPoints");
@@ -9311,11 +9398,10 @@ title: Parallel Process
     - response: 200 member profile
     - Effects
       - model: \${model.memberProfile.loaded} = true
-      - continue
+    - continue
   - case: failure
     - response: 5xx or timeout
-    - Effects
-      - continue
+    - continue
 - Process: ServerCall
   - group: initial-load
   - PointQueryService.findSelfPoints()
@@ -9323,23 +9409,22 @@ title: Parallel Process
     - response: 200 points
     - Effects
       - model: \${model.points.loaded} = true
-      - continue
+    - continue
   - case: failure
     - response: 5xx or timeout
-    - Effects
-      - continue
+    - continue
 - Process: Resolve
   - group: initial-load
   - case: ready
     - result: profile and points loaded
     - Effects
       - state: idle
-      - stop
+    - stop
   - case: failed
     - result: one or more calls failed
     - Effects
       - state: load-error
-      - stop
+    - stop
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-InitialLoad");
@@ -9396,14 +9481,14 @@ title: Bad Parallel Process
     - response: 200 member profile
     - Effects
       - state: idle
-      - stop
+    - stop
 - Process: Resolve
   - group: missing-load
   - case: failed
     - result: missing group
     - Effects
       - state: load-error
-      - stop
+    - stop
 - Process: Resolve
 `;
   const result = parseMarkVSpec(source);
@@ -10462,7 +10547,7 @@ references:
         - content:
           - partial: PRT-SearchResultsList
           - state: loading
-      - continue
+    - continue
 - Process P2: Handle search results response
   - receive:
     - response: A-NextSearchPage.P1.response

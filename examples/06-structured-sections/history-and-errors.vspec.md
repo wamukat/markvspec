@@ -128,11 +128,10 @@ referenced from the same flow.
     - Effects
       - error code: ERR-ACCOUNT-REQUIRED
       - state: validation-error
-      - stop
+    - stop
   - case: valid
     - result: all required fields are present
-    - Effects
-      - continue
+    - continue
 - Process P2: Call server service
   - server:
     - AccountSettingsService.save()
@@ -163,13 +162,13 @@ referenced from the same flow.
     - response: 200 saved
     - Effects
       - state: saved
-      - stop
+    - stop
   - case: failure
     - response: 409 or 5xx
     - Effects
       - error code: ERR-ACCOUNT-SAVE-FAILED
       - state: save-error
-      - stop
+    - stop
 
 ## Validations
 

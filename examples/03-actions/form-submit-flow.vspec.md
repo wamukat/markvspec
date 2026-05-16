@@ -121,11 +121,10 @@ server, and navigates only after a successful response.
       - display:
         - target: L-MessageArea
         - content: Validation message
-      - stop
+    - stop
   - case: valid
     - result: all required fields are valid
-    - Effects
-      - continue
+    - continue
 - Process P2: Submit subscription
   - sync:
     - SubscriptionService.create()

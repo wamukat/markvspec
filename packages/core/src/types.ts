@@ -327,6 +327,7 @@ export interface MarkVSpecActionOutcome {
   result: string;
   location?: SourceLocation;
   flow?: "stop" | "continue";
+  flowDirectives: MarkVSpecFlowDirective[];
   from?: string;
   to?: string;
   response?: MarkVSpecResponse;
@@ -343,6 +344,12 @@ export interface MarkVSpecActionOutcome {
   errorCodes: string[];
   routeParams: MarkVSpecRouteParam[];
   propertyLocations: Record<string, SourceLocation[]>;
+}
+
+export interface MarkVSpecFlowDirective {
+  value: "stop" | "continue";
+  location: SourceLocation;
+  underEffects: boolean;
 }
 
 export interface MarkVSpecRouteParam {

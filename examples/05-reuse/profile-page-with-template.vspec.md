@@ -97,12 +97,12 @@ It also demonstrates route parameters through `${route.memberId}`.
         - content:
           - partial: PRT-PROFILE-SUMMARY
           - state: loading
-      - stop
+    - stop
   - case: send-failed
     - response: network error
     - Effects
       - state: refresh-error
-      - stop
+    - stop
 
 ### A2:A-HandleProfileSummaryResponse Handle profile summary response
 
@@ -120,9 +120,9 @@ It also demonstrates route parameters through `${route.memberId}`.
       - display:
         - target: L-ProfileSummaryHost
         - content: PRT-PROFILE-SUMMARY
-      - stop
+    - stop
   - case: failure
     - response: 5xx or timeout
     - Effects
       - state: refresh-error
-      - stop
+    - stop

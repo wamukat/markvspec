@@ -608,6 +608,8 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
       collectPartialReference(step.content, firstPropertyLocation(step, "content") ?? step.location, referencedPartialIds);
 
       for (const outcome of step.outcomes) {
+        validateProcessCaseFlowPlacement(action.id, step, outcome, diagnostics);
+
         if (step.parallelGroup && outcome.flow === "stop") {
           diagnostics.push({
             severity: "warning",
@@ -672,7 +674,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
         validateUpdateMode(action.id, outcome, diagnostics, `process step ${step.name} case ${outcome.result}`);
         validateOutcomeErrorCodes(action.id, outcome, errorCodeIds, diagnostics);
         collectPartialReference(outcome.content, firstPropertyLocation(outcome, "content") ?? outcome.location ?? step.location, referencedPartialIds);
-        validateDisplayEffect(action.id, `process step ${processStepLabel(step)} case ${outcome.result}`, outcome.display, targetLayoutIds, elementIds, layoutIdsByViewport, diagnostics, referencedPartialIds);
+      validateDisplayEffect(action.id, `process step ${processStepLabel(step)} case ${outcome.result}`, outcome.display, targetLayoutIds, elementIds, layoutIdsByViewport, diagnostics, referencedPartialIds);
       }
     }
 
@@ -1156,6 +1158,71 @@ function validateUpdateMode(
       line: firstPropertyLine(owner, "mode")
     });
   }
+}
+
+function validateProcessCaseFlowPlacement(
+  actionId: string,
+  step: MarkVSpecProcessStep,
+  outcome: MarkVSpecActionOutcome,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  if (outcome.flowDirectives.length === 0) {
+    return;
+  }
+
+  for (const directive of outcome.flowDirectives) {
+    if (directive.underEffects) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Action ${actionId} process step ${step.name} case ${outcome.result} has ${directive.value} under Effects. Put ${directive.value} directly under the case as the final entry.`,
+        line: directive.location.line
+      });
+    }
+  }
+
+  const flowValues = new Set(outcome.flowDirectives.map((directive) => directive.value));
+  if (flowValues.size > 1) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Action ${actionId} process step ${step.name} case ${outcome.result} has both stop and continue. Use only one flow directive.`,
+      line: outcome.flowDirectives[1]?.location.line ?? outcome.flowDirectives[0]?.location.line ?? outcome.location?.line ?? step.location.line
+    });
+  }
+
+  for (const directive of outcome.flowDirectives) {
+    const laterEntry = processCaseEntryLocations(outcome, directive)
+      .filter((location) => location.line > directive.location.line)
+      .sort((left, right) => left.line - right.line)[0];
+    if (laterEntry) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Action ${actionId} process step ${step.name} case ${outcome.result} has entries after ${directive.value}. Put ${directive.value} as the final entry in the case.`,
+        line: laterEntry.line
+      });
+    }
+  }
+}
+
+function processCaseEntryLocations(outcome: MarkVSpecActionOutcome, currentDirective: { location: SourceLocation }): SourceLocation[] {
+  const locations: SourceLocation[] = [];
+  for (const [key, entries] of Object.entries(outcome.propertyLocations)) {
+    if (key !== "flow") {
+      locations.push(...entries);
+    }
+  }
+  locations.push(...outcome.flowDirectives
+    .filter((directive) => directive.location !== currentDirective.location)
+    .map((directive) => directive.location));
+  if (outcome.display) {
+    locations.push(outcome.display.location);
+    for (const entries of Object.values(outcome.display.propertyLocations)) {
+      locations.push(...entries);
+    }
+  }
+  for (const routeParam of outcome.routeParams) {
+    locations.push(routeParam.location);
+  }
+  return locations;
 }
 
 function validateProcessStepReferences(

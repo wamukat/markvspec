@@ -72,9 +72,9 @@ example.
     - Effects
       - model: ${model.member} = result.member
       - state: loaded
-      - stop
+    - stop
   - case: failure
     - response: 5xx or timeout
     - Effects
       - state: load-error
-      - stop
+    - stop

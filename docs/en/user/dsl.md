@@ -1590,11 +1590,10 @@ it should not duplicate values already captured by params.
       - display:
         - target: L-MessageArea
         - content: Required field message
-      - stop
+    - stop
   - case: valid
     - result: all required fields are valid
-    - Effects
-      - continue
+    - continue
 - Process P2: Submit login request
   - request:
     - method: POST
@@ -1607,14 +1606,14 @@ it should not duplicate values already captured by params.
   - case: sent
     - Effects
       - state: wait-auth
-      - stop
+    - stop
   - case: send-failed
     - Effects
       - state: auth-error
       - display:
         - target: L-MessageArea
         - content: Login request could not be sent
-      - stop
+    - stop
 
 ### A2:A-AuthResponse Handle auth response
 
@@ -1629,7 +1628,7 @@ it should not duplicate values already captured by params.
     - response: 2xx authenticated user
     - Effects
       - navigate: SCR-DASHBOARD
-      - stop
+    - stop
   - case: failure
     - response: 401 invalid credentials
     - Effects
@@ -1637,7 +1636,7 @@ it should not duplicate values already captured by params.
       - display:
         - target: L-MessageArea
         - content: Authentication error message
-      - stop
+    - stop
 ```
 
 Preferred action groups and effects:
@@ -1682,7 +1681,7 @@ Preferred action groups and effects:
         - content:
           - partial: <partial-id>
           - state: <partial-state>
-      - stop | continue
+    - stop | continue
 ```
 
 `display.content` may be scalar prose or a structured content source. Partial
@@ -1696,9 +1695,10 @@ content sources use `PRT-*` document references declared in Front Matter:
     - state: loaded
 ```
 
-Under a process step `case: <name>` branch, add `stop` or `continue` under
-`Effects`. `stop` ends the action process at that case. `continue` advances to
-the next process step, and omitted flow is treated as `continue`.
+Under a process step `case: <name>` branch, add `stop` or `continue` directly
+under the case as the final entry, after any `Effects` block. `stop` ends the
+action process at that case. `continue` advances to the next process step, and
+omitted flow is treated as `continue`.
 
 When an action starts multiple operations in parallel and decides after all of
 them complete, add `group: <group-id>` to each participating process and put the
@@ -1713,12 +1713,12 @@ aggregate decision in a Resolve process with the same `group`.
     - response: 200 member profile
     - Effects
       - model: ${model.memberProfile.loaded} = true
-      - continue
+    - continue
   - case: failure
     - response: 5xx or timeout
     - Effects
       - model: ${model.memberProfile.loaded} = false
-      - continue
+    - continue
 - Process P2: Load points
   - group: initial-load
   - server:
@@ -1727,24 +1727,24 @@ aggregate decision in a Resolve process with the same `group`.
     - response: 200 points
     - Effects
       - model: ${model.points.loaded} = true
-      - continue
+    - continue
   - case: failure
     - response: 5xx or timeout
     - Effects
       - model: ${model.points.loaded} = false
-      - continue
+    - continue
 - Process P3: Resolve initial load
   - group: initial-load
   - case: ready
     - result: profile and points loaded
     - Effects
       - state: idle
-      - stop
+    - stop
   - case: failed
     - result: one or more calls failed
     - Effects
       - state: load-error
-      - stop
+    - stop
 ```
 
 Action-level `When` guards are not supported. Keep operation availability close

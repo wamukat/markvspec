@@ -289,11 +289,10 @@ not decide whether credentials are correct.
       - display:
         - target: L-MessageArea
         - content: Required field message
-      - stop
+    - stop
   - case: valid
     - result: all required fields are valid
-    - Effects
-      - continue
+    - continue
 - Process P2: Submit login
   - request:
     - method: POST

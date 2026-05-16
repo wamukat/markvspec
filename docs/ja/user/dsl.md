@@ -1175,11 +1175,10 @@ Process が編集可能な画面要素に現在表示されている値を読む
       - display:
         - target: L-MessageArea
         - content: Required field message
-      - stop
+    - stop
   - case: valid
     - result: all required fields are valid
-    - Effects
-      - continue
+    - continue
 - Process P2: Submit login request
   - request:
     - method: POST
@@ -1192,14 +1191,14 @@ Process が編集可能な画面要素に現在表示されている値を読む
   - case: sent
     - Effects
       - state: wait-auth
-      - stop
+    - stop
   - case: send-failed
     - Effects
       - state: auth-error
       - display:
         - target: L-MessageArea
         - content: Login request could not be sent
-      - stop
+    - stop
 
 ### A2:A-HandleLoginResponse ログイン応答処理
 
@@ -1214,7 +1213,7 @@ Process が編集可能な画面要素に現在表示されている値を読む
     - response: 2xx 認証成功
     - Effects
       - navigate: SCR-DASHBOARD
-      - stop
+    - stop
   - case: failure
     - response: 401 invalid credentials
     - Effects
@@ -1222,10 +1221,10 @@ Process が編集可能な画面要素に現在表示されている値を読む
       - display:
         - target: L-MessageArea
         - content: Authentication error message
-      - stop
+    - stop
 ```
 
-主な effect は `model:`、`view:`、`state:`、`navigate:`、`display:`、`stop`、`continue` です。`display.content` は説明文を直接書く scalar content と、partial などを指す structured content source のどちらも扱えます。
+主な `Effects` entry は `model:`、`view:`、`state:`、`navigate:`、`display:` です。`stop` / `continue` は case-level の制御フローなので、`Effects` の外で case の最後に書きます。`display.content` は説明文を直接書く scalar content と、partial などを指す structured content source のどちらも扱えます。
 
 ```markdown
 - display:
@@ -1246,7 +1245,7 @@ Process が編集可能な画面要素に現在表示されている値を読む
     - response: 200 member profile
     - Effects
       - model: ${model.memberProfile.loaded} = true
-      - continue
+    - continue
 - Process P2: Load points
   - group: initial-load
   - server:
@@ -1255,14 +1254,14 @@ Process が編集可能な画面要素に現在表示されている値を読む
     - response: 200 points
     - Effects
       - model: ${model.points.loaded} = true
-      - continue
+    - continue
 - Process P3: Resolve initial load
   - group: initial-load
   - case: ready
     - result: profile and points loaded
     - Effects
       - state: idle
-      - stop
+    - stop
 ```
 
 Action レベルの `When` / guard はサポートしません。操作可否は要素の `disabled when` に寄せ、入力検証は `Validations` に書きます。

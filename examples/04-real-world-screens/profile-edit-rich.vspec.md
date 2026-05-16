@@ -285,7 +285,7 @@ confirmation dialog that are not covered by the smaller examples.
       - display:
         - target: E-DiscardDialog
         - content: Discard unsaved changes confirmation dialog
-      - stop
+    - stop
 
 ## Preview Scenarios
 

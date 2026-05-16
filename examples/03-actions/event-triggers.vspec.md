@@ -236,12 +236,12 @@ used around a form-like preferences screen.
       - display:
         - target: E-ValidationBanner
         - content: Enter a valid notification email before saving.
-      - stop
+    - stop
   - case: valid
     - result: email is valid
     - Effects
       - state: editing
-      - stop
+    - stop
 
 ### A4:A-ShowDeliveryHelp Show delivery help
 
@@ -255,7 +255,7 @@ used around a form-like preferences screen.
       - display:
         - target: E-HelpText
         - content: Delivery cadence controls how often notification digests are sent.
-      - stop
+    - stop
 
 ### A5:A-RequestDiscardDialog Request discard dialog
 
@@ -270,7 +270,7 @@ used around a form-like preferences screen.
       - display:
         - target: E-ConfirmDialog
         - content: Discard changes confirmation dialog
-      - stop
+    - stop
 
 ### A6:A-CloseDiscardDialog Close discard dialog
 
@@ -284,7 +284,7 @@ used around a form-like preferences screen.
       - display:
         - target: E-ConfirmDialog
         - content: Dialog is dismissed
-      - stop
+    - stop
 
 ### A7:A-SubmitPreferences Submit preferences
 
@@ -302,11 +302,10 @@ used around a form-like preferences screen.
       - display:
         - target: E-ValidationBanner
         - content: Enter a valid notification email before saving.
-      - stop
+    - stop
   - case: valid
     - result: form fields are valid
-    - Effects
-      - continue
+    - continue
 - Process P2: Submit preferences
   - server:
     - PreferencesCommandService.save()

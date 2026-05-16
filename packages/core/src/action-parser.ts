@@ -580,7 +580,8 @@ function applyProcessStepDirectCaseBullet(
   }
 
   const nestedBlock = activeNestedBlock(context, bullet);
-  applyProcessStepCaseEffect(action, step, outcomeName, bullet, nestedBlock, diagnostics);
+  const flowUnderEffects = context.processEffectsIndent !== undefined && bullet.indent > context.processEffectsIndent;
+  applyProcessStepCaseEffect(action, step, outcomeName, bullet, nestedBlock, diagnostics, flowUnderEffects);
   return {
     block: "process",
     processStep: step,
@@ -597,10 +598,11 @@ function applyProcessStepCaseEffect(
   result: string,
   bullet: ActionBulletInput,
   currentNestedBlock: ProcessNestedBlock | undefined,
-  diagnostics: MarkVSpecDiagnostic[]
+  diagnostics: MarkVSpecDiagnostic[],
+  flowUnderEffects = false
 ): void {
   const outcome = getProcessStepOutcome(step, result, bullet.location);
-  applyStructuredEffectToOutcome(action, outcome, result, bullet, currentNestedBlock, diagnostics, `process step ${step.name} case ${result}`);
+  applyStructuredEffectToOutcome(action, outcome, result, bullet, currentNestedBlock, diagnostics, `process step ${step.name} case ${result}`, flowUnderEffects);
 }
 
 function applyProcessStepEffect(
@@ -748,14 +750,17 @@ function applyStructuredEffectToOutcome(
   bullet: ActionBulletInput,
   currentNestedBlock: ProcessNestedBlock | undefined,
   diagnostics: MarkVSpecDiagnostic[],
-  contextLabel: string
+  contextLabel: string,
+  flowUnderEffects = false
 ): void {
   const [keyPart, valuePart] = splitKeyValue(bullet.text);
   const key = keyPart.trim();
   const value = valuePart?.trim();
 
   if (value === undefined && isProcessCaseFlowDirective(key) && contextLabel.startsWith("process step ")) {
-    outcome.flow = key.trim().toLowerCase() as "stop" | "continue";
+    const flow = key.trim().toLowerCase() as "stop" | "continue";
+    outcome.flow = flow;
+    outcome.flowDirectives.push({ value: flow, location: bullet.location, underEffects: flowUnderEffects });
     addPropertyLocation(outcome.propertyLocations, "flow", bullet.location);
     return;
   }
@@ -1035,6 +1040,7 @@ function getActionOutcome(action: MarkVSpecAction, result: string, location?: So
   const outcome: MarkVSpecActionOutcome = {
     result,
     location,
+    flowDirectives: [],
     sideEffects: [],
     errorCodes: [],
     routeParams: [],
@@ -1054,6 +1060,7 @@ function getProcessStepOutcome(step: MarkVSpecProcessStep, result: string, locat
   const outcome: MarkVSpecActionOutcome = {
     result,
     location,
+    flowDirectives: [],
     sideEffects: [],
     errorCodes: [],
     routeParams: [],
