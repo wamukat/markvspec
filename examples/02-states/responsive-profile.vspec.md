@@ -105,10 +105,7 @@ viewport while keeping state behavior shared.
   - E-EditButton.click
 - From
   - idle
-- Process P1: Update model
-  - Effects
-    - model: ${model.profileMode} = editing
-- Process P2: Transition
+- Process P1: Transition
   - state: editing
 
 ### A2:A-SaveProfile Save profile

@@ -4689,12 +4689,21 @@ test("parses the login screen example", () => {
   assert.equal(action?.properties["marker"], "A1");
   assert.equal(action?.triggeredBy, "E-SignInButton.click");
   assert.deepEqual(action?.trigger, { elementId: "E-SignInButton", event: "click" });
-  assert.deepEqual(action?.processSteps.find((step) => step.marker === "P3")?.details.map((detail) => [detail.key, detail.value]), [
+  assert.deepEqual(action?.processSteps.find((step) => step.marker === "P2")?.inputs.map((input) => [input.key, input.value]), [
+    ["email", "E-EmailInput.value"],
+    ["password", "E-PasswordInput.value"],
+    ["rememberMe", "E-RememberMe.value"]
+  ]);
+  assert.deepEqual(action?.processSteps.find((step) => step.marker === "P2")?.results.map((result) => result.value), [
+    "login submission request"
+  ]);
+  assert.deepEqual(action?.processSteps.find((step) => step.marker === "P2")?.details.map((detail) => [detail.key, detail.value]), [
     ["request.method", "POST"],
     ["request.path", "/login"],
-    ["request.email", "\${model.email}"],
-    ["request.password", "\${model.password}"],
-    ["request.rememberMe", "\${model.rememberMe}"]
+    ["request.params", ""],
+    ["email", "E-EmailInput.value"],
+    ["password", "E-PasswordInput.value"],
+    ["rememberMe", "E-RememberMe.value"]
   ]);
   assert.equal(action?.target, undefined);
   assert.equal(action?.fragment, undefined);
@@ -4712,18 +4721,17 @@ test("parses the login screen example", () => {
     ["request-error", "send-failed", "request-error"],
     ["auth-error", "send-failed", "request-error"]
   ]);
-  assert.deepEqual(action?.processSteps.find((step) => step.marker === "P3")?.outcomes.map((outcome) => [outcome.result, outcome.response?.definition, outcome.to]), [
+  assert.deepEqual(action?.processSteps.find((step) => step.marker === "P2")?.outcomes.map((outcome) => [outcome.result, outcome.response?.definition, outcome.to]), [
     ["sent", undefined, "wait-auth"],
     ["send-failed", undefined, "request-error"]
   ]);
   assert.deepEqual(action?.processSteps.map((step) => [step.name, step.when, step.target, step.content]), [
     ["Check validation", [], undefined, undefined],
-    ["Update model", [], undefined, undefined],
-    ["Send request", [], undefined, undefined]
+    ["Submit login", [], undefined, undefined]
   ]);
 
   const responseAction = result.actions.find((candidate) => candidate.id === "A-HandleLoginResponse");
-  assert.equal(responseAction?.triggeredBy, "A-SubmitLogin.P1.response");
+  assert.equal(responseAction?.triggeredBy, "A-SubmitLogin.P2.response");
   assert.deepEqual(responseAction?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
     ["wait-auth", "success", "SCR-HOME"],
     ["wait-auth", "failure", "auth-error"]

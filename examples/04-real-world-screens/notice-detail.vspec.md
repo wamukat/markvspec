@@ -220,17 +220,20 @@ parameters visibly separate.
 - From
   - loaded
   - search-error
-- Process P1: Update model
-  - Effects
-    - model: ${model.search.keyword} = E-KeywordInput.value
-    - model: ${model.search.readStatus} = E-ReadStatusSelect.value
-- Process P2: Send request
+- Process P1: Request related notices
+  - input:
+    - keyword: E-KeywordInput.value
+    - readStatus: E-ReadStatusSelect.value
+    - relatedTo: ${route.noticeId}
+  - result:
+    - related notice search request
   - request:
     - method: GET
     - path: /notices
-    - keyword: ${model.search.keyword}
-    - readStatus: ${model.search.readStatus}
-    - relatedTo: ${route.noticeId}
+    - params:
+      - keyword: E-KeywordInput.value
+      - readStatus: E-ReadStatusSelect.value
+      - relatedTo: ${route.noticeId}
   - case: sent
     - state: searching
   - case: send-failed

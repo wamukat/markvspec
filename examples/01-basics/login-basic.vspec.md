@@ -269,8 +269,8 @@ handling, and disabled controls while authentication is pending.
 
 ### A1:A-SubmitLogin Submit login
 
-Validate required fields, copy input values into the model, and send the login
-request. This action does not decide whether credentials are correct.
+Validate required fields and submit the current form values. This action does
+not decide whether credentials are correct.
 
 - Triggered
   - E-SignInButton.click
@@ -280,7 +280,8 @@ request. This action does not decide whether credentials are correct.
   - request-error
   - auth-error
 - Process P1: Check validation
-  - validation: V-LoginForm.result
+  - receive:
+    - validation: V-LoginForm.result
   - case: invalid
     - state: validation-error
     - stop
@@ -289,18 +290,20 @@ request. This action does not decide whether credentials are correct.
       - content: Required field message
   - case: valid
     - continue
-- Process P2: Update model
-  - Effects
-    - model: ${model.email} = E-EmailInput.value
-    - model: ${model.password} = E-PasswordInput.value
-    - model: ${model.rememberMe} = E-RememberMe.value
-- Process P3: Send request
+- Process P2: Submit login
+  - input:
+    - email: E-EmailInput.value
+    - password: E-PasswordInput.value
+    - rememberMe: E-RememberMe.value
+  - result:
+    - login submission request
   - request:
     - method: POST
     - path: /login
-    - email: ${model.email}
-    - password: ${model.password}
-    - rememberMe: ${model.rememberMe}
+    - params:
+      - email: E-EmailInput.value
+      - password: E-PasswordInput.value
+      - rememberMe: E-RememberMe.value
   - case: sent
     - state: wait-auth
   - case: send-failed
@@ -315,7 +318,7 @@ success or failure is handled by `A-HandleLoginResponse`.
 ### A2:A-HandleLoginResponse Handle login response
 
 - Triggered
-  - A-SubmitLogin.P1.response
+  - A-SubmitLogin.P2.response
 - From
   - wait-auth
 - Process P1: Handle response

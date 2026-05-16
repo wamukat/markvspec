@@ -122,14 +122,15 @@ server, and navigates only after a successful response.
   - case: valid
     - response: all required fields are valid
     - continue
-- Process P2: Update model
-  - Effects
-    - model: ${model.email} = E-EmailInput.value
-    - model: ${model.plan} = E-PlanSelect.value
-- Process P3: Call server service
+- Process P2: Submit subscription
+  - input:
+    - email: E-EmailInput.value
+    - plan: E-PlanSelect.value
+  - result:
+    - subscription creation request
   - SubscriptionService.create()
-    - email: ${model.email}
-    - plan: ${model.plan}
+    - email: E-EmailInput.value
+    - plan: E-PlanSelect.value
   - case: sent
     - state: submitting
   - case: send-failed
@@ -138,7 +139,7 @@ server, and navigates only after a successful response.
 ### A2:A-HandleSubmitResponse Handle submit response
 
 - Triggered
-  - A-SubmitRequest.P1.response
+  - A-SubmitRequest.P2.response
 - From
   - submitting
 - Process P1: Handle server response

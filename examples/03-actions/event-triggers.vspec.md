@@ -226,10 +226,7 @@ used around a form-like preferences screen.
   - editing
   - help-visible
   - validation-error
-- Process P1: Update model
-  - Effects
-    - model: ${model.keyword} = E-SearchInput.value
-- Process P2: Apply immediate effect
+- Process P1: Apply immediate effect
   - case: done
     - Effects
       - state: editing
@@ -277,31 +274,18 @@ used around a form-like preferences screen.
     - Effects
       - state: confirm-discard
 
-### A6:A-PrepareDiscardDialog Prepare discard dialog
-
-- Triggered
-  - E-ConfirmDialog.open
-- From
-  - confirm-discard
-- Process P1: Update model
-  - Effects
-    - model: ${model.discardRequested} = true
-
-### A7:A-CloseDiscardDialog Close discard dialog
+### A6:A-CloseDiscardDialog Close discard dialog
 
 - Triggered
   - E-ConfirmDialog.close
 - From
   - confirm-discard
-- Process P1: Update model
-  - Effects
-    - model: ${model.discardRequested} = false
-- Process P2: Apply immediate effect
+- Process P1: Apply immediate effect
   - case: done
     - Effects
       - state: editing
 
-### A8:A-SubmitPreferences Submit preferences
+### A7:A-SubmitPreferences Submit preferences
 
 - Triggered
   - E-PreferencesForm.submit
@@ -318,25 +302,26 @@ used around a form-like preferences screen.
   - case: valid
     - response: form fields are valid
     - continue
-- Process P2: Update model
-  - Effects
-    - model: ${model.keyword} = E-SearchInput.value
-    - model: ${model.email} = E-EmailInput.value
-    - model: ${model.deliveryCadence} = E-DeliverySelect.value
-- Process P3: Call server service
+- Process P2: Submit preferences
+  - input:
+    - keyword: E-SearchInput.value
+    - email: E-EmailInput.value
+    - deliveryCadence: E-DeliverySelect.value
+  - result:
+    - preferences save request
   - PreferencesCommandService.save()
-    - keyword: ${model.keyword}
-    - email: ${model.email}
-    - deliveryCadence: ${model.deliveryCadence}
+    - keyword: E-SearchInput.value
+    - email: E-EmailInput.value
+    - deliveryCadence: E-DeliverySelect.value
   - case: sent
     - state: saving
   - case: send-failed
     - state: save-error
 
-### A9:A-HandleSaveResponse Handle save response
+### A8:A-HandleSaveResponse Handle save response
 
 - Triggered
-  - A-SubmitPreferences.P1.response
+  - A-SubmitPreferences.P2.response
 - From
   - saving
 - Process P1: Handle server response

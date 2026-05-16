@@ -163,18 +163,20 @@ and pagination actions.
   - idle
   - empty
   - load-error
-- Process P1: Update model
-  - Effects
-    - model: ${model.keyword} = E-KeywordInput.value
-    - model: ${model.status} = E-StatusFilter.value
-    - model: ${model.page} = 1
-- Process P2: Send request
+- Process P1: Request matching users
+  - input:
+    - keyword: E-KeywordInput.value
+    - status: E-StatusFilter.value
+    - page: 1
+  - result:
+    - first search page request
   - request:
     - method: GET
     - path: /users
-    - keyword: ${model.keyword}
-    - status: ${model.status}
-    - page: ${model.page}
+    - params:
+      - keyword: E-KeywordInput.value
+      - status: E-StatusFilter.value
+      - page: 1
   - case: sent
     - state: loading
   - case: send-failed
@@ -215,16 +217,20 @@ and pagination actions.
   - E-NextPageButton.click
 - From
   - idle
-- Process P1: Update model
-  - Effects
-    - model: ${model.page} = ${model.nextPage}
-- Process P2: Send request
+- Process P1: Request next page
+  - input:
+    - keyword: ${model.keyword}
+    - status: ${model.status}
+    - page: ${model.nextPage}
+  - result:
+    - next search page request
   - request:
     - method: GET
     - path: /users
-    - keyword: ${model.keyword}
-    - status: ${model.status}
-    - page: ${model.page}
+    - params:
+      - keyword: ${model.keyword}
+      - status: ${model.status}
+      - page: ${model.nextPage}
   - case: sent
     - state: loading
   - case: send-failed
@@ -236,16 +242,20 @@ and pagination actions.
   - E-PreviousPageButton.click
 - From
   - idle
-- Process P1: Update model
-  - Effects
-    - model: ${model.page} = ${model.previousPage}
-- Process P2: Send request
+- Process P1: Request previous page
+  - input:
+    - keyword: ${model.keyword}
+    - status: ${model.status}
+    - page: ${model.previousPage}
+  - result:
+    - previous search page request
   - request:
     - method: GET
     - path: /users
-    - keyword: ${model.keyword}
-    - status: ${model.status}
-    - page: ${model.page}
+    - params:
+      - keyword: ${model.keyword}
+      - status: ${model.status}
+      - page: ${model.previousPage}
   - case: sent
     - state: loading
   - case: send-failed

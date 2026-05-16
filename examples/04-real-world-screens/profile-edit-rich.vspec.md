@@ -277,10 +277,7 @@ confirmation dialog that are not covered by the smaller examples.
 - From
   - editing
   - save-error
-- Process P1: Update model
-  - Effects
-    - model: ${model.discardRequested} = true
-- Process P2: Apply immediate effect
+- Process P1: Apply immediate effect
   - case: done
     - Effects
       - state: confirm-discard
