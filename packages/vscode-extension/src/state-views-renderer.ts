@@ -125,7 +125,8 @@ function renderStateScreenSpec(
     : "";
   const viewportAttrs = model.viewport ? `data-viewport="${format.escapeHtml(model.viewport)}" style="${viewportPrintStyle(model.viewport)}"` : "";
   const sectionNumberAttr = sectionNumber ? ` data-section-number="${format.escapeHtml(sectionNumber)}"` : "";
-  return `<section class="doc-section state-screen-section"${sectionNumberAttr} ${model.stateName ? `data-state="${format.escapeHtml(model.stateName)}"` : ""} ${viewportAttrs}>
+  const stateViewTitleAttr = ` data-state-view-title="${format.escapeHtml(model.stateViewTitle)}"`;
+  return `<section class="doc-section state-screen-section"${sectionNumberAttr}${stateViewTitleAttr} ${model.stateName ? `data-state="${format.escapeHtml(model.stateName)}"` : ""} ${viewportAttrs}>
     <section class="wireframe-print-section">
       <h4 class="state-screen-heading">${numberedHeading}</h4>
       ${messageHtml}

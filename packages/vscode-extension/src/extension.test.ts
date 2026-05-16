@@ -271,14 +271,14 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(html, /<section class="doc-section state-views-section" data-section-number="3">/);
   assert.match(html, numberedHeadingPattern(2, "State Views"));
   assert.match(html, /<section class="state-viewport-section"(?=[^>]*\bdata-section-number="3\.1")(?=[^>]*\bdata-viewport="mobile")[^>]*>\s*<h3>\s*<span class="section-number">3\.1\.<\/span>\s*Viewport mobile<span class="state-badge">Default<\/span><\/h3>/);
-  assert.match(html, /<section class="doc-section state-screen-section" data-section-number="3\.1\.1" data-state="idle" data-viewport="mobile" style="--markvspec-viewport-width:390px;--markvspec-print-scale:1">/);
+  assert.match(html, /<section class="doc-section state-screen-section" data-section-number="3\.1\.1" data-state-view-title="idle" data-state="idle" data-viewport="mobile" style="--markvspec-viewport-width:390px;--markvspec-print-scale:1">/);
   assert.match(html, new RegExp(`<h4 class="state-screen-heading">\\s*<span class="section-number">3\\.1\\.1\\.</span>\\s*State: ${docLabel("idle", "state", "state-label")}<span class="state-badge">initial</span></h4>`));
-  assert.match(html, /<section class="doc-section state-screen-section" data-section-number="3\.2\.1" data-state="idle" data-viewport="desktop" style="--markvspec-viewport-width:960px;--markvspec-print-scale:1">/);
+  assert.match(html, /<section class="doc-section state-screen-section" data-section-number="3\.2\.1" data-state-view-title="idle" data-state="idle" data-viewport="desktop" style="--markvspec-viewport-width:960px;--markvspec-print-scale:1">/);
   assert.match(html, /<section class="state-viewport-section"(?=[^>]*\bdata-section-number="3\.2")(?=[^>]*\bdata-viewport="desktop")[^>]*>\s*<h3>\s*<span class="section-number">3\.2\.<\/span>\s*Viewport desktop<\/h3>/);
   assert.match(html, /<h5 class="state-screen-subheading">Wireframe<\/h5>/);
   assert.match(html, /<h5 class="state-screen-subheading">Elements<\/h5>/);
   assert.match(html, /<h5 class="state-screen-subheading">Actions<\/h5>/);
-  assert.match(html, /<section class="doc-section state-screen-section" data-section-number="3\.1\.3" data-state="validation-error" data-viewport="mobile" style="--markvspec-viewport-width:390px;--markvspec-print-scale:1">/);
+  assert.match(html, /<section class="doc-section state-screen-section" data-section-number="3\.1\.3" data-state-view-title="validation-error" data-state="validation-error" data-viewport="mobile" style="--markvspec-viewport-width:390px;--markvspec-print-scale:1">/);
   assert.doesNotMatch(html, /<h5 class="state-screen-subheading">Element Changes<\/h5>/);
   assert.doesNotMatch(html, /<h5 class="state-screen-subheading">Available Actions<\/h5>/);
   assert.doesNotMatch(html, /<h2>Elements<\/h2>/);
@@ -343,7 +343,7 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(html, new RegExp(`${actionBadge("A1", "A-SubmitLogin")}[\\s\\S]*Submit login[\\s\\S]*${docLabel("idle", "state")}[\\s\\S]*${docLabel("sent", "result")}[\\s\\S]*${docLabel("authenticating", "state")}`));
   assert.match(html, new RegExp(`<td>${actionBadge("A2", "A-HandleLoginResponse")}</td><td>Handle login response</td><td>${docLabel("A-SubmitLogin.P2.response", "trigger")}</td><td>${docLabel("authenticating", "state")}</td><td>${docLabel("success", "result")}</td><td>screen</td><td>${documentRef("SCR-HOME")}</td>`));
   assert.match(html, new RegExp(`<td>${actionBadge("A3", "A-ForgotPassword")}</td><td>Open password reset</td><td>${markerBadge("8", "element")}\\.click</td><td>${docLabel("idle", "state")}</td><td>-</td><td>screen</td><td>${documentRef("SCR-PASSWORD-RESET")}</td>`));
-  assert.match(html, /<section class="doc-section state-screen-section" data-section-number="3\.1\.2" data-state="authenticating" data-viewport="mobile" style="--markvspec-viewport-width:390px;--markvspec-print-scale:1">/);
+  assert.match(html, /<section class="doc-section state-screen-section" data-section-number="3\.1\.2" data-state-view-title="authenticating" data-state="authenticating" data-viewport="mobile" style="--markvspec-viewport-width:390px;--markvspec-print-scale:1">/);
   const waitAuthSection = viewportStateSection(html, "authenticating", "mobile");
   assert.match(waitAuthSection, /<h6 class="state-screen-detail-heading">Element Summary<\/h6>/);
   assert.match(waitAuthSection, /<th>Marker<\/th><th>ID<\/th><th>Type<\/th><th>Triggered Actions<\/th><th>Description<\/th>/);
@@ -367,7 +367,7 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(validationWireframe, />A1<\/code>/);
   assert.match(validationWireframe, /data-mm-id="L-Page"/);
   assert.match(validationWireframe.split('<aside class="system-events-box">')[0], />3<\/code>/);
-  assert.match(html, /<section class="doc-section state-screen-section" data-section-number="3\.1\.5" data-state="auth-error" data-viewport="mobile" style="--markvspec-viewport-width:390px;--markvspec-print-scale:1">/);
+  assert.match(html, /<section class="doc-section state-screen-section" data-section-number="3\.1\.5" data-state-view-title="auth-error" data-state="auth-error" data-viewport="mobile" style="--markvspec-viewport-width:390px;--markvspec-print-scale:1">/);
   const authErrorSection = viewportStateSection(html, "auth-error", "mobile");
   assert.match(authErrorSection, /The email address or password is incorrect\./);
   assert.match(authErrorSection, /data-mm-id="E-AuthErrorBanner"/);
@@ -1365,7 +1365,9 @@ test("does not render viewport filter controls in the preview shell", () => {
   assert.match(html, /function viewportTocText\(section, heading\)/);
   assert.match(html, /const viewport = section\.getAttribute\("data-viewport"\);/);
   assert.match(html, /return parts\.join\(" "\) \|\| \(viewport \? "Viewport " \+ viewport : "Viewport"\);/);
-  assert.match(html, /function stateHeadingText\(heading\)/);
+  assert.match(html, /function stateHeadingText\(section, heading\)/);
+  assert.match(html, /const stateViewTitle = section\.getAttribute\("data-state-view-title"\);/);
+  assert.match(html, /if \(stateViewTitle\) \{\s*return stateViewTitle;\s*\}/);
   assert.match(html, /const sections = Array\.from\(document\.querySelectorAll\("\.document > \.doc-section"\)\);/);
   assert.match(html, /function representativeSectionHeading\(section\)/);
   assert.match(html, /section\.classList\.contains\("screen-spec-section"\)/);
@@ -1386,6 +1388,7 @@ test("does not render viewport filter controls in the preview shell", () => {
   assert.match(html, /const anchorY = updateStickyOffset\(\) \+ 16;/);
   assert.match(html, /document\.querySelectorAll\("\.document \.doc-section, \.document \.state-viewport-section"\)/);
   assert.match(html, /viewportItem\.dataset\.tocTarget = viewportSection\.id;/);
+  assert.match(html, /stateSection\.getAttribute\("data-state-view-title"\) \|\| stateSection\.getAttribute\("data-state"\)/);
   assert.doesNotMatch(html, /rootMargin: "-72px 0px -70% 0px"/);
   assert.doesNotMatch(html, /const anchorY = 88;/);
   assert.match(html, /item\.classList\.toggle\("is-active", !item\.hidden && item\.getAttribute\("data-toc-target"\) === activeId\);/);

@@ -2577,7 +2577,7 @@ ${renderScreenPreviewStyles()}
         item.dataset.tocTarget = section.id;
         const link = document.createElement("a");
         link.href = "#" + section.id;
-        link.textContent = stateHeadingText(heading);
+        link.textContent = stateHeadingText(section, heading);
         item.appendChild(link);
         group.sublist.appendChild(item);
       }
@@ -2622,7 +2622,7 @@ ${renderScreenPreviewStyles()}
             stateItem.dataset.tocTarget = stateSection.id;
             const stateLink = document.createElement("a");
             stateLink.href = "#" + stateSection.id;
-            stateLink.textContent = numberedTocText(stateSection, stateSection.getAttribute("data-state") || (stateHeading ? stateHeadingText(stateHeading) : "State"));
+            stateLink.textContent = numberedTocText(stateSection, stateSection.getAttribute("data-state-view-title") || stateSection.getAttribute("data-state") || (stateHeading ? stateHeadingText(stateSection, stateHeading) : "State"));
             stateItem.appendChild(stateLink);
             stateList.appendChild(stateItem);
           });
@@ -2671,7 +2671,11 @@ ${renderScreenPreviewStyles()}
         return parts.join(" ") || (viewport ? "Viewport " + viewport : "Viewport");
       }
 
-      function stateHeadingText(heading) {
+      function stateHeadingText(section, heading) {
+        const stateViewTitle = section.getAttribute("data-state-view-title");
+        if (stateViewTitle) {
+          return stateViewTitle;
+        }
         const parts = Array.from(heading.querySelectorAll(".state-label"))
           .map((node) => node.textContent || "")
           .map((value) => value.trim())

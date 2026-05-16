@@ -263,9 +263,11 @@ viewport: mobile
   assert(helpModel?.renderedIds.layoutIds.has("L-Message"));
   assert(statusModel?.renderedIds.elementIds.has("E-Status"));
   assert.match(helpSection, /<span class="state-badge">editing-help<\/span>/);
+  assert.match(helpSection, /data-state-view-title="editing \/ editing-help"/);
   assert.match(helpSection, /Delivery cadence help text\./);
   assert.match(helpSection, /data-mm-display-preview="true"/);
   assert.match(statusSection, /<span class="state-badge">editing-status<\/span>/);
+  assert.match(statusSection, /data-state-view-title="editing \/ editing-status"/);
   assert.doesNotMatch(statusWireframe, /Status replaced by scenario\./);
   assert.match(statusWireframe, /Status replaced by later scenario case\./);
   assert.match(statusSection, /data-mm-display-preview="true"/);

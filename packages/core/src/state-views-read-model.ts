@@ -45,6 +45,7 @@ export interface StateScreenReadModel {
   readonly stateName?: string;
   readonly viewport?: string;
   readonly title: string;
+  readonly stateViewTitle: string;
   readonly scenario: boolean;
   readonly initial: boolean;
   readonly message?: string;
@@ -139,6 +140,7 @@ export function buildStateScreenReadModels(
       stateName: undefined,
       viewport,
       title: viewport ? `${label("viewport")} ${viewport}` : label("default"),
+      stateViewTitle: viewport ? `${label("viewport")} ${viewport}` : label("default"),
       scenario: false,
       initial: false,
       message: undefined,
@@ -153,6 +155,7 @@ export function buildStateScreenReadModels(
         stateName: undefined,
         viewport,
         title: viewport ? `${label("viewport")} ${viewport}` : label("default"),
+        stateViewTitle: viewport ? `${label("viewport")} ${viewport}` : label("default"),
         scenario: false,
         initial: false,
         message: undefined,
@@ -225,11 +228,15 @@ export function buildStateScreenReadModels(
       const title = display.scenario
         ? display.scenario.name
         : index === 0 && viewport ? `${label("default")} ${label("viewport")} ${viewport}` : display.state.name;
+      const stateViewTitle = display.scenario
+        ? `${display.state.name} / ${display.scenario.name}`
+        : display.state.name;
       const scenario = Boolean(display.scenario);
       return {
         stateName: display.state.name,
         viewport,
         title,
+        stateViewTitle,
         scenario,
         initial: display.state.initial,
         message: display.state.message,
@@ -244,6 +251,7 @@ export function buildStateScreenReadModels(
           stateName: display.state.name,
           viewport,
           title,
+          stateViewTitle,
           scenario,
           initial: display.state.initial,
           message: display.state.message,

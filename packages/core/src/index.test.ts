@@ -10445,6 +10445,14 @@ title: Preview Scenario Order
 
 ## Preview Scenarios
 
+### idle-help
+
+- state: idle
+
+### idle-confirm-discard
+
+- state: idle
+
 ### loaded-help
 
 - state: loaded
@@ -10462,9 +10470,20 @@ title: Preview Scenario Order
   assert.deepEqual(result.diagnostics, []);
   assert.deepEqual(models.map((model) => model.title), [
     "idle",
+    "idle-help",
+    "idle-confirm-discard",
     "loaded",
     "loaded-help",
     "saved-help",
+    "saved"
+  ]);
+  assert.deepEqual(models.map((model) => model.stateViewTitle), [
+    "idle",
+    "idle / idle-help",
+    "idle / idle-confirm-discard",
+    "loaded",
+    "loaded / loaded-help",
+    "saved / saved-help",
     "saved"
   ]);
 });
