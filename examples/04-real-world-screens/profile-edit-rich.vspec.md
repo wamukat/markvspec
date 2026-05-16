@@ -261,10 +261,18 @@ confirmation dialog that are not covered by the smaller examples.
   - editing
   - save-error
 - Process P1: Call server service
-  - ProfileService.save()
+  - input:
     - bio: ${model.bio}
     - reviewDate: ${model.reviewDate}
     - visibility: ${model.visibility}
+  - server:
+    - ProfileService.save()
+    - params:
+      - bio: ${model.bio}
+      - reviewDate: ${model.reviewDate}
+      - visibility: ${model.visibility}
+  - result:
+    - profile save request
   - case: sent
     - state: saving
   - case: send-failed

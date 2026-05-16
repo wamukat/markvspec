@@ -374,6 +374,18 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
       });
     }
 
+    const processResponseTrigger = action.triggeredBy ? parseProcessOutputReference(action.triggeredBy) : undefined;
+    if (processResponseTrigger?.kind === "response") {
+      const receivesTriggeredResponse = action.processSteps.some((step) => step.receives.some((receive) => receive.value === action.triggeredBy));
+      if (!receivesTriggeredResponse) {
+        diagnostics.push({
+          severity: "warning",
+          message: `Action ${action.id} is triggered by ${action.triggeredBy} but no process receives that response.`,
+          line: action.triggeredByLocation?.line ?? action.location.line
+        });
+      }
+    }
+
     if (action.target && isPresentationPanelId(action.target)) {
       diagnostics.push(presentationPanelTargetDiagnostic(`Action ${action.id}`, action.target, firstPropertyLine(action, "target") ?? action.location.line));
     } else if (action.target && formGroupIdRegex.test(action.target)) {
@@ -528,7 +540,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
         });
       }
 
-      if (hasOutcomeDetailsBeyondResponse(outcome) && !outcome.to && !transitionResults.has(outcome.result)) {
+      if (hasOutcomeDetailsThatRequireTransition(outcome) && !outcome.to && !transitionResults.has(outcome.result)) {
         diagnostics.push({
           severity: "warning",
           message: `Action ${action.id} defines ${outcome.result} outcome details but has no ${outcome.result} transition.`,
@@ -629,7 +641,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
           });
         }
 
-        if (!step.parallelGroup && hasOutcomeDetailsBeyondResponse(outcome) && !outcome.to) {
+        if (!step.parallelGroup && hasOutcomeDetailsThatRequireTransition(outcome) && !outcome.to) {
           diagnostics.push({
             severity: "warning",
             message: `Action ${action.id} process step ${step.name} defines ${outcome.result} outcome details but has no ${outcome.result} transition.`,
@@ -2114,15 +2126,14 @@ function hasActionOutcomeDetails(outcome: MarkVSpecActionOutcome): boolean {
   ) || outcome.sideEffects.length > 0 || outcome.errorCodes.length > 0 || outcome.routeParams.length > 0;
 }
 
-function hasOutcomeDetailsBeyondResponse(outcome: MarkVSpecActionOutcome): boolean {
+function hasOutcomeDetailsThatRequireTransition(outcome: MarkVSpecActionOutcome): boolean {
   return Boolean(
     outcome.request ??
       outcome.to ??
       outcome.target ??
       outcome.mode ??
       outcome.fragment ??
-      outcome.content ??
-      outcome.display
+      outcome.content
   ) || outcome.sideEffects.length > 0 || outcome.errorCodes.length > 0 || outcome.routeParams.length > 0;
 }
 

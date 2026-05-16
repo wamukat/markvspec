@@ -82,7 +82,10 @@ the `Process P3: Resolve initial load` step owns the final state transition.
   - loading
 - Process P1: Call server service
   - group: initial-load
-  - MemberQueryService.findSelfProfile()
+  - server:
+    - MemberQueryService.findSelfProfile()
+  - result:
+    - member profile load result
   - case: success
     - response: 200 member profile
     - Effects
@@ -96,7 +99,10 @@ the `Process P3: Resolve initial load` step owns the final state transition.
     - continue
 - Process P2: Call server service
   - group: initial-load
-  - PointQueryService.findSelfPoints()
+  - server:
+    - PointQueryService.findSelfPoints()
+  - result:
+    - points load result
   - case: success
     - response: 200 points
     - Effects
@@ -110,6 +116,9 @@ the `Process P3: Resolve initial load` step owns the final state transition.
     - continue
 - Process P3: Resolve grouped processes
   - group: initial-load
+  - receive:
+    - profile: A-InitialLoad.P1.result
+    - points: A-InitialLoad.P2.result
   - case: ready
     - response: profile and points loaded
     - state: idle

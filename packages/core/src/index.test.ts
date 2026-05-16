@@ -4700,10 +4700,9 @@ test("parses the login screen example", () => {
   assert.deepEqual(action?.processSteps.find((step) => step.marker === "P2")?.details.map((detail) => [detail.key, detail.value]), [
     ["request.method", "POST"],
     ["request.path", "/login"],
-    ["request.params", ""],
-    ["email", "E-EmailInput.value"],
-    ["password", "E-PasswordInput.value"],
-    ["rememberMe", "E-RememberMe.value"]
+    ["request.params.email", "E-EmailInput.value"],
+    ["request.params.password", "E-PasswordInput.value"],
+    ["request.params.rememberMe", "E-RememberMe.value"]
   ]);
   assert.equal(action?.target, undefined);
   assert.equal(action?.fragment, undefined);
@@ -9512,7 +9511,14 @@ title: Action Lifecycle
 
   assert.deepEqual(
     result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
-    [["warning", "Action A-HandleProgress uses unsupported action lifecycle event progress.", lineNumber(source, "  - A-Submit.progress")]]
+    [
+      [
+        "warning",
+        "Action A-HandleResponse is triggered by A-Submit.P1.response but no process receives that response.",
+        lineNumber(source, "  - A-Submit.P1.response")
+      ],
+      ["warning", "Action A-HandleProgress uses unsupported action lifecycle event progress.", lineNumber(source, "  - A-Submit.progress")]
+    ]
   );
 });
 
@@ -10478,6 +10484,61 @@ references:
   ]);
   assert.deepEqual(emptyScenario?.displayEffects.map((display) => [display.target, display.content]), [
     ["L-MessageArea", "No results"]
+  ]);
+});
+
+test("preserves custom process details with nested params", () => {
+  const source = `---
+id: SCR-CUSTOM-PROCESS-DETAIL
+type: screen
+title: Custom Process Detail
+---
+
+# SCR-CUSTOM-PROCESS-DETAIL Custom Process Detail
+
+## States
+
+- idle*
+- submitting
+
+## Elements
+
+### E-EmailInput Input
+
+- value: \${model.email}
+
+### E-SubmitButton Button
+
+- label: Submit
+
+## Actions
+
+### A-Submit Submit
+
+- Triggered
+  - E-SubmitButton.click
+- From
+  - idle
+- Process P1: Submit with project sync
+  - input:
+    - email: E-EmailInput.value
+  - sync:
+    - SubscriptionService.create()
+    - params:
+      - email: E-EmailInput.value
+  - result:
+    - subscription creation request
+  - case: sent
+    - Effects
+      - state: submitting
+`;
+  const result = parseMarkVSpec(source);
+  const step = result.actions[0]?.processSteps[0];
+
+  assert.deepEqual(result.diagnostics, []);
+  assert.deepEqual(step?.details.map((detail) => [detail.key, detail.value]), [
+    ["sync", "SubscriptionService.create()"],
+    ["sync.params.email", "E-EmailInput.value"]
   ]);
 });
 

@@ -146,6 +146,8 @@ status: draft
 - From
   - signing-out
 - Process P1: Handle response
+  - receive:
+    - response: A-SignOut.P1.response
   - case: success
     - response: 204 signed out
     - navigate: SCR-LOGIN

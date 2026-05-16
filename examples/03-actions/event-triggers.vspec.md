@@ -20,12 +20,6 @@ used around a form-like preferences screen.
   - The screen is requesting saved preferences.
 - editing
   - Preferences are editable.
-- help-visible
-  - Inline helper text is visible while the help icon has focus.
-- validation-error
-  - Client-side validation found a missing or malformed preference.
-- confirm-discard
-  - The discard dialog is open.
 - saving
   - The save request was sent and the screen is waiting for the response.
 - saved
@@ -47,7 +41,6 @@ used around a form-like preferences screen.
 - E-Title
 - L-StatusArea
 - L-PreferencesForm
-- E-ConfirmDialog
 
 ### L2:L-StatusArea Status area
 
@@ -56,8 +49,6 @@ used around a form-like preferences screen.
 #### Items
 
 - E-LoadingBanner
-- E-HelpText
-- E-ValidationBanner
 - E-SavedBanner
 - E-LoadErrorBanner
 - E-SaveErrorBanner
@@ -104,13 +95,11 @@ used around a form-like preferences screen.
 ### 3:E-HelpText Text
 
 - sample: Delivery cadence controls how often notification digests are sent.
-- visible when: help-visible
 
 ### 4:E-ValidationBanner Banner
 
 - tone: danger
 - sample: Enter a valid notification email before saving.
-- visible when: validation-error
 
 ### 5:E-SavedBanner Banner
 
@@ -185,7 +174,6 @@ used around a form-like preferences screen.
 
 - title: Discard changes?
 - content: Closing this dialog keeps the current edits on the page.
-- visible when: confirm-discard
 
 ## Form Groups
 
@@ -206,7 +194,10 @@ used around a form-like preferences screen.
 - From
   - loading
 - Process P1: Call server service
-  - PreferencesQueryService.findSaved()
+  - server:
+    - PreferencesQueryService.findSaved()
+  - result:
+    - saved preferences load result
   - case: success
     - response: 200 saved preferences
     - Effects
@@ -224,8 +215,6 @@ used around a form-like preferences screen.
   - E-SearchInput.change
 - From
   - editing
-  - help-visible
-  - validation-error
 - Process P1: Apply immediate effect
   - case: done
     - Effects
@@ -237,18 +226,21 @@ used around a form-like preferences screen.
   - E-EmailInput.blur
 - From
   - editing
-  - help-visible
-  - validation-error
 - Process P1: Check validation
-  - validation: V-PreferencesForm.result
+  - receive:
+    - validation: V-PreferencesForm.result
   - case: invalid
     - response: email is empty or malformed
-    - state: validation-error
-    - stop
+    - Effects
+      - display:
+        - target: E-ValidationBanner
+        - content: Enter a valid notification email before saving.
+      - stop
   - case: valid
     - response: email is valid
-    - state: editing
-    - stop
+    - Effects
+      - state: editing
+      - stop
 
 ### A4:A-ShowDeliveryHelp Show delivery help
 
@@ -259,7 +251,10 @@ used around a form-like preferences screen.
 - Process P1: Apply immediate effect
   - case: done
     - Effects
-      - state: help-visible
+      - display:
+        - target: E-HelpText
+        - content: Delivery cadence controls how often notification digests are sent.
+      - stop
 
 ### A5:A-RequestDiscardDialog Request discard dialog
 
@@ -267,23 +262,28 @@ used around a form-like preferences screen.
   - E-DiscardButton.click
 - From
   - editing
-  - validation-error
   - save-error
 - Process P1: Apply immediate effect
   - case: done
     - Effects
-      - state: confirm-discard
+      - display:
+        - target: E-ConfirmDialog
+        - content: Discard changes confirmation dialog
+      - stop
 
 ### A6:A-CloseDiscardDialog Close discard dialog
 
 - Triggered
   - E-ConfirmDialog.close
 - From
-  - confirm-discard
+  - editing
 - Process P1: Apply immediate effect
   - case: done
     - Effects
-      - state: editing
+      - display:
+        - target: E-ConfirmDialog
+        - content: Dialog is dismissed
+      - stop
 
 ### A7:A-SubmitPreferences Submit preferences
 
@@ -291,14 +291,17 @@ used around a form-like preferences screen.
   - E-PreferencesForm.submit
 - From
   - editing
-  - validation-error
   - save-error
 - Process P1: Check validation
-  - validation: V-PreferencesForm.result
+  - receive:
+    - validation: V-PreferencesForm.result
   - case: invalid
     - response: required field missing or invalid
-    - state: validation-error
-    - stop
+    - Effects
+      - display:
+        - target: E-ValidationBanner
+        - content: Enter a valid notification email before saving.
+      - stop
   - case: valid
     - response: form fields are valid
     - continue
@@ -307,12 +310,14 @@ used around a form-like preferences screen.
     - keyword: E-SearchInput.value
     - email: E-EmailInput.value
     - deliveryCadence: E-DeliverySelect.value
+  - server:
+    - PreferencesCommandService.save()
+    - params:
+      - keyword: E-SearchInput.value
+      - email: E-EmailInput.value
+      - deliveryCadence: E-DeliverySelect.value
   - result:
     - preferences save request
-  - PreferencesCommandService.save()
-    - keyword: E-SearchInput.value
-    - email: E-EmailInput.value
-    - deliveryCadence: E-DeliverySelect.value
   - case: sent
     - state: saving
   - case: send-failed
@@ -325,12 +330,58 @@ used around a form-like preferences screen.
 - From
   - saving
 - Process P1: Handle server response
+  - receive:
+    - response: A-SubmitPreferences.P2.response
   - case: success
     - response: 200 saved preferences
     - state: saved
   - case: failure
     - response: 4xx or 5xx
     - state: save-error
+
+## Preview Scenarios
+
+### loading
+
+- state: loading
+
+### editing
+
+- state: editing
+
+### editing-help
+
+- state: editing
+- cases:
+  - A-ShowDeliveryHelp.P1.done
+
+### editing-validation-error
+
+- state: editing
+- cases:
+  - A-ValidateEmail.P1.invalid
+
+### editing-confirm-discard
+
+- state: editing
+- cases:
+  - A-RequestDiscardDialog.P1.done
+
+### saving
+
+- state: saving
+
+### saved
+
+- state: saved
+
+### load-error
+
+- state: load-error
+
+### save-error
+
+- state: save-error
 
 ## Validations
 

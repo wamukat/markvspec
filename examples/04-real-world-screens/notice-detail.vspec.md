@@ -225,8 +225,6 @@ parameters visibly separate.
     - keyword: E-KeywordInput.value
     - readStatus: E-ReadStatusSelect.value
     - relatedTo: ${route.noticeId}
-  - result:
-    - related notice search request
   - request:
     - method: GET
     - path: /notices
@@ -234,6 +232,8 @@ parameters visibly separate.
       - keyword: E-KeywordInput.value
       - readStatus: E-ReadStatusSelect.value
       - relatedTo: ${route.noticeId}
+  - result:
+    - related notice search request
   - case: sent
     - state: searching
   - case: send-failed
@@ -246,6 +246,8 @@ parameters visibly separate.
 - From
   - searching
 - Process P1: Handle response
+  - receive:
+    - response: A-SearchRelatedNotices.P1.response
   - case: success
     - response: 200 related notices
     - state: loaded

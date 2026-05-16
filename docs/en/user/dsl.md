@@ -228,14 +228,14 @@ Validate the input and move to auth wait only when the request can be sent.
   - input:
     - email: E-EmailInput.value
     - password: E-PasswordInput.value
-  - result:
-    - login request submission result
   - request:
     - method: POST
     - path: /login
     - params:
       - email: E-EmailInput.value
       - password: E-PasswordInput.value
+  - result:
+    - login request submission result
   - case: sent
     - Effects
       - state: wait-auth
@@ -1441,11 +1441,11 @@ effects that mention `${model.value}`.
 
 ```markdown
 - Process P1: Load notice
-  - result:
-    - notice load result
   - server:
     - call: NoticeQueryService.findNotice()
     - noticeId: ${route.noticeId}
+  - result:
+    - notice load result
   - case: success
     - response: 200 notice
     - Effects
@@ -1548,12 +1548,21 @@ Each process uses an action-local marker and a human-readable name:
 `P1`, `P2`, and similar markers are stable references for preview scenarios and
 later process steps. The process name is ordinary prose, not a fixed enum. The
 reserved process detail keys `request:`, `server:`, `response:`, and
-`validation:` are detail hints; they are not process types.
+`validation:` are known detail hints; they are not process types. Projects may
+also use custom process detail blocks such as `sync:` when they need to preserve
+project-specific execution notes. MarkVSpec preserves custom detail structure
+but does not assign portable semantics to it unless a generator explicitly opts
+in.
 
 Use `input:` when a process actively reads element or model values. A process
 with `input:` must declare `result:`. Use `receive:` when a process classifies an
 external event, validation result, or prior process result. Validation contracts
 are received as opaque sources such as `V-LoginForm.result`.
+
+For input-based processes, write the process in reading order:
+`input -> request/server/custom detail -> result -> case`. The `result:` remains
+required for `input:` processes even when it appears after `request:` or
+`server:`.
 
 ```markdown
 ## Actions
@@ -1584,11 +1593,14 @@ are received as opaque sources such as `V-LoginForm.result`.
   - input:
     - email: E-EmailInput.value
     - password: E-PasswordInput.value
-  - result:
-    - login request submission result
   - request:
     - method: POST
     - path: /login
+    - params:
+      - email: E-EmailInput.value
+      - password: E-PasswordInput.value
+  - result:
+    - login request submission result
   - case: sent
     - Effects
       - state: wait-auth
@@ -1637,13 +1649,23 @@ Preferred action groups and effects:
 - Process <marker>: <process name>
   - input:
     - <name>: <source>
-  - result:
-    - <result contract>
   - receive:
     - <name>: <source>
   - request:
     - method: <method>
     - path: <path>
+    - params:
+      - <name>: <source>
+  - server:
+    - <service-call>
+    - params:
+      - <name>: <source>
+  - <custom-detail>:
+    - <project-specific detail>
+    - params:
+      - <name>: <source>
+  - result:
+    - <result contract>
   - case: <result>
     - response: <classification>
     - Effects

@@ -115,8 +115,14 @@ viewport while keeping state behavior shared.
 - From
   - editing
 - Process P1: Call server service
-  - ProfileService.save()
+  - input:
     - email: ${model.email}
+  - server:
+    - ProfileService.save()
+    - params:
+      - email: ${model.email}
+  - result:
+    - profile save request
   - case: success
     - state: idle
   - case: failure

@@ -98,11 +98,11 @@ route: /users/:userId
 - Process P1: ユーザー取得
   - input:
     - userId: ${route.userId}
-  - result:
-    - user request result
   - request:
     - method: GET
     - path: /users/:userId
+  - result:
+    - user request result
 ```
 
 別画面へ遷移するときは、遷移先 screen ID と `params` を併記します。
@@ -226,11 +226,11 @@ entity ごとの説明です。
   - input:
     - email: E-EmailInput.value
     - password: E-PasswordInput.value
-  - result:
-    - login request submission result
   - request:
     - method: POST
     - path: /login
+  - result:
+    - login request submission result
   - case: sent
     - state: wait-auth
   - case: send-failed
@@ -1147,9 +1147,11 @@ Process は Action 内で一意な marker と、人間が読む process name を
 - Process <marker>: <process name>
 ```
 
-`P1`、`P2` のような marker は Preview Scenarios や後続 Process から参照するための安定 ID です。process name は任意の説明文であり、固定 enum ではありません。`request:`、`server:`、`response:`、`validation:` は process detail であり、Process type ではありません。
+`P1`、`P2` のような marker は Preview Scenarios や後続 Process から参照するための安定 ID です。process name は任意の説明文であり、固定 enum ではありません。`request:`、`server:`、`response:`、`validation:` は既知の process detail であり、Process type ではありません。プロジェクト固有の実行メモを残したい場合は、`sync:` のような custom process detail block も使えます。MarkVSpec は custom detail の構造を保持しますが、generator が明示的に対応しない限り portable な意味は割り当てません。
 
 `input:` は要素や model から能動的に読む値です。`input:` を持つ Process は `result:` を必ず書きます。`receive:` は外部 event、validation result、または前段 Process の結果を受け取って分類する場合に使います。Validation contract は `V-LoginForm.result` のような opaque source として受け取ります。
+
+`input:` を持つ Process は、読み順として `input -> request/server/custom detail -> result -> case` の順に書くことを推奨します。`result:` が `request:` や `server:` の後にあっても、`input:` を持つ Process では引き続き必須です。
 
 ```markdown
 ### A1:A-SubmitLogin ログイン送信
@@ -1178,11 +1180,14 @@ Process は Action 内で一意な marker と、人間が読む process name を
   - input:
     - email: E-EmailInput.value
     - password: E-PasswordInput.value
-  - result:
-    - login request submission result
   - request:
     - method: POST
     - path: /login
+    - params:
+      - email: E-EmailInput.value
+      - password: E-PasswordInput.value
+  - result:
+    - login request submission result
   - case: sent
     - Effects
       - state: wait-auth

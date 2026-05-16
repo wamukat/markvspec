@@ -295,8 +295,6 @@ not decide whether credentials are correct.
     - email: E-EmailInput.value
     - password: E-PasswordInput.value
     - rememberMe: E-RememberMe.value
-  - result:
-    - login submission request
   - request:
     - method: POST
     - path: /login
@@ -304,6 +302,8 @@ not decide whether credentials are correct.
       - email: E-EmailInput.value
       - password: E-PasswordInput.value
       - rememberMe: E-RememberMe.value
+  - result:
+    - login submission request
   - case: sent
     - state: wait-auth
   - case: send-failed
@@ -322,6 +322,8 @@ success or failure is handled by `A-HandleLoginResponse`.
 - From
   - wait-auth
 - Process P1: Handle response
+  - receive:
+    - response: A-SubmitLogin.P2.response
   - case: success
     - response: 200 authenticated
     - navigate: SCR-HOME

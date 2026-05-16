@@ -14,7 +14,7 @@ type ActionBlock =
   | "otherwise";
 
 type ActionNestedBlock = "update" | "params";
-type ProcessNestedBlock = ActionNestedBlock | "input" | "receive" | "result" | "request" | "server" | "response" | "validation" | "display" | "display-content";
+type ProcessNestedBlock = ActionNestedBlock | "input" | "receive" | "result" | "display" | "display-content" | string;
 
 export interface ActionParseContext {
   block?: ActionBlock;
@@ -403,6 +403,21 @@ function applyProcessStepBullet(
     return;
   }
 
+  if (isProcessDetailNestedBlock(currentNestedBlock)) {
+    if (value === undefined || value === "") {
+      const normalized = normalizeBlockLabel(bullet.text);
+      if (!isProcessDetailBlockLabel(normalized) && normalized !== "params") {
+        step.details.push({ key: currentNestedBlock, value: bullet.text, location: bullet.location });
+        addPropertyLocation(step.propertyLocations, currentNestedBlock, bullet.location);
+      }
+      return;
+    }
+
+    step.details.push({ key: `${currentNestedBlock}.${key}`, value, location: bullet.location });
+    addPropertyLocation(step.propertyLocations, currentNestedBlock, bullet.location);
+    return;
+  }
+
   if (["request", "server", "response", "validation"].includes(currentNestedBlock ?? "") && value !== undefined) {
     step.details.push({ key: `${currentNestedBlock}.${key}`, value, location: bullet.location });
     addPropertyLocation(step.propertyLocations, currentNestedBlock ?? key, bullet.location);
@@ -421,7 +436,7 @@ function applyProcessStepBullet(
     return;
   }
 
-  if (["input", "receive", "result", "request", "server", "response", "validation"].includes(normalizeBlockLabel(bullet.text))) {
+  if ((value === undefined || value === "") && (isProcessDetailBlockLabel(normalizeBlockLabel(bullet.text)) || isCustomProcessDetailBlockStart(bullet.text) || ["input", "receive", "result"].includes(normalizeBlockLabel(bullet.text)))) {
     return;
   }
 
@@ -936,7 +951,14 @@ function activeNestedBlock(context: ActionParseContext, bullet: ActionBulletInpu
 
 function nextNestedContext(bullet: ActionBulletInput, context: ActionParseContext): Pick<ActionParseContext, "nestedBlock" | "nestedBlockIndent"> {
   const normalized = normalizeBlockLabel(bullet.text);
-  if (normalized === "update" || normalized === "params" || normalized === "input" || normalized === "receive" || normalized === "result" || normalized === "request" || normalized === "server" || normalized === "response" || normalized === "validation" || normalized === "display") {
+  if (isProcessDetailNestedBlock(context.nestedBlock) && normalized === "params") {
+    return {
+      nestedBlock: `${context.nestedBlock}.params`,
+      nestedBlockIndent: bullet.indent
+    };
+  }
+
+  if (normalized === "update" || normalized === "params" || normalized === "input" || normalized === "receive" || normalized === "result" || isKnownProcessDetailBlock(normalized) || normalized === "display") {
     return {
       nestedBlock: normalized,
       nestedBlockIndent: bullet.indent
@@ -950,6 +972,13 @@ function nextNestedContext(bullet: ActionBulletInput, context: ActionParseContex
     };
   }
 
+  if (context.block === "process" && isCustomProcessDetailBlockStart(bullet.text)) {
+    return {
+      nestedBlock: normalized,
+      nestedBlockIndent: bullet.indent
+    };
+  }
+
   if (context.nestedBlockIndent !== undefined && bullet.indent > context.nestedBlockIndent) {
     return {
       nestedBlock: context.nestedBlock,
@@ -958,6 +987,35 @@ function nextNestedContext(bullet: ActionBulletInput, context: ActionParseContex
   }
 
   return {};
+}
+
+function isKnownProcessDetailBlock(normalized: string): boolean {
+  return normalized === "request" || normalized === "server" || normalized === "response" || normalized === "validation";
+}
+
+function isProcessDetailBlockLabel(normalized: string): boolean {
+  return isKnownProcessDetailBlock(normalized);
+}
+
+function isCustomProcessDetailBlockStart(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed.endsWith(":")) {
+    return false;
+  }
+  const normalized = normalizeBlockLabel(trimmed);
+  return /^[a-z][a-z0-9_-]*$/u.test(normalized)
+    && !["triggered", "from", "process", "otherwise", "case", "effects", "input", "receive", "result", "update", "params", "display", "content"].includes(normalized)
+    && !isKnownProcessDetailBlock(normalized);
+}
+
+function isProcessDetailNestedBlock(block: ProcessNestedBlock | undefined): block is string {
+  if (!block) {
+    return false;
+  }
+  if (["input", "receive", "result", "update", "params", "display", "display-content"].includes(block)) {
+    return false;
+  }
+  return isKnownProcessDetailBlock(block) || block.includes(".") || /^[a-z][a-z0-9_-]*$/u.test(block);
 }
 
 function getActionOutcome(action: MarkVSpecAction, result: string, location?: SourceLocation): MarkVSpecActionOutcome {

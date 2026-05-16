@@ -131,9 +131,16 @@ referenced from the same flow.
     - response: all required fields are present
     - continue
 - Process P2: Call server service
-  - AccountSettingsService.save()
+  - input:
     - displayName: E-DisplayNameInput.value
     - email: E-EmailInput.value
+  - server:
+    - AccountSettingsService.save()
+    - params:
+      - displayName: E-DisplayNameInput.value
+      - email: E-EmailInput.value
+  - result:
+    - account settings save request
   - case: sent
     - state: idle
   - case: send-failed
@@ -144,10 +151,12 @@ referenced from the same flow.
 ### A2:A-HandleSaveResponse Handle save response
 
 - Triggered
-  - A-SaveAccount.P1.response
+  - A-SaveAccount.P2.response
 - From
   - idle
 - Process P1: Handle server response
+  - receive:
+    - response: A-SaveAccount.P2.response
   - case: success
     - response: 200 saved
     - state: saved

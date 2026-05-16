@@ -97,10 +97,15 @@ handling. The click action only reaches `loading` after the request is sent.
   - empty
   - load-error
 - Process P1: Send request
+  - input:
+    - page: ${model.page}
   - request:
     - method: GET
     - path: /items
-    - page: ${model.page}
+    - params:
+      - page: ${model.page}
+  - result:
+    - item list request
   - case: sent
     - state: loading
   - case: send-failed
@@ -116,6 +121,8 @@ handling. The click action only reaches `loading` after the request is sent.
 - From
   - loading
 - Process P1: Handle response
+  - receive:
+    - response: A-RefreshItems.P1.response
   - case: success
     - response: HTTP 200 with rows
     - state: loaded
@@ -139,4 +146,3 @@ handling. The click action only reaches `loading` after the request is sent.
 | --- | --- |
 | Account setup | Ready |
 | Billing review | Waiting |
-

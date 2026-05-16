@@ -63,7 +63,10 @@ example.
 - From
   - loading
 - Process P1: Call server service
-  - MemberQueryService.findCurrent()
+  - server:
+    - MemberQueryService.findCurrent()
+  - result:
+    - current member profile result
   - case: success
     - response: 200 member profile
     - Effects

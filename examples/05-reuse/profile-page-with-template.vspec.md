@@ -110,6 +110,8 @@ It also demonstrates route parameters through `${route.memberId}`.
 - From
   - refreshing
 - Process P1: PartialResponse
+  - receive:
+    - response: A-RefreshProfile.P1.response
   - case: success
     - response: 200 partial HTML
     - state: idle

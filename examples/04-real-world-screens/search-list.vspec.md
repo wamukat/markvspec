@@ -168,8 +168,6 @@ and pagination actions.
     - keyword: E-KeywordInput.value
     - status: E-StatusFilter.value
     - page: 1
-  - result:
-    - first search page request
   - request:
     - method: GET
     - path: /users
@@ -177,6 +175,8 @@ and pagination actions.
       - keyword: E-KeywordInput.value
       - status: E-StatusFilter.value
       - page: 1
+  - result:
+    - first search page request
   - case: sent
     - state: loading
   - case: send-failed
@@ -192,6 +192,8 @@ and pagination actions.
 - From
   - loading
 - Process P1: Handle response
+  - receive:
+    - response: A-SearchUsers.P1.response
   - case: success
     - response: 200 with one or more rows
     - state: idle
@@ -222,8 +224,6 @@ and pagination actions.
     - keyword: ${model.keyword}
     - status: ${model.status}
     - page: ${model.nextPage}
-  - result:
-    - next search page request
   - request:
     - method: GET
     - path: /users
@@ -231,6 +231,8 @@ and pagination actions.
       - keyword: ${model.keyword}
       - status: ${model.status}
       - page: ${model.nextPage}
+  - result:
+    - next search page request
   - case: sent
     - state: loading
   - case: send-failed
@@ -247,8 +249,6 @@ and pagination actions.
     - keyword: ${model.keyword}
     - status: ${model.status}
     - page: ${model.previousPage}
-  - result:
-    - previous search page request
   - request:
     - method: GET
     - path: /users
@@ -256,6 +256,8 @@ and pagination actions.
       - keyword: ${model.keyword}
       - status: ${model.status}
       - page: ${model.previousPage}
+  - result:
+    - previous search page request
   - case: sent
     - state: loading
   - case: send-failed
@@ -268,6 +270,8 @@ and pagination actions.
 - From
   - loading
 - Process P1: Handle response
+  - receive:
+    - response: A-NextPage.P1.response
   - case: success
     - response: 200 with one or more rows
     - state: idle
@@ -294,6 +298,8 @@ and pagination actions.
 - From
   - loading
 - Process P1: Handle response
+  - receive:
+    - response: A-PreviousPage.P1.response
   - case: success
     - response: 200 with one or more rows
     - state: idle

@@ -126,11 +126,13 @@ server, and navigates only after a successful response.
   - input:
     - email: E-EmailInput.value
     - plan: E-PlanSelect.value
+  - sync:
+    - SubscriptionService.create()
+    - params:
+      - email: E-EmailInput.value
+      - plan: E-PlanSelect.value
   - result:
     - subscription creation request
-  - SubscriptionService.create()
-    - email: E-EmailInput.value
-    - plan: E-PlanSelect.value
   - case: sent
     - state: submitting
   - case: send-failed
@@ -143,6 +145,8 @@ server, and navigates only after a successful response.
 - From
   - submitting
 - Process P1: Handle server response
+  - receive:
+    - response: A-SubmitRequest.P2.response
   - case: success
     - response: 201 created
     - navigate: SCR-THANK-YOU
