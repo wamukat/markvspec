@@ -17,7 +17,7 @@ confirmation dialog that are not covered by the smaller examples.
 
 ## States
 
-- editing*
+- idle*
 - saving
 - save-error
 
@@ -254,7 +254,7 @@ confirmation dialog that are not covered by the smaller examples.
 - Triggered
   - E-SaveButton.click
 - From
-  - editing
+  - idle
   - save-error
 - Process P1: Call server service
   - server:
@@ -277,7 +277,7 @@ confirmation dialog that are not covered by the smaller examples.
 - Triggered
   - E-DiscardButton.click
 - From
-  - editing
+  - idle
   - save-error
 - Process P1: Apply immediate effect
   - case: done
@@ -289,9 +289,9 @@ confirmation dialog that are not covered by the smaller examples.
 
 ## Preview Scenarios
 
-### editing-confirm-discard
+### idle-confirm-discard
 
-- state: editing
+- state: idle
 - before: saving
 - cases:
   - A-OpenDiscardDialog.P1.done

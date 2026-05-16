@@ -16,9 +16,9 @@ the `Process P3: Resolve initial load` step owns the final state transition.
 
 ## States
 
-- loading*
+- initializing*
 - idle
-- load-error
+- initialize-error
 
 ## Layout: desktop
 
@@ -70,7 +70,7 @@ the `Process P3: Resolve initial load` step owns the final state transition.
 
 - tone: danger
 - sample: Dashboard data could not be loaded.
-- visible when: load-error
+- visible when: initialize-error
 
 ## Actions
 
@@ -79,7 +79,7 @@ the `Process P3: Resolve initial load` step owns the final state transition.
 - Triggered
   - screen.load
 - From
-  - loading
+  - initializing
 - Process P1: Call server service
   - group: initial-load
   - server:
@@ -127,7 +127,7 @@ the `Process P3: Resolve initial load` step owns the final state transition.
   - case: failed
     - result: one or more calls failed
     - Effects
-      - state: load-error
+      - state: initialize-error
     - stop
 
 ## Model Samples

@@ -11,7 +11,7 @@ status: draft
 
 ## States
 
-- ready*
+- idle*
 - signing-out
 
 ## Layout: desktop
@@ -129,7 +129,7 @@ status: draft
 - Triggered
   - E-LogoutButton.click
 - From
-  - ready
+  - idle
 - Process P1: Send request
   - request:
     - method: POST
@@ -139,7 +139,7 @@ status: draft
       - state: signing-out
   - case: send-failed
     - Effects
-      - state: ready
+      - state: idle
 
 ### A2:A-HandleSignOutResponse Handle sign out response
 
@@ -157,4 +157,4 @@ status: draft
   - case: failure
     - response: 5xx
     - Effects
-      - state: ready
+      - state: idle

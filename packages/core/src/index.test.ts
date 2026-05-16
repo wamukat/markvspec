@@ -637,7 +637,7 @@ title: State Prose
 This screen keeps authentication progress in state.
 
 - idle*
-- wait-auth
+- authenticating
 - validation-error
   - Client-side validation has found missing or malformed input.
 - auth-error
@@ -657,7 +657,7 @@ Free-form section body.
   assert.deepEqual(astResult.diagnostics, []);
   assert.deepEqual(astResult.states.map((state) => [state.name, state.message ?? ""]), [
     ["idle", ""],
-    ["wait-auth", ""],
+    ["authenticating", ""],
     ["validation-error", "Client-side validation has found missing or malformed input."],
     ["auth-error", ""]
   ]);
@@ -4621,7 +4621,7 @@ test("parses the login screen example", () => {
     result.states.map((state) => [state.name, state.initial, state.message]),
     [
       ["idle", true, undefined],
-      ["wait-auth", false, "The login request was sent and the screen is waiting for the authentication response."],
+      ["authenticating", false, "The login request was sent and the screen is waiting for the authentication response."],
       ["validation-error", false, "Required input is missing."],
       ["request-error", false, "The login request could not be sent."],
       ["auth-error", false, "The server rejected the submitted credentials."]
@@ -4713,17 +4713,17 @@ test("parses the login screen example", () => {
     ["validation-error", "invalid", "validation-error"],
     ["request-error", "invalid", "validation-error"],
     ["auth-error", "invalid", "validation-error"],
-    ["idle", "sent", "wait-auth"],
-    ["validation-error", "sent", "wait-auth"],
-    ["request-error", "sent", "wait-auth"],
-    ["auth-error", "sent", "wait-auth"],
+    ["idle", "sent", "authenticating"],
+    ["validation-error", "sent", "authenticating"],
+    ["request-error", "sent", "authenticating"],
+    ["auth-error", "sent", "authenticating"],
     ["idle", "send-failed", "request-error"],
     ["validation-error", "send-failed", "request-error"],
     ["request-error", "send-failed", "request-error"],
     ["auth-error", "send-failed", "request-error"]
   ]);
   assert.deepEqual(action?.processSteps.find((step) => step.marker === "P2")?.outcomes.map((outcome) => [outcome.result, outcome.response?.definition, outcome.to]), [
-    ["sent", undefined, "wait-auth"],
+    ["sent", undefined, "authenticating"],
     ["send-failed", undefined, "request-error"]
   ]);
   assert.deepEqual(action?.processSteps.map((step) => [step.name, step.when, step.target, step.content]), [
@@ -4734,8 +4734,8 @@ test("parses the login screen example", () => {
   const responseAction = result.actions.find((candidate) => candidate.id === "A-HandleLoginResponse");
   assert.equal(responseAction?.triggeredBy, "A-SubmitLogin.P2.response");
   assert.deepEqual(responseAction?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
-    ["wait-auth", "success", "SCR-HOME"],
-    ["wait-auth", "failure", "auth-error"]
+    ["authenticating", "success", "SCR-HOME"],
+    ["authenticating", "failure", "auth-error"]
   ]);
 
   const forgotPasswordAction = result.actions.find((candidate) => candidate.id === "A-ForgotPassword");
@@ -6090,7 +6090,7 @@ title: Otherwise
 
 - idle*
 - validation-error
-- wait-auth
+- authenticating
 
 ## Layout: mobile
 
@@ -6114,7 +6114,7 @@ title: Otherwise
   - idle
 - Process P1: Submit request
   - Effects
-    - state: wait-auth
+    - state: authenticating
 - Otherwise
   - state: validation-error
   - update:
@@ -6126,7 +6126,7 @@ title: Otherwise
 
   assert.equal(result.diagnostics.length, 0);
   assert.deepEqual(action?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
-    ["idle", undefined, "wait-auth"],
+    ["idle", undefined, "authenticating"],
     ["idle", "otherwise", "validation-error"]
   ]);
   assert.deepEqual(action?.outcomes.map((outcome) => [outcome.result, outcome.target, outcome.content]), [
@@ -9654,9 +9654,9 @@ test("renders state-specific banner content", () => {
 test("renders action markers only in explicit From states", () => {
   const source = readFileSync(examplePath("05-reuse/template-shell.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
-  const readyHtml = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true, state: "ready", viewport: "desktop" });
+  const readyHtml = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true, state: "idle", viewport: "desktop" });
   const signingOutHtml = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true, state: "signing-out", viewport: "desktop" });
-  const readyFragment = renderMarkVSpecHtmlFragment(result, "layout:desktop:L-TopBar", { includeStyles: false, showIds: true, state: "ready" })?.html ?? "";
+  const readyFragment = renderMarkVSpecHtmlFragment(result, "layout:desktop:L-TopBar", { includeStyles: false, showIds: true, state: "idle" })?.html ?? "";
   const signingOutFragment = renderMarkVSpecHtmlFragment(result, "layout:desktop:L-TopBar", { includeStyles: false, showIds: true, state: "signing-out" })?.html ?? "";
   const signOutAction = result.actions.find((action) => action.id === "A-SignOut");
 
@@ -10581,7 +10581,7 @@ references:
 ## States
 
 - loaded*
-- searching
+- loading
 - empty
 
 ## Layout: mobile
@@ -10630,7 +10630,7 @@ references:
   - case: sent
     - result: request was sent
     - Effects
-      - state: searching
+      - state: loading
       - display:
         - target: L-SearchResultsArea
         - content:
@@ -10666,16 +10666,16 @@ references:
 - cases:
   - A-NextSearchPage.P2.success
 
-### next-page-searching
+### next-page-loading
 
-- state: searching
+- state: loading
 - cases:
   - A-NextSearchPage.P1.sent
 
 ### next-page-empty
 
 - state: empty
-- before: searching
+- before: loading
 - cases:
   - A-NextSearchPage.P2.empty
 
@@ -10722,17 +10722,17 @@ references:
     "default viewport mobile",
     "next-page-loaded",
     "next-page-empty",
-    "searching",
-    "next-page-searching",
+    "loading",
+    "next-page-loading",
     "empty"
   ]);
   const loadedScenario = models.find((model) => model.title === "next-page-loaded");
-  const searchingScenario = models.find((model) => model.title === "next-page-searching");
+  const loadingScenario = models.find((model) => model.title === "next-page-loading");
   const emptyScenario = models.find((model) => model.title === "next-page-empty");
   assert.deepEqual(loadedScenario?.displayEffects.map((display) => [display.target, display.contentSource.map((detail) => [detail.key, detail.value])]), [
     ["L-SearchResultsArea", [["partial", "PRT-SearchResultsList"], ["state", "loaded"]]]
   ]);
-  assert.deepEqual(searchingScenario?.displayEffects.map((display) => [display.target, display.contentSource.map((detail) => [detail.key, detail.value])]), [
+  assert.deepEqual(loadingScenario?.displayEffects.map((display) => [display.target, display.contentSource.map((detail) => [detail.key, detail.value])]), [
     ["L-SearchResultsArea", [["partial", "PRT-SearchResultsList"], ["state", "loading"]]]
   ]);
   assert.deepEqual(emptyScenario?.displayEffects.map((display) => [display.target, display.content]), [

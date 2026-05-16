@@ -202,11 +202,11 @@ entity ごとの説明です。
 ログイン画面は、未入力、認証待ち、入力エラー、認証エラーを画面内 state として扱います。
 
 - idle*
-- wait-auth
+- authenticating
 - validation-error
 - auth-error
 
-`wait-auth` 中はフォームを無効化し、二重送信を防ぎます。
+`authenticating` 中はフォームを無効化し、二重送信を防ぎます。
 ```
 
 次の例では、Action 見出し直下の本文が Action Overview、構造化リスト後の本文が Action Notes です。
@@ -233,7 +233,7 @@ entity ごとの説明です。
     - login request submission result
   - case: sent
     - Effects
-      - state: wait-auth
+      - state: authenticating
   - case: send-failed
     - Effects
       - state: auth-error
@@ -474,10 +474,10 @@ Mermaid label、document symbol、plain text review comment で読みやすい�
 - idle*
 - validation-error
   - クライアント側の入力検証でエラーを表示する状態。
-- wait-auth
+- authenticating
 - auth-error
   - 認証失敗メッセージを表示する状態。
-- loaded
+- signed-in
 - recovered
   - 認証失敗後に復帰した状態。
 ```
@@ -494,6 +494,17 @@ Mermaid label、document symbol、plain text review comment で読みやすい�
 `state` は画面内状態です。フォーム値のような画面データは `${model.email}` のような不透明な式として扱います。
 初期状態は状態名末尾の `*` で示します。説明は状態の下にネストしたリストとして書きます。
 state 配下のネストした箇条書きは自由記述の説明です。プレビューの基準状態は定義しません。
+
+example の state 名は、画面上の lifecycle 意図が分かる名前に揃えます。
+
+- `initializing` は初期表示時の bootstrap / 初期データ取得に使います。
+- `idle` は初期化済みで通常操作できる基準状態に使います。
+- `loading` は検索、ページング、再読込など、画面操作後の読み込みに使います。
+- `saving`、`submitting`、`authenticating` のような domain-specific state は、保存や送信などの待機状態に使います。
+- `initialize-error` は初期化失敗、`load-error` は操作後の読み込み失敗に使い分けます。
+- `loaded` は、読み込み済みデータの variant や visible result state を説明する example に限って使います。
+- `editing` は非編集 mode から編集 mode へ明示的に遷移する screen に限って使います。
+- help、dialog、banner のような表示だけの差分は、永続 state ではなく `display:` と Preview Scenarios を優先します。
 
 ## Layout
 
@@ -688,7 +699,7 @@ screen 側で partial のプレビューを埋め込む場合は、置き換え�
 ### L-LoginControls Login Controls
 
 - stack
-- disabled when: wait-auth
+- disabled when: authenticating
 
 #### Items
 
@@ -701,7 +712,7 @@ screen 側で partial のプレビューを埋め込む場合は、置き換え�
 
 - stack
 - overlay: area
-- visible when: wait-auth
+- visible when: authenticating
 
 #### Items
 
@@ -1034,7 +1045,7 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 ### E-AuthSpinner Spinner
 
 - label: Signing in...
-- visible when: wait-auth
+- visible when: authenticating
 ```
 
 `label` は読み上げや低 fidelity preview の表示に使います。
@@ -1201,7 +1212,7 @@ execution detail も result classification も持たない、決定的な即時�
     - login request submission result
   - case: sent
     - Effects
-      - state: wait-auth
+      - state: authenticating
     - stop
   - case: send-failed
     - Effects
@@ -1216,7 +1227,7 @@ execution detail も result classification も持たない、決定的な即時�
 - Triggered
   - A-SubmitLogin.P2.response
 - From
-  - wait-auth
+  - authenticating
 - Process P1: Handle login response
   - receive:
     - response: A-SubmitLogin.P2.response

@@ -308,7 +308,7 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(html, /Enter both email and password\./);
   assert.match(html, new RegExp(`email: ${detailElementRef("3", "E-EmailInput")}\\.value`));
   assert.match(html, new RegExp(`rememberMe: ${detailElementRef("6", "E-RememberMe")}\\.value`));
-  assert.match(html, new RegExp(`<td>${markerBadge("L2", "layout")}</td><td>${detailIdRef("L-LoginForm")}</td><td>stack</td><td><ul class="spec-list"><li>disabled: wait-auth</li></ul></td>`));
+  assert.match(html, new RegExp(`<td>${markerBadge("L2", "layout")}</td><td>${detailIdRef("L-LoginForm")}</td><td>stack</td><td><ul class="spec-list"><li>disabled: authenticating</li></ul></td>`));
   assert.match(html, new RegExp(`<td>${markerBadge("L4", "layout")}</td><td>${detailIdRef("L-ValidationMessageArea")}</td><td>stack</td><td><ul class="spec-list"><li>visible: validation-error</li></ul></td>`));
   assert.doesNotMatch(html, new RegExp(`<li>${detailIdRef("P-EmailField")}</li>`));
   assert.match(html, new RegExp(`<li>${detailIdRef("E-ValidationMessage")}</li>`));
@@ -331,23 +331,23 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(actionDetailsSection, new RegExp(`rememberMe: ${detailElementRef("6", "E-RememberMe")}\\.value`));
   assert.match(actionDetailsSection, /content Authentication error message/);
   assert.doesNotMatch(actionDetailsSection, /id="action-detail-A-AuthResponse"/);
-  assert.match(submitActionDetail, new RegExp(`<strong>${docLabel("sent", "result")}</strong>[\\s\\S]*effect set state ${docLabel("wait-auth", "state")}`));
+  assert.match(submitActionDetail, new RegExp(`<strong>${docLabel("sent", "result")}</strong>[\\s\\S]*effect set state ${docLabel("authenticating", "state")}`));
   assert.match(submitActionDetail, new RegExp(`<strong>${docLabel("send-failed", "result")}</strong>[\\s\\S]*effect set state ${docLabel("request-error", "state")}`));
   assert.match(responseActionDetail, new RegExp(`<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response 200 authenticated[\\s\\S]*effect navigate to ${documentRef("SCR-HOME")}`));
   assert.match(responseActionDetail, new RegExp(`<strong>${docLabel("failure", "result")}</strong>[\\s\\S]*response 401 invalid credentials[\\s\\S]*effect set state ${docLabel("auth-error", "state")}`));
   assert.match(html, /stateDiagram-v2\n  direction TB/);
   assert.doesNotMatch(html, /Handle login response \/ success \/ navigate/);
   assert.match(html, /Handle login response \/ failure/);
-  assert.match(html, new RegExp(`${actionBadge("A1", "A-SubmitLogin")}[\\s\\S]*Submit login[\\s\\S]*${docLabel("idle", "state")}[\\s\\S]*${docLabel("sent", "result")}[\\s\\S]*${docLabel("wait-auth", "state")}`));
-  assert.match(html, new RegExp(`<td>${actionBadge("A2", "A-HandleLoginResponse")}</td><td>Handle login response</td><td>${docLabel("A-SubmitLogin.P2.response", "trigger")}</td><td>${docLabel("wait-auth", "state")}</td><td>${docLabel("success", "result")}</td><td>screen</td><td>${documentRef("SCR-HOME")}</td>`));
+  assert.match(html, new RegExp(`${actionBadge("A1", "A-SubmitLogin")}[\\s\\S]*Submit login[\\s\\S]*${docLabel("idle", "state")}[\\s\\S]*${docLabel("sent", "result")}[\\s\\S]*${docLabel("authenticating", "state")}`));
+  assert.match(html, new RegExp(`<td>${actionBadge("A2", "A-HandleLoginResponse")}</td><td>Handle login response</td><td>${docLabel("A-SubmitLogin.P2.response", "trigger")}</td><td>${docLabel("authenticating", "state")}</td><td>${docLabel("success", "result")}</td><td>screen</td><td>${documentRef("SCR-HOME")}</td>`));
   assert.match(html, new RegExp(`<td>${actionBadge("A3", "A-ForgotPassword")}</td><td>Open password reset</td><td>${markerBadge("8", "element")}\\.click</td><td>${docLabel("idle", "state")}</td><td>-</td><td>screen</td><td>${documentRef("SCR-PASSWORD-RESET")}</td>`));
-  assert.match(html, /<section class="doc-section state-screen-section" data-section-number="3\.1\.2" data-state="wait-auth" data-viewport="mobile" style="--markvspec-viewport-width:390px;--markvspec-print-scale:1">/);
-  const waitAuthSection = viewportStateSection(html, "wait-auth", "mobile");
+  assert.match(html, /<section class="doc-section state-screen-section" data-section-number="3\.1\.2" data-state="authenticating" data-viewport="mobile" style="--markvspec-viewport-width:390px;--markvspec-print-scale:1">/);
+  const waitAuthSection = viewportStateSection(html, "authenticating", "mobile");
   assert.match(waitAuthSection, /<h6 class="state-screen-detail-heading">Element Summary<\/h6>/);
   assert.match(waitAuthSection, /<th>Marker<\/th><th>ID<\/th><th>Type<\/th><th>Triggered Actions<\/th><th>Description<\/th>/);
   assert.match(waitAuthSection, new RegExp(`<td>${markerBadge("11", "element")}</td><td>${detailIdRef("E-AuthSpinner")}</td><td>Spinner</td><td></td><td></td>`));
   assert.match(waitAuthSection, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>/);
-  assert.match(waitAuthSection, new RegExp(`<td>${markerBadge("11", "element")}</td><td>${detailIdRef("E-AuthSpinner")}</td><td>label</td><td>Signing in\\.\\.\\.</td><td></td><td></td><td><ul class="spec-list"><li>visible: wait-auth</li></ul></td><td></td>`));
+  assert.match(waitAuthSection, new RegExp(`<td>${markerBadge("11", "element")}</td><td>${detailIdRef("E-AuthSpinner")}</td><td>label</td><td>Signing in\\.\\.\\.</td><td></td><td></td><td><ul class="spec-list"><li>visible: authenticating</li></ul></td><td></td>`));
   assert.match(waitAuthSection, new RegExp(`<td>${actionBadge("A2", "A-HandleLoginResponse")}</td><td>Handle login response</td>`));
   const waitAuthWireframe = stateWireframeSection(waitAuthSection);
   assert.match(waitAuthWireframe, />L7<\/code>/);
@@ -396,7 +396,7 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(desktopAuthErrorSection, new RegExp(`<td>${markerBadge("9", "element")} ${repeatedBadge()}</td><td>${detailIdRef("E-AuthErrorBanner")}`));
   assert.match(desktopAuthErrorWireframe, />L6<\/code>/);
   assert.match(desktopAuthErrorWireframe, />9<\/code>/);
-  const desktopWaitAuthSection = viewportStateSection(html, "wait-auth", "desktop");
+  const desktopWaitAuthSection = viewportStateSection(html, "authenticating", "desktop");
   assert.doesNotMatch(desktopWaitAuthSection, /From:/);
   assert.match(desktopWaitAuthSection, /mm-repeated-badge/);
 });
@@ -6077,7 +6077,7 @@ test("creates document symbols for MarkVSpec structure", () => {
   const states = screen.children.find((child) => child.name === "States");
   assert.deepEqual(states?.children.map((child) => `${child.name}:${child.detail}`), [
     "idle:initial state",
-    "wait-auth:state",
+    "authenticating:state",
     "validation-error:state",
     "request-error:state",
     "auth-error:state"

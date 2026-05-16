@@ -16,15 +16,15 @@ used around a form-like preferences screen.
 
 ## States
 
-- loading*
+- initializing*
   - The screen is requesting saved preferences.
-- editing
+- idle
   - Preferences are editable.
 - saving
   - The save request was sent and the screen is waiting for the response.
 - saved
   - Preferences were saved.
-- load-error
+- initialize-error
   - Saved preferences could not be loaded.
 - save-error
   - Preferences could not be sent or saved.
@@ -57,7 +57,7 @@ used around a form-like preferences screen.
 
 - stack
 - gap: sm
-- disabled when: loading
+- disabled when: initializing
 - disabled when: saving
 
 #### Items
@@ -105,7 +105,7 @@ used around a form-like preferences screen.
 
 - tone: info
 - sample: Loading saved preferences.
-- visible when: loading
+- visible when: initializing
 
 ### 3:E-HelpText Text
 
@@ -126,7 +126,7 @@ used around a form-like preferences screen.
 
 - tone: danger
 - sample: Saved preferences could not be loaded.
-- visible when: load-error
+- visible when: initialize-error
 
 ### 7:E-SaveErrorBanner Banner
 
@@ -207,7 +207,7 @@ used around a form-like preferences screen.
 - Triggered
   - screen.load
 - From
-  - loading
+  - initializing
 - Process P1: Call server service
   - server:
     - PreferencesQueryService.findSaved()
@@ -219,27 +219,27 @@ used around a form-like preferences screen.
       - model: ${model.keyword} = result.keyword
       - model: ${model.email} = result.email
       - model: ${model.deliveryCadence} = result.deliveryCadence
-      - state: editing
+      - state: idle
   - case: failure
     - response: 5xx or timeout
     - Effects
-      - state: load-error
+      - state: initialize-error
 
 ### A2:A-UpdateKeyword Update keyword
 
 - Triggered
   - E-SearchInput.change
 - From
-  - editing
+  - idle
 - Process P1: Apply immediate effect
-  - state: editing
+  - state: idle
 
 ### A3:A-ValidateEmail Validate email on blur
 
 - Triggered
   - E-EmailInput.blur
 - From
-  - editing
+  - idle
 - Process P1: Check validation
   - receive:
     - validation: V-PreferencesForm.result
@@ -253,7 +253,7 @@ used around a form-like preferences screen.
   - case: valid
     - result: email is valid
     - Effects
-      - state: editing
+      - state: idle
     - stop
 
 ### A4:A-ShowDeliveryHelp Show delivery help
@@ -261,7 +261,7 @@ used around a form-like preferences screen.
 - Triggered
   - E-HelpIcon.focus
 - From
-  - editing
+  - idle
 - Process P1: Apply immediate effect
   - case: done
     - Effects
@@ -275,7 +275,7 @@ used around a form-like preferences screen.
 - Triggered
   - E-DiscardButton.click
 - From
-  - editing
+  - idle
   - save-error
 - Process P1: Apply immediate effect
   - case: done
@@ -290,7 +290,7 @@ used around a form-like preferences screen.
 - Triggered
   - E-ConfirmDialog.close
 - From
-  - editing
+  - idle
 - Process P1: Apply immediate effect
   - display:
     - target: L-DialogArea
@@ -301,7 +301,7 @@ used around a form-like preferences screen.
 - Triggered
   - E-PreferencesForm.submit
 - From
-  - editing
+  - idle
   - save-error
 - Process P1: Check validation
   - receive:
@@ -352,23 +352,23 @@ used around a form-like preferences screen.
 
 ## Preview Scenarios
 
-### editing-help
+### idle-help
 
-- state: editing
+- state: idle
 - before: saving
 - cases:
   - A-ShowDeliveryHelp.P1.done
 
-### editing-validation-error
+### idle-validation-error
 
-- state: editing
+- state: idle
 - before: saving
 - cases:
   - A-ValidateEmail.P1.invalid
 
-### editing-confirm-discard
+### idle-confirm-discard
 
-- state: editing
+- state: idle
 - before: saved
 - cases:
   - A-RequestDiscardDialog.P1.done

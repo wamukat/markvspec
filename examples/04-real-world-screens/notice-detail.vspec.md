@@ -17,11 +17,11 @@ parameters visibly separate.
 
 ## States
 
-- loaded*
+- idle*
   - Notice data is available.
-- searching
+- loading
   - A related-notice search request was sent.
-- search-error
+- load-error
   - Related notices could not be searched.
 
 ## Layout: desktop
@@ -76,7 +76,7 @@ parameters visibly separate.
 - row
 - gap: sm
 - align: center
-- disabled when: searching
+- disabled when: loading
 
 #### Items
 
@@ -203,13 +203,13 @@ parameters visibly separate.
 
 - tone: info
 - sample: Searching related notices.
-- visible when: searching
+- visible when: loading
 
 ### 14:E-SearchErrorBanner Banner
 
 - tone: danger
 - sample: Related notices could not be searched.
-- visible when: search-error
+- visible when: load-error
 
 ## Actions
 
@@ -218,8 +218,8 @@ parameters visibly separate.
 - Triggered
   - E-SearchButton.click
 - From
-  - loaded
-  - search-error
+  - idle
+  - load-error
 - Process P1: Request related notices
   - request:
     - method: GET
@@ -232,28 +232,28 @@ parameters visibly separate.
     - related notice search request
   - case: sent
     - Effects
-      - state: searching
+      - state: loading
   - case: send-failed
     - Effects
-      - state: search-error
+      - state: load-error
 
 ### A2:A-HandleRelatedSearchResponse Handle related search response
 
 - Triggered
   - A-SearchRelatedNotices.P1.response
 - From
-  - searching
+  - loading
 - Process P1: Handle response
   - receive:
     - response: A-SearchRelatedNotices.P1.response
   - case: success
     - response: 200 related notices
     - Effects
-      - state: loaded
+      - state: idle
   - case: failure
     - response: 4xx or 5xx
     - Effects
-      - state: search-error
+      - state: load-error
 
 ## Business Rules
 

@@ -596,11 +596,11 @@ title: No Viewport Repeated
   assert.ok(loaded.repeatedElementIds?.has("E-Title"));
 });
 
-test("marks login wait-auth common specs as repeated while keeping progress specs new", () => {
+test("marks login authenticating common specs as repeated while keeping progress specs new", () => {
   const source = readFileSync(resolve(extensionRoot, "../../examples/01-basics/login-basic.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
-  const waitAuthSection = viewportStateSection(html, "wait-auth", "mobile");
+  const waitAuthSection = viewportStateSection(html, "authenticating", "mobile");
 
   assert.match(waitAuthSection, new RegExp(`<td>${markerBadge("L1", "layout")} ${repeatedBadge()}</td><td>${detailIdRef("L-Page")}</td><td>stack</td>`));
   assert.match(waitAuthSection, new RegExp(`<td>${markerBadge("L2", "layout")} ${repeatedBadge()}</td><td>${detailIdRef("L-LoginForm")}</td><td>stack</td>`));
@@ -616,7 +616,7 @@ test("builds State Views ids from the read model", () => {
   const source = readFileSync(resolve(extensionRoot, "../../examples/01-basics/login-basic.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
   const models = buildStateScreenReadModels(result, result, "mobile");
-  const waitAuth = models.find((model) => model.stateName === "wait-auth");
+  const waitAuth = models.find((model) => model.stateName === "authenticating");
 
   assert.ok(waitAuth);
   assert.ok(waitAuth.renderedIds.layoutIds.has("L-LoginForm"));
@@ -1133,7 +1133,7 @@ title: Markerless
 ## States
 
 - idle*
-- wait-auth
+- authenticating
 
 ## Layout: mobile
 
@@ -1175,7 +1175,7 @@ title: Markerless
     - email: E-メールアドレス入力.value
 - Process: Immediate
   - Effects
-    - state: wait-auth
+    - state: authenticating
 `;
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });

@@ -235,7 +235,7 @@ Validate the input and move to auth wait only when the request can be sent.
     - login request submission result
   - case: sent
     - Effects
-      - state: wait-auth
+      - state: authenticating
   - case: send-failed
     - Effects
       - state: auth-error
@@ -462,10 +462,10 @@ States are written as bullets.
 ## States
 
 - idle*
-- wait-auth
+- authenticating
 - auth-error
   - Invalid email or password.
-- loaded
+- signed-in
 - recovered
   - The user recovered from an authentication error.
 ```
@@ -483,10 +483,26 @@ Rules:
 
 - Exactly one state should end with `*` as the initial state.
 - If no state uses `*`, the first state is treated as initial with a warning.
-- State names should use lower kebab case, such as `wait-auth` or `validation-error`.
+- State names should use lower kebab case, such as `authenticating` or `validation-error`.
 - Inline state descriptions such as `- idle: initial` or `- error: message` are invalid.
 - Nested list items under a state are free-form state descriptions. They do not
   define preview diff baselines.
+
+Example state names should keep lifecycle intent screen-oriented:
+
+- Use `initializing` for initial screen bootstrap.
+- Use `idle` for the initialized, interactive baseline state.
+- Use `loading` for user-triggered or in-screen read operations.
+- Use `saving`, `submitting`, or a domain-specific state such as
+  `authenticating` for pending writes or submissions.
+- Use `initialize-error` for bootstrap failures and `load-error` for later read
+  failures when the distinction matters.
+- Use `loaded` only when the example explicitly teaches loaded data variants or
+  a visible loaded result state.
+- Use `editing` only when the screen has a distinct non-editing mode and an
+  explicit transition into editing.
+- Prefer `display:` Preview Scenarios for help text, dialogs, and banners that
+  do not represent persistent screen states.
 
 ## Layout Section
 
@@ -832,7 +848,7 @@ during a waiting state:
 ### L-LoginControls Login Controls
 
 - stack
-- disabled when: wait-auth
+- disabled when: authenticating
 
 #### Items
 
@@ -845,7 +861,7 @@ during a waiting state:
 
 - stack
 - overlay: area
-- visible when: wait-auth
+- visible when: authenticating
 
 #### Items
 
@@ -1275,7 +1291,7 @@ element block remains supported for static tables that do not use
 `Image` renders as a wireframe placeholder rather than loading the actual asset.
 For `Image`, `src` is the asset source, not a data-binding source.
 `Spinner` represents loading or waiting feedback for states such as
-`wait-auth`.
+`authenticating`.
 
 ```markdown
 ### E-ConfirmDialog Dialog
@@ -1296,7 +1312,7 @@ For `Image`, `src` is the asset source, not a data-binding source.
 ### E-AuthSpinner Spinner
 
 - label: Signing in...
-- visible when: wait-auth
+- visible when: authenticating
 ```
 
 `Textarea`, `MultiSelect`, `CheckboxGroup`, and `Switch` cover common form
@@ -1624,7 +1640,7 @@ result-specific effects under that case's `Effects` block.
     - login request submission result
   - case: sent
     - Effects
-      - state: wait-auth
+      - state: authenticating
     - stop
   - case: send-failed
     - Effects
@@ -1639,7 +1655,7 @@ result-specific effects under that case's `Effects` block.
 - Triggered
   - A-SubmitLogin.P2.response
 - From
-  - wait-auth
+  - authenticating
 - Process P1: Handle auth response
   - receive:
     - response: A-SubmitLogin.P2.response
@@ -1768,7 +1784,7 @@ aggregate decision in a Resolve process with the same `group`.
   - case: failed
     - result: one or more calls failed
     - Effects
-      - state: load-error
+      - state: initialize-error
     - stop
 ```
 

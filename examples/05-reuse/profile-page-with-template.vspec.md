@@ -23,8 +23,8 @@ It also demonstrates route parameters through `${route.memberId}`.
 ## States
 
 - idle*
-- refreshing
-- refresh-error
+- loading
+- load-error
 
 ## Slot: content
 
@@ -48,8 +48,8 @@ It also demonstrates route parameters through `${route.memberId}`.
   - id: PRT-PROFILE-SUMMARY
   - states:
     - idle: loaded
-    - refreshing: loading
-    - refresh-error: load-error
+    - loading: loading
+    - load-error: load-error
 
 ## Elements
 
@@ -72,7 +72,7 @@ It also demonstrates route parameters through `${route.memberId}`.
 
 - tone: danger
 - sample: Profile summary could not be refreshed.
-- visible when: refresh-error
+- visible when: load-error
 
 ## Actions
 
@@ -82,7 +82,7 @@ It also demonstrates route parameters through `${route.memberId}`.
   - E-RefreshProfileButton.click
 - From
   - idle
-  - refresh-error
+  - load-error
 - Process P1: Refresh partial content
   - request: GET /members/${route.memberId}/profile-summary
   - params:
@@ -91,7 +91,7 @@ It also demonstrates route parameters through `${route.memberId}`.
   - case: sent
     - response: request accepted
     - Effects
-      - state: refreshing
+      - state: loading
       - display:
         - target: L-ProfileSummaryHost
         - content:
@@ -101,7 +101,7 @@ It also demonstrates route parameters through `${route.memberId}`.
   - case: send-failed
     - response: network error
     - Effects
-      - state: refresh-error
+      - state: load-error
     - stop
 
 ### A2:A-HandleProfileSummaryResponse Handle profile summary response
@@ -109,7 +109,7 @@ It also demonstrates route parameters through `${route.memberId}`.
 - Triggered
   - A-RefreshProfile.P1.response
 - From
-  - refreshing
+  - loading
 - Process P1: PartialResponse
   - receive:
     - response: A-RefreshProfile.P1.response
@@ -124,5 +124,5 @@ It also demonstrates route parameters through `${route.memberId}`.
   - case: failure
     - response: 5xx or timeout
     - Effects
-      - state: refresh-error
+      - state: load-error
     - stop

@@ -18,7 +18,7 @@ handling, and disabled controls while authentication is pending.
 ## States
 
 - idle*
-- wait-auth
+- authenticating
   - The login request was sent and the screen is waiting for the authentication response.
 - validation-error
   - Required input is missing.
@@ -46,7 +46,7 @@ handling, and disabled controls while authentication is pending.
 
 - stack
 - gap: md
-- disabled when: wait-auth
+- disabled when: authenticating
 
 #### Items
 
@@ -97,7 +97,7 @@ handling, and disabled controls while authentication is pending.
 
 - stack
 - overlay: area
-- visible when: wait-auth
+- visible when: authenticating
 
 #### Items
 
@@ -122,7 +122,7 @@ handling, and disabled controls while authentication is pending.
 
 - stack
 - gap: md
-- disabled when: wait-auth
+- disabled when: authenticating
 
 #### Items
 
@@ -184,7 +184,7 @@ handling, and disabled controls while authentication is pending.
 
 - stack
 - overlay: area
-- visible when: wait-auth
+- visible when: authenticating
 
 #### Items
 
@@ -253,7 +253,7 @@ handling, and disabled controls while authentication is pending.
 ### 11:E-AuthSpinner Spinner
 
 - label: Signing in...
-- visible when: wait-auth
+- visible when: authenticating
 
 ## Form Groups
 
@@ -305,7 +305,7 @@ not decide whether credentials are correct.
     - login submission request
   - case: sent
     - Effects
-      - state: wait-auth
+      - state: authenticating
   - case: send-failed
     - Effects
       - state: request-error
@@ -321,7 +321,7 @@ success or failure is handled by `A-HandleLoginResponse`.
 - Triggered
   - A-SubmitLogin.P2.response
 - From
-  - wait-auth
+  - authenticating
 - Process P1: Handle response
   - receive:
     - response: A-SubmitLogin.P2.response
