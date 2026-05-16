@@ -3,6 +3,7 @@ import {
   conditionReferenceRegex,
   elementIdPattern,
   formGroupIdPattern,
+  idNamePattern,
   isLayoutItemId,
   isLocalId,
   isPresentationPanelId,
@@ -35,7 +36,9 @@ const actionEvents = new Set(["click", "change", "submit", "focus", "blur", "ope
 const actionLifecycleEvents = new Set(["response"]);
 const documentLifecycleTriggers = new Set(["screen.load", "partial.render"]);
 const actionLifecycleTriggerRegex = new RegExp(String.raw`^(${actionIdPattern})\.([A-Za-z][A-Za-z0-9_-]*)$`, "u");
+const elementIdRegex = new RegExp(String.raw`^${elementIdPattern}$`, "u");
 const formGroupIdRegex = new RegExp(String.raw`^${formGroupIdPattern}$`, "u");
+const validationResultReferenceRegex = new RegExp(String.raw`^(V-${idNamePattern})\.result$`, "u");
 const markerRegex = /^[A-Za-z0-9][A-Za-z0-9_-]{0,11}$/u;
 
 export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagnostic[] {
@@ -635,7 +638,8 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
 
   for (const validation of result.validations) {
     validateValidationTargets(validation, targetLayoutIds, elementIds, formGroupIds, diagnostics);
-    validateValidationTrigger(validation, actionIds, elementIds, diagnostics);
+    validateValidationTrigger(validation, diagnostics);
+    validateValidationRules(validation, elementIds, formGroupIds, diagnostics);
     validateValidationCondition(validation, localIds, diagnostics);
     validateValidationErrorCodes(validation, errorCodeIds, diagnostics);
     validateValidationScopeAndRun(validation, diagnostics);
@@ -799,6 +803,14 @@ function validateValidationTargets(
   formGroupIds: Set<string>,
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
+  if (validationPropertyValues(validation, "target").length === 0) {
+    diagnostics.push({
+      severity: "error",
+      message: `Validation ${validation.id} must specify target.`,
+      line: validation.location.line
+    });
+  }
+
   validationPropertyValues(validation, "target").forEach((target, index) => {
     const line = validation.propertyLocations["target"]?.[index]?.line ?? validation.location.line;
     if (isPresentationPanelId(target)) {
@@ -838,38 +850,50 @@ function validationIsComposite(validation: MarkVSpecParseResult["validations"][n
 
 function validateValidationTrigger(
   validation: MarkVSpecParseResult["validations"][number],
-  actionIds: Set<string>,
-  elementIds: Set<string>,
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
   validationPropertyValues(validation, "trigger").forEach((trigger, index) => {
     const line = validation.propertyLocations["trigger"]?.[index]?.line ?? validation.location.line;
-    const elementEvent = new RegExp(String.raw`^(${elementIdPattern})\.([A-Za-z][A-Za-z0-9_-]*)$`, "u").exec(trigger);
-    if (elementEvent) {
-      if (!elementIds.has(elementEvent[1])) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Validation ${validation.id} trigger is not canonical. Actions should consume ${validation.id}.result instead of defining validation triggers.`,
+      line
+    });
+  });
+}
+
+function validateValidationRules(
+  validation: MarkVSpecParseResult["validations"][number],
+  elementIds: Set<string>,
+  formGroupIds: Set<string>,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  if (validation.rules.length === 0 && validationPropertyValues(validation, "condition").length === 0) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Validation ${validation.id} has no rules. Define rules or migrate legacy condition-only validation.`,
+      line: validation.location.line
+    });
+    return;
+  }
+
+  for (const rule of validation.rules) {
+    for (const target of rule.targets) {
+      if (elementIdRegex.test(target) && !elementIds.has(target)) {
         diagnostics.push({
           severity: "error",
-          message: `Validation ${validation.id} trigger references missing element ${elementEvent[1]}.`,
-          line
+          message: `Validation ${validation.id} rule ${rule.name} references missing element ${target}.`,
+          line: rule.location.line
+        });
+      } else if (formGroupIdRegex.test(target) && !formGroupIds.has(target)) {
+        diagnostics.push({
+          severity: "error",
+          message: `Validation ${validation.id} rule ${rule.name} references missing form group ${target}.`,
+          line: rule.location.line
         });
       }
-      return;
     }
-
-    if (!new RegExp(String.raw`^${actionIdPattern}$`, "u").test(trigger)) {
-      diagnostics.push({
-        severity: "error",
-        message: `Validation ${validation.id} trigger must reference an action ID such as A-Save or an element event such as E-EmailInput.blur.`,
-        line
-      });
-    } else if (!actionIds.has(trigger)) {
-      diagnostics.push({
-        severity: "error",
-        message: `Validation ${validation.id} trigger references missing action ${trigger}.`,
-        line
-      });
-    }
-  });
+  }
 }
 
 function validateValidationErrorCodes(
@@ -1083,10 +1107,18 @@ function validateProcessStepReferences(
   for (const detail of step.details) {
     if (detail.key === "validation" || detail.key === "validate") {
       for (const validationId of splitReferenceList(detail.value)) {
-        if (!validationIds.has(validationId)) {
+        const resultReference = parseValidationResultReference(validationId);
+        const referencedValidationId = resultReference ?? validationId;
+        if (!validationIds.has(referencedValidationId)) {
           diagnostics.push({
             severity: "error",
-            message: `Action ${actionId} process step ${step.name} references missing validation ${validationId}.`,
+            message: `Action ${actionId} process step ${step.name} references missing validation ${referencedValidationId}.`,
+            line: detail.location.line
+          });
+        } else if (validationId.startsWith("V-") && !resultReference) {
+          diagnostics.push({
+            severity: "warning",
+            message: `Action ${actionId} process step ${step.name} should reference ${validationId}.result when consuming validation results.`,
             line: detail.location.line
           });
         }
@@ -1104,6 +1136,11 @@ function validateProcessStepReferences(
       }
     }
   }
+}
+
+function parseValidationResultReference(value: string): string | undefined {
+  const match = validationResultReferenceRegex.exec(value.trim());
+  return match?.[1];
 }
 
 function validateOutcomeErrorCodes(

@@ -280,7 +280,7 @@ request. This action does not decide whether credentials are correct.
   - request-error
   - auth-error
 - Process: Validate
-  - target: V-LoginForm
+  - validation: V-LoginForm.result
   - case: invalid
     - state: validation-error
     - stop
@@ -346,6 +346,10 @@ success or failure is handled by `A-HandleLoginResponse`.
 ### V-LoginForm Required login fields
 
 - target: F-LoginForm
+- rules:
+  - required:
+    - E-EmailInput
+    - E-PasswordInput
 - scope: composite
 - run: client
 - message: Email and password are required.

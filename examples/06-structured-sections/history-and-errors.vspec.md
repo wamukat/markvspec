@@ -121,6 +121,7 @@ referenced from the same flow.
   - save-error
   - saved
 - Process: Validate
+  - validation: V-AccountSettings.result
   - case: invalid
     - response: required field missing
     - error code: ERR-ACCOUNT-REQUIRED
@@ -162,7 +163,10 @@ referenced from the same flow.
 ### V-AccountSettings Required account fields
 
 - target: F-AccountSettings
-- trigger: A-SaveAccount
+- rules:
+  - required:
+    - E-DisplayNameInput
+    - E-EmailInput
 - scope: composite
 - run: client
 - error code: ERR-ACCOUNT-REQUIRED

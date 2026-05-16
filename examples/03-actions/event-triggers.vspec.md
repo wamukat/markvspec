@@ -243,7 +243,7 @@ used around a form-like preferences screen.
   - help-visible
   - validation-error
 - Process: Validate
-  - target: V-PreferencesForm
+  - validation: V-PreferencesForm.result
   - case: invalid
     - response: email is empty or malformed
     - state: validation-error
@@ -310,7 +310,7 @@ used around a form-like preferences screen.
   - validation-error
   - save-error
 - Process: Validate
-  - target: V-PreferencesForm
+  - validation: V-PreferencesForm.result
   - case: invalid
     - response: required field missing or invalid
     - state: validation-error
@@ -352,9 +352,13 @@ used around a form-like preferences screen.
 ### V-PreferencesForm Required preference fields
 
 - target: F-PreferencesForm
+- rules:
+  - required:
+    - E-EmailInput
+  - email:
+    - E-EmailInput
 - scope: composite
 - run: client
-- trigger: E-EmailInput.blur
 - message: Notification email is required and must be an email address.
 
 ## Business Rules

@@ -4640,7 +4640,8 @@ function renderValidationRuleGroup(
         label(result, "name"),
         ...(showOverview ? [label(result, "overview")] : []),
         label(result, "target"),
-        label(result, "trigger"),
+        label(result, "result"),
+        label(result, "rules"),
         label(result, "condition"),
         label(result, "message"),
         label(result, "errorCode"),
@@ -4651,7 +4652,8 @@ function renderValidationRuleGroup(
         text(validation.name),
         ...(showOverview ? [renderEntityOverview(validation.overview)] : []),
         renderValidationProperty(result, validation, "target"),
-        renderValidationProperty(result, validation, "trigger"),
+        renderValidationResultReference(validation),
+        renderValidationRules(result, validation),
         renderValidationProperty(result, validation, "condition"),
         renderValidationProperty(result, validation, "message"),
         renderValidationProperty(result, validation, "error code") || renderValidationProperty(result, validation, "error codes"),
@@ -4659,6 +4661,25 @@ function renderValidationRuleGroup(
       ])
     )
   ].join("");
+}
+
+function renderValidationResultReference(validation: ReturnType<typeof parseMarkVSpec>["validations"][number]): string {
+  return `${renderInlineToken(`${validation.id}.result`)} <span class="mm-muted">valid / invalid</span>`;
+}
+
+function renderValidationRules(
+  result: ReturnType<typeof parseMarkVSpec>,
+  validation: ReturnType<typeof parseMarkVSpec>["validations"][number]
+): string {
+  if (validation.rules.length === 0) {
+    return "";
+  }
+  return `<ul class="spec-list">${validation.rules.map((rule) => {
+    const targets = rule.targets.length > 0
+      ? `: ${rule.targets.map((target) => referenceForId(result, target, "target")).join(", ")}`
+      : "";
+    return `<li>${text(rule.name)}${targets}</li>`;
+  }).join("")}</ul>`;
 }
 
 function validationRunKind(validation: ReturnType<typeof parseMarkVSpec>["validations"][number]): "client" | "server" {

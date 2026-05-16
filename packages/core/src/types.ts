@@ -419,9 +419,17 @@ export interface MarkVSpecValidationRule {
     text: string;
     location: SourceLocation;
   }>;
+  rules: MarkVSpecValidationRuleEntry[];
   properties: Record<string, string | string[]>;
   propertyLocations: Record<string, SourceLocation[]>;
   location: SourceLocation;
+}
+
+export interface MarkVSpecValidationRuleEntry {
+  name: string;
+  targets: string[];
+  location: SourceLocation;
+  raw: string;
 }
 
 export interface MarkVSpecErrorCode {

@@ -2813,7 +2813,9 @@ locale: ja
 ### V-EmailRequired メール必須
 
 - target: E-パスワード入力
-- trigger: E-パスワード入力.blur
+- rules:
+  - required:
+    - E-パスワード入力
 - scope: field
 - run: client
 - condition: E-パスワード入力.value is empty
@@ -2823,7 +2825,10 @@ locale: ja
 
 - target: E-パスワード入力
 - target: E-PasswordConfirmInput
-- trigger: A-SaveUser
+- rules:
+  - same-as:
+    - E-パスワード入力
+    - E-PasswordConfirmInput
 - scope: cross-field
 - run: client
 - condition: E-パスワード入力.value equals E-PasswordConfirmInput.value
@@ -2832,7 +2837,9 @@ locale: ja
 ### V-EmailUnique メール重複
 
 - target: E-パスワード入力
-- trigger: A-SaveUser
+- rules:
+  - unique:
+    - E-パスワード入力
 - scope: single
 - run: server
 - condition: server response ERR-EMAIL-TAKEN
@@ -2843,7 +2850,10 @@ locale: ja
 
 - target: E-パスワード入力
 - target: E-PasswordConfirmInput
-- trigger: A-SaveUser
+- rules:
+  - consistent:
+    - E-パスワード入力
+    - E-PasswordConfirmInput
 - scope: composite
 - run: server-response
 - condition: server response ERR-ACCOUNT-CONSISTENCY
@@ -2862,13 +2872,14 @@ locale: ja
   assert.match(section, /<h3>クライアント複合項目検証<\/h3>/);
   assert.match(section, /<h3>サーバ単項目検証<\/h3>/);
   assert.match(section, /<h3>サーバ複合項目検証<\/h3>/);
-  assert.match(clientField, /<th>ID<\/th><th>名前<\/th><th>対象<\/th><th>トリガー<\/th><th>条件<\/th><th>メッセージ<\/th><th>エラーコード<\/th>/);
+  assert.match(clientField, /<th>ID<\/th><th>名前<\/th><th>対象<\/th><th>結果<\/th><th>ルール<\/th><th>条件<\/th><th>メッセージ<\/th><th>エラーコード<\/th>/);
   assert.doesNotMatch(section, /<th>範囲<\/th>|<th>実行<\/th>/);
   assert.match(clientField, /<td><span class="mm-detail-ref-id">V-EmailRequired<\/span><\/td><td>メール必須<\/td>/);
   assert.doesNotMatch(clientField, /V-PasswordConfirmation|V-EmailUnique|V-AccountConsistency/);
   assert.match(clientCrossField, /<td><span class="mm-detail-ref-id">V-PasswordConfirmation<\/span><\/td><td>パスワード確認<\/td>/);
   assert.match(clientCrossField, new RegExp(`<li>${markerBadge("1", "element")}<\\/li><li>${markerBadge("2", "element")}<\\/li>`));
-  assert.match(clientCrossField, new RegExp(`<td>${actionBadge("A1", "A-SaveUser")}<\\/td>`));
+  assert.match(clientCrossField, /V-PasswordConfirmation\.result/);
+  assert.match(clientCrossField, /same-as/);
   assert.match(clientCrossField, new RegExp(`${markerBadge("1", "element")}\\.value equals ${markerBadge("2", "element")}\\.value`));
   assert.doesNotMatch(clientCrossField, /V-EmailRequired|V-EmailUnique|V-AccountConsistency/);
   assert.match(serverField, /<td><span class="mm-detail-ref-id">V-EmailUnique<\/span><\/td><td>メール重複<\/td>/);
@@ -2984,9 +2995,12 @@ locale: ja
 ### V-LoginForm Login form validation
 
 - target: F-LoginForm
+- rules:
+  - required:
+    - E-EmailInput
+    - E-PasswordInput
 - scope: composite
 - run: client
-- trigger: A-SubmitLogin
 - message: Email and password are required.
 `;
   const result = parseMarkVSpec(source);
@@ -5093,7 +5107,9 @@ Validations section overview.
 Validation overview.
 
 - target: F-LoginForm
-- trigger: E-EmailInput.blur
+- rules:
+  - required:
+    - E-EmailInput
 - condition: E-EmailInput.value is empty
 - message: Email is required.
 

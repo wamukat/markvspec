@@ -35,9 +35,12 @@ Validations should target either a FormGroup or an Element. Multiple `target: E-
 ### V-LoginForm Login form validation
 
 - target: F-LoginForm
+- rules:
+  - required:
+    - E-EmailInput
+    - E-PasswordInput
 - scope: composite
 - run: client
-- trigger: A-SubmitLogin
 - condition: email is empty or password is empty
 - message: Email and password are required.
 ```
@@ -51,6 +54,7 @@ The validator applies these diagnostics:
 - Warning when `fields` references a non-input Element ID.
 - Error when `submit` references an unknown Action ID.
 - Validation `target` should be an Element ID or FormGroup ID. Multiple Element targets remain valid.
+- Validation `trigger` is not canonical; Actions consume the implicit `V-*.result` reference.
 - Warning when a Validation targets a Layout ID with `scope: composite` or `scope: cross-field`, because that should be migrated to a FormGroup.
 
 Layout targets are not immediate errors for compatibility, but examples and documentation should not use them. User-facing docs should present FormGroup as canonical.

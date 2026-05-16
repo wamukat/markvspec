@@ -1136,7 +1136,7 @@ UI 部品を、フレームワーク固有の widget 名に寄せずに表現す
 - From
   - idle
   - auth-error
-- Process: Validate: V-LoginForm
+- Process: Validate: V-LoginForm.result
   - case: invalid
     - state: validation-error
     - stop
@@ -1499,7 +1499,7 @@ HTTP request の場合、クリック Action 側の `case: sent` / `case: send-f
   - E-SignInButton.click
 - From
   - idle
-- Process: Validate: V-LoginForm
+- Process: Validate: V-LoginForm.result
   - case: invalid
     - state: validation-error
 - Process: HttpRequest
@@ -1618,9 +1618,10 @@ warning も失敗扱いにできます。
 
 ## Validations
 
-`## Validations` は、単項目と複合の入力検証契約を書きます。要素側の
+`## Validations` は、単項目と複合の入力検証契約を書きます。`V-*` は何を検証するかの
+contract であり、Action をいつ起動するかは定義しません。要素側の
 `input rule` は type、長さ、範囲、pattern、IME、accept、step などの入力仕様に
-限定し、検証条件とメッセージはこの章に置きます。
+限定し、検証 rule、条件、メッセージ、error code はこの章に置きます。
 
 ```markdown
 ## Validations
@@ -1629,7 +1630,10 @@ warning も失敗扱いにできます。
 
 - target: E-PasswordInput
 - target: E-PasswordConfirmInput
-- trigger: A-SaveUser
+- rules:
+  - same-as:
+    - E-PasswordInput
+    - E-PasswordConfirmInput
 - scope: composite
 - run: client
 - condition: E-PasswordInput.value equals E-PasswordConfirmInput.value
@@ -1637,12 +1641,15 @@ warning も失敗扱いにできます。
 - error code: ERR-PASSWORD-CONFIRMATION
 ```
 
-生成される設計書ビューでは、`target`、`trigger`、`condition`、`message`、`error code`
+生成される設計書ビューでは、`target`、`rules`、`condition`、`message`、`error code`
 を Validations として表示します。`scope` は `single` / `field` または `composite` /
 `cross-field`、`run` は `client` / `server` / `server-response` を使います。設計書では
 クライアント単項目検証、クライアント複合項目検証、サーバ単項目検証、サーバ複合項目検証
-の4表に分類し、該当データがない表は表示しません。`trigger` は `A-SaveUser` のような
-Action ID または `E-EmailInput.blur` のような要素イベントを参照します。
+の4表に分類し、該当データがない表は表示しません。`trigger` は `V-*` の canonical syntax
+では使いません。Action が validation result をいつ消費するかを決めます。
+
+各 Validation は `<validation-id>.result` という暗黙の result reference を公開します。
+1035 では result value は `valid` / `invalid` の 2 つに限定します。
 
 フォーム全体の検証は `## Form Groups` で `F-*` を定義し、Validation の `target`
 に FormGroup ID を指定します。`target: L-*` は表示レイアウトと検証責務が混ざるため、
@@ -1663,7 +1670,10 @@ Action ID または `E-EmailInput.blur` のような要素イベントを参照�
 ### V-LoginForm Login form validation
 
 - target: F-LoginForm
-- trigger: A-SubmitLogin
+- rules:
+  - required:
+    - E-EmailInput
+    - E-PasswordInput
 - scope: composite
 - run: client
 - message: メールアドレスとパスワードは必須です。

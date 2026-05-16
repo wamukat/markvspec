@@ -1661,6 +1661,7 @@ function parseValidationsSection(section: SectionAst): Pick<SectionSemanticResul
         id,
         name: match?.[1],
         bullets: [],
+        rules: [],
         properties: {},
         propertyLocations: {},
         location: locationFromBlock(block)
@@ -1683,8 +1684,34 @@ function parseValidationsSection(section: SectionAst): Pick<SectionSemanticResul
       if (block.type === "list") {
         currentHasStructuredContent = true;
       }
-      for (const bullet of listItems([block]).filter((item) => item.depth === 0)) {
-        applyValidationBullet(current, bullet.text, locationFromBlock(bullet));
+      let activeStructuredKey: string | undefined;
+      let activeRule: MarkVSpecValidationRule["rules"][number] | undefined;
+      for (const item of listItems([block])) {
+        const bullet = parsedBulletFromListItem(item);
+        if (item.depth === 0) {
+          activeRule = undefined;
+          const [key] = splitKeyValue(bullet.text);
+          activeStructuredKey = key.trim();
+          applyValidationBullet(current, bullet.text, bullet.location);
+          continue;
+        }
+
+        if (activeStructuredKey === "rules") {
+          if (item.depth === 1) {
+            const [namePart, valuePart] = splitKeyValue(bullet.text);
+            const name = namePart.trim();
+            const targets = valuePart?.trim() ? [valuePart.trim()] : [];
+            activeRule = {
+              name,
+              targets,
+              location: bullet.location,
+              raw: bullet.text
+            };
+            current.rules.push(activeRule);
+          } else if (activeRule) {
+            activeRule.targets.push(bullet.text.trim());
+          }
+        }
       }
       const targets = propertyValues(current.properties["target"]);
       for (const target of targets) {

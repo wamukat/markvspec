@@ -37,9 +37,12 @@ Validation は FormGroup または Element を対象にします。既存の複�
 ### V-LoginForm Login form validation
 
 - target: F-LoginForm
+- rules:
+  - required:
+    - E-EmailInput
+    - E-PasswordInput
 - scope: composite
 - run: client
-- trigger: A-SubmitLogin
 - condition: email is empty or password is empty
 - message: Email and password are required.
 ```
@@ -53,6 +56,7 @@ Validator は次の診断を行います。
 - `fields` に入力系ではない Element ID がある場合は warning。
 - `submit` に存在しない Action ID がある場合は error。
 - Validation の `target` は Element ID または FormGroup ID を正とします。複数 Element target は互換として維持します。
+- Validation の `trigger` は canonical ではありません。Action は暗黙の `V-*.result` 参照を消費します。
 - Validation の `target` に Layout ID が指定され、かつ `scope: composite` / `scope: cross-field` の場合は
   warning とし、FormGroup への移行を促します。
 

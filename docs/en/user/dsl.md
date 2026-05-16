@@ -1518,8 +1518,9 @@ Actions are level-3 headings. An action should describe a trigger, process
 steps, and resulting effects. Use `state` for screen-local state changes,
 `navigate` for screen transitions, and opaque expressions such as
 `${model.value}` for screen data. Do not put action-level guards on the action; put operability on elements with
-`disabled when`, and put input checks under `Validations` with `Validate`
-process steps.
+`disabled when`, and put input checks under `Validations`. Until the 1030 Action
+DSL refresh lands, `Validate` process steps should consume the validation result
+reference, not redefine validation rules inside the Action.
 
 ```markdown
 ## Actions
@@ -1531,7 +1532,7 @@ process steps.
 - From
   - idle
   - auth-error
-- Process: Validate: V-LoginForm
+- Process: Validate: V-LoginForm.result
   - case: invalid
     - state: validation-error
     - stop
@@ -1579,7 +1580,7 @@ process steps.
 - From
   - idle
   - validation-error
-- Process: Validate: V-Email
+- Process: Validate: V-Email.result
   - case: empty
     - state: validation-error
     - update:
@@ -1607,7 +1608,7 @@ Preferred action groups:
   - screen.load
 - From
   - <state>
-- Process: Validate: <validation-id>
+- Process: Validate: <validation-id>.result
   - case: <result>
     - state: <state>
     - stop | continue
@@ -1761,7 +1762,7 @@ separate response-handling action such as `A-SubmitLogin.response`.
   - E-SignInButton.click
 - From
   - idle
-- Process: Validate: V-LoginForm
+- Process: Validate: V-LoginForm.result
   - case: invalid
     - state: validation-error
 - Process: HttpRequest
@@ -2015,10 +2016,11 @@ back to their first listed value.
 
 ## Validations Section
 
-Use `## Validations` for single-field and composite validation contracts. Keep
-element `input rule` entries limited to input specifications such as type,
-length, range, pattern, IME, accept, and step. Validation conditions and messages
-belong in this section.
+Use `## Validations` for single-field and composite validation contracts. A
+`V-*` entry defines what is validated; it does not define when an Action runs
+validation. Keep element `input rule` entries limited to input specifications
+such as type, length, range, pattern, IME, accept, and step. Validation rules,
+conditions, messages, and error codes belong in this section.
 
 ```markdown
 ## Validations
@@ -2027,7 +2029,10 @@ belong in this section.
 
 - target: E-PasswordInput
 - target: E-PasswordConfirmInput
-- trigger: A-SaveUser
+- rules:
+  - same-as:
+    - E-PasswordInput
+    - E-PasswordConfirmInput
 - scope: composite
 - run: client
 - condition: E-PasswordInput.value equals E-PasswordConfirmInput.value
@@ -2041,13 +2046,15 @@ Validation heading form:
 ### <validation-id> [name]
 ```
 
-Supported summary keys are `scope`, `run`, `target`, `trigger`, `condition`,
+Supported summary keys are `target`, `rules`, `scope`, `run`, `condition`,
 `message`, and `error code`. `scope` is `single` / `field` or `composite` /
 `cross-field`; `run` is `client`, `server`, or `server-response`. The generated
-design document groups validation rules into Client Field, Client Cross-field,
+design document groups validation contracts into Client Field, Client Cross-field,
 Server Field, and Server Cross-field tables; empty groups are omitted. `trigger`
-references an action ID such as `A-SaveUser` or an element event such as
-`E-EmailInput.blur`.
+is not canonical on `V-*`; Actions decide when validation results are consumed.
+
+Each validation exposes an implicit result reference named `<validation-id>.result`.
+For 1035, its result values are limited to `valid` and `invalid`.
 
 For form-level validation, define `F-*` in `## Form Groups` and use the
 FormGroup ID as the Validation `target`. Do not use `target: L-*` for composite
@@ -2068,7 +2075,10 @@ validation, because that mixes visual layout with validation responsibility.
 ### V-LoginForm Login form validation
 
 - target: F-LoginForm
-- trigger: A-SubmitLogin
+- rules:
+  - required:
+    - E-EmailInput
+    - E-PasswordInput
 - scope: composite
 - run: client
 - message: Email and password are required.

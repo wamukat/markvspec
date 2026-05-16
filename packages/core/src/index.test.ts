@@ -409,6 +409,7 @@ Custom detail.
         { text: "target: E-Name", location: { line: lineNumber(source, "- target: E-Name") } },
         { text: "message: Name is required.", location: { line: lineNumber(source, "- message: Name is required.") } }
       ],
+      rules: [],
       properties: { target: "E-Name", message: "Name is required." },
       propertyLocations: {
         target: [{ line: lineNumber(source, "- target: E-Name") }],
@@ -1674,7 +1675,9 @@ Validations section overview.
 Validation overview.
 
 - target: F-ProfileForm
-- rule: required
+- rules:
+  - required:
+    - E-Name
 
 Validation notes.
 
@@ -3716,6 +3719,10 @@ route: /users/:userId
 
 ### V-RouteCheck Route check
 
+- target: E-Title
+- rules:
+  - required:
+    - E-Title
 - condition: \${route.validationUserId}
 `;
   const result = parseMarkVSpec(source);
@@ -4708,7 +4715,7 @@ test("parses the login screen example", () => {
     ["send-failed", undefined, "request-error"]
   ]);
   assert.deepEqual(action?.processSteps.map((step) => [step.name, step.when, step.target, step.content]), [
-    ["Validate", [], "V-LoginForm", undefined],
+    ["Validate", [], undefined, undefined],
     ["ModelUpdate", [], undefined, undefined],
     ["HttpRequest", [], undefined, undefined]
   ]);
@@ -5364,7 +5371,10 @@ title: Validations
 
 - target: E-パスワード入力
 - target: E-PasswordConfirmInput
-- trigger: A-SaveUser
+- rules:
+  - same-as:
+    - E-パスワード入力
+    - E-PasswordConfirmInput
 - condition: E-パスワード入力.value equals E-PasswordConfirmInput.value
 - message: Password and confirmation must match.
 `;
@@ -5375,7 +5385,14 @@ title: Validations
   assert.equal(result.validations[0]?.id, "V-PasswordConfirmation");
   assert.equal(result.validations[0]?.name, "Password confirmation");
   assert.deepEqual(result.validations[0]?.properties["target"], ["E-パスワード入力", "E-PasswordConfirmInput"]);
-  assert.equal(result.validations[0]?.properties["trigger"], "A-SaveUser");
+  assert.deepEqual(result.validations[0]?.rules, [
+    {
+      name: "same-as",
+      targets: ["E-パスワード入力", "E-PasswordConfirmInput"],
+      location: { line: lineNumber(source, "  - same-as:") },
+      raw: "same-as:"
+    }
+  ]);
   assert.equal(result.validations[0]?.properties["condition"], "E-パスワード入力.value equals E-PasswordConfirmInput.value");
   assert.equal(result.validations[0]?.properties["message"], "Password and confirmation must match.");
 });
@@ -5408,8 +5425,8 @@ title: Validation Diagnostics
     result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
     [
       ["error", "Validation V-CrossField targets missing element E-MissingInput.", lineNumber(source, "- target: E-MissingInput")],
-      ["error", "Validation V-CrossField trigger references missing action A-MissingSave.", lineNumber(source, "- trigger: A-MissingSave")],
-      ["error", "Validation V-CrossField trigger must reference an action ID such as A-Save or an element event such as E-EmailInput.blur.", lineNumber(source, "- trigger: E-メールアドレス入力")],
+      ["warning", "Validation V-CrossField trigger is not canonical. Actions should consume V-CrossField.result instead of defining validation triggers.", lineNumber(source, "- trigger: A-MissingSave")],
+      ["warning", "Validation V-CrossField trigger is not canonical. Actions should consume V-CrossField.result instead of defining validation triggers.", lineNumber(source, "- trigger: E-メールアドレス入力")],
       ["warning", "Condition references missing ID E-MissingInput.", lineNumber(source, "- condition: E-MissingInput.value equals E-OtherInput.value")],
       ["warning", "Condition references missing ID E-OtherInput.", lineNumber(source, "- condition: E-MissingInput.value equals E-OtherInput.value")]
     ]
@@ -5460,17 +5477,28 @@ title: FormGroup Diagnostics
 ### V-LoginForm Login form validation
 
 - target: L-LoginForm
+- rules:
+  - required:
+    - E-EmailInput
+  - form-ready:
+    - F-MissingRuleForm
 - scope: composite
 - message: Email is required.
 
 ### V-MissingFormGroup Missing form group validation
 
 - target: F-MissingForm
+- rules:
+  - required:
+    - E-EmailInput
 
 ### V-MultipleElements Existing multiple element targets
 
 - target: E-EmailInput
 - target: E-Title
+- rules:
+  - required:
+    - E-EmailInput
 `;
   const result = parseMarkVSpec(source);
 
@@ -5481,6 +5509,7 @@ title: FormGroup Diagnostics
       ["warning", "FormGroup F-LoginForm field E-Title is Heading, which is not an input element.", lineNumber(source, "  - E-Title")],
       ["error", "FormGroup F-LoginForm submit references missing action A-MissingSubmit.", lineNumber(source, "- submit: A-MissingSubmit")],
       ["warning", "Validation V-LoginForm targets layout L-LoginForm for composite validation. Use a FormGroup target such as F-LoginForm instead.", lineNumber(source, "- target: L-LoginForm")],
+      ["error", "Validation V-LoginForm rule form-ready references missing form group F-MissingRuleForm.", lineNumber(source, "  - form-ready:")],
       ["error", "Validation V-MissingFormGroup targets missing form group F-MissingForm.", lineNumber(source, "- target: F-MissingForm")]
     ]
   );
@@ -5525,7 +5554,9 @@ title: Validation Groups
 ### V-EmailRequired Email required
 
 - target: E-メールアドレス入力
-- trigger: E-メールアドレス入力.blur
+- rules:
+  - required:
+    - E-メールアドレス入力
 - scope: field
 - run: client
 - condition: E-メールアドレス入力.value is empty
@@ -5534,7 +5565,10 @@ title: Validation Groups
 
 - target: E-パスワード入力
 - target: E-PasswordConfirmInput
-- trigger: A-SaveUser
+- rules:
+  - same-as:
+    - E-パスワード入力
+    - E-PasswordConfirmInput
 - scope: cross-field
 - run: server
 - condition: E-パスワード入力.value equals E-PasswordConfirmInput.value
@@ -5576,7 +5610,7 @@ title: Input Contract
   - E-メールアドレス入力.submit
 - From
   - idle
-- Process: Validate: V-EmailFormat
+- Process: Validate: V-メール形式.result
 - Process: Immediate
   - case: validationError
     - state: idle
@@ -5584,12 +5618,14 @@ title: Input Contract
 
 ## Validations
 
-### V-EmailFormat Email format
+### V-メール形式 Email format
 
 - scope: single
 - run: client
 - target: E-メールアドレス入力
-- trigger: E-メールアドレス入力.blur
+- rules:
+  - email:
+    - E-メールアドレス入力
 - condition: E-メールアドレス入力.value matches email
 - message: Email format is invalid.
 - error code: ERR-EMAIL-FORMAT
@@ -5619,7 +5655,7 @@ title: Input Contract
   assert.equal(result.validations[0]?.properties["error code"], "ERR-EMAIL-FORMAT");
   assert.equal(result.errorCodes[0]?.id, "ERR-EMAIL-FORMAT");
   assert.equal(result.errorCodes[0]?.properties["business rule"], "R-EMAIL");
-  assert.equal(result.actions[0]?.processSteps[0]?.details[0]?.value, "V-EmailFormat");
+  assert.equal(result.actions[0]?.processSteps[0]?.details[0]?.value, "V-メール形式.result");
   assert.deepEqual(result.actions[0]?.processSteps.find((step) => step.name === "Immediate")?.outcomes[0]?.errorCodes, ["ERR-EMAIL-FORMAT"]);
 });
 

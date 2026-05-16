@@ -139,6 +139,7 @@ export type MessageKey =
   | "run"
   | "rows"
   | "rule"
+  | "rules"
   | "ruleText"
   | "screen"
   | "screens"
@@ -325,6 +326,7 @@ const en: Record<MessageKey, string> = {
   run: "Run",
   rows: "Rows",
   rule: "Rule",
+  rules: "Rules",
   ruleText: "Rule Text",
   screen: "Screen",
   screens: "Screens",
@@ -512,6 +514,7 @@ const ja: Record<MessageKey, string> = {
   run: "実行",
   rows: "行数",
   rule: "ルール",
+  rules: "ルール",
   ruleText: "ルール内容",
   screen: "画面",
   screens: "画面",
