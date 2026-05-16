@@ -171,7 +171,11 @@ ${baseWireframeViewportCss()}
 .mm-chip-tone-warning{background:#fffbeb;border-color:#fcd34d;color:#b45309}
 .mm-chip-tone-danger{background:#fef2f2;border-color:#fca5a5;color:#b91c1c}
 .mm-repeated-badge{background:#f8fafc;border-color:#cbd5e1;color:#64748b;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace}
+.mm-unplaced-badge{background:#fff7ed;border-color:#fdba74;color:#9a3412;gap:4px}
+.mm-unplaced-icon{border:1.5px solid currentColor;border-radius:999px;box-sizing:border-box;display:inline-block;height:8px;position:relative;width:12px}
+.mm-unplaced-icon::after{background:currentColor;content:"";height:1.5px;left:-2px;position:absolute;top:3px;transform:rotate(-35deg);width:16px}
 .spec-table tr:has(.mm-repeated-badge){background:#f8fafc;color:#64748b}
+.spec-table tr:has(.mm-unplaced-badge){background:#fff7ed}
 body.hide-repeated-content .spec-table tr:has(.mm-repeated-badge){display:none}
 body.hide-repeated-content .system-events-box li:has(.mm-repeated-badge){display:none}
 body.hide-repeated-content .mm-marker-repeated{display:none}
@@ -340,7 +344,9 @@ ${baseWireframeViewportCss()}
 .spec-table tbody tr:nth-child(even){background:#fcfcfd}
 .spec-table code:not(.mm-id):not(.mm-doc-label):not(.mm-document-ref-id){background:#f3f4f6;border-radius:3px;padding:1px 3px}
 .mm-repeated-badge{background:#f8fafc;border-color:#cbd5e1;color:#64748b}
+.mm-unplaced-badge{background:#fff7ed;border-color:#fdba74;color:#9a3412}
 .spec-table tr:has(.mm-repeated-badge){background:#f8fafc;color:#64748b}
+.spec-table tr:has(.mm-unplaced-badge){background:#fff7ed}
 .mm-inline-token{color:#0f766e;font-family:inherit;font-weight:650;padding:0 1px}
 .model-sample-block{margin:18px 0}
 .model-sample-path-heading{color:#374151;font-size:13px;font-weight:650;margin:8px 0 6px}

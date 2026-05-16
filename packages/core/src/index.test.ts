@@ -4842,6 +4842,7 @@ test("parses every release example without diagnostics", () => {
     "03-actions/event-triggers.vspec.md",
     "03-actions/form-submit-flow.vspec.md",
     "03-actions/parallel-initial-load.vspec.md",
+    "03-actions/single-field-validation.vspec.md",
     "04-real-world-screens/notice-detail.vspec.md",
     "04-real-world-screens/profile-edit-rich.vspec.md",
     "04-real-world-screens/search-list.vspec.md",
@@ -10107,6 +10108,8 @@ title: Fields
 #### Items
 
 - "Email": E-001
+- L-002
+- L-003
 
 ### L-002 Grid Field
 
@@ -10149,7 +10152,7 @@ title: Fields
 
   assert.match(html, /mm-field-stack/);
   assert.match(html, /mm-field-grid/);
-  assert.match(html, /<section class="mm-layout mm-layout-row" data-mm-id="L-003"[\s\S]*<div class="mm-field mm-field-row"><label class="mm-field-label">Keyword<\/label>[\s\S]*data-mm-id="E-003"[\s\S]*data-mm-id="E-004"/);
+  assert.match(html, /<section class="mm-layout mm-layout-row[^"]*"[^>]*data-mm-id="L-003"[\s\S]*<div class="mm-field mm-field-row"><label class="mm-field-label">Keyword<\/label>[\s\S]*data-mm-id="E-003"[\s\S]*data-mm-id="E-004"/);
   assert.match(html, /\.mm-layout-row > \.mm-field-row\{flex:0 1 auto;max-width:100%;width:auto\}/);
 });
 

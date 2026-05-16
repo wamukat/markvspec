@@ -36,8 +36,7 @@ export function renderMarkVSpecHtml(result: MarkVSpecParseResult, options: MarkV
     }
   }
 
-  const uncontainedGroups = layoutGroups.filter((group) => !containedLayoutIds.has(group.id));
-  const rootGroups = uncontainedGroups.length > 0 ? uncontainedGroups : layoutGroups.slice(0, 1);
+  const rootGroups = rootLayoutGroups(layoutGroups, layoutById, containedLayoutIds);
   const renderedBody = rootGroups.length > 0
     ? rootGroups.map((group) => renderLayoutGroup(group, result, layoutById, slotContentsByName, elementById, actionMarkersByElementId, activeState, stateNames, renderOptions, new Set(), context)).join("")
     : result.elements.map((element) => renderElement(element, actionMarkersByElementId, activeState, stateNames, renderOptions, false, context)).join("");
@@ -219,6 +218,20 @@ function layoutViewports(result: MarkVSpecParseResult): string[] {
   return [...new Set(result.layoutGroups.map((group) => group.viewport))];
 }
 
+function rootLayoutGroups(
+  layoutGroups: MarkVSpecLayoutGroup[],
+  _layoutById: Map<string, MarkVSpecLayoutGroup>,
+  containedLayoutIds: ReadonlySet<string>
+): MarkVSpecLayoutGroup[] {
+  const uncontainedGroups = layoutGroups.filter((group) => !containedLayoutIds.has(group.id));
+  const rootGroups = uncontainedGroups.filter((group, index) => index === 0 || isRootLayoutAlternative(group));
+  return rootGroups.length > 0 ? rootGroups : layoutGroups.slice(0, 1);
+}
+
+function isRootLayoutAlternative(group: MarkVSpecLayoutGroup): boolean {
+  return Boolean(group.properties["visible when"] || group.properties["hidden when"]);
+}
+
 function renderLayoutGroup(
   group: MarkVSpecLayoutGroup,
   result: MarkVSpecParseResult,
@@ -397,8 +410,7 @@ function layoutDepthFor(layoutId: string, layoutGroups: MarkVSpecLayoutGroup[]):
     }
   }
 
-  const uncontainedGroups = layoutGroups.filter((group) => !containedLayoutIds.has(group.id));
-  const rootGroups = uncontainedGroups.length > 0 ? uncontainedGroups : layoutGroups.slice(0, 1);
+  const rootGroups = rootLayoutGroups(layoutGroups, layoutById, containedLayoutIds);
   const depths = new Map<string, number>();
   const visit = (group: MarkVSpecLayoutGroup, depth: number, path: Set<string>) => {
     const existingDepth = depths.get(group.id);
@@ -447,8 +459,7 @@ function slotInsertionContextsFor(
     }
   }
 
-  const uncontainedGroups = layoutGroups.filter((group) => !containedLayoutIds.has(group.id));
-  const rootGroups = uncontainedGroups.length > 0 ? uncontainedGroups : layoutGroups.slice(0, 1);
+  const rootGroups = rootLayoutGroups(layoutGroups, layoutById, containedLayoutIds);
   const contexts: Array<{ depth: number; parentDisabled: boolean }> = [];
   const visit = (group: MarkVSpecLayoutGroup, depth: number, parentDisabled: boolean, path: Set<string>) => {
     if (!options.includeConditionalContent && !isLayoutVisible(group, activeState, stateNames, options)) {

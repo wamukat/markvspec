@@ -100,6 +100,7 @@ export type MessageKey =
   | "name"
   | "noSampleFieldsDefined"
   | "noVisibleElements"
+  | "notPlacedInCurrentLayout"
   | "none"
   | "notes"
   | "freeFormSections"
@@ -287,6 +288,7 @@ const en: Record<MessageKey, string> = {
   name: "Name",
   noSampleFieldsDefined: "No sample fields defined",
   noVisibleElements: "No visible elements",
+  notPlacedInCurrentLayout: "not placed in current layout",
   none: "None.",
   notes: "Notes",
   freeFormSections: "Free-form Sections",
@@ -475,6 +477,7 @@ const ja: Record<MessageKey, string> = {
   name: "名前",
   noSampleFieldsDefined: "サンプル項目が定義されていません",
   noVisibleElements: "表示される要素はありません",
+  notPlacedInCurrentLayout: "現在のレイアウトに未配置",
   none: "なし。",
   notes: "備考",
   freeFormSections: "自由記述セクション",

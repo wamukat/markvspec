@@ -425,9 +425,9 @@ function markRepeatedCurrentStateScreenItems(
   const repeatedLayoutIds = new Set<string>();
   const repeatedElementIds = new Set<string>();
   const repeatedActionIds = new Set<string>();
-  for (const layoutId of model.renderedIds.layoutIds) {
-    if (seen.current.has(stateScreenCurrentKey(keyResult, model, "layout", layoutId))) {
-      repeatedLayoutIds.add(layoutId);
+  for (const layout of stateScreenLayoutsForModel(keyResult, model)) {
+    if (seen.current.has(stateScreenCurrentKey(keyResult, model, "layout", layout.id))) {
+      repeatedLayoutIds.add(layout.id);
     }
   }
   for (const elementId of model.renderedIds.elementIds) {
@@ -513,17 +513,86 @@ function repeatedContentState(
 
 export function stateScreenLayoutsForModel(result: MarkVSpecParseResult, model: StateScreenReadModel): ParsedLayout[] {
   const seen = new Set<string>();
-  return resolveLayoutGroupsForViewport(result, {
+  const unplacedLayoutIds = stateScreenUnplacedLayoutIdsForModel(result, model);
+  const visibleLayouts = resolveLayoutGroupsForViewport(result, {
     layoutIds: model.renderedIds.layoutIds,
     viewport: model.viewport,
     focusLayoutIds: model.focus?.layoutIds
-  }).filter((layout) => {
+  });
+  const unplacedLayouts = resolveLayoutGroupsForViewport(result, {
+    viewport: model.viewport,
+    focusLayoutIds: model.focus?.layoutIds
+  }).filter((layout) => unplacedLayoutIds.has(layout.id));
+  return [...visibleLayouts, ...unplacedLayouts].filter((layout) => {
     if (seen.has(layout.id)) {
       return false;
     }
     seen.add(layout.id);
     return true;
   });
+}
+
+export function stateScreenUnplacedLayoutIdsForModel(result: MarkVSpecParseResult, model: StateScreenReadModel): Set<string> {
+  const placedLayoutIds = stateScreenPlacedLayoutIdsForModel(result, model);
+  return new Set(resolveLayoutGroupsForViewport(result, {
+    viewport: model.viewport,
+    focusLayoutIds: model.focus?.layoutIds
+  })
+    .filter((layout) => layout.id.startsWith("L-") && !placedLayoutIds.has(layout.id))
+    .map((layout) => layout.id));
+}
+
+function stateScreenPlacedLayoutIdsForModel(result: MarkVSpecParseResult, model: StateScreenReadModel): Set<string> {
+  const activeViewport = stateScreenActiveViewport(result, model.viewport);
+  const layoutGroups = activeViewport ? resolveLayoutGroupsForViewport(result, {
+    viewport: activeViewport,
+    focusLayoutIds: model.focus?.layoutIds
+  }) : [];
+  const layoutById = new Map(layoutGroups.map((group) => [group.id, group]));
+  const slotContentsByName = stateScreenSlotContentsByName(result.slotContents);
+  const placedLayoutIds = new Set<string>();
+
+  const visitLayout = (group: ParsedLayout, currentLayoutById: Map<string, ParsedLayout>, currentViewport: string, visited: Set<string>) => {
+    if (visited.has(group.id)) {
+      return;
+    }
+    const nextVisited = new Set(visited);
+    nextVisited.add(group.id);
+    if (group.id.startsWith("L-")) {
+      placedLayoutIds.add(group.id);
+    }
+    for (const item of group.items) {
+      if (item.type === "contains") {
+        const childLayout = currentLayoutById.get(item.targetId);
+        if (childLayout) {
+          visitLayout(childLayout, currentLayoutById, currentViewport, nextVisited);
+        }
+      } else if (item.type === "slot") {
+        const slotContent = resolveStateScreenSlotContent(slotContentsByName, item.name, group.viewport || currentViewport);
+        if (!slotContent) {
+          continue;
+        }
+        const slotLayoutById = new Map(slotContent.layoutGroups.map((slotGroup) => [slotGroup.id, slotGroup]));
+        for (const rootGroup of stateScreenRootLayouts(slotContent.layoutGroups, slotLayoutById)) {
+          visitLayout(rootGroup, slotLayoutById, slotContent.viewport || group.viewport || currentViewport, new Set());
+        }
+      }
+    }
+  };
+
+  for (const rootGroup of stateScreenRootLayouts(layoutGroups, layoutById)) {
+    visitLayout(rootGroup, layoutById, activeViewport ?? "", new Set());
+  }
+  for (const display of model.displayEffects) {
+    if (display.element?.startsWith("L-")) {
+      const layout = layoutById.get(display.element);
+      if (layout) {
+        visitLayout(layout, layoutById, activeViewport ?? "", new Set());
+      }
+    }
+  }
+
+  return placedLayoutIds;
 }
 
 export function stateScreenElementsForModel(result: MarkVSpecParseResult, model: StateScreenReadModel): ParsedElement[] {
@@ -587,8 +656,8 @@ function rememberStateScreenKeys(
   const includeElements = options.elements ?? true;
   const includeActions = options.actions ?? true;
   if (includeLayouts) {
-    for (const layoutId of model.renderedIds.layoutIds) {
-      seen.current.add(stateScreenCurrentKey(result, model, "layout", layoutId));
+    for (const layout of stateScreenLayoutsForModel(result, model)) {
+      seen.current.add(stateScreenCurrentKey(result, model, "layout", layout.id));
     }
   }
   if (includeElements) {
@@ -1113,7 +1182,12 @@ function stateScreenRootLayouts(layoutGroups: ParsedLayout[], layoutById: Map<st
   }
 
   const uncontainedGroups = layoutGroups.filter((group) => !containedLayoutIds.has(group.id));
-  return uncontainedGroups.length > 0 ? uncontainedGroups : layoutGroups.slice(0, 1);
+  const rootGroups = uncontainedGroups.filter((group, index) => index === 0 || isStateScreenRootAlternative(group));
+  return rootGroups.length > 0 ? rootGroups : layoutGroups.slice(0, 1);
+}
+
+function isStateScreenRootAlternative(group: ParsedLayout): boolean {
+  return Boolean(group.properties["visible when"] || group.properties["hidden when"]);
 }
 
 function stateScreenSlotContentsByName(slotContents: ParsedSlotContent[]): Map<string, ParsedSlotContent[]> {

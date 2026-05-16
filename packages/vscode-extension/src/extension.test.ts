@@ -118,6 +118,10 @@ function repeatedBadge(label = "Repeated"): string {
   return `<span class="mm-chip mm-repeated-badge">${escapeRegExp(label)}</span>`;
 }
 
+function unplacedBadge(label = "not placed in current layout"): string {
+  return `<span class="mm-chip mm-unplaced-badge" title="${escapeRegExp(label)}"><span class="mm-unplaced-icon" aria-hidden="true"></span>${escapeRegExp(label)}</span>`;
+}
+
 function docLabel(value: string, kind: "state" | "trigger" | "result", extraClass = ""): string {
   const classes = ["mm-doc-label", `mm-doc-label-${kind}`, extraClass].filter(Boolean).join(" ");
   return `<code class="${escapeRegExp(classes)}">${escapeRegExp(value)}</code>`;
@@ -151,6 +155,14 @@ function viewportStateSection(html: string, state: string, viewport: string): st
   const startMatch = new RegExp(`<section class="doc-section state-screen-section"(?=[^>]*\\bdata-state="${escapeRegExp(state)}")(?=[^>]*\\bdata-viewport="${escapeRegExp(viewport)}")[^>]*>`).exec(html);
   const start = startMatch?.index ?? -1;
   assert.notEqual(start, -1, `missing state section ${viewport}:${state}`);
+  const next = html.indexOf(`<section class="doc-section state-screen-section"`, start + (startMatch?.[0].length ?? 0));
+  return next === -1 ? html.slice(start) : html.slice(start, next);
+}
+
+function stateViewTitleSection(html: string, title: string): string {
+  const startMatch = new RegExp(`<section class="doc-section state-screen-section"(?=[^>]*\\bdata-state-view-title="${escapeRegExp(title)}")[^>]*>`).exec(html);
+  const start = startMatch?.index ?? -1;
+  assert.notEqual(start, -1, `missing state view title section ${title}`);
   const next = html.indexOf(`<section class="doc-section state-screen-section"`, start + (startMatch?.[0].length ?? 0));
   return next === -1 ? html.slice(start) : html.slice(start, next);
 }
@@ -1582,6 +1594,145 @@ viewport: mobile
 
   assert.match(html, /data-mm-display-preview="true"/);
   assert.match(html, /Request failed message/);
+});
+
+test("marks unplaced layouts in state view specs without rendering them in wireframes", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-UNPLACED-LAYOUT
+type: screen
+title: Unplaced Layout
+viewport: mobile
+---
+
+# SCR-UNPLACED-LAYOUT Unplaced Layout
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- E-Title
+
+### L-DeferredPanel Deferred panel
+
+- stack
+
+#### Items
+
+- E-DeferredText
+
+## Elements
+
+### E-Title Heading
+
+- level: 1
+- label: Page
+
+### E-DeferredText Text
+
+- sample: Deferred panel content
+`);
+  const html = renderDesignDocumentHtml(result, "");
+  const idleSection = stateSection(html, "idle");
+  const layoutRows = idleSection.match(/<tr>[\s\S]*?<\/tr>/g) ?? [];
+  const pageRow = layoutRows.find((row) => row.includes(`>L-Page<`)) ?? "";
+  const deferredRow = layoutRows.find((row) => row.includes(`>L-DeferredPanel<`)) ?? "";
+
+  assert.match(deferredRow, new RegExp(`${unplacedBadge()}[\\s\\S]*${detailIdRef("L-DeferredPanel")}`));
+  assert.doesNotMatch(pageRow, /mm-unplaced-badge/);
+  assert.doesNotMatch(idleSection, /data-mm-id="L-DeferredPanel"/);
+});
+
+test("does not mark display-inserted layouts as unplaced in preview scenario specs", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-SCENARIO-UNPLACED-LAYOUT
+type: screen
+title: Scenario Unplaced Layout
+viewport: mobile
+---
+
+# SCR-SCENARIO-UNPLACED-LAYOUT Scenario Unplaced Layout
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- E-Title
+
+### L-DeferredPanel Deferred panel
+
+- stack
+
+#### Items
+
+- E-DeferredText
+
+## Elements
+
+### E-Title Heading
+
+- level: 1
+- label: Page
+
+### E-DeferredText Text
+
+- sample: Deferred panel content
+
+### E-ShowButton Button
+
+- label: Show
+- action: A-ShowDeferred
+
+## Actions
+
+### A-ShowDeferred Show deferred
+
+- Triggered
+  - E-ShowButton.click
+- From
+  - idle
+- Process P1: Show deferred
+  - case: shown
+    - Effects
+      - display:
+        - target: L-Page
+        - element: L-DeferredPanel
+
+## Preview Scenarios
+
+### deferred-visible
+
+- state: idle
+- cases:
+  - A-ShowDeferred.P1.shown
+`);
+  const html = renderDesignDocumentHtml(result, "");
+  const baseSection = stateViewTitleSection(html, "idle");
+  const scenarioSection = stateViewTitleSection(html, "idle / deferred-visible");
+  const baseRows = baseSection.match(/<tr>[\s\S]*?<\/tr>/g) ?? [];
+  const scenarioRows = scenarioSection.match(/<tr>[\s\S]*?<\/tr>/g) ?? [];
+  const baseDeferredRow = baseRows.find((row) => row.includes(`>L-DeferredPanel<`)) ?? "";
+  const scenarioDeferredRow = scenarioRows.find((row) => row.includes(`>L-DeferredPanel<`)) ?? "";
+
+  assert.match(baseDeferredRow, new RegExp(`${unplacedBadge()}[\\s\\S]*${detailIdRef("L-DeferredPanel")}`));
+  assert.match(scenarioSection, /data-mm-id="L-DeferredPanel"/);
+  assert.match(scenarioDeferredRow, new RegExp(`${detailIdRef("L-DeferredPanel")}`));
+  assert.doesNotMatch(scenarioDeferredRow, /mm-unplaced-badge/);
 });
 
 test("renders preview toolbar labels with external renderer messages", () => {

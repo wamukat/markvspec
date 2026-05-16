@@ -8,6 +8,7 @@ import {
 import {
   stateScreenElementGroups,
   stateScreenLayoutsForModel,
+  stateScreenUnplacedLayoutIdsForModel,
   type DisplayContentSpecRow,
   type StateScreenReadModel
 } from "@markvspec/core";
@@ -72,9 +73,14 @@ export function createStateViewSpecTableRenderer(
   helpers: StateViewSpecTableHelpers
 ): StateViewSpecTableRenderer {
   const renderRepeatedLabel = () => `<span class="mm-chip mm-repeated-badge">${helpers.text(helpers.label("repeated"))}</span>`;
+  const renderUnplacedLabel = () => `<span class="mm-chip mm-unplaced-badge" title="${helpers.text(helpers.label("notPlacedInCurrentLayout"))}"><span class="mm-unplaced-icon" aria-hidden="true"></span>${helpers.text(helpers.label("notPlacedInCurrentLayout"))}</span>`;
   const renderRepeatedMarkerCell = (id: string, repeated: boolean): string => {
     const marker = helpers.markerBadgeForId(id);
     return repeated ? `${marker} ${renderRepeatedLabel()}` : marker;
+  };
+  const renderLayoutMarkerCell = (id: string, repeated: boolean, unplaced: boolean): string => {
+    const marker = renderRepeatedMarkerCell(id, repeated);
+    return unplaced ? `${marker} ${renderUnplacedLabel()}` : marker;
   };
 
   const renderElementDetailGroup = (title: string, content: string, emptyWhenRepeatedHidden = false): string =>
@@ -156,8 +162,9 @@ export function createStateViewSpecTableRenderer(
     repeatedLayoutIds?: ReadonlySet<string>
   ): string => {
     const layouts = stateScreenLayoutsForModel(result, model);
+    const unplacedLayoutIds = stateScreenUnplacedLayoutIdsForModel(result, model);
     const rows = layouts.map((layout) => [
-      renderRepeatedMarkerCell(layout.id, Boolean(repeatedLayoutIds?.has(layout.id))),
+      renderLayoutMarkerCell(layout.id, Boolean(repeatedLayoutIds?.has(layout.id)), unplacedLayoutIds.has(layout.id)),
       helpers.renderDetailRefId(layout.id),
       helpers.text(layout.kind || ""),
       renderLayoutPropertySummary(layout),
