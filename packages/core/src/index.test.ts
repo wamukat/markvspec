@@ -32,9 +32,11 @@ import {
   renderMarkVSpecHtmlFragment,
   renderMarkVSpecHtml,
   renderMarkVSpecHtmlWithInvalidation,
+  renderDiagnosticMessageForLocale,
   renderProjectTransitionMermaid,
   resolveRendererMessages,
-  resolveProjectPath
+  resolveProjectPath,
+  supportedDiagnosticMessageCodes
 } from "./index.js";
 
 test("keeps internal State Views helpers out of the root API", () => {
@@ -10938,6 +10940,77 @@ title: Process Granularity
   assert(messages.includes("Action A-Invalid process step P2 Multiple calls contains multiple execution detail blocks (request, sync). Split them into separate Process steps."));
   assert(messages.includes("Action A-Invalid process step P3 Custom detail and direct effect mixes an execution detail with direct immediate effects. Move effects under a case or split the Process."));
   assert(messages.includes("Action A-Invalid process step P4 Request and custom detail contains multiple execution detail blocks (request, audit). Split them into separate Process steps."));
+});
+
+test("localizes Action/Process diagnostics while preserving English fallback", () => {
+  const source = `---
+id: SCR-DIAG-I18N
+type: screen
+title: Diagnostic i18n
+locale: ja
+viewport: mobile
+---
+
+# SCR-DIAG-I18N Diagnostic i18n
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- E-Submit
+
+## Elements
+
+### E-Submit Button
+
+- label: Submit
+- action: A-Invalid
+
+## Actions
+
+### A-Invalid Invalid
+
+- Triggered
+  - E-Submit.click
+- From
+  - idle
+- Process P1: Validate and update
+  - receive:
+    - validation: V-Form.result
+  - state: idle
+- Process P2: Multiple calls
+  - request:
+    - method: POST
+    - path: /submit
+  - sync:
+    - AuditService.record()
+`;
+
+  const result = parseMarkVSpec(source);
+  const mixed = result.diagnostics.find((diagnostic) => diagnostic.code === "action.process.mixesResultClassificationAndImmediateEffects");
+  const multiple = result.diagnostics.find((diagnostic) => diagnostic.code === "action.process.multipleExecutionDetails");
+
+  assert.equal(mixed?.message, "Action A-Invalid process step P1 Validate and update mixes result classification with direct immediate effects. Use case Effects for classified results.");
+  assert.equal(renderDiagnosticMessageForLocale(mixed!, result.screen.locale), "Action A-Invalid の Process step P1 Validate and update で、result 分類と直接の immediate effect が混在しています。分類された result には case Effects を使ってください。");
+  assert.equal(renderDiagnosticMessageForLocale(multiple!, "en"), "Action A-Invalid process step P2 Multiple calls contains multiple execution detail blocks (request, sync). Split them into separate Process steps.");
+  assert.deepEqual(
+    supportedDiagnosticMessageCodes().sort(),
+    [
+      "action.parallelProcess.caseShouldNotSetStateOrNavigate",
+      "action.process.caseResponseWithoutReceive",
+      "action.process.mixesExecutionDetailAndImmediateEffects",
+      "action.process.mixesResultClassificationAndImmediateEffects",
+      "action.process.multipleExecutionDetails"
+    ].sort()
+  );
 });
 
 test("parses architecture-neutral process markers, display effects, and preview scenario cases", () => {

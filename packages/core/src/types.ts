@@ -9,6 +9,8 @@ export interface SourceLocation {
 export interface MarkVSpecDiagnostic {
   severity: MarkVSpecDiagnosticSeverity;
   message: string;
+  code?: string;
+  params?: Record<string, string | number | boolean>;
   line?: number;
 }
 

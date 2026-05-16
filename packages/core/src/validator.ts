@@ -12,6 +12,7 @@ import {
   stripOpaqueExpressions
 } from "./ids.js";
 import { effectiveHistoryFields } from "./history.js";
+import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
 import { aliasForModelPath, sourcePathKey } from "./model-paths.js";
 import {
   isInputElementType,
@@ -623,11 +624,12 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
         }
 
         if (step.parallelGroup && outcome.to) {
-          diagnostics.push({
-            severity: "warning",
-            message: `Action ${action.id} parallel process step ${step.name} case ${outcome.result} should not set state or navigate. Use a Resolve step for final transitions.`,
-            line: firstPropertyLine(outcome, "state") ?? firstPropertyLine(outcome, "navigate") ?? firstOutcomeLine(outcome) ?? step.location.line
-          });
+          diagnostics.push(createMarkVSpecDiagnostic(
+            "warning",
+            "action.parallelProcess.caseShouldNotSetStateOrNavigate",
+            { actionId: action.id, stepName: step.name, result: outcome.result },
+            firstPropertyLine(outcome, "state") ?? firstPropertyLine(outcome, "navigate") ?? firstOutcomeLine(outcome) ?? step.location.line
+          ));
         }
 
         if (!hasActionOutcomeDetails(outcome) && !outcome.to) {
@@ -1167,27 +1169,30 @@ function validateUpdateMode(
 function validateProcessGranularity(actionId: string, step: MarkVSpecProcessStep, diagnostics: MarkVSpecDiagnostic[]): void {
   const executionDetails = processExecutionDetails(step);
   if (executionDetails.length > 1) {
-    diagnostics.push({
-      severity: "warning",
-      message: `Action ${actionId} process step ${processStepLabel(step)} contains multiple execution detail blocks (${executionDetails.map((detail) => detail.name).join(", ")}). Split them into separate Process steps.`,
-      line: executionDetails[1]?.location.line ?? step.location.line
-    });
+    diagnostics.push(createMarkVSpecDiagnostic(
+      "warning",
+      "action.process.multipleExecutionDetails",
+      { actionId, stepLabel: processStepLabel(step), details: executionDetails.map((detail) => detail.name).join(", ") },
+      executionDetails[1]?.location.line ?? step.location.line
+    ));
   }
 
   const directEffectLocation = firstDirectProcessEffectLocation(step);
   const hasClassification = step.outcomes.length > 0 || step.receives.length > 0 || step.results.length > 0;
   if (directEffectLocation && executionDetails.length > 0) {
-    diagnostics.push({
-      severity: "warning",
-      message: `Action ${actionId} process step ${processStepLabel(step)} mixes an execution detail with direct immediate effects. Move effects under a case or split the Process.`,
-      line: directEffectLocation.line
-    });
+    diagnostics.push(createMarkVSpecDiagnostic(
+      "warning",
+      "action.process.mixesExecutionDetailAndImmediateEffects",
+      { actionId, stepLabel: processStepLabel(step) },
+      directEffectLocation.line
+    ));
   } else if (directEffectLocation && hasClassification) {
-    diagnostics.push({
-      severity: "warning",
-      message: `Action ${actionId} process step ${processStepLabel(step)} mixes result classification with direct immediate effects. Use case Effects for classified results.`,
-      line: directEffectLocation.line
-    });
+    diagnostics.push(createMarkVSpecDiagnostic(
+      "warning",
+      "action.process.mixesResultClassificationAndImmediateEffects",
+      { actionId, stepLabel: processStepLabel(step) },
+      directEffectLocation.line
+    ));
   }
 }
 
@@ -1244,11 +1249,12 @@ function validateSuspiciousProcessCaseResponse(
     return;
   }
 
-  diagnostics.push({
-    severity: "warning",
-    message: `Action ${actionId} process step ${processStepLabel(step)} case ${outcome.result} uses response without receiving a response. Use description for validation, branching, sent, send-failed, or other non-response case explanations.`,
-    line: outcome.response.location.line
-  });
+  diagnostics.push(createMarkVSpecDiagnostic(
+    "warning",
+    "action.process.caseResponseWithoutReceive",
+    { actionId, stepLabel: processStepLabel(step), result: outcome.result },
+    outcome.response.location.line
+  ));
 }
 
 function processCaseEntryLocations(outcome: MarkVSpecActionOutcome, currentDirective: { location: SourceLocation }): SourceLocation[] {

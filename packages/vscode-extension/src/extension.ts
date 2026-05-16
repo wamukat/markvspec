@@ -12,6 +12,7 @@ import {
   parseMarkVSpecProject,
   allResolvedLayoutGroups,
   preferredLayoutGroupForViewport,
+  renderDiagnosticMessageForLocale,
   renderMarkVSpecHtml,
   renderProjectTransitionMermaid,
   resolveRendererMessages,
@@ -753,6 +754,7 @@ function updateDiagnostics(document: vscode.TextDocument): void {
   const result = isMarkVSpecProjectDocument(document)
     ? loadProjectFromDocument(document)
     : loadScreenDocumentResult(document).result;
+  const locale = diagnosticLocaleForResult(result);
   const diagnostics = result.diagnostics.map((diagnostic) => {
     const line = Math.max((diagnostic.line ?? 1) - 1, 0);
     const textLine = document.lineAt(Math.min(line, Math.max(document.lineCount - 1, 0)));
@@ -760,13 +762,17 @@ function updateDiagnostics(document: vscode.TextDocument): void {
     const severity = diagnostic.severity === "error"
       ? vscode.DiagnosticSeverity.Error
       : vscode.DiagnosticSeverity.Warning;
-    const vscodeDiagnostic = new vscode.Diagnostic(range, diagnostic.message, severity);
+    const vscodeDiagnostic = new vscode.Diagnostic(range, renderDiagnosticMessageForLocale(diagnostic, locale), severity);
     vscodeDiagnostic.source = "MarkVSpec";
     return vscodeDiagnostic;
   });
 
   diagnosticsCollection.set(document.uri, diagnostics);
   logDuration(`updateDiagnostics ${previewDocumentLabel(document)}`, started);
+}
+
+function diagnosticLocaleForResult(result: ReturnType<typeof parseMarkVSpec> | MarkVSpecProjectLoadResult): string | undefined {
+  return "screen" in result ? result.screen.locale : result.project.project.frontMatter["locale"];
 }
 
 function scheduleDiagnostics(document: vscode.TextDocument): void {
@@ -3539,7 +3545,7 @@ function renderProjectDiagnosticsSpec(project: MarkVSpecProjectLoadResult, messa
       project.diagnostics.map((diagnostic) => [
         diagnostic.severity,
         diagnostic.line ? String(diagnostic.line) : "",
-        text(diagnostic.message)
+        text(renderDiagnosticMessageForLocale(diagnostic, project.project.project.frontMatter["locale"]))
       ])
     )}
   </section>`;
@@ -4871,7 +4877,7 @@ function renderDiagnosticsSpec(result: ReturnType<typeof parseMarkVSpec>): strin
       result.diagnostics.map((diagnostic) => [
         diagnostic.severity,
         diagnostic.line ? String(diagnostic.line) : "",
-        text(diagnostic.message)
+        text(renderDiagnosticMessageForLocale(diagnostic, result.screen.locale))
       ])
     )}
   </section>`;

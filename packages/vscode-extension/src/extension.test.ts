@@ -5,7 +5,7 @@ import { performance } from "node:perf_hooks";
 import { join, resolve } from "node:path";
 import test from "node:test";
 import * as vscode from "vscode";
-import { composeMarkVSpecTemplate, computeMarkVSpecRenderInvalidation, loadMarkVSpecProject, messagesForLocale, parseMarkVSpec, renderMarkVSpecHtml } from "@markvspec/core";
+import { composeMarkVSpecTemplate, computeMarkVSpecRenderInvalidation, loadMarkVSpecProject, messagesForLocale, parseMarkVSpec, renderDiagnosticMessageForLocale, renderMarkVSpecHtml } from "@markvspec/core";
 import {
   pdfBrowserArgs,
   pdfBrowserCandidates,
@@ -411,6 +411,63 @@ test("renders generated design document sections without launching VS Code", () 
   const desktopWaitAuthSection = viewportStateSection(html, "authenticating", "desktop");
   assert.doesNotMatch(desktopWaitAuthSection, /From:/);
   assert.match(desktopWaitAuthSection, /mm-repeated-badge/);
+});
+
+test("localizes Action/Process diagnostics in preview diagnostics with the VS Code diagnostic formatter", () => {
+  const source = `---
+id: SCR-DIAG-I18N-PREVIEW
+type: screen
+title: Diagnostic i18n Preview
+locale: ja
+viewport: mobile
+---
+
+# SCR-DIAG-I18N-PREVIEW Diagnostic i18n Preview
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- E-Submit
+
+## Elements
+
+### E-Submit Button
+
+- label: Submit
+- action: A-Invalid
+
+## Actions
+
+### A-Invalid Invalid
+
+- Triggered
+  - E-Submit.click
+- From
+  - idle
+- Process P1: Validate and update
+  - receive:
+    - validation: V-Form.result
+  - state: idle
+`;
+  const result = parseMarkVSpec(source);
+  const diagnostic = result.diagnostics.find((candidate) => candidate.code === "action.process.mixesResultClassificationAndImmediateEffects");
+  assert(diagnostic);
+
+  const localizedMessage = renderDiagnosticMessageForLocale(diagnostic, result.screen.locale);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+
+  assert.match(html, new RegExp(escapeRegExp(localizedMessage)));
+  assert.doesNotMatch(html, /mixes result classification with direct immediate effects/);
+  assert.equal(localizedMessage, "Action A-Invalid の Process step P1 Validate and update で、result 分類と直接の immediate effect が混在しています。分類された result には case Effects を使ってください。");
 });
 
 test("keeps presentation panels out of generated layout specs", () => {
