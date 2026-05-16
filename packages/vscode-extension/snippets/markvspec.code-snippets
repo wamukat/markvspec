@@ -88,11 +88,13 @@
       "- Process: ServerCall",
       "  - ${12:Service.method()}",
       "  - case: success",
-      "    - response: ${13:Success result}",
-      "    - state: loaded",
+      "    - description: ${13:Success result}",
+      "    - Effects",
+      "      - state: loaded",
       "  - case: failure",
-      "    - response: ${14:Failure result}",
-      "    - state: load-error",
+      "    - description: ${14:Failure result}",
+      "    - Effects",
+      "      - state: load-error",
       "${0}"
     ]
   },
