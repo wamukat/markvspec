@@ -4,6 +4,7 @@ import remarkFrontmatter from "remark-frontmatter";
 import { parseDocument } from "yaml";
 import type { Root } from "mdast";
 import type { MarkVSpecDiagnostic, MarkVSpecDocumentReferences } from "./types.js";
+import { filterLinesWithoutStandaloneHtmlComments } from "./markdown-html-comments.js";
 
 export interface MarkdownHeading {
   depth: number;
@@ -49,16 +50,40 @@ export function topLevelProseLines(document: MarkdownDocument): string[] {
   const heading = firstHeading(document, 1);
   const startIndex = heading ? heading.line : document.bodyStartIndex;
   const firstSectionLine = document.headings.find((item) => item.depth === 2 && item.line > startIndex)?.line ?? document.lines.length + 1;
-  let lines = document.lines.slice(startIndex, firstSectionLine - 1);
+  const commentBlocks = topLevelStandaloneHtmlCommentBlocks(document, startIndex, firstSectionLine);
+  let lines = document.lines
+    .slice(startIndex, firstSectionLine - 1)
+    .map((text, index) => ({ text, line: startIndex + index + 1 }));
 
-  lines = lines.filter((line) => !/^#\s+/u.test(line));
-  while (lines.length > 0 && lines[0].trim() === "") {
+  lines = filterLinesWithoutStandaloneHtmlComments(lines, commentBlocks).filter((line) => !/^#\s+/u.test(line.text));
+  while (lines.length > 0 && lines[0]?.text.trim() === "") {
     lines.shift();
   }
-  while (lines.length > 0 && lines[lines.length - 1].trim() === "") {
+  while (lines.length > 0 && lines[lines.length - 1]?.text.trim() === "") {
     lines.pop();
   }
-  return lines;
+  return lines.map((line) => line.text);
+}
+
+function topLevelStandaloneHtmlCommentBlocks(
+  document: MarkdownDocument,
+  startIndex: number,
+  firstSectionLine: number
+): Array<{ type: string; text: string; range: { start: { line: number }; end: { line: number } } }> {
+  const commentBlocks: Array<{ type: string; text: string; range: { start: { line: number }; end: { line: number } } }> = [];
+  for (const node of document.tree.children) {
+    const startLine = node.position?.start.line;
+    const endLine = node.position?.end.line;
+    if (startLine === undefined || endLine === undefined || startLine <= startIndex || startLine >= firstSectionLine) {
+      continue;
+    }
+    commentBlocks.push({
+      type: node.type,
+      text: "value" in node && typeof node.value === "string" ? node.value : "",
+      range: { start: { line: startLine }, end: { line: endLine } }
+    });
+  }
+  return commentBlocks;
 }
 
 function extractYamlFrontMatter(

@@ -1,5 +1,5 @@
 import { parseMarkdownDocument, topLevelProseLines } from "./markdown-document.js";
-import { collectSectionAst, type BlockAst, type SectionAst, type SourceRange } from "./markdown-section-ast.js";
+import { collectSectionAst, type BlockAst, type SectionAst } from "./markdown-section-ast.js";
 import { aliasForModelPath, isCollectionModelSamplePath, sourcePathKey } from "./model-paths.js";
 import {
   parseActionSectionSemantics,
@@ -698,7 +698,6 @@ function blockFingerprint(block: BlockAst): unknown {
   return {
     type: block.type,
     text: block.text,
-    range: rangeFingerprint(block.range),
     children: block.children.map((child) => blockFingerprint(child)),
     ...("depth" in block ? { depth: block.depth } : {}),
     ...("ordered" in block ? { ordered: block.ordered } : {}),
@@ -707,28 +706,11 @@ function blockFingerprint(block: BlockAst): unknown {
       ? {
         rowSources: block.rowSources.map((row) => ({
           cells: row.cells,
-          raw: row.raw,
-          range: rangeFingerprint(row.range)
+          raw: row.raw
         }))
       }
       : {}),
     ...("lang" in block ? { lang: block.lang } : {})
-  };
-}
-
-function rangeFingerprint(range: SourceRange | undefined): unknown {
-  if (!range) {
-    return undefined;
-  }
-  return {
-    start: {
-      line: range.start.line,
-      column: range.start.column
-    },
-    end: {
-      line: range.end.line,
-      column: range.end.column
-    }
   };
 }
 

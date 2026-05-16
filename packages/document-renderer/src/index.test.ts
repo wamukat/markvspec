@@ -157,6 +157,37 @@ Initial \`static\` release.
   assert.match(html, /<h5 class="state-screen-subheading">Wireframe<\/h5>/);
 });
 
+test("omits standalone HTML comments from static screen descriptions", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-STATIC-COMMENT
+type: screen
+title: Static Comment
+---
+
+# SCR-STATIC-COMMENT Static Comment
+
+Visible description before.
+
+<!-- hidden one-line comment -->
+
+<!--
+hidden multi-line comment
+-->
+
+Visible description after.
+
+## States
+
+- idle*
+`);
+  const html = renderStaticDesignDocumentHtml(result);
+
+  assert.equal(result.screen.description, "Visible description before.\n\nVisible description after.");
+  assert.match(html, /Visible description before/);
+  assert.match(html, /Visible description after/);
+  assert.doesNotMatch(html, /hidden one-line comment|hidden multi-line comment/);
+});
+
 test("renders static design document labels from renderer messages", () => {
   const result = parseMarkVSpec(`---
 id: SCR-MESSAGES

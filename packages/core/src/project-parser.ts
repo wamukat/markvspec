@@ -8,6 +8,7 @@ import type {
 } from "./types.js";
 import { firstHeading, parseMarkdownDocument, type MarkdownDocument } from "./markdown-document.js";
 import { collectSectionAst, sectionBodyLines, type SourceRange } from "./markdown-section-ast.js";
+import { filterLinesWithoutStandaloneHtmlComments } from "./markdown-html-comments.js";
 
 interface ProjectFrontMatterResult {
   frontMatter: Record<string, string>;
@@ -246,11 +247,13 @@ function parseProjectSummary(
 
 function parseProjectNotesFromSections(document: MarkdownDocument): MarkVSpecNoteSection[] {
   const sections = collectSectionAst(document);
-  return sections.map((section) => ({
-    title: section.title,
-    line: section.heading.range.start.line,
-    lines: sectionBodyLines(document, sections, section).map((line) => line.text)
-  }));
+  return sections.map((section) => {
+    return {
+      title: section.title,
+      line: section.heading.range.start.line,
+      lines: filterLinesWithoutStandaloneHtmlComments(sectionBodyLines(document, sections, section), section.blocks).map((line) => line.text)
+    };
+  });
 }
 
 function projectReferenceSemantic(kind: "template" | "screen", screen: MarkVSpecProjectScreen): ProjectDocumentReferenceSemantic {

@@ -1937,6 +1937,8 @@ title: ユーザー編集
 
 管理者がユーザ情報を編集するための画面。
 
+<!-- preview hidden comment -->
+
 ## States
 
 - idle*
@@ -1956,6 +1958,7 @@ title: ユーザー編集
   assert.equal(result.screen.description, "管理者がユーザ情報を編集するための画面。");
   assert.match(html, /<div class="screen-title">ユーザー編集<\/div>/);
   assert.match(html, /<div class="screen-description"><p class="note-paragraph">管理者がユーザ情報を編集するための画面。<\/p><\/div>/);
+  assert.doesNotMatch(html, /preview hidden comment/);
   assert.match(html, /<div class="screen-overview">\s*<div class="screen-overview-badges">[\s\S]*?<\/div>\s*<div class="screen-overview-main">/);
 });
 

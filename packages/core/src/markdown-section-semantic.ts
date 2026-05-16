@@ -35,6 +35,7 @@ import {
   type SectionKind
 } from "./markdown-section-ast.js";
 import { isCollectionModelSamplePath } from "./model-paths.js";
+import { filterLinesWithoutStandaloneHtmlComments, isStandaloneHtmlCommentBlock } from "./markdown-html-comments.js";
 
 export interface SemanticDependency {
   source: { type: "entity" | "section" | "render"; id: string };
@@ -3114,16 +3115,7 @@ function sectionBodyLinesWithoutStandaloneHtmlComments(
   sections: SectionAst[],
   section: SectionAst
 ): Array<{ text: string; line: number }> {
-  const commentLines = new Set<number>();
-  for (const block of section.blocks) {
-    if (!isStandaloneHtmlCommentBlock(block) || !block.range) {
-      continue;
-    }
-    for (let line = block.range.start.line; line <= block.range.end.line; line += 1) {
-      commentLines.add(line);
-    }
-  }
-  return sectionBodyLines(document, sections, section).filter((line) => !commentLines.has(line.line));
+  return filterLinesWithoutStandaloneHtmlComments(sectionBodyLines(document, sections, section), section.blocks);
 }
 
 function listSectionProse(section: SectionAst, renderKeys: string[]): MarkVSpecSectionProse[] {
@@ -3228,10 +3220,6 @@ function isEntityNoteBlock(block: BlockAst): boolean {
     || block.type === "html";
 }
 
-function isStandaloneHtmlCommentBlock(block: BlockAst): boolean {
-  return block.type === "html" && /^<!--[\s\S]*-->$/u.test(block.text.trim());
-}
-
 function firstActionStructuredListItemLine(block: BlockAst): number | undefined {
   const item = listItems([block]).find((candidate) =>
     candidate.depth === 0 && /^(?:Triggered|From|Process(?:\s*:.*)?|Effects|Otherwise|Cases|When|Effect|Case|Else)\s*$/iu.test(candidate.text)
@@ -3279,6 +3267,9 @@ function appendEntityOverviewLines(entity: { overview?: string[] }, block: Block
 }
 
 function appendEntityBlockLines(lines: string[], block: BlockAst): void {
+  if (isStandaloneHtmlCommentBlock(block)) {
+    return;
+  }
   if (lines.length > 0 && lines[lines.length - 1] !== "") {
     lines.push("");
   }

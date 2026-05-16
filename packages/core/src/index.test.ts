@@ -2214,6 +2214,37 @@ title: Slot Before
   assert.equal(descriptionInvalidation.requiresFullRender, true);
 });
 
+test("ignores top-level standalone HTML comments in render invalidation", () => {
+  const previous = `---
+id: SCR-COMMENT-INVALIDATION
+type: screen
+title: Comment Invalidation
+---
+
+# SCR-COMMENT-INVALIDATION Comment Invalidation
+
+Visible description.
+
+<!-- hidden before -->
+
+## States
+
+- idle*
+`;
+  const textEdit = computeMarkVSpecRenderInvalidation(previous, previous.replace("hidden before", "hidden after"));
+  const expandedComment = computeMarkVSpecRenderInvalidation(
+    previous,
+    previous.replace("<!-- hidden before -->", "<!--\nhidden before\nnew hidden line\n-->")
+  );
+  const removedComment = computeMarkVSpecRenderInvalidation(previous, previous.replace("\n<!-- hidden before -->\n", "\n"));
+
+  for (const invalidation of [textEdit, expandedComment, removedComment]) {
+    assert.deepEqual(invalidation.changedSectionIds, []);
+    assert.deepEqual(invalidation.impactedRenderKeys, []);
+    assert.equal(invalidation.requiresFullRender, false);
+  }
+});
+
 test("keeps unsafe element invalidation on full render fallback", () => {
   const previous = `---
 id: SCR-INVALIDATION-UNSAFE
@@ -2774,9 +2805,15 @@ screens:
 
 ## Notes
 
+<!-- hidden project note -->
+
 - Keep project notes.
 
 ## Open Questions
+
+<!--
+hidden project question
+-->
 
 - Which users route is canonical?
 `;
@@ -5180,6 +5217,35 @@ This screen has top-level prose.
 
   assert.equal(result.screen.description, "This screen has top-level prose.");
   assert.equal(result.notes.length, 0);
+});
+
+test("ignores standalone HTML comments in top-level screen description", () => {
+  const source = `---
+id: SCR-COMMENT-DESCRIPTION
+type: screen
+title: Comment Description
+---
+
+# SCR-COMMENT-DESCRIPTION Comment Description
+
+Visible description before.
+
+<!-- hidden one-line comment -->
+
+<!--
+hidden multi-line comment
+-->
+
+Visible description after.
+
+## States
+
+- idle*
+`;
+  const result = parseMarkVSpec(source);
+
+  assert.equal(result.screen.description, "Visible description before.\n\nVisible description after.");
+  assert.deepEqual(result.diagnostics, []);
 });
 
 test("preserves named free-form sections with heading lines", () => {
