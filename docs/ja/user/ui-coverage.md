@@ -44,8 +44,8 @@
 | 承認フロー | 代替表現あり | 詳細 / 編集パターンに action と rule を明示します。 |
 | 履歴 / 監査ログ | 対応済み | `Table` または `List` にサンプル行を記載します。 |
 | 権限別表示 | 代替表現あり | `visible when` / `hidden when` に role 条件を意味として書きます。 |
-| 非同期 partial update | 対応済み | `PartialRequest`、partial document、`update` target、partial render state。 |
-| エラー復旧 | 対応済み | error state、retry action、partial update outcome。 |
+| 非同期 partial update | 対応済み | 名前付き request process、partial document、`display.target`、partial render state。 |
+| エラー復旧 | 対応済み | error state、retry action、display outcome。 |
 
 ## 優先ギャップ
 

@@ -36,6 +36,7 @@ const actionEvents = new Set(["click", "change", "submit", "focus", "blur", "ope
 const actionLifecycleEvents = new Set(["response"]);
 const documentLifecycleTriggers = new Set(["screen.load", "partial.render"]);
 const actionLifecycleTriggerRegex = new RegExp(String.raw`^(${actionIdPattern})\.([A-Za-z][A-Za-z0-9_-]*)$`, "u");
+const actionProcessLifecycleTriggerRegex = new RegExp(String.raw`^(${actionIdPattern})\.([A-Za-z0-9][A-Za-z0-9_-]{0,11})\.([A-Za-z][A-Za-z0-9_-]*)$`, "u");
 const elementIdRegex = new RegExp(String.raw`^${elementIdPattern}$`, "u");
 const formGroupIdRegex = new RegExp(String.raw`^${formGroupIdPattern}$`, "u");
 const validationResultReferenceRegex = new RegExp(String.raw`^(V-${idNamePattern})\.result$`, "u");
@@ -61,6 +62,10 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   const viewContextSampleNames = new Set(result.viewContextSamples.map((sample) => sample.name));
   const modelSampleGroupNames = new Set(result.modelSampleGroups.map((group) => group.state));
   const localIds = new Set([...semanticLayoutIds, ...semanticSlotContentLayoutIds, ...elementIds, ...actionIds, ...validationIds, ...ruleIds, ...errorCodeIds]);
+  const processMarkersByAction = new Map(result.actions.map((action) => [
+    action.id,
+    new Set(action.processSteps.map((step) => step.marker).filter((marker): marker is string => Boolean(marker)))
+  ]));
   const referencedPartialIds = new Map<string, SourceLocation>();
   const allLayoutGroups = [...result.layoutGroups, ...result.slotContents.flatMap((slot) => slot.layoutGroups)];
 
@@ -291,6 +296,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
 
   for (const action of result.actions) {
     const actionLifecycleTrigger = action.triggeredBy ? actionLifecycleTriggerRegex.exec(action.triggeredBy) : undefined;
+    const actionProcessLifecycleTrigger = action.triggeredBy ? actionProcessLifecycleTriggerRegex.exec(action.triggeredBy) : undefined;
     if (!action.triggeredBy) {
       diagnostics.push({
         severity: "warning",
@@ -305,12 +311,40 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
         message: `Action ${action.id} has invalid trigger ${action.triggeredBy}. Expected E-*.event.`,
         line: action.triggeredByLocation?.line ?? action.location.line
       });
+    } else if (actionProcessLifecycleTrigger) {
+      const [, sourceActionId, processMarker, event] = actionProcessLifecycleTrigger;
+      const sourceAction = result.actions.find((candidate) => candidate.id === sourceActionId);
+      if (!sourceAction) {
+        diagnostics.push({
+          severity: "error",
+          message: `Action ${action.id} trigger references missing action ${sourceActionId}.`,
+          line: action.triggeredByLocation?.line ?? action.location.line
+        });
+      } else if (!sourceAction.processSteps.some((step) => step.marker === processMarker)) {
+        diagnostics.push({
+          severity: "error",
+          message: `Action ${action.id} trigger references missing process ${sourceActionId}.${processMarker}.`,
+          line: action.triggeredByLocation?.line ?? action.location.line
+        });
+      } else if (!actionLifecycleEvents.has(event)) {
+        diagnostics.push({
+          severity: "warning",
+          message: `Action ${action.id} uses unsupported action lifecycle event ${event}.`,
+          line: action.triggeredByLocation?.line ?? action.location.line
+        });
+      }
     } else if (actionLifecycleTrigger) {
       const [, sourceActionId, event] = actionLifecycleTrigger;
       if (!actionIds.has(sourceActionId)) {
         diagnostics.push({
           severity: "error",
           message: `Action ${action.id} trigger references missing action ${sourceActionId}.`,
+          line: action.triggeredByLocation?.line ?? action.location.line
+        });
+      } else if (event === "response") {
+        diagnostics.push({
+          severity: "error",
+          message: `Action ${action.id} trigger ${action.triggeredBy} is ambiguous. Use A-ActionId.P-marker.response.`,
           line: action.triggeredByLocation?.line ?? action.location.line
         });
       } else if (!actionLifecycleEvents.has(event)) {
@@ -399,8 +433,29 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
     }
 
     const parallelGroups = new Set(action.processSteps.map((step) => step.parallelGroup).filter((group): group is string => Boolean(group)));
+    const processMarkers = new Set(action.processSteps.map((step) => step.marker).filter((marker): marker is string => Boolean(marker)));
+    const seenProcessMarkers = new Set<string>();
 
     for (const step of action.processSteps) {
+      if (step.marker) {
+        if (seenProcessMarkers.has(step.marker)) {
+          diagnostics.push({
+            severity: "error",
+            message: `Action ${action.id} has duplicate process marker ${step.marker}.`,
+            line: step.location.line
+          });
+        }
+        seenProcessMarkers.add(step.marker);
+      }
+
+      if (step.inputs.length > 0 && step.results.length === 0) {
+        diagnostics.push({
+          severity: "error",
+          message: `Action ${action.id} process step ${processStepLabel(step)} has input but no result contract.`,
+          line: firstPropertyLine(step, "input") ?? step.location.line
+        });
+      }
+
       if (isHttpRequestStep(step.name) && !processStepDetail(step, "request")) {
         diagnostics.push({
           severity: "warning",
@@ -505,6 +560,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
       validateUpdateMode(action.id, outcome, diagnostics, `case ${outcome.result}`);
       validateOutcomeErrorCodes(action.id, outcome, errorCodeIds, diagnostics);
       collectPartialReference(outcome.content, firstPropertyLocation(outcome, "content") ?? outcome.location ?? action.location, referencedPartialIds);
+      validateDisplayEffect(action.id, `case ${outcome.result}`, outcome.display, targetLayoutIds, elementIds, layoutIdsByViewport, diagnostics, referencedPartialIds);
     }
 
     for (const step of action.processSteps) {
@@ -545,6 +601,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
 
       validateUpdateMode(action.id, step, diagnostics, `process step ${step.name}`);
       validateProcessStepReferences(action.id, step, validationIds, errorCodeIds, diagnostics);
+      validateProcessDataReferences(action.id, step, actionIds, processMarkersByAction, layoutIds, elementIds, diagnostics);
       collectPartialReference(step.content, firstPropertyLocation(step, "content") ?? step.location, referencedPartialIds);
 
       for (const outcome of step.outcomes) {
@@ -612,6 +669,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
         validateUpdateMode(action.id, outcome, diagnostics, `process step ${step.name} case ${outcome.result}`);
         validateOutcomeErrorCodes(action.id, outcome, errorCodeIds, diagnostics);
         collectPartialReference(outcome.content, firstPropertyLocation(outcome, "content") ?? outcome.location ?? step.location, referencedPartialIds);
+        validateDisplayEffect(action.id, `process step ${processStepLabel(step)} case ${outcome.result}`, outcome.display, targetLayoutIds, elementIds, layoutIdsByViewport, diagnostics, referencedPartialIds);
       }
     }
 
@@ -1138,6 +1196,158 @@ function validateProcessStepReferences(
   }
 }
 
+function validateProcessDataReferences(
+  actionId: string,
+  step: MarkVSpecProcessStep,
+  actionIds: Set<string>,
+  processMarkersByAction: Map<string, Set<string>>,
+  layoutIds: Set<string>,
+  elementIds: Set<string>,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  for (const detail of [...step.inputs, ...step.receives]) {
+    const sourceId = requestParamSourceId(detail.value);
+    if (sourceId && isLocalId(sourceId) && !layoutIds.has(sourceId) && !elementIds.has(sourceId) && !actionIds.has(sourceId)) {
+      diagnostics.push({
+        severity: "error",
+        message: `Action ${actionId} process step ${processStepLabel(step)} ${detail.key} references missing source ${sourceId}.`,
+        line: detail.location.line
+      });
+      continue;
+    }
+
+    const processOutput = parseProcessOutputReference(detail.value);
+    if (processOutput) {
+      if (!actionIds.has(processOutput.actionId)) {
+        diagnostics.push({
+          severity: "error",
+          message: `Action ${actionId} process step ${processStepLabel(step)} references missing action ${processOutput.actionId}.`,
+          line: detail.location.line
+        });
+      } else if (!processMarkersByAction.get(processOutput.actionId)?.has(processOutput.marker)) {
+        diagnostics.push({
+          severity: "error",
+          message: `Action ${actionId} process step ${processStepLabel(step)} references missing process marker ${processOutput.marker}.`,
+          line: detail.location.line
+        });
+      }
+    }
+  }
+}
+
+function validateDisplayEffect(
+  actionId: string,
+  context: string,
+  display: MarkVSpecActionOutcome["display"],
+  layoutIds: Set<string>,
+  elementIds: Set<string>,
+  layoutIdsByViewport: Map<string, Set<string>>,
+  diagnostics: MarkVSpecDiagnostic[],
+  referencedPartialIds: Map<string, SourceLocation>
+): void {
+  if (!display) {
+    return;
+  }
+  if (!display.target) {
+    diagnostics.push({
+      severity: "error",
+      message: `Action ${actionId} ${context} display effect must define target.`,
+      line: display.location.line
+    });
+  } else if (isPresentationPanelId(display.target)) {
+    diagnostics.push(presentationPanelTargetDiagnostic(`Action ${actionId} ${context} display effect`, display.target, firstPropertyLine(display, "target") ?? display.location.line));
+  } else if (formGroupIdRegex.test(display.target)) {
+    diagnostics.push(formGroupUpdateTargetDiagnostic(`Action ${actionId} ${context} display effect`, display.target, firstPropertyLine(display, "target") ?? display.location.line));
+  } else if (isLocalId(display.target) && !layoutIds.has(display.target) && !elementIds.has(display.target)) {
+    diagnostics.push({
+      severity: "error",
+      message: `Action ${actionId} ${context} display effect targets missing layout or element ${display.target}.`,
+      line: firstPropertyLine(display, "target") ?? display.location.line
+    });
+  } else if (layoutIds.has(display.target)) {
+    checkLayoutTargetViewportCoverage(
+      display.target,
+      layoutIdsByViewport,
+      diagnostics,
+      firstPropertyLine(display, "target") ?? display.location.line,
+      `Action ${actionId} ${context} display effect targets layout`
+    );
+  }
+
+  if (!display.content && display.contentSource.length === 0) {
+    diagnostics.push({
+      severity: "error",
+      message: `Action ${actionId} ${context} display effect must define content.`,
+      line: display.location.line
+    });
+  }
+
+  for (const source of display.contentSource) {
+    if (source.key === "partial") {
+      collectPartialReference(source.value, source.location, referencedPartialIds);
+    }
+  }
+}
+
+function validatePreviewScenarioCases(
+  scenario: MarkVSpecParseResult["previewScenarios"][number],
+  result: MarkVSpecParseResult,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  for (const caseRef of scenario.cases) {
+    const action = result.actions.find((candidate) => candidate.id === caseRef.actionId);
+    if (!action) {
+      diagnostics.push({
+        severity: "error",
+        message: `Preview Scenario ${scenario.name} references missing action ${caseRef.actionId}.`,
+        line: caseRef.location.line
+      });
+      continue;
+    }
+    const step = action.processSteps.find((candidate) => candidate.marker === caseRef.processMarker);
+    if (!step) {
+      diagnostics.push({
+        severity: "error",
+        message: `Preview Scenario ${scenario.name} references missing process marker ${caseRef.processMarker} on action ${caseRef.actionId}.`,
+        line: caseRef.location.line
+      });
+      continue;
+    }
+    const outcome = step.outcomes.find((candidate) => candidate.result === caseRef.caseName);
+    if (!outcome) {
+      diagnostics.push({
+        severity: "error",
+        message: `Preview Scenario ${scenario.name} references missing case ${caseRef.raw}.`,
+        line: caseRef.location.line
+      });
+      continue;
+    }
+    if (scenario.state && outcome.to && !isExternalTransitionTarget(outcome.to) && outcome.to !== scenario.state) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Preview Scenario ${scenario.name} state ${scenario.state} does not match case ${caseRef.raw} state effect ${outcome.to}.`,
+        line: caseRef.location.line
+      });
+    }
+  }
+}
+
+function processStepLabel(step: MarkVSpecProcessStep): string {
+  return step.marker ? `${step.marker} ${step.name}` : step.name;
+}
+
+function parseProcessOutputReference(value: string): { actionId: string; marker: string; kind: "result" | "response" } | undefined {
+  const match = /^(A-[\p{L}\p{N}-]+)\.(P[A-Za-z0-9_-]*)\.(result|response)$/u.exec(value.trim());
+  if (!match) {
+    return undefined;
+  }
+  return {
+    actionId: match[1],
+    marker: match[2],
+    kind: match[3] as "result" | "response"
+  };
+}
+
 function parseValidationResultReference(value: string): string | undefined {
   const match = validationResultReferenceRegex.exec(value.trim());
   return match?.[1];
@@ -1563,6 +1773,8 @@ function validateViewContexts(
           line: firstPropertyLine(scenario, "view") ?? scenario.location.line
         });
       }
+
+      validatePreviewScenarioCases(scenario, result, diagnostics);
     }
 
     for (const state of result.states) {
@@ -1716,7 +1928,7 @@ function isImmediateStep(name: string): boolean {
 }
 
 function isResolveStep(name: string): boolean {
-  return name.trim().replace(/\s+/g, " ").toLowerCase() === "resolve";
+  return name.trim().replace(/\s+/g, " ").toLowerCase().startsWith("resolve");
 }
 
 function validateRouteParameterReferences(result: MarkVSpecParseResult, diagnostics: MarkVSpecDiagnostic[]): void {
@@ -1897,6 +2109,7 @@ function hasActionOutcomeDetails(outcome: MarkVSpecActionOutcome): boolean {
       outcome.mode ??
       outcome.fragment ??
       outcome.content ??
+      outcome.display ??
       outcome.flow
   ) || outcome.sideEffects.length > 0 || outcome.errorCodes.length > 0 || outcome.routeParams.length > 0;
 }
@@ -1908,7 +2121,8 @@ function hasOutcomeDetailsBeyondResponse(outcome: MarkVSpecActionOutcome): boole
       outcome.target ??
       outcome.mode ??
       outcome.fragment ??
-      outcome.content
+      outcome.content ??
+      outcome.display
   ) || outcome.sideEffects.length > 0 || outcome.errorCodes.length > 0 || outcome.routeParams.length > 0;
 }
 

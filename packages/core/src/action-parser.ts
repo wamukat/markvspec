@@ -14,12 +14,13 @@ type ActionBlock =
   | "otherwise";
 
 type ActionNestedBlock = "update" | "params";
+type ProcessNestedBlock = ActionNestedBlock | "input" | "receive" | "result" | "request" | "server" | "response" | "validation" | "display" | "display-content";
 
 export interface ActionParseContext {
   block?: ActionBlock;
   outcome?: string;
   outcomeIndent?: number;
-  nestedBlock?: ActionNestedBlock;
+  nestedBlock?: ProcessNestedBlock;
   nestedBlockIndent?: number;
   processStep?: MarkVSpecProcessStep;
   rejectedProcessStepIndent?: number;
@@ -39,6 +40,13 @@ export function applyActionBulletToContext(
   diagnostics: MarkVSpecDiagnostic[] = []
 ): ActionParseContext {
   if (bullet.indent === 0) {
+    const canonicalProcess = parseCanonicalProcessHeading(bullet.text);
+    if (canonicalProcess) {
+      const step = createProcessStep(`${canonicalProcess.marker}: ${canonicalProcess.name}`, bullet.indent, bullet.location);
+      action.processSteps.push(step);
+      return { block: "process", processStep: step };
+    }
+
     const inlineProcess = parseInlineProcess(bullet.text);
     if (inlineProcess) {
       const normalizedProcess = normalizeBlockLabel(inlineProcess);
@@ -262,6 +270,28 @@ function parseDirectCaseName(text: string): string | undefined {
     : undefined;
 }
 
+function parseCanonicalProcess(text: string): { marker: string; name: string } | undefined {
+  const match = /^(P[A-Za-z0-9_-]*)\s*:\s*(.+)$/u.exec(text.trim());
+  if (!match) {
+    return undefined;
+  }
+  return {
+    marker: match[1],
+    name: match[2].trim()
+  };
+}
+
+function parseCanonicalProcessHeading(text: string): { marker: string; name: string } | undefined {
+  const match = /^Process\s+(P[A-Za-z0-9_-]*)\s*:\s*(.+)$/u.exec(text.trim());
+  if (!match) {
+    return undefined;
+  }
+  return {
+    marker: match[1],
+    name: match[2].trim()
+  };
+}
+
 function normalizeBlockLabel(text: string): string {
   return text.trim().replace(/:$/, "").trim().toLowerCase();
 }
@@ -283,11 +313,16 @@ function parseProcessStepName(text: string): string | undefined {
 }
 
 function createProcessStep(name: string, indent: number, location: SourceLocation): MarkVSpecProcessStep {
+  const canonical = parseCanonicalProcess(name);
   return {
-    name,
+    name: canonical?.name ?? name,
+    marker: canonical?.marker,
     indent,
     when: [],
     skipWhen: [],
+    inputs: [],
+    receives: [],
+    results: [],
     details: [],
     outcomes: [],
     sideEffects: [],
@@ -340,7 +375,7 @@ function applyProcessStepBullet(
   action: MarkVSpecAction,
   step: MarkVSpecProcessStep,
   bullet: ActionBulletInput,
-  currentNestedBlock: ActionNestedBlock | undefined,
+  currentNestedBlock: ProcessNestedBlock | undefined,
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
   const normalizedStep = normalizeBlockLabel(step.name);
@@ -350,7 +385,31 @@ function applyProcessStepBullet(
 
   const isHttpRequestStep = normalizedStep === "http request" || normalizedStep === "httprequest";
 
-  if (normalizedStep === "resolve" && (key === "resolve" || key === "group") && value !== undefined) {
+  if (currentNestedBlock === "input" && value !== undefined) {
+    step.inputs.push({ key, value, location: bullet.location });
+    addPropertyLocation(step.propertyLocations, `input ${key}`, bullet.location);
+    return;
+  }
+
+  if (currentNestedBlock === "receive" && value !== undefined) {
+    step.receives.push({ key, value, location: bullet.location });
+    addPropertyLocation(step.propertyLocations, `receive ${key}`, bullet.location);
+    return;
+  }
+
+  if (currentNestedBlock === "result") {
+    step.results.push({ key: value === undefined ? "result" : key, value: value ?? bullet.text, location: bullet.location });
+    addPropertyLocation(step.propertyLocations, "result", bullet.location);
+    return;
+  }
+
+  if (["request", "server", "response", "validation"].includes(currentNestedBlock ?? "") && value !== undefined) {
+    step.details.push({ key: `${currentNestedBlock}.${key}`, value, location: bullet.location });
+    addPropertyLocation(step.propertyLocations, currentNestedBlock ?? key, bullet.location);
+    return;
+  }
+
+  if (normalizedStep.startsWith("resolve") && (key === "resolve" || key === "group") && value !== undefined) {
     step.resolveGroup = value;
     addPropertyLocation(step.propertyLocations, key, bullet.location);
     return;
@@ -359,6 +418,10 @@ function applyProcessStepBullet(
   if ((key === "parallel" || key === "group") && value !== undefined) {
     step.parallelGroup = value;
     addPropertyLocation(step.propertyLocations, key, bullet.location);
+    return;
+  }
+
+  if (["input", "receive", "result", "request", "server", "response", "validation"].includes(normalizeBlockLabel(bullet.text))) {
     return;
   }
 
@@ -511,7 +574,7 @@ function applyProcessStepCaseEffect(
   step: MarkVSpecProcessStep,
   result: string,
   bullet: ActionBulletInput,
-  currentNestedBlock: ActionNestedBlock | undefined,
+  currentNestedBlock: ProcessNestedBlock | undefined,
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
   const outcome = getProcessStepOutcome(step, result, bullet.location);
@@ -522,7 +585,7 @@ function applyProcessStepEffect(
   action: MarkVSpecAction,
   step: MarkVSpecProcessStep,
   bullet: ActionBulletInput,
-  currentNestedBlock: ActionNestedBlock | undefined,
+  currentNestedBlock: ProcessNestedBlock | undefined,
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
   const [keyPart, valuePart] = splitKeyValue(bullet.text);
@@ -581,7 +644,7 @@ function applyActionStructuredEffect(
   action: MarkVSpecAction,
   result: string | undefined,
   bullet: ActionBulletInput,
-  currentNestedBlock: ActionNestedBlock | undefined,
+  currentNestedBlock: ProcessNestedBlock | undefined,
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
   const [keyPart, valuePart] = splitKeyValue(bullet.text);
@@ -661,7 +724,7 @@ function applyStructuredEffectToOutcome(
   outcome: MarkVSpecActionOutcome,
   result: string,
   bullet: ActionBulletInput,
-  currentNestedBlock: ActionNestedBlock | undefined,
+  currentNestedBlock: ProcessNestedBlock | undefined,
   diagnostics: MarkVSpecDiagnostic[],
   contextLabel: string
 ): void {
@@ -672,6 +735,18 @@ function applyStructuredEffectToOutcome(
   if (value === undefined && isProcessCaseFlowDirective(key) && contextLabel.startsWith("process step ")) {
     outcome.flow = key.trim().toLowerCase() as "stop" | "continue";
     addPropertyLocation(outcome.propertyLocations, "flow", bullet.location);
+    return;
+  }
+
+  if (currentNestedBlock === "display" && value !== undefined) {
+    applyDisplayEffect(outcome, key, value, bullet.location);
+    return;
+  }
+
+  if (currentNestedBlock === "display-content" && value !== undefined) {
+    const display = ensureDisplayEffect(outcome, bullet.location);
+    display.contentSource.push({ key, value, location: bullet.location });
+    addPropertyLocation(display.propertyLocations, `content.${key}`, bullet.location);
     return;
   }
 
@@ -697,6 +772,11 @@ function applyStructuredEffectToOutcome(
       addPropertyLocation(action.propertyLocations, `response ${result}`, bullet.location);
     }
     addPropertyLocation(outcome.propertyLocations, "response", bullet.location);
+    return;
+  }
+
+  if (key === "result") {
+    addPropertyLocation(outcome.propertyLocations, "result", bullet.location);
     return;
   }
 
@@ -739,6 +819,10 @@ function applyStructuredEffectToOutcome(
     return;
   }
 
+  if (key === "display") {
+    return;
+  }
+
   if (key === "params") {
     return;
   }
@@ -762,6 +846,27 @@ function applyStructuredEffectToOutcome(
     message: `Action ${action.id} has unsupported ${contextLabel} entry: ${bullet.text}. Use state, navigate, response, from, params, update, stop, or continue.`,
     line: bullet.location.line
   });
+}
+
+function ensureDisplayEffect(outcome: MarkVSpecActionOutcome, location: SourceLocation) {
+  outcome.display ??= {
+    contentSource: [],
+    location,
+    propertyLocations: {}
+  };
+  return outcome.display;
+}
+
+function applyDisplayEffect(outcome: MarkVSpecActionOutcome, key: string, value: string, location: SourceLocation): void {
+  const display = ensureDisplayEffect(outcome, location);
+  if (key === "target") {
+    display.target = value;
+  } else if (key === "content") {
+    display.content = value;
+  } else {
+    display.contentSource.push({ key, value, location });
+  }
+  addPropertyLocation(display.propertyLocations, key, location);
 }
 
 function applyRouteParam(params: MarkVSpecRouteParam[], name: string, source: string, location: SourceLocation): void {
@@ -823,7 +928,7 @@ function applyActionEffect(
   addPropertyLocation(target.propertyLocations, key, location);
 }
 
-function activeNestedBlock(context: ActionParseContext, bullet: ActionBulletInput): ActionNestedBlock | undefined {
+function activeNestedBlock(context: ActionParseContext, bullet: ActionBulletInput): ProcessNestedBlock | undefined {
   return context.nestedBlockIndent !== undefined && bullet.indent > context.nestedBlockIndent
     ? context.nestedBlock
     : undefined;
@@ -831,9 +936,16 @@ function activeNestedBlock(context: ActionParseContext, bullet: ActionBulletInpu
 
 function nextNestedContext(bullet: ActionBulletInput, context: ActionParseContext): Pick<ActionParseContext, "nestedBlock" | "nestedBlockIndent"> {
   const normalized = normalizeBlockLabel(bullet.text);
-  if (normalized === "update" || normalized === "params") {
+  if (normalized === "update" || normalized === "params" || normalized === "input" || normalized === "receive" || normalized === "result" || normalized === "request" || normalized === "server" || normalized === "response" || normalized === "validation" || normalized === "display") {
     return {
       nestedBlock: normalized,
+      nestedBlockIndent: bullet.indent
+    };
+  }
+
+  if (context.nestedBlock === "display" && normalized === "content") {
+    return {
+      nestedBlock: "display-content",
       nestedBlockIndent: bullet.indent
     };
   }

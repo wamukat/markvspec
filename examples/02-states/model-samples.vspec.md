@@ -106,8 +106,10 @@ empty-array syntax.
 - From
   - loaded
   - empty
-- Process: HttpRequest
-  - GET /sample-account
+- Process P1: Send request
+  - request:
+    - method: GET
+    - path: /sample-account
   - case: sent
     - state: loaded
   - case: send-failed

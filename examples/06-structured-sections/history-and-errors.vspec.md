@@ -120,7 +120,7 @@ referenced from the same flow.
   - validation-error
   - save-error
   - saved
-- Process: Validate
+- Process P1: Check validation
   - validation: V-AccountSettings.result
   - case: invalid
     - response: required field missing
@@ -130,7 +130,7 @@ referenced from the same flow.
   - case: valid
     - response: all required fields are present
     - continue
-- Process: ServerCall
+- Process P2: Call server service
   - AccountSettingsService.save()
     - displayName: E-DisplayNameInput.value
     - email: E-EmailInput.value
@@ -144,10 +144,10 @@ referenced from the same flow.
 ### A2:A-HandleSaveResponse Handle save response
 
 - Triggered
-  - A-SaveAccount.response
+  - A-SaveAccount.P1.response
 - From
   - idle
-- Process: ServerResponse
+- Process P1: Handle server response
   - case: success
     - response: 200 saved
     - state: saved

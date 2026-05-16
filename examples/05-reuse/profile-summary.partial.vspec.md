@@ -62,7 +62,7 @@ example.
   - partial.render
 - From
   - loading
-- Process: ServerCall
+- Process P1: Call server service
   - MemberQueryService.findCurrent()
   - case: success
     - response: 200 member profile

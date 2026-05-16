@@ -260,7 +260,7 @@ confirmation dialog that are not covered by the smaller examples.
 - From
   - editing
   - save-error
-- Process: ServerCall
+- Process P1: Call server service
   - ProfileService.save()
     - bio: ${model.bio}
     - reviewDate: ${model.reviewDate}
@@ -277,10 +277,10 @@ confirmation dialog that are not covered by the smaller examples.
 - From
   - editing
   - save-error
-- Process: ModelUpdate
+- Process P1: Update model
   - Effects
     - model: ${model.discardRequested} = true
-- Process: Immediate
+- Process P2: Apply immediate effect
   - case: done
     - Effects
       - state: confirm-discard

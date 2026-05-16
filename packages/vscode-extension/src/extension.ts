@@ -3719,7 +3719,7 @@ function renderStateScreenWireframe(
   model: StateScreenReadModel,
   index: number
 ): string {
-  return renderWireframeFor(wireframeResult, model.viewport, model.stateName, index === 0, model.focus, model.modelValues, model.viewValues);
+  return renderWireframeFor(wireframeResult, model.viewport, model.stateName, index === 0, model.focus, model.modelValues, model.viewValues, model.displayEffects);
 }
 
 function stateViewsRenderContext(result: ReturnType<typeof parseMarkVSpec>): StateViewsRenderContext {
@@ -3782,7 +3782,8 @@ function renderWireframeFor(
   includeStyles: boolean,
   focus?: FocusScope,
   modelValues?: Record<string, boolean | number | string>,
-  viewValues?: Record<string, boolean | number | string>
+  viewValues?: Record<string, boolean | number | string>,
+  displayEffects?: StateScreenReadModel["displayEffects"]
 ): string {
   const html = renderMarkVSpecHtml(result, {
     includeConditionalContent: false,
@@ -3805,6 +3806,7 @@ function renderWireframeFor(
     html,
     viewport,
     screenState: state,
+    displayEffects,
     messagesForResult: rendererMessagesForResult
   });
 }
@@ -5102,6 +5104,9 @@ function renderProcessStepItem(
   const details = [
     ...step.when.map((condition) => `when ${detailedReferences ? renderDetailCondition(result, condition) : renderCondition(result, condition)}`),
     ...step.skipWhen.map((condition) => `skip when ${detailedReferences ? renderDetailCondition(result, condition) : renderCondition(result, condition)}`),
+    renderProcessDataDetails(result, "input", step.inputs, detailedReferences),
+    renderProcessDataDetails(result, "result", step.results, detailedReferences),
+    renderProcessDataDetails(result, "receive", step.receives, detailedReferences),
     ...renderProcessStepDetails(result, step, detailedReferences),
     step.target ? `update ${detailedReferences ? referenceForDetailId(result, step.target) : referenceForId(result, step.target, "target")}` : "",
     step.mode ? `mode ${text(step.mode)}` : "",
@@ -5116,7 +5121,22 @@ function renderProcessStepItem(
 function renderProcessStepLabel(
   step: ReturnType<typeof parseMarkVSpec>["actions"][number]["processSteps"][number]
 ): string {
-  return step.resolveGroup ? `${text(step.name)} ${text(step.resolveGroup)}` : text(step.name);
+  const name = step.marker ? `${renderResultLabel(step.marker)} ${text(step.name)}` : text(step.name);
+  return step.resolveGroup ? `${name} ${text(step.resolveGroup)}` : name;
+}
+
+function renderProcessDataDetails(
+  result: ReturnType<typeof parseMarkVSpec>,
+  labelText: string,
+  details: ReturnType<typeof parseMarkVSpec>["actions"][number]["processSteps"][number]["details"],
+  detailedReferences: boolean
+): string {
+  if (details.length === 0) {
+    return "";
+  }
+
+  const items = details.map((detail) => `<li>${renderProcessStepDetail(result, detail, detailedReferences)}</li>`).join("");
+  return `${text(labelText)}<ul class="spec-list spec-nested-list">${items}</ul>`;
 }
 
 function renderProcessStepDetails(
@@ -5124,7 +5144,7 @@ function renderProcessStepDetails(
   step: ReturnType<typeof parseMarkVSpec>["actions"][number]["processSteps"][number],
   detailedReferences: boolean
 ): string[] {
-  const renderDetail = (detail: typeof step.details[number]) => `${detailedReferences ? renderDetailParamSource(result, detail.key) : renderParamSource(result, detail.key)}: ${detailedReferences ? renderDetailParamSource(result, detail.value) : renderParamSource(result, detail.value)}`;
+  const renderDetail = (detail: typeof step.details[number]) => renderProcessStepDetail(result, detail, detailedReferences);
 
   if (normalizeProcessStepName(step.name) !== "httprequest") {
     if (normalizeProcessStepName(step.name) === "servercall") {
@@ -5143,6 +5163,16 @@ function renderProcessStepDetails(
     ? `<ul class="spec-list spec-nested-list">${requestParams.map((detail) => `<li>${renderDetail(detail)}</li>`).join("")}</ul>`
     : "";
   return [`${renderDetail(requestDetail)}${nestedParams}`];
+}
+
+function renderProcessStepDetail(
+  result: ReturnType<typeof parseMarkVSpec>,
+  detail: ReturnType<typeof parseMarkVSpec>["actions"][number]["processSteps"][number]["details"][number],
+  detailedReferences: boolean
+): string {
+  const key = detailedReferences ? renderDetailParamSource(result, detail.key) : renderParamSource(result, detail.key);
+  const value = detailedReferences ? renderDetailParamSource(result, detail.value) : renderParamSource(result, detail.value);
+  return `${key}: ${value}`;
 }
 
 function renderServerCallDetails(
@@ -5180,6 +5210,7 @@ function renderProcessStepCases(
       outcome.routeParams.length ? `${label(result, "routeParameters")} ${renderRouteParams(result, outcome.routeParams, true)}` : "",
       renderOutcomeTransition(result, outcome),
       outcome.flow === "stop" ? "stop process" : "",
+      outcome.display ? `display ${renderDisplayEffect(result, outcome.display, true)}` : "",
       update ? `update ${update}` : ""
     ].filter(Boolean);
     return `<li><strong>${renderResultLabel(outcome.result)}</strong>${details.length > 0 ? `<ul>${details.map((detail) => `<li>${detail}</li>`).join("")}</ul>` : ""}</li>`;
@@ -5236,6 +5267,7 @@ function renderActionCaseRows(
         outcome?.request ? `request ${renderActionRequest(outcome)}` : "",
         outcome?.routeParams.length ? `${label(result, "routeParameters")} ${renderRouteParams(result, outcome.routeParams, true)}` : "",
         outcome.to ? `effect ${renderTransitionEffect(result, outcome.to)}` : "",
+        outcome.display ? `display ${renderDisplayEffect(result, outcome.display, true)}` : "",
         update ? `update ${update}` : ""
       ].filter(Boolean);
       return [`${label(result, "case")} ${outcome.result}`, details.length > 0 ? `<ul>${details.map((detail) => `<li>${detail}</li>`).join("")}</ul>` : ""];
@@ -5302,6 +5334,24 @@ function renderUpdateEffect(
   ].filter(Boolean);
 
   return renderDetailList(result, parts, action.sideEffects);
+}
+
+function renderDisplayEffect(
+  result: ReturnType<typeof parseMarkVSpec>,
+  display: NonNullable<ReturnType<typeof parseMarkVSpec>["actions"][number]["outcomes"][number]["display"]>,
+  detailedReferences = false
+): string {
+  const target = detailedReferences ? referenceForDetailId(result, display.target) : referenceForId(result, display.target, "target");
+  const contentSource = display.contentSource.length > 0
+    ? `<ul class="spec-list spec-nested-list">${display.contentSource.map((detail) => `<li>${renderProcessStepDetail(result, detail, detailedReferences)}</li>`).join("")}</ul>`
+    : "";
+  const parts = [
+    target,
+    display.content ? `content ${text(display.content)}` : "",
+    contentSource ? `content ${contentSource}` : ""
+  ].filter(Boolean);
+
+  return renderDetailList(result, parts, []);
 }
 
 function renderDetailList(result: ReturnType<typeof parseMarkVSpec>, items: string[], sideEffects: string[]): string {

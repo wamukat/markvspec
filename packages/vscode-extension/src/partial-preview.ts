@@ -32,11 +32,14 @@ interface PartialPreviewLoadOptions {
   resolveRealPath: (path: string) => string | undefined;
 }
 
+type MarkVSpecDisplayEffect = NonNullable<MarkVSpecParseResult["actions"][number]["processSteps"][number]["outcomes"][number]["display"]>;
+
 interface EmbedPartialPreviewOptions {
   result: MarkVSpecParseResult;
   html: string;
   viewport: string | undefined;
   screenState: string | undefined;
+  displayEffects?: MarkVSpecDisplayEffect[];
   messagesForResult: (result: MarkVSpecParseResult) => RendererMessages;
 }
 
@@ -45,6 +48,7 @@ interface PartialTarget {
   partialId: string;
   stateByScreenState: Map<string, string>;
   defaultState?: string;
+  content?: string;
   line?: number;
 }
 
@@ -123,7 +127,8 @@ export function loadPartialPreviewsForScreen(
 
 export function embedPartialPreviews(options: EmbedPartialPreviewOptions): string {
   const partials = partialPreviewsByResult.get(options.result);
-  if (!partials || partials.size === 0) {
+  const displayEffects = options.displayEffects ?? [];
+  if ((!partials || partials.size === 0) && displayEffects.length === 0) {
     return options.html;
   }
   const paths = partialPreviewPathsByResult.get(options.result);
@@ -132,9 +137,10 @@ export function embedPartialPreviews(options: EmbedPartialPreviewOptions): strin
     options.html,
     options.viewport,
     options.screenState,
-    partials,
+    partials ?? new Map(),
     paths,
     options.messagesForResult,
+    displayEffects,
     [],
     0
   );
@@ -217,11 +223,21 @@ function partialIdsReferencedBy(result: MarkVSpecParseResult): Set<string> {
         if (outcome.content && isPartialId(outcome.content)) {
           ids.add(outcome.content);
         }
+        for (const detail of outcome.display?.contentSource ?? []) {
+          if (detail.key === "partial" && isPartialId(detail.value)) {
+            ids.add(detail.value);
+          }
+        }
       }
     }
     for (const outcome of action.outcomes) {
       if (outcome.content && isPartialId(outcome.content)) {
         ids.add(outcome.content);
+      }
+      for (const detail of outcome.display?.contentSource ?? []) {
+        if (detail.key === "partial" && isPartialId(detail.value)) {
+          ids.add(detail.value);
+        }
       }
     }
   }
@@ -349,23 +365,34 @@ function embedPartialPreviewsForResult(
   partials: Map<string, MarkVSpecParseResult>,
   paths: Map<string, string> | undefined,
   messagesForResult: (result: MarkVSpecParseResult) => RendererMessages,
+  displayEffects: MarkVSpecDisplayEffect[],
   stack: string[],
   depth: number
 ): string {
   let output = html;
-  for (const target of partialTargets(result, viewport, { resolveViewportFallback: true })) {
+  for (const target of [
+    ...partialTargets(result, viewport, { resolveViewportFallback: true }),
+    ...partialTargetsFromDisplayEffects(displayEffects)
+  ]) {
     const { targetId, partialId } = target;
+    if (target.content && !partialId) {
+      output = replaceTargetContents(output, targetId, `<div class="mm-display-override">${escapeHtml(target.content)}</div>`, undefined, undefined);
+      continue;
+    }
+    if (!partialId) {
+      continue;
+    }
     if (stack.includes(partialId)) {
-      output = replaceLayoutContents(output, targetId, renderPartialPreviewPlaceholder(`Circular partial reference: ${[...stack, partialId].join(" -> ")}`), partialId, paths?.get(partialId));
+      output = replaceTargetContents(output, targetId, renderPartialPreviewPlaceholder(`Circular partial reference: ${[...stack, partialId].join(" -> ")}`), partialId, paths?.get(partialId));
       continue;
     }
     if (depth >= PARTIAL_PREVIEW_MAX_DEPTH) {
-      output = replaceLayoutContents(output, targetId, renderPartialPreviewPlaceholder(`Partial nesting exceeds maximum depth ${PARTIAL_PREVIEW_MAX_DEPTH}: ${partialId}`), partialId, paths?.get(partialId));
+      output = replaceTargetContents(output, targetId, renderPartialPreviewPlaceholder(`Partial nesting exceeds maximum depth ${PARTIAL_PREVIEW_MAX_DEPTH}: ${partialId}`), partialId, paths?.get(partialId));
       continue;
     }
     const partial = partials.get(partialId);
     if (!partial) {
-      output = replaceLayoutContents(output, targetId, renderPartialPreviewPlaceholder(`Missing partial: ${partialId}`), partialId, paths?.get(partialId));
+      output = replaceTargetContents(output, targetId, renderPartialPreviewPlaceholder(`Missing partial: ${partialId}`), partialId, paths?.get(partialId));
       continue;
     }
     const partialState = partialStateForTarget(target, partial, screenState);
@@ -377,8 +404,8 @@ function embedPartialPreviewsForResult(
       messages: messagesForResult(partial),
       markerVisibility: { layout: false, element: false, action: false },
       includeStyles: false
-    }), viewport, partialState, partials, paths, messagesForResult, [...stack, partialId], depth + 1);
-    output = replaceLayoutContents(output, targetId, namespacePartialPreviewRenderKeys(partialHtml, targetId, partialId), partialId, paths?.get(partialId));
+    }), viewport, partialState, partials, paths, messagesForResult, [], [...stack, partialId], depth + 1);
+    output = replaceTargetContents(output, targetId, namespacePartialPreviewRenderKeys(partialHtml, targetId, partialId), partialId, paths?.get(partialId));
   }
   return output;
 }
@@ -445,6 +472,23 @@ function partialTargets(result: MarkVSpecParseResult, viewport?: string, options
     }
   }
   return targets;
+}
+
+function partialTargetsFromDisplayEffects(displayEffects: MarkVSpecDisplayEffect[]): PartialTarget[] {
+  return displayEffects
+    .filter((display): display is MarkVSpecDisplayEffect & { target: string } => Boolean(display.target))
+    .map((display) => {
+      const partialId = display.contentSource.find((detail) => detail.key === "partial")?.value;
+      const partialState = display.contentSource.find((detail) => detail.key === "state")?.value;
+      return {
+        targetId: display.target,
+        partialId: partialId && isPartialId(partialId) ? partialId : "",
+        stateByScreenState: new Map(),
+        defaultState: partialState,
+        content: partialId ? undefined : display.content,
+        line: firstPropertyLine(display, "target") ?? display.location.line
+      };
+    });
 }
 
 function layoutGroupsForPartialTargets(
@@ -541,7 +585,14 @@ function firstPropertyLine(
   return owner.propertyLocations[key]?.[0]?.line;
 }
 
-function replaceLayoutContents(html: string, layoutId: string, content: string, partialId: string, partialPath: string | undefined): string {
+function replaceTargetContents(html: string, targetId: string, content: string, partialId: string | undefined, partialPath: string | undefined): string {
+  if (targetId.startsWith("E-")) {
+    return replaceElementContents(html, targetId, content, partialId, partialPath);
+  }
+  return replaceLayoutContents(html, targetId, content, partialId, partialPath);
+}
+
+function replaceLayoutContents(html: string, layoutId: string, content: string, partialId: string | undefined, partialPath: string | undefined): string {
   const marker = `data-mm-id="${escapeHtml(layoutId)}"`;
   const markerIndex = html.indexOf(marker);
   if (markerIndex === -1) {
@@ -560,8 +611,42 @@ function replaceLayoutContents(html: string, layoutId: string, content: string, 
     return html;
   }
   const layoutMarker = extractLeadingLayoutMarker(html.slice(openEnd + 1, closeStart));
-  const embedded = `<div class="mm-partial-preview" data-mm-partial-preview="true" data-mm-partial-id="${escapeHtml(partialId)}">${renderPartialPreviewBadge(partialId, partialPath)}${content}</div>`;
+  const embedded = partialId
+    ? `<div class="mm-partial-preview" data-mm-partial-preview="true" data-mm-partial-id="${escapeHtml(partialId)}">${renderPartialPreviewBadge(partialId, partialPath)}${content}</div>`
+    : `<div class="mm-partial-preview mm-display-preview" data-mm-display-preview="true">${content}</div>`;
   return `${html.slice(0, openEnd + 1)}${layoutMarker}${embedded}${html.slice(closeStart)}`;
+}
+
+function replaceElementContents(html: string, elementId: string, content: string, partialId: string | undefined, partialPath: string | undefined): string {
+  const marker = `data-mm-id="${escapeHtml(elementId)}"`;
+  const markerIndex = html.indexOf(marker);
+  if (markerIndex === -1) {
+    return html;
+  }
+  const wrapperStart = html.lastIndexOf('<div class="mm-element-wrap', markerIndex);
+  if (wrapperStart === -1) {
+    return html;
+  }
+  const wrapperOpenEnd = html.indexOf(">", wrapperStart);
+  if (wrapperOpenEnd === -1 || wrapperOpenEnd > markerIndex) {
+    return html;
+  }
+  const wrapperCloseStart = findMatchingTagClose(html, wrapperStart, "div");
+  if (wrapperCloseStart === -1 || wrapperCloseStart < markerIndex) {
+    return html;
+  }
+  const wrapperCloseEnd = html.indexOf(">", wrapperCloseStart);
+  if (wrapperCloseEnd === -1) {
+    return html;
+  }
+  const renderKeyStart = html.lastIndexOf(`<!--mm-render-key:element:${escapeHtml(elementId)}-->`, wrapperStart);
+  const replaceStart = renderKeyStart !== -1 && html.slice(renderKeyStart, wrapperStart).trim() === ""
+    ? renderKeyStart
+    : wrapperStart;
+  const embedded = partialId
+    ? `<div class="mm-element-wrap mm-partial-preview" data-mm-partial-preview="true" data-mm-partial-id="${escapeHtml(partialId)}">${renderPartialPreviewBadge(partialId, partialPath)}${content}</div>`
+    : `<div class="mm-element-wrap mm-partial-preview mm-display-preview" data-mm-display-preview="true">${content}</div>`;
+  return `${html.slice(0, replaceStart)}${embedded}${html.slice(wrapperCloseEnd + 1)}`;
 }
 
 function renderPartialPreviewBadge(partialId: string, partialPath: string | undefined): string {
@@ -583,8 +668,13 @@ function extractLeadingLayoutMarker(content: string): string {
 }
 
 function findMatchingSectionClose(html: string, sectionStart: number): number {
-  const tagPattern = /<\/?section\b[^>]*>/gu;
-  tagPattern.lastIndex = sectionStart;
+  return findMatchingTagClose(html, sectionStart, "section");
+}
+
+function findMatchingTagClose(html: string, tagStart: number, tagName: string): number {
+  const escapedTagName = tagName.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+  const tagPattern = new RegExp(`</?${escapedTagName}\\b[^>]*>`, "gu");
+  tagPattern.lastIndex = tagStart;
   let depth = 0;
   let match: RegExpExecArray | null;
   while ((match = tagPattern.exec(html)) !== null) {
@@ -593,7 +683,9 @@ function findMatchingSectionClose(html: string, sectionStart: number): number {
       if (depth === 0) {
         return match.index;
       }
-    } else {
+      continue;
+    }
+    if (!match[0].endsWith("/>")) {
       depth += 1;
     }
   }

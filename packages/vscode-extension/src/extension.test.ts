@@ -287,7 +287,6 @@ test("renders generated design document sections without launching VS Code", () 
   assert.doesNotMatch(html, /<h2>Visibility \/ Availability<\/h2>/);
   assert.doesNotMatch(html, /<h2>Partial Updates<\/h2>/);
   assert.doesNotMatch(html, /<article class="partial-update-group">|partial-update-meta/);
-  assert.match(html, /<th>Case<\/th><th>Target<\/th><th>Fragment \/ Content<\/th>/);
   assert.doesNotMatch(html, /<th>Case<\/th><th>Target<\/th><th>Fragment \/ Content<\/th><th>Outcome<\/th>/);
   assert.doesNotMatch(html, /<th>Action<\/th><th>Trigger<\/th><th>Case<\/th>/);
   assert.match(html, numberedHeadingPattern(2, "Action Details"));
@@ -319,10 +318,10 @@ test("renders generated design document sections without launching VS Code", () 
   const submitActionDetail = actionDetailsSection.match(/<article class="action-detail">\s*<h3 id="action-detail-A-SubmitLogin">[\s\S]*?<\/article>/)?.[0] ?? "";
   const responseActionDetail = actionDetailsSection.match(/<article class="action-detail">\s*<h3 id="action-detail-A-HandleLoginResponse">[\s\S]*?<\/article>/)?.[0] ?? "";
   assert.match(actionDetailsSection, new RegExp(`<h3 id="action-detail-A-SubmitLogin">${actionBadge("A1", "A-SubmitLogin", false)} Submit login</h3>`));
-  assert.match(actionDetailsSection, new RegExp(`<dt>Kind</dt>[\\s\\S]*<dt>Process</dt>[\\s\\S]*<dt>Partial Updates</dt>[\\s\\S]*<dt>Transitions</dt>`));
+  assert.match(actionDetailsSection, new RegExp(`<dt>Kind</dt>[\\s\\S]*<dt>Process</dt>[\\s\\S]*<dt>Transitions</dt>`));
   assert.doesNotMatch(submitActionDetail, /<dt>Request<\/dt>|<dt>Parameters<\/dt>/);
-  assert.match(submitActionDetail, /<dt>Partial Updates<\/dt><dd>[\s\S]*process: HttpRequest \/ send-failed[\s\S]*content Login request could not be sent/);
-  assert.match(responseActionDetail, /<dt>Partial Updates<\/dt><dd>[\s\S]*process: HttpResponse \/ failure[\s\S]*content Authentication error message/);
+  assert.match(submitActionDetail, /<dt>Process<\/dt><dd>[\s\S]*Send request[\s\S]*content Login request could not be sent/);
+  assert.match(responseActionDetail, /<dt>Process<\/dt><dd>[\s\S]*Handle response[\s\S]*content Authentication error message/);
   assert.match(submitActionDetail, /<dt>Overview<\/dt><dd><div class="entity-overview">[\s\S]*Validate required fields, copy input values into the model, and send the login/);
   assert.match(submitActionDetail, /<dt>Notes<\/dt><dd><div class="entity-notes">[\s\S]*The [\s\S]*sent[\s\S]* case means only that the browser submitted the request/);
   assert.match(submitActionDetail, new RegExp(`<dt>From</dt><dd>${docLabel("idle", "state")}, ${docLabel("validation-error", "state")}, ${docLabel("request-error", "state")}, ${docLabel("auth-error", "state")}</dd>`));
@@ -340,7 +339,7 @@ test("renders generated design document sections without launching VS Code", () 
   assert.doesNotMatch(html, /Handle login response \/ success \/ navigate/);
   assert.match(html, /Handle login response \/ failure/);
   assert.match(html, new RegExp(`${actionBadge("A1", "A-SubmitLogin")}[\\s\\S]*Submit login[\\s\\S]*${docLabel("idle", "state")}[\\s\\S]*${docLabel("sent", "result")}[\\s\\S]*${docLabel("wait-auth", "state")}`));
-  assert.match(html, new RegExp(`<td>${actionBadge("A2", "A-HandleLoginResponse")}</td><td>Handle login response</td><td>${actionBadge("A1", "A-SubmitLogin")}\\.response</td><td>${docLabel("wait-auth", "state")}</td><td>${docLabel("success", "result")}</td><td>screen</td><td>${documentRef("SCR-HOME")}</td>`));
+  assert.match(html, new RegExp(`<td>${actionBadge("A2", "A-HandleLoginResponse")}</td><td>Handle login response</td><td>${docLabel("A-SubmitLogin.P1.response", "trigger")}</td><td>${docLabel("wait-auth", "state")}</td><td>${docLabel("success", "result")}</td><td>screen</td><td>${documentRef("SCR-HOME")}</td>`));
   assert.match(html, new RegExp(`<td>${actionBadge("A3", "A-ForgotPassword")}</td><td>Open password reset</td><td>${markerBadge("8", "element")}\\.click</td><td>${docLabel("idle", "state")}</td><td>${docLabel("done", "result")}</td><td>screen</td><td>${documentRef("SCR-PASSWORD-RESET")}</td>`));
   assert.match(html, /<section class="doc-section state-screen-section" data-section-number="3\.1\.2" data-state="wait-auth" data-viewport="mobile" style="--markvspec-viewport-width:390px;--markvspec-print-scale:1">/);
   const waitAuthSection = viewportStateSection(html, "wait-auth", "mobile");
@@ -1499,6 +1498,82 @@ test("does not render viewport filter controls in the preview shell", () => {
   assert.match(html, /\.mm-marker-element\{background:rgba\(255,255,255,\.72\)!important;border-color:#f59e0b!important;box-shadow:0 1px 2px rgba\(15,23,42,\.12\)!important;color:#92400e!important\}/);
   assert.doesNotMatch(html, /\.state-flow-section\{break-before:page;page-break-before:always\}/);
   assert.match(html, /\.mermaid-render svg\{display:block;height:auto!important;margin:0 auto;max-height:180mm;max-width:100%;width:auto!important\}/);
+});
+
+test("applies scalar preview scenario display effects without partial references", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-SCENARIO-DISPLAY
+type: screen
+title: Scenario Display
+viewport: mobile
+---
+
+# SCR-SCENARIO-DISPLAY Scenario Display
+
+## States
+
+- idle*
+- failed
+
+## Layout: mobile
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- E-Message
+
+## Elements
+
+### E-Message Text
+
+- label: Waiting
+
+## Actions
+
+### A-Submit Submit
+
+- Triggered
+  - screen.load
+- From
+  - idle
+- Process P1: Submit request
+  - result:
+    - request result
+  - case: failure
+    - Effects
+      - state: failed
+      - display:
+        - target: E-Message
+        - content: Request failed message
+
+## Preview Scenarios
+
+### idle
+
+- state: idle
+
+### failed-message
+
+- state: failed
+- cases:
+  - A-Submit.P1.failure
+`);
+  const html = renderPreviewHtml(
+    result,
+    {
+      cspSource: "vscode-resource:",
+      asWebviewUri: (uri: unknown) => uri
+    } as never,
+    { layout: true, element: true, action: true },
+    undefined,
+    "scenario-display.vspec.md"
+  );
+
+  assert.match(html, /data-mm-display-preview="true"/);
+  assert.match(html, /Request failed message/);
 });
 
 test("renders preview toolbar labels with external renderer messages", () => {

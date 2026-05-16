@@ -163,13 +163,15 @@ and pagination actions.
   - idle
   - empty
   - load-error
-- Process: ModelUpdate
+- Process P1: Update model
   - Effects
     - model: ${model.keyword} = E-KeywordInput.value
     - model: ${model.status} = E-StatusFilter.value
     - model: ${model.page} = 1
-- Process: HttpRequest
-  - GET /users
+- Process P2: Send request
+  - request:
+    - method: GET
+    - path: /users
     - keyword: ${model.keyword}
     - status: ${model.status}
     - page: ${model.page}
@@ -177,38 +179,34 @@ and pagination actions.
     - state: loading
   - case: send-failed
     - state: load-error
-    - update:
+    - display:
       - target: L-StatusArea
-      - mode: replace
       - content: Search request failure banner
 
 ### A2:A-HandleSearchUsersResponse Handle search users response
 
 - Triggered
-  - A-SearchUsers.response
+  - A-SearchUsers.P1.response
 - From
   - loading
-- Process: HttpResponse
+- Process P1: Handle response
   - case: success
     - response: 200 with one or more rows
     - state: idle
-    - update:
+    - display:
       - target: L-Results
-      - mode: replace
       - content: Updated result rows
   - case: empty
     - response: 200 with no rows
     - state: empty
-    - update:
+    - display:
       - target: L-Results
-      - mode: replace
       - content: Empty result message
   - case: failure
     - response: 5xx or timeout
     - state: load-error
-    - update:
+    - display:
       - target: L-StatusArea
-      - mode: replace
       - content: Load failure banner
 
 ### A3:A-NextPage Next page
@@ -217,11 +215,13 @@ and pagination actions.
   - E-NextPageButton.click
 - From
   - idle
-- Process: ModelUpdate
+- Process P1: Update model
   - Effects
     - model: ${model.page} = ${model.nextPage}
-- Process: HttpRequest
-  - GET /users
+- Process P2: Send request
+  - request:
+    - method: GET
+    - path: /users
     - keyword: ${model.keyword}
     - status: ${model.status}
     - page: ${model.page}
@@ -236,11 +236,13 @@ and pagination actions.
   - E-PreviousPageButton.click
 - From
   - idle
-- Process: ModelUpdate
+- Process P1: Update model
   - Effects
     - model: ${model.page} = ${model.previousPage}
-- Process: HttpRequest
-  - GET /users
+- Process P2: Send request
+  - request:
+    - method: GET
+    - path: /users
     - keyword: ${model.keyword}
     - status: ${model.status}
     - page: ${model.page}
@@ -252,59 +254,53 @@ and pagination actions.
 ### A5:A-HandleNextPageResponse Handle next page response
 
 - Triggered
-  - A-NextPage.response
+  - A-NextPage.P1.response
 - From
   - loading
-- Process: HttpResponse
+- Process P1: Handle response
   - case: success
     - response: 200 with one or more rows
     - state: idle
-    - update:
+    - display:
       - target: L-Results
-      - mode: replace
       - content: Next page result rows
   - case: empty
     - response: 200 with no rows
     - state: empty
-    - update:
+    - display:
       - target: L-Results
-      - mode: replace
       - content: Empty result message
   - case: failure
     - response: 5xx or timeout
     - state: load-error
-    - update:
+    - display:
       - target: L-StatusArea
-      - mode: replace
       - content: Load failure banner
 
 ### A6:A-HandlePreviousPageResponse Handle previous page response
 
 - Triggered
-  - A-PreviousPage.response
+  - A-PreviousPage.P1.response
 - From
   - loading
-- Process: HttpResponse
+- Process P1: Handle response
   - case: success
     - response: 200 with one or more rows
     - state: idle
-    - update:
+    - display:
       - target: L-Results
-      - mode: replace
       - content: Previous page result rows
   - case: empty
     - response: 200 with no rows
     - state: empty
-    - update:
+    - display:
       - target: L-Results
-      - mode: replace
       - content: Empty result message
   - case: failure
     - response: 5xx or timeout
     - state: load-error
-    - update:
+    - display:
       - target: L-StatusArea
-      - mode: replace
       - content: Load failure banner
 
 ## Model Samples

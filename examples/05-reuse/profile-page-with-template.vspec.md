@@ -83,18 +83,21 @@ It also demonstrates route parameters through `${route.memberId}`.
 - From
   - idle
   - refresh-error
-- Process: PartialRequest
+- Process P1: Refresh partial content
   - request: GET /members/${route.memberId}/profile-summary
   - params:
     - memberId: ${route.memberId}
   - partial: PRT-PROFILE-SUMMARY
-  - update:
-    - target: L-ProfileSummaryHost
-    - mode: replace
   - case: sent
     - response: request accepted
-    - state: refreshing
-    - stop
+    - Effects
+      - state: refreshing
+      - display:
+        - target: L-ProfileSummaryHost
+        - content:
+          - partial: PRT-PROFILE-SUMMARY
+          - state: loading
+      - stop
   - case: send-failed
     - response: network error
     - state: refresh-error
@@ -103,16 +106,15 @@ It also demonstrates route parameters through `${route.memberId}`.
 ### A2:A-HandleProfileSummaryResponse Handle profile summary response
 
 - Triggered
-  - A-RefreshProfile.response
+  - A-RefreshProfile.P1.response
 - From
   - refreshing
-- Process: PartialResponse
+- Process P1: PartialResponse
   - case: success
     - response: 200 partial HTML
     - state: idle
-    - update:
+    - display:
       - target: L-ProfileSummaryHost
-      - mode: replace
       - content: PRT-PROFILE-SUMMARY
     - stop
   - case: failure

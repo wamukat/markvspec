@@ -20,16 +20,16 @@ smallest useful reference:
   handling, including loading, empty, loaded, and error states.
 - `Responsive Profile` teaches mobile and desktop layout variants over shared
   elements and state-aware actions.
-- `Form Submit Flow` teaches validation, ModelUpdate, ServerCall,
+- `Form Submit Flow` teaches validation, model effects, server process details,
   stop/continue flow, and success navigation.
 - `Parallel Initial Load` teaches parallel process groups and
-  `Process: Resolve` final state decisions.
+  `Process P3: Resolve initial load` final state decisions.
 - `Search List` teaches admin list patterns: filters, Select options, Tables,
   paging, loading/empty/error states, Model Updates, Model Samples, and
   response-driven result updates.
 - `Template Shell`, `Profile Page With Template`, and `Profile Summary Partial`
   teach templates, slots, template composition, partial hosts,
-  `references.partials`, `PartialRequest`, `type: partial`, and route
+  `references.partials`, `display.content.partial`, `type: partial`, and route
   parameters.
 - `History And Errors` teaches Error Codes, custom History Fields, and History
   entries with Markdown body text.
@@ -63,14 +63,14 @@ unambiguous.
 | [Async Loading](../../../examples/02-states/async-loading.vspec.md) | Request send and response handling. | Loading, loaded, empty, and load-error states, response cases, and Model Samples. |
 | [Model Samples](../../../examples/02-states/model-samples.vspec.md) | Dedicated model-backed preview data example. | List-first object and collection samples, state-specific sample sets, and supplemental empty table syntax. |
 | [Responsive Profile](../../../examples/02-states/responsive-profile.vspec.md) | Same content in mobile and desktop layouts. | Viewport-specific layout groups and state-aware actions. |
-| [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | Non-click events and lifecycle triggers. | `change`, `submit`, `focus`, `blur`, `open`, `close`, `screen.load`, and `A-*.response` in one preferences flow. |
-| [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md) | Submit action lifecycle. | Validate, ModelUpdate, ServerCall, flow stop/continue, and success navigation. |
-| [Parallel Initial Load](../../../examples/03-actions/parallel-initial-load.vspec.md) | Parallel server calls with a final resolver. | `group: initial-load`, `Process: Resolve`, model side effects, and final state decisions. |
+| [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | Non-click events and lifecycle triggers. | `change`, `submit`, `focus`, `blur`, `open`, `close`, `screen.load`, and `A-Action.P-marker.response` in one preferences flow. |
+| [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md) | Submit action lifecycle. | Validation receive source, model effects, server process details, flow stop/continue, and success navigation. |
+| [Parallel Initial Load](../../../examples/03-actions/parallel-initial-load.vspec.md) | Parallel server calls with a final resolver. | `group: initial-load`, `Process P3: Resolve initial load`, model side effects, and final state decisions. |
 | [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md) | Display Content Spec field coverage. | `label src`, `placeholder src`, `sample`, `src`, `format`, machine `value`, and navigation `params`. |
 | [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md) | Element type coverage screen using a realistic profile/settings form. | `Textarea`, `MultiSelect`, `CheckboxGroup`, `Switch`, `RadioGroup`, `List`, `Dialog`, `Image`, `Icon`, `Divider`, file inputs, date/time inputs, and number input. |
-| [Search List](../../../examples/04-real-world-screens/search-list.vspec.md) | Search screen with filters and pagination. | Desktop toolbar, Select options, Table, empty state, load-error state, ModelUpdate, Model Samples, and fragment replacement. |
+| [Search List](../../../examples/04-real-world-screens/search-list.vspec.md) | Search screen with filters and pagination. | Desktop toolbar, Select options, Table, empty state, load-error state, model effects, Model Samples, and display partial replacement. |
 | [Template Shell](../../../examples/05-reuse/template-shell.vspec.md) | Shared template shell. | Template document unit, navigation frame, top bar, language Select, logout action, and `content` slot placeholder. |
-| [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md) | Screen using a template slot and partial. | Front Matter `template`, `references.partials`, `## Slot: content`, route params, and `PartialRequest`. |
+| [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md) | Screen using a template slot and partial. | Front Matter `template`, `references.partials`, `## Slot: content`, route params, and `display.content.partial`. |
 | [Profile Summary Partial](../../../examples/05-reuse/profile-summary.partial.vspec.md) | Partial document rendered inside a screen. | `type: partial`, partial route, partial-local states, and server-side build action. |
 | [History And Errors](../../../examples/06-structured-sections/history-and-errors.vspec.md) | Structured release-oriented sections. | Error Codes, custom History Fields, and History entries with Markdown body text. |
 

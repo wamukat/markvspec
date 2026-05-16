@@ -18,6 +18,7 @@ export interface RenderedIds {
 type ParsedElement = MarkVSpecParseResult["elements"][number];
 type ParsedLayout = MarkVSpecParseResult["layoutGroups"][number];
 type ParsedSlotContent = MarkVSpecParseResult["slotContents"][number];
+type ParsedDisplayEffect = NonNullable<MarkVSpecParseResult["actions"][number]["processSteps"][number]["outcomes"][number]["display"]>;
 
 export type DisplayContentSpecRow = {
   element: ParsedElement;
@@ -49,6 +50,7 @@ export interface StateScreenReadModel {
   readonly modelValues: Record<string, boolean>;
   readonly viewValues: Record<string, boolean | number | string>;
   readonly renderedIds: RenderedIds;
+  readonly displayEffects: ParsedDisplayEffect[];
   readonly actionIds: Set<string>;
   readonly stateNames: Set<string>;
   readonly repeatedLayoutIds?: Set<string>;
@@ -141,6 +143,7 @@ export function buildStateScreenReadModels(
       modelValues: displayModelValues,
       viewValues: displayViewValues,
       renderedIds: ids,
+      displayEffects: [],
       actionIds,
       stateNames: new Set(),
       repeatedContent: repeatedContentState(result, {
@@ -153,6 +156,7 @@ export function buildStateScreenReadModels(
         modelValues: displayModelValues,
         viewValues: displayViewValues,
         renderedIds: ids,
+        displayEffects: [],
         actionIds,
         stateNames: new Set(),
         repeatedContent: emptyRepeatedContent()
@@ -161,14 +165,15 @@ export function buildStateScreenReadModels(
   }
 
   const stateNames = new Set(result.states.map((state) => state.name));
-  const stateRenderings = new Map<string, { ids: RenderedIds; actionIds: Set<string>; modelValues: Record<string, boolean>; viewValues: Record<string, boolean | number | string> }>();
+  const stateRenderings = new Map<string, { ids: RenderedIds; actionIds: Set<string>; modelValues: Record<string, boolean>; viewValues: Record<string, boolean | number | string>; displayEffects: ParsedDisplayEffect[] }>();
   if (displayStateName) {
     const displayIds = stateScreenRenderedIdsFromReadModel(wireframeResult, viewport, displayStateName, displayModelValues, displayViewValues);
     stateRenderings.set(displayStateName, {
       ids: displayIds,
       actionIds: relevantActionIdsForState(wireframeResult, displayStateName, displayIds.elementIds),
       modelValues: displayModelValues,
-      viewValues: displayViewValues
+      viewValues: displayViewValues,
+      displayEffects: []
     });
   }
   const renderState = (stateName: string) => {
@@ -180,7 +185,7 @@ export function buildStateScreenReadModels(
     const stateViewValues = viewValuesForScenario(wireframeResult, undefined);
     const ids = stateScreenRenderedIdsFromReadModel(wireframeResult, viewport, stateName, stateModelValues, stateViewValues);
     const actionIds = relevantActionIdsForState(wireframeResult, stateName, ids.elementIds);
-    const rendered = { ids, actionIds, modelValues: stateModelValues, viewValues: stateViewValues };
+    const rendered = { ids, actionIds, modelValues: stateModelValues, viewValues: stateViewValues, displayEffects: [] };
     stateRenderings.set(stateName, rendered);
     return rendered;
   };
@@ -189,7 +194,8 @@ export function buildStateScreenReadModels(
     scenarioViewport: string | undefined,
     stateName: string,
     modelName: string | undefined,
-    viewName: string | undefined
+    viewName: string | undefined,
+    cases: MarkVSpecParseResult["previewScenarios"][number]["cases"]
   ) => {
     const modelValues = modelValuesForState(scenarioResult, modelName ?? stateName);
     const viewValues = viewValuesForScenario(scenarioResult, viewName);
@@ -198,7 +204,8 @@ export function buildStateScreenReadModels(
       ids,
       actionIds: relevantActionIdsForState(scenarioResult, stateName, ids.elementIds),
       modelValues,
-      viewValues
+      viewValues,
+      displayEffects: displayEffectsForScenarioCases(scenarioResult, cases)
     };
   };
 
@@ -212,7 +219,7 @@ export function buildStateScreenReadModels(
   return displays
     .map((display, index) => {
       const current = display.scenario
-        ? renderScenario(wireframeResult, viewport, display.state.name, display.scenario.model, display.scenario.view)
+        ? renderScenario(wireframeResult, viewport, display.state.name, display.scenario.model, display.scenario.view, display.scenario.cases)
         : renderState(display.state.name);
       const title = display.scenario
         ? display.scenario.name
@@ -227,6 +234,7 @@ export function buildStateScreenReadModels(
         modelValues: current.modelValues,
         viewValues: current.viewValues,
         renderedIds: current.ids,
+        displayEffects: current.displayEffects,
         actionIds: current.actionIds,
         stateNames,
         repeatedContent: repeatedContentState(result, {
@@ -239,12 +247,25 @@ export function buildStateScreenReadModels(
           modelValues: current.modelValues,
           viewValues: current.viewValues,
           renderedIds: current.ids,
+          displayEffects: current.displayEffects,
           actionIds: current.actionIds,
           stateNames,
           repeatedContent: emptyRepeatedContent()
         })
       } satisfies StateScreenReadModel;
     });
+}
+
+function displayEffectsForScenarioCases(
+  result: MarkVSpecParseResult,
+  cases: MarkVSpecParseResult["previewScenarios"][number]["cases"]
+): ParsedDisplayEffect[] {
+  return cases.flatMap((caseRef) => {
+    const action = result.actions.find((candidate) => candidate.id === caseRef.actionId);
+    const step = action?.processSteps.find((candidate) => candidate.marker === caseRef.processMarker);
+    const outcome = step?.outcomes.find((candidate) => candidate.result === caseRef.caseName);
+    return outcome?.display ? [outcome.display] : [];
+  });
 }
 
 function createStateScreenSeenRegistry(): StateScreenSeenRegistry {

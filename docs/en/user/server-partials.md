@@ -14,12 +14,12 @@ partials through its own `references.partials`, and preview resolves nested
 partials recursively. Circular partial references are invalid, and nesting is
 limited to 10 levels to keep preview rendering bounded.
 
-A partial may also describe a self refresh action. In that case, a
-`PartialRequest` may use `partial: <its own PRT-ID>` to mean "request this
-partial again and replace the current partial root." This is request/update
-behavior, not child partial composition, so it does not create a nested partial
-dependency. A layout-level `partial:` reference to the same partial is still
-recursive composition and remains invalid.
+A partial may also describe a self refresh action. In that case, a named
+request process may use `display.content.partial` with its own PRT ID to mean
+"request this partial again and replace the current partial root." This is
+request/display behavior, not child partial composition, so it does not create a
+nested partial dependency. A layout-level `partial:` reference to the same
+partial is still recursive composition and remains invalid.
 
 ## Principle
 
@@ -27,11 +27,10 @@ Use these layers:
 
 1. `content`: what the user sees after the update.
 2. `target`: which layout or element changes.
-3. `mode`: how the target is replaced, when relevant.
-4. `fragment`: optional server template fragment reference.
+3. `request`: implementation contract hints such as method and path.
 
 Do not write htmx attributes such as `hx-post` or `hx-target` as the primary
-DSL. They are implementation choices derived from Action and update details.
+DSL. They are implementation choices derived from Action and display details.
 
 ## Preferred Pattern
 
@@ -42,22 +41,21 @@ replacement:
 ### A2:A-AuthResponse Handle auth response
 
 - Triggered
-  - A-SubmitLogin.response
+  - A-SubmitLogin.P1.response
 - From
   - wait-auth
-- Process: HttpResponse
+- Process P1: Handle auth response
   - case: failure
     - response: 401 invalid credentials
-    - state: auth-error
-    - update:
-      - target: L-MessageArea
-      - content: Authentication error message
-      - mode: replace
-      - fragment: auth/login :: message
+    - Effects
+      - state: auth-error
+      - display:
+        - target: L-MessageArea
+        - content: Authentication error message
 ```
 
-`content` is the design contract. `fragment` is an implementation hint that
-connects the design to Thymeleaf.
+`content` is the design contract. Framework-specific fragments are adapter
+details rather than author-facing Action DSL.
 
 When the screen embeds a partial preview, put the partial ID and screen-state to
 partial-state mapping on the target layout. This lets the same partial render as
@@ -95,20 +93,21 @@ route: /mypage/partials/notices
 
 - Triggered
   - partial.render
-- Process: ServerCall
-  - NoticeQueryService.findLatest()
+- Process P1: Build notice list
+  - server:
+    - call: NoticeQueryService.findLatest()
   - case: success
     - response: 200 notices
-    - model: ${model.notices.items} = result.items
-    - model: ${model.notice} = current item from ${model.notices.items}
+    - Effects
+      - model: ${model.notices.items} = result.items
+      - model: ${model.notice} = current item from ${model.notices.items}
 ```
 
 Architecture-specific words such as `bridge` are not MarkVSpec reserved words.
-Use them only as project-specific details under process steps such as
-`ServerCall` when needed.
+Use them only as project-specific details under a named process when needed.
 
 For htmx-style self replacement inside a partial, model the refresh as a
-`PartialRequest` action on that partial:
+named request process on that partial:
 
 ```markdown
 ---
@@ -125,24 +124,32 @@ title: Points Content
 
 - Triggered
   - E-Refresh.click
-- Process: PartialRequest
-  - request: GET /points/content
-  - partial: PRT-POINTS-CONTENT
+- Process P1: Refresh points content
+  - request:
+    - method: GET
+    - path: /points/content
   - case: success
-    - update:
-      - target: L-PointsContent
-      - mode: replace
+    - Effects
+      - display:
+        - target: L-PointsContent
+        - content:
+          - partial: PRT-POINTS-CONTENT
 ```
 
 ## Request Modeling
 
-Requests belong under `Process: HttpRequest`:
+Requests belong under `Process P1: Send request`:
 
 ```markdown
-- Process: HttpRequest
-  - POST /login
+- Process P1: Send login request
+  - input:
     - email: E-EmailInput.value
     - password: E-PasswordInput.value
+  - result:
+    - login request submission result
+  - request:
+    - method: POST
+    - path: /login
 ```
 
 This is implementation-aware without forcing htmx syntax into the design file.
@@ -153,16 +160,18 @@ An implementation may map it to a normal form post, `fetch`, or htmx.
 Responses belong under `case: <name>` branches on the relevant response process:
 
 ```markdown
-- Process: HttpResponse
+- Process P1: Handle response
   - case: success
     - response: 2xx authenticated user
-    - navigate: SCR-DASHBOARD
+    - Effects
+      - navigate: SCR-DASHBOARD
   - case: failure
     - response: 401 with message fragment
-    - state: auth-error
-    - update:
-      - target: L-MessageArea
-      - content: Authentication error message
+    - Effects
+      - state: auth-error
+      - display:
+        - target: L-MessageArea
+        - content: Authentication error message
 ```
 
 Use `state` when the current screen changes state. Use `navigate` when the
@@ -171,9 +180,9 @@ but it should be scoped to the result that actually updates the page.
 
 ## Ambiguity Rules
 
-- If `fragment` is present, `content` should still be present so reviewers can
-  understand the update without knowing the template.
-- If `target` is omitted, the update is a side effect rather than a rendered
+- If framework-specific fragment names are needed, keep them in implementation
+  notes; `display.content` should still be readable without knowing the template.
+- If `target` is omitted, the effect is a side effect rather than a rendered
   partial update.
 - If multiple targets update for one result, document the primary target in the
   result row and describe additional effects in the result notes.

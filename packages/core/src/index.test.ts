@@ -14,6 +14,7 @@ import {
   affectedProjectScreenPathsForDocumentChange,
   actionAppliesToState,
   buildProjectTransitionGraph,
+  buildStateScreenReadModels,
   composeMarkVSpecTemplate,
   computeMarkVSpecRenderInvalidation,
   diagnoseAiDesignInputDocument,
@@ -1500,7 +1501,7 @@ overview code block
 - Process: HttpRequest
   - GET /users
     - page: \${model.requestedPage}
-- Process: Immediate
+- Process P1: Submit request
   - case: success
     - model: \${model.requestedPage} = \${model.nextPage}
     - state: loading
@@ -1547,7 +1548,7 @@ Use **strong** text and [help](./help.md).
   - E-SubmitButton.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Submit request
   - Effects
     - state: idle
 
@@ -4688,11 +4689,12 @@ test("parses the login screen example", () => {
   assert.equal(action?.properties["marker"], "A1");
   assert.equal(action?.triggeredBy, "E-SignInButton.click");
   assert.deepEqual(action?.trigger, { elementId: "E-SignInButton", event: "click" });
-  assert.deepEqual(action?.processSteps.find((step) => step.name === "HttpRequest")?.details.map((detail) => [detail.key, detail.value]), [
-    ["request", "POST /login"],
-    ["email", "\${model.email}"],
-    ["password", "\${model.password}"],
-    ["rememberMe", "\${model.rememberMe}"]
+  assert.deepEqual(action?.processSteps.find((step) => step.marker === "P3")?.details.map((detail) => [detail.key, detail.value]), [
+    ["request.method", "POST"],
+    ["request.path", "/login"],
+    ["request.email", "\${model.email}"],
+    ["request.password", "\${model.password}"],
+    ["request.rememberMe", "\${model.rememberMe}"]
   ]);
   assert.equal(action?.target, undefined);
   assert.equal(action?.fragment, undefined);
@@ -4710,18 +4712,18 @@ test("parses the login screen example", () => {
     ["request-error", "send-failed", "request-error"],
     ["auth-error", "send-failed", "request-error"]
   ]);
-  assert.deepEqual(action?.processSteps.find((step) => step.name === "HttpRequest")?.outcomes.map((outcome) => [outcome.result, outcome.response?.definition, outcome.to]), [
+  assert.deepEqual(action?.processSteps.find((step) => step.marker === "P3")?.outcomes.map((outcome) => [outcome.result, outcome.response?.definition, outcome.to]), [
     ["sent", undefined, "wait-auth"],
     ["send-failed", undefined, "request-error"]
   ]);
   assert.deepEqual(action?.processSteps.map((step) => [step.name, step.when, step.target, step.content]), [
-    ["Validate", [], undefined, undefined],
-    ["ModelUpdate", [], undefined, undefined],
-    ["HttpRequest", [], undefined, undefined]
+    ["Check validation", [], undefined, undefined],
+    ["Update model", [], undefined, undefined],
+    ["Send request", [], undefined, undefined]
   ]);
 
   const responseAction = result.actions.find((candidate) => candidate.id === "A-HandleLoginResponse");
-  assert.equal(responseAction?.triggeredBy, "A-SubmitLogin.response");
+  assert.equal(responseAction?.triggeredBy, "A-SubmitLogin.P1.response");
   assert.deepEqual(responseAction?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
     ["wait-auth", "success", "SCR-HOME"],
     ["wait-auth", "failure", "auth-error"]
@@ -4775,14 +4777,14 @@ test("renders realistic examples with canonical property encodings", () => {
   const usersHtml = renderMarkVSpecHtml(usersResult, { includeStyles: false });
   assert.match(usersHtml, /<option value="Active">Active<\/option>/);
   const nextPageResponse = usersResult.actions.find((action) => action.id === "A-HandleNextPageResponse");
-  assert.equal(nextPageResponse?.triggeredBy, "A-NextPage.response");
+  assert.equal(nextPageResponse?.triggeredBy, "A-NextPage.P1.response");
   assert.deepEqual(nextPageResponse?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
     ["loading", "success", "idle"],
     ["loading", "empty", "empty"],
     ["loading", "failure", "load-error"]
   ]);
   const previousPageResponse = usersResult.actions.find((action) => action.id === "A-HandlePreviousPageResponse");
-  assert.equal(previousPageResponse?.triggeredBy, "A-PreviousPage.response");
+  assert.equal(previousPageResponse?.triggeredBy, "A-PreviousPage.P1.response");
   assert.deepEqual(previousPageResponse?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
     ["loading", "success", "idle"],
     ["loading", "empty", "empty"],
@@ -6098,7 +6100,7 @@ title: Otherwise
   - E-Submit.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Submit request
   - Effects
     - state: wait-auth
 - Otherwise
@@ -9474,17 +9476,17 @@ title: Action Lifecycle
   - E-Submit.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Submit request
   - Effects
     - state: wait
 
 ### A-HandleResponse Handle response
 
 - Triggered
-  - A-Submit.response
+  - A-Submit.P1.response
 - From
   - wait
-- Process: Immediate
+- Process P1: Handle response
   - Effects
     - state: idle
 
@@ -9494,7 +9496,7 @@ title: Action Lifecycle
   - A-Submit.progress
 - From
   - wait
-- Process: Immediate
+- Process P1: Handle progress
   - Effects
     - state: idle
 `;
@@ -10306,6 +10308,248 @@ title: Compact Action
   assert.deepEqual(action.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
     ["idle", "success", "loaded"]
   ]);
+});
+
+test("parses architecture-neutral process markers, display effects, and preview scenario cases", () => {
+  const source = `---
+id: SCR-ACTION-NEUTRAL
+type: screen
+title: Action Neutral
+references:
+  partials:
+    PRT-SearchResultsList: ./search-results.partial.vspec.md
+---
+# SCR-ACTION-NEUTRAL Action Neutral
+
+## States
+
+- loaded*
+- searching
+- empty
+
+## Layout: mobile
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- E-NextPageButton
+- L-SearchResultsArea
+- L-MessageArea
+
+### L-SearchResultsArea Search results area
+
+- stack
+
+### L-MessageArea Message area
+
+- stack
+
+## Elements
+
+### E-NextPageButton Button
+
+- label: Next
+- value: 2
+
+## Actions
+
+### A-NextSearchPage Show next search page
+
+- Triggered
+  - E-NextPageButton.click
+- From
+  - loaded
+- Process P1: Request next search page
+  - input:
+    - page: E-NextPageButton.value
+  - result:
+    - next search page request
+  - request:
+    - method: GET
+    - path: /search/results
+  - case: sent
+    - result: request was sent
+    - Effects
+      - state: searching
+      - display:
+        - target: L-SearchResultsArea
+        - content:
+          - partial: PRT-SearchResultsList
+          - state: loading
+      - continue
+- Process P2: Handle search results response
+  - receive:
+    - response: A-NextSearchPage.P1.response
+    - validation: V-SearchResult.result
+  - case: success
+    - response: 200 search results partial
+    - Effects
+      - state: loaded
+      - display:
+        - target: L-SearchResultsArea
+        - content:
+          - partial: PRT-SearchResultsList
+          - state: loaded
+  - case: empty
+    - response: 200 empty result partial
+    - Effects
+      - state: empty
+      - display:
+        - target: L-MessageArea
+        - content: No results
+
+## Preview Scenarios
+
+### next-page-loaded
+
+- state: loaded
+- cases:
+  - A-NextSearchPage.P2.success
+
+### next-page-searching
+
+- state: searching
+- cases:
+  - A-NextSearchPage.P1.sent
+
+### next-page-empty
+
+- state: empty
+- cases:
+  - A-NextSearchPage.P2.empty
+
+## Validations
+
+### V-SearchResult Search result validation
+
+- target: E-NextPageButton
+- rules:
+  - required:
+    - E-NextPageButton
+`;
+
+  const result = parseMarkVSpec(source);
+  const action = result.actions[0];
+  const [requestStep, responseStep] = action.processSteps;
+
+  assert.deepEqual(result.diagnostics, []);
+  assert.equal(requestStep?.marker, "P1");
+  assert.equal(requestStep?.name, "Request next search page");
+  assert.deepEqual(requestStep?.inputs.map((detail) => [detail.key, detail.value]), [["page", "E-NextPageButton.value"]]);
+  assert.deepEqual(requestStep?.results.map((detail) => [detail.key, detail.value]), [["result", "next search page request"]]);
+  assert.deepEqual(requestStep?.details.map((detail) => [detail.key, detail.value]), [
+    ["request.method", "GET"],
+    ["request.path", "/search/results"]
+  ]);
+  assert.equal(requestStep?.outcomes[0]?.display?.target, "L-SearchResultsArea");
+  assert.deepEqual(requestStep?.outcomes[0]?.display?.contentSource.map((detail) => [detail.key, detail.value]), [
+    ["partial", "PRT-SearchResultsList"],
+    ["state", "loading"]
+  ]);
+  assert.equal(responseStep?.marker, "P2");
+  assert.deepEqual(responseStep?.receives.map((detail) => [detail.key, detail.value]), [
+    ["response", "A-NextSearchPage.P1.response"],
+    ["validation", "V-SearchResult.result"]
+  ]);
+  assert.equal(responseStep?.outcomes.find((outcome) => outcome.result === "empty")?.display?.content, "No results");
+  assert.deepEqual(result.previewScenarios[0]?.cases.map((caseRef) => [caseRef.actionId, caseRef.processMarker, caseRef.caseName]), [
+    ["A-NextSearchPage", "P2", "success"]
+  ]);
+  const models = buildStateScreenReadModels(result, result, "mobile");
+  const loadedScenario = models.find((model) => model.title === "next-page-loaded");
+  const searchingScenario = models.find((model) => model.title === "next-page-searching");
+  const emptyScenario = models.find((model) => model.title === "next-page-empty");
+  assert.deepEqual(loadedScenario?.displayEffects.map((display) => [display.target, display.contentSource.map((detail) => [detail.key, detail.value])]), [
+    ["L-SearchResultsArea", [["partial", "PRT-SearchResultsList"], ["state", "loaded"]]]
+  ]);
+  assert.deepEqual(searchingScenario?.displayEffects.map((display) => [display.target, display.contentSource.map((detail) => [detail.key, detail.value])]), [
+    ["L-SearchResultsArea", [["partial", "PRT-SearchResultsList"], ["state", "loading"]]]
+  ]);
+  assert.deepEqual(emptyScenario?.displayEffects.map((display) => [display.target, display.content]), [
+    ["L-MessageArea", "No results"]
+  ]);
+});
+
+test("validates architecture-neutral process contracts and preview scenario cases", () => {
+  const source = `---
+id: SCR-ACTION-NEUTRAL-DIAGNOSTICS
+type: screen
+title: Action Neutral Diagnostics
+---
+# SCR-ACTION-NEUTRAL-DIAGNOSTICS Action Neutral Diagnostics
+
+## States
+
+- idle*
+- loaded
+
+## Elements
+
+### E-Button Button
+
+- label: Run
+
+## Actions
+
+### A-Run Run
+
+- Triggered
+  - E-Button.click
+- From
+  - idle
+- Process P1: Missing result
+  - input:
+    - value: E-Missing.value
+  - case: done
+    - Effects
+      - state: loaded
+- Process P1: Duplicate marker
+  - receive:
+    - response: A-Run.P9.response
+    - external: A-Other.P9.result
+  - case: done
+    - Effects
+      - display:
+        - target: L-Missing
+        - content:
+          - partial: PRT-Missing
+
+### A-Other Other
+
+- Triggered
+  - A-Run.response
+- From
+  - idle
+- Process P1: Other process
+  - receive:
+    - validation: V-SearchResult.result
+  - case: done
+    - Effects
+      - state: loaded
+
+## Preview Scenarios
+
+### loaded
+
+- state: loaded
+- cases:
+  - A-Run.P2.done
+`;
+
+  const result = parseMarkVSpec(source);
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert(messages.includes("Action A-Run process step P1 Missing result has input but no result contract."));
+  assert(messages.includes("Action A-Run process step P1 Missing result value references missing source E-Missing."));
+  assert(messages.includes("Action A-Run has duplicate process marker P1."));
+  assert(messages.includes("Action A-Run process step P1 Duplicate marker references missing process marker P9."));
+  assert(messages.includes("Action A-Other trigger A-Run.response is ambiguous. Use A-ActionId.P-marker.response."));
+  assert(messages.includes("Action A-Run process step P1 Duplicate marker case done display effect targets missing layout or element L-Missing."));
+  assert(messages.includes("Partial reference PRT-Missing is not defined in Front Matter references.partials."));
+  assert(messages.includes("Preview Scenario loaded references missing process marker P2 on action A-Run."));
 });
 
 function lineNumber(source: string, needle: string, occurrence = 1): number {

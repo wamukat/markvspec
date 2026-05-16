@@ -13,7 +13,7 @@
 
 - 段階順に読み、最小画面から状態、アクション、実務寄りの一覧、再利用へ進める。
 - 1つのサンプルで学ぶ主題を絞り、複数機能を詰め込みすぎない。
-- `States`、responsive layout、slot、主要 element type、Action の `Triggered` / `Process: <type>`、process step の `case: <name>`、`Model Samples` を段階的にカバーする。
+- `States`、responsive layout、slot、主要 element type、Action の `Triggered` / `Process <marker>: <name>`、process step の `case: <name>`、`Model Samples` を段階的にカバーする。
 
 ## marker 方針
 
@@ -25,7 +25,7 @@
 ### A1:A-LoadProfile Load profile partial
 ```
 
-marker は表示用です。layout item、action trigger、update target、実装メモなどの参照には、
+marker は表示用です。layout item、action trigger、display target、実装メモなどの参照には、
 `L-AccountShell`、`E-PageTitle`、`A-LoadProfile` のような安定 ID を使います。短い marker は参照 ID として使いません。
 
 rule と validation の見出しは、document symbol と parser test が曖昧にならないように
@@ -41,7 +41,7 @@ rule と validation の見出しは、document symbol と parser test が曖昧�
 | [Model Samples](../../../examples/02-states/model-samples.vspec.md) | list 形式中心の object / collection サンプルと、空配列用 table 記法を学ぶ例。 |
 | [Responsive Profile](../../../examples/02-states/responsive-profile.vspec.md) | mobile / desktop viewport で同じ情報を異なる配置にする例。 |
 | [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | `change` / `submit` / `focus` / `blur` / `open` / `close` と lifecycle trigger の例。 |
-| [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md) | validate、ModelUpdate、ServerCall、成功時 navigation の例。 |
+| [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md) | validation receive source、model effect、server process detail、成功時 navigation の例。 |
 | [Parallel Initial Load](../../../examples/03-actions/parallel-initial-load.vspec.md) | parallel server call と `Resolve` の例。 |
 | [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md) | Display Content Spec の `label src`、`sample`、`src`、`format`、`value`、`params` を確認する例。 |
 | [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md) | 拡張 form、media、list、dialog 系 Element Type をまとめて確認する例。 |

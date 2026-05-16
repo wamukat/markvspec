@@ -39,8 +39,8 @@ without falling back to ambiguous prose.
 | Approval flow | Alternative | Detail/edit patterns with explicit actions and rules. |
 | History/audit trail | Supported | `Table` or `List` with sampled rows. |
 | Permission-dependent display | Alternative | `visible when` / `hidden when` with semantic role conditions. |
-| Async partial update | Supported | `PartialRequest`, partial documents, `update` target, and partial render states. |
-| Error recovery | Supported | Error state, retry action, and partial update outcome. |
+| Async partial update | Supported | Named request processes, partial documents, `display.target`, and partial render states. |
+| Error recovery | Supported | Error state, retry action, and display outcome. |
 
 ## Priority Gaps
 

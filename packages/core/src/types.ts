@@ -298,10 +298,19 @@ export interface MarkVSpecPreviewScenario {
   state?: string;
   model?: string;
   view?: string;
+  cases: MarkVSpecPreviewScenarioCase[];
   properties: Record<string, string>;
   propertyLocations: Record<string, SourceLocation[]>;
   overview?: string[];
   notes?: string[];
+  location: SourceLocation;
+}
+
+export interface MarkVSpecPreviewScenarioCase {
+  actionId: string;
+  processMarker: string;
+  caseName: string;
+  raw: string;
   location: SourceLocation;
 }
 
@@ -328,6 +337,7 @@ export interface MarkVSpecActionOutcome {
   mode?: string;
   fragment?: string;
   content?: string;
+  display?: MarkVSpecDisplayEffect;
   sideEffects: string[];
   errorCodes: string[];
   routeParams: MarkVSpecRouteParam[];
@@ -348,11 +358,15 @@ export interface MarkVSpecResponse {
 
 export interface MarkVSpecProcessStep {
   name: string;
+  marker?: string;
   indent: number;
   parallelGroup?: string;
   resolveGroup?: string;
   when: string[];
   skipWhen: string[];
+  inputs: MarkVSpecProcessStepDetail[];
+  receives: MarkVSpecProcessStepDetail[];
+  results: MarkVSpecProcessStepDetail[];
   details: MarkVSpecProcessStepDetail[];
   outcomes: MarkVSpecActionOutcome[];
   target?: string;
@@ -362,6 +376,14 @@ export interface MarkVSpecProcessStep {
   sideEffects: string[];
   propertyLocations: Record<string, SourceLocation[]>;
   location: SourceLocation;
+}
+
+export interface MarkVSpecDisplayEffect {
+  target?: string;
+  content?: string;
+  contentSource: MarkVSpecProcessStepDetail[];
+  location: SourceLocation;
+  propertyLocations: Record<string, SourceLocation[]>;
 }
 
 export interface MarkVSpecProcessStepDetail {

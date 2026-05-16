@@ -224,14 +224,24 @@ Validate the input and move to auth wait only when the request can be sent.
   - E-SignInButton.click
 - From
   - idle
-- Process: HttpRequest
-  - POST /login
+- Process P1: Submit login
+  - input:
     - email: E-EmailInput.value
     - password: E-PasswordInput.value
+  - result:
+    - login request submission result
+  - request:
+    - method: POST
+    - path: /login
+    - params:
+      - email: E-EmailInput.value
+      - password: E-PasswordInput.value
   - case: sent
-    - state: wait-auth
+    - Effects
+      - state: wait-auth
   - case: send-failed
-    - state: auth-error
+    - Effects
+      - state: auth-error
 
 Send failure means the request could not be sent, not an HTTP response failure.
 ```
@@ -277,19 +287,19 @@ Action group names:
 - `Otherwise`
 - `Cases`
 
-Primary action process, result, and partial-update words:
+Primary action process detail, result, and display words:
 
-- `HttpRequest`
-- `PartialRequest`
-- `ServerCall`
+- `input`
+- `receive`
+- `result`
+- `request`
+- `server`
 - `response`
+- `validation`
 - `state`
 - `navigate`
-- `params`
-- `update`
+- `display`
 - `target`
-- `mode`
-- `fragment`
 - `content`
 
 Event names. In event references such as `E-SignInButton.click`, `.` is the
@@ -1058,7 +1068,7 @@ Use the same nested `params` block for action-driven screen navigation.
   - E-NoticeTitle.click
 - From
   - loaded
-- Process: Immediate
+- Process P1: Immediate
   - Effects
     - navigate: SCR-NOTICE-DETAIL
     - params:
@@ -1395,24 +1405,21 @@ screen does, not the exact htmx attributes.
 
 - Triggered
   - E-EmailInput.blur
-- Process: Immediate
+- Process P1: Immediate
   - case: empty
     - from: idle
     - state: validation-error
-    - update:
+    - display:
       - target: L-EmailValidation
-      - mode: replace
       - content: Email is required.
 ```
 
 Mapping to htmx/Thymeleaf is implementation-facing:
 
 - `Triggered` maps to the event that starts the interaction, such as `click` or `blur`.
-- `HttpRequest` or `PartialRequest` maps to request method and path.
+- `request:` maps to request method and path.
 - `target` maps to the layout or element that will be replaced.
-- `mode` maps to the replacement strategy, such as `replace`.
-- `fragment` may name a Thymeleaf fragment, such as `auth/login :: message`.
-- `content` is a semantic placeholder when the exact template fragment is not yet decided.
+- `display.content` maps to the semantic content or partial source shown in that target.
 
 Generated design documents should list these as partial update flows so that
 reviewers can see trigger, request, target, mode, fragment/content, and outcome
@@ -1433,17 +1440,22 @@ MarkVSpec includes explicit `${model.value}` process details and outcome side
 effects that mention `${model.value}`.
 
 ```markdown
-- Process: ServerCall
-  - NoticeQueryService.findNotice()
+- Process P1: Load notice
+  - result:
+    - notice load result
+  - server:
+    - call: NoticeQueryService.findNotice()
     - noticeId: ${route.noticeId}
   - case: success
     - response: 200 notice
-    - model: ${model.notice} = NoticeDetailResult
-- Process: Immediate
+    - Effects
+      - model: ${model.notice} = NoticeDetailResult
+- Process P2: Show notice body
   - case: success
-    - update:
-      - target: L-NoticeBody
-      - side effect: Store the response body in ${model.notice}
+    - Effects
+      - display:
+        - target: L-NoticeBody
+        - content: Stored notice body
 ```
 
 Element variants describe visual emphasis or component style without naming CSS
@@ -1514,13 +1526,34 @@ short labels, values, and compact text.
 
 ## Actions Section
 
-Actions are level-3 headings. An action should describe a trigger, process
-steps, and resulting effects. Use `state` for screen-local state changes,
-`navigate` for screen transitions, and opaque expressions such as
-`${model.value}` for screen data. Do not put action-level guards on the action; put operability on elements with
-`disabled when`, and put input checks under `Validations`. Until the 1030 Action
-DSL refresh lands, `Validate` process steps should consume the validation result
-reference, not redefine validation rules inside the Action.
+Actions are level-3 headings. An action describes a trigger, the screen states it
+can run from, one or more process steps, and the resulting effects. Keep the DSL
+screen-oriented: write what appears on the screen with `display:`, use `state`
+for screen-local state changes, use `navigate` for screen transitions, and keep
+implementation details such as DOM replacement, component rerendering, returned
+HTML, and htmx swap behavior in generators or adapters.
+
+Action heading form:
+
+```text
+### [<marker>:]<action-id> <action-name>
+```
+
+Each process uses an action-local marker and a human-readable name:
+
+```text
+- Process <marker>: <process name>
+```
+
+`P1`, `P2`, and similar markers are stable references for preview scenarios and
+later process steps. The process name is ordinary prose, not a fixed enum. The
+reserved process detail keys `request:`, `server:`, `response:`, and
+`validation:` are detail hints; they are not process types.
+
+Use `input:` when a process actively reads element or model values. A process
+with `input:` must declare `result:`. Use `receive:` when a process classifies an
+external event, validation result, or prior process result. Validation contracts
+are received as opaque sources such as `V-LoginForm.result`.
 
 ```markdown
 ## Actions
@@ -1532,273 +1565,176 @@ reference, not redefine validation rules inside the Action.
 - From
   - idle
   - auth-error
-- Process: Validate: V-LoginForm.result
+- Process P1: Check login form
+  - receive:
+    - validation: V-LoginForm.result
   - case: invalid
-    - state: validation-error
-    - stop
+    - response: required fields are missing
+    - Effects
+      - state: validation-error
+      - display:
+        - target: L-MessageArea
+        - content: Required field message
+      - stop
   - case: valid
-    - continue
-- Process: Preprocess
-  - when: state is auth-error
-  - update:
-    - target: L-MessageArea
-    - content: Empty message
-- Process: HttpRequest
-  - POST /login
+    - response: all required fields are valid
+    - Effects
+      - continue
+- Process P2: Submit login request
+  - input:
     - email: E-EmailInput.value
     - password: E-PasswordInput.value
+  - result:
+    - login request submission result
+  - request:
+    - method: POST
+    - path: /login
   - case: sent
-    - state: wait-auth
-    - stop
+    - Effects
+      - state: wait-auth
+      - stop
   - case: send-failed
-    - state: auth-error
-    - stop
+    - Effects
+      - state: auth-error
+      - display:
+        - target: L-MessageArea
+        - content: Login request could not be sent
+      - stop
 
 ### A2:A-AuthResponse Handle auth response
 
 - Triggered
-  - A-SubmitLogin.response
+  - A-SubmitLogin.P2.response
 - From
   - wait-auth
-- Process: HttpResponse
+- Process P1: Handle auth response
+  - receive:
+    - response: A-SubmitLogin.P2.response
   - case: success
     - response: 2xx authenticated user
-    - navigate: SCR-DASHBOARD
-    - stop
+    - Effects
+      - navigate: SCR-DASHBOARD
+      - stop
   - case: failure
     - response: 401 invalid credentials
-    - state: auth-error
-    - stop
-    - update:
-      - target: L-MessageArea
-      - content: Authentication error message
-
-### A4:A-ValidateEmail Validate email
-
-- Triggered
-  - E-EmailInput.blur
-- From
-  - idle
-  - validation-error
-- Process: Validate: V-Email.result
-  - case: empty
-    - state: validation-error
-    - update:
-      - target: L-EmailValidation
-      - content: Email is required.
-  - case: valid
-    - state: idle
-    - update:
-      - target: L-EmailValidation
-      - content: Empty email validation
+    - Effects
+      - state: auth-error
+      - display:
+        - target: L-MessageArea
+        - content: Authentication error message
+      - stop
 ```
 
-Action heading form:
-
-```text
-### [<marker>:]<action-id> <action-name>
-```
-
-Preferred action groups:
+Preferred action groups and effects:
 
 ```text
 - Triggered
   - <element-id>.<event>
-  - <action-id>.response
+  - <action-id>.<process-marker>.response
   - screen.load
 - From
   - <state>
-- Process: Validate: <validation-id>.result
-  - case: <result>
-    - state: <state>
-    - stop | continue
-- Process: <step-name>
-  - when: <condition>
-  - skip when: <condition>
-  - update:
-    - target: <layout-id-or-element-id>
-    - content: <description>
-- Process: HttpRequest
-  - <method> <path>
+- Process <marker>: <process name>
+  - input:
     - <name>: <source>
-  - case: sent
-    - state: <state>
-    - stop
-- Process: ServerCall
-  - <service-method>
-  - case: success
-    - response: <definition>
-    - model: ${model.<name>} = <source-field>
-    - model: ${model.<name>.loaded} = true
-- Process: HttpResponse
+  - result:
+    - <result contract>
+  - receive:
+    - <name>: <source>
+  - request:
+    - method: <method>
+    - path: <path>
   - case: <result>
-    - response: <definition>
-    - state: <state>
-    - navigate: <screen-id>
-    - update:
-      - target: <layout-id-or-element-id>
-      - content: <description>
+    - response: <classification>
+    - Effects
+      - model: ${model.<name>} = <source>
+      - view: ${view.<name>} = <value>
+      - state: <state>
+      - navigate: <screen-id-or-route>
+      - display:
+        - target: <layout-id-or-element-id>
+        - content: <description>
+      - display:
+        - target: <layout-id-or-element-id>
+        - content:
+          - partial: <partial-id>
+          - state: <partial-state>
+      - stop | continue
 ```
 
-Request parameter bullets define how a request payload or form submission is
-built. Use element sources such as `E-EmailInput.value` when the value comes
-from a visible input.
-
-Under a process step `case: <name>` branch, add `stop` or `continue` to
-describe what happens after that case. `stop` ends the action process at that case.
-`continue` advances to the next process step, and omitted flow is treated as
-`continue`. For example, `Validate.invalid` should usually `stop` so the
-request step is not sent, while `Validate.valid` can `continue`. Arbitrary
-jumps such as `next: <step>` are not part of the current DSL.
-
-When an action starts multiple operations in parallel and decides after all of
-them complete, add `group: <group-id>` to each participating `Process:` step and
-put the aggregate decision in `Process: Resolve` with the same `group`. Parallel step cases should
-record their response or model updates and `continue`; final `state`,
-`navigate`, and `stop` decisions belong in the resolve step. MarkVSpec warns
-when a parallel step case uses `stop`, `state`, or `navigate`.
+`display.content` may be scalar prose or a structured content source. Partial
+content sources use `PRT-*` document references declared in Front Matter:
 
 ```markdown
-- Process: ServerCall
+- display:
+  - target: L-SearchResultsArea
+  - content:
+    - partial: PRT-SearchResultsList
+    - state: loaded
+```
+
+Under a process step `case: <name>` branch, add `stop` or `continue` under
+`Effects`. `stop` ends the action process at that case. `continue` advances to
+the next process step, and omitted flow is treated as `continue`.
+
+When an action starts multiple operations in parallel and decides after all of
+them complete, add `group: <group-id>` to each participating process and put the
+aggregate decision in a Resolve process with the same `group`.
+
+```markdown
+- Process P1: Load profile
   - group: initial-load
-  - MemberQueryService.findSelfProfile()
+  - server:
+    - call: MemberQueryService.findSelfProfile()
   - case: success
     - response: 200 member profile
     - Effects
       - model: ${model.memberProfile.loaded} = true
-    - continue
+      - continue
   - case: failure
     - response: 5xx or timeout
-    - continue
-- Process: ServerCall
+    - Effects
+      - model: ${model.memberProfile.loaded} = false
+      - continue
+- Process P2: Load points
   - group: initial-load
-  - PointQueryService.findSelfPoints()
+  - server:
+    - call: PointQueryService.findSelfPoints()
   - case: success
     - response: 200 points
     - Effects
       - model: ${model.points.loaded} = true
-    - continue
+      - continue
   - case: failure
     - response: 5xx or timeout
-    - continue
-- Process: Resolve
+    - Effects
+      - model: ${model.points.loaded} = false
+      - continue
+- Process P3: Resolve initial load
   - group: initial-load
   - case: ready
     - response: profile and points loaded
     - Effects
       - state: idle
-    - stop
+      - stop
   - case: failed
     - response: one or more calls failed
     - Effects
       - state: load-error
-    - stop
-```
-
-Use `ServerCall` when the screen behavior calls an application library or
-server-side service rather than issuing a browser HTTP request directly. This is
-useful for starter APIs such as `MemberQueryService.findSelfProfile()` where the
-UI app receives an `ApiBridgeResult` and maps selected DTO fields into
-`${model.value}` expressions.
-When later elements read the returned values, refer to those values through
-opaque expressions such as `${model.notice.title}`; avoid naked aliases such as
-`notice.title` because their origin is hard to audit in a design document.
-
-When multiple `ServerCall` operations must complete before the screen becomes
-ready, avoid creating one screen state for every loaded/unloaded combination.
-Use a small screen state model such as `initializing`, `idle`, and `load-error`.
-Track per-call readiness in `${model.value}` expressions, then let
-response-triggered actions move to `idle` only when all required model flags are
-ready.
-
-```markdown
-## States
-
-- initializing*
-- idle
-- load-error
-
-### A3:A-ResolveHomeData Resolve home data
-
-- Triggered
-  - A-LoadMemberProfile.response
-- From
-  - initializing
-- Process: EvaluateHomeData
-  - case: ready
-    - response: ${model.memberProfile.loaded} and ${model.points.loaded}
-    - state: idle
-  - case: still-loading
-    - response: one or more required client calls are still loading
-    - state: initializing
+      - stop
 ```
 
 Action-level `When` guards are not supported. Keep operation availability close
-to the element (`disabled when`) and keep validation rules under
-`Validations`. When an asynchronous result has conditional outcomes, model that
-branching under process step `case: <name>` branches such as `ready` and
-`still-loading`. Use a process-step `when` only when the condition belongs to a
-specific step, such as skipping a preprocessing update; it does not guard the
-action transition itself.
-
-```markdown
-- Process: HttpRequest
-  - POST /login
-    - email: E-EmailInput.value
-    - password: E-PasswordInput.value
-```
+to the element (`disabled when`) and keep validation rules under `Validations`.
+Use a process-step `when` only when the condition belongs to a specific step; it
+does not guard the action transition itself.
 
 ## Cases
 
-Process step outcomes belong under `case: <name>` branches for that process step.
-For HTTP requests, cases on the click action describe whether the request could
-be sent. Branches based on HTTP status or response body should be modeled in a
-separate response-handling action such as `A-SubmitLogin.response`.
-
-```markdown
-### A1:A-SubmitLogin Submit login
-
-- Triggered
-  - E-SignInButton.click
-- From
-  - idle
-- Process: Validate: V-LoginForm.result
-  - case: invalid
-    - state: validation-error
-- Process: HttpRequest
-  - POST /login
-    - email: E-EmailInput.value
-    - password: E-PasswordInput.value
-  - case: sent
-    - state: wait-auth
-  - case: send-failed
-    - state: auth-error
-
-### A2:A-HandleLoginResponse Handle login response
-
-- Triggered
-  - A-SubmitLogin.response
-- From
-  - wait-auth
-- Process: HttpResponse
-  - case: success
-    - response: 2xx authenticated user
-    - navigate: SCR-DASHBOARD
-  - case: failure
-    - response: 401 invalid credentials
-    - state: auth-error
-    - update:
-      - target: L-MessageArea
-      - content: Authentication error message
-```
-
-Each result case should also contain at least one meaningful detail:
-`response`, `state`, `navigate`, or an `update` block. Empty cases are
-diagnosed because they do not describe what the result means.
-
-Action response triggers are also part of this release. Use `<action-id>.response`
-when an action handles the result of an earlier request or async process, such
-as `A-SubmitLogin.response`.
+Process step outcomes belong under `case: <name>` branches for that process
+step. Each case should contain enough detail to explain what the result means,
+such as `response`, `state`, `navigate`, or a `display` effect. Empty cases are
+diagnosed because they do not describe behavior.
 
 Supported events:
 
@@ -1814,111 +1750,88 @@ Supported action lifecycle events:
 
 - `response`
 
-Partial update bullets:
+Response references use the process marker, for example
+`A-SubmitLogin.P2.response`. Action-level response references are ambiguous when
+one Action has multiple processes and should not be used as canonical syntax.
+
+## Preview Scenarios
+
+Use `## Preview Scenarios` when state previews need explicit `state`, `model`,
+`view`, and action/process case combinations. When this section exists, every
+state in `## States` must appear in at least one scenario.
 
 ```markdown
-### A2:A-HandleLoginResponse Handle login response
+## Preview Scenarios
 
-- Triggered
-  - A-SubmitLogin.response
-- From
-  - wait-auth
-- Process: HttpResponse
-  - case: failure
-    - response: 401 invalid credentials
-    - state: auth-error
-    - update:
-      - target: L-MessageArea
-      - content: Authentication error message
+### auth-error
+
+- state: auth-error
+- cases:
+  - A-AuthResponse.P1.failure
 ```
 
-These bullets are intended to model htmx-style partial updates without making
-MarkVSpec depend on htmx-specific attribute names.
+If `## Preview Scenarios` is absent, preview/export renders all states using the
+baseline model and the default View Context values.
 
-Structural lint expects `HttpRequest` to include a request line before request
-parameters. The following is incomplete because the payload source is present,
-but the request itself is not defined:
+## Partial Updates
+
+Partial updates are written as display effects, not as implementation-specific
+attributes:
 
 ```markdown
-- Process: HttpRequest
-  - email: E-EmailInput.value
+- Effects
+  - display:
+    - target: L-MessageArea
+    - content: Authentication error message
 ```
 
-Write the request line explicitly:
+For a server-rendered partial, use a structured content source:
 
 ```markdown
-- Process: HttpRequest
-  - POST /login
+- Effects
+  - display:
+    - target: L-SearchResultsArea
+    - content:
+      - partial: PRT-SearchResultsList
+      - state: loaded
+```
+
+This is intentionally compatible with SPA rerendering, MPA returned HTML, and
+MPA+htmx partial replacement. MarkVSpec does not expose htmx attributes or swap
+modes in the authoring DSL.
+
+Structural lint expects any process with `input:` to include `result:`. The
+following is incomplete because it reads values without declaring what the
+process produces:
+
+```markdown
+- Process P1: Submit login request
+  - input:
     - email: E-EmailInput.value
 ```
 
-Use process-step cases when only one outcome updates part of the screen:
+Write the result contract explicitly:
 
 ```markdown
-### A-AuthResponse Handle auth response
-
-- Triggered
-  - A-SubmitLogin.response
-- From
-  - wait-auth
-- Process: HttpResponse
-  - case: success
-    - response: 2xx authenticated user
-    - navigate: SCR-DASHBOARD
-  - case: failure
-    - response: 401 invalid credentials
-    - state: auth-error
-    - update:
-      - target: L-MessageArea
-      - content: Authentication error message
+- Process P1: Submit login request
+  - input:
+    - email: E-EmailInput.value
+  - result:
+    - login request submission result
 ```
 
-In this example, success navigates to `SCR-DASHBOARD`, while failure changes the
-screen-local `state` and updates the message area with a semantic content
-description.
-
-Client-side validation can use the same action/outcome model without `request`.
-Keep the top-level state abstract, such as `validation-error`, and put the
-field-specific detail in result names, targets, and fragments. This avoids a
-state explosion such as `email-required`, `password-required`, and combined
-states. Keeping `HttpRequest` absent makes it clear that the validation
-happens on the client side.
-
-Tools may generate Mermaid `stateDiagram-v2` diagrams from action transitions.
-The Mermaid diagram is a generated view; authors should continue to write the
-transitions as Markdown bullets. Screen transitions such as `SCR-*`, routes, and
-external URLs should render as terminal transitions to `[*]`, not as
-screen-local state nodes.
-
-Generated design documents should also list screen transitions separately from
+Generated design documents should list screen transitions separately from
 screen-local state transitions. A screen transition is any action transition
 whose target is a screen ID such as `SCR-DASHBOARD`, a route path such as
-`/account`, or an external URL. In a single-screen document this is best shown as
-a list with source action, source state, result, and target. Cross-screen
-Mermaid diagrams can be generated later when multiple screen documents are
-available together.
+`/account`, or an external URL.
 
 Generated design documents render the initial state first. Its wireframe is
 followed by the element and action lists relevant to that state. Other states
 are rendered below it with their own wireframes, followed by current element and
-action specifications for that state. MarkVSpec does not need an all-content
-mock mode in the design document. State-specific rendering uses the `States`
-section and visibility conditions such as `visible when: ${state.auth-error}`.
-Non-state conditions use namespaced sources such as `${view.isHelpPanelOpen}` or
-`${model.profile.loaded}`.
-
-Implementation mapping to htmx/Thymeleaf can be added later without changing the
-main design language:
-
-- `Triggered` identifies the event that starts the partial update.
-- `HttpRequest` or `PartialRequest` identifies the method and path used by the interaction.
-- `target` identifies the layout or element that receives replacement content.
-- `mode` identifies the replacement strategy.
-- `fragment` identifies a server-rendered fragment when the implementation uses one.
-
-Supported update modes:
-
-- `replace`
+action specifications for that state. State-specific rendering uses the
+`States` section and visibility conditions such as `visible when:
+${state.auth-error}`. Non-state conditions use namespaced sources such as
+`${view.isHelpPanelOpen}` or `${model.profile.loaded}`.
 
 ## View Context Section
 
@@ -1958,7 +1871,7 @@ Use `${view.<name>}` when Elements, Layouts, or Actions refer to View Context:
 Actions update View Context with `view:` effects inside a process case:
 
 ```markdown
-- Process: Immediate
+- Process P1: Immediate
   - case: opened
     - view: ${view.isHelpPanelOpen} = true
     - view: ${view.selectedTab} = results
@@ -2239,8 +2152,8 @@ The validator should check:
 - Conditions reference existing IDs when they contain ID-like tokens.
 - Transitions to local states reference existing states.
 - Transitions to `SCR-*` are allowed as external screen references.
-- `PRT-*` partials used by layout partial hosts, `PartialRequest`, or update
-  `content` are defined in Front Matter `references.partials`, including from
+- `PRT-*` partials used by layout partial hosts or `display.content.partial`
+  are defined in Front Matter `references.partials`, including from
   `type: partial` documents that compose child partials.
 - Circular partial references and partial nesting deeper than 10 levels are
   invalid.
@@ -2273,7 +2186,7 @@ Errors:
 - Action trigger references a missing element.
 - Element `action` references a missing action.
 - Partial IDs used from a screen/template but missing from `references.partials`.
-- Partial updates written without the current `PartialRequest` and `mode: replace` structure.
+- Partial updates written without the current `display.content.partial` structure.
 
 Warnings:
 
@@ -2315,7 +2228,7 @@ action            = "### " marker_prefix? action_id " " action_name action_group
 action_group      = triggered_group | from_group | process_group | otherwise_group
 triggered_group   = "- Triggered" nested_bullet*
 from_group        = "- From" nested_bullet*
-process_group     = "- Process:" process_type process_detail*
+process_group     = "- Process " marker ": " process_name process_detail*
 process_case      = indent "- case:" result_name nested_bullet*
 otherwise_group   = "- Otherwise" nested_bullet*
 validation        = "### " validation_id name? bullet*

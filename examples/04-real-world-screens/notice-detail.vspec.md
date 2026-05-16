@@ -220,12 +220,14 @@ parameters visibly separate.
 - From
   - loaded
   - search-error
-- Process: ModelUpdate
+- Process P1: Update model
   - Effects
     - model: ${model.search.keyword} = E-KeywordInput.value
     - model: ${model.search.readStatus} = E-ReadStatusSelect.value
-- Process: HttpRequest
-  - GET /notices
+- Process P2: Send request
+  - request:
+    - method: GET
+    - path: /notices
     - keyword: ${model.search.keyword}
     - readStatus: ${model.search.readStatus}
     - relatedTo: ${route.noticeId}
@@ -237,10 +239,10 @@ parameters visibly separate.
 ### A2:A-HandleRelatedSearchResponse Handle related search response
 
 - Triggered
-  - A-SearchRelatedNotices.response
+  - A-SearchRelatedNotices.P1.response
 - From
   - searching
-- Process: HttpResponse
+- Process P1: Handle response
   - case: success
     - response: 200 related notices
     - state: loaded

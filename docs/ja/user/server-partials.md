@@ -18,8 +18,8 @@ partial を再帰的に解決します。循環参照は無効で、preview の�
 nesting は最大 10 階層までです。
 
 partial 文書は、自分自身を再取得して置き換える self refresh action も表現できます。
-この場合、`PartialRequest` の `partial: <自身の PRT-ID>` は「同じ partial を再取得し、
-現在の partial root を置き換える」という request/update の意味です。これは child partial
+この場合、名前付き request process の `display.content.partial` に自身の PRT ID を書き、
+「同じ partial を再取得し、現在の partial root を置き換える」ことを表します。これは child partial
 の合成ではないため、nested partial dependency にはしません。一方、layout の
 `partial:` で自分自身を参照する場合は recursive composition であり、引き続き無効です。
 
@@ -29,11 +29,10 @@ partial 文書は、自分自身を再取得して置き換える self refresh a
 
 1. `content`: 更新後に利用者が見る内容。
 2. `target`: どの layout / element が変わるか。
-3. `mode`: 必要な場合、target をどう置き換えるか。
-4. `fragment`: 任意の server template fragment 参照。
+3. `request`: method / path などの実装契約ヒント。
 
 `hx-post` や `hx-target` のような htmx 属性そのものは、主 DSL としては書きません。
-それらは Action と update details から導出される実装選択です。
+それらは Action と display details から導出される実装選択です。
 
 ## 推奨パターン
 
@@ -46,16 +45,24 @@ screen 側の Action では、リクエストと画面上の置き換え結果�
   - E-SignInButton.click
 - From
   - idle
-- Process: HttpRequest
-  - POST /login
+- Process P1: ログイン送信
+  - input:
+    - email: E-EmailInput.value
+    - password: E-PasswordInput.value
+  - result:
+    - login request submission result
+  - request:
+    - method: POST
+    - path: /login
   - case: sent
-    - state: wait-auth
+    - Effects
+      - state: wait-auth
   - case: send-failed
-    - state: auth-error
-    - update:
-      - target: L-MessageArea
-      - content: Authentication error message
-      - mode: replace
+    - Effects
+      - state: auth-error
+      - display:
+        - target: L-MessageArea
+        - content: Authentication error message
       - fragment: auth/login :: message
 ```
 
@@ -95,19 +102,21 @@ route: /mypage/partials/notices
 
 - Triggered
   - partial.render
-- Process: ServerCall
-  - NoticeQueryService.findLatest()
+- Process P1: Notice list を構築
+  - server:
+    - call: NoticeQueryService.findLatest()
   - case: success
     - response: 200 notices
-    - model: ${model.notices.items} = result.items
-    - model: ${model.notice} = ${model.notices.items} の現在行
+    - Effects
+      - model: ${model.notices.items} = result.items
+      - model: ${model.notice} = ${model.notices.items} の現在行
 ```
 
 `bridge` のような特定アーキテクチャの語は MarkVSpec の予約語にしません。
-必要な場合は `ServerCall` などの処理詳細にプロジェクト固有名として書きます。
+必要な場合は名前付き process の詳細にプロジェクト固有名として書きます。
 
-htmx 風に partial 自身を置き換える場合は、その partial 上の `PartialRequest`
-action として refresh を表現します。
+htmx 風に partial 自身を置き換える場合は、その partial 上の名前付き request
+process として refresh を表現します。
 
 ```markdown
 ---
@@ -124,24 +133,32 @@ title: Points Content
 
 - Triggered
   - E-Refresh.click
-- Process: PartialRequest
-  - request: GET /points/content
-  - partial: PRT-POINTS-CONTENT
+- Process P1: Points content を更新
+  - request:
+    - method: GET
+    - path: /points/content
   - case: success
-    - update:
-      - target: L-PointsContent
-      - mode: replace
+    - Effects
+      - display:
+        - target: L-PointsContent
+        - content:
+          - partial: PRT-POINTS-CONTENT
 ```
 
 ## リクエストモデリング
 
-request は `Process: HttpRequest` に書きます。
+request は `Process P1: Send request` に書きます。
 
 ```markdown
-- Process: HttpRequest
-  - POST /login
+- Process P1: ログインリクエスト送信
+  - input:
     - email: E-EmailInput.value
     - password: E-PasswordInput.value
+  - result:
+    - login request submission result
+  - request:
+    - method: POST
+    - path: /login
 ```
 
 これは implementation-aware ですが、htmx syntax を設計書へ直接持ち込みません。
@@ -149,23 +166,23 @@ request は `Process: HttpRequest` に書きます。
 
 ## レスポンスモデリング
 
-response は、`A-SubmitLogin.response` のような response handler Action に分けて書きます。
+response は、`A-SubmitLogin.P1.response` のような response handler Action に分けて書きます。
 
 ```markdown
 ### A2:A-HandleLoginResponse ログイン応答処理
 
 - Triggered
-  - A-SubmitLogin.response
+  - A-SubmitLogin.P1.response
 - From
   - wait-auth
-- Process: HttpResponse
+- Process P1: ログイン応答処理
   - case: success
     - response: 2xx authenticated user
     - navigate: SCR-DASHBOARD
   - case: failure
     - response: 401 with message fragment
     - state: auth-error
-    - update:
+    - display:
       - target: L-MessageArea
       - content: Authentication error message
 ```
@@ -176,8 +193,8 @@ scope します。
 
 ## 曖昧さを避けるルール
 
-- `fragment` を書く場合でも、template を知らない review でも読めるように
-  `content` を併記する。
+- framework 固有の fragment 名が必要な場合は実装メモに寄せ、`display.content`
+  は template を知らない review でも読めるようにする。
 - `target` がない場合は、画面更新ではなく side effect として扱う。
 - 1つの result で複数 target を更新する場合は、result row には主 target を書き、
   追加の影響は result notes に記載する。

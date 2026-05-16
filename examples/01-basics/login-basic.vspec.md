@@ -279,24 +279,25 @@ request. This action does not decide whether credentials are correct.
   - validation-error
   - request-error
   - auth-error
-- Process: Validate
+- Process P1: Check validation
   - validation: V-LoginForm.result
   - case: invalid
     - state: validation-error
     - stop
-    - update:
+    - display:
       - target: L-MessageArea
-      - mode: replace
       - content: Required field message
   - case: valid
     - continue
-- Process: ModelUpdate
+- Process P2: Update model
   - Effects
     - model: ${model.email} = E-EmailInput.value
     - model: ${model.password} = E-PasswordInput.value
     - model: ${model.rememberMe} = E-RememberMe.value
-- Process: HttpRequest
-  - POST /login
+- Process P3: Send request
+  - request:
+    - method: POST
+    - path: /login
     - email: ${model.email}
     - password: ${model.password}
     - rememberMe: ${model.rememberMe}
@@ -304,9 +305,8 @@ request. This action does not decide whether credentials are correct.
     - state: wait-auth
   - case: send-failed
     - state: request-error
-    - update:
+    - display:
       - target: L-MessageArea
-      - mode: replace
       - content: Login request could not be sent
 
 The `sent` case means only that the browser submitted the request. Authentication
@@ -315,19 +315,18 @@ success or failure is handled by `A-HandleLoginResponse`.
 ### A2:A-HandleLoginResponse Handle login response
 
 - Triggered
-  - A-SubmitLogin.response
+  - A-SubmitLogin.P1.response
 - From
   - wait-auth
-- Process: HttpResponse
+- Process P1: Handle response
   - case: success
     - response: 200 authenticated
     - navigate: SCR-HOME
   - case: failure
     - response: 401 invalid credentials
     - state: auth-error
-    - update:
+    - display:
       - target: L-MessageArea
-      - mode: replace
       - content: Authentication error message
 
 ### A3:A-ForgotPassword Open password reset
@@ -336,7 +335,7 @@ success or failure is handled by `A-HandleLoginResponse`.
   - E-ForgotPasswordLink.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: done
     - Effects
       - navigate: SCR-PASSWORD-RESET

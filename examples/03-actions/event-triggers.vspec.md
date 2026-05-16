@@ -205,7 +205,7 @@ used around a form-like preferences screen.
   - screen.load
 - From
   - loading
-- Process: ServerCall
+- Process P1: Call server service
   - PreferencesQueryService.findSaved()
   - case: success
     - response: 200 saved preferences
@@ -226,10 +226,10 @@ used around a form-like preferences screen.
   - editing
   - help-visible
   - validation-error
-- Process: ModelUpdate
+- Process P1: Update model
   - Effects
     - model: ${model.keyword} = E-SearchInput.value
-- Process: Immediate
+- Process P2: Apply immediate effect
   - case: done
     - Effects
       - state: editing
@@ -242,7 +242,7 @@ used around a form-like preferences screen.
   - editing
   - help-visible
   - validation-error
-- Process: Validate
+- Process P1: Check validation
   - validation: V-PreferencesForm.result
   - case: invalid
     - response: email is empty or malformed
@@ -259,7 +259,7 @@ used around a form-like preferences screen.
   - E-HelpIcon.focus
 - From
   - editing
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: done
     - Effects
       - state: help-visible
@@ -272,7 +272,7 @@ used around a form-like preferences screen.
   - editing
   - validation-error
   - save-error
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: done
     - Effects
       - state: confirm-discard
@@ -283,7 +283,7 @@ used around a form-like preferences screen.
   - E-ConfirmDialog.open
 - From
   - confirm-discard
-- Process: ModelUpdate
+- Process P1: Update model
   - Effects
     - model: ${model.discardRequested} = true
 
@@ -293,10 +293,10 @@ used around a form-like preferences screen.
   - E-ConfirmDialog.close
 - From
   - confirm-discard
-- Process: ModelUpdate
+- Process P1: Update model
   - Effects
     - model: ${model.discardRequested} = false
-- Process: Immediate
+- Process P2: Apply immediate effect
   - case: done
     - Effects
       - state: editing
@@ -309,7 +309,7 @@ used around a form-like preferences screen.
   - editing
   - validation-error
   - save-error
-- Process: Validate
+- Process P1: Check validation
   - validation: V-PreferencesForm.result
   - case: invalid
     - response: required field missing or invalid
@@ -318,12 +318,12 @@ used around a form-like preferences screen.
   - case: valid
     - response: form fields are valid
     - continue
-- Process: ModelUpdate
+- Process P2: Update model
   - Effects
     - model: ${model.keyword} = E-SearchInput.value
     - model: ${model.email} = E-EmailInput.value
     - model: ${model.deliveryCadence} = E-DeliverySelect.value
-- Process: ServerCall
+- Process P3: Call server service
   - PreferencesCommandService.save()
     - keyword: ${model.keyword}
     - email: ${model.email}
@@ -336,10 +336,10 @@ used around a form-like preferences screen.
 ### A9:A-HandleSaveResponse Handle save response
 
 - Triggered
-  - A-SubmitPreferences.response
+  - A-SubmitPreferences.P1.response
 - From
   - saving
-- Process: ServerResponse
+- Process P1: Handle server response
   - case: success
     - response: 200 saved preferences
     - state: saved

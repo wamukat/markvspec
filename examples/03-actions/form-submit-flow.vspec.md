@@ -111,23 +111,22 @@ server, and navigates only after a successful response.
   - idle
   - validation-error
   - submit-error
-- Process: Validate
+- Process P1: Check validation
   - case: invalid
     - response: required field missing
     - state: validation-error
     - stop
-    - update:
+    - display:
       - target: L-MessageArea
-      - mode: replace
       - content: Validation message
   - case: valid
     - response: all required fields are valid
     - continue
-- Process: ModelUpdate
+- Process P2: Update model
   - Effects
     - model: ${model.email} = E-EmailInput.value
     - model: ${model.plan} = E-PlanSelect.value
-- Process: ServerCall
+- Process P3: Call server service
   - SubscriptionService.create()
     - email: ${model.email}
     - plan: ${model.plan}
@@ -139,10 +138,10 @@ server, and navigates only after a successful response.
 ### A2:A-HandleSubmitResponse Handle submit response
 
 - Triggered
-  - A-SubmitRequest.response
+  - A-SubmitRequest.P1.response
 - From
   - submitting
-- Process: ServerResponse
+- Process P1: Handle server response
   - case: success
     - response: 201 created
     - navigate: SCR-THANK-YOU

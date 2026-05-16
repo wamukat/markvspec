@@ -12,7 +12,7 @@ status: draft
 # SCR-PARALLEL-INITIAL-LOAD Parallel Initial Load
 
 This example teaches parallel process groups. Two server calls start together and
-the `Process: Resolve` step owns the final state transition.
+the `Process P3: Resolve initial load` step owns the final state transition.
 
 ## States
 
@@ -80,7 +80,7 @@ the `Process: Resolve` step owns the final state transition.
   - screen.load
 - From
   - loading
-- Process: ServerCall
+- Process P1: Call server service
   - group: initial-load
   - MemberQueryService.findSelfProfile()
   - case: success
@@ -94,7 +94,7 @@ the `Process: Resolve` step owns the final state transition.
     - Effects
       - model: ${model.memberProfile.loaded} = false
     - continue
-- Process: ServerCall
+- Process P2: Call server service
   - group: initial-load
   - PointQueryService.findSelfPoints()
   - case: success
@@ -108,7 +108,7 @@ the `Process: Resolve` step owns the final state transition.
     - Effects
       - model: ${model.points.loaded} = false
     - continue
-- Process: Resolve
+- Process P3: Resolve grouped processes
   - group: initial-load
   - case: ready
     - response: profile and points loaded

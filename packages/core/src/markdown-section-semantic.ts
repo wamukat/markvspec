@@ -1571,6 +1571,7 @@ function parsePreviewScenariosSection(section: SectionAst): Pick<SectionSemantic
       hasSeenEntity = true;
       current = {
         name: block.text.trim(),
+        cases: [],
         properties: {},
         propertyLocations: {},
         location: locationFromBlock(block)
@@ -1593,15 +1594,36 @@ function parsePreviewScenariosSection(section: SectionAst): Pick<SectionSemantic
       continue;
     }
     currentHasStructuredContent = true;
-    for (const item of listItems([block]).filter((candidate) => candidate.depth === 0)) {
+    let activeKey: string | undefined;
+    for (const item of listItems([block])) {
       const bullet = parsedBulletFromListItem(item);
       const [keyPart, valuePart] = splitKeyValue(bullet.text);
       const key = keyPart.trim();
       const value = valuePart?.trim();
+      if (item.depth > 0) {
+        if (activeKey === "cases") {
+          const caseRef = parsePreviewScenarioCaseReference(bullet.text, bullet.location);
+          if (caseRef) {
+            current.cases.push(caseRef);
+          } else {
+            diagnostics.push({
+              severity: "warning",
+              message: `Preview Scenario ${current.name} has malformed case reference: ${bullet.text}. Use A-ActionId.P-marker.case-name.`,
+              line: bullet.location.line
+            });
+          }
+        }
+        continue;
+      }
+
+      activeKey = key;
+      if (key === "cases" && value === undefined) {
+        continue;
+      }
       if (value === undefined) {
         diagnostics.push({
           severity: "warning",
-          message: `Preview Scenario ${current.name} has malformed entry: ${bullet.text}. Use state, model, or view.`,
+          message: `Preview Scenario ${current.name} has malformed entry: ${bullet.text}. Use state, model, view, or cases.`,
           line: bullet.location.line
         });
         continue;
@@ -1622,6 +1644,20 @@ function parsePreviewScenariosSection(section: SectionAst): Pick<SectionSemantic
     previewScenarios: scenarios,
     sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["preview-scenarios"]),
     diagnostics
+  };
+}
+
+function parsePreviewScenarioCaseReference(text: string, location: SourceLocation): MarkVSpecPreviewScenario["cases"][number] | undefined {
+  const match = /^(A-[\p{L}\p{N}-]+)\.(P[A-Za-z0-9_-]*)\.([A-Za-z][A-Za-z0-9_-]*)$/u.exec(text.trim());
+  if (!match) {
+    return undefined;
+  }
+  return {
+    actionId: match[1],
+    processMarker: match[2],
+    caseName: match[3],
+    raw: text,
+    location
   };
 }
 

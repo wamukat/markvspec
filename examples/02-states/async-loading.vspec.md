@@ -96,31 +96,31 @@ handling. The click action only reaches `loading` after the request is sent.
   - loaded
   - empty
   - load-error
-- Process: HttpRequest
-  - GET /items
+- Process P1: Send request
+  - request:
+    - method: GET
+    - path: /items
     - page: ${model.page}
   - case: sent
     - state: loading
   - case: send-failed
     - state: load-error
-    - update:
+    - display:
       - target: L-StatusArea
-      - mode: replace
       - content: Request could not be sent.
 
 ### A2:A-HandleItemsResponse Handle items response
 
 - Triggered
-  - A-RefreshItems.response
+  - A-RefreshItems.P1.response
 - From
   - loading
-- Process: HttpResponse
+- Process P1: Handle response
   - case: success
     - response: HTTP 200 with rows
     - state: loaded
-    - update:
+    - display:
       - target: E-ItemsTable
-      - mode: replace
       - content: Latest item rows
   - case: empty
     - response: HTTP 200 with no rows
