@@ -45,6 +45,7 @@ export interface StateScreenReadModel {
   readonly stateName?: string;
   readonly viewport?: string;
   readonly title: string;
+  readonly scenario: boolean;
   readonly initial: boolean;
   readonly message?: string;
   readonly focus?: FocusScope;
@@ -138,6 +139,7 @@ export function buildStateScreenReadModels(
       stateName: undefined,
       viewport,
       title: viewport ? `${label("viewport")} ${viewport}` : label("default"),
+      scenario: false,
       initial: false,
       message: undefined,
       focus,
@@ -151,6 +153,7 @@ export function buildStateScreenReadModels(
         stateName: undefined,
         viewport,
         title: viewport ? `${label("viewport")} ${viewport}` : label("default"),
+        scenario: false,
         initial: false,
         message: undefined,
         focus,
@@ -201,12 +204,14 @@ export function buildStateScreenReadModels(
     const modelValues = modelValuesForState(scenarioResult, modelName ?? stateName);
     const viewValues = viewValuesForScenario(scenarioResult, viewName);
     const ids = stateScreenRenderedIdsFromReadModel(scenarioResult, scenarioViewport, stateName, modelValues, viewValues);
+    const displayEffects = displayEffectsForScenarioCases(scenarioResult, cases);
+    addDisplayEffectTargetsToRenderedIds(ids, displayEffects);
     return {
       ids,
       actionIds: relevantActionIdsForState(scenarioResult, stateName, ids.elementIds),
       modelValues,
       viewValues,
-      displayEffects: displayEffectsForScenarioCases(scenarioResult, cases)
+      displayEffects
     };
   };
 
@@ -220,10 +225,12 @@ export function buildStateScreenReadModels(
       const title = display.scenario
         ? display.scenario.name
         : index === 0 && viewport ? `${label("default")} ${label("viewport")} ${viewport}` : display.state.name;
+      const scenario = Boolean(display.scenario);
       return {
         stateName: display.state.name,
         viewport,
         title,
+        scenario,
         initial: display.state.initial,
         message: display.state.message,
         focus,
@@ -237,6 +244,7 @@ export function buildStateScreenReadModels(
           stateName: display.state.name,
           viewport,
           title,
+          scenario,
           initial: display.state.initial,
           message: display.state.message,
           focus,
@@ -343,6 +351,20 @@ function displayEffectsForScenarioCases(
     const outcome = step?.outcomes.find((candidate) => candidate.result === caseRef.caseName);
     return outcome?.display ? [outcome.display] : [];
   });
+}
+
+function addDisplayEffectTargetsToRenderedIds(ids: RenderedIds, displayEffects: ParsedDisplayEffect[]): void {
+  for (const display of displayEffects) {
+    if (!display.target) {
+      continue;
+    }
+
+    if (display.target.startsWith("L-")) {
+      ids.layoutIds.add(display.target);
+    } else if (display.target.startsWith("E-")) {
+      ids.elementIds.add(display.target);
+    }
+  }
 }
 
 function createStateScreenSeenRegistry(): StateScreenSeenRegistry {

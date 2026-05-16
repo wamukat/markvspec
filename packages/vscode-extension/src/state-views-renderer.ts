@@ -105,7 +105,10 @@ function renderStateScreenSpec(
   const actions = stateScreenActionsForModel(result, model);
   const { format, prose, specFragments, specTables } = context;
   const stateLabel = model.stateName ? `${format.renderStateLabel(model.stateName, "state-label")}${model.initial ? `<span class="state-badge">${format.label("initial")}</span>` : ""}` : format.text(model.title);
-  const heading = model.stateName ? `${format.label("state")}: ${stateLabel}` : stateLabel;
+  const scenarioBadge = model.stateName && model.scenario
+    ? `<span class="state-badge">${format.text(model.title)}</span>`
+    : "";
+  const heading = model.stateName ? `${format.label("state")}: ${stateLabel}${scenarioBadge}` : stateLabel;
   const numberedHeading = sectionNumber ? `${format.renderSectionNumber(sectionNumber)} ${heading}` : heading;
   const messageHtml = model.message ? `<p class="spec-empty">${format.text(model.message)}</p>` : "";
   const layoutsTableHtml = specTables.renderLayoutsTable(model, model.repeatedLayoutIds);

@@ -67,9 +67,24 @@ used around a form-like preferences screen.
 - "Notification email*": E-EmailInput
 - "Delivery cadence": E-DeliverySelect
 - E-HelpIcon
+- L-HelpArea
+- L-ValidationArea
+- L-DialogArea
 - L-Actions
 
-### L4:L-Actions Actions
+### L4:L-HelpArea Delivery help area
+
+- stack
+
+### L5:L-ValidationArea Validation message area
+
+- stack
+
+### L6:L-DialogArea Dialog area
+
+- stack
+
+### L7:L-Actions Actions
 
 - row
 - gap: sm
@@ -232,7 +247,7 @@ used around a form-like preferences screen.
     - result: email is empty or malformed
     - Effects
       - display:
-        - target: E-ValidationBanner
+        - target: L-ValidationArea
         - content: Enter a valid notification email before saving.
     - stop
   - case: valid
@@ -251,7 +266,7 @@ used around a form-like preferences screen.
   - case: done
     - Effects
       - display:
-        - target: E-HelpText
+        - target: L-HelpArea
         - content: Delivery cadence controls how often notification digests are sent.
     - stop
 
@@ -266,7 +281,7 @@ used around a form-like preferences screen.
   - case: done
     - Effects
       - display:
-        - target: E-ConfirmDialog
+        - target: L-DialogArea
         - content: Discard changes confirmation dialog
     - stop
 
@@ -280,7 +295,7 @@ used around a form-like preferences screen.
   - case: done
     - Effects
       - display:
-        - target: E-ConfirmDialog
+        - target: L-DialogArea
         - content: Dialog is dismissed
     - stop
 

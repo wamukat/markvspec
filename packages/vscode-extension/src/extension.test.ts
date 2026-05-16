@@ -340,7 +340,7 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(html, /Handle login response \/ failure/);
   assert.match(html, new RegExp(`${actionBadge("A1", "A-SubmitLogin")}[\\s\\S]*Submit login[\\s\\S]*${docLabel("idle", "state")}[\\s\\S]*${docLabel("sent", "result")}[\\s\\S]*${docLabel("wait-auth", "state")}`));
   assert.match(html, new RegExp(`<td>${actionBadge("A2", "A-HandleLoginResponse")}</td><td>Handle login response</td><td>${docLabel("A-SubmitLogin.P2.response", "trigger")}</td><td>${docLabel("wait-auth", "state")}</td><td>${docLabel("success", "result")}</td><td>screen</td><td>${documentRef("SCR-HOME")}</td>`));
-  assert.match(html, new RegExp(`<td>${actionBadge("A3", "A-ForgotPassword")}</td><td>Open password reset</td><td>${markerBadge("8", "element")}\\.click</td><td>${docLabel("idle", "state")}</td><td>${docLabel("done", "result")}</td><td>screen</td><td>${documentRef("SCR-PASSWORD-RESET")}</td>`));
+  assert.match(html, new RegExp(`<td>${actionBadge("A3", "A-ForgotPassword")}</td><td>Open password reset</td><td>${markerBadge("8", "element")}\\.click</td><td>${docLabel("idle", "state")}</td><td>-</td><td>screen</td><td>${documentRef("SCR-PASSWORD-RESET")}</td>`));
   assert.match(html, /<section class="doc-section state-screen-section" data-section-number="3\.1\.2" data-state="wait-auth" data-viewport="mobile" style="--markvspec-viewport-width:390px;--markvspec-print-scale:1">/);
   const waitAuthSection = viewportStateSection(html, "wait-auth", "mobile");
   assert.match(waitAuthSection, /<h6 class="state-screen-detail-heading">Element Summary<\/h6>/);

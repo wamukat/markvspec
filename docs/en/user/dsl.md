@@ -1714,6 +1714,12 @@ content sources use `PRT-*` document references declared in Front Matter:
     - state: loaded
 ```
 
+`display.target` points to an existing `L-*` layout or `E-*` element. `L-*`
+targets are display containers such as message areas, result areas, help areas,
+or slots. A layout may omit `#### Items` when it is an empty display container
+that receives content from a scenario or action display effect. `E-*` targets
+remain valid for replacing or updating an existing element-level presentation.
+
 Under a process step `case: <name>` branch, add `stop` or `continue` directly
 under the case as the final entry, after any `Effects` block. `stop` ends the
 action process at that case. `continue` advances to the next process step, and

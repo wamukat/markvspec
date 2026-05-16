@@ -76,6 +76,14 @@ function stateWireframeSection(section: string): string {
   return nextHeading === -1 ? section.slice(start) : section.slice(start, nextHeading);
 }
 
+function stateSectionContaining(html: string, state: string, text: string): string {
+  const sectionPattern = new RegExp(`<section class="doc-section state-screen-section"(?=[^>]*\\bdata-state="${escapeRegExp(state)}")[^>]*>[\\s\\S]*?(?=<section class="doc-section state-screen-section"|$)`, "gu");
+  const sections = [...html.matchAll(sectionPattern)].map((match) => match[0]);
+  const section = sections.find((candidate) => candidate.includes(text));
+  assert(section, `missing state section ${state} containing ${text}`);
+  return section;
+}
+
 test("keeps State Views prose lookup separate from spec fragment rendering", () => {
   const source = `---
 id: SCR-STATE-VIEWS-PROSE
@@ -145,6 +153,106 @@ Elements overview.
 
   assert.deepEqual(receivedOverview, ["Elements overview."]);
   assert.match(html, /data-test-element-fragment/);
+});
+
+test("renders preview scenario display effects and scenario titles", () => {
+  const source = `---
+id: SCR-SCENARIO-DISPLAY
+type: screen
+title: Scenario Display
+viewport: mobile
+---
+# SCR-SCENARIO-DISPLAY Scenario Display
+
+## States
+
+- idle*
+- editing
+
+## Layout: mobile
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- E-Status
+- L-Message
+
+### L-Message Message area
+
+- stack
+
+## Elements
+
+### E-Status Banner
+
+- sample: Editing normally.
+
+### E-ShowButton Button
+
+- label: Show
+
+## Actions
+
+### A-ShowHelp Show help
+
+- Triggered
+  - E-ShowButton.click
+- From
+  - editing
+- Process P1: Show help
+  - case: help
+    - Effects
+      - display:
+        - target: L-Message
+        - content: Delivery cadence help text.
+
+### A-ReplaceStatus Replace status
+
+- Triggered
+  - E-ShowButton.click
+- From
+  - editing
+- Process P1: Replace status
+  - case: changed
+    - Effects
+      - display:
+        - target: E-Status
+        - content: Status replaced by scenario.
+
+## Preview Scenarios
+
+### editing-help
+
+- state: editing
+- cases:
+  - A-ShowHelp.P1.help
+
+### editing-status
+
+- state: editing
+- cases:
+  - A-ReplaceStatus.P1.changed
+`;
+  const result = parseMarkVSpec(source);
+  const models = buildStateScreenReadModels(result, result, "mobile");
+  const helpModel = models.find((model) => model.title === "editing-help");
+  const statusModel = models.find((model) => model.title === "editing-status");
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const helpSection = stateSectionContaining(html, "editing", "editing-help");
+  const statusSection = stateSectionContaining(html, "editing", "editing-status");
+
+  assert.deepEqual(result.diagnostics, []);
+  assert(helpModel?.renderedIds.layoutIds.has("L-Message"));
+  assert(statusModel?.renderedIds.elementIds.has("E-Status"));
+  assert.match(helpSection, /<span class="state-badge">editing-help<\/span>/);
+  assert.match(helpSection, /Delivery cadence help text\./);
+  assert.match(helpSection, /data-mm-display-preview="true"/);
+  assert.match(statusSection, /<span class="state-badge">editing-status<\/span>/);
+  assert.match(statusSection, /Status replaced by scenario\./);
+  assert.match(statusSection, /data-mm-display-preview="true"/);
 });
 
 test("shows subsequent viewport initial state as current state with repeated rows", () => {

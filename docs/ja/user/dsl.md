@@ -1245,6 +1245,8 @@ execution detail も result classification も持たない、決定的な即時�
     - state: loaded
 ```
 
+`display.target` は、存在する `L-*` layout または `E-*` element を指します。`L-*` は message area、result area、help area、slot のような display container を表します。layout は、scenario や action の display effect から内容を受け取る空の display container として使う場合、`#### Items` を省略できます。`E-*` target も、既存 element の表示内容や設定を置き換える用途として有効です。
+
 複数の処理を並列に開始し、全完了後にまとめて判定する場合は、各 process に `group: <group-id>` を書き、同じ group を持つ Resolve process で集約します。
 
 ```markdown
