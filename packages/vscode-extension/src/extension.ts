@@ -5144,24 +5144,21 @@ function renderProcessStepDetails(
   detailedReferences: boolean
 ): string[] {
   const renderDetail = (detail: typeof step.details[number]) => renderProcessStepDetail(result, detail, detailedReferences);
+  const normalizedName = normalizeProcessStepName(step.name);
 
-  if (normalizeProcessStepName(step.name) !== "httprequest") {
-    if (normalizeProcessStepName(step.name) === "servercall") {
+  if (normalizedName !== "httprequest") {
+    if (normalizedName === "servercall") {
       return renderServerCallDetails(result, step, detailedReferences, renderDetail);
     }
-    return step.details.map(renderDetail);
+    return renderNestedProcessDetails(result, step.details, detailedReferences);
   }
 
   const requestDetail = step.details.find((detail) => detail.key === "request");
   if (!requestDetail) {
-    return step.details.map(renderDetail);
+    return renderNestedProcessDetails(result, step.details, detailedReferences);
   }
 
-  const requestParams = step.details.filter((detail) => detail !== requestDetail);
-  const nestedParams = requestParams.length > 0
-    ? `<ul class="spec-list spec-nested-list">${requestParams.map((detail) => `<li>${renderDetail(detail)}</li>`).join("")}</ul>`
-    : "";
-  return [`${renderDetail(requestDetail)}${nestedParams}`];
+  return renderNestedProcessDetails(result, normalizeHttpRequestDetails(step.details, requestDetail), detailedReferences);
 }
 
 function renderProcessStepDetail(
@@ -5182,15 +5179,84 @@ function renderServerCallDetails(
 ): string[] {
   const callDetail = step.details.find((detail) => detail.key === "call");
   if (!callDetail) {
-    return step.details.map(renderDetail);
+    return renderNestedProcessDetails(result, step.details, detailedReferences);
   }
 
   const parameters = step.details.filter((detail) => detail !== callDetail);
   const call = detailedReferences ? renderDetailParamSource(result, callDetail.value) : renderParamSource(result, callDetail.value);
   const nestedParams = parameters.length > 0
-    ? `<ul class="spec-list spec-nested-list">${parameters.map((detail) => `<li>${renderDetail(detail)}</li>`).join("")}</ul>`
+    ? `<ul class="spec-list spec-nested-list">${renderNestedProcessDetails(result, parameters, detailedReferences).map((detail) => `<li>${detail}</li>`).join("")}</ul>`
     : "";
   return [`${call}${nestedParams}`];
+}
+
+function normalizeHttpRequestDetails(
+  details: ReturnType<typeof parseMarkVSpec>["actions"][number]["processSteps"][number]["details"],
+  requestDetail: ReturnType<typeof parseMarkVSpec>["actions"][number]["processSteps"][number]["details"][number]
+): ReturnType<typeof parseMarkVSpec>["actions"][number]["processSteps"][number]["details"] {
+  return details.map((detail) => {
+    if (detail === requestDetail || detail.key.includes(".")) {
+      return detail;
+    }
+    return { ...detail, key: `request.params.${detail.key}` };
+  });
+}
+
+interface ProcessDetailNode {
+  key: string;
+  detail?: ReturnType<typeof parseMarkVSpec>["actions"][number]["processSteps"][number]["details"][number];
+  children: ProcessDetailNode[];
+}
+
+function renderNestedProcessDetails(
+  result: ReturnType<typeof parseMarkVSpec>,
+  details: ReturnType<typeof parseMarkVSpec>["actions"][number]["processSteps"][number]["details"],
+  detailedReferences: boolean
+): string[] {
+  const nodes: ProcessDetailNode[] = [];
+  for (const detail of details) {
+    addProcessDetailNode(nodes, detail.key.split(".").filter(Boolean), detail);
+  }
+  return nodes.map((node) => renderProcessDetailNode(result, node, detailedReferences));
+}
+
+function addProcessDetailNode(
+  nodes: ProcessDetailNode[],
+  path: string[],
+  detail: ReturnType<typeof parseMarkVSpec>["actions"][number]["processSteps"][number]["details"][number]
+): void {
+  if (path.length === 0) {
+    return;
+  }
+
+  const [key, ...children] = path;
+  let node = nodes.find((candidate) => candidate.key === key);
+  if (!node) {
+    node = { key, children: [] };
+    nodes.push(node);
+  }
+
+  if (children.length === 0) {
+    node.detail = detail;
+    return;
+  }
+
+  addProcessDetailNode(node.children, children, detail);
+}
+
+function renderProcessDetailNode(
+  result: ReturnType<typeof parseMarkVSpec>,
+  node: ProcessDetailNode,
+  detailedReferences: boolean
+): string {
+  const key = detailedReferences ? renderDetailParamSource(result, node.key) : renderParamSource(result, node.key);
+  const label = node.detail
+    ? `${key}: ${detailedReferences ? renderDetailParamSource(result, node.detail.value) : renderParamSource(result, node.detail.value)}`
+    : key;
+  const children = node.children.length > 0
+    ? `<ul class="spec-list spec-nested-list">${node.children.map((child) => `<li>${renderProcessDetailNode(result, child, detailedReferences)}</li>`).join("")}</ul>`
+    : "";
+  return `${label}${children}`;
 }
 
 function renderProcessStepCases(

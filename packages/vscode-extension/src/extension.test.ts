@@ -4972,11 +4972,88 @@ title: Multi Request
 
   assert.doesNotMatch(actionDetail, /<dt>Request<\/dt>|<dt>Parameters<\/dt>/);
   assert.doesNotMatch(actionDetail, /<dt>Overview<\/dt>/);
-  assert.match(actionDetail, new RegExp(`<dt>Process</dt><dd>[\\s\\S]*<li>HttpRequest<ul class="spec-list spec-effect-list"><li>request: GET /users\\?filter=&lt;active&gt;<ul class="spec-list spec-nested-list"><li>page: ${sourceCodePattern("${model.requestedPage}")}</li></ul></li><li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 users[\\s\\S]*effect set state ${docLabel("loaded", "state")}[\\s\\S]*stop process`));
-  assert.match(actionDetail, new RegExp(`<li>HttpRequest<ul class="spec-list spec-effect-list"><li>request: GET /roles<ul class="spec-list spec-nested-list"><li>requestedPage: ${sourceCodePattern("${model.requestedPage}")}</li></ul></li><li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 roles[\\s\\S]*effect set state ${docLabel("roles-loaded", "state")}[\\s\\S]*<strong>${docLabel("failure", "result")}</strong>[\\s\\S]*response HTTP error`));
+  assert.match(actionDetail, new RegExp(`<dt>Process</dt><dd>[\\s\\S]*<li>HttpRequest<ul class="spec-list spec-effect-list"><li>request: GET /users\\?filter=&lt;active&gt;<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>page: ${sourceCodePattern("${model.requestedPage}")}</li></ul></li></ul></li><li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 users[\\s\\S]*effect set state ${docLabel("loaded", "state")}[\\s\\S]*stop process`));
+  assert.match(actionDetail, new RegExp(`<li>HttpRequest<ul class="spec-list spec-effect-list"><li>request: GET /roles<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>requestedPage: ${sourceCodePattern("${model.requestedPage}")}</li></ul></li></ul></li><li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 roles[\\s\\S]*effect set state ${docLabel("roles-loaded", "state")}[\\s\\S]*<strong>${docLabel("failure", "result")}</strong>[\\s\\S]*response HTTP error`));
   assert.doesNotMatch(actionDetail, /flow (?:stop|continue)/);
   assert.doesNotMatch(actionDetail, /<dt>Case success<\/dt>|<dt>Case failure<\/dt>|<dt>Responses<\/dt>/);
   assert.doesNotMatch(actionDetail, /<active>/);
+});
+
+test("renders nested process detail params without flattened dot keys", () => {
+  const source = `---
+id: SCR-NESTED-PROCESS-DETAILS
+type: screen
+title: Nested Process Details
+---
+
+# SCR-NESTED-PROCESS-DETAILS Nested Process Details
+
+## States
+
+- idle*
+
+## Elements
+
+### 1:E-EmailInput Input
+
+### 2:E-PlanSelect Select
+
+### 3:E-SubmitButton Button
+
+- label: Submit
+
+## Actions
+
+### A-Submit Submit
+
+- Triggered
+  - E-SubmitButton.click
+- From
+  - idle
+- Process: SubmitSubscription
+  - request:
+    - method: POST
+    - path: /subscriptions
+    - params:
+      - email: E-EmailInput.value
+      - plan: E-PlanSelect.value
+  - server:
+    - SubscriptionService.prepare()
+    - params:
+      - email: E-EmailInput.value
+  - sync:
+    - SubscriptionService.create()
+    - params:
+      - email: E-EmailInput.value
+      - plan: E-PlanSelect.value
+  - result:
+    - subscription request
+- Process: ServerCall
+  - server:
+    - SubscriptionService.persist()
+    - params:
+      - email: E-EmailInput.value
+  - response:
+    - HTTP 200 persisted subscription
+    - params:
+      - subscriptionId: response.id
+  - validation:
+    - V-SubscriptionForm.result
+    - params:
+      - email: E-EmailInput.value
+`;
+  const result = parseMarkVSpec(source);
+  const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
+  const html = renderDesignDocumentHtml(result, preview);
+  const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Submit">[\s\S]*?<\/article>/)?.[0] ?? "";
+
+  assert.match(actionDetail, new RegExp(`<li>request<ul class="spec-list spec-nested-list">[\\s\\S]*<li>method: POST</li>[\\s\\S]*<li>path: /subscriptions</li>[\\s\\S]*<li>params<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li><li>plan: ${detailElementRef("2", "E-PlanSelect")}\\.value</li></ul></li>[\\s\\S]*</ul></li>`));
+  assert.match(actionDetail, new RegExp(`<li>server: SubscriptionService\\.prepare\\(\\)<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
+  assert.match(actionDetail, new RegExp(`<li>sync: SubscriptionService\\.create\\(\\)<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li><li>plan: ${detailElementRef("2", "E-PlanSelect")}\\.value</li></ul></li></ul></li>`));
+  assert.match(actionDetail, new RegExp(`<li>ServerCall<ul class="spec-list spec-effect-list"><li>server: SubscriptionService\\.persist\\(\\)<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
+  assert.match(actionDetail, /<li>response: HTTP 200 persisted subscription<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>subscriptionId: response\.id<\/li><\/ul><\/li><\/ul><\/li>/);
+  assert.match(actionDetail, new RegExp(`<li>validation: ${detailIdRef("V-SubscriptionForm")}\\.result<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
+  assert.doesNotMatch(actionDetail, /request\.params|server\.params|sync\.params|response\.params|validation\.params/);
 });
 
 test("renders parallel process groups and resolve steps", () => {
