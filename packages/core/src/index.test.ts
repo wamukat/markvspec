@@ -10550,6 +10550,7 @@ title: Process Granularity
   assert.equal(validStep?.display?.target, "L-Message");
   assert.equal(validStep?.display?.content, "Opened message");
   assert.deepEqual(result.actions.find((action) => action.id === "A-Open")?.transitions.map((transition) => [transition.from, transition.to]), [["idle", "opened"]]);
+  assert(!messages.some((message) => message.includes("unsupported Effects entry: display")));
   assert(messages.includes("Action A-Invalid process step P1 Mixed request and direct effect mixes an execution detail with direct immediate effects. Move effects under a case or split the Process."));
   assert(messages.includes("Action A-Invalid process step P2 Multiple calls contains multiple execution detail blocks (request, sync). Split them into separate Process steps."));
 });

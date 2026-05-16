@@ -621,6 +621,11 @@ function applyProcessStepEffect(
   const key = keyPart.trim();
   const value = valuePart?.trim();
 
+  if (key === "display") {
+    ensureStepDisplayEffect(step, bullet.location);
+    return;
+  }
+
   if (value === undefined) {
     return;
   }
