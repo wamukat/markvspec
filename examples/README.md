@@ -10,6 +10,7 @@ the DSL, preview, State Views, Action Details, and export output.
 - `02-states/responsive-profile.vspec.md`: mobile and desktop layouts for the same states.
 - `03-actions/event-triggers.vspec.md`: non-click element events and lifecycle triggers.
 - `03-actions/form-submit-flow.vspec.md`: validate, model update, server call, and navigation.
+- `03-actions/single-field-validation.vspec.md`: single-field validation contracts and input constraints.
 - `03-actions/parallel-initial-load.vspec.md`: parallel server calls and final Resolve.
 - `04-real-world-screens/notice-detail.vspec.md`: Display Content Spec fields for wording, data sources, formatting, values, and navigation params.
 - `04-real-world-screens/profile-edit-rich.vspec.md`: extended form, media, list, and dialog element types.

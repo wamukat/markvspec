@@ -160,12 +160,12 @@ server, and navigates only after a successful response.
 
 ## Validations
 
-### V-SubmitRequest Required subscription fields
+### V-SubmitRequest Required subscription email
 
-- target: F-SubmitRequest
+- target: E-EmailInput
 - rules:
   - required:
     - E-EmailInput
-- scope: composite
+- scope: field
 - run: client
 - message: Email is required before submitting the subscription request.
