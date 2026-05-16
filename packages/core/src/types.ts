@@ -377,10 +377,12 @@ export interface MarkVSpecProcessStep {
   results: MarkVSpecProcessStepDetail[];
   details: MarkVSpecProcessStepDetail[];
   outcomes: MarkVSpecActionOutcome[];
+  to?: string;
   target?: string;
   mode?: string;
   fragment?: string;
   content?: string;
+  display?: MarkVSpecDisplayEffect;
   sideEffects: string[];
   propertyLocations: Record<string, SourceLocation[]>;
   location: SourceLocation;

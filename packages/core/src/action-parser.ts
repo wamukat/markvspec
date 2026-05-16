@@ -403,6 +403,11 @@ function applyProcessStepBullet(
     return;
   }
 
+  if (isProcessStepDirectEffect(key, value, currentNestedBlock)) {
+    applyProcessStepEffect(action, step, bullet, currentNestedBlock, diagnostics);
+    return;
+  }
+
   if (isProcessDetailNestedBlock(currentNestedBlock)) {
     if (value === undefined || value === "") {
       const normalized = normalizeBlockLabel(bullet.text);
@@ -628,6 +633,8 @@ function applyProcessStepEffect(
   }
 
   if (key === "state" || key === "navigate") {
+    step.to = value;
+    addPropertyLocation(step.propertyLocations, key, bullet.location);
     for (const from of action.fromStates) {
       action.transitions.push({
         from,
@@ -636,6 +643,18 @@ function applyProcessStepEffect(
         raw: `${key}: ${value}`
       });
     }
+    return;
+  }
+
+  if (currentNestedBlock === "display" && value !== undefined) {
+    applyDisplayEffectToStep(step, key, value, bullet.location);
+    return;
+  }
+
+  if (currentNestedBlock === "display-content" && value !== undefined) {
+    const display = ensureStepDisplayEffect(step, bullet.location);
+    display.contentSource.push({ key, value, location: bullet.location });
+    addPropertyLocation(display.propertyLocations, `content.${key}`, bullet.location);
     return;
   }
 
@@ -662,6 +681,39 @@ function applyProcessStepEffect(
     message: `Action ${action.id} process step ${step.name} has unsupported Effects entry: ${bullet.text}. Use model, view, state, navigate, or update.`,
     line: bullet.location.line
   });
+}
+
+function isProcessStepDirectEffect(key: string, value: string | undefined, currentNestedBlock: ProcessNestedBlock | undefined): boolean {
+  if (currentNestedBlock === "display" || currentNestedBlock === "display-content" || currentNestedBlock === "update") {
+    return true;
+  }
+
+  if (value === undefined) {
+    return false;
+  }
+
+  return key === "state" || key === "navigate" || key === "display" || key === "update" || structuredSideEffect(key, value) !== undefined;
+}
+
+function ensureStepDisplayEffect(step: MarkVSpecProcessStep, location: SourceLocation): NonNullable<MarkVSpecProcessStep["display"]> {
+  step.display ??= {
+    contentSource: [],
+    location,
+    propertyLocations: {}
+  };
+  return step.display;
+}
+
+function applyDisplayEffectToStep(step: MarkVSpecProcessStep, key: string, value: string, location: SourceLocation): void {
+  const display = ensureStepDisplayEffect(step, location);
+  if (key === "target") {
+    display.target = value;
+  } else if (key === "content") {
+    display.content = value;
+  } else {
+    display.contentSource.push({ key, value, location });
+  }
+  addPropertyLocation(display.propertyLocations, key, location);
 }
 
 function applyActionStructuredEffect(

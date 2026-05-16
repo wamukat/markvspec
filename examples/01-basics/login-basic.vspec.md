@@ -344,9 +344,7 @@ success or failure is handled by `A-HandleLoginResponse`.
 - From
   - idle
 - Process P1: Apply immediate effect
-  - case: done
-    - Effects
-      - navigate: SCR-PASSWORD-RESET
+  - navigate: SCR-PASSWORD-RESET
 
 ## Validations
 

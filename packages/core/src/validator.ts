@@ -604,8 +604,10 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
 
       validateUpdateMode(action.id, step, diagnostics, `process step ${step.name}`);
       validateProcessStepReferences(action.id, step, validationIds, errorCodeIds, diagnostics);
+      validateProcessGranularity(action.id, step, diagnostics);
       validateProcessDataReferences(action.id, step, actionIds, processMarkersByAction, layoutIds, elementIds, diagnostics);
       collectPartialReference(step.content, firstPropertyLocation(step, "content") ?? step.location, referencedPartialIds);
+      validateDisplayEffect(action.id, `process step ${processStepLabel(step)}`, step.display, targetLayoutIds, elementIds, layoutIdsByViewport, diagnostics, referencedPartialIds);
 
       for (const outcome of step.outcomes) {
         validateProcessCaseFlowPlacement(action.id, step, outcome, diagnostics);
@@ -1160,6 +1162,33 @@ function validateUpdateMode(
   }
 }
 
+function validateProcessGranularity(actionId: string, step: MarkVSpecProcessStep, diagnostics: MarkVSpecDiagnostic[]): void {
+  const executionDetails = processExecutionDetails(step);
+  if (executionDetails.length > 1) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Action ${actionId} process step ${processStepLabel(step)} contains multiple execution detail blocks (${executionDetails.map((detail) => detail.name).join(", ")}). Split them into separate Process steps.`,
+      line: executionDetails[1]?.location.line ?? step.location.line
+    });
+  }
+
+  const directEffectLocation = firstDirectProcessEffectLocation(step);
+  const hasClassification = step.outcomes.length > 0 || step.receives.length > 0 || step.results.length > 0;
+  if (directEffectLocation && executionDetails.length > 0) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Action ${actionId} process step ${processStepLabel(step)} mixes an execution detail with direct immediate effects. Move effects under a case or split the Process.`,
+      line: directEffectLocation.line
+    });
+  } else if (directEffectLocation && hasClassification) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Action ${actionId} process step ${processStepLabel(step)} mixes result classification with direct immediate effects. Use case Effects for classified results.`,
+      line: directEffectLocation.line
+    });
+  }
+}
+
 function validateProcessCaseFlowPlacement(
   actionId: string,
   step: MarkVSpecProcessStep,
@@ -1223,6 +1252,70 @@ function processCaseEntryLocations(outcome: MarkVSpecActionOutcome, currentDirec
     locations.push(routeParam.location);
   }
   return locations;
+}
+
+function processExecutionDetails(step: MarkVSpecProcessStep): { name: string; location: SourceLocation }[] {
+  const details = new Map<string, SourceLocation>();
+  const normalizedStep = normalizeProcessName(step.name);
+
+  if ((normalizedStep === "httprequest" || normalizedStep === "http request") && step.details.some((detail) => detail.key === "request")) {
+    const request = step.details.find((detail) => detail.key === "request");
+    if (request) {
+      details.set("request", request.location);
+    }
+  }
+
+  if ((normalizedStep === "servercall" || normalizedStep === "server call") && step.details.length > 0) {
+    details.set("server", step.details[0]?.location ?? step.location);
+  }
+
+  for (const detail of step.details) {
+    const root = processExecutionDetailRoot(detail.key);
+    if (!root || root === "params") {
+      continue;
+    }
+
+    details.set(root, details.get(root) ?? detail.location);
+  }
+
+  return [...details.entries()].map(([name, location]) => ({ name, location }));
+}
+
+function processExecutionDetailRoot(key: string): string | undefined {
+  const root = key.split(".")[0]?.trim();
+  if (!root) {
+    return undefined;
+  }
+
+  if (["request", "server", "sync", "call"].includes(root)) {
+    return root === "call" ? "server" : root;
+  }
+
+  if (key.includes(".")) {
+    return root;
+  }
+
+  return undefined;
+}
+
+function normalizeProcessName(name: string): string {
+  return name.trim().replace(/\s+/gu, " ").toLowerCase();
+}
+
+function firstDirectProcessEffectLocation(step: MarkVSpecProcessStep): SourceLocation | undefined {
+  return [
+    firstPropertyLocation(step, "state"),
+    firstPropertyLocation(step, "navigate"),
+    firstPropertyLocation(step, "model"),
+    firstPropertyLocation(step, "view"),
+    firstPropertyLocation(step, "target"),
+    firstPropertyLocation(step, "mode"),
+    firstPropertyLocation(step, "fragment"),
+    firstPropertyLocation(step, "content"),
+    step.display?.location
+  ]
+    .filter((location): location is SourceLocation => Boolean(location))
+    .sort((a, b) => a.line - b.line)[0];
 }
 
 function validateProcessStepReferences(

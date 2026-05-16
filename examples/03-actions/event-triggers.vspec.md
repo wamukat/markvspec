@@ -217,9 +217,7 @@ used around a form-like preferences screen.
 - From
   - editing
 - Process P1: Apply immediate effect
-  - case: done
-    - Effects
-      - state: editing
+  - state: editing
 
 ### A3:A-ValidateEmail Validate email on blur
 

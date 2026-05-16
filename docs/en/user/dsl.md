@@ -1552,6 +1552,12 @@ project-specific execution notes. MarkVSpec preserves custom detail structure
 but does not assign portable semantics to it unless a generator explicitly opts
 in.
 
+Treat a Process as one meaningful processing unit. A single Process should
+contain at most one execution detail block such as `request:`, `server:`,
+`sync:`, or another project-specific custom detail. If an action performs two
+independent calls, split them into two Process steps and connect them with
+`continue` / `receive` / a later Resolve process as needed.
+
 Use `request.params`, `server.params`, or `<custom detail>.params` as the
 canonical source for values passed to a request, server call, or project-specific
 execution detail. Use `receive:` when a process classifies an external event,
@@ -1569,6 +1575,19 @@ For execution processes, write the process in this order:
 external data, write `receive -> case`. `prepare:` is not part of the current
 DSL; if a future process needs to describe meaningful pre-execution derivation,
 it should not duplicate values already captured by params.
+
+For deterministic immediate effects with no execution detail and no result
+classification, omit `case:` and `Effects` and put the effects directly under
+the Process:
+
+```markdown
+- Process P1: Open password reset
+  - navigate: SCR-PASSWORD-RESET
+```
+
+Use this short form only for immediate screen/data effects. Once the Process has
+`request:`, `server:`, `sync:`, `receive:`, `result:`, or any `case:`, put
+result-specific effects under that case's `Effects` block.
 
 ```markdown
 ## Actions

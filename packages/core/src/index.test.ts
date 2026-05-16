@@ -2985,6 +2985,7 @@ title: Points Content
 - Process: PartialRequest
   - request: GET /points/content
   - partial: PRT-POINTS-CONTENT
+- Process: Immediate
   - update:
     - target: L-PointsContent
     - mode: replace
@@ -4742,7 +4743,7 @@ test("parses the login screen example", () => {
   assert.equal(forgotPasswordAction?.triggeredBy, "E-ForgotPasswordLink.click");
   assert.deepEqual(forgotPasswordAction?.trigger, { elementId: "E-ForgotPasswordLink", event: "click" });
   assert.deepEqual(forgotPasswordAction?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
-    ["idle", "done", "SCR-PASSWORD-RESET"]
+    ["idle", undefined, "SCR-PASSWORD-RESET"]
   ]);
 });
 
@@ -8499,6 +8500,7 @@ title: Self Partial
 - Process: PartialRequest
   - request: GET /partials/self
   - partial: PRT-SELF
+- Process: Immediate
   - update:
     - target: L-Self
     - mode: replace
@@ -9320,23 +9322,29 @@ references:
   - partial: PRT-POINTS-PANEL
   - params:
     - page: 1
-  - update:
-    - target: L-PointsPanel
-    - mode: replace
   - case: success-items
     - response: HTTP 200 items > 0
     - Effects
       - state: idle
+      - update:
+        - target: L-PointsPanel
+        - mode: replace
     - Stop
   - case: success-empty
     - response: HTTP 200 items = 0
     - Effects
       - state: empty
+      - update:
+        - target: L-PointsPanel
+        - mode: replace
     - Continue
   - case: failure
     - response: HTTP error
     - Effects
       - state: load-error
+      - update:
+        - target: L-PointsPanel
+        - mode: replace
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-LoadPoints");
@@ -10447,11 +10455,9 @@ title: Compact Action
 - From
   - idle
 - Process: Immediate
-  - Effects
-    - view: \${view.selectedTab} = results
+  - view: \${view.selectedTab} = results
 - Process: ModelUpdate
-  - Effects
-    - model: \${model.searchRequest.keyword} = E-KeywordInput.value
+  - model: \${model.searchRequest.keyword} = E-KeywordInput.value
 - Process: HttpRequest
   - GET /search
     - keyword: E-KeywordInput.value
@@ -10476,6 +10482,76 @@ title: Compact Action
   assert.deepEqual(action.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
     ["idle", "success", "loaded"]
   ]);
+});
+
+test("validates process granularity and direct immediate effects", () => {
+  const source = `---
+id: SCR-PROCESS-GRANULARITY
+type: screen
+title: Process Granularity
+---
+# SCR-PROCESS-GRANULARITY Process Granularity
+
+## States
+
+- idle*
+- opened
+
+## Layout
+
+### L-Message Message
+
+- stack
+
+## Elements
+
+### E-OpenButton Button
+
+- label: Open
+
+## Actions
+
+### A-Open Open
+
+- Triggered
+  - E-OpenButton.click
+- From
+  - idle
+- Process P1: Open immediately
+  - state: opened
+  - display:
+    - target: L-Message
+    - content: Opened message
+
+### A-Invalid Invalid
+
+- Triggered
+  - E-OpenButton.click
+- From
+  - idle
+- Process P1: Mixed request and direct effect
+  - request:
+    - method: POST
+    - path: /open
+  - state: opened
+- Process P2: Multiple calls
+  - request:
+    - method: POST
+    - path: /open
+  - sync:
+    - AuditService.record()
+`;
+
+  const result = parseMarkVSpec(source);
+  const validStep = result.actions.find((action) => action.id === "A-Open")?.processSteps[0];
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert.equal(validStep?.to, "opened");
+  assert.equal(validStep?.display?.target, "L-Message");
+  assert.equal(validStep?.display?.content, "Opened message");
+  assert.deepEqual(result.actions.find((action) => action.id === "A-Open")?.transitions.map((transition) => [transition.from, transition.to]), [["idle", "opened"]]);
+  assert(messages.includes("Action A-Invalid process step P1 Mixed request and direct effect mixes an execution detail with direct immediate effects. Move effects under a case or split the Process."));
+  assert(messages.includes("Action A-Invalid process step P2 Multiple calls contains multiple execution detail blocks (request, sync). Split them into separate Process steps."));
 });
 
 test("parses architecture-neutral process markers, display effects, and preview scenario cases", () => {

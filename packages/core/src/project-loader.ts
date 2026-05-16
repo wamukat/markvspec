@@ -690,6 +690,7 @@ function cloneTemplateActions(actions: MarkVSpecParseResult["actions"]): MarkVSp
     outcomes: action.outcomes.map((outcome) => ({
       ...outcome,
       response: outcome.response ? { ...outcome.response } : undefined,
+      display: outcome.display ? cloneDisplayEffect(outcome.display) : undefined,
       sideEffects: outcome.sideEffects.slice(),
       errorCodes: outcome.errorCodes.slice(),
       routeParams: outcome.routeParams.map((param) => ({ ...param })),
@@ -700,9 +701,11 @@ function cloneTemplateActions(actions: MarkVSpecParseResult["actions"]): MarkVSp
       when: step.when.slice(),
       skipWhen: step.skipWhen.slice(),
       details: step.details.map((detail) => ({ ...detail })),
+      display: step.display ? cloneDisplayEffect(step.display) : undefined,
       outcomes: step.outcomes.map((outcome) => ({
         ...outcome,
         response: outcome.response ? { ...outcome.response } : undefined,
+        display: outcome.display ? cloneDisplayEffect(outcome.display) : undefined,
         sideEffects: outcome.sideEffects.slice(),
         errorCodes: outcome.errorCodes.slice(),
         routeParams: outcome.routeParams.map((param) => ({ ...param })),
@@ -751,6 +754,14 @@ function cloneSlotContents(contents: MarkVSpecParseResult["slotContents"]): Mark
 
 function cloneProperties<T extends Record<string, unknown>>(properties: T, stripMarkers = false): T {
   return Object.fromEntries(Object.entries(properties).filter(([key]) => !stripMarkers || key !== "marker")) as T;
+}
+
+function cloneDisplayEffect<T extends NonNullable<MarkVSpecParseResult["actions"][number]["outcomes"][number]["display"]>>(display: T): T {
+  return {
+    ...display,
+    contentSource: display.contentSource.map((detail) => ({ ...detail })),
+    propertyLocations: clonePropertyLocations(display.propertyLocations)
+  };
 }
 
 function clonePropertyLocations<T extends Record<string, unknown[]>>(locations: T, stripMarkers = false): T {

@@ -1151,11 +1151,22 @@ Process は Action 内で一意な marker と、人間が読む process name を
 
 `P1`、`P2` のような marker は Preview Scenarios や後続 Process から参照するための安定 ID です。process name は任意の説明文であり、固定 enum ではありません。`request:`、`server:`、`response:`、`validation:` は既知の process detail であり、Process type ではありません。プロジェクト固有の実行メモを残したい場合は、`sync:` のような custom process detail block も使えます。MarkVSpec は custom detail の構造を保持しますが、generator が明示的に対応しない限り portable な意味は割り当てません。
 
+Process は、1つの意味のある処理単位として扱います。1つの Process に入れられる execution detail block は、`request:`、`server:`、`sync:`、その他の project-specific custom detail のうち最大1つです。1つの Action で独立した呼び出しを2つ行う場合は、Process を分け、必要に応じて `continue` / `receive` / 後段の Resolve process で接続します。
+
 Process が request、server call、project-specific execution detail へ渡す値は、`request.params`、`server.params`、または `<custom detail>.params` を一次情報として書きます。`receive:` は外部 event、validation result、または前段 Process の結果を受け取って分類する場合に使います。Validation contract は `V-LoginForm.result` のような opaque source として受け取ります。
 
 Process が編集可能な画面要素に現在表示されている値を読む場合は、`${model.email}` ではなく `E-EmailInput.value` のような element value source を優先します。`${model.*}` を execution params で使うのは、現在ページ番号や計算済みの次ページ番号のように、要素値ではなく派生済みまたは保持済みの model state を意図的に読む場合に限ります。
 
 実行 Process は、`request/server/custom detail -> result -> case` の順に書きます。外部データを受け取る Process は `receive -> case` として書きます。`prepare:` は現時点の DSL には導入しません。将来、送信前の意味的な導出を表す必要が出た場合でも、params と同じ値を重複して書く場所にはしません。
+
+execution detail も result classification も持たない、決定的な即時効果だけの Process では、`case:` と `Effects` を省略し、効果を Process 直下に書けます。
+
+```markdown
+- Process P1: Open password reset
+  - navigate: SCR-PASSWORD-RESET
+```
+
+この短縮形は、即時の screen/data effect だけに使います。Process が `request:`、`server:`、`sync:`、`receive:`、`result:`、または `case:` を持つ場合は、結果ごとの効果をその case の `Effects` 配下に書きます。
 
 ```markdown
 ### A1:A-SubmitLogin ログイン送信

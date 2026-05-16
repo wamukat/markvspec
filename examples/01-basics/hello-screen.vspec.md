@@ -61,6 +61,4 @@ wireframe and Action Details without introducing request handling.
 - From
   - idle
 - Process P1: Apply immediate effect
-  - case: done
-    - Effects
-      - navigate: SCR-NEXT
+  - navigate: SCR-NEXT
