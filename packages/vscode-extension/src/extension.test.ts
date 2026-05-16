@@ -2018,6 +2018,22 @@ viewport: mobile
   assert.doesNotMatch(scenarioDeferredRow, /mm-unplaced-badge/);
 });
 
+test("does not mark template slot content layouts as unplaced when rendered in state wireframes", () => {
+  const sourcePath = resolve(extensionRoot, "../../examples/05-reuse/profile-page-with-template.vspec.md");
+  const source = readFileSync(sourcePath, "utf8");
+  const loaded = loadScreenDocumentResult(createTextDocument(source, sourcePath) as vscode.TextDocument);
+  const html = renderDesignDocumentHtml(loaded.result, "", loaded.focus ? { focus: loaded.focus, messages: loaded.messages } : { messages: loaded.messages });
+  const idleSection = stateViewTitleSection(html, "idle");
+  const rows = idleSection.match(/<tr>[\s\S]*?<\/tr>/g) ?? [];
+  const profileContentRow = rows.find((row) => row.includes(`>L-ProfileContent<`)) ?? "";
+  const profileSummaryHostRow = rows.find((row) => row.includes(`>L-ProfileSummaryHost<`)) ?? "";
+
+  assert.match(idleSection, /data-mm-id="L-ProfileContent"/);
+  assert.match(idleSection, /data-mm-id="L-ProfileSummaryHost"/);
+  assert.doesNotMatch(profileContentRow, /mm-unplaced-badge/);
+  assert.doesNotMatch(profileSummaryHostRow, /mm-unplaced-badge/);
+});
+
 test("renders preview toolbar labels with external renderer messages", () => {
   const result = parseMarkVSpec(`---
 id: SCR-TOOLBAR-MESSAGES

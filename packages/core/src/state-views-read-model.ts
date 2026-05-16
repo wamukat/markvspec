@@ -569,7 +569,7 @@ function stateScreenPlacedLayoutIdsForModel(result: MarkVSpecParseResult, model:
   }) : [];
   const layoutById = new Map(layoutGroups.map((group) => [group.id, group]));
   const slotContentsByName = stateScreenSlotContentsByName(result.slotContents);
-  const placedLayoutIds = new Set<string>();
+  const placedLayoutIds = new Set<string>(model.renderedIds.layoutIds);
 
   const visitLayout = (group: ParsedLayout, currentLayoutById: Map<string, ParsedLayout>, currentViewport: string, visited: Set<string>) => {
     if (visited.has(group.id)) {

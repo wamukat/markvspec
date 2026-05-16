@@ -23,8 +23,7 @@ interface ExampleAuditDocument {
 const workspaceRoot = findWorkspaceRoot(process.cwd());
 const examplesRoot = resolve(workspaceRoot, "examples");
 const knownIssueTickets: Record<string, string> = {
-  "ja-ui-english-leftover": "MarkVSpec#1072",
-  "not-placed-visible-layout": "MarkVSpec#1076"
+  "ja-ui-english-leftover": "MarkVSpec#1072"
 };
 
 test("audits example preview regressions across shipped examples", () => {

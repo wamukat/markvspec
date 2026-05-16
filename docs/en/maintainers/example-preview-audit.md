@@ -28,4 +28,3 @@ Japanese Kanbalone ticket instead of folding the fix into the audit ticket.
 Current known allowlist:
 
 - `MarkVSpec#1072`: Japanese Action Details still contain generated English text.
-- `MarkVSpec#1076`: composed template slot layouts can be visible while marked not placed.

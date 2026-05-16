@@ -25,4 +25,3 @@ audit が新しい product bug を見つけた場合は、audit ticket に修正
 現在の既知 allowlist:
 
 - `MarkVSpec#1072`: 日本語 Action Details に英語生成文が残る。
-- `MarkVSpec#1076`: template slot 配置済み layout が visible なのに not placed 表示されることがある。
