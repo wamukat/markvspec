@@ -292,12 +292,9 @@ used around a form-like preferences screen.
 - From
   - editing
 - Process P1: Apply immediate effect
-  - case: done
-    - Effects
-      - display:
-        - target: L-DialogArea
-        - content: Dialog is dismissed
-    - stop
+  - display:
+    - target: L-DialogArea
+    - content: Dialog is dismissed
 
 ### A7:A-SubmitPreferences Submit preferences
 

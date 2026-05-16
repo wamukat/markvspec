@@ -10540,6 +10540,16 @@ title: Process Granularity
     - path: /open
   - sync:
     - AuditService.record()
+- Process P3: Custom detail and direct effect
+  - audit:
+    - AuditService.record()
+  - state: opened
+- Process P4: Request and custom detail
+  - request:
+    - method: POST
+    - path: /open
+  - audit:
+    - AuditService.record()
 `;
 
   const result = parseMarkVSpec(source);
@@ -10553,6 +10563,8 @@ title: Process Granularity
   assert(!messages.some((message) => message.includes("unsupported Effects entry: display")));
   assert(messages.includes("Action A-Invalid process step P1 Mixed request and direct effect mixes an execution detail with direct immediate effects. Move effects under a case or split the Process."));
   assert(messages.includes("Action A-Invalid process step P2 Multiple calls contains multiple execution detail blocks (request, sync). Split them into separate Process steps."));
+  assert(messages.includes("Action A-Invalid process step P3 Custom detail and direct effect mixes an execution detail with direct immediate effects. Move effects under a case or split the Process."));
+  assert(messages.includes("Action A-Invalid process step P4 Request and custom detail contains multiple execution detail blocks (request, audit). Split them into separate Process steps."));
 });
 
 test("parses architecture-neutral process markers, display effects, and preview scenario cases", () => {

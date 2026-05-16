@@ -1278,6 +1278,18 @@ function processExecutionDetails(step: MarkVSpecProcessStep): { name: string; lo
     details.set(root, details.get(root) ?? detail.location);
   }
 
+  for (const [key, locations] of Object.entries(step.propertyLocations)) {
+    if (!key.startsWith("detail ")) {
+      continue;
+    }
+
+    const name = key.slice("detail ".length).trim();
+    const location = locations[0];
+    if (name && location) {
+      details.set(name, details.get(name) ?? location);
+    }
+  }
+
   return [...details.entries()].map(([name, location]) => ({ name, location }));
 }
 

@@ -442,6 +442,9 @@ function applyProcessStepBullet(
   }
 
   if ((value === undefined || value === "") && (isProcessDetailBlockLabel(normalizeBlockLabel(bullet.text)) || isCustomProcessDetailBlockStart(bullet.text) || ["input", "receive", "result"].includes(normalizeBlockLabel(bullet.text)))) {
+    if (isCustomProcessDetailBlockStart(bullet.text)) {
+      addPropertyLocation(step.propertyLocations, `detail ${normalizeBlockLabel(bullet.text)}`, bullet.location);
+    }
     if (normalizeBlockLabel(bullet.text) === "input") {
       diagnostics.push({
         severity: "warning",
