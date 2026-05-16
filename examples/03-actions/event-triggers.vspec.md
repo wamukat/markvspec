@@ -341,47 +341,26 @@ used around a form-like preferences screen.
 
 ## Preview Scenarios
 
-### loading
-
-- state: loading
-
-### editing
-
-- state: editing
-
 ### editing-help
 
 - state: editing
+- before: saving
 - cases:
   - A-ShowDeliveryHelp.P1.done
 
 ### editing-validation-error
 
 - state: editing
+- before: saving
 - cases:
   - A-ValidateEmail.P1.invalid
 
 ### editing-confirm-discard
 
 - state: editing
+- before: saved
 - cases:
   - A-RequestDiscardDialog.P1.done
-
-### saving
-
-- state: saving
-
-### saved
-
-- state: saved
-
-### load-error
-
-- state: load-error
-
-### save-error
-
-- state: save-error
 
 ## Validations
 

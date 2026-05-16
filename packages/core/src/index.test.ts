@@ -10117,6 +10117,7 @@ title: View Context
 - state: loaded
 - model: loaded
 - view: help-open
+- before: idle
 `;
 
   const result = parseMarkVSpec(source);
@@ -10129,9 +10130,9 @@ title: View Context
     ["default", { isHelpPanelOpen: "false", selectedTab: "results" }],
     ["help-open", { isHelpPanelOpen: "true", selectedTab: "billing" }]
   ]);
-  assert.deepEqual(result.previewScenarios.map((scenario) => [scenario.name, scenario.state, scenario.model, scenario.view]), [
-    ["idle", "idle", undefined, "default"],
-    ["loaded-help", "loaded", "loaded", "help-open"]
+  assert.deepEqual(result.previewScenarios.map((scenario) => [scenario.name, scenario.state, scenario.model, scenario.view, scenario.before]), [
+    ["idle", "idle", undefined, "default", undefined],
+    ["loaded-help", "loaded", "loaded", "help-open", "idle"]
   ]);
   assert(!result.diagnostics.some((diagnostic) => diagnostic.severity === "error"));
 });
@@ -10178,6 +10179,7 @@ title: Bad View Context
 
 - state: idle
 - view: missing
+- before: missing-preview
 
 ## Actions
 
@@ -10202,9 +10204,49 @@ title: Bad View Context
   assert(messages.includes("View Context Sample default sets isHelpPanelOpen to unsupported value maybe."));
   assert(messages.includes("View Context Sample default references missing view context missing."));
   assert(messages.includes("Preview Scenario idle references missing view context sample missing."));
-  assert(messages.includes("Preview Scenarios must include state loaded."));
+  assert(messages.includes("Preview Scenario idle references missing before target missing-preview."));
   assert(messages.includes("View effect sets isHelpPanelOpen to unsupported value true."));
   assert(messages.includes("View effect references missing view context missingActionView."));
+});
+
+test("adds preview scenarios to baseline state previews and orders before scenarios", () => {
+  const source = `---
+id: SCR-PREVIEW-SCENARIO-ORDER
+type: screen
+title: Preview Scenario Order
+---
+# SCR-PREVIEW-SCENARIO-ORDER Preview Scenario Order
+
+## States
+
+- idle*
+- loaded
+- saved
+
+## Preview Scenarios
+
+### loaded-help
+
+- state: loaded
+- before: saved-help
+
+### saved-help
+
+- state: saved
+- before: saved
+`;
+
+  const result = parseMarkVSpec(source);
+  const models = buildStateScreenReadModels(result, result, undefined);
+
+  assert.deepEqual(result.diagnostics, []);
+  assert.deepEqual(models.map((model) => model.title), [
+    "idle",
+    "loaded",
+    "loaded-help",
+    "saved-help",
+    "saved"
+  ]);
 });
 
 test("renders namespaced state and view conditions", () => {
@@ -10432,6 +10474,7 @@ references:
 ### next-page-empty
 
 - state: empty
+- before: searching
 - cases:
   - A-NextSearchPage.P2.empty
 
@@ -10473,6 +10516,14 @@ references:
     ["A-NextSearchPage", "P2", "success"]
   ]);
   const models = buildStateScreenReadModels(result, result, "mobile");
+  assert.deepEqual(models.map((model) => model.title), [
+    "default viewport mobile",
+    "next-page-loaded",
+    "next-page-empty",
+    "searching",
+    "next-page-searching",
+    "empty"
+  ]);
   const loadedScenario = models.find((model) => model.title === "next-page-loaded");
   const searchingScenario = models.find((model) => model.title === "next-page-searching");
   const emptyScenario = models.find((model) => model.title === "next-page-empty");

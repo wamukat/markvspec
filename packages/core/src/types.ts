@@ -298,6 +298,7 @@ export interface MarkVSpecPreviewScenario {
   state?: string;
   model?: string;
   view?: string;
+  before?: string;
   cases: MarkVSpecPreviewScenarioCase[];
   properties: Record<string, string>;
   propertyLocations: Record<string, SourceLocation[]>;

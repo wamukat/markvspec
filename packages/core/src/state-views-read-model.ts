@@ -19,6 +19,7 @@ type ParsedElement = MarkVSpecParseResult["elements"][number];
 type ParsedLayout = MarkVSpecParseResult["layoutGroups"][number];
 type ParsedSlotContent = MarkVSpecParseResult["slotContents"][number];
 type ParsedDisplayEffect = NonNullable<MarkVSpecParseResult["actions"][number]["processSteps"][number]["outcomes"][number]["display"]>;
+type ParsedPreviewScenario = MarkVSpecParseResult["previewScenarios"][number];
 
 export type DisplayContentSpecRow = {
   element: ParsedElement;
@@ -209,12 +210,7 @@ export function buildStateScreenReadModels(
     };
   };
 
-  const displays = result.previewScenarios.length > 0
-    ? result.previewScenarios.map((scenario) => ({
-        state: result.states.find((candidate) => candidate.name === scenario.state),
-        scenario
-      })).filter((entry): entry is { state: NonNullable<typeof entry.state>; scenario: typeof entry.scenario } => Boolean(entry.state))
-    : orderedDisplayStates(result).map((state) => ({ state, scenario: undefined }));
+  const displays = orderedStatePreviewDisplays(result);
 
   return displays
     .map((display, index) => {
@@ -254,6 +250,87 @@ export function buildStateScreenReadModels(
         })
       } satisfies StateScreenReadModel;
     });
+}
+
+function orderedStatePreviewDisplays(
+  result: MarkVSpecParseResult
+): Array<{ state: MarkVSpecParseResult["states"][number]; scenario?: ParsedPreviewScenario }> {
+  const displays: Array<{ state: MarkVSpecParseResult["states"][number]; scenario?: ParsedPreviewScenario }> =
+    orderedDisplayStates(result).map((state) => ({ state }));
+  const stateNames = new Set(result.states.map((state) => state.name));
+  const stateByName = new Map(result.states.map((state) => [state.name, state]));
+  const scenarios = result.previewScenarios.filter((scenario): scenario is ParsedPreviewScenario & { state: string } =>
+    Boolean(scenario.state && stateNames.has(scenario.state))
+  );
+  const scenarioByName = new Map(scenarios.map((scenario) => [scenario.name, scenario]));
+  const placed = new Set<string>();
+  const placing = new Set<string>();
+
+  const insertAfterBaseState = (scenario: ParsedPreviewScenario & { state: string }) => {
+    const baseIndex = lastIndexWhere(displays, (display) => display.state.name === scenario.state);
+    const insertIndex = baseIndex >= 0 ? baseIndex + 1 : displays.length;
+    const state = stateByName.get(scenario.state);
+    if (!state) {
+      return;
+    }
+    displays.splice(insertIndex, 0, {
+      state,
+      scenario
+    });
+    placed.add(scenario.name);
+  };
+
+  const placeScenario = (scenario: ParsedPreviewScenario & { state: string }) => {
+    if (placed.has(scenario.name)) {
+      return;
+    }
+    if (placing.has(scenario.name)) {
+      return;
+    }
+    placing.add(scenario.name);
+
+    if (scenario.before) {
+      const targetScenario = scenarioByName.get(scenario.before);
+      if (targetScenario) {
+        placeScenario(targetScenario);
+      }
+      const targetIndex = displays.findIndex((display) =>
+        display.state.name === scenario.before || display.scenario?.name === scenario.before
+      );
+      if (targetIndex >= 0) {
+        const state = stateByName.get(scenario.state);
+        if (!state) {
+          placing.delete(scenario.name);
+          return;
+        }
+        displays.splice(targetIndex, 0, {
+          state,
+          scenario
+        });
+        placed.add(scenario.name);
+        placing.delete(scenario.name);
+        return;
+      }
+    }
+
+    insertAfterBaseState(scenario);
+    placing.delete(scenario.name);
+  };
+
+  for (const scenario of scenarios) {
+    placeScenario(scenario);
+  }
+
+  return displays;
+}
+
+function lastIndexWhere<T>(items: T[], predicate: (item: T) => boolean): number {
+  for (let index = items.length - 1; index >= 0; index -= 1) {
+    if (predicate(items[index])) {
+      return index;
+    }
+  }
+  return -1;
 }
 
 function displayEffectsForScenarioCases(

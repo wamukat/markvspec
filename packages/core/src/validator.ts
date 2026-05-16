@@ -1752,7 +1752,7 @@ function validateViewContexts(
   }
 
   if (result.previewScenarios.length > 0) {
-    const coveredStates = new Set<string>();
+    const scenarioNames = new Set(result.previewScenarios.map((scenario) => scenario.name));
     for (const scenario of result.previewScenarios) {
       if (!scenario.state) {
         diagnostics.push({
@@ -1766,8 +1766,6 @@ function validateViewContexts(
           message: `Preview Scenario ${scenario.name} references missing state ${scenario.state}.`,
           line: firstPropertyLine(scenario, "state") ?? scenario.location.line
         });
-      } else {
-        coveredStates.add(scenario.state);
       }
 
       if (scenario.model && !modelSampleGroupNames.has(scenario.model)) {
@@ -1786,17 +1784,23 @@ function validateViewContexts(
         });
       }
 
-      validatePreviewScenarioCases(scenario, result, diagnostics);
-    }
-
-    for (const state of result.states) {
-      if (!coveredStates.has(state.name)) {
-        diagnostics.push({
-          severity: "error",
-          message: `Preview Scenarios must include state ${state.name}.`,
-          line: state.location.line
-        });
+      if (scenario.before) {
+        if (scenario.before === scenario.name) {
+          diagnostics.push({
+            severity: "error",
+            message: `Preview Scenario ${scenario.name} before target cannot reference itself.`,
+            line: firstPropertyLine(scenario, "before") ?? scenario.location.line
+          });
+        } else if (!stateNames.has(scenario.before) && !scenarioNames.has(scenario.before)) {
+          diagnostics.push({
+            severity: "error",
+            message: `Preview Scenario ${scenario.name} references missing before target ${scenario.before}.`,
+            line: firstPropertyLine(scenario, "before") ?? scenario.location.line
+          });
+        }
       }
+
+      validatePreviewScenarioCases(scenario, result, diagnostics);
     }
   }
 

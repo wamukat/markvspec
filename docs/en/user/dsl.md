@@ -1779,8 +1779,9 @@ one Action has multiple processes and should not be used as canonical syntax.
 ## Preview Scenarios
 
 Use `## Preview Scenarios` when state previews need explicit `state`, `model`,
-`view`, and action/process case combinations. When this section exists, every
-state in `## States` must appear in at least one scenario.
+`view`, and action/process case combinations. Preview Scenarios are additive:
+baseline previews from `## States` still render, and each scenario adds an
+extra variant.
 
 ```markdown
 ## Preview Scenarios
@@ -1788,12 +1789,18 @@ state in `## States` must appear in at least one scenario.
 ### auth-error
 
 - state: auth-error
+- before: request-error
 - cases:
   - A-AuthResponse.P1.failure
 ```
 
-If `## Preview Scenarios` is absent, preview/export renders all states using the
-baseline model and the default View Context values.
+Use `before:` to insert the scenario before a baseline state preview or another
+preview scenario. Only `before:` is supported for scenario ordering; do not use
+`after:`. If `before:` is omitted, the scenario is inserted after its base
+state preview.
+
+If `## Preview Scenarios` is absent, preview/export still renders all states
+using the baseline model and the default View Context values.
 
 ## Partial Updates
 
@@ -1926,23 +1933,23 @@ their first listed value.
 ## Preview Scenarios Section
 
 Use `## Preview Scenarios` when state previews need explicit `state`, `model`,
-and `view` combinations. When this section exists, every state in `## States`
-must appear in at least one scenario.
+and `view` combinations. Preview Scenarios are additive: baseline previews from
+`## States` always render, and each scenario adds an extra preview variant.
 
 ```markdown
 ## Preview Scenarios
-
-### idle
-
-- state: idle
-- view: default
 
 ### loaded-help
 
 - state: loaded
 - model: loaded
 - view: help-open
+- before: saved
 ```
+
+Use `before:` to insert a scenario before a baseline state preview or another
+preview scenario. Only `before:` is supported for scenario ordering. If
+`before:` is omitted, the scenario is inserted after its base state preview.
 
 If `## Preview Scenarios` is absent, preview/export renders all states. View
 Context fallback follows the same order: `View Context Samples.default`, then

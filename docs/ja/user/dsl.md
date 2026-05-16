@@ -1274,7 +1274,7 @@ Action レベルの `When` / guard はサポートしません。操作可否は
 
 ## Preview Scenarios
 
-`## Preview Scenarios` は、preview/export で使う state、model、view、Action process case の組み合わせを明示したい場合に使います。この section がある場合、`## States` の全 state が少なくとも 1 つの scenario に含まれている必要があります。
+`## Preview Scenarios` は、preview/export で使う state、model、view、Action process case の組み合わせを明示したい場合に使います。Preview Scenarios は追加プレビューです。`## States` から作る baseline preview は常に表示され、scenario はその上に追加されます。
 
 ```markdown
 ## Preview Scenarios
@@ -1282,11 +1282,14 @@ Action レベルの `When` / guard はサポートしません。操作可否は
 ### auth-error
 
 - state: auth-error
+- before: request-error
 - cases:
   - A-HandleLoginResponse.P1.failure
 ```
 
-`## Preview Scenarios` がない場合、preview/export は全 state を baseline として表示し、View Context は default 値を使います。
+`before:` を使うと、baseline state preview または別の preview scenario の前に scenario を挿入できます。並び順指定は `before:` だけをサポートします。`after:` は使いません。`before:` を省略した場合、その scenario は base state preview の後に挿入されます。
+
+`## Preview Scenarios` がない場合も、preview/export は全 state を baseline として表示し、View Context は default 値を使います。
 
 ## 部分更新
 
@@ -1541,23 +1544,20 @@ Preview Scenario が `view` を指定しない場合、preview/export はまず
 
 ## Preview Scenarios セクション
 
-`## Preview Scenarios` は、state preview に使う `state`、`model`、`view` の組み合わせを明示します。
-このセクションがある場合、`## States` に存在するすべての state を少なくとも 1 つの scenario に含める必要があります。
+`## Preview Scenarios` は、state preview に使う `state`、`model`、`view` の組み合わせを明示します。Preview Scenarios は追加プレビューです。`## States` から作る baseline preview は常に表示され、scenario はその上に追加されます。
 
 ```markdown
 ## Preview Scenarios
-
-### idle
-
-- state: idle
-- view: default
 
 ### loaded-help
 
 - state: loaded
 - model: loaded
 - view: help-open
+- before: saved
 ```
+
+`before:` を使うと、baseline state preview または別の preview scenario の前に scenario を挿入できます。並び順指定は `before:` だけをサポートします。`after:` は使いません。`before:` を省略した場合、その scenario は base state preview の後に挿入されます。
 
 `## Preview Scenarios` がない場合、preview/export はすべての state を表示します。
 View Context の fallback は、`View Context Samples.default`、View Context のデフォルト値、
