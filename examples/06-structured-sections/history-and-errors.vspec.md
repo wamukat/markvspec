@@ -19,7 +19,6 @@ small screens: Error Codes, custom History Fields, and History entries.
 - idle*
 - validation-error
 - save-error
-- saved
 
 ## Layout: desktop
 
@@ -48,13 +47,12 @@ small screens: Error Codes, custom History Fields, and History entries.
 ### L3:L-MessageArea Message area
 
 - stack
-- visible when: validation-error, save-error, saved
+- visible when: validation-error, save-error
 
 #### Items
 
 - E-ValidationMessage
 - E-SaveErrorBanner
-- E-SavedBanner
 
 ## Elements
 
@@ -91,12 +89,6 @@ small screens: Error Codes, custom History Fields, and History entries.
 - sample: Account settings could not be saved.
 - visible when: save-error
 
-### 7:E-SavedBanner Banner
-
-- tone: success
-- sample: Account settings saved.
-- visible when: saved
-
 ## Form Groups
 
 ### F-AccountSettings Account settings form
@@ -119,7 +111,6 @@ referenced from the same flow.
   - idle
   - validation-error
   - save-error
-  - saved
 - Process P1: Check validation
   - receive:
     - validation: V-AccountSettings.result
@@ -148,27 +139,6 @@ referenced from the same flow.
     - Effects
       - error code: ERR-ACCOUNT-SAVE-FAILED
       - state: save-error
-
-### A2:A-HandleSaveResponse Handle save response
-
-- Triggered
-  - A-SaveAccount.P2.response
-- From
-  - idle
-- Process P1: Handle server response
-  - receive:
-    - response: A-SaveAccount.P2.response
-  - case: success
-    - response: 200 saved
-    - Effects
-      - state: saved
-    - stop
-  - case: failure
-    - response: 409 or 5xx
-    - Effects
-      - error code: ERR-ACCOUNT-SAVE-FAILED
-      - state: save-error
-    - stop
 
 ## Validations
 
@@ -253,7 +223,7 @@ body text as normal Markdown.
 Initial version with required fields, validation, and save failure behavior.
 
 - Added structured Error Codes.
-- Added account save response handling.
+- Added account save request failure handling.
 
 ### 0.2
 
