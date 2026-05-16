@@ -1292,6 +1292,10 @@ element block remains supported for static tables that do not use
 `## Model Samples`.
 
 `Dialog`, `Image`, `Icon`, and `Spinner` use small semantic property sets.
+`Dialog` is a modal overlay by default. Do not place a dedicated
+`L-DialogArea` in normal layout just to host it. Define its action buttons as
+regular `Button` elements and list them with `actions:` so each button can
+point to its own `Action`.
 `Image` renders as a wireframe placeholder rather than loading the actual asset.
 For `Image`, `src` is the asset source, not a data-binding source.
 `Spinner` represents loading or waiting feedback for states such as
@@ -1301,7 +1305,22 @@ For `Image`, `src` is the asset source, not a data-binding source.
 ### E-ConfirmDialog Dialog
 
 - title: Delete item
-- content: This action cannot be undone.
+- message: This action cannot be undone.
+- tone: warning
+- actions: E-CancelDeleteButton, E-ConfirmDeleteButton
+
+### E-CancelDeleteButton Button
+
+- label: Cancel
+- variant: secondary
+- action: A-CancelDelete
+
+### E-ConfirmDeleteButton Button
+
+- label: Delete
+- variant: primary
+- tone: danger
+- action: A-ConfirmDelete
 
 ### E-ProfileImage Image
 
@@ -1723,7 +1742,9 @@ Preferred action groups and effects:
 receives the display result. `display.element` is singular and points to one
 existing `E-*` element or `L-*` layout to insert or show in that target.
 Define reusable UI as an element or layout first; direct `display.content` and
-`display.elements` are not supported.
+`display.elements` are not supported. The exception is `Dialog`: a display
+effect whose `element` is a `Dialog` may omit `target`, and preview scenarios
+render it as a modal overlay.
 
 ```markdown
 - display:
@@ -1736,6 +1757,11 @@ areas, or slots. A layout may omit `#### Items` when it is an empty display
 container that receives content from a scenario or action display effect.
 `E-*` targets remain valid for replacing or updating an existing element-level
 presentation.
+
+```markdown
+- display:
+  - element: E-ConfirmDialog
+```
 
 Under a process step `case: <name>` branch, add `stop` or `continue` directly
 under the case as the final entry, after any `Effects` block. `stop` ends the

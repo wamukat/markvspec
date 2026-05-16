@@ -1007,6 +1007,33 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 `sortable: true` は sort 可能な列、`sort: asc` / `sort: desc` は現在の sort 方向を preview に表示します。
 モデルを使わない静的なテーブルでは、従来の `Sample Rows:` ブロックも互換として利用できます。
 
+`Dialog` は既定で modal overlay として扱います。Dialog 表示のためだけに
+通常 Layout へ `L-DialogArea` のような専用領域を置くのは canonical ではありません。
+Dialog 内の操作は通常の `Button` element として定義し、Dialog の `actions:` に
+カンマ区切りで並べます。各 Button はそれぞれの `action:` から Action へ辿れるようにします。
+
+```markdown
+### E-ConfirmDialog Dialog
+
+- title: 削除しますか？
+- message: この操作は取り消せません。
+- tone: warning
+- actions: E-CancelDeleteButton, E-ConfirmDeleteButton
+
+### E-CancelDeleteButton Button
+
+- label: キャンセル
+- variant: secondary
+- action: A-CancelDelete
+
+### E-ConfirmDeleteButton Button
+
+- label: 削除
+- variant: primary
+- tone: danger
+- action: A-ConfirmDelete
+```
+
 ## variant と tone
 
 `variant` は表示優先度、`tone` は意味的な意図です。
@@ -1248,7 +1275,7 @@ execution detail も result classification も持たない、決定的な即時�
     - stop
 ```
 
-主な `Effects` entry は `model:`、`view:`、`state:`、`navigate:`、`display:` です。`stop` / `continue` は case-level の制御フローなので、`Effects` の外で case の最後に書きます。`display.target` は表示先の既存 `L-*` layout または `E-*` element を指し、`display.element` はその表示先に挿入または表示する既存の `E-*` element または `L-*` layout を1つだけ指します。直接の `display.content` と複数形の `display.elements` はサポートしません。
+主な `Effects` entry は `model:`、`view:`、`state:`、`navigate:`、`display:` です。`stop` / `continue` は case-level の制御フローなので、`Effects` の外で case の最後に書きます。`display.target` は表示先の既存 `L-*` layout または `E-*` element を指し、`display.element` はその表示先に挿入または表示する既存の `E-*` element または `L-*` layout を1つだけ指します。直接の `display.content` と複数形の `display.elements` はサポートしません。例外として、`display.element` が `Dialog` の場合は `target` を省略でき、preview scenario では modal overlay として表示します。
 
 ```markdown
 - display:
@@ -1257,6 +1284,11 @@ execution detail も result classification も持たない、決定的な即時�
 ```
 
 `display.target` は、存在する `L-*` layout または `E-*` element を指します。`L-*` は message area、result area、help area、slot のような display container を表します。layout は、scenario や action の display effect から内容を受け取る空の display container として使う場合、`#### Items` を省略できます。`E-*` target も、既存 element の表示内容や設定を置き換える用途として有効です。
+
+```markdown
+- display:
+  - element: E-ConfirmDialog
+```
 
 複数の処理を並列に開始し、全完了後にまとめて判定する場合は、各 process に `group: <group-id>` を書き、同じ group を持つ Resolve process で集約します。
 

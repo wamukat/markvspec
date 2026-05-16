@@ -266,6 +266,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
         line: firstPropertyLine(element, "action") ?? element.location.line
       });
     }
+    validateDialogActions(element, elementsById, actionIds, diagnostics);
 
     for (const param of element.routeParams) {
       const sourceId = requestParamSourceId(param.source);
@@ -563,7 +564,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
       validateUpdateMode(action.id, outcome, diagnostics, `case ${outcome.result}`);
       validateOutcomeErrorCodes(action.id, outcome, errorCodeIds, diagnostics);
       collectPartialReference(outcome.content, firstPropertyLocation(outcome, "content") ?? outcome.location ?? action.location, referencedPartialIds);
-      validateDisplayEffect(action.id, `case ${outcome.result}`, outcome.display, targetLayoutIds, elementIds, layoutIdsByViewport, diagnostics, referencedPartialIds);
+      validateDisplayEffect(action.id, `case ${outcome.result}`, outcome.display, targetLayoutIds, elementIds, elementsById, layoutIdsByViewport, diagnostics, referencedPartialIds);
     }
 
     for (const step of action.processSteps) {
@@ -607,7 +608,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
       validateProcessGranularity(action.id, step, diagnostics);
       validateProcessDataReferences(action.id, step, actionIds, processMarkersByAction, layoutIds, elementIds, diagnostics);
       collectPartialReference(step.content, firstPropertyLocation(step, "content") ?? step.location, referencedPartialIds);
-      validateDisplayEffect(action.id, `process step ${processStepLabel(step)}`, step.display, targetLayoutIds, elementIds, layoutIdsByViewport, diagnostics, referencedPartialIds);
+      validateDisplayEffect(action.id, `process step ${processStepLabel(step)}`, step.display, targetLayoutIds, elementIds, elementsById, layoutIdsByViewport, diagnostics, referencedPartialIds);
 
       for (const outcome of step.outcomes) {
         validateProcessCaseFlowPlacement(action.id, step, outcome, diagnostics);
@@ -677,7 +678,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
         validateUpdateMode(action.id, outcome, diagnostics, `process step ${step.name} case ${outcome.result}`);
         validateOutcomeErrorCodes(action.id, outcome, errorCodeIds, diagnostics);
         collectPartialReference(outcome.content, firstPropertyLocation(outcome, "content") ?? outcome.location ?? step.location, referencedPartialIds);
-      validateDisplayEffect(action.id, `process step ${processStepLabel(step)} case ${outcome.result}`, outcome.display, targetLayoutIds, elementIds, layoutIdsByViewport, diagnostics, referencedPartialIds);
+      validateDisplayEffect(action.id, `process step ${processStepLabel(step)} case ${outcome.result}`, outcome.display, targetLayoutIds, elementIds, elementsById, layoutIdsByViewport, diagnostics, referencedPartialIds);
       }
     }
 
@@ -1441,6 +1442,7 @@ function validateDisplayEffect(
   display: MarkVSpecActionOutcome["display"],
   layoutIds: Set<string>,
   elementIds: Set<string>,
+  elementsById: Map<string, MarkVSpecElement>,
   layoutIdsByViewport: Map<string, Set<string>>,
   diagnostics: MarkVSpecDiagnostic[],
   referencedPartialIds: Map<string, SourceLocation>
@@ -1448,25 +1450,27 @@ function validateDisplayEffect(
   if (!display) {
     return;
   }
-  if (!display.target) {
+  const targetlessDialog = isTargetlessDialogDisplay(display, elementsById);
+  const target = display.target;
+  if (!target && !targetlessDialog) {
     diagnostics.push({
       severity: "error",
       message: `Action ${actionId} ${context} display effect must define target.`,
       line: display.location.line
     });
-  } else if (isPresentationPanelId(display.target)) {
-    diagnostics.push(presentationPanelTargetDiagnostic(`Action ${actionId} ${context} display effect`, display.target, firstPropertyLine(display, "target") ?? display.location.line));
-  } else if (formGroupIdRegex.test(display.target)) {
-    diagnostics.push(formGroupUpdateTargetDiagnostic(`Action ${actionId} ${context} display effect`, display.target, firstPropertyLine(display, "target") ?? display.location.line));
-  } else if (isLocalId(display.target) && !layoutIds.has(display.target) && !elementIds.has(display.target)) {
+  } else if (target && isPresentationPanelId(target)) {
+    diagnostics.push(presentationPanelTargetDiagnostic(`Action ${actionId} ${context} display effect`, target, firstPropertyLine(display, "target") ?? display.location.line));
+  } else if (target && formGroupIdRegex.test(target)) {
+    diagnostics.push(formGroupUpdateTargetDiagnostic(`Action ${actionId} ${context} display effect`, target, firstPropertyLine(display, "target") ?? display.location.line));
+  } else if (target && isLocalId(target) && !layoutIds.has(target) && !elementIds.has(target)) {
     diagnostics.push({
       severity: "error",
-      message: `Action ${actionId} ${context} display effect targets missing layout or element ${display.target}.`,
+      message: `Action ${actionId} ${context} display effect targets missing layout or element ${target}.`,
       line: firstPropertyLine(display, "target") ?? display.location.line
     });
-  } else if (layoutIds.has(display.target)) {
+  } else if (target && layoutIds.has(target)) {
     checkLayoutTargetViewportCoverage(
-      display.target,
+      target,
       layoutIdsByViewport,
       diagnostics,
       firstPropertyLine(display, "target") ?? display.location.line,
@@ -1535,6 +1539,71 @@ function validateDisplayEffect(
       collectPartialReference(source.value, source.location, referencedPartialIds);
     }
   }
+}
+
+function validateDialogActions(
+  element: MarkVSpecElement,
+  elementsById: Map<string, MarkVSpecElement>,
+  actionIds: Set<string>,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  if (element.type !== "Dialog") {
+    return;
+  }
+
+  const actionButtonIds = commaListProperty(element, "actions");
+  if (actionButtonIds.length === 0) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Dialog ${element.id} should define actions with at least one Button element.`,
+      line: element.location.line
+    });
+    return;
+  }
+
+  for (const buttonId of actionButtonIds) {
+    const button = elementsById.get(buttonId);
+    if (!button) {
+      diagnostics.push({
+        severity: "error",
+        message: `Dialog ${element.id} actions references missing button element ${buttonId}.`,
+        line: firstPropertyLine(element, "actions") ?? element.location.line
+      });
+      continue;
+    }
+    if (button.type !== "Button") {
+      diagnostics.push({
+        severity: "warning",
+        message: `Dialog ${element.id} actions should reference Button elements; ${buttonId} is ${button.type}.`,
+        line: firstPropertyLine(element, "actions") ?? element.location.line
+      });
+      continue;
+    }
+    const action = stringProperty(button, "action");
+    if (!action) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Dialog ${element.id} button ${buttonId} should reference an action.`,
+        line: button.location.line
+      });
+    } else if (!actionIds.has(action)) {
+      diagnostics.push({
+        severity: "error",
+        message: `Dialog ${element.id} button ${buttonId} references missing action ${action}.`,
+        line: firstPropertyLine(button, "action") ?? button.location.line
+      });
+    }
+  }
+}
+
+function isTargetlessDialogDisplay(
+  display: MarkVSpecActionOutcome["display"],
+  elementsById: Map<string, MarkVSpecElement>
+): boolean {
+  if (!display?.element || display.target) {
+    return false;
+  }
+  return elementsById.get(display.element)?.type === "Dialog";
 }
 
 function validatePreviewScenarioCases(
@@ -2330,6 +2399,13 @@ function extractRoutePlaceholders(route: string): Set<string> {
 function stringProperty(element: MarkVSpecElement, key: string): string {
   const value = element.properties[key];
   return typeof value === "string" ? value : "";
+}
+
+function commaListProperty(element: MarkVSpecElement, key: string): string[] {
+  return stringProperty(element, key)
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function firstPropertyLine(

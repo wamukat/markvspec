@@ -1596,6 +1596,114 @@ viewport: mobile
   assert.match(html, /Request failed message/);
 });
 
+test("renders targetless dialog display effects as modal overlays", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-DIALOG-SCENARIO
+type: screen
+title: Dialog Scenario
+viewport: mobile
+---
+
+# SCR-DIALOG-SCENARIO Dialog Scenario
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- E-OpenDialogButton
+
+## Elements
+
+### E-OpenDialogButton Button
+
+- label: Open dialog
+- action: A-OpenDialog
+
+### E-ConfirmDialog Dialog
+
+- title: Discard changes?
+- message: Unsaved changes will be lost.
+- actions: E-CancelDialogButton, E-ConfirmDialogButton
+
+### E-CancelDialogButton Button
+
+- label: Cancel
+- variant: secondary
+- action: A-CancelDialog
+
+### E-ConfirmDialogButton Button
+
+- label: Discard
+- variant: primary
+- tone: danger
+- action: A-ConfirmDialog
+
+## Actions
+
+### A-OpenDialog Open dialog
+
+- Triggered
+  - E-OpenDialogButton.click
+- From
+  - idle
+- Process P1: Apply immediate effect
+  - case: done
+    - Effects
+      - display:
+        - element: E-ConfirmDialog
+    - stop
+
+### A-CancelDialog Cancel dialog
+
+- Triggered
+  - E-CancelDialogButton.click
+- From
+  - idle
+- Process P1: Apply immediate effect
+  - state: idle
+
+### A-ConfirmDialog Confirm dialog
+
+- Triggered
+  - E-ConfirmDialogButton.click
+- From
+  - idle
+- Process P1: Apply immediate effect
+  - state: idle
+
+## Preview Scenarios
+
+### dialog-open
+
+- state: idle
+- cases:
+  - A-OpenDialog.P1.done
+`);
+  const html = renderPreviewHtml(
+    result,
+    {
+      cspSource: "vscode-resource:",
+      asWebviewUri: (uri: unknown) => uri
+    } as never,
+    { layout: true, element: true, action: true },
+    undefined,
+    "dialog-scenario.vspec.md"
+  );
+
+  assert.equal(result.diagnostics.length, 0);
+  assert.match(html, /class="mm-modal-overlay" data-mm-display-modal="E-ConfirmDialog"/);
+  assert.match(html, /<section class="mm-element mm-element-dialog" data-mm-id="E-ConfirmDialog" role="dialog" aria-modal="true" aria-label="Discard changes\?">/);
+  assert.match(html, /<button class="mm-element mm-element-button mm-variant-primary mm-tone-danger" data-mm-id="E-ConfirmDialogButton">Discard<\/button>/);
+});
+
 test("marks unplaced layouts in state view specs without rendering them in wireframes", () => {
   const result = parseMarkVSpec(`---
 id: SCR-UNPLACED-LAYOUT

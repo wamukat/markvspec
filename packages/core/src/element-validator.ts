@@ -85,7 +85,7 @@ const elementTypeProperties = new Map<string, Set<string>>([
   ["List", new Set(["items"])],
   ["Table", new Set(["source"])],
   ["Banner", new Set()],
-  ["Dialog", new Set(["title", "content"])],
+  ["Dialog", new Set(["title", "content", "actions"])],
   ["Badge", new Set()],
   ["Image", new Set(["src", "alt"])],
   ["Icon", new Set(["name"])],

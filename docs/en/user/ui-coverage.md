@@ -17,7 +17,7 @@ without falling back to ambiguous prose.
 | Select / checkbox / radio group | Supported | `Select`, `MultiSelect`, `Checkbox`, `CheckboxGroup`, `Switch`, `RadioGroup` | Choice options use nested Markdown list items. Use `RadioGroup` for mutually exclusive value ranges, `CheckboxGroup` or `MultiSelect` for multiple values, and `Switch` for boolean settings. |
 | Banner / badge | Supported | `Banner`, `Badge` | Use `tone` for semantic intent such as danger or success. |
 | List / table | Supported | `List`, `Table` | Table columns and sample rows use nested Markdown lists. |
-| Dialog / overlay | Supported | `Dialog` with overlay layout | Overlay behavior is modeled by layout metadata such as `overlay: area` or `overlay: screen`. |
+| Dialog / overlay | Supported | `Dialog` with targetless `display.element` | Dialogs are modal overlays by default. Define cancel/confirm buttons with `actions:` and show the dialog from a Preview Scenario or action case without a layout target. |
 | Spinner / loading mask | Supported | `Spinner` with state-visible overlay layout | Used for wait states and partial loading states. |
 | Divider | Supported | `Divider` | Separates groups inside forms or detail screens. |
 | Empty state | Supported | `Paragraph` with `visible when: empty` | Empty states are prose content tied to an empty state rather than a dedicated element type. |
@@ -35,7 +35,7 @@ without falling back to ambiguous prose.
 | Search/list screen | Supported | Toolbar layout, `Table`, empty-state `Paragraph`, paging buttons, `loading` and `load-error` states. |
 | Detail screen | Supported | Stack/grid layouts, `Badge`, `List`, read-only text, and optional dialog actions. |
 | Edit form | Supported | `Input`, `DateInput`, `TimeInput`, `NumberInput`, `Textarea`, `FileInput`, `Select`, `MultiSelect`, `Checkbox`, `CheckboxGroup`, `Switch`, `DatePicker`, `FileUpload`, validation states, save lifecycle actions. |
-| Confirmation flow | Supported | `Dialog`, `overlay`, confirm/cancel actions, danger tone. |
+| Confirmation flow | Supported | `Dialog`, targetless `display.element`, confirm/cancel actions, danger tone. |
 | Approval flow | Alternative | Detail/edit patterns with explicit actions and rules. |
 | History/audit trail | Supported | `Table` or `List` with sampled rows. |
 | Permission-dependent display | Alternative | `visible when` / `hidden when` with semantic role conditions. |

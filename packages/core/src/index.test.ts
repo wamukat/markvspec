@@ -7654,7 +7654,21 @@ title: Media
 ### 1:E-ConfirmDialog Dialog
 
 - title: Delete item
-- content: This action cannot be undone.
+- message: This action cannot be undone.
+- actions: E-CancelDeleteButton, E-ConfirmDeleteButton
+
+### E-CancelDeleteButton Button
+
+- label: Cancel
+- variant: secondary
+- action: A-CancelDelete
+
+### E-ConfirmDeleteButton Button
+
+- label: Delete
+- variant: primary
+- tone: danger
+- action: A-ConfirmDelete
 
 ### 2:E-ProfileImage Image
 
@@ -7669,13 +7683,33 @@ title: Media
 ### 4:E-読込中スピナー Spinner
 
 - label: Loading results...
+
+## Actions
+
+### A-CancelDelete Cancel delete
+
+- Triggered
+  - E-CancelDeleteButton.click
+- From
+  - idle
+- Process P1: Apply immediate effect
+  - state: idle
+
+### A-ConfirmDelete Confirm delete
+
+- Triggered
+  - E-ConfirmDeleteButton.click
+- From
+  - idle
+- Process P1: Apply immediate effect
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true });
 
   assert.equal(result.diagnostics.length, 0);
-  assert.match(html, /<section class="mm-element mm-element-dialog" data-mm-id="E-ConfirmDialog" role="dialog" aria-label="Delete item">/);
-  assert.match(html, /<section class="mm-element mm-element-dialog" data-mm-id="E-ConfirmDialog" role="dialog" aria-label="Delete item"><div class="mm-dialog-title">Delete item<\/div><div class="mm-dialog-body">This action cannot be undone\.<\/div><\/section><span class="mm-annotation-row"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">1<\/code><\/span>/);
+  assert.match(html, /<section class="mm-element mm-element-dialog" data-mm-id="E-ConfirmDialog" role="dialog" aria-modal="true" aria-label="Delete item">/);
+  assert.match(html, /<div class="mm-dialog-actions">[\s\S]*<button class="mm-element mm-element-button mm-variant-primary mm-tone-danger" data-mm-id="E-ConfirmDeleteButton">Delete<\/button>/);
   assert.match(html, /<div class="mm-dialog-body">This action cannot be undone\.<\/div>/);
   assert.match(html, /<figure class="mm-element mm-element-image" data-mm-id="E-ProfileImage">/);
   assert.match(html, /<div class="mm-image-placeholder">Profile photo<\/div><figcaption>\/assets\/profile\.png<\/figcaption>/);
@@ -7683,6 +7717,31 @@ title: Media
   assert.match(html, /<span class="mm-icon-symbol">search<\/span>/);
   assert.match(html, /<span class="mm-element mm-element-spinner" data-mm-id="E-読込中スピナー" role="status" aria-label="Loading results\.\.\.">/);
   assert.match(html, /<span class="mm-spinner-label">Loading results\.\.\.<\/span>/);
+});
+
+test("warns when Dialog elements have no action buttons", () => {
+  const source = `---
+id: SCR-DIALOG-WARNING
+type: screen
+title: Dialog Warning
+---
+
+# SCR-DIALOG-WARNING Dialog Warning
+
+## States
+
+- idle*
+
+## Elements
+
+### E-ConfirmDialog Dialog
+
+- title: Continue?
+- message: Confirm before continuing.
+`;
+  const result = parseMarkVSpec(source);
+
+  assert(result.diagnostics.some((diagnostic) => diagnostic.message === "Dialog E-ConfirmDialog should define actions with at least one Button element."));
 });
 
 test("renders practical UI helper elements", () => {
@@ -11132,6 +11191,8 @@ title: Action Neutral Diagnostics
   - case: done
     - Effects
       - state: loaded
+      - display:
+        - element: E-Other
 
 ## Preview Scenarios
 
@@ -11155,6 +11216,7 @@ title: Action Neutral Diagnostics
   assert(messages.includes("Action A-Run process step P1 Duplicate marker case done display effect element must reference one E-* element or L-* layout."));
   assert(messages.includes("Action A-Run process step P1 Duplicate marker case done display.elements is not supported. Use singular element: with one E-* element or L-* layout."));
   assert(messages.includes("Action A-Run process step P1 Duplicate marker case done display.content.partial is not supported. Define an E-* or L-* object and reference it with element:."));
+  assert(messages.includes("Action A-Other process step P1 Other process case done display effect must define target."));
   assert(messages.includes("Partial reference PRT-Missing is not defined in Front Matter references.partials."));
   assert(messages.includes("Preview Scenario loaded references missing process marker P2 on action A-Run."));
 });

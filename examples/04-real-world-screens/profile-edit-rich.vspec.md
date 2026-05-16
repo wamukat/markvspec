@@ -35,7 +35,6 @@ confirmation dialog that are not covered by the smaller examples.
 - L-PreferenceForm
 - E-AuditList
 - L-Actions
-- E-DiscardDialog
 
 ### L2:L-ProfileHeader Profile header
 
@@ -225,8 +224,66 @@ confirmation dialog that are not covered by the smaller examples.
 
 - label: Discard
 - variant: secondary
+- action: A-RequestDiscardDialog
 
 ### 20:E-DiscardDialog Dialog
 
 - title: Discard unsaved changes?
-- content: Unsaved profile changes will be lost.
+- message: Unsaved profile changes will be lost.
+- tone: warning
+- actions: E-CancelDiscardButton, E-ConfirmDiscardButton
+
+### 21:E-CancelDiscardButton Button
+
+- label: Keep editing
+- variant: secondary
+- action: A-CloseDiscardDialog
+
+### 22:E-ConfirmDiscardButton Button
+
+- label: Discard
+- variant: primary
+- tone: danger
+- action: A-ConfirmDiscard
+
+## Actions
+
+### A-RequestDiscardDialog Request discard dialog
+
+- Triggered
+  - E-DiscardButton.click
+- From
+  - idle
+- Process P1: Apply immediate effect
+  - case: done
+    - Effects
+      - display:
+        - element: E-DiscardDialog
+    - stop
+
+### A-CloseDiscardDialog Close discard dialog
+
+- Triggered
+  - E-CancelDiscardButton.click
+  - E-DiscardDialog.close
+- From
+  - idle
+- Process P1: Apply immediate effect
+  - state: idle
+
+### A-ConfirmDiscard Confirm discard
+
+- Triggered
+  - E-ConfirmDiscardButton.click
+- From
+  - idle
+- Process P1: Apply immediate effect
+  - state: idle
+
+## Preview Scenarios
+
+### idle-discard-dialog
+
+- state: idle
+- cases:
+  - A-RequestDiscardDialog.P1.done

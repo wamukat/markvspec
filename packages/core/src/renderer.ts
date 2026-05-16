@@ -22,7 +22,11 @@ export function renderMarkVSpecHtml(result: MarkVSpecParseResult, options: MarkV
   const stateNames = new Set(result.states.map((state) => state.name));
   const actionMarkersByElementId = mapActionMarkersByElementId(result.actions, result.elements, activeState);
   const containedLayoutIds = new Set<string>();
-  const context = renderContextForState(result, activeState);
+  const context = {
+    ...renderContextForState(result, activeState),
+    elementById,
+    actionMarkersByElementId
+  };
   const renderOptions = {
     ...options,
     viewValues: options.viewValues ?? defaultViewValues(result)
@@ -63,6 +67,7 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
   const activeState = options.state ?? resolveDefaultState(result);
   const stateNames = new Set(result.states.map((state) => state.name));
   const actionMarkersByElementId = mapActionMarkersByElementId(result.actions, result.elements, activeState);
+  const elementById = new Map(result.elements.map((element) => [element.id, element]));
   if (elementMatch) {
     const elementId = elementMatch[1];
     const element = result.elements.find((candidate) => candidate.id === elementId);
@@ -72,7 +77,11 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
 
     return {
       renderKey,
-      html: renderElement(element, actionMarkersByElementId, activeState, stateNames, { ...options, viewValues: options.viewValues ?? defaultViewValues(result) }, false, renderContextForState(result, activeState))
+      html: renderElement(element, actionMarkersByElementId, activeState, stateNames, { ...options, viewValues: options.viewValues ?? defaultViewValues(result) }, false, {
+        ...renderContextForState(result, activeState),
+        elementById,
+        actionMarkersByElementId
+      })
     };
   }
 
@@ -92,13 +101,17 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
         result,
         new Map(layoutGroups.map((group) => [group.id, group])),
         mapSlotContentsByName(result.slotContents),
-        new Map(result.elements.map((element) => [element.id, element])),
+        elementById,
         actionMarkersByElementId,
         activeState,
         stateNames,
         { ...options, viewValues: options.viewValues ?? defaultViewValues(result) },
         new Set(),
-        renderContextForState(result, activeState),
+        {
+          ...renderContextForState(result, activeState),
+          elementById,
+          actionMarkersByElementId
+        },
         false,
         undefined,
         layoutDepthFor(layoutId, layoutGroups)
@@ -132,7 +145,7 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
         result,
         new Map(slotContent.layoutGroups.map((group) => [group.id, group])),
         slotContentsByName,
-        new Map(result.elements.map((element) => [element.id, element])),
+        elementById,
         actionMarkersByElementId,
         activeState,
         stateNames,
@@ -140,6 +153,8 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
         new Set(),
         {
           ...renderContextForState(result, activeState),
+          elementById,
+          actionMarkersByElementId,
           slotViewport: slotViewport === "default" ? activeViewport : slotViewport
         },
         insertionContext.parentDisabled,
@@ -174,6 +189,8 @@ interface ActionMarkerReference {
 interface RenderContext {
   modelAliases: Record<string, Record<string, string>>;
   modelSampleRows: Record<string, MarkVSpecParseResult["modelSamples"][number]["rows"]>;
+  elementById?: Map<string, MarkVSpecElement>;
+  actionMarkersByElementId?: Map<string, ActionMarkerReference[]>;
   suppressMarkers?: boolean;
   slotName?: string;
   slotRenderViewport?: string;
@@ -761,8 +778,10 @@ function renderElement(
 
   if (element.type === "Dialog") {
     const title = stringProperty(element, "title") || displayLabel || element.id;
-    const content = stringProperty(element, "content") || displayValue;
-    return renderAnnotatedElement(markers, element.type, `<section class="${classes}" data-mm-id="${escapeHtml(element.id)}" role="dialog" aria-label="${escapeHtml(title)}"><div class="mm-dialog-title">${escapeHtml(title)}</div><div class="mm-dialog-body">${escapeHtml(content)}</div></section>`);
+    const content = stringProperty(element, "message") || stringProperty(element, "content") || displayValue;
+    const actions = renderDialogActionButtons(element, actionMarkersByElementId, activeState, stateNames, options, context);
+    const actionHtml = actions ? `<div class="mm-dialog-actions">${actions}</div>` : "";
+    return renderAnnotatedElement(markers, element.type, `<section class="${classes}" data-mm-id="${escapeHtml(element.id)}" role="dialog" aria-modal="true" aria-label="${escapeHtml(title)}"><div class="mm-dialog-title">${escapeHtml(title)}</div><div class="mm-dialog-body">${escapeHtml(content)}</div>${actionHtml}</section>`);
   }
 
   if (element.type === "Image") {
@@ -788,6 +807,37 @@ function renderElement(
   }
 
   return renderAnnotatedElement(markers, element.type, `<div class="${classes}" data-mm-id="${escapeHtml(element.id)}">${escapeHtml(displayLabel || element.type)}</div>`);
+}
+
+function renderDialogActionButtons(
+  element: MarkVSpecElement,
+  actionMarkersByElementId: Map<string, ActionMarkerReference[]>,
+  activeState: string | undefined,
+  stateNames: Set<string>,
+  options: MarkVSpecRenderOptions,
+  context: RenderContext
+): string {
+  const buttonIds = parseDelimitedList(stringProperty(element, "actions"), ",");
+  if (buttonIds.length === 0 || !context.elementById) {
+    return "";
+  }
+
+  return buttonIds
+    .map((buttonId) => context.elementById?.get(buttonId))
+    .filter((button): button is MarkVSpecElement => button?.type === "Button")
+    .map((button) => renderElement(
+      button,
+      context.actionMarkersByElementId ?? actionMarkersByElementId,
+      activeState,
+      stateNames,
+      options,
+      false,
+      {
+        ...context,
+        suppressMarkers: true
+      }
+    ))
+    .join("");
 }
 
 function renderField(
@@ -1281,7 +1331,7 @@ function cssClass(prefix: string, value: string): string {
 
 function renderDefaultStyles(): string {
   return `<style>
-.mm-wireframe{box-sizing:border-box;color:#1f2937;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.4;max-width:760px;padding:24px}
+.mm-wireframe{box-sizing:border-box;color:#1f2937;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.4;max-width:760px;padding:24px;position:relative}
 .mm-wireframe *{box-sizing:border-box}
 .mm-wireframe-empty{max-width:100%;min-width:0;width:100%}
 .mm-empty-wireframe{align-items:center;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:6px;color:#64748b;display:flex;font-size:13px;font-weight:600;justify-content:center;min-height:96px;padding:18px;text-align:center;width:100%}
@@ -1351,6 +1401,10 @@ function renderDefaultStyles(): string {
 .mm-element-dialog{background:#fff;border:2px solid #9ca3af;border-radius:6px;max-width:360px;padding:12px}
 .mm-dialog-title{font-weight:600;margin-bottom:8px}
 .mm-dialog-body{color:#374151}
+.mm-dialog-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:12px}
+.mm-dialog-actions .mm-element-wrap{width:auto}
+.mm-modal-overlay{align-items:center;background:rgba(15,23,42,.28);display:flex;inset:0;justify-content:center;min-height:220px;padding:24px;position:absolute;z-index:8}
+.mm-modal-content{max-width:min(420px,100%);width:max-content}
 .mm-element-image{background:#f9fafb;border-style:dashed;display:inline-block;min-width:180px;padding:8px;text-align:center}
 .mm-image-placeholder{align-items:center;display:flex;justify-content:center;min-height:80px}
 .mm-element-image figcaption{color:#6b7280;font-size:12px;margin-top:4px}

@@ -372,6 +372,7 @@ function embedPartialPreviewsForResult(
   depth: number
 ): string {
   let output = html;
+  const modalDisplays = displayEffects.filter((display) => !display.target && display.element && elementType(result, display.element) === "Dialog");
   for (const target of [
     ...partialTargets(result, viewport, { resolveViewportFallback: true }),
     ...partialTargetsFromDisplayEffects(displayEffects)
@@ -426,7 +427,34 @@ function embedPartialPreviewsForResult(
     }), viewport, partialState, partials, paths, messagesForResult, [], [...stack, partialId], depth + 1);
     output = replaceTargetContents(output, targetId, namespacePartialPreviewRenderKeys(partialHtml, targetId, partialId), partialId, paths?.get(partialId));
   }
+  for (const display of modalDisplays) {
+    const elementId = display.element;
+    if (!elementId) {
+      continue;
+    }
+    const renderKey = `element:${elementId}`;
+    const fragment = renderMarkVSpecHtmlFragment(result, renderKey, {
+      includeConditionalContent: false,
+      viewport,
+      state: screenState,
+      messages: messagesForResult(result),
+      markerVisibility: { layout: true, element: true, action: true },
+      includeStyles: false
+    });
+    if (fragment) {
+      output = appendModalOverlay(output, fragment.html, elementId);
+    }
+  }
   return output;
+}
+
+function appendModalOverlay(html: string, dialogHtml: string, dialogId: string): string {
+  const overlay = `<div class="mm-modal-overlay" data-mm-display-modal="${escapeHtml(dialogId)}"><div class="mm-modal-content">${dialogHtml}</div></div>`;
+  return html.replace(/<\/div>\s*$/u, `${overlay}</div>`);
+}
+
+function elementType(result: MarkVSpecParseResult, elementId: string): string | undefined {
+  return result.elements.find((element) => element.id === elementId)?.type;
 }
 
 function renderPartialPreviewPlaceholder(message: string): string {

@@ -5446,7 +5446,9 @@ function renderDisplayEffect(
   display: NonNullable<ReturnType<typeof parseMarkVSpec>["actions"][number]["outcomes"][number]["display"]>,
   detailedReferences = false
 ): string {
-  const target = detailedReferences ? referenceForDetailId(result, display.target) : referenceForId(result, display.target, "target");
+  const target = display.target
+    ? detailedReferences ? referenceForDetailId(result, display.target) : referenceForId(result, display.target, "target")
+    : "modal overlay";
   const contentSource = display.contentSource.length > 0
     ? `<ul class="spec-list spec-nested-list">${display.contentSource.map((detail) => `<li>${renderProcessStepDetail(result, detail, detailedReferences)}</li>`).join("")}</ul>`
     : "";

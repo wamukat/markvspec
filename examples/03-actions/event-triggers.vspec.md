@@ -60,7 +60,6 @@ small preferences form.
 - E-HelpIcon
 - L-HelpArea
 - L-ValidationArea
-- L-DialogArea
 - L-Actions
 
 ### L4:L-HelpArea Delivery help area
@@ -68,10 +67,6 @@ small preferences form.
 - stack
 
 ### L5:L-ValidationArea Validation message area
-
-- stack
-
-### L6:L-DialogArea Dialog area
 
 - stack
 
@@ -164,7 +159,22 @@ small preferences form.
 ### 13:E-ConfirmDialog Dialog
 
 - title: Discard changes?
-- content: Closing this dialog keeps the current edits on the page.
+- message: Closing this dialog keeps the current edits on the page.
+- tone: warning
+- actions: E-CancelDiscardButton, E-ConfirmDiscardButton
+
+### 14:E-CancelDiscardButton Button
+
+- label: Keep editing
+- variant: secondary
+- action: A-CloseDiscardDialog
+
+### 15:E-ConfirmDiscardButton Button
+
+- label: Discard changes
+- variant: primary
+- tone: danger
+- action: A-ConfirmDiscard
 
 ## Form Groups
 
@@ -256,20 +266,29 @@ small preferences form.
   - case: done
     - Effects
       - display:
-        - target: L-DialogArea
         - element: E-ConfirmDialog
     - stop
 
 ### A6:A-CloseDiscardDialog Close discard dialog
 
 - Triggered
+  - E-CancelDiscardButton.click
   - E-ConfirmDialog.close
 - From
   - idle
 - Process P1: Apply immediate effect
   - state: idle
 
-### A7:A-SubmitPreferences Submit preferences
+### A7:A-ConfirmDiscard Confirm discard
+
+- Triggered
+  - E-ConfirmDiscardButton.click
+- From
+  - idle
+- Process P1: Apply immediate effect
+  - state: idle
+
+### A8:A-SubmitPreferences Submit preferences
 
 - Triggered
   - E-PreferencesForm.submit

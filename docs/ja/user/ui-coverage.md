@@ -22,7 +22,7 @@
 | Select / Checkbox / RadioGroup | 対応済み | `Select`, `MultiSelect`, `Checkbox`, `CheckboxGroup`, `Switch`, `RadioGroup` | 選択肢は Markdown のネストリストで書きます。排他的な値域は `RadioGroup`、複数値は `CheckboxGroup` または `MultiSelect`、boolean 設定は `Switch` で表します。 |
 | Banner / Badge | 対応済み | `Banner`, `Badge` | `tone` で danger や success などの意味を表現します。 |
 | List / Table | 対応済み | `List`, `Table` | Table は列とサンプル行を Markdown のネストリストで書きます。 |
-| Dialog / Overlay | 対応済み | `Dialog` と overlay layout | `overlay: area` / `overlay: screen` で重ね合わせを表します。 |
+| Dialog / Overlay | 対応済み | `Dialog` と target なしの `display.element` | Dialog は既定で modal overlay です。`actions:` で cancel / confirm button を定義し、Preview Scenario または action case から layout target なしで表示します。 |
 | Spinner / Loading mask | 対応済み | `Spinner` と状態表示 layout | 待機状態や partial loading に使います。 |
 | Divider | 対応済み | `Divider` | フォームや詳細画面内のグループ区切りに使います。 |
 | Empty state | 対応済み | `visible when: empty` を持つ `Paragraph` | 空状態は専用 element ではなく、empty state に紐づく文章として表します。 |
@@ -40,7 +40,7 @@
 | 検索 / 一覧 | 対応済み | toolbar layout、`Table`、空状態 `Paragraph`、paging button、`loading` / `load-error` state。 |
 | 詳細 | 対応済み | stack/grid layout、`Badge`、`List`、read-only text、必要に応じて dialog action。 |
 | 編集フォーム | 対応済み | `Input`、`DateInput`、`TimeInput`、`NumberInput`、`Textarea`、`FileInput`、`Select`、`MultiSelect`、`Checkbox`、`CheckboxGroup`、`Switch`、`DatePicker`、`FileUpload`、validation state、保存 lifecycle action。 |
-| 確認フロー | 対応済み | `Dialog`、`overlay`、confirm/cancel action、danger tone。 |
+| 確認フロー | 対応済み | `Dialog`、target なしの `display.element`、confirm/cancel action、danger tone。 |
 | 承認フロー | 代替表現あり | 詳細 / 編集パターンに action と rule を明示します。 |
 | 履歴 / 監査ログ | 対応済み | `Table` または `List` にサンプル行を記載します。 |
 | 権限別表示 | 代替表現あり | `visible when` / `hidden when` に role 条件を意味として書きます。 |
