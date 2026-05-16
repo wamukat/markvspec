@@ -22,7 +22,7 @@ small amount of information, but each section must have one primary job.
 | Wireframe | Visual structure and state-specific appearance | model samples for the current state, layout structure, element placement, markers, system events, partial preview placement, current viewport/state specifications | full element properties, action internals, request details |
 | Layouts | Layout objects visible in the current wireframe context | marker, name, kind, layout properties, item references | element behavior and action details |
 | Element Summary | Element catalog for the current wireframe context | marker, ID, type, triggered actions, description | display text, input constraints, visibility/disabled conditions, action process details |
-| Input Form Spec | What users can enter and which constraints apply | required flag, initial/source, input rules, visible condition, enabled condition, readonly, bind | labels, placeholders, option labels, and other display text |
+| Input Form Spec | What users can enter and which constraints apply | input required flag, initial/source, input rules, visible condition, enabled condition, readonly, bind | labels, placeholders, option labels, validation required rules, and other display text |
 | Display Content Spec | What appears in the UI and where it comes from | label, placeholder, help, sample, option label, i18n/model/source references, format, display condition, enabled condition | input constraints, action internals, validation conditions |
 | Model Updates | Model mutations caused by actions | action-level groups, trigger, context/process/case, model path, update expression | UI placement, transition diagrams, repeated action/trigger cells |
 | Action Summary | Operation catalog | marker, name, trigger, kind, overview | case-by-case request params, response body, update target details, action availability |
@@ -41,10 +41,10 @@ Detail sections should answer "exactly what happens?".
 
 - Element Summary is limited to what exists: marker, ID, type, triggered actions,
   and description.
-- Input Form Spec owns what users can enter: required metadata,
+- Input Form Spec owns what users can enter: input required metadata,
   initial/source, input rules, visible/enabled conditions, readonly, and direct
-  `bind`. Required metadata stays in the Required column rather than the Input
-  Spec column.
+  `bind`. Required metadata stays in the Input Required column rather than the
+  Input Spec column. Product validation required rules stay in Validations.
 - Display Content Spec owns wording and rendered values such as `label src`,
   `placeholder src`, `sample`, `src`, `value`, `format`, and option labels by
   display location. It also keeps display and enabled conditions visible for

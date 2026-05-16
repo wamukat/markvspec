@@ -123,7 +123,7 @@ export function createStateViewSpecTableRenderer(
 
   const renderFormControlElementsTable = (elements: ParsedElement[], repeatedElementIds: ReadonlySet<string> | undefined, emptyWhenRepeatedHidden: boolean): string =>
     markRepeatedHiddenEmptyHtml(helpers.renderLocalizedTable(
-      [helpers.label("marker"), helpers.label("id"), helpers.label("type"), helpers.label("required"), helpers.label("initialValueSource"), helpers.label("inputSpec"), helpers.label("visibleWhen"), helpers.label("enabledWhen"), helpers.label("readonly"), helpers.label("bind")],
+      [helpers.label("marker"), helpers.label("id"), helpers.label("type"), helpers.label("inputRequired"), helpers.label("initialValueSource"), helpers.label("inputSpec"), helpers.label("visibleWhen"), helpers.label("enabledWhen"), helpers.label("readonly"), helpers.label("bind")],
       elements.map((element) => [
         renderRepeatedMarkerCell(element.id, Boolean(repeatedElementIds?.has(element.id))),
         helpers.renderDetailRefId(element.id),

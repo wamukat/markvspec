@@ -74,6 +74,7 @@ export type MessageKey =
   | "initial"
   | "initialValueSource"
   | "inputFormSpec"
+  | "inputRequired"
   | "inputSpec"
   | "items"
   | "kind"
@@ -262,6 +263,7 @@ const en: Record<MessageKey, string> = {
   initial: "initial",
   initialValueSource: "Initial / Source",
   inputFormSpec: "Input Form Spec",
+  inputRequired: "Input Required",
   inputSpec: "Input Spec",
   items: "Items",
   kind: "Kind",
@@ -451,6 +453,7 @@ const ja: Record<MessageKey, string> = {
   initial: "初期",
   initialValueSource: "初期値(参照元)",
   inputFormSpec: "入力フォーム仕様",
+  inputRequired: "入力必須",
   inputSpec: "入力仕様",
   items: "項目",
   kind: "種別",

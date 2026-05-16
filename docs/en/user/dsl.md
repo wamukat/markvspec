@@ -938,8 +938,9 @@ adding the element type or display-content summary.
 
 Append `*` to the element type only when the element itself has input-level
 required metadata. For example, `Input*` is equivalent to a `required` flag in
-the Input Form Spec. It is not the canonical way to define product validation.
-Required validation belongs in `## Validations` under `rules: required`.
+the Input Form Spec `Input Required` column. It is not the canonical way to
+define product validation. Required validation belongs in `## Validations` under
+`rules: required`.
 Required metadata is not rendered as a native `required` attribute or an
 automatic `*` marker in the wireframe preview. If the screen should visibly show
 a required mark, write it into the authored label text.
@@ -1103,9 +1104,10 @@ but reserve visible markers for meaningful review targets or value variants such
 as read/unread badges.
 
 Flags are boolean properties. A `required` flag or `Input*` heading suffix is
-element metadata shown in Input Form Spec. Use it only for input-level UI
-requirements, not for product validation contracts. Prefer `## Validations`
-with `rules: required` when the design needs to specify validation behavior.
+element metadata shown in the Input Form Spec `Input Required` column. Use it
+only for input-level UI requirements, not for product validation contracts.
+Prefer `## Validations` with `rules: required` when the design needs to specify
+validation behavior.
 
 ```markdown
 - required
@@ -2051,7 +2053,8 @@ For required fields, this section is canonical. Write `rules: required` here
 instead of repeating required intent in layout labels such as `"Email*"` or
 element headings such as `Input*`. If an element also carries required metadata
 for an input UI constraint, the generated Input Form Spec shows that element
-metadata separately from this Validations section.
+metadata in the `Input Required` column, separately from this Validations
+section.
 
 ```markdown
 ## Validations

@@ -765,9 +765,10 @@ Element 参照を Element marker と Element ID で識別し、element type や
 表示内容要約は原則として足しません。
 
 `*` は Element 自体に input-level の required metadata がある場合だけ使います。
-たとえば `Input*` は Input Form Spec の required flag と同じ意味です。これは
-product validation を定義する canonical syntax ではありません。必須入力の
-validation contract は `## Validations` の `rules: required` に書きます。
+たとえば `Input*` は Input Form Spec の `入力必須` 列に出る required flag と
+同じ意味です。これは product validation を定義する canonical syntax では
+ありません。必須入力の validation contract は `## Validations` の `rules:
+required` に書きます。
 wireframe preview では native `required` attribute や自動の `*` marker としては
 描画しません。画面上に必須マークを見せたい場合は、label 文字列に自分で書きます。
 
@@ -1411,8 +1412,8 @@ contract であり、Action をいつ起動するかは定義しません。要�
 必須入力はこの章が canonical です。`"Email*"` のような layout label や
 `Input*` のような element heading に required の意図を重ねず、`rules:
 required` として書きます。Element 側にも入力 UI 制約として required metadata
-を持たせる場合、generated design document では Input Form Spec と Validations
-に分かれて表示されます。
+を持たせる場合、generated design document では Input Form Spec の `入力必須`
+列と Validations に分かれて表示されます。
 
 ```markdown
 ## Validations

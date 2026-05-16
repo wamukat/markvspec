@@ -3729,7 +3729,7 @@ test("renders input form spec without validation columns", () => {
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
   const formControls = html.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
 
-  assert.match(formControls, /<th>Marker<\/th><th>ID<\/th><th>Type<\/th><th>Required<\/th><th>Initial \/ Source<\/th><th>Input Spec<\/th><th>Visible When<\/th><th>Enabled When<\/th><th>Read-only<\/th><th>Bind<\/th>/);
+  assert.match(formControls, /<th>Marker<\/th><th>ID<\/th><th>Type<\/th><th>Input Required<\/th><th>Initial \/ Source<\/th><th>Input Spec<\/th><th>Visible When<\/th><th>Enabled When<\/th><th>Read-only<\/th><th>Bind<\/th>/);
   assert.doesNotMatch(formControls, /<th>Validation<\/th>/);
   assert.doesNotMatch(formControls, /<th>Error<\/th>/);
   assert.doesNotMatch(formControls, /<th>Label<\/th>/);
@@ -3739,7 +3739,25 @@ test("renders input form spec without validation columns", () => {
   assert.doesNotMatch(formControls, />Administrator<\/td>/);
 });
 
-test("keeps required metadata in the required column for input form specs", () => {
+test("keeps validation required distinct from input required in single-field validation preview", () => {
+  const source = readFileSync(resolve("../../examples/03-actions/single-field-validation.vspec.md"), "utf8");
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const formControls = html.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+  const validationsSection = docSectionByHeading(html, "Validations");
+  const clientFieldValidations = validationsSection.match(/<h3>Client Field Validations<\/h3>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.match(formControls, /<th>Input Required<\/th>/);
+  assert.doesNotMatch(formControls, /<th>Required<\/th>/);
+  assert.match(formControls, new RegExp(`<td>${markerBadge("3", "element")}</td><td>${detailIdRef("E-UsernameInput")}</td><td>Input</td><td></td>`));
+  assert.match(formControls, new RegExp(`<td>${markerBadge("4", "element")}</td><td>${detailIdRef("E-EmailInput")}</td><td>Input</td><td></td>`));
+  assert.match(clientFieldValidations, new RegExp(`<td><span class="mm-detail-ref-id">V-UsernameRules<\\/span><\\/td><td>Username rules<\\/td><td>${markerBadge("3", "element")}<\\/td>`));
+  assert.match(clientFieldValidations, new RegExp(`<li>required: ${markerBadge("3", "element")}<\\/li><li>min-length: ${markerBadge("3", "element")}<\\/li><li>max-length: ${markerBadge("3", "element")}<\\/li><li>pattern: ${markerBadge("3", "element")}<\\/li>`));
+  assert.match(clientFieldValidations, new RegExp(`<td><span class="mm-detail-ref-id">V-EmailRules<\\/span><\\/td><td>Email rules<\\/td><td>${markerBadge("4", "element")}<\\/td>`));
+  assert.match(clientFieldValidations, new RegExp(`<li>required: ${markerBadge("4", "element")}<\\/li><li>email: ${markerBadge("4", "element")}<\\/li>`));
+});
+
+test("keeps required metadata in the input required column for input form specs", () => {
   const source = `---
 id: SCR-REQUIRED-SPEC
 type: screen

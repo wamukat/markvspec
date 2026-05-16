@@ -26,7 +26,7 @@ MarkVSpec のプレビューは、生成された画面設計書です。上か�
 | Wireframe | 画面構造と状態別の見え方 | 対象stateのModel Samples、Layout構造、Element配置、marker、自動イベント、partial preview配置、viewport/stateごとの現在仕様 | Element全プロパティ、Action内部処理、通信詳細 |
 | Layouts | 現在のワイヤーフレーム文脈で表示されるLayout | marker、名前、種別、layoutプロパティ、item参照 | Elementの振る舞い、Action詳細 |
 | 画面要素サマリー | 現在のワイヤーフレーム文脈の要素カタログ | marker、ID、type、関連Action、説明 | 表示文言、入力制約、visible/disabled条件、Action処理詳細 |
-| 入力フォーム仕様 | ユーザーが入力できる値と制約 | 入力要素の必須、初期値/参照元、input rule、表示条件、有効条件、readonly、bind | label、placeholder、option label などの表示文言 |
+| 入力フォーム仕様 | ユーザーが入力できる値と制約 | 入力要素側の必須、初期値/参照元、input rule、表示条件、有効条件、readonly、bind | label、placeholder、option label、validation required rule など |
 | 表示内容仕様 | 要素に表示される文言・値と取得元 | label、placeholder、help、sample、option label、src/i18n/model参照、format、表示条件、有効条件 | 入力制約、Action内部処理、validation条件 |
 | Model Updates | Actionによるmodel更新 | Action単位グループ、trigger、context/process/case、model path、update式 | UI配置、遷移図、各行でのaction/trigger反復 |
 | Action Summary | 操作一覧の俯瞰 | marker、name、trigger、kind、著者が書いた overview | case別request params、response body、update target詳細、Action の availability、自動要約 |
@@ -44,7 +44,7 @@ MarkVSpec のプレビューは、生成された画面設計書です。上か�
 詳細セクションは「正確に何が起きるか」を示します。
 
 - 画面要素サマリーは「何があるか」に絞り、表示内容や入力仕様を持ち込まない。
-- 入力フォーム仕様は、ユーザーが入力できる値、必須、初期値、入力制約、表示/有効条件、readonly、bind を扱う。必須情報は必須列に集約し、入力仕様列には表示しない。
+- 入力フォーム仕様は、ユーザーが入力できる値、入力要素側の必須、初期値、入力制約、表示/有効条件、readonly、bind を扱う。入力要素側の必須情報は入力必須列に集約し、入力仕様列には表示しない。product validation の required rule は Validations に置く。
 - 表示内容仕様は、`label src`、`placeholder src`、`sample`、`src`、`value`、`format`、`option label` を表示箇所ごとに扱い、表示文言を持つ非入力要素の表示/有効条件もここで確認できるようにする。
 - Validations は client/server と単項目/複合項目で表を分け、1つの表に責務を混在させない。
 - Action Summary は 1 Action 1 行を維持し、著者が Action 見出し直下に書いた概要だけを表示する。処理内容から overview を自動生成しない。
