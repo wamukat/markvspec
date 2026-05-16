@@ -27,7 +27,7 @@ Use these examples for pre-release visual checks in VS Code preview, standalone
 HTML export, and PDF export:
 
 - `examples/01-basics/hello-screen.vspec.md`: minimum metadata and one-screen basics.
-- `examples/01-basics/login-basic.vspec.md`: form layout, Form Groups, validation, and auth states.
+- `examples/04-real-world-screens/login-basic.vspec.md`: form layout, Form Groups, validation feedback scenarios, and authentication progress.
 - `examples/02-states/model-samples.vspec.md`: list-first Model Samples and supplemental empty table syntax.
 - `examples/02-states/responsive-profile.vspec.md`: mobile / desktop responsive layout and state-specific rendering.
 - `examples/03-actions/event-triggers.vspec.md`: non-click element events and lifecycle triggers.
@@ -73,7 +73,7 @@ HTML export, and PDF export:
 - [ ] The npm registry `@markvspec` scope, 2FA, `access public`, and npm token or
   login state are ready.
 - [ ] The generated VSIX installs into VS Code.
-- [ ] `examples/01-basics/login-basic.vspec.md` opens as a MarkVSpec document.
+- [ ] `examples/04-real-world-screens/login-basic.vspec.md` opens as a MarkVSpec document.
 - [ ] Preview opens from the editor title action.
 - [ ] Preview opens from the Explorer context menu.
 - [ ] Preview updates when switching between MarkVSpec files.
@@ -86,8 +86,8 @@ HTML export, and PDF export:
   installed.
 - [ ] README and docs links are current in both English and Japanese.
 - [ ] The README preview screenshot
-  `docs/assets/readme-login-basic-html-preview.png` is an actual generated view
-  composed from the current `examples/01-basics/login-basic.vspec.md` Markdown
+  `docs/assets/readme-hello-screen-preview.png` is an actual generated view
+  composed from the current `examples/01-basics/hello-screen.vspec.md` Markdown
   source and generated static HTML.
 - [ ] After npm publish, `npx @markvspec/cli@latest validate ...` and
   `npx @markvspec/cli@latest export html ...` work with the published package.
@@ -106,14 +106,14 @@ HTML export, and PDF export:
    `markmock` names.
 5. Install the tarball into a separate temporary directory and invoke it from
    the repository root as `<tmp>/node_modules/.bin/markvspec`.
-6. Run `<tmp>/node_modules/.bin/markvspec validate examples/01-basics/login-basic.vspec.md`.
-7. Run `<tmp>/node_modules/.bin/markvspec export html examples/01-basics/login-basic.vspec.md --out <dir>`.
+6. Run `<tmp>/node_modules/.bin/markvspec validate examples/04-real-world-screens/login-basic.vspec.md`.
+7. Run `<tmp>/node_modules/.bin/markvspec export html examples/04-real-world-screens/login-basic.vspec.md --out <dir>`.
 8. In an environment with a compatible PDF browser, run
-   `<tmp>/node_modules/.bin/markvspec export pdf examples/01-basics/login-basic.vspec.md --out <dir>`.
+   `<tmp>/node_modules/.bin/markvspec export pdf examples/04-real-world-screens/login-basic.vspec.md --out <dir>`.
 9. Run `npm publish -w @markvspec/cli --access public` only after the matching
    VSIX smoke test and version checks are complete.
 10. After publishing, run
-    `npx @markvspec/cli@latest validate examples/01-basics/login-basic.vspec.md`
+    `npx @markvspec/cli@latest validate examples/04-real-world-screens/login-basic.vspec.md`
     to confirm the registry package works.
 
 ## Manual VS Code Smoke Steps
@@ -123,7 +123,7 @@ HTML export, and PDF export:
    profile and extensions directory.
 3. Install the generated VSIX into VS Code.
 4. Open this repository in VS Code.
-5. Open `examples/01-basics/login-basic.vspec.md`.
+5. Open `examples/04-real-world-screens/login-basic.vspec.md`.
 6. Open preview from the editor title action.
 7. Confirm the toolbar shows the source file path.
 8. Toggle Layout, Element, and Action markers.
@@ -149,19 +149,19 @@ the left and the generated wireframe on the right.
 ```bash
 rm -rf .work/readme-preview
 mkdir -p .work/readme-preview docs/assets
-node packages/cli/dist/index.js export html examples/01-basics/login-basic.vspec.md --out .work/readme-preview
+node packages/cli/dist/index.js export html examples/01-basics/hello-screen.vspec.md --out .work/readme-preview
 node scripts/create-readme-preview-page.mjs \
-  --source examples/01-basics/login-basic.vspec.md \
-  --html .work/readme-preview/login-basic.html \
+  --source examples/01-basics/hello-screen.vspec.md \
+  --html .work/readme-preview/hello-screen.html \
   --out .work/readme-preview/readme-preview-capture.html
 agent-browser --session markvspec-readme open "file://$PWD/.work/readme-preview/readme-preview-capture.html"
 agent-browser --session markvspec-readme wait --load networkidle
-agent-browser --session markvspec-readme screenshot "$PWD/docs/assets/readme-login-basic-html-preview.png"
+agent-browser --session markvspec-readme screenshot "$PWD/docs/assets/readme-hello-screen-preview.png"
 agent-browser --session markvspec-readme close
 ```
 
 After capturing it, inspect the image and confirm that it shows the generated
-HTML for `Login Basic` next to the Markdown source, that the wireframe is
+HTML for `Hello Screen` next to the Markdown source, that the wireframe is
 immediately visible, and that README copy describes it as a static HTML preview
 rather than the VS Code preview itself.
 

@@ -4692,7 +4692,7 @@ template:
 });
 
 test("parses the login screen example", () => {
-  const source = readFileSync(examplePath("01-basics/login-basic.vspec.md"), "utf8");
+  const source = readFileSync(examplePath("04-real-world-screens/login-basic.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
 
   assert.equal(result.screen.id, "SCR-LOGIN");
@@ -4832,7 +4832,6 @@ test("parses every release example without diagnostics", () => {
 
   assert.deepEqual(exampleFiles, [
     "01-basics/hello-screen.vspec.md",
-    "01-basics/login-basic.vspec.md",
     "02-states/async-loading.vspec.md",
     "02-states/model-samples.vspec.md",
     "02-states/responsive-profile.vspec.md",
@@ -4840,6 +4839,7 @@ test("parses every release example without diagnostics", () => {
     "03-actions/form-submit-flow.vspec.md",
     "03-actions/parallel-initial-load.vspec.md",
     "03-actions/single-field-validation.vspec.md",
+    "04-real-world-screens/login-basic.vspec.md",
     "04-real-world-screens/notice-detail.vspec.md",
     "04-real-world-screens/profile-edit-rich.vspec.md",
     "04-real-world-screens/search-list.vspec.md",
@@ -7130,7 +7130,7 @@ title: Incomplete Request Step
 });
 
 test("renders the login screen as low-fidelity HTML", () => {
-  const source = readFileSync(examplePath("01-basics/login-basic.vspec.md"), "utf8");
+  const source = readFileSync(examplePath("04-real-world-screens/login-basic.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
   const html = renderMarkVSpecHtml(result, { showIds: true });
 
@@ -7912,7 +7912,7 @@ title: Form Primitives
 });
 
 test("toggles marker categories independently", () => {
-  const source = readFileSync(examplePath("01-basics/login-basic.vspec.md"), "utf8");
+  const source = readFileSync(examplePath("04-real-world-screens/login-basic.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
   const html = renderMarkVSpecHtml(result, {
     markerVisibility: {
@@ -7931,7 +7931,7 @@ test("toggles marker categories independently", () => {
 });
 
 test("renders the requested viewport layout", () => {
-  const source = readFileSync(examplePath("01-basics/login-basic.vspec.md"), "utf8");
+  const source = readFileSync(examplePath("04-real-world-screens/login-basic.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
   const mobileHtml = renderMarkVSpecHtml(result, { includeStyles: false, viewport: "mobile" });
   const desktopHtml = renderMarkVSpecHtml(result, { includeStyles: false, viewport: "desktop" });
@@ -9883,7 +9883,7 @@ title: Action Lifecycle
 });
 
 test("keeps message-only banners out of baseline state rendering", () => {
-  const source = readFileSync(examplePath("01-basics/login-basic.vspec.md"), "utf8");
+  const source = readFileSync(examplePath("04-real-world-screens/login-basic.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
   const html = renderMarkVSpecHtml(result, { state: "idle" });
 
@@ -10085,7 +10085,7 @@ title: Wait
 });
 
 test("can include conditional content for design document wireframes", () => {
-  const source = readFileSync(examplePath("01-basics/login-basic.vspec.md"), "utf8");
+  const source = readFileSync(examplePath("04-real-world-screens/login-basic.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
   const html = renderMarkVSpecHtml(result, { includeConditionalContent: true, showIds: true });
 

@@ -30,8 +30,8 @@ HTML / PDF export で辞書ファイルを明示する場合は、`--messages <p
 npm registry から `@markvspec/cli` を解決できる環境では、次のコマンドをそのまま使えます。
 
 ```bash
-npx @markvspec/cli@latest export html examples/01-basics/login-basic.vspec.md --out dist --messages markvspec.messages.ja.yml
-npx @markvspec/cli@latest export pdf examples/01-basics/login-basic.vspec.md --out dist --messages markvspec.messages.ja.yml
+npx @markvspec/cli@latest export html examples/04-real-world-screens/login-basic.vspec.md --out dist --messages markvspec.messages.ja.yml
+npx @markvspec/cli@latest export pdf examples/04-real-world-screens/login-basic.vspec.md --out dist --messages markvspec.messages.ja.yml
 ```
 
 リポジトリ checkout から直接確認する場合は、先に `npm run build -w @markvspec/cli`

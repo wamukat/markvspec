@@ -33,7 +33,7 @@ VS Code preview、standalone HTML、PDF export のリリース前目視確認で
 example を代表セットとして使う。
 
 - `examples/01-basics/hello-screen.vspec.md`: 最小構成、Front Matter、1画面の基本表示。
-- `examples/01-basics/login-basic.vspec.md`: form layout、Form Groups、validation、認証状態。
+- `examples/04-real-world-screens/login-basic.vspec.md`: form layout、Form Groups、validation feedback scenario、authentication progress。
 - `examples/02-states/model-samples.vspec.md`: list 形式中心の Model Samples と空配列用 table 記法。
 - `examples/02-states/responsive-profile.vspec.md`: mobile / desktop のレスポンシブ layout と状態別表示。
 - `examples/03-actions/event-triggers.vspec.md`: click 以外の element event と lifecycle trigger。
@@ -78,7 +78,7 @@ example を代表セットとして使う。
 - [ ] npm registry 側の `@markvspec` scope、2FA、`access public`、npm token
   または login 状態を確認する。
 - [ ] 生成された VSIX を VS Code に install できる。
-- [ ] `examples/01-basics/login-basic.vspec.md` が MarkVSpec document として開ける。
+- [ ] `examples/04-real-world-screens/login-basic.vspec.md` が MarkVSpec document として開ける。
 - [ ] エディタタイトルの action から preview を開ける。
 - [ ] Explorer context menu から preview を開ける。
 - [ ] MarkVSpec ファイルを切り替えると preview 対象も切り替わる。
@@ -90,8 +90,8 @@ example を代表セットとして使う。
 - [ ] 互換ブラウザがある環境で `MarkVSpec: Export PDF` から PDF を出力できる。
 - [ ] README と docs のリンクが英日で最新になっている。
 - [ ] README 冒頭の preview screenshot
-  `docs/assets/readme-login-basic-html-preview.png` が現在の
-  `examples/01-basics/login-basic.vspec.md` のMarkdown sourceと生成HTMLから作った
+  `docs/assets/readme-hello-screen-preview.png` が現在の
+  `examples/01-basics/hello-screen.vspec.md` のMarkdown sourceと生成HTMLから作った
   左右並びの実キャプチャである。
 - [ ] npm publish 後に `npx @markvspec/cli@latest validate ...` と
   `npx @markvspec/cli@latest export html ...` で公開済み package を確認する。
@@ -109,13 +109,13 @@ example を代表セットとして使う。
    source、旧 `MarkMock` / `markmock` 名が含まれないことを確認する。
 5. 別の一時ディレクトリへ tarball を install し、リポジトリ root から
    `<tmp>/node_modules/.bin/markvspec` として実行する。
-6. 代表 example で `<tmp>/node_modules/.bin/markvspec validate examples/01-basics/login-basic.vspec.md` を実行する。
-7. 代表 example で `<tmp>/node_modules/.bin/markvspec export html examples/01-basics/login-basic.vspec.md --out <dir>` を実行する。
+6. 代表 example で `<tmp>/node_modules/.bin/markvspec validate examples/04-real-world-screens/login-basic.vspec.md` を実行する。
+7. 代表 example で `<tmp>/node_modules/.bin/markvspec export html examples/04-real-world-screens/login-basic.vspec.md --out <dir>` を実行する。
 8. PDF 出力可能なブラウザがある環境で
-   `<tmp>/node_modules/.bin/markvspec export pdf examples/01-basics/login-basic.vspec.md --out <dir>` を実行する。
+   `<tmp>/node_modules/.bin/markvspec export pdf examples/04-real-world-screens/login-basic.vspec.md --out <dir>` を実行する。
 9. `npm publish -w @markvspec/cli --access public` は VSIX smoke test と同じ version
    確認が終わってから実行する。
-10. publish 後に `npx @markvspec/cli@latest validate examples/01-basics/login-basic.vspec.md`
+10. publish 後に `npx @markvspec/cli@latest validate examples/04-real-world-screens/login-basic.vspec.md`
     を実行し、registry から取得した package が動くことを確認する。
 
 ## VS Code 手動スモーク手順
@@ -125,7 +125,7 @@ example を代表セットとして使う。
    上で確認する。
 3. 生成された VSIX を VS Code に install する。
 4. このリポジトリを VS Code で開く。
-5. `examples/01-basics/login-basic.vspec.md` を開く。
+5. `examples/04-real-world-screens/login-basic.vspec.md` を開く。
 6. エディタタイトルの action から preview を開く。
 7. toolbar に対象ファイルパスが表示されていることを確認する。
 8. Layout、Element、Action の marker toggle を操作する。
@@ -151,18 +151,18 @@ MarkVSpec が生成した static HTML preview から作る。左にMarkdown、�
 ```bash
 rm -rf .work/readme-preview
 mkdir -p .work/readme-preview docs/assets
-node packages/cli/dist/index.js export html examples/01-basics/login-basic.vspec.md --out .work/readme-preview
+node packages/cli/dist/index.js export html examples/01-basics/hello-screen.vspec.md --out .work/readme-preview
 node scripts/create-readme-preview-page.mjs \
-  --source examples/01-basics/login-basic.vspec.md \
-  --html .work/readme-preview/login-basic.html \
+  --source examples/01-basics/hello-screen.vspec.md \
+  --html .work/readme-preview/hello-screen.html \
   --out .work/readme-preview/readme-preview-capture.html
 agent-browser --session markvspec-readme open "file://$PWD/.work/readme-preview/readme-preview-capture.html"
 agent-browser --session markvspec-readme wait --load networkidle
-agent-browser --session markvspec-readme screenshot "$PWD/docs/assets/readme-login-basic-html-preview.png"
+agent-browser --session markvspec-readme screenshot "$PWD/docs/assets/readme-hello-screen-preview.png"
 agent-browser --session markvspec-readme close
 ```
 
-取得後は画像を目視し、左側に `Login Basic` のMarkdown source、右側に生成HTMLの
+取得後は画像を目視し、左側に `Hello Screen` のMarkdown source、右側に生成HTMLの
 ワイヤーフレームが一目で分かること、README 上の説明が VS Code preview そのものでは
 なく static HTML preview として正確であることを確認する。
 

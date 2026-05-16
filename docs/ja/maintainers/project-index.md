@@ -25,7 +25,7 @@ screens:
   - id: SCR-USER-DETAIL
     path: examples/03-actions/form-submit-flow.vspec.md
   - id: SCR-USER-EDIT
-    path: examples/01-basics/login-basic.vspec.md
+    path: examples/04-real-world-screens/login-basic.vspec.md
 ---
 
 # PRJ-ADMIN Admin Console

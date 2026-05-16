@@ -36,7 +36,6 @@ rule と validation の見出しは、document symbol と parser test が曖昧�
 | サンプル | 用途 |
 | --- | --- |
 | [Hello Screen](../../../examples/01-basics/hello-screen.vspec.md) | metadata、1 state、1 viewport、layout、element、click action marker の最小例。 |
-| [Login Basic](../../../examples/01-basics/login-basic.vspec.md) | responsive layout、required validation、message display scenario、request parameters、response cases、disabled control、navigation を含む小さな login flow。 |
 | [Async Loading](../../../examples/02-states/async-loading.vspec.md) | request 送信、response handling、empty/error state、Model Samples の例。 |
 | [Model Samples](../../../examples/02-states/model-samples.vspec.md) | list 形式中心の object / collection サンプルと、空配列用 table 記法を学ぶ例。 |
 | [Responsive Profile](../../../examples/02-states/responsive-profile.vspec.md) | mobile / desktop viewport で同じ情報を異なる配置にする例。 |
@@ -47,6 +46,7 @@ rule と validation の見出しは、document symbol と parser test が曖昧�
 | [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md) | Display Content Spec の `label src`、`sample`、`src`、`format`、`value`、`params` を確認する例。 |
 | [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md) | 拡張 form、media、list、dialog 系 Element Type をまとめて確認する例。 |
 | [Search List](../../../examples/04-real-world-screens/search-list.vspec.md) | filter、Table、paging、empty/error state、result replacement の例。 |
+| [Login Basic](../../../examples/04-real-world-screens/login-basic.vspec.md) | responsive layout、required validation、message display scenario、request parameters、response cases、disabled control、navigation を含む実践的な login flow。 |
 | [Template Shell](../../../examples/05-reuse/template-shell.vspec.md) | template document と slot の基本例。 |
 | [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md) | template 合成、route params、partial refresh の例。 |
 | [Profile Summary Partial](../../../examples/05-reuse/profile-summary.partial.vspec.md) | `type: partial`、partial route、partial-local state の例。 |
@@ -54,7 +54,7 @@ rule と validation の見出しは、document symbol と parser test が曖昧�
 
 ## 確認手順
 
-1. [Login Basic](../../../examples/01-basics/login-basic.vspec.md) を開き、mobile / desktop の preview を確認する。
+1. [Login Basic](../../../examples/04-real-world-screens/login-basic.vspec.md) を開き、mobile / desktop の preview を確認する。
 2. marker 表示、viewport filter、state 切替を確認する。
 3. [Model Samples](../../../examples/02-states/model-samples.vspec.md) で list 形式の object / collection sample 表示を確認する。
 4. [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) で click 以外の event と lifecycle trigger を確認する。

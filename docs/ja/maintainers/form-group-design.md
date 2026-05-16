@@ -76,7 +76,7 @@ Validation セクションでは `target: F-*` を FormGroup への参照とし�
 
 ## 移行対象
 
-最初の移行対象は `examples/01-basics/login-basic.vspec.md` です。
+最初の移行対象は `examples/04-real-world-screens/login-basic.vspec.md` です。
 現在の `V-LoginForm` は `target: L-LoginForm` になっているため、`F-LoginForm` を追加して
 Validation target を差し替えます。
 

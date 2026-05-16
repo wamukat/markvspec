@@ -18,8 +18,8 @@ VS Code で `.vspec.md` を開いている場合は、Command Palette から次�
 CLI で出力する場合は、npm registry から `@markvspec/cli` を解決できる環境で次を実行します。
 
 ```sh
-npx @markvspec/cli@latest export html examples/01-basics/login-basic.vspec.md --out markvspec-html
-npx @markvspec/cli@latest export pdf examples/01-basics/login-basic.vspec.md --out markvspec-pdf
+npx @markvspec/cli@latest export html examples/04-real-world-screens/login-basic.vspec.md --out markvspec-html
+npx @markvspec/cli@latest export pdf examples/04-real-world-screens/login-basic.vspec.md --out markvspec-pdf
 ```
 
 `--out` には出力先ディレクトリを指定します。既存の CI やレビュー用成果物置き場へ出す場合は、

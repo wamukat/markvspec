@@ -21,11 +21,11 @@ same file.
 ## Preview
 
 This image shows the Markdown source from
-[Login Basic](examples/01-basics/login-basic.vspec.md) next to the wireframe in
+[Hello Screen](examples/01-basics/hello-screen.vspec.md) next to the wireframe in
 the generated static HTML preview. The same `.vspec.md` source can be opened in
 VS Code preview, exported to HTML, and exported to PDF.
 
-![Login Basic Markdown source next to the generated MarkVSpec static HTML preview](docs/assets/readme-hello-screen-preview.png)
+![Hello Screen Markdown source next to the generated MarkVSpec static HTML preview](docs/assets/readme-hello-screen-preview.png)
 
 ## Why It Helps
 
@@ -191,7 +191,7 @@ route: /login
 - message: Email is required.
 ```
 
-For more realistic examples, see [Login Basic](examples/01-basics/login-basic.vspec.md)
+For more realistic examples, see [Login Basic](examples/04-real-world-screens/login-basic.vspec.md)
 and the [Example Gallery](docs/en/user/example-gallery.md).
 
 ### 3. Open the Preview
@@ -280,7 +280,6 @@ IDs, not markers.
 The `examples/` directory is organized as a learning path:
 
 - [examples/01-basics/hello-screen.vspec.md](examples/01-basics/hello-screen.vspec.md): minimum screen.
-- [examples/01-basics/login-basic.vspec.md](examples/01-basics/login-basic.vspec.md): form layout, validation feedback scenarios, and authentication progress.
 - [examples/02-states/async-loading.vspec.md](examples/02-states/async-loading.vspec.md): request send and response states.
 - [examples/02-states/model-samples.vspec.md](examples/02-states/model-samples.vspec.md): list-first Model Samples with supplemental empty table syntax.
 - [examples/02-states/responsive-profile.vspec.md](examples/02-states/responsive-profile.vspec.md): mobile and desktop layouts.
@@ -290,6 +289,7 @@ The `examples/` directory is organized as a learning path:
 - [examples/04-real-world-screens/notice-detail.vspec.md](examples/04-real-world-screens/notice-detail.vspec.md): Display Content Spec fields for wording, data sources, formatting, values, and params.
 - [examples/04-real-world-screens/profile-edit-rich.vspec.md](examples/04-real-world-screens/profile-edit-rich.vspec.md): extended form, media, list, and dialog element types.
 - [examples/04-real-world-screens/search-list.vspec.md](examples/04-real-world-screens/search-list.vspec.md): search, filters, pagination, empty result, and result replacement.
+- [examples/04-real-world-screens/login-basic.vspec.md](examples/04-real-world-screens/login-basic.vspec.md): form layout, validation feedback scenarios, and authentication progress.
 - [examples/05-reuse/template-shell.vspec.md](examples/05-reuse/template-shell.vspec.md): template shell and slot basics.
 - [examples/05-reuse/profile-page-with-template.vspec.md](examples/05-reuse/profile-page-with-template.vspec.md): template composition, route params, and partial refresh.
 - [examples/05-reuse/profile-summary.partial.vspec.md](examples/05-reuse/profile-summary.partial.vspec.md): partial route and partial-local states.

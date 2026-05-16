@@ -31,7 +31,7 @@ MARKVSPEC_REQUIRE_PDF=1 npm run check:print-regression
 The regression set is every bundled MarkVSpec document:
 
 - `examples/01-basics/hello-screen.vspec.md`
-- `examples/01-basics/login-basic.vspec.md`
+- `examples/04-real-world-screens/login-basic.vspec.md`
 - `examples/02-states/async-loading.vspec.md`
 - `examples/02-states/model-samples.vspec.md`
 - `examples/02-states/responsive-profile.vspec.md`

@@ -611,7 +611,7 @@ title: No Viewport Repeated
 });
 
 test("marks login authenticating common specs as repeated while keeping progress specs new", () => {
-  const source = readFileSync(resolve(extensionRoot, "../../examples/01-basics/login-basic.vspec.md"), "utf8");
+  const source = readFileSync(resolve(extensionRoot, "../../examples/04-real-world-screens/login-basic.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
   const waitAuthSection = viewportStateSection(html, "authenticating", "mobile");
@@ -627,7 +627,7 @@ test("marks login authenticating common specs as repeated while keeping progress
 });
 
 test("builds State Views ids from the read model", () => {
-  const source = readFileSync(resolve(extensionRoot, "../../examples/01-basics/login-basic.vspec.md"), "utf8");
+  const source = readFileSync(resolve(extensionRoot, "../../examples/04-real-world-screens/login-basic.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
   const models = buildStateScreenReadModels(result, result, "mobile");
   const waitAuth = models.find((model) => model.stateName === "authenticating");

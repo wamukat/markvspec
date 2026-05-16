@@ -18,11 +18,11 @@ English documentation starts at [README.md](README.md).
 
 ## プレビュー
 
-次の画像は、[Login Basic](examples/01-basics/login-basic.vspec.md) の Markdown
+次の画像は、[Hello Screen](examples/01-basics/hello-screen.vspec.md) の Markdown
 source と、そこから生成した static HTML preview のワイヤーフレームを並べたものです。
 同じ `.vspec.md` から VS Code preview、HTML export、PDF export を確認できます。
 
-![Login Basic の Markdown source と MarkVSpec static HTML preview](docs/assets/readme-hello-screen-preview.png)
+![Hello Screen の Markdown source と MarkVSpec static HTML preview](docs/assets/readme-hello-screen-preview.png)
 
 ## 何が嬉しいか
 
@@ -182,7 +182,7 @@ route: /login
 - message: メールアドレスを入力してください。
 ```
 
-より実務寄りの例は [Login Basic](examples/01-basics/login-basic.vspec.md) と
+より実務寄りの例は [Login Basic](examples/04-real-world-screens/login-basic.vspec.md) と
 [サンプルギャラリー](docs/ja/user/example-gallery.md) にあります。
 
 ### 3. プレビューを開く
@@ -269,7 +269,6 @@ marker です。参照には marker ではなく ID を使います。
 構文、レイアウト、状態、アクション、再利用の基本を確認できます。
 
 - [examples/01-basics/hello-screen.vspec.md](examples/01-basics/hello-screen.vspec.md): 最小の画面。
-- [examples/01-basics/login-basic.vspec.md](examples/01-basics/login-basic.vspec.md): form layout、validation feedback scenario、authentication progress。
 - [examples/02-states/async-loading.vspec.md](examples/02-states/async-loading.vspec.md): request send と response states。
 - [examples/02-states/model-samples.vspec.md](examples/02-states/model-samples.vspec.md): list 形式中心の Model Samples と空配列用 table 記法。
 - [examples/02-states/responsive-profile.vspec.md](examples/02-states/responsive-profile.vspec.md): mobile / desktop layout。
@@ -279,6 +278,7 @@ marker です。参照には marker ではなく ID を使います。
 - [examples/04-real-world-screens/notice-detail.vspec.md](examples/04-real-world-screens/notice-detail.vspec.md): Display Content Spec の文言、データソース、format、value、params。
 - [examples/04-real-world-screens/profile-edit-rich.vspec.md](examples/04-real-world-screens/profile-edit-rich.vspec.md): 拡張 form、media、list、dialog 系 Element Type。
 - [examples/04-real-world-screens/search-list.vspec.md](examples/04-real-world-screens/search-list.vspec.md): search、filter、pagination、empty result、result replacement。
+- [examples/04-real-world-screens/login-basic.vspec.md](examples/04-real-world-screens/login-basic.vspec.md): form layout、validation feedback scenario、authentication progress。
 - [examples/05-reuse/template-shell.vspec.md](examples/05-reuse/template-shell.vspec.md): template shell と slot の基本。
 - [examples/05-reuse/profile-page-with-template.vspec.md](examples/05-reuse/profile-page-with-template.vspec.md): template 合成、route params、partial refresh。
 - [examples/05-reuse/profile-summary.partial.vspec.md](examples/05-reuse/profile-summary.partial.vspec.md): partial route と partial-local state。

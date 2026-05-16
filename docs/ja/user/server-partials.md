@@ -204,7 +204,7 @@ scope します。
 
 ## サンプルでの確認箇所
 
-- [Login Basic](../../../examples/01-basics/login-basic.vspec.md) は認証レスポンスの
+- [Login Basic](../../../examples/04-real-world-screens/login-basic.vspec.md) は認証レスポンスの
   エラーと remember-me cookie side effect を扱います。
 - [Search List](../../../examples/04-real-world-screens/search-list.vspec.md) は検索、
   empty result、load-error の部分更新を扱います。

@@ -22,8 +22,8 @@ messages:
 For HTML / PDF export, pass an explicit dictionary with `--messages <path>`:
 
 ```bash
-npx @markvspec/cli@latest export html examples/01-basics/login-basic.vspec.md --out dist --messages markvspec.messages.en.yml
-npx @markvspec/cli@latest export pdf examples/01-basics/login-basic.vspec.md --out dist --messages markvspec.messages.en.yml
+npx @markvspec/cli@latest export html examples/04-real-world-screens/login-basic.vspec.md --out dist --messages markvspec.messages.en.yml
+npx @markvspec/cli@latest export pdf examples/04-real-world-screens/login-basic.vspec.md --out dist --messages markvspec.messages.en.yml
 ```
 
 From a repository checkout, run `npm run build -w @markvspec/cli` first and then use `node packages/cli/dist/index.js export ...`.

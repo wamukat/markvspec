@@ -192,7 +192,7 @@ the page.
 
 ## Example Coverage
 
-- [Login Basic](../../../examples/01-basics/login-basic.vspec.md) models
+- [Login Basic](../../../examples/04-real-world-screens/login-basic.vspec.md) models
   authentication response errors and remember-me cookie side effects.
 - [Search List](../../../examples/04-real-world-screens/search-list.vspec.md)
   models search, empty result, and load-error partial updates.

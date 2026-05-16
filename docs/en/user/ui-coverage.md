@@ -34,7 +34,7 @@ without falling back to ambiguous prose.
 | --- | --- | --- |
 | Search/list screen | Supported | Toolbar layout, `Table`, empty-state `Paragraph`, paging buttons, `loading` and `load-error` states. |
 | Detail screen | Supported | Stack/grid layouts, `Badge`, `List`, read-only text, and optional dialog actions. |
-| Edit form | Supported | `Input`, `DateInput`, `TimeInput`, `NumberInput`, `Textarea`, `FileInput`, `Select`, `MultiSelect`, `Checkbox`, `CheckboxGroup`, `Switch`, `DatePicker`, `FileUpload`, validation states, save lifecycle actions. |
+| Edit form | Supported | `Input`, `DateInput`, `TimeInput`, `NumberInput`, `Textarea`, `FileInput`, `Select`, `MultiSelect`, `Checkbox`, `CheckboxGroup`, `Switch`, `DatePicker`, `FileUpload`, validation feedback, save lifecycle actions. |
 | Confirmation flow | Supported | `Dialog`, targetless `display.element`, confirm/cancel actions, danger tone. |
 | Approval flow | Alternative | Detail/edit patterns with explicit actions and rules. |
 | History/audit trail | Supported | `Table` or `List` with sampled rows. |

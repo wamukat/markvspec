@@ -72,7 +72,7 @@ The priority is to make the relationship between input-form specs and validation
 
 ## Migration Target
 
-The first migrated example is `examples/01-basics/login-basic.vspec.md`.
+The first migrated example is `examples/04-real-world-screens/login-basic.vspec.md`.
 Its previous `V-LoginForm` targeted `L-LoginForm`; the updated version adds `F-LoginForm` and points the Validation target to that FormGroup.
 
 ## Implementation Units

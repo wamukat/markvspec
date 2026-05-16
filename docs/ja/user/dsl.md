@@ -1660,7 +1660,7 @@ MarkVSpec は内容を検証、集計、実装契約として解釈しません�
 実際にパーサーで検証されるサンプルは `examples/` に学習順で配置しています。
 
 - `examples/01-basics/hello-screen.vspec.md`
-- `examples/01-basics/login-basic.vspec.md`
+- `examples/04-real-world-screens/login-basic.vspec.md`
 - `examples/02-states/async-loading.vspec.md`
 - `examples/02-states/model-samples.vspec.md`
 - `examples/02-states/responsive-profile.vspec.md`

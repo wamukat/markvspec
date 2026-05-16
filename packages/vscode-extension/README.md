@@ -27,7 +27,7 @@ For current preview/export limitations, including PDF export requirements, see
 The active `examples/` directory is a learning path:
 
 - `examples/01-basics/hello-screen.vspec.md` is the smallest useful document.
-- `examples/01-basics/login-basic.vspec.md` covers form layout and auth states.
+- `examples/04-real-world-screens/login-basic.vspec.md` covers a compact authentication flow with validation feedback scenarios.
 - `examples/02-states/async-loading.vspec.md` covers request send and response states.
 - `examples/02-states/model-samples.vspec.md` covers list-first Model Samples and supplemental empty table syntax.
 - `examples/02-states/responsive-profile.vspec.md` covers mobile and desktop layouts.
@@ -70,7 +70,7 @@ code --install-extension dist/markvspec-<version>.vsix
 
 Use this quick check after changing preview update behavior:
 
-1. Open `examples/01-basics/login-basic.vspec.md`.
+1. Open `examples/04-real-world-screens/login-basic.vspec.md`.
 2. Run `MarkVSpec: Open Preview`.
 3. Open the `MarkVSpec` output channel.
 4. Toggle Layout, Element, and Action markers and confirm marker labels remain

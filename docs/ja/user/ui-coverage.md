@@ -39,7 +39,7 @@
 | --- | --- | --- |
 | 検索 / 一覧 | 対応済み | toolbar layout、`Table`、空状態 `Paragraph`、paging button、`loading` / `load-error` state。 |
 | 詳細 | 対応済み | stack/grid layout、`Badge`、`List`、read-only text、必要に応じて dialog action。 |
-| 編集フォーム | 対応済み | `Input`、`DateInput`、`TimeInput`、`NumberInput`、`Textarea`、`FileInput`、`Select`、`MultiSelect`、`Checkbox`、`CheckboxGroup`、`Switch`、`DatePicker`、`FileUpload`、validation state、保存 lifecycle action。 |
+| 編集フォーム | 対応済み | `Input`、`DateInput`、`TimeInput`、`NumberInput`、`Textarea`、`FileInput`、`Select`、`MultiSelect`、`Checkbox`、`CheckboxGroup`、`Switch`、`DatePicker`、`FileUpload`、validation feedback、保存 lifecycle action。 |
 | 確認フロー | 対応済み | `Dialog`、target なしの `display.element`、confirm/cancel action、danger tone。 |
 | 承認フロー | 代替表現あり | 詳細 / 編集パターンに action と rule を明示します。 |
 | 履歴 / 監査ログ | 対応済み | `Table` または `List` にサンプル行を記載します。 |

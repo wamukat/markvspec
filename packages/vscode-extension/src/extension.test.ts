@@ -256,7 +256,7 @@ function createDiagnostic(source: string, lineText: string, message: string): vs
 }
 
 test("renders generated design document sections without launching VS Code", () => {
-  const source = readFileSync(resolve("../../examples/01-basics/login-basic.vspec.md"), "utf8");
+  const source = readFileSync(resolve("../../examples/04-real-world-screens/login-basic.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
   result.screen.locale = "en";
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
@@ -563,7 +563,7 @@ locale: ja
 });
 
 test("explains markers in initial state wireframes", () => {
-  const source = readFileSync(resolve("../../examples/01-basics/login-basic.vspec.md"), "utf8");
+  const source = readFileSync(resolve("../../examples/04-real-world-screens/login-basic.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
   const html = renderDesignDocumentHtml(result, preview);
@@ -1260,7 +1260,7 @@ Screen element prose.
 });
 
 test("does not render viewport filter controls in the preview shell", () => {
-  const source = readFileSync(resolve("../../examples/01-basics/login-basic.vspec.md"), "utf8");
+  const source = readFileSync(resolve("../../examples/04-real-world-screens/login-basic.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
   const html = renderPreviewHtml(
     result,
@@ -1270,7 +1270,7 @@ test("does not render viewport filter controls in the preview shell", () => {
     } as never,
     { layout: true, element: true, action: true },
     undefined,
-    "examples/01-basics/login-basic.vspec.md"
+    "examples/04-real-world-screens/login-basic.vspec.md"
   );
   const toolbar = html.match(/<header class="toolbar">[\s\S]*?<\/header>/)?.[0] ?? "";
 
@@ -1344,7 +1344,7 @@ test("does not render viewport filter controls in the preview shell", () => {
   assert.match(html, /replacement\.getAttribute\("data-mm-render-key"\) !== fragment\.renderKey/);
   assert.match(html, /item\.target\.replaceWith\(item\.replacement\);/);
   assert.match(html, /function restorePreviewPosition\(\)/);
-  assert.match(html, /const markvspecPreviewPositionKey = "examples\/01-basics\/login-basic\.vspec\.md";/);
+  assert.match(html, /const markvspecPreviewPositionKey = "examples\/04-real-world-screens\/login-basic\.vspec\.md";/);
   assert.match(html, /activeSectionId/);
   assert.match(html, /scrollY/);
   assert.match(html, /positionsBySource\[markvspecPreviewPositionKey\] = \{\s*activeSectionId,\s*scrollY: window\.scrollY\s*\};/);
@@ -1909,7 +1909,7 @@ title: Toolbar Messages
 });
 
 test("enables manual preview refresh only when auto update is off", () => {
-  const source = readFileSync(resolve("../../examples/01-basics/login-basic.vspec.md"), "utf8");
+  const source = readFileSync(resolve("../../examples/04-real-world-screens/login-basic.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
   const webview = {
     cspSource: "vscode-resource:",
@@ -2584,14 +2584,14 @@ test("renders lightweight preview loading and error shells", () => {
     cspSource: "vscode-resource:",
     asWebviewUri: (uri: unknown) => uri
   } as never;
-  const loadingHtml = renderPreviewLoadingHtml(webview, "examples/01-basics/login-basic.vspec.md");
-  const errorHtml = renderPreviewErrorHtml(webview, "examples/01-basics/login-basic.vspec.md", "Cannot read partial");
+  const loadingHtml = renderPreviewLoadingHtml(webview, "examples/04-real-world-screens/login-basic.vspec.md");
+  const errorHtml = renderPreviewErrorHtml(webview, "examples/04-real-world-screens/login-basic.vspec.md", "Cannot read partial");
 
   assert.match(loadingHtml, /<title>Generating preview<\/title>/);
   assert.match(loadingHtml, /プレビューを生成中\.\.\./);
   assert.match(loadingHtml, /Preview is being generated\.\.\./);
   assert.match(loadingHtml, /class="status-spinner"/);
-  assert.match(loadingHtml, /examples\/01-basics\/login-basic\.vspec\.md/);
+  assert.match(loadingHtml, /examples\/04-real-world-screens\/login-basic\.vspec\.md/);
   assert.doesNotMatch(loadingHtml, /acquireVsCodeApi/);
   assert.match(errorHtml, /<title>Preview error<\/title>/);
   assert.match(errorHtml, /プレビューを生成できませんでした/);
@@ -2641,7 +2641,7 @@ route: /single
 });
 
 test("keeps action-level availability out of localized action details", () => {
-  const source = readFileSync(resolve("../../examples/01-basics/login-basic.vspec.md"), "utf8");
+  const source = readFileSync(resolve("../../examples/04-real-world-screens/login-basic.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
   const html = renderDesignDocumentHtml(result, preview);
@@ -3870,10 +3870,10 @@ title: Opaque Model
 });
 
 test("renders standalone HTML without VS Code webview APIs", () => {
-  const source = readFileSync(resolve("../../examples/01-basics/login-basic.vspec.md"), "utf8");
+  const source = readFileSync(resolve("../../examples/04-real-world-screens/login-basic.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
   const mermaidScript = "window.mermaid = { initialize() {}, render() {} }; const preserveReplacementTokens = \"$& $1\";";
-  const html = renderStandaloneHtml(result, mermaidScript, "examples/01-basics/login-basic.vspec.md");
+  const html = renderStandaloneHtml(result, mermaidScript, "examples/04-real-world-screens/login-basic.vspec.md");
   const toolbar = html.match(/<header class="toolbar">[\s\S]*?<\/header>/)?.[0] ?? "";
 
   assert.match(html, /<!doctype html>/);
@@ -3910,7 +3910,7 @@ test("renders standalone HTML without VS Code webview APIs", () => {
 });
 
 test("renders standalone HTML without Mermaid when the asset is unavailable", () => {
-  const source = readFileSync(resolve("../../examples/01-basics/login-basic.vspec.md"), "utf8");
+  const source = readFileSync(resolve("../../examples/04-real-world-screens/login-basic.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
   const html = renderStandaloneHtml(result, undefined, "login.vspec.md");
 
@@ -6376,7 +6376,7 @@ History section notes.
 });
 
 test("creates document symbols for MarkVSpec structure", () => {
-  const source = readFileSync(resolve("../../examples/01-basics/login-basic.vspec.md"), "utf8");
+  const source = readFileSync(resolve("../../examples/04-real-world-screens/login-basic.vspec.md"), "utf8");
   const symbols = createMarkVSpecDocumentSymbols(createTextDocument(source) as never);
   const screen = symbols[0];
 
