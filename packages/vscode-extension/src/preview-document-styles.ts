@@ -60,14 +60,15 @@ body.toc-collapsed .toc,body.toc-collapsed .toc-inline{display:none!important}
 .state-screen-heading{align-items:center;display:flex;flex-wrap:wrap;font-size:var(--markvspec-heading-state);gap:8px;margin:18px 0 10px}
 .state-screen-subheading{color:#334155;font-weight:700}
 .state-screen-detail-heading{color:#475569;font-size:12px;font-weight:700}
-.screen-overview{align-items:flex-start;border:1px solid #d1d5db;border-radius:6px;display:flex;gap:12px;justify-content:space-between;margin:0 0 12px;padding:12px}
-.screen-overview-main{display:grid;gap:4px;min-width:0}
+.screen-overview{border:1px solid #d1d5db;border-radius:6px;margin:0 0 12px;padding:12px}
+.screen-overview-main{min-width:0}
 .screen-id code,.mm-document-ref-id{align-items:center;background:#fff;border:1px solid #111827;border-left:3px solid #111827;border-radius:4px;color:#111827;display:inline-flex;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size:11px;font-variant-numeric:tabular-nums;font-weight:700;justify-content:center;letter-spacing:0;line-height:1.2;min-height:18px;padding:1px 6px;vertical-align:baseline;white-space:nowrap;width:max-content}
 .screen-title{font-size:16px;font-weight:650;line-height:1.35;min-width:0;overflow-wrap:anywhere}
-.screen-description{color:#374151;font-size:13px;line-height:1.6;max-width:72ch;overflow-wrap:anywhere}
+.screen-id + .screen-title,.screen-title + .screen-description,.screen-id + .screen-description{margin-top:4px}
+.screen-description{color:#374151;font-size:13px;line-height:1.6;overflow-wrap:anywhere}
 .screen-description .note-paragraph{margin:0}
 .screen-description .note-paragraph + .note-paragraph{margin-top:6px}
-.screen-overview-badges{align-items:center;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.screen-overview-badges{align-items:center;display:flex;float:right;flex-wrap:wrap;gap:6px;justify-content:flex-end;margin:0 0 6px 12px}
 .screen-meta-block{margin:12px 0 0}
 .screen-meta-block h3{margin:14px 0 8px}
 .screen-definition-list{border-top:1px solid #e5e7eb;margin:0}
@@ -192,8 +193,7 @@ body.hide-marker-action .mm-marker-action{display:none}
     .toolbar-controls{justify-content:flex-start;width:100%}
     .control-group{flex-wrap:wrap}
     .document{padding:14px 12px 32px}
-    .screen-overview{display:grid}
-    .screen-overview-badges{justify-content:flex-start}
+    .screen-overview-badges{float:none;justify-content:flex-start;margin:0 0 8px}
     .screen-definition-list div{grid-template-columns:1fr}
     .spec-table{font-size:11px}
 }

@@ -92,15 +92,14 @@ export function createStateViewSpecTableRenderer(
       return "";
     }
 
-    const { formControls, displayContentRows, other } = stateScreenElementGroups(elements);
+    const { formControls, displayContentRows } = stateScreenElementGroups(elements, result, model?.stateName);
     const repeatedContent = model?.repeatedContent;
 
     return [
       `<h4>${helpers.label("elementSummary")}</h4>`,
       renderElementSummaryTable(elements, repeatedElementIds, repeatedContent?.elementSummaryEmptyWhenRepeatedHidden ?? false),
       formControls.length > 0 ? renderElementDetailGroup(helpers.label("inputFormSpec"), renderFormControlElementsTable(formControls, repeatedElementIds, repeatedContent?.inputFormSpecEmptyWhenRepeatedHidden ?? false), repeatedContent?.inputFormSpecEmptyWhenRepeatedHidden ?? false) : "",
-      displayContentRows.length > 0 ? renderElementDetailGroup(helpers.label("displayContentSpec"), renderDisplayContentSpecTable(displayContentRows, repeatedElementIds, repeatedContent?.displayContentSpecEmptyWhenRepeatedHidden ?? false), repeatedContent?.displayContentSpecEmptyWhenRepeatedHidden ?? false) : "",
-      other.length > 0 ? renderElementDetailGroup(helpers.label("other"), renderOtherElementsTable(other, repeatedElementIds, repeatedContent?.otherElementsEmptyWhenRepeatedHidden ?? false), repeatedContent?.otherElementsEmptyWhenRepeatedHidden ?? false) : ""
+      displayContentRows.length > 0 ? renderElementDetailGroup(helpers.label("displayContentSpec"), renderDisplayContentSpecTable(displayContentRows, repeatedElementIds, repeatedContent?.displayContentSpecEmptyWhenRepeatedHidden ?? false), repeatedContent?.displayContentSpecEmptyWhenRepeatedHidden ?? false) : ""
     ].filter(Boolean).join("");
   };
 
@@ -151,22 +150,6 @@ export function createStateViewSpecTableRenderer(
       ])
     ), emptyWhenRepeatedHidden);
   };
-
-  const renderOtherElementsTable = (elements: ParsedElement[], repeatedElementIds: ReadonlySet<string> | undefined, emptyWhenRepeatedHidden: boolean): string =>
-    markRepeatedHiddenEmptyHtml(helpers.renderLocalizedTable(
-      [helpers.label("marker"), helpers.label("type"), helpers.label("label"), helpers.label("value"), helpers.label("conditions")],
-      elements.map((element) => [
-        renderRepeatedMarkerCell(element.id, Boolean(repeatedElementIds?.has(element.id))),
-        helpers.text(element.type),
-        helpers.renderElementLabelSummary(element.properties),
-        helpers.renderElementValueSummary(element.properties),
-        helpers.renderConditionList([
-          ["visible", element.visibleWhen],
-          ["hidden", element.hiddenWhen],
-          ["disabled", element.disabledWhen]
-        ])
-      ])
-    ), emptyWhenRepeatedHidden);
 
   const renderLayoutsTable = (
     model: StateScreenReadModel,
