@@ -199,12 +199,12 @@ entity ごとの説明です。
 ```markdown
 ## States
 
-ログイン画面は、未入力、認証待ち、入力エラー、認証エラーを画面内 state として扱います。
+ログイン画面は、未入力、認証待ち、認証済みなどの画面状態を state として扱います。
+入力エラーや認証エラーメッセージの表示は、Action の `display:` と Preview Scenario で表します。
 
 - idle*
 - authenticating
-- validation-error
-- auth-error
+- signed-in
 
 `authenticating` 中はフォームを無効化し、二重送信を防ぎます。
 ```
@@ -236,7 +236,10 @@ entity ごとの説明です。
       - state: authenticating
   - case: send-failed
     - Effects
-      - state: auth-error
+      - state: idle
+      - display:
+        - target: L-MessageArea
+        - element: E-RequestErrorBanner
 
 送信失敗は HTTP response ではなく、request を送信できなかったケースとして扱います。
 ```
@@ -472,11 +475,7 @@ Mermaid label、document symbol、plain text review comment で読みやすい�
 ## States
 
 - idle*
-- validation-error
-  - クライアント側の入力検証でエラーを表示する状態。
 - authenticating
-- auth-error
-  - 認証失敗メッセージを表示する状態。
 - signed-in
 - recovered
   - 認証失敗後に復帰した状態。
@@ -819,7 +818,7 @@ wireframe preview では native `required` attribute や自動の `*` marker と
 - label src: ${i18n.login.signIn}
 - sample: ログイン
 - type: password
-- visible when: auth-error
+- visible when: loading
 - hidden when: idle
 - disabled when: E-EmailInput is empty
 - variant: primary
@@ -1215,14 +1214,12 @@ execution detail も result classification も持たない、決定的な即時�
   - E-SignInButton.click
 - From
   - idle
-  - auth-error
 - Process P1: Check login form
   - receive:
     - validation: V-LoginForm.result
   - case: invalid
     - description: required fields are missing
     - Effects
-      - state: validation-error
       - display:
         - target: L-MessageArea
         - element: E-ValidationMessage
@@ -1245,7 +1242,7 @@ execution detail も result classification も持たない、決定的な即時�
     - stop
   - case: send-failed
     - Effects
-      - state: auth-error
+      - state: idle
       - display:
         - target: L-MessageArea
         - element: E-RequestErrorBanner
@@ -1268,7 +1265,7 @@ execution detail も result classification も持たない、決定的な即時�
   - case: failure
     - response: 401 invalid credentials
     - Effects
-      - state: auth-error
+      - state: idle
       - display:
         - target: L-MessageArea
         - element: E-AuthErrorBanner
@@ -1337,10 +1334,9 @@ Action レベルの `When` / guard はサポートしません。操作可否は
 ```markdown
 ## Preview Scenarios
 
-### auth-error
+### idle-auth-error
 
-- state: auth-error
-- before: request-error
+- state: idle
 - cases:
   - A-HandleLoginResponse.P1.failure
 ```

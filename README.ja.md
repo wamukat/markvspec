@@ -86,8 +86,6 @@ route: /login
 
 - idle*
 - wait-auth
-- validation-error
-- send-error
 
 ## Layout: mobile
 
@@ -100,8 +98,13 @@ route: /login
 #### Items
 
 - E-PageTitle
+- L-MessageArea
 - E-EmailInput
 - E-SignInButton
+
+### L2:L-MessageArea メッセージ領域
+
+- stack
 
 ## Elements
 
@@ -123,6 +126,16 @@ route: /login
 - variant: primary
 - action: A-SubmitLogin
 
+### 4:E-ValidationMessage Text
+
+- value: 有効なメールアドレスを入力してください。
+- tone: danger
+
+### 5:E-SendErrorBanner Banner
+
+- value: ログインリクエストを送信できませんでした。
+- tone: danger
+
 ## Form Groups
 
 ### F-LoginForm ログインフォーム
@@ -143,7 +156,9 @@ route: /login
   - Validate: V-LoginForm
     - cases:
       - invalid:
-        - state: validation-error
+        - display:
+          - target: L-MessageArea
+          - element: E-ValidationMessage
   - HttpRequest
     - POST /login
       - email: E-EmailInput.value
@@ -151,7 +166,10 @@ route: /login
       - sent:
         - state: wait-auth
       - send-failed:
-        - state: send-error
+        - state: idle
+        - display:
+          - target: L-MessageArea
+          - element: E-SendErrorBanner
 
 ## Validations
 
@@ -251,7 +269,7 @@ marker です。参照には marker ではなく ID を使います。
 構文、レイアウト、状態、アクション、再利用の基本を確認できます。
 
 - [examples/01-basics/hello-screen.vspec.md](examples/01-basics/hello-screen.vspec.md): 最小の画面。
-- [examples/01-basics/login-basic.vspec.md](examples/01-basics/login-basic.vspec.md): form layout、validation feedback、auth states。
+- [examples/01-basics/login-basic.vspec.md](examples/01-basics/login-basic.vspec.md): form layout、validation feedback scenario、authentication progress。
 - [examples/02-states/async-loading.vspec.md](examples/02-states/async-loading.vspec.md): request send と response states。
 - [examples/02-states/model-samples.vspec.md](examples/02-states/model-samples.vspec.md): list 形式中心の Model Samples と空配列用 table 記法。
 - [examples/02-states/responsive-profile.vspec.md](examples/02-states/responsive-profile.vspec.md): mobile / desktop layout。

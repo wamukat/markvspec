@@ -36,7 +36,7 @@ rule と validation の見出しは、document symbol と parser test が曖昧�
 | サンプル | 用途 |
 | --- | --- |
 | [Hello Screen](../../../examples/01-basics/hello-screen.vspec.md) | metadata、1 state、1 viewport、layout、element、click action marker の最小例。 |
-| [Login Basic](../../../examples/01-basics/login-basic.vspec.md) | responsive layout、required validation、request parameters、response cases、disabled control、navigation を含む小さな login flow。 |
+| [Login Basic](../../../examples/01-basics/login-basic.vspec.md) | responsive layout、required validation、message display scenario、request parameters、response cases、disabled control、navigation を含む小さな login flow。 |
 | [Async Loading](../../../examples/02-states/async-loading.vspec.md) | request 送信、response handling、empty/error state、Model Samples の例。 |
 | [Model Samples](../../../examples/02-states/model-samples.vspec.md) | list 形式中心の object / collection サンプルと、空配列用 table 記法を学ぶ例。 |
 | [Responsive Profile](../../../examples/02-states/responsive-profile.vspec.md) | mobile / desktop viewport で同じ情報を異なる配置にする例。 |

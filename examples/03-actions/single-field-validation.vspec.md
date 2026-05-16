@@ -19,7 +19,6 @@ so field-level contracts remain the main topic.
 ## States
 
 - idle*
-- validation-error
 
 ## Layout: desktop
 
@@ -50,10 +49,6 @@ so field-level contracts remain the main topic.
 ### L3:L-MessageArea Message area
 
 - stack
-
-#### Items
-
-- E-ValidationMessage
 
 ## Elements
 
@@ -101,7 +96,6 @@ so field-level contracts remain the main topic.
 
 - tone: danger
 - sample: Fix the highlighted fields.
-- visible when: validation-error
 
 ## Form Groups
 
@@ -121,7 +115,6 @@ so field-level contracts remain the main topic.
   - E-CheckButton.click
 - From
   - idle
-  - validation-error
 - Process P1: Check field validation
   - receive:
     - validation: V-UsernameRules.result
@@ -130,7 +123,6 @@ so field-level contracts remain the main topic.
   - case: invalid
     - description: one or more single-field validation results are invalid
     - Effects
-      - state: validation-error
       - display:
         - target: L-MessageArea
         - element: E-ValidationMessage
@@ -139,6 +131,14 @@ so field-level contracts remain the main topic.
     - description: all single-field validation results are valid
     - Effects
       - state: idle
+
+## Preview Scenarios
+
+### idle-validation-error
+
+- state: idle
+- cases:
+  - A-CheckFields.P1.invalid
 
 ## Validations
 

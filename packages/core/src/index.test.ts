@@ -4704,10 +4704,7 @@ test("parses the login screen example", () => {
     result.states.map((state) => [state.name, state.initial, state.message]),
     [
       ["idle", true, undefined],
-      ["authenticating", false, "The login request was sent and the screen is waiting for the authentication response."],
-      ["validation-error", false, "Required input is missing."],
-      ["request-error", false, "The login request could not be sent."],
-      ["auth-error", false, "The server rejected the submitted credentials."]
+      ["authenticating", false, "The login request was sent and the screen is waiting for the authentication response."]
     ]
   );
 
@@ -4745,7 +4742,7 @@ test("parses the login screen example", () => {
 
   const validationMessage = result.elements.find((element) => element.id === "E-ValidationMessage");
   assert.equal(validationMessage?.properties["tone"], "danger");
-  assert.deepEqual(validationMessage?.visibleWhen, ["validation-error"]);
+  assert.deepEqual(validationMessage?.visibleWhen, []);
 
   const emailInput = result.elements.find((element) => element.id === "E-EmailInput");
   assert.equal(emailInput?.type, "Input");
@@ -4772,7 +4769,7 @@ test("parses the login screen example", () => {
   assert.equal(banner?.properties["tone"], "danger");
   const requestErrorBanner = result.elements.find((element) => element.id === "E-RequestErrorBanner");
   assert.equal(requestErrorBanner?.properties["marker"], "10");
-  assert.deepEqual(requestErrorBanner?.visibleWhen, ["request-error"]);
+  assert.deepEqual(requestErrorBanner?.visibleWhen, []);
 
   const action = result.actions.find((candidate) => candidate.id === "A-SubmitLogin");
   assert.equal(action?.properties["marker"], "A1");
@@ -4792,22 +4789,12 @@ test("parses the login screen example", () => {
   assert.equal(action?.target, undefined);
   assert.equal(action?.fragment, undefined);
   assert.deepEqual(action?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
-    ["idle", "invalid", "validation-error"],
-    ["validation-error", "invalid", "validation-error"],
-    ["request-error", "invalid", "validation-error"],
-    ["auth-error", "invalid", "validation-error"],
     ["idle", "sent", "authenticating"],
-    ["validation-error", "sent", "authenticating"],
-    ["request-error", "sent", "authenticating"],
-    ["auth-error", "sent", "authenticating"],
-    ["idle", "send-failed", "request-error"],
-    ["validation-error", "send-failed", "request-error"],
-    ["request-error", "send-failed", "request-error"],
-    ["auth-error", "send-failed", "request-error"]
+    ["idle", "send-failed", "idle"]
   ]);
   assert.deepEqual(action?.processSteps.find((step) => step.marker === "P2")?.outcomes.map((outcome) => [outcome.result, outcome.response?.definition, outcome.to]), [
     ["sent", undefined, "authenticating"],
-    ["send-failed", undefined, "request-error"]
+    ["send-failed", undefined, "idle"]
   ]);
   assert.deepEqual(action?.processSteps.map((step) => [step.name, step.when, step.target, step.content]), [
     ["Check validation", [], undefined, undefined],
@@ -4818,7 +4805,17 @@ test("parses the login screen example", () => {
   assert.equal(responseAction?.triggeredBy, "A-SubmitLogin.P2.response");
   assert.deepEqual(responseAction?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
     ["authenticating", "success", "SCR-HOME"],
-    ["authenticating", "failure", "auth-error"]
+    ["authenticating", "failure", "idle"]
+  ]);
+
+  assert.deepEqual(result.previewScenarios.map((scenario) => [
+    scenario.name,
+    scenario.state,
+    scenario.cases.map((caseRef) => [caseRef.actionId, caseRef.processMarker, caseRef.caseName])
+  ]), [
+    ["idle-validation-error", "idle", [["A-SubmitLogin", "P1", "invalid"]]],
+    ["idle-request-error", "idle", [["A-SubmitLogin", "P2", "send-failed"]]],
+    ["idle-auth-error", "idle", [["A-HandleLoginResponse", "P1", "failure"]]]
   ]);
 
   const forgotPasswordAction = result.actions.find((candidate) => candidate.id === "A-ForgotPassword");
@@ -9885,13 +9882,13 @@ title: Action Lifecycle
   );
 });
 
-test("renders state-specific banner content", () => {
+test("keeps message-only banners out of baseline state rendering", () => {
   const source = readFileSync(examplePath("01-basics/login-basic.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
-  const html = renderMarkVSpecHtml(result, { state: "auth-error" });
+  const html = renderMarkVSpecHtml(result, { state: "idle" });
 
-  assert.match(html, /The email address or password is incorrect\./);
-  assert.match(html, /mm-tone-danger/);
+  assert.doesNotMatch(html, /The email address or password is incorrect\./);
+  assert.doesNotMatch(html, /data-mm-id="E-AuthErrorBanner"/);
 });
 
 test("renders action markers only in explicit From states", () => {
@@ -10092,8 +10089,8 @@ test("can include conditional content for design document wireframes", () => {
   const result = parseMarkVSpec(source);
   const html = renderMarkVSpecHtml(result, { includeConditionalContent: true, showIds: true });
 
-  assert.match(html, /The email address or password is incorrect\./);
-  assert.match(html, /<code class="mm-id mm-marker mm-marker-layout" data-mm-marker-category="layout">L6<\/code>/);
+  assert.match(html, /Signing in\.\.\./);
+  assert.match(html, /<code class="mm-id mm-marker mm-marker-layout" data-mm-marker-category="layout">L7<\/code>/);
   assert.doesNotMatch(html, /<code class="mm-id mm-marker mm-marker-layout" data-mm-marker-category="layout">P-EmailField<\/code>/);
 });
 

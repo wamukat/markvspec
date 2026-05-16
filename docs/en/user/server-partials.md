@@ -48,7 +48,7 @@ replacement:
   - case: failure
     - response: 401 invalid credentials
     - Effects
-      - state: auth-error
+      - state: idle
       - display:
         - target: L-MessageArea
         - element: E-AuthErrorBanner
@@ -167,15 +167,17 @@ Responses belong under `case: <name>` branches on the relevant response process:
   - case: failure
     - response: 401 with message fragment
     - Effects
-      - state: auth-error
+      - state: idle
       - display:
         - target: L-MessageArea
         - element: E-AuthErrorBanner
 ```
 
-Use `state` when the current screen changes state. Use `navigate` when the
-result leaves the current screen. A partial update may accompany either case,
-but it should be scoped to the result that actually updates the page.
+Use `state` when the current screen changes state. Message-only failures can
+return to the baseline state and use `display` to show the banner. Use
+`navigate` when the result leaves the current screen. A partial update may
+accompany any case, but it should be scoped to the result that actually updates
+the page.
 
 ## Ambiguity Rules
 

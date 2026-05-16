@@ -58,7 +58,7 @@ screen 側の Action では、リクエストと画面上の置き換え結果�
       - state: wait-auth
   - case: send-failed
     - Effects
-      - state: auth-error
+      - state: idle
       - display:
         - target: L-MessageArea
         - element: E-AuthErrorBanner
@@ -181,14 +181,15 @@ response は、`A-SubmitLogin.P1.response` のような response handler Action 
   - case: failure
     - response: 401 with message fragment
     - Effects
-      - state: auth-error
+      - state: idle
       - display:
         - target: L-MessageArea
         - element: E-AuthErrorBanner
 ```
 
 現在画面の状態が変わる場合は `state`、別画面へ移る場合は `navigate` を使います。
-partial update はどちらにも付けられますが、実際に画面を更新する result にだけ
+メッセージ表示だけの失敗は baseline state に戻し、`display` で banner を表示できます。
+partial update はどの case にも付けられますが、実際に画面を更新する result にだけ
 scope します。
 
 ## 曖昧さを避けるルール

@@ -19,8 +19,6 @@ to the main screen examples.
 ## States
 
 - idle*
-- validation-error
-- save-error
 
 ## Layout: desktop
 
@@ -49,12 +47,6 @@ to the main screen examples.
 ### L3:L-MessageArea Message area
 
 - stack
-- visible when: validation-error, save-error
-
-#### Items
-
-- E-ValidationMessage
-- E-SaveErrorBanner
 
 ## Elements
 
@@ -83,13 +75,11 @@ to the main screen examples.
 ### 5:E-ValidationMessage Text
 
 - sample: Display name and notification email are required.
-- visible when: validation-error
 
 ### 6:E-SaveErrorBanner Banner
 
 - tone: danger
 - sample: Account settings could not be saved.
-- visible when: save-error
 
 ## Form Groups
 
@@ -111,8 +101,6 @@ referenced from the same flow.
   - E-SaveButton.click
 - From
   - idle
-  - validation-error
-  - save-error
 - Process P1: Check validation
   - receive:
     - validation: V-AccountSettings.result
@@ -120,7 +108,10 @@ referenced from the same flow.
     - description: required field missing
     - Effects
       - error code: ERR-ACCOUNT-REQUIRED
-      - state: validation-error
+      - state: idle
+      - display:
+        - target: L-MessageArea
+        - element: E-ValidationMessage
     - stop
   - case: valid
     - description: all required fields are present
@@ -140,7 +131,24 @@ referenced from the same flow.
     - description: network error
     - Effects
       - error code: ERR-ACCOUNT-SAVE-FAILED
-      - state: save-error
+      - state: idle
+      - display:
+        - target: L-MessageArea
+        - element: E-SaveErrorBanner
+
+## Preview Scenarios
+
+### idle-validation-error
+
+- state: idle
+- cases:
+  - A-SaveAccount.P1.invalid
+
+### idle-save-error
+
+- state: idle
+- cases:
+  - A-SaveAccount.P2.send-failed
 
 ## Validations
 

@@ -95,8 +95,6 @@ route: /login
 
 - idle*
 - wait-auth
-- validation-error
-- send-error
 
 ## Layout: mobile
 
@@ -109,8 +107,13 @@ route: /login
 #### Items
 
 - E-PageTitle
+- L-MessageArea
 - E-EmailInput
 - E-SignInButton
+
+### L2:L-MessageArea Message area
+
+- stack
 
 ## Elements
 
@@ -132,6 +135,16 @@ route: /login
 - variant: primary
 - action: A-SubmitLogin
 
+### 4:E-ValidationMessage Text
+
+- value: Enter a valid email address.
+- tone: danger
+
+### 5:E-SendErrorBanner Banner
+
+- value: Could not send the login request.
+- tone: danger
+
 ## Form Groups
 
 ### F-LoginForm Login form
@@ -152,7 +165,9 @@ route: /login
   - Validate: V-LoginForm
     - cases:
       - invalid:
-        - state: validation-error
+        - display:
+          - target: L-MessageArea
+          - element: E-ValidationMessage
   - HttpRequest
     - POST /login
       - email: E-EmailInput.value
@@ -160,7 +175,10 @@ route: /login
       - sent:
         - state: wait-auth
       - send-failed:
-        - state: send-error
+        - state: idle
+        - display:
+          - target: L-MessageArea
+          - element: E-SendErrorBanner
 
 ## Validations
 
@@ -262,7 +280,7 @@ IDs, not markers.
 The `examples/` directory is organized as a learning path:
 
 - [examples/01-basics/hello-screen.vspec.md](examples/01-basics/hello-screen.vspec.md): minimum screen.
-- [examples/01-basics/login-basic.vspec.md](examples/01-basics/login-basic.vspec.md): form layout, validation feedback, and auth states.
+- [examples/01-basics/login-basic.vspec.md](examples/01-basics/login-basic.vspec.md): form layout, validation feedback scenarios, and authentication progress.
 - [examples/02-states/async-loading.vspec.md](examples/02-states/async-loading.vspec.md): request send and response states.
 - [examples/02-states/model-samples.vspec.md](examples/02-states/model-samples.vspec.md): list-first Model Samples with supplemental empty table syntax.
 - [examples/02-states/responsive-profile.vspec.md](examples/02-states/responsive-profile.vspec.md): mobile and desktop layouts.

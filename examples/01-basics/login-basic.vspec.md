@@ -21,12 +21,6 @@ profile fields and reusable templates are left to later examples.
 - idle*
 - authenticating
   - The login request was sent and the screen is waiting for the authentication response.
-- validation-error
-  - Required input is missing.
-- request-error
-  - The login request could not be sent.
-- auth-error
-  - The server rejected the submitted credentials.
 
 ## Layout: mobile
 
@@ -60,39 +54,6 @@ profile fields and reusable templates are left to later examples.
 ### L3:L-MessageArea Message area
 
 - stack
-
-#### Items
-
-- L-ValidationMessageArea
-- L-RequestErrorMessageArea
-- L-AuthMessageArea
-
-### L4:L-ValidationMessageArea Validation message area
-
-- stack
-- visible when: validation-error
-
-#### Items
-
-- E-ValidationMessage
-
-### L5:L-RequestErrorMessageArea Request error message area
-
-- stack
-- visible when: request-error
-
-#### Items
-
-- E-RequestErrorBanner
-
-### L6:L-AuthMessageArea Authentication message area
-
-- stack
-- visible when: auth-error
-
-#### Items
-
-- E-AuthErrorBanner
 
 ### L7:L-AuthProgress Auth progress
 
@@ -148,39 +109,6 @@ profile fields and reusable templates are left to later examples.
 
 - stack
 
-#### Items
-
-- L-ValidationMessageArea
-- L-RequestErrorMessageArea
-- L-AuthMessageArea
-
-### L4:L-ValidationMessageArea Validation message area
-
-- stack
-- visible when: validation-error
-
-#### Items
-
-- E-ValidationMessage
-
-### L5:L-RequestErrorMessageArea Request error message area
-
-- stack
-- visible when: request-error
-
-#### Items
-
-- E-RequestErrorBanner
-
-### L6:L-AuthMessageArea Authentication message area
-
-- stack
-- visible when: auth-error
-
-#### Items
-
-- E-AuthErrorBanner
-
 ### L7:L-AuthProgress Auth progress
 
 - stack
@@ -212,7 +140,6 @@ profile fields and reusable templates are left to later examples.
 
 - tone: danger
 - sample: Enter both email and password.
-- visible when: validation-error
 
 ### 5:E-PasswordInput Input
 
@@ -243,13 +170,11 @@ profile fields and reusable templates are left to later examples.
 
 - tone: danger
 - sample: The email address or password is incorrect.
-- visible when: auth-error
 
 ### 10:E-RequestErrorBanner Banner
 
 - tone: danger
 - sample: The login request could not be sent.
-- visible when: request-error
 
 ### 11:E-AuthSpinner Spinner
 
@@ -277,16 +202,12 @@ not decide whether credentials are correct.
   - E-SignInButton.click
 - From
   - idle
-  - validation-error
-  - request-error
-  - auth-error
 - Process P1: Check validation
   - receive:
     - validation: V-LoginForm.result
   - case: invalid
     - description: required field missing
     - Effects
-      - state: validation-error
       - display:
         - target: L-MessageArea
         - element: E-ValidationMessage
@@ -309,7 +230,7 @@ not decide whether credentials are correct.
       - state: authenticating
   - case: send-failed
     - Effects
-      - state: request-error
+      - state: idle
       - display:
         - target: L-MessageArea
         - element: E-RequestErrorBanner
@@ -333,7 +254,7 @@ success or failure is handled by `A-HandleLoginResponse`.
   - case: failure
     - response: 401 invalid credentials
     - Effects
-      - state: auth-error
+      - state: idle
       - display:
         - target: L-MessageArea
         - element: E-AuthErrorBanner
@@ -346,6 +267,26 @@ success or failure is handled by `A-HandleLoginResponse`.
   - idle
 - Process P1: Apply immediate effect
   - navigate: SCR-PASSWORD-RESET
+
+## Preview Scenarios
+
+### idle-validation-error
+
+- state: idle
+- cases:
+  - A-SubmitLogin.P1.invalid
+
+### idle-request-error
+
+- state: idle
+- cases:
+  - A-SubmitLogin.P2.send-failed
+
+### idle-auth-error
+
+- state: idle
+- cases:
+  - A-HandleLoginResponse.P1.failure
 
 ## Validations
 

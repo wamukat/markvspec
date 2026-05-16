@@ -19,9 +19,7 @@ try to cover non-submit element events.
 ## States
 
 - idle*
-- validation-error
 - submitting
-- submit-error
 
 ## Layout: desktop
 
@@ -51,11 +49,6 @@ try to cover non-submit element events.
 ### L3:L-MessageArea Message area
 
 - stack
-
-#### Items
-
-- E-ValidationMessage
-- E-SubmitError
 
 ## Elements
 
@@ -87,13 +80,11 @@ try to cover non-submit element events.
 
 - tone: danger
 - value: Email is required.
-- visible when: validation-error
 
 ### 6:E-SubmitError Banner
 
 - tone: danger
 - sample: Request could not be submitted.
-- visible when: submit-error
 
 ## Form Groups
 
@@ -109,15 +100,12 @@ try to cover non-submit element events.
   - E-SubmitButton.click
 - From
   - idle
-  - validation-error
-  - submit-error
 - Process P1: Check validation
   - receive:
     - validation: V-SubmitRequest.result
   - case: invalid
     - description: required field missing
     - Effects
-      - state: validation-error
       - display:
         - target: L-MessageArea
         - element: E-ValidationMessage
@@ -138,7 +126,10 @@ try to cover non-submit element events.
       - state: submitting
   - case: send-failed
     - Effects
-      - state: submit-error
+      - state: idle
+      - display:
+        - target: L-MessageArea
+        - element: E-SubmitError
 
 ### A2:A-HandleSubmitResponse Handle submit response
 
@@ -156,7 +147,30 @@ try to cover non-submit element events.
   - case: failure
     - response: 4xx or 5xx
     - Effects
-      - state: submit-error
+      - state: idle
+      - display:
+        - target: L-MessageArea
+        - element: E-SubmitError
+
+## Preview Scenarios
+
+### idle-validation-error
+
+- state: idle
+- cases:
+  - A-SubmitRequest.P1.invalid
+
+### idle-submit-error
+
+- state: idle
+- cases:
+  - A-SubmitRequest.P2.send-failed
+
+### idle-submit-response-error
+
+- state: idle
+- cases:
+  - A-HandleSubmitResponse.P1.failure
 
 ## Validations
 

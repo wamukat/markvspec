@@ -238,7 +238,10 @@ Validate the input and move to auth wait only when the request can be sent.
       - state: authenticating
   - case: send-failed
     - Effects
-      - state: auth-error
+      - state: idle
+      - display:
+        - target: L-MessageArea
+        - element: E-RequestErrorBanner
 
 Send failure means the request could not be sent, not an HTTP response failure.
 ```
@@ -463,8 +466,6 @@ States are written as bullets.
 
 - idle*
 - authenticating
-- auth-error
-  - Invalid email or password.
 - signed-in
 - recovered
   - The user recovered from an authentication error.
@@ -483,7 +484,7 @@ Rules:
 
 - Exactly one state should end with `*` as the initial state.
 - If no state uses `*`, the first state is treated as initial with a warning.
-- State names should use lower kebab case, such as `authenticating` or `validation-error`.
+- State names should use lower kebab case, such as `authenticating` or `initialize-error`.
 - Inline state descriptions such as `- idle: initial` or `- error: message` are invalid.
 - Nested list items under a state are free-form state descriptions. They do not
   define preview diff baselines.
@@ -684,7 +685,7 @@ Layout metadata and setting bullets:
 - row
 - grid
 - stack
-- visible when: auth-error
+- visible when: loading
 - marker: L1
 - align: center
 - justify: end
@@ -997,7 +998,7 @@ Element bullets:
 Visibility and availability conditions are authored as readable condition text:
 
 ```markdown
-- visible when: auth-error
+- visible when: loading
 - hidden when: user.role is guest
 - disabled when: E-EmailInput is empty
 ```
@@ -1445,7 +1446,6 @@ screen does, not the exact htmx attributes.
   - case: empty
     - from: idle
     - Effects
-      - state: validation-error
       - display:
         - target: L-EmailValidation
         - element: E-EmailRequiredMessage
@@ -1637,14 +1637,12 @@ result-specific effects under that case's `Effects` block.
   - E-SignInButton.click
 - From
   - idle
-  - auth-error
 - Process P1: Check login form
   - receive:
     - validation: V-LoginForm.result
   - case: invalid
     - description: required fields are missing
     - Effects
-      - state: validation-error
       - display:
         - target: L-MessageArea
         - element: E-ValidationMessage
@@ -1667,7 +1665,7 @@ result-specific effects under that case's `Effects` block.
     - stop
   - case: send-failed
     - Effects
-      - state: auth-error
+      - state: idle
       - display:
         - target: L-MessageArea
         - element: E-RequestErrorBanner
@@ -1690,7 +1688,7 @@ result-specific effects under that case's `Effects` block.
   - case: failure
     - response: 401 invalid credentials
     - Effects
-      - state: auth-error
+      - state: idle
       - display:
         - target: L-MessageArea
         - element: E-AuthErrorBanner
@@ -1862,10 +1860,9 @@ extra variant.
 ```markdown
 ## Preview Scenarios
 
-### auth-error
+### idle-auth-error
 
-- state: auth-error
-- before: request-error
+- state: idle
 - cases:
   - A-AuthResponse.P1.failure
 ```
@@ -1926,7 +1923,7 @@ followed by the element and action lists relevant to that state. Other states
 are rendered below it with their own wireframes, followed by current element and
 action specifications for that state. State-specific rendering uses the
 `States` section and visibility conditions such as `visible when:
-${state.auth-error}`. Non-state conditions use namespaced sources such as
+${state.loading}`. Non-state conditions use namespaced sources such as
 `${view.isHelpPanelOpen}` or `${model.profile.loaded}`.
 
 ## View Context Section

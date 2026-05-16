@@ -65,7 +65,7 @@ unambiguous.
 | Example | Purpose | Demonstrates |
 | --- | --- | --- |
 | [Hello Screen](../../../examples/01-basics/hello-screen.vspec.md) | Minimum useful screen. | Metadata, one state, one viewport, layout, elements, and a click action marker. |
-| [Login Basic](../../../examples/01-basics/login-basic.vspec.md) | Compact authentication flow with mobile and desktop layouts. | Required inputs, validation state, auth-error state, spinner overlay, disabled controls, request parameters, response cases, screen navigation, and Business Rules. |
+| [Login Basic](../../../examples/01-basics/login-basic.vspec.md) | Compact authentication flow with mobile and desktop layouts. | Required inputs, validation/auth/request messages as display scenarios, spinner overlay, disabled controls, request parameters, response cases, screen navigation, and Business Rules. |
 | [Async Loading](../../../examples/02-states/async-loading.vspec.md) | Request send and response handling. | Loading, loaded, empty, and load-error states, response cases, and Model Samples. |
 | [Model Samples](../../../examples/02-states/model-samples.vspec.md) | Dedicated model-backed preview data example. | List-first object and collection samples, state-specific sample sets, and supplemental empty table syntax. |
 | [Responsive Profile](../../../examples/02-states/responsive-profile.vspec.md) | Same content in mobile and desktop layouts. | Viewport-specific layout groups and state-aware actions. |
