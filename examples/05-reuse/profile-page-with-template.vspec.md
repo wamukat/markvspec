@@ -17,8 +17,10 @@ references:
 
 # SCR-PROFILE-HOME Profile Home
 
-This example teaches how a screen uses a template slot and a referenced partial.
-It also demonstrates route parameters through `${route.memberId}`.
+This example teaches how a screen fills a template slot and references a partial.
+Read front matter `template`/`references.partials`, `## Slot: content`, route
+parameters, display insertion of partial content, and partial refresh actions;
+the reusable shell itself is defined in the template example.
 
 ## States
 

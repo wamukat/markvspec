@@ -11,8 +11,10 @@ status: draft
 
 # SCR-FORM-SUBMIT-FLOW Form Submit Flow
 
-This example teaches an action that validates input, sends request parameters,
-waits for the server response, and navigates only after success.
+This example teaches a submit action lifecycle from validation through server
+response. Read `## Form Groups`, validation receive sources, request parameters,
+server process details, `stop`/success continuation, and navigation; it does not
+try to cover non-submit element events.
 
 ## States
 

@@ -11,8 +11,10 @@ status: draft
 
 # SCR-EVENT-TRIGGERS Event Triggers
 
-This example teaches non-click element events and lifecycle triggers around a
-small preferences form.
+This example teaches non-click events and lifecycle triggers around a small
+preferences form. Read `screen.load`, `.change`, `.blur`, `.focus`, `.submit`,
+dialog click/close actions, and the Preview Scenarios that show display effects
+such as unsaved notices, help text, validation feedback, and modal dialogs.
 
 ## States
 
@@ -108,20 +110,25 @@ small preferences form.
 - sample: Saved preferences could not be loaded.
 - visible when: initialize-error
 
-### 6:E-PreferencesForm custom:Form
+### 6:E-UnsavedNotice Banner
+
+- tone: info
+- sample: Preferences have unsaved changes.
+
+### 7:E-PreferencesForm custom:Form
 
 - label: Preferences form
 - purpose: Form submit event boundary for the preferences fields.
 - action: A-SubmitPreferences
 
-### 7:E-SearchInput Input
+### 8:E-SearchInput Input
 
 - label: Search keyword
 - initial value: system alerts
 - placeholder: notification keyword
 - width: medium
 
-### 8:E-EmailInput Input
+### 9:E-EmailInput Input
 
 - label: Notification email
 - type: email
@@ -129,7 +136,7 @@ small preferences form.
 - placeholder: member@example.com
 - width: long
 
-### 9:E-DeliverySelect Select
+### 10:E-DeliverySelect Select
 
 - label: Delivery cadence
 - initial value: Daily
@@ -139,37 +146,37 @@ small preferences form.
   - Daily
   - Weekly
 
-### 10:E-HelpIcon Icon
+### 11:E-HelpIcon Icon
 
 - label: Delivery help
 - name: circle-help
 
-### 11:E-SubmitButton Button
+### 12:E-SubmitButton Button
 
 - label: Submit preferences
 - variant: primary
 - action: A-SubmitPreferences
 
-### 12:E-DiscardButton Button
+### 13:E-DiscardButton Button
 
 - label: Discard changes
 - variant: secondary
 - action: A-RequestDiscardDialog
 
-### 13:E-ConfirmDialog Dialog
+### 14:E-ConfirmDialog Dialog
 
 - title: Discard changes?
 - message: Closing this dialog keeps the current edits on the page.
 - tone: warning
 - actions: E-CancelDiscardButton, E-ConfirmDiscardButton
 
-### 14:E-CancelDiscardButton Button
+### 15:E-CancelDiscardButton Button
 
 - label: Keep editing
 - variant: secondary
 - action: A-CloseDiscardDialog
 
-### 15:E-ConfirmDiscardButton Button
+### 16:E-ConfirmDiscardButton Button
 
 - label: Discard changes
 - variant: primary
@@ -211,14 +218,19 @@ small preferences form.
     - Effects
       - state: initialize-error
 
-### A2:A-UpdateKeyword Update keyword
+### A2:A-MarkPreferencesChanged Mark preferences changed
 
 - Triggered
   - E-SearchInput.change
 - From
   - idle
-- Process P1: Apply immediate effect
-  - state: idle
+- Process P1: Mark changed
+  - case: done
+    - Effects
+      - display:
+        - target: L-StatusArea
+        - element: E-UnsavedNotice
+    - stop
 
 ### A3:A-ValidateEmail Validate email on blur
 
@@ -311,6 +323,12 @@ small preferences form.
     - stop
 
 ## Preview Scenarios
+
+### idle-unsaved
+
+- state: idle
+- cases:
+  - A-MarkPreferencesChanged.P1.done
 
 ### idle-help
 

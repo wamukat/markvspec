@@ -12,7 +12,9 @@ status: draft
 # SCR-ACCOUNT-SETTINGS Account Settings
 
 This example teaches structured documentation sections that are easy to miss in
-small screens: Error Codes, custom History Fields, and History entries.
+small screens. Read Error Codes, custom History Fields, History entries, and the
+small save flow that references them; richer layout and model examples are left
+to the main screen examples.
 
 ## States
 

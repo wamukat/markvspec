@@ -11,9 +11,10 @@ status: draft
 
 # SCR-LOGIN Login
 
-This example teaches the minimum login form worth keeping as a release example:
-required fields, one FormGroup, validation feedback, request sending, response
-handling, and disabled controls while authentication is pending.
+This example teaches a compact login flow that still has real behavior. Read the
+responsive `## Layout`, required input `## Validations`, form `## Actions`,
+request parameters, response cases, disabled controls, and navigation; richer
+profile fields and reusable templates are left to later examples.
 
 ## States
 

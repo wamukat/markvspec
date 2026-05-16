@@ -35,12 +35,12 @@ rule と validation の見出しは、document symbol と parser test が曖昧�
 
 | サンプル | 用途 |
 | --- | --- |
-| [Hello Screen](../../../examples/01-basics/hello-screen.vspec.md) | 1画面、1 state、1 viewport の最小例。 |
-| [Login Basic](../../../examples/01-basics/login-basic.vspec.md) | 入力検証、認証エラー、spinner overlay、responsive layout の基準例。 |
+| [Hello Screen](../../../examples/01-basics/hello-screen.vspec.md) | metadata、1 state、1 viewport、layout、element、click action marker の最小例。 |
+| [Login Basic](../../../examples/01-basics/login-basic.vspec.md) | responsive layout、required validation、request parameters、response cases、disabled control、navigation を含む小さな login flow。 |
 | [Async Loading](../../../examples/02-states/async-loading.vspec.md) | request 送信、response handling、empty/error state、Model Samples の例。 |
 | [Model Samples](../../../examples/02-states/model-samples.vspec.md) | list 形式中心の object / collection サンプルと、空配列用 table 記法を学ぶ例。 |
 | [Responsive Profile](../../../examples/02-states/responsive-profile.vspec.md) | mobile / desktop viewport で同じ情報を異なる配置にする例。 |
-| [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | `change` / `submit` / `focus` / `blur` / `close` と lifecycle trigger の例。 |
+| [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | `screen.load`、`.change` の未保存通知、`.blur` validation、`.focus` help、`.submit`、dialog click / `close` と Preview Scenarios の例。 |
 | [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md) | validation receive source、request parameters、server process detail、成功時 navigation の例。 |
 | [Single Field Validation](../../../examples/03-actions/single-field-validation.vspec.md) | 単項目 validation contract と、length / pattern / type / range / step などの element 入力仕様の対応例。 |
 | [Parallel Initial Load](../../../examples/03-actions/parallel-initial-load.vspec.md) | parallel server call と `Resolve` の例。 |

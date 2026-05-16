@@ -11,12 +11,10 @@ status: draft
 
 # SCR-MODEL-SAMPLES Model Samples
 
-This example focuses on list-style `## Model Samples`. The screen references
-fields from single-row object samples and collection rows so authors can see how
-preview and export output use state-specific sample data.
-The generated design document shows each sample under its model path heading;
-the `empty` state keeps one header-only table to demonstrate the supplemental
-empty-array syntax.
+This example focuses on list-style `## Model Samples` and model-backed preview
+content. Read the sample sets, `${model.*}` references, and state-specific
+preview output; actions and request flow are intentionally omitted so the sample
+data contract stays visible.
 
 ## States
 

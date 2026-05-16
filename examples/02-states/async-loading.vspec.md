@@ -11,8 +11,10 @@ status: draft
 
 # SCR-ASYNC-LOADING Async Loading
 
-This example teaches how to separate request sending from asynchronous response
-handling. The click action only reaches `loading` after the request is sent.
+This example teaches asynchronous state modeling for a list refresh. Read
+`## States`, the split send/receive `## Actions`, response cases, and
+`## Model Samples`; it keeps layout and input controls minimal so loading,
+loaded, empty, and error previews are the focus.
 
 ## States
 

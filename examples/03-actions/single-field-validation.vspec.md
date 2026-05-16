@@ -11,10 +11,10 @@ status: draft
 
 # SCR-SINGLE-FIELD-VALIDATION Single Field Validation
 
-This example focuses on element-level input specifications and the matching
-single-field validation contracts. Required checks live in `## Validations`;
-element `input rule` entries stay limited to browser-facing constraints such as
-type, length, pattern, range, and step.
+This example focuses only on single-field validation. Read the input element
+constraints, `## Validations`, validation receive source, and invalid/valid cases;
+request sending, screen navigation, and multi-field form behavior are excluded
+so field-level contracts remain the main topic.
 
 ## States
 

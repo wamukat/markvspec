@@ -11,8 +11,9 @@ status: draft
 
 # SCR-HELLO Hello Screen
 
-This example teaches the smallest useful MarkVSpec document: one screen, one state,
-one viewport, a layout, two elements, and a button marker.
+This example teaches the smallest useful MarkVSpec document. Read the metadata,
+`## States`, `## Layout`, `## Elements`, and one click-triggered `## Actions`
+entry; it intentionally avoids validation, model data, and response handling.
 
 ## States
 

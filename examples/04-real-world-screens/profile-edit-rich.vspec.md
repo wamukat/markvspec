@@ -11,9 +11,10 @@ status: draft
 
 # SCR-PROFILE-EDIT-RICH Profile Edit Rich
 
-This example is a release-facing element type coverage screen. It keeps the
-flow small and focuses on form primitives, media helpers, list content, and a
-confirmation dialog that are not covered by the smaller examples.
+This example is a release-facing element type coverage screen. Read the expanded
+form controls, media helpers, list content, file/date/time/number inputs, and
+modal dialog wiring; the action flow stays small because the element catalog is
+the primary purpose.
 
 ## States
 

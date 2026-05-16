@@ -11,9 +11,10 @@ status: draft
 
 # SCR-USERS Search List
 
-This example teaches a compact real-world list screen: search criteria, a table
-fed by Model Samples, empty and error states, request send cases, response cases,
-and pagination actions.
+This example teaches a compact real-world search list. Read the criteria form,
+table fed by `## Model Samples`, loading/empty/error states, request and response
+cases, pagination actions, and result replacement display effects; detail editing
+is outside this example.
 
 ## States
 

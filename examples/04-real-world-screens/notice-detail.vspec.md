@@ -11,9 +11,10 @@ status: draft
 
 # SCR-NOTICE-DETAIL Notice Detail
 
-This example teaches Display Content Spec fields. It keeps UI wording, data
-sources, representative samples, machine values, formats, and navigation
-parameters visibly separate.
+This example teaches Display Content Spec coverage. Read the fields that separate
+UI wording, source paths, representative samples, machine values, formats, and
+navigation parameters; actions are deliberately small so content/source mapping
+is easy to inspect.
 
 ## States
 

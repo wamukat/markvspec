@@ -10,8 +10,10 @@ status: draft
 
 # PRT-PROFILE-SUMMARY Profile Summary Partial
 
-This partial renders the profile summary block used inside the account shell
-example.
+This partial teaches the `type: partial` document shape used inside a host
+screen. Read the partial route, partial-local states, server-side load/build
+action, and fields intended for template composition; full-page navigation and
+global layout are handled by the host screen.
 
 ## States
 

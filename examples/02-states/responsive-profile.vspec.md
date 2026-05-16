@@ -11,8 +11,10 @@ status: draft
 
 # SCR-RESPONSIVE-PROFILE Responsive Profile
 
-This example teaches how the same elements can be arranged differently by
-viewport while keeping state behavior shared.
+This example teaches viewport-specific layout over shared elements and states.
+Read the mobile and desktop `## Layout` variants, shared `## Elements`, and
+state-aware actions; it avoids server calls so the responsive structure is the
+main thing to compare.
 
 ## States
 
