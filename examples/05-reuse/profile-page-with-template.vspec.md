@@ -100,8 +100,9 @@ It also demonstrates route parameters through `${route.memberId}`.
       - stop
   - case: send-failed
     - response: network error
-    - state: refresh-error
-    - stop
+    - Effects
+      - state: refresh-error
+      - stop
 
 ### A2:A-HandleProfileSummaryResponse Handle profile summary response
 
@@ -114,12 +115,14 @@ It also demonstrates route parameters through `${route.memberId}`.
     - response: A-RefreshProfile.P1.response
   - case: success
     - response: 200 partial HTML
-    - state: idle
-    - display:
-      - target: L-ProfileSummaryHost
-      - content: PRT-PROFILE-SUMMARY
-    - stop
+    - Effects
+      - state: idle
+      - display:
+        - target: L-ProfileSummaryHost
+        - content: PRT-PROFILE-SUMMARY
+      - stop
   - case: failure
     - response: 5xx or timeout
-    - state: refresh-error
-    - stop
+    - Effects
+      - state: refresh-error
+      - stop

@@ -71,9 +71,10 @@ example.
     - response: 200 member profile
     - Effects
       - model: ${model.member} = result.member
-    - state: loaded
-    - stop
+      - state: loaded
+      - stop
   - case: failure
     - response: 5xx or timeout
-    - state: load-error
-    - stop
+    - Effects
+      - state: load-error
+      - stop

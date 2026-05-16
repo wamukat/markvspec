@@ -135,9 +135,11 @@ status: draft
     - method: POST
     - path: /logout
   - case: sent
-    - state: signing-out
+    - Effects
+      - state: signing-out
   - case: send-failed
-    - state: ready
+    - Effects
+      - state: ready
 
 ### A2:A-HandleSignOutResponse Handle sign out response
 
@@ -150,7 +152,9 @@ status: draft
     - response: A-SignOut.P1.response
   - case: success
     - response: 204 signed out
-    - navigate: SCR-LOGIN
+    - Effects
+      - navigate: SCR-LOGIN
   - case: failure
     - response: 5xx
-    - state: ready
+    - Effects
+      - state: ready

@@ -231,9 +231,11 @@ parameters visibly separate.
   - result:
     - related notice search request
   - case: sent
-    - state: searching
+    - Effects
+      - state: searching
   - case: send-failed
-    - state: search-error
+    - Effects
+      - state: search-error
 
 ### A2:A-HandleRelatedSearchResponse Handle related search response
 
@@ -246,10 +248,12 @@ parameters visibly separate.
     - response: A-SearchRelatedNotices.P1.response
   - case: success
     - response: 200 related notices
-    - state: loaded
+    - Effects
+      - state: loaded
   - case: failure
     - response: 4xx or 5xx
-    - state: search-error
+    - Effects
+      - state: search-error
 
 ## Business Rules
 

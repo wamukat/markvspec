@@ -111,9 +111,11 @@ empty-array syntax.
     - method: GET
     - path: /sample-account
   - case: sent
-    - state: loaded
+    - Effects
+      - state: loaded
   - case: send-failed
-    - state: empty
+    - Effects
+      - state: empty
 
 ## Model Samples
 

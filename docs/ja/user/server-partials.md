@@ -178,13 +178,15 @@ response は、`A-SubmitLogin.P1.response` のような response handler Action 
 - Process P1: ログイン応答処理
   - case: success
     - response: 2xx authenticated user
-    - navigate: SCR-DASHBOARD
+    - Effects
+      - navigate: SCR-DASHBOARD
   - case: failure
     - response: 401 with message fragment
-    - state: auth-error
-    - display:
-      - target: L-MessageArea
-      - content: Authentication error message
+    - Effects
+      - state: auth-error
+      - display:
+        - target: L-MessageArea
+        - content: Authentication error message
 ```
 
 現在画面の状態が変わる場合は `state`、別画面へ移る場合は `navigate` を使います。

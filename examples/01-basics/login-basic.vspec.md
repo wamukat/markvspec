@@ -283,13 +283,17 @@ not decide whether credentials are correct.
   - receive:
     - validation: V-LoginForm.result
   - case: invalid
-    - state: validation-error
-    - stop
-    - display:
-      - target: L-MessageArea
-      - content: Required field message
+    - result: required field missing
+    - Effects
+      - state: validation-error
+      - display:
+        - target: L-MessageArea
+        - content: Required field message
+      - stop
   - case: valid
-    - continue
+    - result: all required fields are valid
+    - Effects
+      - continue
 - Process P2: Submit login
   - request:
     - method: POST
@@ -301,12 +305,14 @@ not decide whether credentials are correct.
   - result:
     - login submission request
   - case: sent
-    - state: wait-auth
+    - Effects
+      - state: wait-auth
   - case: send-failed
-    - state: request-error
-    - display:
-      - target: L-MessageArea
-      - content: Login request could not be sent
+    - Effects
+      - state: request-error
+      - display:
+        - target: L-MessageArea
+        - content: Login request could not be sent
 
 The `sent` case means only that the browser submitted the request. Authentication
 success or failure is handled by `A-HandleLoginResponse`.
@@ -322,13 +328,15 @@ success or failure is handled by `A-HandleLoginResponse`.
     - response: A-SubmitLogin.P2.response
   - case: success
     - response: 200 authenticated
-    - navigate: SCR-HOME
+    - Effects
+      - navigate: SCR-HOME
   - case: failure
     - response: 401 invalid credentials
-    - state: auth-error
-    - display:
-      - target: L-MessageArea
-      - content: Authentication error message
+    - Effects
+      - state: auth-error
+      - display:
+        - target: L-MessageArea
+        - content: Authentication error message
 
 ### A3:A-ForgotPassword Open password reset
 

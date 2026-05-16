@@ -1350,16 +1350,18 @@ title: Action AST
     - email: E-メールアドレス入力.value
   - case: success
     - response: 2xx authenticated
-    - state: done
     - params:
       - id: E-UserId.value
-    - update:
-      - target: L-Message
-      - mode: replace
-      - content: PRT-SUCCESS
+    - Effects
+      - state: done
+      - update:
+        - target: L-Message
+        - mode: replace
+        - content: PRT-SUCCESS
   - case: failure
     - from: idle
-    - state: error
+    - Effects
+      - state: error
 `;
   const diagnostics: MarkVSpecDiagnostic[] = [];
   const document = parseMarkdownDocument(source, diagnostics);
@@ -6051,10 +6053,11 @@ title: Nested Action
 - Process: Immediate
     - case: failure
         - response: 400
-        - state: error
-        - update:
-            - target: L-MessageArea
-            - content: Failure message
+        - Effects
+            - state: error
+            - update:
+                - target: L-MessageArea
+                - content: Failure message
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-Submit");
@@ -10443,13 +10446,13 @@ references:
 - From
   - loaded
 - Process P1: Request next search page
-  - result:
-    - next search page request
   - request:
     - method: GET
     - path: /search/results
     - params:
       - page: E-NextPageButton.value
+  - result:
+    - next search page request
   - case: sent
     - result: request was sent
     - Effects

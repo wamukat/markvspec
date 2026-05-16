@@ -174,12 +174,14 @@ and pagination actions.
   - result:
     - first search page request
   - case: sent
-    - state: loading
+    - Effects
+      - state: loading
   - case: send-failed
-    - state: load-error
-    - display:
-      - target: L-StatusArea
-      - content: Search request failure banner
+    - Effects
+      - state: load-error
+      - display:
+        - target: L-StatusArea
+        - content: Search request failure banner
 
 ### A2:A-HandleSearchUsersResponse Handle search users response
 
@@ -192,22 +194,25 @@ and pagination actions.
     - response: A-SearchUsers.P1.response
   - case: success
     - response: 200 with one or more rows
-    - state: idle
-    - display:
-      - target: L-Results
-      - content: Updated result rows
+    - Effects
+      - state: idle
+      - display:
+        - target: L-Results
+        - content: Updated result rows
   - case: empty
     - response: 200 with no rows
-    - state: empty
-    - display:
-      - target: L-Results
-      - content: Empty result message
+    - Effects
+      - state: empty
+      - display:
+        - target: L-Results
+        - content: Empty result message
   - case: failure
     - response: 5xx or timeout
-    - state: load-error
-    - display:
-      - target: L-StatusArea
-      - content: Load failure banner
+    - Effects
+      - state: load-error
+      - display:
+        - target: L-StatusArea
+        - content: Load failure banner
 
 ### A3:A-NextPage Next page
 
@@ -226,9 +231,11 @@ and pagination actions.
   - result:
     - next search page request
   - case: sent
-    - state: loading
+    - Effects
+      - state: loading
   - case: send-failed
-    - state: load-error
+    - Effects
+      - state: load-error
 
 ### A4:A-PreviousPage Previous page
 
@@ -247,9 +254,11 @@ and pagination actions.
   - result:
     - previous search page request
   - case: sent
-    - state: loading
+    - Effects
+      - state: loading
   - case: send-failed
-    - state: load-error
+    - Effects
+      - state: load-error
 
 ### A5:A-HandleNextPageResponse Handle next page response
 
@@ -262,22 +271,25 @@ and pagination actions.
     - response: A-NextPage.P1.response
   - case: success
     - response: 200 with one or more rows
-    - state: idle
-    - display:
-      - target: L-Results
-      - content: Next page result rows
+    - Effects
+      - state: idle
+      - display:
+        - target: L-Results
+        - content: Next page result rows
   - case: empty
     - response: 200 with no rows
-    - state: empty
-    - display:
-      - target: L-Results
-      - content: Empty result message
+    - Effects
+      - state: empty
+      - display:
+        - target: L-Results
+        - content: Empty result message
   - case: failure
     - response: 5xx or timeout
-    - state: load-error
-    - display:
-      - target: L-StatusArea
-      - content: Load failure banner
+    - Effects
+      - state: load-error
+      - display:
+        - target: L-StatusArea
+        - content: Load failure banner
 
 ### A6:A-HandlePreviousPageResponse Handle previous page response
 
@@ -290,22 +302,25 @@ and pagination actions.
     - response: A-PreviousPage.P1.response
   - case: success
     - response: 200 with one or more rows
-    - state: idle
-    - display:
-      - target: L-Results
-      - content: Previous page result rows
+    - Effects
+      - state: idle
+      - display:
+        - target: L-Results
+        - content: Previous page result rows
   - case: empty
     - response: 200 with no rows
-    - state: empty
-    - display:
-      - target: L-Results
-      - content: Empty result message
+    - Effects
+      - state: empty
+      - display:
+        - target: L-Results
+        - content: Empty result message
   - case: failure
     - response: 5xx or timeout
-    - state: load-error
-    - display:
-      - target: L-StatusArea
-      - content: Load failure banner
+    - Effects
+      - state: load-error
+      - display:
+        - target: L-StatusArea
+        - content: Load failure banner
 
 ## Model Samples
 

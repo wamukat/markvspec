@@ -105,12 +105,14 @@ handling. The click action only reaches `loading` after the request is sent.
   - result:
     - item list request
   - case: sent
-    - state: loading
+    - Effects
+      - state: loading
   - case: send-failed
-    - state: load-error
-    - display:
-      - target: L-StatusArea
-      - content: Request could not be sent.
+    - Effects
+      - state: load-error
+      - display:
+        - target: L-StatusArea
+        - content: Request could not be sent.
 
 ### A2:A-HandleItemsResponse Handle items response
 
@@ -123,16 +125,19 @@ handling. The click action only reaches `loading` after the request is sent.
     - response: A-RefreshItems.P1.response
   - case: success
     - response: HTTP 200 with rows
-    - state: loaded
-    - display:
-      - target: E-ItemsTable
-      - content: Latest item rows
+    - Effects
+      - state: loaded
+      - display:
+        - target: E-ItemsTable
+        - content: Latest item rows
   - case: empty
     - response: HTTP 200 with no rows
-    - state: empty
+    - Effects
+      - state: empty
   - case: failure
     - response: HTTP error or timeout
-    - state: load-error
+    - Effects
+      - state: load-error
 
 ## Model Samples
 
