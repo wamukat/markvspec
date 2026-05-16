@@ -256,7 +256,7 @@ marker です。参照には marker ではなく ID を使います。
 - [examples/03-actions/parallel-initial-load.vspec.md](examples/03-actions/parallel-initial-load.vspec.md): parallel server call と `Resolve`。
 - [examples/04-real-world-screens/notice-detail.vspec.md](examples/04-real-world-screens/notice-detail.vspec.md): Display Content Spec の文言、データソース、format、value、params。
 - [examples/04-real-world-screens/profile-edit-rich.vspec.md](examples/04-real-world-screens/profile-edit-rich.vspec.md): 拡張 form、media、list、dialog 系 Element Type。
-- [examples/04-real-world-screens/search-list.vspec.md](examples/04-real-world-screens/search-list.vspec.md): search、filter、pagination、empty result、row action。
+- [examples/04-real-world-screens/search-list.vspec.md](examples/04-real-world-screens/search-list.vspec.md): search、filter、pagination、empty result、result replacement。
 - [examples/05-reuse/template-shell.vspec.md](examples/05-reuse/template-shell.vspec.md): template shell と slot の基本。
 - [examples/05-reuse/profile-page-with-template.vspec.md](examples/05-reuse/profile-page-with-template.vspec.md): template 合成、route params、partial refresh。
 - [examples/05-reuse/profile-summary.partial.vspec.md](examples/05-reuse/profile-summary.partial.vspec.md): partial route と partial-local state。

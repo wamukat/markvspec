@@ -267,7 +267,7 @@ The `examples/` directory is organized as a learning path:
 - [examples/03-actions/parallel-initial-load.vspec.md](examples/03-actions/parallel-initial-load.vspec.md): parallel server calls and `Resolve`.
 - [examples/04-real-world-screens/notice-detail.vspec.md](examples/04-real-world-screens/notice-detail.vspec.md): Display Content Spec fields for wording, data sources, formatting, values, and params.
 - [examples/04-real-world-screens/profile-edit-rich.vspec.md](examples/04-real-world-screens/profile-edit-rich.vspec.md): extended form, media, list, and dialog element types.
-- [examples/04-real-world-screens/search-list.vspec.md](examples/04-real-world-screens/search-list.vspec.md): search, filters, pagination, empty result, and row action.
+- [examples/04-real-world-screens/search-list.vspec.md](examples/04-real-world-screens/search-list.vspec.md): search, filters, pagination, empty result, and result replacement.
 - [examples/05-reuse/template-shell.vspec.md](examples/05-reuse/template-shell.vspec.md): template shell and slot basics.
 - [examples/05-reuse/profile-page-with-template.vspec.md](examples/05-reuse/profile-page-with-template.vspec.md): template composition, route params, and partial refresh.
 - [examples/05-reuse/profile-summary.partial.vspec.md](examples/05-reuse/profile-summary.partial.vspec.md): partial route and partial-local states.

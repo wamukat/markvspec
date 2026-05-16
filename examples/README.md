@@ -14,7 +14,7 @@ the DSL, preview, State Views, Action Details, and export output.
 - `03-actions/parallel-initial-load.vspec.md`: parallel server calls and final Resolve.
 - `04-real-world-screens/notice-detail.vspec.md`: Display Content Spec fields for wording, data sources, formatting, values, and navigation params.
 - `04-real-world-screens/profile-edit-rich.vspec.md`: extended form, media, list, and dialog element types.
-- `04-real-world-screens/search-list.vspec.md`: search, filtering, pagination, empty result, and row action.
+- `04-real-world-screens/search-list.vspec.md`: search, filtering, pagination, empty result, and result replacement.
 - `05-reuse/template-shell.vspec.md`: template shell, slot, and reusable layout basics.
 - `05-reuse/profile-page-with-template.vspec.md`: template composition, route params, and partial refresh.
 - `05-reuse/profile-summary.partial.vspec.md`: partial route and partial-local states.

@@ -18,8 +18,6 @@ confirmation dialog that are not covered by the smaller examples.
 ## States
 
 - idle*
-- saving
-- save-error
 
 ## Layout: desktop
 
@@ -37,8 +35,7 @@ confirmation dialog that are not covered by the smaller examples.
 - L-PreferenceForm
 - E-AuditList
 - L-Actions
-- E-SaveSpinner
-- E-SaveErrorBanner
+- E-DiscardDialog
 
 ### L2:L-ProfileHeader Profile header
 
@@ -223,75 +220,13 @@ confirmation dialog that are not covered by the smaller examples.
 
 - label: Save changes
 - variant: primary
-- action: A-SaveProfile
 
 ### 19:E-DiscardButton Button
 
 - label: Discard
 - variant: secondary
-- action: A-OpenDiscardDialog
 
-### 20:E-SaveSpinner Spinner
-
-- label: Saving profile
-- visible when: saving
-
-### 21:E-SaveErrorBanner Banner
-
-- tone: danger
-- sample: Profile changes could not be saved.
-- visible when: save-error
-
-### 22:E-DiscardDialog Dialog
+### 20:E-DiscardDialog Dialog
 
 - title: Discard unsaved changes?
 - content: Unsaved profile changes will be lost.
-
-## Actions
-
-### A1:A-SaveProfile Save profile
-
-- Triggered
-  - E-SaveButton.click
-- From
-  - idle
-  - save-error
-- Process P1: Call server service
-  - server:
-    - ProfileService.save()
-    - params:
-      - bio: E-BioTextarea.value
-      - reviewDate: E-RequestedDate.value
-      - visibility: E-VisibilityRadio.value
-  - result:
-    - profile save request
-  - case: sent
-    - Effects
-      - state: saving
-  - case: send-failed
-    - Effects
-      - state: save-error
-
-### A2:A-OpenDiscardDialog Open discard dialog
-
-- Triggered
-  - E-DiscardButton.click
-- From
-  - idle
-  - save-error
-- Process P1: Apply immediate effect
-  - case: done
-    - Effects
-      - display:
-        - target: E-DiscardDialog
-        - element: E-DiscardDialog
-    - stop
-
-## Preview Scenarios
-
-### idle-confirm-discard
-
-- state: idle
-- before: saving
-- cases:
-  - A-OpenDiscardDialog.P1.done

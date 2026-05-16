@@ -46,7 +46,7 @@ rule と validation の見出しは、document symbol と parser test が曖昧�
 | [Parallel Initial Load](../../../examples/03-actions/parallel-initial-load.vspec.md) | parallel server call と `Resolve` の例。 |
 | [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md) | Display Content Spec の `label src`、`sample`、`src`、`format`、`value`、`params` を確認する例。 |
 | [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md) | 拡張 form、media、list、dialog 系 Element Type をまとめて確認する例。 |
-| [Search List](../../../examples/04-real-world-screens/search-list.vspec.md) | filter、Table、paging、empty/error state、fragment replacement の例。 |
+| [Search List](../../../examples/04-real-world-screens/search-list.vspec.md) | filter、Table、paging、empty/error state、result replacement の例。 |
 | [Template Shell](../../../examples/05-reuse/template-shell.vspec.md) | template document と slot の基本例。 |
 | [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md) | template 合成、route params、partial refresh の例。 |
 | [Profile Summary Partial](../../../examples/05-reuse/profile-summary.partial.vspec.md) | `type: partial`、partial route、partial-local state の例。 |

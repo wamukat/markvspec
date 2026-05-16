@@ -27,8 +27,8 @@ smallest useful reference:
 - `Parallel Initial Load` teaches parallel process groups and
   `Process P3: Resolve grouped processes` final state decisions.
 - `Search List` teaches admin list patterns: filters, Select options, Tables,
-  paging, loading/empty/error states, Model Updates, Model Samples, and
-  response-driven result updates.
+  paging, loading/empty/error states, Model Samples, and response-driven result
+  replacement.
 - `Template Shell`, `Profile Page With Template`, and `Profile Summary Partial`
   teach templates, slots, template composition, partial hosts,
   `references.partials`, `display.element` references to authored UI,
@@ -71,7 +71,7 @@ unambiguous.
 | [Parallel Initial Load](../../../examples/03-actions/parallel-initial-load.vspec.md) | Parallel server calls with a final resolver. | `group: initial-load`, `Process P3: Resolve grouped processes`, model side effects, and final state decisions. |
 | [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md) | Display Content Spec field coverage. | `label src`, `placeholder src`, `sample`, `src`, `format`, machine `value`, and navigation `params`. |
 | [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md) | Element type coverage screen using a realistic profile/settings form. | `Textarea`, `MultiSelect`, `CheckboxGroup`, `Switch`, `RadioGroup`, `List`, `Dialog`, `Image`, `Icon`, `Divider`, file inputs, date/time inputs, and number input. |
-| [Search List](../../../examples/04-real-world-screens/search-list.vspec.md) | Search screen with filters and pagination. | Desktop toolbar, Select options, Table, empty state, load-error state, model effects, Model Samples, and display element replacement. |
+| [Search List](../../../examples/04-real-world-screens/search-list.vspec.md) | Search screen with filters and pagination. | Desktop toolbar, Select options, Table, empty state, load-error state, Model Samples, and display element replacement. |
 | [Template Shell](../../../examples/05-reuse/template-shell.vspec.md) | Shared template shell. | Template document unit, navigation frame, top bar, language Select, and `content` slot placeholder. |
 | [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md) | Screen using a template slot and partial. | Front Matter `template`, `references.partials`, `## Slot: content`, route params, and `display.element` references to the partial host layout. |
 | [Profile Summary Partial](../../../examples/05-reuse/profile-summary.partial.vspec.md) | Partial document rendered inside a screen. | `type: partial`, partial route, partial-local states, and server-side build action. |

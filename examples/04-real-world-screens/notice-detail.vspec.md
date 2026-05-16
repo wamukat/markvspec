@@ -19,10 +19,6 @@ parameters visibly separate.
 
 - idle*
   - Notice data is available.
-- loading
-  - A related-notice search request was sent.
-- load-error
-  - Related notices could not be searched.
 
 ## Layout: desktop
 
@@ -38,7 +34,6 @@ parameters visibly separate.
 - L-Body
 - L-RelatedSearch
 - L-Links
-- L-StatusArea
 
 ### L2:L-Header Header
 
@@ -76,13 +71,11 @@ parameters visibly separate.
 - row
 - gap: sm
 - align: center
-- disabled when: loading
 
 #### Items
 
 - "Keyword": E-KeywordInput
 - "Read status": E-ReadStatusSelect
-- E-SearchButton
 
 ### L6:L-Links Links
 
@@ -93,15 +86,6 @@ parameters visibly separate.
 
 - E-RelatedInvoiceLink
 - E-BackToListLink
-
-### L7:L-StatusArea Status area
-
-- stack
-
-#### Items
-
-- E-SearchingBanner
-- E-SearchErrorBanner
 
 ## Elements
 
@@ -173,14 +157,7 @@ parameters visibly separate.
   - Read
   - All
 
-### 10:E-SearchButton Button
-
-- label: Search
-- label src: ${i18n.noticeList.searchButton}
-- variant: primary
-- action: A-SearchRelatedNotices
-
-### 11:E-RelatedInvoiceLink Link
+### 10:E-RelatedInvoiceLink Link
 
 - label: View related invoice
 - label src: ${i18n.noticeDetail.relatedInvoiceLink}
@@ -190,7 +167,7 @@ parameters visibly separate.
 - params:
   - invoiceId: ${model.notice.invoiceId}
 
-### 12:E-BackToListLink Link
+### 11:E-BackToListLink Link
 
 - label: Back to notices
 - label src: ${i18n.noticeDetail.backToListLink}
@@ -198,62 +175,6 @@ parameters visibly separate.
 - params:
   - keyword: ${model.search.keyword}
   - readStatus: ${model.search.readStatus}
-
-### 13:E-SearchingBanner Banner
-
-- tone: info
-- sample: Searching related notices.
-- visible when: loading
-
-### 14:E-SearchErrorBanner Banner
-
-- tone: danger
-- sample: Related notices could not be searched.
-- visible when: load-error
-
-## Actions
-
-### A1:A-SearchRelatedNotices Search related notices
-
-- Triggered
-  - E-SearchButton.click
-- From
-  - idle
-  - load-error
-- Process P1: Request related notices
-  - request:
-    - method: GET
-    - path: /notices
-    - params:
-      - keyword: E-KeywordInput.value
-      - readStatus: E-ReadStatusSelect.value
-      - relatedTo: ${route.noticeId}
-  - result:
-    - related notice search request
-  - case: sent
-    - Effects
-      - state: loading
-  - case: send-failed
-    - Effects
-      - state: load-error
-
-### A2:A-HandleRelatedSearchResponse Handle related search response
-
-- Triggered
-  - A-SearchRelatedNotices.P1.response
-- From
-  - loading
-- Process P1: Handle response
-  - receive:
-    - response: A-SearchRelatedNotices.P1.response
-  - case: success
-    - response: 200 related notices
-    - Effects
-      - state: idle
-  - case: failure
-    - response: 4xx or 5xx
-    - Effects
-      - state: load-error
 
 ## Business Rules
 
