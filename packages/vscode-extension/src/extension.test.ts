@@ -4989,6 +4989,51 @@ title: Multi Request
   assert.doesNotMatch(actionDetail, /<active>/);
 });
 
+test("renders direct immediate process effects in action details", () => {
+  const source = `---
+id: SCR-DIRECT-PROCESS
+type: screen
+title: Direct Process
+---
+
+# SCR-DIRECT-PROCESS Direct Process
+
+## States
+
+- idle*
+- loaded
+
+## Elements
+
+### E-ContinueButton Button
+
+- label: Continue
+
+## Actions
+
+### A1:A-Continue Continue
+
+- Triggered
+  - E-ContinueButton.click
+- From
+  - idle
+- Process P1: Apply immediate effect
+  - navigate: SCR-NEXT
+- Process P2: Set loaded
+  - state: loaded
+- Process P3: Label only
+`;
+  const result = parseMarkVSpec(source);
+  const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
+  const html = renderDesignDocumentHtml(result, preview);
+  const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Continue">[\s\S]*?<\/article>/)?.[0] ?? "";
+
+  assert.match(actionDetail, new RegExp(`<li>${docLabel("P1", "result")} Apply immediate effect<ul class="spec-list spec-effect-list"><li>effect navigate to ${documentRef("SCR-NEXT")}</li></ul></li>`));
+  assert.match(actionDetail, new RegExp(`<li>${docLabel("P2", "result")} Set loaded<ul class="spec-list spec-effect-list"><li>effect set state ${docLabel("loaded", "state")}</li></ul></li>`));
+  assert.match(actionDetail, new RegExp(`<li>${docLabel("P3", "result")} Label only</li>`));
+  assert.doesNotMatch(actionDetail, /<strong>success<\/strong>/);
+});
+
 test("renders nested process detail params without flattened dot keys", () => {
   const source = `---
 id: SCR-NESTED-PROCESS-DETAILS

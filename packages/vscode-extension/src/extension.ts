@@ -5111,6 +5111,8 @@ function renderProcessStepItem(
     renderProcessDataDetails(result, "receive", step.receives, detailedReferences),
     ...renderProcessStepDetails(result, step, detailedReferences),
     renderProcessDataDetails(result, "result", step.results, detailedReferences),
+    step.to ? `effect ${renderTransitionEffect(result, step.to)}` : "",
+    step.display ? `display ${renderDisplayEffect(result, step.display, detailedReferences)}` : "",
     step.target ? `update ${detailedReferences ? referenceForDetailId(result, step.target) : referenceForId(result, step.target, "target")}` : "",
     step.mode ? `mode ${text(step.mode)}` : "",
     step.fragment ? `fragment ${text(step.fragment)}` : "",
