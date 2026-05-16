@@ -93,10 +93,8 @@ It also demonstrates route parameters through `${route.memberId}`.
     - Effects
       - state: loading
       - display:
-        - target: L-ProfileSummaryHost
-        - content:
-          - partial: PRT-PROFILE-SUMMARY
-          - state: loading
+        - target: L-ProfileContent
+        - element: L-ProfileSummaryHost
     - stop
   - case: send-failed
     - description: network error
@@ -118,8 +116,8 @@ It also demonstrates route parameters through `${route.memberId}`.
     - Effects
       - state: idle
       - display:
-        - target: L-ProfileSummaryHost
-        - content: PRT-PROFILE-SUMMARY
+        - target: L-ProfileContent
+        - element: L-ProfileSummaryHost
     - stop
   - case: failure
     - response: 5xx or timeout

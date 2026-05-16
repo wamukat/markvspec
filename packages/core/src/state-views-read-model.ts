@@ -208,7 +208,7 @@ export function buildStateScreenReadModels(
     const viewValues = viewValuesForScenario(scenarioResult, viewName);
     const ids = stateScreenRenderedIdsFromReadModel(scenarioResult, scenarioViewport, stateName, modelValues, viewValues);
     const displayEffects = displayEffectsForScenarioCases(scenarioResult, cases);
-    addDisplayEffectTargetsToRenderedIds(ids, displayEffects);
+    addDisplayEffectTargetsToRenderedIds(ids, displayEffects, scenarioResult, viewport);
     return {
       ids,
       actionIds: relevantActionIdsForState(scenarioResult, stateName, ids.elementIds),
@@ -361,16 +361,51 @@ function displayEffectsForScenarioCases(
   });
 }
 
-function addDisplayEffectTargetsToRenderedIds(ids: RenderedIds, displayEffects: ParsedDisplayEffect[]): void {
+function addDisplayEffectTargetsToRenderedIds(
+  ids: RenderedIds,
+  displayEffects: ParsedDisplayEffect[],
+  result: MarkVSpecParseResult,
+  viewport: string | undefined
+): void {
+  const layoutById = new Map(resolveLayoutGroupsForViewport(result, { viewport }).map((group) => [group.id, group]));
   for (const display of displayEffects) {
-    if (!display.target) {
+    if (!display.element) {
       continue;
     }
 
-    if (display.target.startsWith("L-")) {
-      ids.layoutIds.add(display.target);
-    } else if (display.target.startsWith("E-")) {
-      ids.elementIds.add(display.target);
+    if (display.element.startsWith("L-")) {
+      addLayoutAndChildrenToRenderedIds(ids, display.element, layoutById, new Set());
+    } else if (display.element.startsWith("E-")) {
+      ids.elementIds.add(display.element);
+    }
+  }
+}
+
+function addLayoutAndChildrenToRenderedIds(
+  ids: RenderedIds,
+  layoutId: string,
+  layoutById: Map<string, ParsedLayout>,
+  visited: Set<string>
+): void {
+  if (visited.has(layoutId)) {
+    return;
+  }
+  visited.add(layoutId);
+  const layout = layoutById.get(layoutId);
+  ids.layoutIds.add(layoutId);
+  if (!layout) {
+    return;
+  }
+
+  for (const item of layout.items) {
+    if (item.type === "contains") {
+      if (layoutById.has(item.targetId)) {
+        addLayoutAndChildrenToRenderedIds(ids, item.targetId, layoutById, visited);
+      } else if (item.targetId.startsWith("E-")) {
+        ids.elementIds.add(item.targetId);
+      }
+    } else if (item.type === "field") {
+      ids.elementIds.add(item.elementId);
     }
   }
 }

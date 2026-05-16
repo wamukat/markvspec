@@ -18,16 +18,15 @@ partial を再帰的に解決します。循環参照は無効で、preview の�
 nesting は最大 10 階層までです。
 
 partial 文書は、自分自身を再取得して置き換える self refresh action も表現できます。
-この場合、名前付き request process の `display.content.partial` に自身の PRT ID を書き、
-「同じ partial を再取得し、現在の partial root を置き換える」ことを表します。これは child partial
-の合成ではないため、nested partial dependency にはしません。一方、layout の
-`partial:` で自分自身を参照する場合は recursive composition であり、引き続き無効です。
+ただし `display:` の payload は、作成済みの `E-*` element または `L-*` layout を
+単数の `element:` で参照します。直接の `display.content` や
+`display.content.partial` は authoring syntax としては扱いません。
 
 ## 原則
 
 次の層で書き分けます。
 
-1. `content`: 更新後に利用者が見る内容。
+1. `element`: 更新後に表示される作成済み element / layout。
 2. `target`: どの layout / element が変わるか。
 3. `request`: method / path などの実装契約ヒント。
 
@@ -62,11 +61,11 @@ screen 側の Action では、リクエストと画面上の置き換え結果�
       - state: auth-error
       - display:
         - target: L-MessageArea
-        - content: Authentication error message
+        - element: E-AuthErrorBanner
       - fragment: auth/login :: message
 ```
 
-`content` が設計上の契約です。`fragment` は設計と Thymeleaf をつなぐ実装ヒントです。
+`element` が設計上の契約です。`fragment` は設計と Thymeleaf をつなぐ実装ヒントです。
 
 screen 側で partial のプレビューを埋め込む場合は、置き換え先 layout に partial ID と
 画面状態ごとの partial 状態を指定します。これにより、同じ partial でも
@@ -139,10 +138,7 @@ title: Points Content
     - path: /points/content
   - case: success
     - Effects
-      - display:
-        - target: L-PointsContent
-        - content:
-          - partial: PRT-POINTS-CONTENT
+      - state: loading
 ```
 
 ## リクエストモデリング
@@ -188,7 +184,7 @@ response は、`A-SubmitLogin.P1.response` のような response handler Action 
       - state: auth-error
       - display:
         - target: L-MessageArea
-        - content: Authentication error message
+        - element: E-AuthErrorBanner
 ```
 
 現在画面の状態が変わる場合は `state`、別画面へ移る場合は `navigate` を使います。
@@ -197,8 +193,8 @@ scope します。
 
 ## 曖昧さを避けるルール
 
-- framework 固有の fragment 名が必要な場合は実装メモに寄せ、`display.content`
-  は template を知らない review でも読めるようにする。
+- framework 固有の fragment 名が必要な場合は実装メモに寄せ、`display.element`
+  は review 可能な作成済み UI を指すようにする。
 - `target` がない場合は、画面更新ではなく side effect として扱う。
 - 1つの result で複数 target を更新する場合は、result row には主 target を書き、
   追加の影響は result notes に記載する。

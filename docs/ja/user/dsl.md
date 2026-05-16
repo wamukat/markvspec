@@ -1196,7 +1196,7 @@ execution detail も result classification も持たない、決定的な即時�
       - state: validation-error
       - display:
         - target: L-MessageArea
-        - content: Required field message
+        - element: E-ValidationMessage
     - stop
   - case: valid
     - description: all required fields are valid
@@ -1219,7 +1219,7 @@ execution detail も result classification も持たない、決定的な即時�
       - state: auth-error
       - display:
         - target: L-MessageArea
-        - content: Login request could not be sent
+        - element: E-RequestErrorBanner
     - stop
 
 ### A2:A-HandleLoginResponse ログイン応答処理
@@ -1242,18 +1242,16 @@ execution detail も result classification も持たない、決定的な即時�
       - state: auth-error
       - display:
         - target: L-MessageArea
-        - content: Authentication error message
+        - element: E-AuthErrorBanner
     - stop
 ```
 
-主な `Effects` entry は `model:`、`view:`、`state:`、`navigate:`、`display:` です。`stop` / `continue` は case-level の制御フローなので、`Effects` の外で case の最後に書きます。`display.content` は説明文を直接書く scalar content と、partial などを指す structured content source のどちらも扱えます。
+主な `Effects` entry は `model:`、`view:`、`state:`、`navigate:`、`display:` です。`stop` / `continue` は case-level の制御フローなので、`Effects` の外で case の最後に書きます。`display.target` は表示先の既存 `L-*` layout または `E-*` element を指し、`display.element` はその表示先に挿入または表示する既存の `E-*` element または `L-*` layout を1つだけ指します。直接の `display.content` と複数形の `display.elements` はサポートしません。
 
 ```markdown
 - display:
   - target: L-SearchResultsArea
-  - content:
-    - partial: PRT-SearchResultsList
-    - state: loaded
+  - element: L-SearchResultsList
 ```
 
 `display.target` は、存在する `L-*` layout または `E-*` element を指します。`L-*` は message area、result area、help area、slot のような display container を表します。layout は、scenario や action の display effect から内容を受け取る空の display container として使う場合、`#### Items` を省略できます。`E-*` target も、既存 element の表示内容や設定を置き換える用途として有効です。
@@ -1325,18 +1323,16 @@ Thymeleaf や htmx による部分更新は、実装属性ではなく意味と�
 - Effects
   - display:
     - target: L-MessageArea
-    - content: Authentication error message
+    - element: E-AuthErrorBanner
 ```
 
-server-rendered partial を表示する場合は structured content source を使います。
+複数要素をまとめて表示する場合は layout として定義し、`element:` から参照します。
 
 ```markdown
 - Effects
   - display:
     - target: L-SearchResultsArea
-    - content:
-      - partial: PRT-SearchResultsList
-      - state: loaded
+    - element: L-SearchResultsList
 ```
 
 これは SPA rerender、MPA の returned HTML、MPA+htmx partial replacement のいずれにも解釈できます。MarkVSpec authoring DSL には `hx-*` 属性や swap mode を出しません。

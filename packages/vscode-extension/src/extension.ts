@@ -5418,6 +5418,7 @@ function renderDisplayEffect(
     : "";
   const parts = [
     target,
+    display.element ? `element ${referenceForDetailId(result, display.element)}` : "",
     display.content ? `content ${text(display.content)}` : "",
     contentSource ? `content ${contentSource}` : ""
   ].filter(Boolean);

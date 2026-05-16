@@ -112,7 +112,7 @@ handling. The click action only reaches `loading` after the request is sent.
       - state: load-error
       - display:
         - target: L-StatusArea
-        - content: Request could not be sent.
+        - element: E-ErrorBanner
 
 ### A2:A-HandleItemsResponse Handle items response
 
@@ -129,7 +129,7 @@ handling. The click action only reaches `loading` after the request is sent.
       - state: loaded
       - display:
         - target: E-ItemsTable
-        - content: Latest item rows
+        - element: E-ItemsTable
   - case: empty
     - response: HTTP 200 with no rows
     - Effects

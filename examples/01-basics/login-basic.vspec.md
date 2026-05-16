@@ -288,7 +288,7 @@ not decide whether credentials are correct.
       - state: validation-error
       - display:
         - target: L-MessageArea
-        - content: Required field message
+        - element: E-ValidationMessage
     - stop
   - case: valid
     - description: all required fields are valid
@@ -311,7 +311,7 @@ not decide whether credentials are correct.
       - state: request-error
       - display:
         - target: L-MessageArea
-        - content: Login request could not be sent
+        - element: E-RequestErrorBanner
 
 The `sent` case means only that the browser submitted the request. Authentication
 success or failure is handled by `A-HandleLoginResponse`.
@@ -335,7 +335,7 @@ success or failure is handled by `A-HandleLoginResponse`.
       - state: auth-error
       - display:
         - target: L-MessageArea
-        - content: Authentication error message
+        - element: E-AuthErrorBanner
 
 ### A3:A-ForgotPassword Open password reset
 

@@ -1474,12 +1474,60 @@ function validateDisplayEffect(
     );
   }
 
-  if (!display.content && display.contentSource.length === 0) {
+  if (!display.element) {
     diagnostics.push({
       severity: "error",
-      message: `Action ${actionId} ${context} display effect must define content.`,
+      message: `Action ${actionId} ${context} display effect must define element. Define an E-* or L-* object and reference it with element:.`,
       line: display.location.line
     });
+  } else if ((display.propertyLocations["element"]?.length ?? 0) > 1) {
+    diagnostics.push({
+      severity: "error",
+      message: `Action ${actionId} ${context} display effect must define exactly one element.`,
+      line: firstPropertyLine(display, "element") ?? display.location.line
+    });
+  } else if (!isLayoutItemId(display.element) || (!display.element.startsWith("E-") && !display.element.startsWith("L-"))) {
+    diagnostics.push({
+      severity: "error",
+      message: `Action ${actionId} ${context} display effect element must reference one E-* element or L-* layout.`,
+      line: firstPropertyLine(display, "element") ?? display.location.line
+    });
+  } else if (!layoutIds.has(display.element) && !elementIds.has(display.element)) {
+    diagnostics.push({
+      severity: "error",
+      message: `Action ${actionId} ${context} display effect references missing element or layout ${display.element}.`,
+      line: firstPropertyLine(display, "element") ?? display.location.line
+    });
+  } else if (layoutIds.has(display.element)) {
+    checkLayoutTargetViewportCoverage(
+      display.element,
+      layoutIdsByViewport,
+      diagnostics,
+      firstPropertyLine(display, "element") ?? display.location.line,
+      `Action ${actionId} ${context} display effect references layout`
+    );
+  }
+
+  if (display.content) {
+    diagnostics.push({
+      severity: "error",
+      message: `Action ${actionId} ${context} display.content is not supported. Define an E-* or L-* object and reference it with element:.`,
+      line: firstPropertyLine(display, "content") ?? display.location.line
+    });
+  }
+
+  if (display.contentSource.length > 0) {
+    for (const source of display.contentSource) {
+      const propertyName = source.key === "elements" ? "display.elements" : `display.content.${source.key}`;
+      const guidance = source.key === "elements"
+        ? "Use singular element: with one E-* element or L-* layout."
+        : "Define an E-* or L-* object and reference it with element:.";
+      diagnostics.push({
+        severity: "error",
+        message: `Action ${actionId} ${context} ${propertyName} is not supported. ${guidance}`,
+        line: source.location.line
+      });
+    }
   }
 
   for (const source of display.contentSource) {

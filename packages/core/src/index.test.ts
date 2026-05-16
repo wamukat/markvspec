@@ -4148,7 +4148,7 @@ title: Summary
 
 - E-PartialTitle
 
-## Layout
+## Layout: mobile
 
 ### L-PartialSummary Common Summary
 
@@ -10628,6 +10628,10 @@ title: Process Granularity
 
 - label: Open
 
+### E-OpenedMessage Text
+
+- sample: Opened message
+
 ## Actions
 
 ### A-Open Open
@@ -10640,7 +10644,7 @@ title: Process Granularity
   - state: opened
   - display:
     - target: L-Message
-    - content: Opened message
+    - element: E-OpenedMessage
 
 ### A-Invalid Invalid
 
@@ -10677,7 +10681,7 @@ title: Process Granularity
 
   assert.equal(validStep?.to, "opened");
   assert.equal(validStep?.display?.target, "L-Message");
-  assert.equal(validStep?.display?.content, "Opened message");
+  assert.equal(validStep?.display?.element, "E-OpenedMessage");
   assert.deepEqual(result.actions.find((action) => action.id === "A-Open")?.transitions.map((transition) => [transition.from, transition.to]), [["idle", "opened"]]);
   assert(!messages.some((message) => message.includes("unsupported Effects entry: display")));
   assert(messages.includes("Action A-Invalid process step P1 Mixed request and direct effect mixes an execution detail with direct immediate effects. Move effects under a case or split the Process."));
@@ -10693,7 +10697,6 @@ type: screen
 title: Action Neutral
 references:
   partials:
-    PRT-SearchResultsList: ./search-results.partial.vspec.md
 ---
 # SCR-ACTION-NEUTRAL Action Neutral
 
@@ -10723,12 +10726,32 @@ references:
 
 - stack
 
+### L-SearchResultsList Search results list
+
+- stack
+
+#### Items
+
+- E-SearchResultRows
+
 ## Elements
 
 ### E-NextPageButton Button
 
 - label: Next
 - value: 2
+
+### E-SearchResultRows Table
+
+- label: Search results
+
+### E-LoadingResults Banner
+
+- sample: Loading results.
+
+### E-NoResults Banner
+
+- sample: No results
 
 ## Actions
 
@@ -10752,9 +10775,7 @@ references:
       - state: loading
       - display:
         - target: L-SearchResultsArea
-        - content:
-          - partial: PRT-SearchResultsList
-          - state: loading
+        - element: E-LoadingResults
     - continue
 - Process P2: Handle search results response
   - receive:
@@ -10766,16 +10787,14 @@ references:
       - state: loaded
       - display:
         - target: L-SearchResultsArea
-        - content:
-          - partial: PRT-SearchResultsList
-          - state: loaded
+        - element: L-SearchResultsList
   - case: empty
     - response: 200 empty result partial
     - Effects
       - state: empty
       - display:
         - target: L-MessageArea
-        - content: No results
+        - element: E-NoResults
 
 ## Preview Scenarios
 
@@ -10823,16 +10842,13 @@ references:
     ["request.params.page", "E-NextPageButton.value"]
   ]);
   assert.equal(requestStep?.outcomes[0]?.display?.target, "L-SearchResultsArea");
-  assert.deepEqual(requestStep?.outcomes[0]?.display?.contentSource.map((detail) => [detail.key, detail.value]), [
-    ["partial", "PRT-SearchResultsList"],
-    ["state", "loading"]
-  ]);
+  assert.equal(requestStep?.outcomes[0]?.display?.element, "E-LoadingResults");
   assert.equal(responseStep?.marker, "P2");
   assert.deepEqual(responseStep?.receives.map((detail) => [detail.key, detail.value]), [
     ["response", "A-NextSearchPage.P1.response"],
     ["validation", "V-SearchResult.result"]
   ]);
-  assert.equal(responseStep?.outcomes.find((outcome) => outcome.result === "empty")?.display?.content, "No results");
+  assert.equal(responseStep?.outcomes.find((outcome) => outcome.result === "empty")?.display?.element, "E-NoResults");
   assert.deepEqual(result.previewScenarios[0]?.cases.map((caseRef) => [caseRef.actionId, caseRef.processMarker, caseRef.caseName]), [
     ["A-NextSearchPage", "P2", "success"]
   ]);
@@ -10848,15 +10864,19 @@ references:
   const loadedScenario = models.find((model) => model.title === "next-page-loaded");
   const loadingScenario = models.find((model) => model.title === "next-page-loading");
   const emptyScenario = models.find((model) => model.title === "next-page-empty");
-  assert.deepEqual(loadedScenario?.displayEffects.map((display) => [display.target, display.contentSource.map((detail) => [detail.key, detail.value])]), [
-    ["L-SearchResultsArea", [["partial", "PRT-SearchResultsList"], ["state", "loaded"]]]
+  assert.deepEqual(loadedScenario?.displayEffects.map((display) => [display.target, display.element]), [
+    ["L-SearchResultsArea", "L-SearchResultsList"]
   ]);
-  assert.deepEqual(loadingScenario?.displayEffects.map((display) => [display.target, display.contentSource.map((detail) => [detail.key, detail.value])]), [
-    ["L-SearchResultsArea", [["partial", "PRT-SearchResultsList"], ["state", "loading"]]]
+  assert.deepEqual(loadingScenario?.displayEffects.map((display) => [display.target, display.element]), [
+    ["L-SearchResultsArea", "E-LoadingResults"]
   ]);
-  assert.deepEqual(emptyScenario?.displayEffects.map((display) => [display.target, display.content]), [
-    ["L-MessageArea", "No results"]
+  assert.deepEqual(emptyScenario?.displayEffects.map((display) => [display.target, display.element]), [
+    ["L-MessageArea", "E-NoResults"]
   ]);
+  assert(loadedScenario?.renderedIds.layoutIds.has("L-SearchResultsList"));
+  assert(loadedScenario?.renderedIds.elementIds.has("E-SearchResultRows"));
+  assert(loadingScenario?.renderedIds.elementIds.has("E-LoadingResults"));
+  assert(emptyScenario?.renderedIds.elementIds.has("E-NoResults"));
 });
 
 test("preserves custom process details with nested params", () => {
@@ -10925,11 +10945,21 @@ title: Action Neutral Diagnostics
 - idle*
 - loaded
 
+## Layout
+
+### L-Target Target
+
+- stack
+
 ## Elements
 
 ### E-Button Button
 
 - label: Run
+
+### E-Other Text
+
+- sample: Other
 
 ## Actions
 
@@ -10945,6 +10975,10 @@ title: Action Neutral Diagnostics
   - case: done
     - Effects
       - state: loaded
+      - display:
+        - target: L-Target
+        - element: E-Button
+        - element: E-Other
 - Process P1: Duplicate marker
   - receive:
     - response: A-Run.P9.response
@@ -10953,6 +10987,8 @@ title: Action Neutral Diagnostics
     - Effects
       - display:
         - target: L-Missing
+        - element: E-Button E-Other
+        - elements: E-Button, E-Other
         - content:
           - partial: PRT-Missing
 
@@ -10986,7 +11022,11 @@ title: Action Neutral Diagnostics
   assert(messages.includes("Action A-Run has duplicate process marker P1."));
   assert(messages.includes("Action A-Run process step P1 Duplicate marker references missing process marker P9."));
   assert(messages.includes("Action A-Other trigger A-Run.response is ambiguous. Use A-ActionId.P-marker.response."));
+  assert(messages.includes("Action A-Run process step P1 Missing result case done display effect must define exactly one element."));
   assert(messages.includes("Action A-Run process step P1 Duplicate marker case done display effect targets missing layout or element L-Missing."));
+  assert(messages.includes("Action A-Run process step P1 Duplicate marker case done display effect element must reference one E-* element or L-* layout."));
+  assert(messages.includes("Action A-Run process step P1 Duplicate marker case done display.elements is not supported. Use singular element: with one E-* element or L-* layout."));
+  assert(messages.includes("Action A-Run process step P1 Duplicate marker case done display.content.partial is not supported. Define an E-* or L-* object and reference it with element:."));
   assert(messages.includes("Partial reference PRT-Missing is not defined in Front Matter references.partials."));
   assert(messages.includes("Preview Scenario loaded references missing process marker P2 on action A-Run."));
 });

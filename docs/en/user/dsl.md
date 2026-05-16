@@ -1425,7 +1425,7 @@ screen does, not the exact htmx attributes.
       - state: validation-error
       - display:
         - target: L-EmailValidation
-        - content: Email is required.
+        - element: E-EmailRequiredMessage
 ```
 
 Mapping to htmx/Thymeleaf is implementation-facing:
@@ -1433,7 +1433,7 @@ Mapping to htmx/Thymeleaf is implementation-facing:
 - `Triggered` maps to the event that starts the interaction, such as `click` or `blur`.
 - `request:` maps to request method and path.
 - `target` maps to the layout or element that will be replaced.
-- `display.content` maps to the semantic content or partial source shown in that target.
+- `element` maps to the existing `E-*` element or `L-*` layout shown in that target.
 
 Generated design documents should list these as partial update flows so that
 reviewers can see trigger, request, target, mode, fragment/content, and outcome
@@ -1469,7 +1469,7 @@ effects that mention `${model.value}`.
     - Effects
       - display:
         - target: L-NoticeBody
-        - content: Stored notice body
+        - element: E-NoticeBody
 ```
 
 Element variants describe visual emphasis or component style without naming CSS
@@ -1624,7 +1624,7 @@ result-specific effects under that case's `Effects` block.
       - state: validation-error
       - display:
         - target: L-MessageArea
-        - content: Required field message
+        - element: E-ValidationMessage
     - stop
   - case: valid
     - description: all required fields are valid
@@ -1647,7 +1647,7 @@ result-specific effects under that case's `Effects` block.
       - state: auth-error
       - display:
         - target: L-MessageArea
-        - content: Login request could not be sent
+        - element: E-RequestErrorBanner
     - stop
 
 ### A2:A-AuthResponse Handle auth response
@@ -1670,7 +1670,7 @@ result-specific effects under that case's `Effects` block.
       - state: auth-error
       - display:
         - target: L-MessageArea
-        - content: Authentication error message
+        - element: E-AuthErrorBanner
     - stop
 ```
 
@@ -1711,31 +1711,27 @@ Preferred action groups and effects:
       - navigate: <screen-id-or-route>
       - display:
         - target: <layout-id-or-element-id>
-        - content: <description>
-      - display:
-        - target: <layout-id-or-element-id>
-        - content:
-          - partial: <partial-id>
-          - state: <partial-state>
+        - element: <element-id-or-layout-id>
     - stop | continue
 ```
 
-`display.content` may be scalar prose or a structured content source. Partial
-content sources use `PRT-*` document references declared in Front Matter:
+`display.target` points to the existing `L-*` layout or `E-*` element that
+receives the display result. `display.element` is singular and points to one
+existing `E-*` element or `L-*` layout to insert or show in that target.
+Define reusable UI as an element or layout first; direct `display.content` and
+`display.elements` are not supported.
 
 ```markdown
 - display:
   - target: L-SearchResultsArea
-  - content:
-    - partial: PRT-SearchResultsList
-    - state: loaded
+  - element: L-SearchResultsList
 ```
 
-`display.target` points to an existing `L-*` layout or `E-*` element. `L-*`
-targets are display containers such as message areas, result areas, help areas,
-or slots. A layout may omit `#### Items` when it is an empty display container
-that receives content from a scenario or action display effect. `E-*` targets
-remain valid for replacing or updating an existing element-level presentation.
+`L-*` targets are display containers such as message areas, result areas, help
+areas, or slots. A layout may omit `#### Items` when it is an empty display
+container that receives content from a scenario or action display effect.
+`E-*` targets remain valid for replacing or updating an existing element-level
+presentation.
 
 Under a process step `case: <name>` branch, add `stop` or `continue` directly
 under the case as the final entry, after any `Effects` block. `stop` ends the
@@ -1861,18 +1857,17 @@ attributes:
 - Effects
   - display:
     - target: L-MessageArea
-    - content: Authentication error message
+    - element: E-AuthErrorBanner
 ```
 
-For a server-rendered partial, use a structured content source:
+For a reusable multi-element result, define a layout and reference it from
+`element:`:
 
 ```markdown
 - Effects
   - display:
     - target: L-SearchResultsArea
-    - content:
-      - partial: PRT-SearchResultsList
-      - state: loaded
+    - element: L-SearchResultsList
 ```
 
 This is intentionally compatible with SPA rerendering, MPA returned HTML, and
@@ -2224,9 +2219,9 @@ The validator should check:
 - Conditions reference existing IDs when they contain ID-like tokens.
 - Transitions to local states reference existing states.
 - Transitions to `SCR-*` are allowed as external screen references.
-- `PRT-*` partials used by layout partial hosts or `display.content.partial`
-  are defined in Front Matter `references.partials`, including from
-  `type: partial` documents that compose child partials.
+- `PRT-*` partials used by layout partial hosts are defined in Front Matter
+  `references.partials`, including from `type: partial` documents that compose
+  child partials.
 - Circular partial references and partial nesting deeper than 10 levels are
   invalid.
 - Project-level validation can also load referenced template/partial files and
@@ -2258,7 +2253,8 @@ Errors:
 - Action trigger references a missing element.
 - Element `action` references a missing action.
 - Partial IDs used from a screen/template but missing from `references.partials`.
-- Partial updates written without the current `display.content.partial` structure.
+- Display effects written with removed `display.content` or `display.elements`
+  payloads.
 
 Warnings:
 

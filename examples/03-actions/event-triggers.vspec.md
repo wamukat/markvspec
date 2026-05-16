@@ -248,7 +248,7 @@ used around a form-like preferences screen.
     - Effects
       - display:
         - target: L-ValidationArea
-        - content: Enter a valid notification email before saving.
+        - element: E-ValidationBanner
     - stop
   - case: valid
     - description: email is valid
@@ -267,7 +267,7 @@ used around a form-like preferences screen.
     - Effects
       - display:
         - target: L-HelpArea
-        - content: Delivery cadence controls how often notification digests are sent.
+        - element: E-HelpText
     - stop
 
 ### A5:A-RequestDiscardDialog Request discard dialog
@@ -282,7 +282,7 @@ used around a form-like preferences screen.
     - Effects
       - display:
         - target: L-DialogArea
-        - content: Discard changes confirmation dialog
+        - element: E-ConfirmDialog
     - stop
 
 ### A6:A-CloseDiscardDialog Close discard dialog
@@ -292,9 +292,7 @@ used around a form-like preferences screen.
 - From
   - idle
 - Process P1: Apply immediate effect
-  - display:
-    - target: L-DialogArea
-    - content: Dialog is dismissed
+  - state: idle
 
 ### A7:A-SubmitPreferences Submit preferences
 
@@ -311,7 +309,7 @@ used around a form-like preferences screen.
     - Effects
       - display:
         - target: E-ValidationBanner
-        - content: Enter a valid notification email before saving.
+        - element: E-ValidationBanner
     - stop
   - case: valid
     - description: form fields are valid

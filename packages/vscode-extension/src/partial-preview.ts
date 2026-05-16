@@ -4,6 +4,7 @@ import {
   allResolvedLayoutGroups,
   isProjectReferenceAllowed,
   renderMarkVSpecHtml,
+  renderMarkVSpecHtmlFragment,
   resolveProjectPath
 } from "@markvspec/core";
 import type {
@@ -49,6 +50,7 @@ interface PartialTarget {
   stateByScreenState: Map<string, string>;
   defaultState?: string;
   content?: string;
+  elementId?: string;
   line?: number;
 }
 
@@ -375,6 +377,23 @@ function embedPartialPreviewsForResult(
     ...partialTargetsFromDisplayEffects(displayEffects)
   ]) {
     const { targetId, partialId } = target;
+    if (target.elementId) {
+      const renderKey = target.elementId.startsWith("L-")
+        ? `layout:${viewport ?? ""}:${target.elementId}`
+        : `element:${target.elementId}`;
+      const fragment = renderMarkVSpecHtmlFragment(result, renderKey, {
+        includeConditionalContent: false,
+        viewport,
+        state: screenState,
+        messages: messagesForResult(result),
+        markerVisibility: { layout: true, element: true, action: true },
+        includeStyles: false
+      });
+      if (fragment) {
+        output = replaceTargetContents(output, targetId, fragment.html, undefined, undefined);
+      }
+      continue;
+    }
     if (target.content && !partialId) {
       output = replaceTargetContents(output, targetId, `<div class="mm-display-override">${escapeHtml(target.content)}</div>`, undefined, undefined);
       continue;
@@ -486,6 +505,7 @@ function partialTargetsFromDisplayEffects(displayEffects: MarkVSpecDisplayEffect
         stateByScreenState: new Map(),
         defaultState: partialState,
         content: partialId ? undefined : display.content,
+        elementId: display.element,
         line: firstPropertyLine(display, "target") ?? display.location.line
       };
     });

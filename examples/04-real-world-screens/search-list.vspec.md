@@ -181,7 +181,7 @@ and pagination actions.
       - state: load-error
       - display:
         - target: L-StatusArea
-        - content: Search request failure banner
+        - element: E-LoadErrorBanner
 
 ### A2:A-HandleSearchUsersResponse Handle search users response
 
@@ -198,21 +198,21 @@ and pagination actions.
       - state: idle
       - display:
         - target: L-Results
-        - content: Updated result rows
+        - element: E-UsersTable
   - case: empty
     - response: 200 with no rows
     - Effects
       - state: empty
       - display:
         - target: L-Results
-        - content: Empty result message
+        - element: E-EmptyText
   - case: failure
     - response: 5xx or timeout
     - Effects
       - state: load-error
       - display:
         - target: L-StatusArea
-        - content: Load failure banner
+        - element: E-LoadErrorBanner
 
 ### A3:A-NextPage Next page
 
@@ -275,21 +275,21 @@ and pagination actions.
       - state: idle
       - display:
         - target: L-Results
-        - content: Next page result rows
+        - element: E-UsersTable
   - case: empty
     - response: 200 with no rows
     - Effects
       - state: empty
       - display:
         - target: L-Results
-        - content: Empty result message
+        - element: E-EmptyText
   - case: failure
     - response: 5xx or timeout
     - Effects
       - state: load-error
       - display:
         - target: L-StatusArea
-        - content: Load failure banner
+        - element: E-LoadErrorBanner
 
 ### A6:A-HandlePreviousPageResponse Handle previous page response
 
@@ -306,21 +306,21 @@ and pagination actions.
       - state: idle
       - display:
         - target: L-Results
-        - content: Previous page result rows
+        - element: E-UsersTable
   - case: empty
     - response: 200 with no rows
     - Effects
       - state: empty
       - display:
         - target: L-Results
-        - content: Empty result message
+        - element: E-EmptyText
   - case: failure
     - response: 5xx or timeout
     - Effects
       - state: load-error
       - display:
         - target: L-StatusArea
-        - content: Load failure banner
+        - element: E-LoadErrorBanner
 
 ## Model Samples
 

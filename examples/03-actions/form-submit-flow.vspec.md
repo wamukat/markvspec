@@ -120,7 +120,7 @@ server, and navigates only after a successful response.
       - state: validation-error
       - display:
         - target: L-MessageArea
-        - content: Validation message
+        - element: E-ValidationMessage
     - stop
   - case: valid
     - description: all required fields are valid

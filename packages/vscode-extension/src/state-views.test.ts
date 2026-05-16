@@ -190,6 +190,18 @@ viewport: mobile
 
 - sample: Editing normally.
 
+### E-HelpText Text
+
+- sample: Delivery cadence help text.
+
+### E-StatusDraft Banner
+
+- sample: Status replaced by scenario.
+
+### E-StatusFinal Banner
+
+- sample: Status replaced by later scenario case.
+
 ### E-ShowButton Button
 
 - label: Show
@@ -207,7 +219,7 @@ viewport: mobile
     - Effects
       - display:
         - target: L-Message
-        - content: Delivery cadence help text.
+        - element: E-HelpText
 
 ### A-ReplaceStatus Replace status
 
@@ -220,7 +232,7 @@ viewport: mobile
     - Effects
       - display:
         - target: E-Status
-        - content: Status replaced by scenario.
+        - element: E-StatusDraft
 
 ### A-ReplaceStatusAgain Replace status again
 
@@ -233,7 +245,7 @@ viewport: mobile
     - Effects
       - display:
         - target: E-Status
-        - content: Status replaced by later scenario case.
+        - element: E-StatusFinal
 
 ## Preview Scenarios
 
@@ -260,8 +272,8 @@ viewport: mobile
   const statusWireframe = stateWireframeSection(statusSection);
 
   assert.deepEqual(result.diagnostics, []);
-  assert(helpModel?.renderedIds.layoutIds.has("L-Message"));
-  assert(statusModel?.renderedIds.elementIds.has("E-Status"));
+  assert(helpModel?.renderedIds.elementIds.has("E-HelpText"));
+  assert(statusModel?.renderedIds.elementIds.has("E-StatusFinal"));
   assert.match(helpSection, /<span class="state-badge">editing-help<\/span>/);
   assert.match(helpSection, /data-state-view-title="editing \/ editing-help"/);
   assert.match(helpSection, /Delivery cadence help text\./);

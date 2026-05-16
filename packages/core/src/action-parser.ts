@@ -716,6 +716,8 @@ function applyDisplayEffectToStep(step: MarkVSpecProcessStep, key: string, value
   const display = ensureStepDisplayEffect(step, location);
   if (key === "target") {
     display.target = value;
+  } else if (key === "element") {
+    display.element = value;
   } else if (key === "content") {
     display.content = value;
   } else {
@@ -959,6 +961,8 @@ function applyDisplayEffect(outcome: MarkVSpecActionOutcome, key: string, value:
   const display = ensureDisplayEffect(outcome, location);
   if (key === "target") {
     display.target = value;
+  } else if (key === "element") {
+    display.element = value;
   } else if (key === "content") {
     display.content = value;
   } else {

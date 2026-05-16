@@ -391,6 +391,7 @@ export interface MarkVSpecProcessStep {
 
 export interface MarkVSpecDisplayEffect {
   target?: string;
+  element?: string;
   content?: string;
   contentSource: MarkVSpecProcessStepDetail[];
   location: SourceLocation;

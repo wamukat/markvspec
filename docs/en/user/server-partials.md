@@ -14,18 +14,16 @@ partials through its own `references.partials`, and preview resolves nested
 partials recursively. Circular partial references are invalid, and nesting is
 limited to 10 levels to keep preview rendering bounded.
 
-A partial may also describe a self refresh action. In that case, a named
-request process may use `display.content.partial` with its own PRT ID to mean
-"request this partial again and replace the current partial root." This is
-request/display behavior, not child partial composition, so it does not create a
-nested partial dependency. A layout-level `partial:` reference to the same
-partial is still recursive composition and remains invalid.
+Partial refresh actions should still describe the request and result state, but
+`display:` payloads point to authored `E-*` elements or `L-*` layouts with
+singular `element:`. Direct `display.content` and `display.content.partial`
+payloads are no longer authoring syntax.
 
 ## Principle
 
 Use these layers:
 
-1. `content`: what the user sees after the update.
+1. `element`: which authored element or layout appears after the update.
 2. `target`: which layout or element changes.
 3. `request`: implementation contract hints such as method and path.
 
@@ -53,10 +51,10 @@ replacement:
       - state: auth-error
       - display:
         - target: L-MessageArea
-        - content: Authentication error message
+        - element: E-AuthErrorBanner
 ```
 
-`content` is the design contract. Framework-specific fragments are adapter
+`element` is the design contract. Framework-specific fragments are adapter
 details rather than author-facing Action DSL.
 
 When the screen embeds a partial preview, put the partial ID and screen-state to
@@ -132,10 +130,7 @@ title: Points Content
     - path: /points/content
   - case: success
     - Effects
-      - display:
-        - target: L-PointsContent
-        - content:
-          - partial: PRT-POINTS-CONTENT
+      - state: loading
 ```
 
 ## Request Modeling
@@ -175,7 +170,7 @@ Responses belong under `case: <name>` branches on the relevant response process:
       - state: auth-error
       - display:
         - target: L-MessageArea
-        - content: Authentication error message
+        - element: E-AuthErrorBanner
 ```
 
 Use `state` when the current screen changes state. Use `navigate` when the
@@ -185,7 +180,7 @@ but it should be scoped to the result that actually updates the page.
 ## Ambiguity Rules
 
 - If framework-specific fragment names are needed, keep them in implementation
-  notes; `display.content` should still be readable without knowing the template.
+  notes; `display.element` should still point to authored UI that reviewers can inspect.
 - If `target` is omitted, the effect is a side effect rather than a rendered
   partial update.
 - If multiple targets update for one result, document the primary target in the
