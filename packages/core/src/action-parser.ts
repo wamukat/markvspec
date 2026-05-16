@@ -437,6 +437,13 @@ function applyProcessStepBullet(
   }
 
   if ((value === undefined || value === "") && (isProcessDetailBlockLabel(normalizeBlockLabel(bullet.text)) || isCustomProcessDetailBlockStart(bullet.text) || ["input", "receive", "result"].includes(normalizeBlockLabel(bullet.text)))) {
+    if (normalizeBlockLabel(bullet.text) === "input") {
+      diagnostics.push({
+        severity: "warning",
+        message: `Action ${action.id} process step ${step.name} uses legacy input block syntax. Put execution values under request.params, server.params, or custom detail params instead.`,
+        line: bullet.location.line
+      });
+    }
     return;
   }
 

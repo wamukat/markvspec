@@ -46,14 +46,14 @@ screen 側の Action では、リクエストと画面上の置き換え結果�
 - From
   - idle
 - Process P1: ログイン送信
-  - input:
-    - email: E-EmailInput.value
-    - password: E-PasswordInput.value
-  - result:
-    - login request submission result
   - request:
     - method: POST
     - path: /login
+    - params:
+      - email: E-EmailInput.value
+      - password: E-PasswordInput.value
+  - result:
+    - login request submission result
   - case: sent
     - Effects
       - state: wait-auth
@@ -151,14 +151,14 @@ request は `Process P1: Send request` に書きます。
 
 ```markdown
 - Process P1: ログインリクエスト送信
-  - input:
-    - email: E-EmailInput.value
-    - password: E-PasswordInput.value
-  - result:
-    - login request submission result
   - request:
     - method: POST
     - path: /login
+    - params:
+      - email: E-EmailInput.value
+      - password: E-PasswordInput.value
+  - result:
+    - login request submission result
 ```
 
 これは implementation-aware ですが、htmx syntax を設計書へ直接持ち込みません。

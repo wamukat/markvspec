@@ -26,6 +26,7 @@ import type {
   MarkVSpecLayoutGroup,
   MarkVSpecParseResult,
   MarkVSpecProcessStep,
+  MarkVSpecProcessStepDetail,
   MarkVSpecViewContextDefinition,
   SourceLocation
 } from "./types.js";
@@ -460,14 +461,6 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
         seenProcessMarkers.add(step.marker);
       }
 
-      if (step.inputs.length > 0 && step.results.length === 0) {
-        diagnostics.push({
-          severity: "error",
-          message: `Action ${action.id} process step ${processStepLabel(step)} has input but no result contract.`,
-          line: firstPropertyLine(step, "input") ?? step.location.line
-        });
-      }
-
       if (isHttpRequestStep(step.name) && !processStepDetail(step, "request")) {
         diagnostics.push({
           severity: "warning",
@@ -475,17 +468,15 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
           line: step.location.line
         });
       }
-      if (isHttpRequestStep(step.name)) {
-        for (const detail of step.details.filter((detail) => detail.key !== "request")) {
+      for (const detail of step.details.filter((detail) => isCanonicalProcessParamDetail(step, detail))) {
           const sourceId = requestParamSourceId(detail.value);
           if (sourceId && isLocalId(sourceId) && !layoutIds.has(sourceId) && !elementIds.has(sourceId)) {
             diagnostics.push({
               severity: "error",
-              message: `Action ${action.id} request parameter ${detail.key} references missing source ${sourceId}.`,
+              message: `Action ${action.id} process step ${processStepLabel(step)} parameter ${detail.key} references missing source ${sourceId}.`,
               line: detail.location.line
             });
           }
-        }
       }
 
       if (isPartialRequestStep(step.name)) {
@@ -1245,6 +1236,13 @@ function validateProcessDataReferences(
       }
     }
   }
+}
+
+function isCanonicalProcessParamDetail(step: MarkVSpecProcessStep, detail: MarkVSpecProcessStepDetail): boolean {
+  if (isHttpRequestStep(step.name) && detail.key !== "request") {
+    return true;
+  }
+  return detail.key.includes(".params.");
 }
 
 function validateDisplayEffect(

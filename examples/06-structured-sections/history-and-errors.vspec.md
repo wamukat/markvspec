@@ -134,9 +134,6 @@ referenced from the same flow.
     - Effects
       - continue
 - Process P2: Call server service
-  - input:
-    - displayName: E-DisplayNameInput.value
-    - email: E-EmailInput.value
   - server:
     - AccountSettingsService.save()
     - params:

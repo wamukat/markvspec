@@ -96,11 +96,11 @@ route: /users/:userId
 
 ```markdown
 - Process P1: ユーザー取得
-  - input:
-    - userId: ${route.userId}
   - request:
     - method: GET
     - path: /users/:userId
+    - params:
+      - userId: ${route.userId}
   - result:
     - user request result
 ```
@@ -223,12 +223,12 @@ entity ごとの説明です。
 - From
   - idle
 - Process P1: Submit login request
-  - input:
-    - email: E-EmailInput.value
-    - password: E-PasswordInput.value
   - request:
     - method: POST
     - path: /login
+    - params:
+      - email: E-EmailInput.value
+      - password: E-PasswordInput.value
   - result:
     - login request submission result
   - case: sent
@@ -1151,11 +1151,11 @@ Process は Action 内で一意な marker と、人間が読む process name を
 
 `P1`、`P2` のような marker は Preview Scenarios や後続 Process から参照するための安定 ID です。process name は任意の説明文であり、固定 enum ではありません。`request:`、`server:`、`response:`、`validation:` は既知の process detail であり、Process type ではありません。プロジェクト固有の実行メモを残したい場合は、`sync:` のような custom process detail block も使えます。MarkVSpec は custom detail の構造を保持しますが、generator が明示的に対応しない限り portable な意味は割り当てません。
 
-`input:` は要素や model から能動的に読む値です。`input:` を持つ Process は `result:` を必ず書きます。`receive:` は外部 event、validation result、または前段 Process の結果を受け取って分類する場合に使います。Validation contract は `V-LoginForm.result` のような opaque source として受け取ります。
+Process が request、server call、project-specific execution detail へ渡す値は、`request.params`、`server.params`、または `<custom detail>.params` を一次情報として書きます。`receive:` は外部 event、validation result、または前段 Process の結果を受け取って分類する場合に使います。Validation contract は `V-LoginForm.result` のような opaque source として受け取ります。
 
-Process が編集可能な画面要素に現在表示されている値を読む場合は、`${model.email}` ではなく `E-EmailInput.value` のような element value source を優先します。`${model.*}` を process input や execution params で使うのは、現在ページ番号や計算済みの次ページ番号のように、要素値ではなく派生済みまたは保持済みの model state を意図的に読む場合に限ります。
+Process が編集可能な画面要素に現在表示されている値を読む場合は、`${model.email}` ではなく `E-EmailInput.value` のような element value source を優先します。`${model.*}` を execution params で使うのは、現在ページ番号や計算済みの次ページ番号のように、要素値ではなく派生済みまたは保持済みの model state を意図的に読む場合に限ります。
 
-`input:` を持つ Process は、読み順として `input -> request/server/custom detail -> result -> case` の順に書くことを推奨します。`result:` が `request:` や `server:` の後にあっても、`input:` を持つ Process では引き続き必須です。
+実行 Process は、`request/server/custom detail -> result -> case` の順に書きます。外部データを受け取る Process は `receive -> case` として書きます。`prepare:` は現時点の DSL には導入しません。将来、送信前の意味的な導出を表す必要が出た場合でも、params と同じ値を重複して書く場所にはしません。
 
 ```markdown
 ### A1:A-SubmitLogin ログイン送信
@@ -1181,9 +1181,6 @@ Process が編集可能な画面要素に現在表示されている値を読む
     - Effects
       - continue
 - Process P2: Submit login request
-  - input:
-    - email: E-EmailInput.value
-    - password: E-PasswordInput.value
   - request:
     - method: POST
     - path: /login
@@ -1323,14 +1320,15 @@ server-rendered partial を表示する場合は structured content source を�
 
 モデル更新そのものは Action の中に書きます。生成される設計書ビューでは `${model.value}` 形式の式への更新を横断的に集約し、「モデル更新処理」として表示します。集約対象は、`Effects` 配下の明示的な `${model.value}` 形式の代入です。
 
-`input:` を持つ Process には `result:` が必要です。
+`input:` は legacy syntax です。実行に渡す値は `request.params`、`server.params`、または `<custom detail>.params` に書きます。
 
 ```markdown
 - Process P1: Submit login request
-  - input:
-    - email: E-EmailInput.value
-  - result:
-    - login request submission result
+  - request:
+    - method: POST
+    - path: /login
+    - params:
+      - email: E-EmailInput.value
 ```
 
 ## Validations

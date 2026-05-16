@@ -127,9 +127,6 @@ server, and navigates only after a successful response.
     - Effects
       - continue
 - Process P2: Submit subscription
-  - input:
-    - email: E-EmailInput.value
-    - plan: E-PlanSelect.value
   - sync:
     - SubscriptionService.create()
     - params:

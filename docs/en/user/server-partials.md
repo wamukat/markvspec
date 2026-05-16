@@ -142,14 +142,14 @@ Requests belong under `Process P1: Send request`:
 
 ```markdown
 - Process P1: Send login request
-  - input:
-    - email: E-EmailInput.value
-    - password: E-PasswordInput.value
-  - result:
-    - login request submission result
   - request:
     - method: POST
     - path: /login
+    - params:
+      - email: E-EmailInput.value
+      - password: E-PasswordInput.value
+  - result:
+    - login request submission result
 ```
 
 This is implementation-aware without forcing htmx syntax into the design file.

@@ -5104,7 +5104,6 @@ function renderProcessStepItem(
   const details = [
     ...step.when.map((condition) => `when ${detailedReferences ? renderDetailCondition(result, condition) : renderCondition(result, condition)}`),
     ...step.skipWhen.map((condition) => `skip when ${detailedReferences ? renderDetailCondition(result, condition) : renderCondition(result, condition)}`),
-    renderProcessDataDetails(result, "input", step.inputs, detailedReferences),
     renderProcessDataDetails(result, "receive", step.receives, detailedReferences),
     ...renderProcessStepDetails(result, step, detailedReferences),
     renderProcessDataDetails(result, "result", step.results, detailedReferences),

@@ -97,8 +97,6 @@ handling. The click action only reaches `loading` after the request is sent.
   - empty
   - load-error
 - Process P1: Send request
-  - input:
-    - page: ${model.page}
   - request:
     - method: GET
     - path: /items

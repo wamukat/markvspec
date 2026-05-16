@@ -225,9 +225,6 @@ Validate the input and move to auth wait only when the request can be sent.
 - From
   - idle
 - Process P1: Submit login
-  - input:
-    - email: E-EmailInput.value
-    - password: E-PasswordInput.value
   - request:
     - method: POST
     - path: /login
@@ -1555,21 +1552,23 @@ project-specific execution notes. MarkVSpec preserves custom detail structure
 but does not assign portable semantics to it unless a generator explicitly opts
 in.
 
-Use `input:` when a process actively reads element or model values. A process
-with `input:` must declare `result:`. Use `receive:` when a process classifies an
-external event, validation result, or prior process result. Validation contracts
-are received as opaque sources such as `V-LoginForm.result`.
+Use `request.params`, `server.params`, or `<custom detail>.params` as the
+canonical source for values passed to a request, server call, or project-specific
+execution detail. Use `receive:` when a process classifies an external event,
+validation result, or prior process result. Validation contracts are received as
+opaque sources such as `V-LoginForm.result`.
 
 Prefer element value sources such as `E-EmailInput.value` when a process reads a
-value currently shown in an editable screen element. Use `${model.*}` in process
-inputs or execution params only when the process intentionally reads derived or
-stored model state that is not directly represented by an element value, such as
-the current page number or a calculated next page.
+value currently shown in an editable screen element. Use `${model.*}` in
+execution params only when the process intentionally reads derived or stored
+model state that is not directly represented by an element value, such as the
+current page number or a calculated next page.
 
-For input-based processes, write the process in reading order:
-`input -> request/server/custom detail -> result -> case`. The `result:` remains
-required for `input:` processes even when it appears after `request:` or
-`server:`.
+For execution processes, write the process in this order:
+`request/server/custom detail -> result -> case`. For processes that receive
+external data, write `receive -> case`. `prepare:` is not part of the current
+DSL; if a future process needs to describe meaningful pre-execution derivation,
+it should not duplicate values already captured by params.
 
 ```markdown
 ## Actions
@@ -1597,9 +1596,6 @@ required for `input:` processes even when it appears after `request:` or
     - Effects
       - continue
 - Process P2: Submit login request
-  - input:
-    - email: E-EmailInput.value
-    - password: E-PasswordInput.value
   - request:
     - method: POST
     - path: /login
@@ -1654,8 +1650,6 @@ Preferred action groups and effects:
 - From
   - <state>
 - Process <marker>: <process name>
-  - input:
-    - <name>: <source>
   - receive:
     - <name>: <source>
   - request:
@@ -1836,24 +1830,16 @@ This is intentionally compatible with SPA rerendering, MPA returned HTML, and
 MPA+htmx partial replacement. MarkVSpec does not expose htmx attributes or swap
 modes in the authoring DSL.
 
-Structural lint expects any process with `input:` to include `result:`. The
-following is incomplete because it reads values without declaring what the
-process produces:
+`input:` is legacy syntax. Put execution values under `request.params`,
+`server.params`, or `<custom detail>.params` instead:
 
 ```markdown
 - Process P1: Submit login request
-  - input:
-    - email: E-EmailInput.value
-```
-
-Write the result contract explicitly:
-
-```markdown
-- Process P1: Submit login request
-  - input:
-    - email: E-EmailInput.value
-  - result:
-    - login request submission result
+  - request:
+    - method: POST
+    - path: /login
+    - params:
+      - email: E-EmailInput.value
 ```
 
 Generated design documents should list screen transitions separately from

@@ -4689,11 +4689,7 @@ test("parses the login screen example", () => {
   assert.equal(action?.properties["marker"], "A1");
   assert.equal(action?.triggeredBy, "E-SignInButton.click");
   assert.deepEqual(action?.trigger, { elementId: "E-SignInButton", event: "click" });
-  assert.deepEqual(action?.processSteps.find((step) => step.marker === "P2")?.inputs.map((input) => [input.key, input.value]), [
-    ["email", "E-EmailInput.value"],
-    ["password", "E-PasswordInput.value"],
-    ["rememberMe", "E-RememberMe.value"]
-  ]);
+  assert.deepEqual(action?.processSteps.find((step) => step.marker === "P2")?.inputs, []);
   assert.deepEqual(action?.processSteps.find((step) => step.marker === "P2")?.results.map((result) => result.value), [
     "login submission request"
   ]);
@@ -6728,6 +6724,16 @@ title: Params
 - Process: HttpRequest
   - POST /login
     - email: E-Missing.value
+- Process: Submit account
+  - server:
+    - AccountService.save()
+    - params:
+      - email: E-ServerMissing.value
+- Process: SyncService
+  - sync:
+    - AccountSync.push()
+    - params:
+      - email: E-CustomMissing.value
 - Process: Immediate
   - Effects
     - state: idle
@@ -6744,8 +6750,18 @@ title: Params
       ],
       [
         "error",
-        "Action A-Submit request parameter email references missing source E-Missing.",
+        "Action A-Submit process step HttpRequest parameter email references missing source E-Missing.",
         lineNumber(source, "    - email: E-Missing.value")
+      ],
+      [
+        "error",
+        "Action A-Submit process step Submit account parameter server.params.email references missing source E-ServerMissing.",
+        lineNumber(source, "      - email: E-ServerMissing.value")
+      ],
+      [
+        "error",
+        "Action A-Submit process step SyncService parameter sync.params.email references missing source E-CustomMissing.",
+        lineNumber(source, "      - email: E-CustomMissing.value")
       ]
     ]
   );
@@ -10427,13 +10443,13 @@ references:
 - From
   - loaded
 - Process P1: Request next search page
-  - input:
-    - page: E-NextPageButton.value
   - result:
     - next search page request
   - request:
     - method: GET
     - path: /search/results
+    - params:
+      - page: E-NextPageButton.value
   - case: sent
     - result: request was sent
     - Effects
@@ -10503,11 +10519,12 @@ references:
   assert.deepEqual(result.diagnostics, []);
   assert.equal(requestStep?.marker, "P1");
   assert.equal(requestStep?.name, "Request next search page");
-  assert.deepEqual(requestStep?.inputs.map((detail) => [detail.key, detail.value]), [["page", "E-NextPageButton.value"]]);
+  assert.deepEqual(requestStep?.inputs, []);
   assert.deepEqual(requestStep?.results.map((detail) => [detail.key, detail.value]), [["result", "next search page request"]]);
   assert.deepEqual(requestStep?.details.map((detail) => [detail.key, detail.value]), [
     ["request.method", "GET"],
-    ["request.path", "/search/results"]
+    ["request.path", "/search/results"],
+    ["request.params.page", "E-NextPageButton.value"]
   ]);
   assert.equal(requestStep?.outcomes[0]?.display?.target, "L-SearchResultsArea");
   assert.deepEqual(requestStep?.outcomes[0]?.display?.contentSource.map((detail) => [detail.key, detail.value]), [
@@ -10579,8 +10596,6 @@ title: Custom Process Detail
 - From
   - idle
 - Process P1: Submit with project sync
-  - input:
-    - email: E-EmailInput.value
   - sync:
     - SubscriptionService.create()
     - params:
@@ -10670,7 +10685,7 @@ title: Action Neutral Diagnostics
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Action A-Run process step P1 Missing result has input but no result contract."));
+  assert(messages.includes("Action A-Run process step Missing result uses legacy input block syntax. Put execution values under request.params, server.params, or custom detail params instead."));
   assert(messages.includes("Action A-Run process step P1 Missing result value references missing source E-Missing."));
   assert(messages.includes("Action A-Run has duplicate process marker P1."));
   assert(messages.includes("Action A-Run process step P1 Duplicate marker references missing process marker P9."));

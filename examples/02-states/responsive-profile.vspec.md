@@ -115,8 +115,6 @@ viewport while keeping state behavior shared.
 - From
   - editing
 - Process P1: Call server service
-  - input:
-    - email: E-Email.value
   - server:
     - ProfileService.save()
     - params:
