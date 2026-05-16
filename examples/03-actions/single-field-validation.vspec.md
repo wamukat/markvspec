@@ -11,15 +11,13 @@ status: draft
 
 # SCR-SINGLE-FIELD-VALIDATION Single Field Validation
 
-This example focuses on element-level input specifications and matching
+This example focuses on element-level input specifications and the matching
 single-field validation contracts.
 
 ## States
 
 - idle*
 - validation-error
-- saving
-- saved
 
 ## Layout: desktop
 
@@ -35,18 +33,17 @@ single-field validation contracts.
 - L-Form
 - L-MessageArea
 
-### L2:L-Form Profile fields
+### L2:L-Form Validation fields
 
 - stack
 - gap: sm
-- disabled when: saving
 
 #### Items
 
 - "Username*": E-UsernameInput
 - "Email*": E-EmailInput
 - "Age": E-AgeInput
-- E-SaveButton
+- E-CheckButton
 
 ### L3:L-MessageArea Message area
 
@@ -55,7 +52,6 @@ single-field validation contracts.
 #### Items
 
 - E-ValidationMessage
-- E-SavedMessage
 
 ## Elements
 
@@ -71,7 +67,6 @@ single-field validation contracts.
 ### 3:E-UsernameInput Input*
 
 - label: Username
-- value: ${model.username}
 - placeholder: wamukat
 - input rule:
   - min length: 3
@@ -82,7 +77,6 @@ single-field validation contracts.
 
 - label: Email
 - type: email
-- value: ${model.email}
 - placeholder: user@example.com
 - input rule:
   - type: email
@@ -90,50 +84,42 @@ single-field validation contracts.
 ### 5:E-AgeInput NumberInput
 
 - label: Age
-- value: ${model.age}
 - initial value: 18
 - min: 13
 - max: 120
 - step: 1
 
-### 6:E-SaveButton Button
+### 6:E-CheckButton Button
 
-- label: Save profile
+- label: Check fields
 - variant: primary
-- action: A-SaveProfile
+- action: A-CheckFields
 
 ### 7:E-ValidationMessage Text
 
 - tone: danger
-- sample: Fix the highlighted fields before saving.
+- sample: Fix the highlighted fields.
 - visible when: validation-error
-
-### 8:E-SavedMessage Text
-
-- tone: success
-- sample: Profile saved.
-- visible when: saved
 
 ## Form Groups
 
-### F-ProfileForm Profile form
+### F-ValidationFields Validation fields
 
 - fields:
   - E-UsernameInput
   - E-EmailInput
   - E-AgeInput
-- submit: A-SaveProfile
+- submit: A-CheckFields
 
 ## Actions
 
-### A1:A-SaveProfile Save profile
+### A1:A-CheckFields Check fields
 
 - Triggered
-  - E-SaveButton.click
+  - E-CheckButton.click
 - From
   - idle
   - validation-error
-  - saved
 - Process P1: Check field validation
   - receive:
     - validation: V-UsernameRules.result
@@ -149,50 +135,8 @@ single-field validation contracts.
     - stop
   - case: valid
     - description: all single-field validation results are valid
-    - continue
-- Process P2: Save profile
-  - request:
-    - method: POST
-    - path: /profile
-    - params:
-      - username: E-UsernameInput.value
-      - email: E-EmailInput.value
-      - age: E-AgeInput.value
-  - result:
-    - profile save request
-  - case: sent
     - Effects
-      - state: saving
-  - case: send-failed
-    - Effects
-      - state: validation-error
-      - display:
-        - target: L-MessageArea
-        - element: E-ValidationMessage
-
-### A2:A-HandleSaveResponse Handle save response
-
-- Triggered
-  - A-SaveProfile.P2.response
-- From
-  - saving
-- Process P1: Handle save response
-  - receive:
-    - response: A-SaveProfile.P2.response
-  - case: success
-    - response: 200 saved
-    - Effects
-      - state: saved
-      - display:
-        - target: L-MessageArea
-        - element: E-SavedMessage
-  - case: failure
-    - response: 4xx or 5xx
-    - Effects
-      - state: validation-error
-      - display:
-        - target: L-MessageArea
-        - element: E-ValidationMessage
+      - state: idle
 
 ## Validations
 
