@@ -283,7 +283,7 @@ not decide whether credentials are correct.
   - receive:
     - validation: V-LoginForm.result
   - case: invalid
-    - result: required field missing
+    - description: required field missing
     - Effects
       - state: validation-error
       - display:
@@ -291,7 +291,7 @@ not decide whether credentials are correct.
         - content: Required field message
     - stop
   - case: valid
-    - result: all required fields are valid
+    - description: all required fields are valid
     - continue
 - Process P2: Submit login
   - request:

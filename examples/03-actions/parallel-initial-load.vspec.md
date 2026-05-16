@@ -120,12 +120,12 @@ the `Process P3: Resolve initial load` step owns the final state transition.
     - profile: A-InitialLoad.P1.result
     - points: A-InitialLoad.P2.result
   - case: ready
-    - result: profile and points loaded
+    - description: profile and points loaded
     - Effects
       - state: idle
     - stop
   - case: failed
-    - result: one or more calls failed
+    - description: one or more calls failed
     - Effects
       - state: initialize-error
     - stop

@@ -6312,7 +6312,7 @@ title: Legacy Action DSL
   assert(messages.includes("Action A-Legacy has unsupported top-level entry: Process. Use Triggered, From, Process: <type>, or Otherwise."));
   assert(messages.includes("Action A-Legacy has unsupported top-level entry: Resolve: load-group. Use Triggered, From, Process: <type>, or Otherwise."));
   assert(messages.includes("Action A-Legacy process step ServerCall uses removed cases block syntax. Use direct case: <name> entries under Process: ServerCall."));
-  assert(messages.includes("Action A-Legacy has unsupported process step ServerCall case success entry: ${model.member.loaded}: true. Use state, navigate, response, result, from, params, update, stop, or continue."));
+  assert(messages.includes("Action A-Legacy has unsupported process step ServerCall case success entry: ${model.member.loaded}: true. Use description, state, navigate, response, from, params, update, stop, or continue."));
   assert.equal(
     result.diagnostics.find((diagnostic) => diagnostic.message.includes("unsupported top-level entry: Effects"))?.line,
     lineNumber(source, "- Effects")
@@ -9197,7 +9197,7 @@ title: Malformed Action
   assert(messages.includes("Action A-Submit process step Immediate has unsupported Effects entry: request: POST /unsupported. Use model, view, state, navigate, or update."));
   assert(messages.includes("Action A-Submit process step Immediate has unsupported Effects entry: target: L-MessageArea. Put update details under an update block."));
   assert(messages.includes("Action A-Submit has unsupported process step Immediate case failure entry: target: L-MessageArea. Put update details under an update block."));
-  assert(messages.includes("Action A-Submit has unsupported process step Immediate case failure entry: request: POST /unsupported. Use state, navigate, response, result, from, params, update, stop, or continue."));
+  assert(messages.includes("Action A-Submit has unsupported process step Immediate case failure entry: request: POST /unsupported. Use description, state, navigate, response, from, params, update, stop, or continue."));
   const action = result.actions.find((candidate) => candidate.id === "A-Submit");
   assert.equal(action?.target, undefined);
   assert.deepEqual(action?.processSteps.find((step) => step.name === "HttpRequest")?.details.map((detail) => [detail.key, detail.value]), [["request", "POST /submit"], ["message", "E-メールアドレス入力.value"]]);
@@ -9424,12 +9424,12 @@ title: Parallel Process
 - Process: Resolve
   - group: initial-load
   - case: ready
-    - result: profile and points loaded
+    - description: profile and points loaded
     - Effects
       - state: idle
     - stop
   - case: failed
-    - result: one or more calls failed
+    - description: one or more calls failed
     - Effects
       - state: load-error
     - stop
@@ -9453,10 +9453,80 @@ title: Parallel Process
     ["ready", "idle", "stop"],
     ["failed", "load-error", "stop"]
   ]);
+  assert.deepEqual(resolve?.outcomes.map((outcome) => [outcome.result, outcome.description]), [
+    ["ready", "profile and points loaded"],
+    ["failed", "one or more calls failed"]
+  ]);
   assert.deepEqual(action?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
     ["loading", "ready", "idle"],
     ["loading", "failed", "load-error"]
   ]);
+});
+
+test("parses case description and warns on case-level result or generic response text", () => {
+  const source = `---
+id: SCR-CASE-DESCRIPTION
+type: screen
+title: Case Description
+---
+# SCR-CASE-DESCRIPTION Case Description
+
+## States
+
+- idle*
+- saving
+- save-error
+
+## Elements
+
+### E-SaveButton Button
+
+- label: Save
+
+## Actions
+
+### A-Save Save
+
+- Triggered
+  - E-SaveButton.click
+- From
+  - idle
+- Process P1: Send save request
+  - request:
+    - method: POST
+    - path: /save
+  - result:
+    - save request send result
+  - case: sent
+    - description: request accepted for sending
+    - Effects
+      - state: saving
+  - case: send-failed
+    - response: network error
+    - Effects
+      - state: save-error
+  - case: skipped
+    - result: already clean
+    - Effects
+      - state: idle
+- Process P2: Handle save response
+  - receive:
+    - response: A-Save.P1.response
+  - case: failure
+    - response: 500 save failed
+    - Effects
+      - state: save-error
+`;
+
+  const result = parseMarkVSpec(source);
+  const action = result.actions[0];
+  const [sendStep, receiveStep] = action.processSteps;
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert.equal(sendStep?.outcomes.find((outcome) => outcome.result === "sent")?.description, "request accepted for sending");
+  assert(messages.includes("Action A-Save process step P1 Send save request case send-failed uses response as generic case text. Use description unless the case is describing a received response."));
+  assert(messages.includes("Action A-Save has unsupported process step Send save request case skipped entry: result: already clean. Use description for case-level explanatory text; keep result at the Process level."));
+  assert.equal(receiveStep?.outcomes.find((outcome) => outcome.result === "failure")?.response?.definition, "500 save failed");
 });
 
 test("warns for invalid parallel process decisions and missing resolve groups", () => {
@@ -9493,7 +9563,7 @@ title: Bad Parallel Process
 - Process: Resolve
   - group: missing-load
   - case: failed
-    - result: missing group
+    - description: missing group
     - Effects
       - state: load-error
     - stop
@@ -10628,7 +10698,7 @@ references:
   - result:
     - next search page request
   - case: sent
-    - result: request was sent
+    - description: request was sent
     - Effects
       - state: loading
       - display:

@@ -741,6 +741,7 @@ function actionDefinitionSignature(result: MarkVSpecParseResult, id: string): st
       flow: outcome.flow,
       from: outcome.from,
       to: outcome.to,
+      description: outcome.description,
       response: outcome.response ? {
         result: outcome.response.result,
         definition: outcome.response.definition
@@ -767,6 +768,7 @@ function actionDefinitionSignature(result: MarkVSpecParseResult, id: string): st
         flow: outcome.flow,
         from: outcome.from,
         to: outcome.to,
+        description: outcome.description,
         response: outcome.response ? {
           result: outcome.response.result,
           definition: outcome.response.definition

@@ -330,6 +330,7 @@ export interface MarkVSpecActionOutcome {
   flowDirectives: MarkVSpecFlowDirective[];
   from?: string;
   to?: string;
+  description?: string;
   response?: MarkVSpecResponse;
   request?: {
     method: string;

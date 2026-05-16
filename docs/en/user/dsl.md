@@ -1619,7 +1619,7 @@ result-specific effects under that case's `Effects` block.
   - receive:
     - validation: V-LoginForm.result
   - case: invalid
-    - result: required fields are missing
+    - description: required fields are missing
     - Effects
       - state: validation-error
       - display:
@@ -1627,7 +1627,7 @@ result-specific effects under that case's `Effects` block.
         - content: Required field message
     - stop
   - case: valid
-    - result: all required fields are valid
+    - description: all required fields are valid
     - continue
 - Process P2: Submit login request
   - request:
@@ -1702,7 +1702,8 @@ Preferred action groups and effects:
   - result:
     - <result contract>
   - case: <result>
-    - response: <classification>
+    - description: <human-readable case explanation>
+    - response: <received response classification>
     - Effects
       - model: ${model.<name>} = <source>
       - view: ${view.<name>} = <value>
@@ -1777,12 +1778,12 @@ aggregate decision in a Resolve process with the same `group`.
 - Process P3: Resolve initial load
   - group: initial-load
   - case: ready
-    - result: profile and points loaded
+    - description: profile and points loaded
     - Effects
       - state: idle
     - stop
   - case: failed
-    - result: one or more calls failed
+    - description: one or more calls failed
     - Effects
       - state: initialize-error
     - stop
@@ -1796,8 +1797,15 @@ does not guard the action transition itself.
 ## Cases
 
 Process step outcomes belong under `case: <name>` branches for that process
-step. Each case should contain enough detail to explain what the result means,
-such as `response`, `state`, `navigate`, or a `display` effect. Empty cases are
+step. The `case` name classifies the result produced by the process. Use
+optional `description:` for human-readable case explanation. Keep `result:` at
+the Process level; do not use `result:` inside a case.
+
+Use `response:` only when the case is describing an actually received response,
+typically in a process step with a `receive:` block. Do not use `response:` as a
+generic explanation for `sent`, `send-failed`, validation, or branching cases.
+Each case should still contain enough behavioral detail, such as `description`,
+`response`, `state`, `navigate`, or a `display` effect. Empty cases are
 diagnosed because they do not describe behavior.
 
 Supported events:

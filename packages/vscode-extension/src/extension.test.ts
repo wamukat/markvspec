@@ -331,6 +331,8 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(actionDetailsSection, new RegExp(`rememberMe: ${detailElementRef("6", "E-RememberMe")}\\.value`));
   assert.match(actionDetailsSection, /content Authentication error message/);
   assert.doesNotMatch(actionDetailsSection, /id="action-detail-A-AuthResponse"/);
+  assert.match(submitActionDetail, /description: required field missing/);
+  assert.match(submitActionDetail, /description: all required fields are valid/);
   assert.match(submitActionDetail, new RegExp(`<strong>${docLabel("sent", "result")}</strong>[\\s\\S]*effect set state ${docLabel("authenticating", "state")}`));
   assert.match(submitActionDetail, new RegExp(`<strong>${docLabel("send-failed", "result")}</strong>[\\s\\S]*effect set state ${docLabel("request-error", "state")}`));
   assert.match(responseActionDetail, new RegExp(`<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response 200 authenticated[\\s\\S]*effect navigate to ${documentRef("SCR-HOME")}`));

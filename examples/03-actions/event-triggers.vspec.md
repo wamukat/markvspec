@@ -244,14 +244,14 @@ used around a form-like preferences screen.
   - receive:
     - validation: V-PreferencesForm.result
   - case: invalid
-    - result: email is empty or malformed
+    - description: email is empty or malformed
     - Effects
       - display:
         - target: L-ValidationArea
         - content: Enter a valid notification email before saving.
     - stop
   - case: valid
-    - result: email is valid
+    - description: email is valid
     - Effects
       - state: idle
     - stop
@@ -307,14 +307,14 @@ used around a form-like preferences screen.
   - receive:
     - validation: V-PreferencesForm.result
   - case: invalid
-    - result: required field missing or invalid
+    - description: required field missing or invalid
     - Effects
       - display:
         - target: E-ValidationBanner
         - content: Enter a valid notification email before saving.
     - stop
   - case: valid
-    - result: form fields are valid
+    - description: form fields are valid
     - continue
 - Process P2: Submit preferences
   - server:

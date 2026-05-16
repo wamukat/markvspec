@@ -115,7 +115,7 @@ server, and navigates only after a successful response.
   - receive:
     - validation: V-SubmitRequest.result
   - case: invalid
-    - result: required field missing
+    - description: required field missing
     - Effects
       - state: validation-error
       - display:
@@ -123,7 +123,7 @@ server, and navigates only after a successful response.
         - content: Validation message
     - stop
   - case: valid
-    - result: all required fields are valid
+    - description: all required fields are valid
     - continue
 - Process P2: Submit subscription
   - sync:

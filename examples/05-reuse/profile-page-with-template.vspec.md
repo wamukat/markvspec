@@ -89,7 +89,7 @@ It also demonstrates route parameters through `${route.memberId}`.
     - memberId: ${route.memberId}
   - partial: PRT-PROFILE-SUMMARY
   - case: sent
-    - response: request accepted
+    - description: request accepted
     - Effects
       - state: loading
       - display:
@@ -99,7 +99,7 @@ It also demonstrates route parameters through `${route.memberId}`.
           - state: loading
     - stop
   - case: send-failed
-    - response: network error
+    - description: network error
     - Effects
       - state: load-error
     - stop

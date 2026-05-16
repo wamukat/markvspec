@@ -124,13 +124,13 @@ referenced from the same flow.
   - receive:
     - validation: V-AccountSettings.result
   - case: invalid
-    - result: required field missing
+    - description: required field missing
     - Effects
       - error code: ERR-ACCOUNT-REQUIRED
       - state: validation-error
     - stop
   - case: valid
-    - result: all required fields are present
+    - description: all required fields are present
     - continue
 - Process P2: Call server service
   - server:
@@ -144,7 +144,7 @@ referenced from the same flow.
     - Effects
       - state: idle
   - case: send-failed
-    - response: network error
+    - description: network error
     - Effects
       - error code: ERR-ACCOUNT-SAVE-FAILED
       - state: save-error

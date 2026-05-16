@@ -611,6 +611,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
 
       for (const outcome of step.outcomes) {
         validateProcessCaseFlowPlacement(action.id, step, outcome, diagnostics);
+        validateSuspiciousProcessCaseResponse(action.id, step, outcome, diagnostics);
 
         if (step.parallelGroup && outcome.flow === "stop") {
           diagnostics.push({
@@ -1230,6 +1231,37 @@ function validateProcessCaseFlowPlacement(
       });
     }
   }
+}
+
+function validateSuspiciousProcessCaseResponse(
+  actionId: string,
+  step: MarkVSpecProcessStep,
+  outcome: MarkVSpecActionOutcome,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  if (!outcome.response || step.receives.some((detail) => detail.key === "response")) {
+    return;
+  }
+
+  const normalizedResult = outcome.result.toLowerCase();
+  const responseText = outcome.response.definition.toLowerCase();
+  const looksLikeGenericSendDescription =
+    normalizedResult === "sent" ||
+    normalizedResult === "send-failed" ||
+    responseText.includes("request accepted") ||
+    responseText.includes("network error") ||
+    responseText.includes("send failed") ||
+    responseText.includes("failed to send");
+
+  if (!looksLikeGenericSendDescription) {
+    return;
+  }
+
+  diagnostics.push({
+    severity: "warning",
+    message: `Action ${actionId} process step ${processStepLabel(step)} case ${outcome.result} uses response as generic case text. Use description unless the case is describing a received response.`,
+    line: outcome.response.location.line
+  });
 }
 
 function processCaseEntryLocations(outcome: MarkVSpecActionOutcome, currentDirective: { location: SourceLocation }): SourceLocation[] {
@@ -2281,7 +2313,7 @@ function firstPropertyLocation(
 }
 
 function firstOutcomeLine(outcome: MarkVSpecActionOutcome): number | undefined {
-  return ["response", "request", "target", "mode", "fragment", "content", "side effect", "from", "state", "navigate", "error code", "error codes", "flow"]
+  return ["description", "response", "request", "target", "mode", "fragment", "content", "side effect", "from", "state", "navigate", "error code", "error codes", "flow"]
     .map((key) => firstPropertyLine(outcome, key))
     .find((line): line is number => typeof line === "number") ?? outcome.routeParams[0]?.location.line;
 }
@@ -2291,6 +2323,7 @@ function hasActionOutcomeDetails(outcome: MarkVSpecActionOutcome): boolean {
     outcome.request ??
       outcome.response ??
       outcome.to ??
+      outcome.description ??
       outcome.target ??
       outcome.mode ??
       outcome.fragment ??

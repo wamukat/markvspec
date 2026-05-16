@@ -1191,7 +1191,7 @@ execution detail も result classification も持たない、決定的な即時�
   - receive:
     - validation: V-LoginForm.result
   - case: invalid
-    - result: required fields are missing
+    - description: required fields are missing
     - Effects
       - state: validation-error
       - display:
@@ -1199,7 +1199,7 @@ execution detail も result classification も持たない、決定的な即時�
         - content: Required field message
     - stop
   - case: valid
-    - result: all required fields are valid
+    - description: all required fields are valid
     - continue
 - Process P2: Submit login request
   - request:
@@ -1282,7 +1282,7 @@ execution detail も result classification も持たない、決定的な即時�
 - Process P3: Resolve initial load
   - group: initial-load
   - case: ready
-    - result: profile and points loaded
+    - description: profile and points loaded
     - Effects
       - state: idle
     - stop
@@ -1294,7 +1294,9 @@ Action レベルの `When` / guard はサポートしません。操作可否は
 
 ## Cases
 
-処理ステップの結果は、該当する process step の `case: <name>` に書きます。各 case には、少なくとも `response`、`state`、`navigate`、または `display` を書きます。
+処理ステップの結果は、該当する process step の `case: <name>` に書きます。`case` 名は、その Process が生成した result の分類です。case の補足説明が必要な場合は `description:` を使います。`result:` は Process level にだけ書き、case 直下には書きません。
+
+`response:` は、実際に受け取った response を分類する case に限って使います。典型的には `receive:` block を持つ process step の case です。`sent`、`send-failed`、validation、branching case の一般的な説明として `response:` を使わず、`description:` を使います。各 case には、`description`、`response`、`state`、`navigate`、`display` effect など、意味が分かる detail を書きます。
 
 ## Preview Scenarios
 

@@ -5270,6 +5270,7 @@ function renderProcessStepCases(
   return `${label(result, "case")}<ul class="spec-list spec-nested-list">${step.outcomes.map((outcome) => {
     const update = renderUpdateEffect(result, outcome, true);
     const details = [
+      outcome.description ? `description: ${text(outcome.description)}` : "",
       outcome.response ? `response ${text(outcome.response.definition)}` : "",
       outcome.request ? `request ${renderActionRequest(outcome)}` : "",
       outcome.routeParams.length ? `${label(result, "routeParameters")} ${renderRouteParams(result, outcome.routeParams, true)}` : "",
@@ -5328,6 +5329,7 @@ function renderActionCaseRows(
       const response = outcome.response ?? action.responses.find((candidate) => candidate.result === outcome.result);
       const update = outcome ? renderUpdateEffect(result, outcome, true) : "";
       const details = [
+        outcome.description ? `description: ${text(outcome.description)}` : "",
         response ? `response ${text(response.definition)}` : "",
         outcome?.request ? `request ${renderActionRequest(outcome)}` : "",
         outcome?.routeParams.length ? `${label(result, "routeParameters")} ${renderRouteParams(result, outcome.routeParams, true)}` : "",
