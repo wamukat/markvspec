@@ -368,6 +368,7 @@ function addDisplayEffectTargetsToRenderedIds(
   viewport: string | undefined
 ): void {
   const layoutById = new Map(resolveLayoutGroupsForViewport(result, { viewport }).map((group) => [group.id, group]));
+  const elementById = new Map(result.elements.map((element) => [element.id, element]));
   for (const display of displayEffects) {
     if (!display.element) {
       continue;
@@ -377,8 +378,26 @@ function addDisplayEffectTargetsToRenderedIds(
       addLayoutAndChildrenToRenderedIds(ids, display.element, layoutById, new Set());
     } else if (display.element.startsWith("E-")) {
       ids.elementIds.add(display.element);
+      addDialogActionButtonsToRenderedIds(ids, elementById.get(display.element));
     }
   }
+}
+
+function addDialogActionButtonsToRenderedIds(ids: RenderedIds, element: ParsedElement | undefined): void {
+  if (element?.type !== "Dialog") {
+    return;
+  }
+
+  for (const buttonId of parseDelimitedIds(String(element.properties["actions"] ?? ""))) {
+    ids.elementIds.add(buttonId);
+  }
+}
+
+function parseDelimitedIds(value: string): string[] {
+  return value
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
 }
 
 function addLayoutAndChildrenToRenderedIds(
@@ -1112,8 +1131,9 @@ function stateScreenRenderedIdsFromReadModel(
 function relevantActionIdsForState(result: MarkVSpecParseResult, state: string, visibleElementIds: ReadonlySet<string>): Set<string> {
   const ids = new Set<string>();
   for (const action of result.actions) {
-    if (action.fromStates.length > 0) {
-      if (actionAppliesToState(action, state, { unscoped: "never" })) {
+    if (action.trigger) {
+      const stateMatches = action.fromStates.length === 0 || actionAppliesToState(action, state, { unscoped: "never" });
+      if (stateMatches && actionHasVisibleElementMarker(result, action, visibleElementIds)) {
         ids.add(action.id);
       }
       continue;

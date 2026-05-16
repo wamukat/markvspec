@@ -24,9 +24,7 @@ audit が新しい product bug を見つけた場合は、audit ticket に修正
 現在の既知 allowlist:
 
 - `MarkVSpec#1072`: 日本語 Action Details に英語生成文が残る。
-- `MarkVSpec#1074`: Dialog 内 button action が dialog 表示 scenario 外に出ることがある。
 - `MarkVSpec#1076`: template slot 配置済み layout が visible なのに not placed 表示されることがある。
-- `MarkVSpec#1078`: trigger element が表示されていない state/scenario でも element-trigger action が表示されることがある。
 
 Toast 固有の overlay 検査は `MarkVSpec#1075` で追加する。現時点では
 `Toast` が element type として未対応のため、Dialog 以外の display effect

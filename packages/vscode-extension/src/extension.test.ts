@@ -186,6 +186,14 @@ function stateWireframeSection(section: string): string {
   return nextHeading === -1 ? section.slice(start) : section.slice(start, nextHeading);
 }
 
+function stateSectionContaining(html: string, state: string, text: string): string {
+  const sectionPattern = new RegExp(`<section class="doc-section state-screen-section"(?=[^>]*\\bdata-state="${escapeRegExp(state)}")[^>]*>[\\s\\S]*?(?=<section class="doc-section state-screen-section"|$)`, "gu");
+  const sections = [...html.matchAll(sectionPattern)].map((match) => match[0]);
+  const section = sections.find((candidate) => candidate.includes(text));
+  assert(section, `missing state section ${state} containing ${text}`);
+  return section;
+}
+
 function assertInOrder(source: string, labels: string[]): void {
   let offset = -1;
   for (const label of labels) {
@@ -1754,9 +1762,18 @@ viewport: mobile
   );
 
   assert.equal(result.diagnostics.length, 0);
+  const idleSection = stateSection(html, "idle");
+  const dialogSection = stateSectionContaining(html, "idle", `data-mm-display-modal="E-ConfirmDialog"`);
+  const dialogWireframe = stateWireframeSection(dialogSection);
+  assert.doesNotMatch(idleSection, /action-detail-A-CancelDialog/);
+  assert.doesNotMatch(idleSection, /action-detail-A-ConfirmDialog/);
   assert.match(html, /class="mm-modal-overlay" data-mm-display-modal="E-ConfirmDialog"/);
-  assert.match(html, /<section class="mm-element mm-element-dialog" data-mm-id="E-ConfirmDialog" role="dialog" aria-modal="true" aria-label="Discard changes\?">/);
-  assert.match(html, /<button class="mm-element mm-element-button mm-variant-primary mm-tone-danger" data-mm-id="E-ConfirmDialogButton">Discard<\/button>/);
+  assert.match(dialogWireframe, /<section class="mm-element mm-element-dialog" data-mm-id="E-ConfirmDialog" role="dialog" aria-modal="true" aria-label="Discard changes\?">/);
+  assert.match(dialogWireframe, /data-mm-marker-category="element">E-ConfirmDialog<\/code>/);
+  assert.match(dialogWireframe, /<button class="mm-element mm-element-button mm-variant-primary mm-tone-danger" data-mm-id="E-ConfirmDialogButton">Discard<\/button>[\s\S]*data-mm-marker-category="element">E-ConfirmDialogButton<\/code>/);
+  assert.match(dialogWireframe, /href="#action-detail-A-ConfirmDialog"[\s\S]*data-mm-marker-category="action">A-ConfirmDialog<\/code>/);
+  assert.match(dialogSection, /action-detail-A-CancelDialog/);
+  assert.match(dialogSection, /action-detail-A-ConfirmDialog/);
 });
 
 test("marks unplaced layouts in state view specs without rendering them in wireframes", () => {

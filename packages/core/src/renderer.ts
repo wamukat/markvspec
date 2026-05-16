@@ -834,7 +834,7 @@ function renderDialogActionButtons(
       false,
       {
         ...context,
-        suppressMarkers: true
+        suppressMarkers: context.suppressMarkers
       }
     ))
     .join("");

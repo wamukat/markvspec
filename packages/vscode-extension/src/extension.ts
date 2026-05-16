@@ -3817,7 +3817,8 @@ function renderWireframeFor(
     viewport,
     screenState: state,
     displayEffects,
-    messagesForResult: rendererMessagesForResult
+    messagesForResult: rendererMessagesForResult,
+    markerLink: (id, category) => category === "action" ? `#${actionDetailAnchor(id)}` : undefined
   });
 }
 

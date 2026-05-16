@@ -249,7 +249,7 @@ the primary purpose.
 
 ## Actions
 
-### A-RequestDiscardDialog Request discard dialog
+### A1:A-RequestDiscardDialog Request discard dialog
 
 - Triggered
   - E-DiscardButton.click
@@ -262,7 +262,7 @@ the primary purpose.
         - element: E-DiscardDialog
     - stop
 
-### A-CloseDiscardDialog Close discard dialog
+### A2:A-CloseDiscardDialog Close discard dialog
 
 - Triggered
   - E-CancelDiscardButton.click
@@ -272,7 +272,7 @@ the primary purpose.
 - Process P1: Apply immediate effect
   - state: idle
 
-### A-ConfirmDiscard Confirm discard
+### A3:A-ConfirmDiscard Confirm discard
 
 - Triggered
   - E-ConfirmDiscardButton.click

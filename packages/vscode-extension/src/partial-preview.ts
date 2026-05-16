@@ -42,6 +42,7 @@ interface EmbedPartialPreviewOptions {
   screenState: string | undefined;
   displayEffects?: MarkVSpecDisplayEffect[];
   messagesForResult: (result: MarkVSpecParseResult) => RendererMessages;
+  markerLink?: (id: string, category: "layout" | "element" | "action") => string | undefined;
 }
 
 interface PartialTarget {
@@ -142,6 +143,7 @@ export function embedPartialPreviews(options: EmbedPartialPreviewOptions): strin
     partials ?? new Map(),
     paths,
     options.messagesForResult,
+    options.markerLink,
     displayEffects,
     [],
     0
@@ -367,6 +369,7 @@ function embedPartialPreviewsForResult(
   partials: Map<string, MarkVSpecParseResult>,
   paths: Map<string, string> | undefined,
   messagesForResult: (result: MarkVSpecParseResult) => RendererMessages,
+  markerLink: ((id: string, category: "layout" | "element" | "action") => string | undefined) | undefined,
   displayEffects: MarkVSpecDisplayEffect[],
   stack: string[],
   depth: number
@@ -388,6 +391,7 @@ function embedPartialPreviewsForResult(
         state: screenState,
         messages: messagesForResult(result),
         markerVisibility: { layout: true, element: true, action: true },
+        markerLink,
         includeStyles: false
       });
       if (fragment) {
@@ -423,8 +427,9 @@ function embedPartialPreviewsForResult(
       modelValues: modelValuesForState(partial, partialState),
       messages: messagesForResult(partial),
       markerVisibility: { layout: false, element: false, action: false },
+      markerLink,
       includeStyles: false
-    }), viewport, partialState, partials, paths, messagesForResult, [], [...stack, partialId], depth + 1);
+    }), viewport, partialState, partials, paths, messagesForResult, markerLink, [], [...stack, partialId], depth + 1);
     output = replaceTargetContents(output, targetId, namespacePartialPreviewRenderKeys(partialHtml, targetId, partialId), partialId, paths?.get(partialId));
   }
   for (const display of modalDisplays) {
@@ -439,6 +444,7 @@ function embedPartialPreviewsForResult(
       state: screenState,
       messages: messagesForResult(result),
       markerVisibility: { layout: true, element: true, action: true },
+      markerLink,
       includeStyles: false
     });
     if (fragment) {

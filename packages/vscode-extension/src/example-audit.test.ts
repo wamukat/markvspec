@@ -24,9 +24,7 @@ const workspaceRoot = findWorkspaceRoot(process.cwd());
 const examplesRoot = resolve(workspaceRoot, "examples");
 const knownIssueTickets: Record<string, string> = {
   "ja-ui-english-leftover": "MarkVSpec#1072",
-  "dialog-action-outside-display": "MarkVSpec#1074",
-  "not-placed-visible-layout": "MarkVSpec#1076",
-  "hidden-trigger-action": "MarkVSpec#1078"
+  "not-placed-visible-layout": "MarkVSpec#1076"
 };
 
 test("audits example preview regressions across shipped examples", () => {
@@ -111,6 +109,7 @@ function auditVisibleNotPlacedLayouts(document: ExampleAuditDocument, findings: 
 }
 
 function auditDialogActionPlacement(document: ExampleAuditDocument, findings: AuditFinding[]): void {
+  const elementTypeById = new Map(document.result.elements.map((element) => [element.id, element.type]));
   const actionsByElementId = new Map(document.result.elements.map((element) => [element.id, String(element.properties["action"] ?? "")]));
   const dialogActions = new Map<string, string[]>();
   for (const dialog of document.result.elements.filter((element) => element.type === "Dialog")) {
@@ -125,17 +124,23 @@ function auditDialogActionPlacement(document: ExampleAuditDocument, findings: Au
     }
   }
 
-  for (const section of stateSections(document.html)) {
+  const stateViewports = buildViewportStateScreenReadModels(document.result, document.result);
+  for (const model of stateViewports.flatMap((stateViewport) => stateViewport.models)) {
+    const modelActionIds = new Set(stateScreenActionsForModel(document.result, model).map((action) => action.id));
+    const displayedDialogIds = new Set(model.displayEffects
+      .map((display) => display.element)
+      .filter((elementId): elementId is string => typeof elementId === "string" && elementTypeById.get(elementId) === "Dialog"));
     for (const [dialogId, actionIds] of dialogActions) {
-      if (section.html.includes(`data-mm-display-modal="${dialogId}"`)) {
+      if (displayedDialogIds.has(dialogId)) {
         continue;
       }
       for (const actionId of actionIds) {
-        if (section.html.includes(`action-detail-${actionId}`)) {
+        if (modelActionIds.has(actionId)) {
           findings.push({
             code: "dialog-action-outside-display",
             file: document.file,
-            state: section.state,
+            state: model.stateName,
+            scenario: model.scenario ? model.title : undefined,
             id: actionId,
             message: `Dialog action ${actionId} is listed in a state view that does not display dialog ${dialogId}.`
           });
@@ -250,7 +255,9 @@ function stateSections(html: string): Array<{ title: string; state: string; view
   const matches = [...html.matchAll(/<section class="doc-section state-screen-section"([^>]*)>/gu)];
   return matches.map((match, index) => {
     const start = match.index ?? 0;
-    const next = matches[index + 1]?.index ?? html.length;
+    const nextSection = matches[index + 1]?.index ?? html.length;
+    const nextDocSection = html.indexOf(`<section class="doc-section">`, start + match[0].length);
+    const next = nextDocSection === -1 ? nextSection : Math.min(nextSection, nextDocSection);
     const attrs = match[1] ?? "";
     return {
       title: attrValue(attrs, "data-state-view-title") ?? "unknown",

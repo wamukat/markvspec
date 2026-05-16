@@ -27,9 +27,7 @@ Japanese Kanbalone ticket instead of folding the fix into the audit ticket.
 Current known allowlist:
 
 - `MarkVSpec#1072`: Japanese Action Details still contain generated English text.
-- `MarkVSpec#1074`: dialog button actions can appear outside the dialog display scenario.
 - `MarkVSpec#1076`: composed template slot layouts can be visible while marked not placed.
-- `MarkVSpec#1078`: element-trigger actions can appear when their trigger element is absent from the rendered state/scenario.
 
 Toast-specific overlay checks are pending `MarkVSpec#1075`, because `Toast` is
 not a supported element type yet. Until then, display effects for non-Dialog
