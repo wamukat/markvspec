@@ -87,13 +87,13 @@ the `Process P3: Resolve initial load` step owns the final state transition.
   - result:
     - member profile load result
   - case: success
-    - response: 200 member profile
+    - description: 200 member profile
     - Effects
       - model: ${model.memberProfile.loaded} = true
       - model: ${model.memberProfile.name} = result.name
     - continue
   - case: failure
-    - response: 5xx or timeout
+    - description: 5xx or timeout
     - Effects
       - model: ${model.memberProfile.loaded} = false
     - continue
@@ -104,13 +104,13 @@ the `Process P3: Resolve initial load` step owns the final state transition.
   - result:
     - points load result
   - case: success
-    - response: 200 points
+    - description: 200 points
     - Effects
       - model: ${model.points.loaded} = true
       - model: ${model.points.balance} = result.balance
     - continue
   - case: failure
-    - response: 5xx or timeout
+    - description: 5xx or timeout
     - Effects
       - model: ${model.points.loaded} = false
     - continue

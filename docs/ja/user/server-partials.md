@@ -106,7 +106,7 @@ route: /mypage/partials/notices
   - server:
     - call: NoticeQueryService.findLatest()
   - case: success
-    - response: 200 notices
+    - description: 200 notices
     - Effects
       - model: ${model.notices.items} = result.items
       - model: ${model.notice} = ${model.notices.items} の現在行
@@ -176,6 +176,8 @@ response は、`A-SubmitLogin.P1.response` のような response handler Action 
 - From
   - wait-auth
 - Process P1: ログイン応答処理
+  - receive:
+    - response: A-SubmitLogin.P1.response
   - case: success
     - response: 2xx authenticated user
     - Effects

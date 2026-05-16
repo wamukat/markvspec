@@ -6058,7 +6058,7 @@ title: Nested Action
         - email: E-Submit.value
 - Process: Immediate
     - case: failure
-        - response: 400
+        - description: 400
         - Effects
             - state: error
             - update:
@@ -6404,7 +6404,7 @@ title: Server Call
   - MemberQueryService.findSelfProfile()
     - includePreferences: true
   - case: success
-    - response: ApiBridgeResult.Success<MemberProfileDto>
+    - description: ApiBridgeResult.Success<MemberProfileDto>
     - Effects
       - model: \${model.memberProfile.displayName} = MemberProfileDto.displayName
       - state: idle
@@ -6421,7 +6421,7 @@ title: Server Call
     ["call", "MemberQueryService.findSelfProfile()"],
     ["includePreferences", "true"]
   ]);
-  assert.deepEqual(success?.response ? [["success", success.response.definition]] : [], [
+  assert.deepEqual(success?.description ? [["success", success.description]] : [], [
     ["success", "ApiBridgeResult.Success<MemberProfileDto>"]
   ]);
 });
@@ -6514,7 +6514,7 @@ route: /mypage/partials/notices
 - Process: ServerCall
   - NoticeQueryService.findLatest()
   - case: success
-    - response: 200 notices
+    - description: 200 notices
     - Effects
       - model: \${model.notices.items} = result.items
       - state: loaded
@@ -6701,7 +6701,7 @@ title: Slot Target
   - initializing
 - Process: Immediate
   - case: success
-    - response: ok
+    - description: ok
     - Effects
       - state: idle
       - update:
@@ -6865,6 +6865,11 @@ title: Response
         "warning",
         "Action A-Submit has invalid trigger service.response. Expected E-*.event, A-*.response, screen.load, or partial.render.",
         lineNumber(source, "  - service.response")
+      ],
+      [
+        "warning",
+        "Action A-Submit process step Immediate case success uses response without receiving a response. Use description for validation, branching, sent, send-failed, or other non-response case explanations.",
+        lineNumber(source, "    - response: 2xx")
       ],
       [
         "warning",
@@ -9265,7 +9270,7 @@ references:
   - partial: PRT-PROFILE
 - Process: Immediate
   - case: success
-    - response: 200 partial HTML
+    - description: 200 partial HTML
     - Effects
       - state: initializing
       - update:
@@ -9320,6 +9325,8 @@ references:
 - Process: PartialRequest
   - request: GET /points/panel
   - partial: PRT-POINTS-PANEL
+  - receive:
+    - response: A-LoadPoints.response
   - params:
     - page: 1
   - case: success-items
@@ -9403,23 +9410,23 @@ title: Parallel Process
   - group: initial-load
   - MemberQueryService.findSelfProfile()
   - case: success
-    - response: 200 member profile
+    - description: 200 member profile
     - Effects
       - model: \${model.memberProfile.loaded} = true
     - continue
   - case: failure
-    - response: 5xx or timeout
+    - description: 5xx or timeout
     - continue
 - Process: ServerCall
   - group: initial-load
   - PointQueryService.findSelfPoints()
   - case: success
-    - response: 200 points
+    - description: 200 points
     - Effects
       - model: \${model.points.loaded} = true
     - continue
   - case: failure
-    - response: 5xx or timeout
+    - description: 5xx or timeout
     - continue
 - Process: Resolve
   - group: initial-load
@@ -9463,7 +9470,7 @@ title: Parallel Process
   ]);
 });
 
-test("parses case description and warns on case-level result or generic response text", () => {
+test("parses case description and warns on case-level result or response without receive", () => {
   const source = `---
 id: SCR-CASE-DESCRIPTION
 type: screen
@@ -9476,6 +9483,7 @@ title: Case Description
 - idle*
 - saving
 - save-error
+- validation-error
 
 ## Elements
 
@@ -9516,6 +9524,26 @@ title: Case Description
     - response: 500 save failed
     - Effects
       - state: save-error
+- Process P3: Check validation result
+  - receive:
+    - validation: V-SaveForm.result
+  - case: invalid
+    - response: required field missing
+    - Effects
+      - state: validation-error
+  - case: branch
+    - response: branch selected
+    - Effects
+      - state: idle
+
+## Validations
+
+### V-SaveForm Save form validation
+
+- target: E-SaveButton
+- rules:
+  - required:
+    - E-SaveButton
 `;
 
   const result = parseMarkVSpec(source);
@@ -9524,7 +9552,9 @@ title: Case Description
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
   assert.equal(sendStep?.outcomes.find((outcome) => outcome.result === "sent")?.description, "request accepted for sending");
-  assert(messages.includes("Action A-Save process step P1 Send save request case send-failed uses response as generic case text. Use description unless the case is describing a received response."));
+  assert(messages.includes("Action A-Save process step P1 Send save request case send-failed uses response without receiving a response. Use description for validation, branching, sent, send-failed, or other non-response case explanations."));
+  assert(messages.includes("Action A-Save process step P3 Check validation result case invalid uses response without receiving a response. Use description for validation, branching, sent, send-failed, or other non-response case explanations."));
+  assert(messages.includes("Action A-Save process step P3 Check validation result case branch uses response without receiving a response. Use description for validation, branching, sent, send-failed, or other non-response case explanations."));
   assert(messages.includes("Action A-Save has unsupported process step Send save request case skipped entry: result: already clean. Use description for case-level explanatory text; keep result at the Process level."));
   assert.equal(receiveStep?.outcomes.find((outcome) => outcome.result === "failure")?.response?.definition, "500 save failed");
 });
@@ -10532,7 +10562,7 @@ title: Compact Action
   - GET /search
     - keyword: E-KeywordInput.value
   - case: success
-    - response: 200 search result
+    - description: 200 search result
     - Effects
       - model: \${model.searchResult.items} = response.items
       - state: loaded

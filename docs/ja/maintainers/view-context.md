@@ -231,7 +231,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
 - Process: Validate
   - target: V-SearchForm
   - case: invalid
-    - result: invalid search condition
+    - description: invalid search condition
     - Effects
       - state: validation-error
       - stop
@@ -247,7 +247,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
       - state: loading
       - stop
   - case: send-failed
-    - result: request could not be sent
+    - description: request could not be sent
     - Effects
       - state: load-error
       - stop
@@ -260,7 +260,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
   - loading
 - Process: HttpResponse
   - case: success
-    - response: 200 search result
+    - description: 200 search result
     - Effects
       - model: ${model.searchResult.items} = response.items
       - model: ${model.searchResult.totalCount} = response.totalCount
@@ -268,7 +268,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
       - view: ${view.selectedTab} = results
       - view: ${view.isHelpPanelOpen} = false
   - case: failure
-    - response: 5xx or timeout
+    - description: 5xx or timeout
     - Effects
       - state: load-error
       - view: ${view.isHelpPanelOpen} = false
@@ -298,13 +298,13 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
   - group: initial-load
   - MemberQueryService.findSelfProfile()
   - case: success
-    - response: 200 member profile
+    - description: 200 member profile
     - Effects
       - model: ${model.memberProfile.loaded} = true
       - model: ${model.memberProfile.name} = result.name
       - continue
   - case: failure
-    - response: 5xx or timeout
+    - description: 5xx or timeout
     - Effects
       - model: ${model.memberProfile.loaded} = false
       - continue
@@ -312,25 +312,25 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
   - group: initial-load
   - PointQueryService.findSelfPoints()
   - case: success
-    - response: 200 points
+    - description: 200 points
     - Effects
       - model: ${model.points.loaded} = true
       - model: ${model.points.balance} = result.balance
       - continue
   - case: failure
-    - response: 5xx or timeout
+    - description: 5xx or timeout
     - Effects
       - model: ${model.points.loaded} = false
       - continue
 - Process: Resolve
   - group: initial-load
   - case: ready
-    - result: profile and points loaded
+    - description: profile and points loaded
     - Effects
       - state: idle
       - stop
   - case: failed
-    - result: one or more calls failed
+    - description: one or more calls failed
     - Effects
       - state: load-error
       - stop

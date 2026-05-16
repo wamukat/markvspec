@@ -68,13 +68,13 @@ example.
   - result:
     - current member profile result
   - case: success
-    - response: 200 member profile
+    - description: 200 member profile
     - Effects
       - model: ${model.member} = result.member
       - state: loaded
     - stop
   - case: failure
-    - response: 5xx or timeout
+    - description: 5xx or timeout
     - Effects
       - state: load-error
     - stop

@@ -1266,7 +1266,7 @@ execution detail も result classification も持たない、決定的な即時�
   - server:
     - call: MemberQueryService.findSelfProfile()
   - case: success
-    - response: 200 member profile
+    - description: 200 member profile
     - Effects
       - model: ${model.memberProfile.loaded} = true
     - continue
@@ -1275,7 +1275,7 @@ execution detail も result classification も持たない、決定的な即時�
   - server:
     - call: PointQueryService.findSelfPoints()
   - case: success
-    - response: 200 points
+    - description: 200 points
     - Effects
       - model: ${model.points.loaded} = true
     - continue

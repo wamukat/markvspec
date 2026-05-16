@@ -45,6 +45,8 @@ replacement:
 - From
   - wait-auth
 - Process P1: Handle auth response
+  - receive:
+    - response: A-SubmitLogin.P1.response
   - case: failure
     - response: 401 invalid credentials
     - Effects
@@ -97,7 +99,7 @@ route: /mypage/partials/notices
   - server:
     - call: NoticeQueryService.findLatest()
   - case: success
-    - response: 200 notices
+    - description: 200 notices
     - Effects
       - model: ${model.notices.items} = result.items
       - model: ${model.notice} = current item from ${model.notices.items}
@@ -161,6 +163,8 @@ Responses belong under `case: <name>` branches on the relevant response process:
 
 ```markdown
 - Process P1: Handle response
+  - receive:
+    - response: A-SubmitLogin.P1.response
   - case: success
     - response: 2xx authenticated user
     - Effects

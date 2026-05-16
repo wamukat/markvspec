@@ -214,14 +214,14 @@ used around a form-like preferences screen.
   - result:
     - saved preferences load result
   - case: success
-    - response: 200 saved preferences
+    - description: 200 saved preferences
     - Effects
       - model: ${model.keyword} = result.keyword
       - model: ${model.email} = result.email
       - model: ${model.deliveryCadence} = result.deliveryCadence
       - state: idle
   - case: failure
-    - response: 5xx or timeout
+    - description: 5xx or timeout
     - Effects
       - state: initialize-error
 

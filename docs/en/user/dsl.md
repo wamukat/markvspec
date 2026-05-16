@@ -1461,7 +1461,7 @@ effects that mention `${model.value}`.
   - result:
     - notice load result
   - case: success
-    - response: 200 notice
+    - description: 200 notice
     - Effects
       - model: ${model.notice} = NoticeDetailResult
 - Process P2: Show notice body
@@ -1752,12 +1752,12 @@ aggregate decision in a Resolve process with the same `group`.
   - server:
     - call: MemberQueryService.findSelfProfile()
   - case: success
-    - response: 200 member profile
+    - description: 200 member profile
     - Effects
       - model: ${model.memberProfile.loaded} = true
     - continue
   - case: failure
-    - response: 5xx or timeout
+    - description: 5xx or timeout
     - Effects
       - model: ${model.memberProfile.loaded} = false
     - continue
@@ -1766,12 +1766,12 @@ aggregate decision in a Resolve process with the same `group`.
   - server:
     - call: PointQueryService.findSelfPoints()
   - case: success
-    - response: 200 points
+    - description: 200 points
     - Effects
       - model: ${model.points.loaded} = true
     - continue
   - case: failure
-    - response: 5xx or timeout
+    - description: 5xx or timeout
     - Effects
       - model: ${model.points.loaded} = false
     - continue

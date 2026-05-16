@@ -1243,23 +1243,9 @@ function validateSuspiciousProcessCaseResponse(
     return;
   }
 
-  const normalizedResult = outcome.result.toLowerCase();
-  const responseText = outcome.response.definition.toLowerCase();
-  const looksLikeGenericSendDescription =
-    normalizedResult === "sent" ||
-    normalizedResult === "send-failed" ||
-    responseText.includes("request accepted") ||
-    responseText.includes("network error") ||
-    responseText.includes("send failed") ||
-    responseText.includes("failed to send");
-
-  if (!looksLikeGenericSendDescription) {
-    return;
-  }
-
   diagnostics.push({
     severity: "warning",
-    message: `Action ${actionId} process step ${processStepLabel(step)} case ${outcome.result} uses response as generic case text. Use description unless the case is describing a received response.`,
+    message: `Action ${actionId} process step ${processStepLabel(step)} case ${outcome.result} uses response without receiving a response. Use description for validation, branching, sent, send-failed, or other non-response case explanations.`,
     line: outcome.response.location.line
   });
 }
