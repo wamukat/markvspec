@@ -12,7 +12,6 @@ status: draft
 ## States
 
 - idle*
-- signing-out
 
 ## Layout: desktop
 
@@ -59,7 +58,6 @@ status: draft
 
 - E-SectionTitle
 - E-LanguageSelect
-- E-LogoutButton
 
 ## Slots
 
@@ -102,59 +100,15 @@ status: draft
 
 ### 7:E-LanguageSelect Select
 
-- value: ${model.locale}
 - initial value: en
 - options:
   - English
   - Japanese
 
-### 8:E-LogoutButton Button
-
-- label: Sign out
-- variant: secondary
-- action: A-SignOut
-
-### 9:E-Footer Text
+### 8:E-Footer Text
 
 - sample: MarkVSpec example gallery
 
-### 10:E-EmptySlotMessage Paragraph
+### 9:E-EmptySlotMessage Paragraph
 
 - sample: No content has been assigned to this template slot.
-
-## Actions
-
-### A1:A-SignOut Sign out
-
-- Triggered
-  - E-LogoutButton.click
-- From
-  - idle
-- Process P1: Send request
-  - request:
-    - method: POST
-    - path: /logout
-  - case: sent
-    - Effects
-      - state: signing-out
-  - case: send-failed
-    - Effects
-      - state: idle
-
-### A2:A-HandleSignOutResponse Handle sign out response
-
-- Triggered
-  - A-SignOut.P1.response
-- From
-  - signing-out
-- Process P1: Handle response
-  - receive:
-    - response: A-SignOut.P1.response
-  - case: success
-    - response: 204 signed out
-    - Effects
-      - navigate: SCR-LOGIN
-  - case: failure
-    - response: 5xx
-    - Effects
-      - state: idle

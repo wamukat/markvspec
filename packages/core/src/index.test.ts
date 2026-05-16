@@ -9836,20 +9836,62 @@ test("renders state-specific banner content", () => {
 });
 
 test("renders action markers only in explicit From states", () => {
-  const source = readFileSync(examplePath("05-reuse/template-shell.vspec.md"), "utf8");
-  const result = parseMarkVSpec(source);
-  const readyHtml = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true, state: "idle", viewport: "desktop" });
-  const signingOutHtml = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true, state: "signing-out", viewport: "desktop" });
-  const readyFragment = renderMarkVSpecHtmlFragment(result, "layout:desktop:L-TopBar", { includeStyles: false, showIds: true, state: "idle" })?.html ?? "";
-  const signingOutFragment = renderMarkVSpecHtmlFragment(result, "layout:desktop:L-TopBar", { includeStyles: false, showIds: true, state: "signing-out" })?.html ?? "";
-  const signOutAction = result.actions.find((action) => action.id === "A-SignOut");
+  const source = `---
+id: SCR-ACTION-FROM
+type: screen
+title: Action From
+---
 
-  assert.match(readyHtml, /<code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1<\/code>/);
-  assert.doesNotMatch(signingOutHtml, /<code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1<\/code>/);
-  assert.match(readyFragment, /<code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1<\/code>/);
-  assert.doesNotMatch(signingOutFragment, /<code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1<\/code>/);
-  assert.ok(signOutAction);
-  assert.equal(actionAppliesToState(signOutAction, undefined, { unscoped: "always" }), false);
+# SCR-ACTION-FROM Action From
+
+## States
+
+- idle*
+- editing
+
+## Layout: desktop
+
+### L-Root Root
+
+#### Items
+
+- E-EditButton
+
+## Elements
+
+### 1:E-EditButton Button
+
+- label: Edit
+- action: A-StartEdit
+
+## Actions
+
+### A1:A-StartEdit Start edit
+
+- Triggered
+  - E-EditButton.click
+- From
+  - idle
+- Process P1: Immediate
+  - case: done
+    - Effects
+      - state: editing
+`;
+  const result = parseMarkVSpec(source);
+  const idleHtml = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true, state: "idle", viewport: "desktop" });
+  const editingHtml = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true, state: "editing", viewport: "desktop" });
+  const idleFragment = renderMarkVSpecHtmlFragment(result, "layout:desktop:L-Root", { includeStyles: false, showIds: true, state: "idle" })?.html ?? "";
+  const editingFragment = renderMarkVSpecHtmlFragment(result, "layout:desktop:L-Root", { includeStyles: false, showIds: true, state: "editing" })?.html ?? "";
+  const startEditAction = result.actions.find((action) => action.id === "A-StartEdit");
+
+  assert.match(idleHtml, /<code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1<\/code>/);
+  assert.doesNotMatch(editingHtml, /<code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1<\/code>/);
+  assert.match(editingHtml, /Edit/);
+  assert.match(idleFragment, /<code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1<\/code>/);
+  assert.doesNotMatch(editingFragment, /<code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1<\/code>/);
+  assert.match(editingFragment, /Edit/);
+  assert.ok(startEditAction);
+  assert.equal(actionAppliesToState(startEditAction, undefined, { unscoped: "always" }), false);
 });
 
 test("honors layout hidden conditions for state-specific rendering", () => {
