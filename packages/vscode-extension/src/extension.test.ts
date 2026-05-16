@@ -2650,7 +2650,7 @@ locale: ja
   assert.doesNotMatch(actionDetailsSection, /<dt>部分更新<\/dt><dd>[\s\S]*<th>結果<\/th>/);
   assert.match(actionDetailsSection, new RegExp(`<dt>部分更新</dt><dd>[\\s\\S]*<ul class="spec-list spec-effect-list"><li>content 更新後のユーザー一覧</li><li>mode replace</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>レスポンスのユーザー一覧を ${sourceCodePattern("${model.users.items}")} に格納する</li><li>レスポンスのページ番号を ${sourceCodePattern("${model.page}")} に格納する</li><li>${sourceCodePattern("${model.error}")} を空にする</li></ul></li></ul>`));
   assert.doesNotMatch(actionDetailsSection, /side effect レスポンス/);
-  assert.match(actionDetailsSection, new RegExp(`<li>PartialRequest<ul class="spec-list spec-effect-list"><li>request: POST /users/search</li><li>update ${detailLayoutRef("T1", "User table")}</li><li>mode replace</li><li>content 更新後のユーザー一覧</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>レスポンスのユーザー一覧を ${sourceCodePattern("${model.users.items}")} に格納する</li><li>レスポンスのページ番号を ${sourceCodePattern("${model.page}")} に格納する</li><li>${sourceCodePattern("${model.error}")} を空にする</li></ul></li></ul></li>`));
+  assert.match(actionDetailsSection, new RegExp(`<div class="process-card-header"><span class="process-card-title">PartialRequest</span></div>[\\s\\S]*<ul class="spec-list spec-effect-list"><li>request: POST /users/search</li><li>update ${detailLayoutRef("T1", "User table")}</li><li>mode replace</li><li>content 更新後のユーザー一覧</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>レスポンスのユーザー一覧を ${sourceCodePattern("${model.users.items}")} に格納する</li><li>レスポンスのページ番号を ${sourceCodePattern("${model.page}")} に格納する</li><li>${sourceCodePattern("${model.error}")} を空にする</li></ul></li></ul>`));
   assert.match(actionDetailsSection, new RegExp(`<li>update <ul class="spec-list spec-effect-list"><li>${detailLayoutRef("T1", "User table")}</li><li>content 検索結果を表示する</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>${sourceCodePattern("${model.audit}")} &lt; value &amp; retry</li></ul></li></ul></li>`));
 });
 
@@ -4982,8 +4982,8 @@ title: Multi Request
 
   assert.doesNotMatch(actionDetail, /<dt>Request<\/dt>|<dt>Parameters<\/dt>/);
   assert.doesNotMatch(actionDetail, /<dt>Overview<\/dt>/);
-  assert.match(actionDetail, new RegExp(`<dt>Process</dt><dd>[\\s\\S]*<li>HttpRequest<ul class="spec-list spec-effect-list"><li>request: GET /users\\?filter=&lt;active&gt;<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>page: ${sourceCodePattern("${model.requestedPage}")}</li></ul></li></ul></li><li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 users[\\s\\S]*effect set state ${docLabel("loaded", "state")}[\\s\\S]*stop process`));
-  assert.match(actionDetail, new RegExp(`<li>HttpRequest<ul class="spec-list spec-effect-list"><li>request: GET /roles<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>requestedPage: ${sourceCodePattern("${model.requestedPage}")}</li></ul></li></ul></li><li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 roles[\\s\\S]*effect set state ${docLabel("roles-loaded", "state")}[\\s\\S]*<strong>${docLabel("failure", "result")}</strong>[\\s\\S]*response HTTP error`));
+  assert.match(actionDetail, new RegExp(`<dt>Process</dt><dd><div class="process-flow" role="list">[\\s\\S]*<span class="process-card-title">HttpRequest</span>[\\s\\S]*<li>request: GET /users\\?filter=&lt;active&gt;<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>page: ${sourceCodePattern("${model.requestedPage}")}</li></ul></li></ul></li><li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 users[\\s\\S]*effect set state ${docLabel("loaded", "state")}[\\s\\S]*stop process`));
+  assert.match(actionDetail, new RegExp(`<span class="process-card-title">HttpRequest</span>[\\s\\S]*<li>request: GET /roles<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>requestedPage: ${sourceCodePattern("${model.requestedPage}")}</li></ul></li></ul></li><li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 roles[\\s\\S]*effect set state ${docLabel("roles-loaded", "state")}[\\s\\S]*<strong>${docLabel("failure", "result")}</strong>[\\s\\S]*response HTTP error`));
   assert.doesNotMatch(actionDetail, /flow (?:stop|continue)/);
   assert.doesNotMatch(actionDetail, /<dt>Case success<\/dt>|<dt>Case failure<\/dt>|<dt>Responses<\/dt>/);
   assert.doesNotMatch(actionDetail, /<active>/);
@@ -5028,9 +5028,9 @@ title: Direct Process
   const html = renderDesignDocumentHtml(result, preview);
   const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Continue">[\s\S]*?<\/article>/)?.[0] ?? "";
 
-  assert.match(actionDetail, new RegExp(`<li>${docLabel("P1", "result")} Apply immediate effect<ul class="spec-list spec-effect-list"><li>effect navigate to ${documentRef("SCR-NEXT")}</li></ul></li>`));
-  assert.match(actionDetail, new RegExp(`<li>${docLabel("P2", "result")} Set loaded<ul class="spec-list spec-effect-list"><li>effect set state ${docLabel("loaded", "state")}</li></ul></li>`));
-  assert.match(actionDetail, new RegExp(`<li>${docLabel("P3", "result")} Label only</li>`));
+  assert.match(actionDetail, new RegExp(`<div class="process-card process-step-card" role="listitem">[\\s\\S]*<span class="process-card-title">${docLabel("P1", "result")} Apply immediate effect</span>[\\s\\S]*<li>effect navigate to ${documentRef("SCR-NEXT")}</li>`));
+  assert.match(actionDetail, new RegExp(`<span class="process-card-title">${docLabel("P2", "result")} Set loaded</span>[\\s\\S]*<li>effect set state ${docLabel("loaded", "state")}</li>`));
+  assert.match(actionDetail, new RegExp(`<span class="process-card-title">${docLabel("P3", "result")} Label only</span>\\s*</div>\\s*</div>`));
   assert.doesNotMatch(actionDetail, /<strong>success<\/strong>/);
 });
 
@@ -5105,7 +5105,7 @@ title: Nested Process Details
   assert.match(actionDetail, new RegExp(`<li>request<ul class="spec-list spec-nested-list">[\\s\\S]*<li>method: POST</li>[\\s\\S]*<li>path: /subscriptions</li>[\\s\\S]*<li>params<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li><li>plan: ${detailElementRef("2", "E-PlanSelect")}\\.value</li></ul></li>[\\s\\S]*</ul></li>`));
   assert.match(actionDetail, new RegExp(`<li>server: SubscriptionService\\.prepare\\(\\)<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
   assert.match(actionDetail, new RegExp(`<li>sync: SubscriptionService\\.create\\(\\)<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li><li>plan: ${detailElementRef("2", "E-PlanSelect")}\\.value</li></ul></li></ul></li>`));
-  assert.match(actionDetail, new RegExp(`<li>ServerCall<ul class="spec-list spec-effect-list"><li>server: SubscriptionService\\.persist\\(\\)<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
+  assert.match(actionDetail, new RegExp(`<span class="process-card-title">ServerCall</span>[\\s\\S]*<li>server: SubscriptionService\\.persist\\(\\)<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
   assert.match(actionDetail, /<li>response: HTTP 200 persisted subscription<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>subscriptionId: response\.id<\/li><\/ul><\/li><\/ul><\/li>/);
   assert.match(actionDetail, new RegExp(`<li>validation: ${detailIdRef("V-SubscriptionForm")}\\.result<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
   assert.doesNotMatch(actionDetail, /request\.params|server\.params|sync\.params|response\.params|validation\.params/);
@@ -5162,9 +5162,10 @@ title: Parallel Process
   const html = renderDesignDocumentHtml(result, preview);
   const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-InitialLoad">[\s\S]*?<\/article>/)?.[0] ?? "";
 
-  assert.match(actionDetail, /<li>Parallel initial-load<ul><li>ServerCall<ul class="spec-list spec-effect-list"><li>MemberQueryService\.findSelfProfile\(\)<\/li>/);
-  assert.match(actionDetail, /<li>ServerCall<ul class="spec-list spec-effect-list"><li>PointQueryService\.findSelfPoints\(\)<\/li>/);
-  assert.match(actionDetail, new RegExp(`<li>Resolve initial-load<ul class="spec-list spec-effect-list"><li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("ready", "result")}</strong>[\\s\\S]*effect set state ${docLabel("idle", "state")}[\\s\\S]*stop process`));
+  assert.match(actionDetail, /<div class="process-card process-parallel-group-card" role="listitem" data-process-group="initial-load">[\s\S]*<span class="process-card-title">Parallel group: initial-load<\/span>/);
+  assert.match(actionDetail, /<span class="process-card-title">ServerCall<\/span>[\s\S]*<li>MemberQueryService\.findSelfProfile\(\)<\/li>[\s\S]*continue process/);
+  assert.match(actionDetail, /<span class="process-card-title">ServerCall<\/span>[\s\S]*<li>PointQueryService\.findSelfPoints\(\)<\/li>[\s\S]*continue process/);
+  assert.match(actionDetail, new RegExp(`<div class="process-flow-connector" aria-hidden="true"></div><div class="process-card process-step-card process-resolve-card" role="listitem" data-resolve-group="initial-load">[\\s\\S]*<span class="process-card-title">Resolve initial-load</span><span class="process-card-meta">group initial-load</span>[\\s\\S]*<li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("ready", "result")}</strong>[\\s\\S]*effect set state ${docLabel("idle", "state")}[\\s\\S]*stop process`));
   assert.doesNotMatch(actionDetail, /flow (?:stop|continue)/);
 });
 

@@ -5087,20 +5087,52 @@ function renderProcessSteps(
   const renderedParallelGroups = new Set<string>();
   const items = steps.map((step) => {
     if (!step.parallelGroup) {
-      return renderProcessStepItem(result, step, detailedReferences);
+      return renderProcessStepCard(result, step, detailedReferences);
     }
     if (renderedParallelGroups.has(step.parallelGroup)) {
       return "";
     }
     renderedParallelGroups.add(step.parallelGroup);
     const groupSteps = steps.filter((candidate) => candidate.parallelGroup === step.parallelGroup);
-    return `<li>Parallel ${text(step.parallelGroup)}<ul>${groupSteps.map((groupStep) => renderProcessStepItem(result, groupStep, detailedReferences)).join("")}</ul></li>`;
+    return renderParallelProcessGroupCard(result, step.parallelGroup, groupSteps, detailedReferences);
   }).filter(Boolean);
 
-  return `<ul>${items.join("")}</ul>`;
+  return `<div class="process-flow" role="list">${items.map((item, index) => `${item}${index < items.length - 1 ? '<div class="process-flow-connector" aria-hidden="true"></div>' : ""}`).join("")}</div>`;
 }
 
-function renderProcessStepItem(
+function renderParallelProcessGroupCard(
+  result: ReturnType<typeof parseMarkVSpec>,
+  groupName: string,
+  steps: ReturnType<typeof parseMarkVSpec>["actions"][number]["processSteps"],
+  detailedReferences: boolean
+): string {
+  return `<div class="process-card process-parallel-group-card" role="listitem" data-process-group="${escapeHtml(groupName)}">
+    <div class="process-card-header"><span class="process-card-title">Parallel group: ${text(groupName)}</span></div>
+    <div class="process-parallel-children">${steps.map((step) => renderProcessStepCard(result, step, detailedReferences, "child")).join("")}</div>
+  </div>`;
+}
+
+function renderProcessStepCard(
+  result: ReturnType<typeof parseMarkVSpec>,
+  step: ReturnType<typeof parseMarkVSpec>["actions"][number]["processSteps"][number],
+  detailedReferences: boolean,
+  variant: "root" | "child" = "root"
+): string {
+  const detailList = renderProcessStepDetailList(result, step, detailedReferences);
+  const classes = [
+    "process-card",
+    "process-step-card",
+    variant === "child" ? "process-step-card-child" : "",
+    step.resolveGroup ? "process-resolve-card" : ""
+  ].filter(Boolean).join(" ");
+  const resolveGroup = step.resolveGroup ? `<span class="process-card-meta">group ${text(step.resolveGroup)}</span>` : "";
+  return `<div class="${classes}" role="${variant === "root" ? "listitem" : "group"}"${step.resolveGroup ? ` data-resolve-group="${escapeHtml(step.resolveGroup)}"` : ""}>
+    <div class="process-card-header"><span class="process-card-title">${renderProcessStepLabel(step)}</span>${resolveGroup}</div>
+    ${detailList}
+  </div>`;
+}
+
+function renderProcessStepDetailList(
   result: ReturnType<typeof parseMarkVSpec>,
   step: ReturnType<typeof parseMarkVSpec>["actions"][number]["processSteps"][number],
   detailedReferences: boolean
@@ -5119,8 +5151,7 @@ function renderProcessStepItem(
     step.content ? `content ${text(step.content)}` : ""
   ].filter(Boolean);
   const stepCases = renderProcessStepCases(result, step);
-  const detailList = renderDetailList(result, [...details, stepCases], step.sideEffects);
-  return `<li>${renderProcessStepLabel(step)}${detailList}</li>`;
+  return renderDetailList(result, [...details, stepCases], step.sideEffects);
 }
 
 function renderProcessStepLabel(
@@ -5282,6 +5313,7 @@ function renderProcessStepCases(
       outcome.routeParams.length ? `${label(result, "routeParameters")} ${renderRouteParams(result, outcome.routeParams, true)}` : "",
       renderOutcomeTransition(result, outcome),
       outcome.flow === "stop" ? "stop process" : "",
+      outcome.flow === "continue" ? "continue process" : "",
       outcome.display ? `display ${renderDisplayEffect(result, outcome.display, true)}` : "",
       update ? `update ${update}` : ""
     ].filter(Boolean);

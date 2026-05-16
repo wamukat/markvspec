@@ -124,6 +124,17 @@ ${baseWireframeViewportCss()}
 .action-detail dt{color:#4b5563;font-size:12px;font-weight:600}
 .action-detail dd{font-size:12px;margin:0}
 .action-detail ul{margin:0;padding-left:16px}
+.process-flow{display:grid;gap:8px}
+.process-card{background:#fff;border:1px solid #d1d5db;border-radius:6px;box-sizing:border-box;padding:8px}
+.process-card-header{align-items:center;display:flex;flex-wrap:wrap;gap:6px;justify-content:space-between;margin-bottom:6px}
+.process-card-title{align-items:center;display:inline-flex;flex-wrap:wrap;font-weight:650;gap:5px;min-width:0}
+.process-card-meta{background:#f8fafc;border:1px solid #cbd5e1;border-radius:999px;color:#475569;font-size:11px;font-weight:600;line-height:1.2;padding:2px 7px}
+.process-flow-connector{align-items:center;color:#64748b;display:flex;font-size:13px;font-weight:700;justify-content:center;line-height:1;margin:-2px 0}
+.process-flow-connector::before{content:"↓"}
+.process-parallel-group-card{background:#f8fafc;border-style:dashed}
+.process-parallel-children{display:grid;gap:8px}
+.process-step-card-child{background:#fff}
+.process-resolve-card{border-color:#93c5fd}
 .entity-notes,.entity-overview{display:grid;gap:6px}
 .entity-notes .note-paragraph,.entity-overview .note-paragraph{margin:0}
 .entity-notes pre,.entity-overview pre{background:#f9fafb;border:1px solid #e5e7eb;border-radius:4px;margin:0;overflow:auto;padding:8px;white-space:pre-wrap}
@@ -255,7 +266,9 @@ body.hide-marker-action .mm-marker-action{display:none}
     .repeated-layout-only-message{display:none!important}
     .mermaid-source,.mermaid-render{break-inside:avoid;font-size:8.5pt;max-width:100%;overflow:visible;page-break-inside:avoid;white-space:pre-wrap}
     .mermaid-render svg{display:block;height:auto!important;margin:0 auto;max-height:180mm;max-width:100%;width:auto!important}
-    .action-detail,.note-block{break-inside:avoid;page-break-inside:avoid}
+    .action-detail,.note-block,.process-card{break-inside:avoid;page-break-inside:avoid}
+    .process-flow{gap:6px}
+    .process-flow-connector{font-size:10pt}
 }
 `;
 }
