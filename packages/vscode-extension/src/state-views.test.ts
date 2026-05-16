@@ -222,6 +222,19 @@ viewport: mobile
         - target: E-Status
         - content: Status replaced by scenario.
 
+### A-ReplaceStatusAgain Replace status again
+
+- Triggered
+  - E-ShowButton.click
+- From
+  - editing
+- Process P1: Replace status again
+  - case: changed
+    - Effects
+      - display:
+        - target: E-Status
+        - content: Status replaced by later scenario case.
+
 ## Preview Scenarios
 
 ### editing-help
@@ -235,6 +248,7 @@ viewport: mobile
 - state: editing
 - cases:
   - A-ReplaceStatus.P1.changed
+  - A-ReplaceStatusAgain.P1.changed
 `;
   const result = parseMarkVSpec(source);
   const models = buildStateScreenReadModels(result, result, "mobile");
@@ -243,6 +257,7 @@ viewport: mobile
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
   const helpSection = stateSectionContaining(html, "editing", "editing-help");
   const statusSection = stateSectionContaining(html, "editing", "editing-status");
+  const statusWireframe = stateWireframeSection(statusSection);
 
   assert.deepEqual(result.diagnostics, []);
   assert(helpModel?.renderedIds.layoutIds.has("L-Message"));
@@ -251,7 +266,8 @@ viewport: mobile
   assert.match(helpSection, /Delivery cadence help text\./);
   assert.match(helpSection, /data-mm-display-preview="true"/);
   assert.match(statusSection, /<span class="state-badge">editing-status<\/span>/);
-  assert.match(statusSection, /Status replaced by scenario\./);
+  assert.doesNotMatch(statusWireframe, /Status replaced by scenario\./);
+  assert.match(statusWireframe, /Status replaced by later scenario case\./);
   assert.match(statusSection, /data-mm-display-preview="true"/);
 });
 

@@ -643,9 +643,10 @@ function replaceElementContents(html: string, elementId: string, content: string
   const replaceStart = renderKeyStart !== -1 && html.slice(renderKeyStart, wrapperStart).trim() === ""
     ? renderKeyStart
     : wrapperStart;
+  const targetMarker = `<span class="mm-display-target-marker" data-mm-id="${escapeHtml(elementId)}"></span>`;
   const embedded = partialId
-    ? `<div class="mm-element-wrap mm-partial-preview" data-mm-partial-preview="true" data-mm-partial-id="${escapeHtml(partialId)}">${renderPartialPreviewBadge(partialId, partialPath)}${content}</div>`
-    : `<div class="mm-element-wrap mm-partial-preview mm-display-preview" data-mm-display-preview="true">${content}</div>`;
+    ? `<div class="mm-element-wrap mm-partial-preview" data-mm-partial-preview="true" data-mm-partial-id="${escapeHtml(partialId)}">${targetMarker}${renderPartialPreviewBadge(partialId, partialPath)}${content}</div>`
+    : `<div class="mm-element-wrap mm-partial-preview mm-display-preview" data-mm-display-preview="true">${targetMarker}${content}</div>`;
   return `${html.slice(0, replaceStart)}${embedded}${html.slice(wrapperCloseEnd + 1)}`;
 }
 
