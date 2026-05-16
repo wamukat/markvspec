@@ -729,7 +729,7 @@ function applyActionStructuredEffect(
 
   diagnostics.push({
     severity: "warning",
-    message: `Action ${action.id} has unsupported Effects entry: ${bullet.text}. Use state, navigate, response, from, params, or update.`,
+    message: `Action ${action.id} has unsupported Effects entry: ${bullet.text}. Use state, navigate, response, result, from, params, or update.`,
     line: bullet.location.line
   });
 }
@@ -858,7 +858,7 @@ function applyStructuredEffectToOutcome(
 
   diagnostics.push({
     severity: "warning",
-    message: `Action ${action.id} has unsupported ${contextLabel} entry: ${bullet.text}. Use state, navigate, response, from, params, update, stop, or continue.`,
+    message: `Action ${action.id} has unsupported ${contextLabel} entry: ${bullet.text}. Use state, navigate, response, result, from, params, update, stop, or continue.`,
     line: bullet.location.line
   });
 }

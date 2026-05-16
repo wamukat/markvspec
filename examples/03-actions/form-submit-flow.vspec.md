@@ -112,16 +112,20 @@ server, and navigates only after a successful response.
   - validation-error
   - submit-error
 - Process P1: Check validation
+  - receive:
+    - validation: V-SubmitRequest.result
   - case: invalid
-    - response: required field missing
-    - state: validation-error
-    - stop
-    - display:
-      - target: L-MessageArea
-      - content: Validation message
+    - result: required field missing
+    - Effects
+      - state: validation-error
+      - display:
+        - target: L-MessageArea
+        - content: Validation message
+      - stop
   - case: valid
-    - response: all required fields are valid
-    - continue
+    - result: all required fields are valid
+    - Effects
+      - continue
 - Process P2: Submit subscription
   - input:
     - email: E-EmailInput.value
@@ -134,9 +138,11 @@ server, and navigates only after a successful response.
   - result:
     - subscription creation request
   - case: sent
-    - state: submitting
+    - Effects
+      - state: submitting
   - case: send-failed
-    - state: submit-error
+    - Effects
+      - state: submit-error
 
 ### A2:A-HandleSubmitResponse Handle submit response
 
@@ -149,7 +155,21 @@ server, and navigates only after a successful response.
     - response: A-SubmitRequest.P2.response
   - case: success
     - response: 201 created
-    - navigate: SCR-THANK-YOU
+    - Effects
+      - navigate: SCR-THANK-YOU
   - case: failure
     - response: 4xx or 5xx
-    - state: submit-error
+    - Effects
+      - state: submit-error
+
+## Validations
+
+### V-SubmitRequest Required subscription fields
+
+- target: F-SubmitRequest
+- rules:
+  - required:
+    - E-EmailInput
+- scope: composite
+- run: client
+- message: Email is required before submitting the subscription request.

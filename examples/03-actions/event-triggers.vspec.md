@@ -204,10 +204,11 @@ used around a form-like preferences screen.
       - model: ${model.keyword} = result.keyword
       - model: ${model.email} = result.email
       - model: ${model.deliveryCadence} = result.deliveryCadence
-    - state: editing
+      - state: editing
   - case: failure
     - response: 5xx or timeout
-    - state: load-error
+    - Effects
+      - state: load-error
 
 ### A2:A-UpdateKeyword Update keyword
 
@@ -230,14 +231,14 @@ used around a form-like preferences screen.
   - receive:
     - validation: V-PreferencesForm.result
   - case: invalid
-    - response: email is empty or malformed
+    - result: email is empty or malformed
     - Effects
       - display:
         - target: E-ValidationBanner
         - content: Enter a valid notification email before saving.
       - stop
   - case: valid
-    - response: email is valid
+    - result: email is valid
     - Effects
       - state: editing
       - stop
@@ -296,15 +297,16 @@ used around a form-like preferences screen.
   - receive:
     - validation: V-PreferencesForm.result
   - case: invalid
-    - response: required field missing or invalid
+    - result: required field missing or invalid
     - Effects
       - display:
         - target: E-ValidationBanner
         - content: Enter a valid notification email before saving.
       - stop
   - case: valid
-    - response: form fields are valid
-    - continue
+    - result: form fields are valid
+    - Effects
+      - continue
 - Process P2: Submit preferences
   - input:
     - keyword: E-SearchInput.value
@@ -319,9 +321,11 @@ used around a form-like preferences screen.
   - result:
     - preferences save request
   - case: sent
-    - state: saving
+    - Effects
+      - state: saving
   - case: send-failed
-    - state: save-error
+    - Effects
+      - state: save-error
 
 ### A8:A-HandleSaveResponse Handle save response
 
@@ -334,10 +338,12 @@ used around a form-like preferences screen.
     - response: A-SubmitPreferences.P2.response
   - case: success
     - response: 200 saved preferences
-    - state: saved
+    - Effects
+      - state: saved
   - case: failure
     - response: 4xx or 5xx
-    - state: save-error
+    - Effects
+      - state: save-error
 
 ## Preview Scenarios
 

@@ -231,12 +231,13 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
 - Process: Validate
   - target: V-SearchForm
   - case: invalid
-    - response: invalid search condition
+    - result: invalid search condition
     - Effects
       - state: validation-error
-    - stop
+      - stop
   - case: valid
-    - continue
+    - Effects
+      - continue
 - Process: HttpRequest
   - GET /search
     - keyword: E-KeywordInput.value
@@ -244,12 +245,12 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
   - case: sent
     - Effects
       - state: loading
-    - stop
+      - stop
   - case: send-failed
-    - response: request could not be sent
+    - result: request could not be sent
     - Effects
       - state: load-error
-    - stop
+      - stop
 
 ### A-ApplySearchResult Apply search result
 
@@ -301,12 +302,12 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
     - Effects
       - model: ${model.memberProfile.loaded} = true
       - model: ${model.memberProfile.name} = result.name
-    - continue
+      - continue
   - case: failure
     - response: 5xx or timeout
     - Effects
       - model: ${model.memberProfile.loaded} = false
-    - continue
+      - continue
 - Process: ServerCall
   - group: initial-load
   - PointQueryService.findSelfPoints()
@@ -315,24 +316,24 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
     - Effects
       - model: ${model.points.loaded} = true
       - model: ${model.points.balance} = result.balance
-    - continue
+      - continue
   - case: failure
     - response: 5xx or timeout
     - Effects
       - model: ${model.points.loaded} = false
-    - continue
+      - continue
 - Process: Resolve
   - group: initial-load
   - case: ready
-    - response: profile and points loaded
+    - result: profile and points loaded
     - Effects
       - state: idle
-    - stop
+      - stop
   - case: failed
-    - response: one or more calls failed
+    - result: one or more calls failed
     - Effects
       - state: load-error
-    - stop
+      - stop
 ```
 
 `group` を持つ `Process:` の `case:` では、`state` や `navigate` を直接書きません。並列 process の完了条件と最終遷移を `Process: Resolve` に集約することで、State Flow の分岐点を 1 箇所に保ちます。`Resolve` は外部呼び出しではなく、同じ Action 内の parallel group を集約する control process です。`Process: Resolve` は後続の `Process:` へ `continue` できるため、resolve 後に整形や追加判定を続ける Action も処理順どおりに読めます。

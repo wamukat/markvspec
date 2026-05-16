@@ -232,9 +232,11 @@ entity ごとの説明です。
   - result:
     - login request submission result
   - case: sent
-    - state: wait-auth
+    - Effects
+      - state: wait-auth
   - case: send-failed
-    - state: auth-error
+    - Effects
+      - state: auth-error
 
 送信失敗は HTTP response ではなく、request を送信できなかったケースとして扱います。
 ```
@@ -1151,6 +1153,8 @@ Process は Action 内で一意な marker と、人間が読む process name を
 
 `input:` は要素や model から能動的に読む値です。`input:` を持つ Process は `result:` を必ず書きます。`receive:` は外部 event、validation result、または前段 Process の結果を受け取って分類する場合に使います。Validation contract は `V-LoginForm.result` のような opaque source として受け取ります。
 
+Process が編集可能な画面要素に現在表示されている値を読む場合は、`${model.email}` ではなく `E-EmailInput.value` のような element value source を優先します。`${model.*}` を process input や execution params で使うのは、現在ページ番号や計算済みの次ページ番号のように、要素値ではなく派生済みまたは保持済みの model state を意図的に読む場合に限ります。
+
 `input:` を持つ Process は、読み順として `input -> request/server/custom detail -> result -> case` の順に書くことを推奨します。`result:` が `request:` や `server:` の後にあっても、`input:` を持つ Process では引き続き必須です。
 
 ```markdown
@@ -1165,7 +1169,7 @@ Process は Action 内で一意な marker と、人間が読む process name を
   - receive:
     - validation: V-LoginForm.result
   - case: invalid
-    - response: required fields are missing
+    - result: required fields are missing
     - Effects
       - state: validation-error
       - display:
@@ -1173,7 +1177,7 @@ Process は Action 内で一意な marker と、人間が読む process name を
         - content: Required field message
       - stop
   - case: valid
-    - response: all required fields are valid
+    - result: all required fields are valid
     - Effects
       - continue
 - Process P2: Submit login request
@@ -1258,7 +1262,7 @@ Process は Action 内で一意な marker と、人間が読む process name を
 - Process P3: Resolve initial load
   - group: initial-load
   - case: ready
-    - response: profile and points loaded
+    - result: profile and points loaded
     - Effects
       - state: idle
       - stop
@@ -1516,8 +1520,9 @@ Action から View Context を更新するときは、process case の中に `vi
 ```markdown
 - Process P1: Open help panel
   - case: opened
-    - view: ${view.isHelpPanelOpen} = true
-    - view: ${view.selectedTab} = results
+    - Effects
+      - view: ${view.isHelpPanelOpen} = true
+      - view: ${view.selectedTab} = results
 ```
 
 ## View Context Samples セクション

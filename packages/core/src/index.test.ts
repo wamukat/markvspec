@@ -6307,7 +6307,7 @@ title: Legacy Action DSL
   assert(messages.includes("Action A-Legacy has unsupported top-level entry: Process. Use Triggered, From, Process: <type>, or Otherwise."));
   assert(messages.includes("Action A-Legacy has unsupported top-level entry: Resolve: load-group. Use Triggered, From, Process: <type>, or Otherwise."));
   assert(messages.includes("Action A-Legacy process step ServerCall uses removed cases block syntax. Use direct case: <name> entries under Process: ServerCall."));
-  assert(messages.includes("Action A-Legacy has unsupported process step ServerCall case success entry: ${model.member.loaded}: true. Use state, navigate, response, from, params, update, stop, or continue."));
+  assert(messages.includes("Action A-Legacy has unsupported process step ServerCall case success entry: ${model.member.loaded}: true. Use state, navigate, response, result, from, params, update, stop, or continue."));
   assert.equal(
     result.diagnostics.find((diagnostic) => diagnostic.message.includes("unsupported top-level entry: Effects"))?.line,
     lineNumber(source, "- Effects")
@@ -9093,7 +9093,7 @@ title: Malformed Action
   assert(messages.includes("Action A-Submit process step Immediate has unsupported Effects entry: request: POST /unsupported. Use model, view, state, navigate, or update."));
   assert(messages.includes("Action A-Submit process step Immediate has unsupported Effects entry: target: L-MessageArea. Put update details under an update block."));
   assert(messages.includes("Action A-Submit has unsupported process step Immediate case failure entry: target: L-MessageArea. Put update details under an update block."));
-  assert(messages.includes("Action A-Submit has unsupported process step Immediate case failure entry: request: POST /unsupported. Use state, navigate, response, from, params, update, stop, or continue."));
+  assert(messages.includes("Action A-Submit has unsupported process step Immediate case failure entry: request: POST /unsupported. Use state, navigate, response, result, from, params, update, stop, or continue."));
   const action = result.actions.find((candidate) => candidate.id === "A-Submit");
   assert.equal(action?.target, undefined);
   assert.deepEqual(action?.processSteps.find((step) => step.name === "HttpRequest")?.details.map((detail) => [detail.key, detail.value]), [["request", "POST /submit"], ["message", "E-メールアドレス入力.value"]]);
@@ -9290,31 +9290,37 @@ title: Parallel Process
   - MemberQueryService.findSelfProfile()
   - case: success
     - response: 200 member profile
-    - model: \${model.memberProfile.loaded} = true
-    - continue
+    - Effects
+      - model: \${model.memberProfile.loaded} = true
+      - continue
   - case: failure
     - response: 5xx or timeout
-    - continue
+    - Effects
+      - continue
 - Process: ServerCall
   - group: initial-load
   - PointQueryService.findSelfPoints()
   - case: success
     - response: 200 points
-    - model: \${model.points.loaded} = true
-    - continue
+    - Effects
+      - model: \${model.points.loaded} = true
+      - continue
   - case: failure
     - response: 5xx or timeout
-    - continue
+    - Effects
+      - continue
 - Process: Resolve
   - group: initial-load
   - case: ready
-    - response: profile and points loaded
-    - state: idle
-    - stop
+    - result: profile and points loaded
+    - Effects
+      - state: idle
+      - stop
   - case: failed
-    - response: one or more calls failed
-    - state: load-error
-    - stop
+    - result: one or more calls failed
+    - Effects
+      - state: load-error
+      - stop
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-InitialLoad");
@@ -9369,14 +9375,16 @@ title: Bad Parallel Process
   - MemberQueryService.findSelfProfile()
   - case: success
     - response: 200 member profile
-    - state: idle
-    - stop
+    - Effects
+      - state: idle
+      - stop
 - Process: Resolve
   - group: missing-load
   - case: failed
-    - response: missing group
-    - state: load-error
-    - stop
+    - result: missing group
+    - Effects
+      - state: load-error
+      - stop
 - Process: Resolve
 `;
   const result = parseMarkVSpec(source);

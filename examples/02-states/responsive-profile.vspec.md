@@ -116,14 +116,16 @@ viewport while keeping state behavior shared.
   - editing
 - Process P1: Call server service
   - input:
-    - email: ${model.email}
+    - email: E-Email.value
   - server:
     - ProfileService.save()
     - params:
-      - email: ${model.email}
+      - email: E-Email.value
   - result:
     - profile save request
   - case: success
-    - state: idle
+    - Effects
+      - state: idle
   - case: failure
-    - state: editing
+    - Effects
+      - state: editing

@@ -121,15 +121,18 @@ referenced from the same flow.
   - save-error
   - saved
 - Process P1: Check validation
-  - validation: V-AccountSettings.result
+  - receive:
+    - validation: V-AccountSettings.result
   - case: invalid
-    - response: required field missing
-    - error code: ERR-ACCOUNT-REQUIRED
-    - state: validation-error
-    - stop
+    - result: required field missing
+    - Effects
+      - error code: ERR-ACCOUNT-REQUIRED
+      - state: validation-error
+      - stop
   - case: valid
-    - response: all required fields are present
-    - continue
+    - result: all required fields are present
+    - Effects
+      - continue
 - Process P2: Call server service
   - input:
     - displayName: E-DisplayNameInput.value
@@ -142,11 +145,13 @@ referenced from the same flow.
   - result:
     - account settings save request
   - case: sent
-    - state: idle
+    - Effects
+      - state: idle
   - case: send-failed
     - response: network error
-    - error code: ERR-ACCOUNT-SAVE-FAILED
-    - state: save-error
+    - Effects
+      - error code: ERR-ACCOUNT-SAVE-FAILED
+      - state: save-error
 
 ### A2:A-HandleSaveResponse Handle save response
 
@@ -159,13 +164,15 @@ referenced from the same flow.
     - response: A-SaveAccount.P2.response
   - case: success
     - response: 200 saved
-    - state: saved
-    - stop
+    - Effects
+      - state: saved
+      - stop
   - case: failure
     - response: 409 or 5xx
-    - error code: ERR-ACCOUNT-SAVE-FAILED
-    - state: save-error
-    - stop
+    - Effects
+      - error code: ERR-ACCOUNT-SAVE-FAILED
+      - state: save-error
+      - stop
 
 ## Validations
 

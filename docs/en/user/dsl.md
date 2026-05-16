@@ -1408,10 +1408,11 @@ screen does, not the exact htmx attributes.
 - Process P1: Immediate
   - case: empty
     - from: idle
-    - state: validation-error
-    - display:
-      - target: L-EmailValidation
-      - content: Email is required.
+    - Effects
+      - state: validation-error
+      - display:
+        - target: L-EmailValidation
+        - content: Email is required.
 ```
 
 Mapping to htmx/Thymeleaf is implementation-facing:
@@ -1559,6 +1560,12 @@ with `input:` must declare `result:`. Use `receive:` when a process classifies a
 external event, validation result, or prior process result. Validation contracts
 are received as opaque sources such as `V-LoginForm.result`.
 
+Prefer element value sources such as `E-EmailInput.value` when a process reads a
+value currently shown in an editable screen element. Use `${model.*}` in process
+inputs or execution params only when the process intentionally reads derived or
+stored model state that is not directly represented by an element value, such as
+the current page number or a calculated next page.
+
 For input-based processes, write the process in reading order:
 `input -> request/server/custom detail -> result -> case`. The `result:` remains
 required for `input:` processes even when it appears after `request:` or
@@ -1578,7 +1585,7 @@ required for `input:` processes even when it appears after `request:` or
   - receive:
     - validation: V-LoginForm.result
   - case: invalid
-    - response: required fields are missing
+    - result: required fields are missing
     - Effects
       - state: validation-error
       - display:
@@ -1586,7 +1593,7 @@ required for `input:` processes even when it appears after `request:` or
         - content: Required field message
       - stop
   - case: valid
-    - response: all required fields are valid
+    - result: all required fields are valid
     - Effects
       - continue
 - Process P2: Submit login request
@@ -1735,12 +1742,12 @@ aggregate decision in a Resolve process with the same `group`.
 - Process P3: Resolve initial load
   - group: initial-load
   - case: ready
-    - response: profile and points loaded
+    - result: profile and points loaded
     - Effects
       - state: idle
       - stop
   - case: failed
-    - response: one or more calls failed
+    - result: one or more calls failed
     - Effects
       - state: load-error
       - stop
@@ -1902,8 +1909,9 @@ Actions update View Context with `view:` effects inside a process case:
 ```markdown
 - Process P1: Immediate
   - case: opened
-    - view: ${view.isHelpPanelOpen} = true
-    - view: ${view.selectedTab} = results
+    - Effects
+      - view: ${view.isHelpPanelOpen} = true
+      - view: ${view.selectedTab} = results
 ```
 
 ## View Context Samples Section

@@ -18,8 +18,6 @@ confirmation dialog that are not covered by the smaller examples.
 ## States
 
 - editing*
-- confirm-discard
-  - The user has requested to discard unsaved profile changes.
 - saving
 - save-error
 
@@ -41,7 +39,6 @@ confirmation dialog that are not covered by the smaller examples.
 - L-Actions
 - E-SaveSpinner
 - E-SaveErrorBanner
-- E-DiscardDialog
 
 ### L2:L-ProfileHeader Profile header
 
@@ -249,7 +246,6 @@ confirmation dialog that are not covered by the smaller examples.
 
 - title: Discard unsaved changes?
 - content: Unsaved profile changes will be lost.
-- visible when: confirm-discard
 
 ## Actions
 
@@ -262,21 +258,23 @@ confirmation dialog that are not covered by the smaller examples.
   - save-error
 - Process P1: Call server service
   - input:
-    - bio: ${model.bio}
-    - reviewDate: ${model.reviewDate}
-    - visibility: ${model.visibility}
+    - bio: E-BioTextarea.value
+    - reviewDate: E-RequestedDate.value
+    - visibility: E-VisibilityRadio.value
   - server:
     - ProfileService.save()
     - params:
-      - bio: ${model.bio}
-      - reviewDate: ${model.reviewDate}
-      - visibility: ${model.visibility}
+      - bio: E-BioTextarea.value
+      - reviewDate: E-RequestedDate.value
+      - visibility: E-VisibilityRadio.value
   - result:
     - profile save request
   - case: sent
-    - state: saving
+    - Effects
+      - state: saving
   - case: send-failed
-    - state: save-error
+    - Effects
+      - state: save-error
 
 ### A2:A-OpenDiscardDialog Open discard dialog
 
@@ -288,4 +286,16 @@ confirmation dialog that are not covered by the smaller examples.
 - Process P1: Apply immediate effect
   - case: done
     - Effects
-      - state: confirm-discard
+      - display:
+        - target: E-DiscardDialog
+        - content: Discard unsaved changes confirmation dialog
+      - stop
+
+## Preview Scenarios
+
+### editing-confirm-discard
+
+- state: editing
+- before: saving
+- cases:
+  - A-OpenDiscardDialog.P1.done

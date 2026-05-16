@@ -91,12 +91,12 @@ the `Process P3: Resolve initial load` step owns the final state transition.
     - Effects
       - model: ${model.memberProfile.loaded} = true
       - model: ${model.memberProfile.name} = result.name
-    - continue
+      - continue
   - case: failure
     - response: 5xx or timeout
     - Effects
       - model: ${model.memberProfile.loaded} = false
-    - continue
+      - continue
 - Process P2: Call server service
   - group: initial-load
   - server:
@@ -108,25 +108,27 @@ the `Process P3: Resolve initial load` step owns the final state transition.
     - Effects
       - model: ${model.points.loaded} = true
       - model: ${model.points.balance} = result.balance
-    - continue
+      - continue
   - case: failure
     - response: 5xx or timeout
     - Effects
       - model: ${model.points.loaded} = false
-    - continue
+      - continue
 - Process P3: Resolve grouped processes
   - group: initial-load
   - receive:
     - profile: A-InitialLoad.P1.result
     - points: A-InitialLoad.P2.result
   - case: ready
-    - response: profile and points loaded
-    - state: idle
-    - stop
+    - result: profile and points loaded
+    - Effects
+      - state: idle
+      - stop
   - case: failed
-    - response: one or more calls failed
-    - state: load-error
-    - stop
+    - result: one or more calls failed
+    - Effects
+      - state: load-error
+      - stop
 
 ## Model Samples
 
