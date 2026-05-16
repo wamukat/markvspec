@@ -1393,6 +1393,7 @@ test("does not render viewport filter controls in the preview shell", () => {
   assert.match(html, /\.state-viewport-section\{margin:18px 0 24px;scroll-margin-top:var\(--markvspec-sticky-offset\)\}/);
   assert.match(html, /\.toc\{background:#fff;border:1px solid #d1d5db;border-radius:8px;box-shadow:0 8px 24px rgba\(15,23,42,\.12\);display:none;max-height:calc\(100vh - 92px\);overflow:auto;padding:10px;position:fixed;right:16px;top:76px;width:220px;z-index:1\}/);
   assert.match(html, /\.toc-inline\{background:#fff;border:1px solid #d1d5db;border-radius:8px;display:block;margin:0 0 28px;padding:12px\}/);
+  assert.match(html, /\.toc-sublist\{display:grid;gap:2px;list-style:none;margin:2px 0 3px 12px;padding:0\}/);
   assert.match(html, /\.toc-list li\.is-active > a\{background:#dbeafe;color:#1e3a8a;font-weight:650\}/);
   assert.match(html, /\.toc-toggle\{align-items:center;background:#fff;border:1px solid #d1d5db;border-radius:6px;box-shadow:0 4px 14px rgba\(15,23,42,\.12\);color:#111827;cursor:pointer;display:inline-flex;height:32px;justify-content:center;padding:0;position:fixed;right:14px;top:10px;width:34px;z-index:21\}/);
   assert.match(html, /body\.toc-collapsed \.toc,body\.toc-collapsed \.toc-inline\{display:none!important\}/);
@@ -1403,6 +1404,8 @@ test("does not render viewport filter controls in the preview shell", () => {
   assert.match(html, /\.doc-section h3\{font-size:var\(--markvspec-heading-viewport\);margin:22px 0 8px\}/);
   assert.match(html, /\.state-screen-heading\{align-items:center;display:flex;flex-wrap:wrap;font-size:var\(--markvspec-heading-state\);gap:8px;margin:18px 0 10px\}/);
   assert.match(html, /\.state-screen-detail-heading\{color:#475569;font-size:12px;font-weight:700\}/);
+  assert.match(html, /\.system-events-box\{background:#f8fafc;border:1px dashed #94a3b8;border-radius:6px;margin:10px 0 0;padding:7px 12px 8px\}/);
+  assert.match(html, /\.system-events-box h4,\.system-events-box \.state-screen-detail-heading\{font-size:12px;margin:0 0 6px\}/);
   assert.doesNotMatch(html, /\.state-screen-heading\{[^}]*font-size:15px/);
   assert.match(html, /\.doc-section\{break-inside:avoid;margin:0 0 28px;page-break-inside:avoid;scroll-margin-top:var\(--markvspec-sticky-offset\)\}/);
   assert.match(html, /\.document h2\[id\],\.document h3\[id\],\.document h4\[id\]\{scroll-margin-top:var\(--markvspec-sticky-offset\)\}/);
@@ -4875,6 +4878,8 @@ route: /users/:id
   assert.match(previewHtml, /\.state-screen-heading\{align-items:center;display:flex;flex-wrap:wrap;font-size:var\(--markvspec-heading-state\);gap:8px;margin:18px 0 10px\}/);
   assert.match(previewHtml, /\.state-screen-subheading\{color:#334155;font-size:var\(--markvspec-heading-detail\);font-weight:700\}/);
   assert.match(previewHtml, /\.state-screen-detail-heading\{color:#475569;font-size:12px;font-weight:700;margin:14px 0 8px\}/);
+  assert.match(previewHtml, /\.system-events-box\{background:#f8fafc;border:1px dashed #94a3b8;border-radius:6px;margin:10px 0 0;padding:7px 12px 8px\}/);
+  assert.match(previewHtml, /\.system-events-box h4,\.system-events-box \.state-screen-detail-heading\{font-size:12px;margin:0 0 6px\}/);
   assert.doesNotMatch(previewHtml, /html\{scroll-padding-top:var\(--markvspec-sticky-offset\)\}/);
   assert.match(previewHtml, /\.wireframe-section\{max-width:100%;overflow-x:auto;overflow-y:visible;padding-bottom:4px\}/);
   assert.match(previewHtml, /\.state-screen-section\[data-viewport\] \.wireframe-section \.mm-wireframe:not\(\.mm-wireframe-empty\)\{max-width:none;min-width:var\(--markvspec-viewport-width, 100%\);width:var\(--markvspec-viewport-width, 100%\)\}/);
