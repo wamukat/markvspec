@@ -1776,6 +1776,109 @@ viewport: mobile
   assert.match(dialogSection, /action-detail-A-ConfirmDialog/);
 });
 
+test("renders targetless toast display effects as non-modal overlay stacks", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-TOAST-SCENARIO
+type: screen
+title: Toast Scenario
+viewport: mobile
+---
+
+# SCR-TOAST-SCENARIO Toast Scenario
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- E-SaveButton
+
+## Elements
+
+### E-SaveButton Button
+
+- label: Save
+- action: A-SaveSettings
+
+### E-SavedToast Toast
+
+- message: Settings saved.
+- tone: success
+- placement: top-right
+- duration: short
+
+### E-SyncToast Toast
+
+- message: Sync queued.
+- tone: info
+- placement: top-right
+- duration: medium
+
+## Actions
+
+### A-SaveSettings Save settings
+
+- Triggered
+  - E-SaveButton.click
+- From
+  - idle
+- Process P1: Save settings
+  - case: success
+    - Effects
+      - display:
+        - element: E-SavedToast
+    - stop
+
+### A-QueueSync Queue sync
+
+- Triggered
+  - E-SaveButton.click
+- From
+  - idle
+- Process P1: Queue sync
+  - case: done
+    - Effects
+      - display:
+        - element: E-SyncToast
+    - stop
+
+## Preview Scenarios
+
+### idle-saved-toast
+
+- state: idle
+- cases:
+  - A-SaveSettings.P1.success
+  - A-QueueSync.P1.done
+`);
+  const html = renderPreviewHtml(
+    result,
+    {
+      cspSource: "vscode-resource:",
+      asWebviewUri: (uri: unknown) => uri
+    } as never,
+    { layout: true, element: true, action: true },
+    undefined,
+    "toast-scenario.vspec.md"
+  );
+
+  assert.equal(result.diagnostics.length, 0);
+  const toastSection = stateSectionContaining(html, "idle", `data-mm-display-toast="E-SavedToast"`);
+  const toastWireframe = stateWireframeSection(toastSection);
+  assert.match(toastWireframe, /class="mm-toast-region mm-toast-region-top-right" data-mm-display-toast-region="top-right"/);
+  assert.match(toastWireframe, /data-mm-display-toast="E-SavedToast"[\s\S]*<div class="mm-element mm-element-toast mm-tone-success" data-mm-id="E-SavedToast" role="status" data-mm-toast-placement="top-right" data-mm-toast-duration="short">/);
+  assert.match(toastWireframe, /data-mm-display-toast="E-SyncToast"[\s\S]*<div class="mm-element mm-element-toast mm-tone-info" data-mm-id="E-SyncToast" role="status" data-mm-toast-placement="top-right" data-mm-toast-duration="medium">/);
+  assert.doesNotMatch(toastWireframe, /mm-modal-overlay/);
+  assert.doesNotMatch(toastWireframe, /aria-modal="true"/);
+});
+
 test("marks unplaced layouts in state view specs without rendering them in wireframes", () => {
   const result = parseMarkVSpec(`---
 id: SCR-UNPLACED-LAYOUT

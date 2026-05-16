@@ -4878,6 +4878,7 @@ test("parses every release example without diagnostics", () => {
     "03-actions/form-submit-flow.vspec.md",
     "03-actions/parallel-initial-load.vspec.md",
     "03-actions/single-field-validation.vspec.md",
+    "03-actions/toast-feedback.vspec.md",
     "04-real-world-screens/login-basic.vspec.md",
     "04-real-world-screens/notice-detail.vspec.md",
     "04-real-world-screens/profile-edit-rich.vspec.md",
@@ -7688,7 +7689,7 @@ title: Users
   assert.doesNotMatch(html, /<td>Alice<\/td>/);
 });
 
-test("renders Dialog Image Icon and Spinner elements", () => {
+test("renders Dialog Toast Image Icon and Spinner elements", () => {
   const source = `---
 id: SCR-MEDIA
 type: screen
@@ -7710,6 +7711,7 @@ title: Media
 #### Items
 
 - E-ConfirmDialog
+- E-SavedToast
 - E-ProfileImage
 - E-SearchIcon
 - E-読込中スピナー
@@ -7734,6 +7736,13 @@ title: Media
 - variant: primary
 - tone: danger
 - action: A-ConfirmDelete
+
+### 5:E-SavedToast Toast
+
+- message: Settings saved.
+- tone: success
+- placement: top-right
+- duration: short
 
 ### 2:E-ProfileImage Image
 
@@ -7776,6 +7785,7 @@ title: Media
   assert.match(html, /<section class="mm-element mm-element-dialog" data-mm-id="E-ConfirmDialog" role="dialog" aria-modal="true" aria-label="Delete item">/);
   assert.match(html, /<div class="mm-dialog-actions">[\s\S]*<button class="mm-element mm-element-button mm-variant-primary mm-tone-danger" data-mm-id="E-ConfirmDeleteButton">Delete<\/button>/);
   assert.match(html, /<div class="mm-dialog-body">This action cannot be undone\.<\/div>/);
+  assert.match(html, /<div class="mm-element mm-element-toast mm-tone-success" data-mm-id="E-SavedToast" role="status" data-mm-toast-placement="top-right" data-mm-toast-duration="short"><span class="mm-toast-message">Settings saved\.<\/span><\/div>/);
   assert.match(html, /<figure class="mm-element mm-element-image" data-mm-id="E-ProfileImage">/);
   assert.match(html, /<div class="mm-image-placeholder">Profile photo<\/div><figcaption>\/assets\/profile\.png<\/figcaption>/);
   assert.match(html, /<span class="mm-element mm-element-icon" data-mm-id="E-SearchIcon" aria-label="Search">/);
@@ -7807,6 +7817,79 @@ title: Dialog Warning
   const result = parseMarkVSpec(source);
 
   assert(result.diagnostics.some((diagnostic) => diagnostic.message === "Dialog E-ConfirmDialog should define actions with at least one Button element."));
+});
+
+test("accepts targetless Toast display effects while keeping ordinary elements target-required", () => {
+  const source = `---
+id: SCR-TOAST-DISPLAY
+type: screen
+title: Toast Display
+---
+
+# SCR-TOAST-DISPLAY Toast Display
+
+## States
+
+- idle*
+
+## Elements
+
+### E-SaveButton Button
+
+- label: Save
+
+### E-SavedToast Toast
+
+- message: Settings saved.
+- tone: success
+- placement: top-right
+- duration: short
+
+### E-OtherText Text
+
+- sample: Other
+
+### E-BadToast Toast
+
+- message: Bad toast.
+- placement: center
+- duration: forever
+
+## Actions
+
+### A-Save Save
+
+- Triggered
+  - E-SaveButton.click
+- From
+  - idle
+- Process P1: Save
+  - case: success
+    - Effects
+      - display:
+        - element: E-SavedToast
+    - stop
+
+### A-Other Other
+
+- Triggered
+  - E-SaveButton.click
+- From
+  - idle
+- Process P1: Other
+  - case: done
+    - Effects
+      - display:
+        - element: E-OtherText
+    - stop
+`;
+  const result = parseMarkVSpec(source);
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert(!messages.includes("Action A-Save process step P1 Save case success display effect must define target."));
+  assert(messages.includes("Action A-Other process step P1 Other case done display effect must define target."));
+  assert(messages.includes("Element E-BadToast placement must be one of top-right, top-left, bottom-right, bottom-left, top, bottom."));
+  assert(messages.includes("Element E-BadToast duration must be one of short, medium, long, manual."));
 });
 
 test("renders practical UI helper elements", () => {

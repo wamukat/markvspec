@@ -341,6 +341,7 @@ Element types:
 - `Table`
 - `Banner`
 - `Dialog`
+- `Toast`
 - `Badge`
 - `Image`
 - `Icon`
@@ -962,6 +963,7 @@ Supported element types:
 - `Table`
 - `Banner`
 - `Dialog`
+- `Toast`
 - `Badge`
 - `Image`
 - `Icon`
@@ -1292,11 +1294,14 @@ header. Add `sortable: true` to show a sort affordance, or `sort: asc` /
 element block remains supported for static tables that do not use
 `## Model Samples`.
 
-`Dialog`, `Image`, `Icon`, and `Spinner` use small semantic property sets.
+`Dialog`, `Toast`, `Image`, `Icon`, and `Spinner` use small semantic property sets.
 `Dialog` is a modal overlay by default. Do not place a dedicated
 `L-DialogArea` in normal layout just to host it. Define its action buttons as
 regular `Button` elements and list them with `actions:` so each button can
 point to its own `Action`.
+`Toast` is a non-modal overlay notification. Use `message`, `tone`,
+`placement`, and `duration` to describe the visible feedback. Unlike `Dialog`,
+it does not block the screen and does not require action buttons.
 `Image` renders as a wireframe placeholder rather than loading the actual asset.
 For `Image`, `src` is the asset source, not a data-binding source.
 `Spinner` represents loading or waiting feedback for states such as
@@ -1322,6 +1327,13 @@ For `Image`, `src` is the asset source, not a data-binding source.
 - variant: primary
 - tone: danger
 - action: A-ConfirmDelete
+
+### E-SavedToast Toast
+
+- message: Settings saved.
+- tone: success
+- placement: top-right
+- duration: short
 
 ### E-ProfileImage Image
 
@@ -1740,9 +1752,10 @@ Preferred action groups and effects:
 receives the display result. `display.element` is singular and points to one
 existing `E-*` element or `L-*` layout to insert or show in that target.
 Define reusable UI as an element or layout first; direct `display.content` and
-`display.elements` are not supported. The exception is `Dialog`: a display
-effect whose `element` is a `Dialog` may omit `target`, and preview scenarios
-render it as a modal overlay.
+`display.elements` are not supported. The exceptions are `Dialog` and `Toast`:
+a display effect whose `element` is a `Dialog` may omit `target` and render as a
+modal overlay, while a display effect whose `element` is a `Toast` may omit
+`target` and render in the non-modal toast region.
 
 ```markdown
 - display:
@@ -1759,6 +1772,11 @@ presentation.
 ```markdown
 - display:
   - element: E-ConfirmDialog
+```
+
+```markdown
+- display:
+  - element: E-SavedToast
 ```
 
 Under a process step `case: <name>` branch, add `stop` or `continue` directly

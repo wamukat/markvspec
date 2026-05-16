@@ -191,6 +191,8 @@ function auditDisplayEffects(document: ExampleAuditDocument, findings: AuditFind
       }
       const expectedNeedle = elementTypeById.get(elementId) === "Dialog"
         ? `data-mm-display-modal="${elementId}"`
+        : elementTypeById.get(elementId) === "Toast"
+          ? `data-mm-display-toast="${elementId}"`
         : `data-mm-id="${elementId}"`;
       if (!section || !section.html.includes(expectedNeedle)) {
         findings.push({

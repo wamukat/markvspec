@@ -1456,9 +1456,9 @@ function validateDisplayEffect(
   if (!display) {
     return;
   }
-  const targetlessDialog = isTargetlessDialogDisplay(display, elementsById);
+  const targetlessOverlay = isTargetlessOverlayDisplay(display, elementsById);
   const target = display.target;
-  if (!target && !targetlessDialog) {
+  if (!target && !targetlessOverlay) {
     diagnostics.push({
       severity: "error",
       message: `Action ${actionId} ${context} display effect must define target.`,
@@ -1602,14 +1602,14 @@ function validateDialogActions(
   }
 }
 
-function isTargetlessDialogDisplay(
+function isTargetlessOverlayDisplay(
   display: MarkVSpecActionOutcome["display"],
   elementsById: Map<string, MarkVSpecElement>
 ): boolean {
   if (!display?.element || display.target) {
     return false;
   }
-  return elementsById.get(display.element)?.type === "Dialog";
+  return ["Dialog", "Toast"].includes(elementsById.get(display.element)?.type ?? "");
 }
 
 function validatePreviewScenarioCases(

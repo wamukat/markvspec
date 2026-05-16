@@ -274,6 +274,7 @@ marker です。参照には marker ではなく ID を使います。
 - [examples/02-states/responsive-profile.vspec.md](examples/02-states/responsive-profile.vspec.md): mobile / desktop layout。
 - [examples/03-actions/event-triggers.vspec.md](examples/03-actions/event-triggers.vspec.md): click 以外の element event と lifecycle trigger。
 - [examples/03-actions/form-submit-flow.vspec.md](examples/03-actions/form-submit-flow.vspec.md): validate、model update、server call、navigation。
+- [examples/03-actions/toast-feedback.vspec.md](examples/03-actions/toast-feedback.vspec.md): non-modal toast feedback と target なしの toast display。
 - [examples/03-actions/parallel-initial-load.vspec.md](examples/03-actions/parallel-initial-load.vspec.md): parallel server call と `Resolve`。
 - [examples/04-real-world-screens/notice-detail.vspec.md](examples/04-real-world-screens/notice-detail.vspec.md): Display Content Spec の文言、データソース、format、value、params。
 - [examples/04-real-world-screens/profile-edit-rich.vspec.md](examples/04-real-world-screens/profile-edit-rich.vspec.md): 拡張 form、media、list、dialog 系 Element Type。

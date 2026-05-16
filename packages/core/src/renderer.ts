@@ -747,6 +747,14 @@ function renderElement(
     return renderAnnotatedElement(markers, element.type, `<div class="${classes}" data-mm-id="${escapeHtml(element.id)}" role="status">${escapeHtml(displayValue)}</div>`);
   }
 
+  if (element.type === "Toast") {
+    const message = stringProperty(element, "message") || displayValue || element.id;
+    const placement = stringProperty(element, "placement") || "top-right";
+    const duration = stringProperty(element, "duration") || "medium";
+    const actionLabel = stringProperty(element, "action") ? `<span class="mm-toast-action">${escapeHtml(stringProperty(element, "label") || "Action")}</span>` : "";
+    return renderAnnotatedElement(markers, element.type, `<div class="${classes}" data-mm-id="${escapeHtml(element.id)}" role="status" data-mm-toast-placement="${escapeHtml(placement)}" data-mm-toast-duration="${escapeHtml(duration)}"><span class="mm-toast-message">${escapeHtml(message)}</span>${actionLabel}</div>`);
+  }
+
   if (element.type === "Badge") {
     return renderAnnotatedElement(markers, element.type, `<span class="${classes}" data-mm-id="${escapeHtml(element.id)}">${escapeHtml(displayValue)}</span>`);
   }
@@ -1405,6 +1413,17 @@ function renderDefaultStyles(): string {
 .mm-dialog-actions .mm-element-wrap{width:auto}
 .mm-modal-overlay{align-items:center;background:rgba(15,23,42,.28);display:flex;inset:0;justify-content:center;min-height:220px;padding:24px;position:absolute;z-index:8}
 .mm-modal-content{max-width:min(420px,100%);width:max-content}
+.mm-element-toast{align-items:center;background:#fff;border-left-width:4px;box-shadow:0 8px 22px rgba(15,23,42,.16);display:flex;gap:10px;max-width:min(320px,100%);min-width:180px}
+.mm-toast-message{min-width:0}
+.mm-toast-action{border-left:1px solid currentColor;font-weight:700;margin-left:auto;padding-left:10px;white-space:nowrap}
+.mm-toast-region{display:flex;gap:8px;max-width:calc(100% - 32px);pointer-events:none;position:absolute;z-index:7}
+.mm-toast-region .mm-element-wrap{pointer-events:auto;width:auto}
+.mm-toast-region-top-right{align-items:flex-end;flex-direction:column;right:16px;top:16px}
+.mm-toast-region-top-left{align-items:flex-start;flex-direction:column;left:16px;top:16px}
+.mm-toast-region-bottom-right{align-items:flex-end;bottom:16px;flex-direction:column-reverse;right:16px}
+.mm-toast-region-bottom-left{align-items:flex-start;bottom:16px;flex-direction:column-reverse;left:16px}
+.mm-toast-region-top{align-items:center;flex-direction:column;left:50%;top:16px;transform:translateX(-50%)}
+.mm-toast-region-bottom{align-items:center;bottom:16px;flex-direction:column-reverse;left:50%;transform:translateX(-50%)}
 .mm-element-image{background:#f9fafb;border-style:dashed;display:inline-block;min-width:180px;padding:8px;text-align:center}
 .mm-image-placeholder{align-items:center;display:flex;justify-content:center;min-height:80px}
 .mm-element-image figcaption{color:#6b7280;font-size:12px;margin-top:4px}

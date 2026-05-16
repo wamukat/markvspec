@@ -24,6 +24,7 @@ const elementTypes = new Set([
   "Table",
   "Banner",
   "Dialog",
+  "Toast",
   "Badge",
   "Image",
   "Icon",
@@ -86,6 +87,7 @@ const elementTypeProperties = new Map<string, Set<string>>([
   ["Table", new Set(["source"])],
   ["Banner", new Set()],
   ["Dialog", new Set(["title", "content", "actions"])],
+  ["Toast", new Set(["placement", "duration"])],
   ["Badge", new Set()],
   ["Image", new Set(["src", "alt"])],
   ["Icon", new Set(["name"])],
@@ -102,6 +104,8 @@ const elementTypeProperties = new Map<string, Set<string>>([
 const elementWidthTypes = new Set(["Input", "Textarea", "Select", "MultiSelect", "DatePicker", "DateInput", "TimeInput", "NumberInput", "FileUpload", "FileInput"]);
 const elementWidthPresets = new Set(["short", "medium", "long", "full"]);
 const buttonSizePresets = new Set(["small", "medium", "large"]);
+const toastPlacementPresets = new Set(["top-right", "top-left", "bottom-right", "bottom-left", "top", "bottom"]);
+const toastDurationPresets = new Set(["short", "medium", "long", "manual"]);
 const optionElementTypes = new Set(["Select", "MultiSelect", "RadioGroup", "CheckboxGroup"]);
 const inputElementTypes = new Set([
   "Input",
@@ -177,6 +181,24 @@ function checkElementPresetProperties(element: MarkVSpecElement, diagnostics: Ma
       severity: "warning",
       message: `Element ${element.id} size must be one of small, medium, large.`,
       line: firstPropertyLine(element, "size") ?? element.location.line
+    });
+  }
+
+  const placement = element.properties["placement"];
+  if (typeof placement === "string" && element.type === "Toast" && !toastPlacementPresets.has(placement)) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Element ${element.id} placement must be one of top-right, top-left, bottom-right, bottom-left, top, bottom.`,
+      line: firstPropertyLine(element, "placement") ?? element.location.line
+    });
+  }
+
+  const duration = element.properties["duration"];
+  if (typeof duration === "string" && element.type === "Toast" && !toastDurationPresets.has(duration)) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Element ${element.id} duration must be one of short, medium, long, manual.`,
+      line: firstPropertyLine(element, "duration") ?? element.location.line
     });
   }
 }

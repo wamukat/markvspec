@@ -17,6 +17,7 @@ It checks:
 - element-trigger actions are not shown when their trigger element is absent
 - Preview Scenario display effects appear in the rendered wireframe or overlay
 - known generated English fragments are detected in Japanese Action Details
+- targetless Toast display effects render in toast regions, not modal overlays
 
 Known findings are allowed only when they name the Kanbalone ticket that will
 remove the allowlist, the reason, and the removal condition. New findings fail
@@ -28,8 +29,3 @@ Current known allowlist:
 
 - `MarkVSpec#1072`: Japanese Action Details still contain generated English text.
 - `MarkVSpec#1076`: composed template slot layouts can be visible while marked not placed.
-
-Toast-specific overlay checks are pending `MarkVSpec#1075`, because `Toast` is
-not a supported element type yet. Until then, display effects for non-Dialog
-targets are checked by `data-mm-id`, and `MarkVSpec#1075` must extend this audit
-when it adds the toast region.

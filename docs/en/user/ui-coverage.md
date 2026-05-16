@@ -18,6 +18,7 @@ without falling back to ambiguous prose.
 | Banner / badge | Supported | `Banner`, `Badge` | Use `tone` for semantic intent such as danger or success. |
 | List / table | Supported | `List`, `Table` | Table columns and sample rows use nested Markdown lists. |
 | Dialog / overlay | Supported | `Dialog` with targetless `display.element` | Dialogs are modal overlays by default. Define cancel/confirm buttons with `actions:` and show the dialog from a Preview Scenario or action case without a layout target. |
+| Toast notification | Supported | `Toast` with targetless `display.element` | Toasts are non-modal overlays. Use `message`, `tone`, `placement`, and `duration`; multiple displayed toasts stack in a toast region. |
 | Spinner / loading mask | Supported | `Spinner` with state-visible overlay layout | Used for wait states and partial loading states. |
 | Divider | Supported | `Divider` | Separates groups inside forms or detail screens. |
 | Empty state | Supported | `Paragraph` with `visible when: empty` | Empty states are prose content tied to an empty state rather than a dedicated element type. |
@@ -36,6 +37,7 @@ without falling back to ambiguous prose.
 | Detail screen | Supported | Stack/grid layouts, `Badge`, `List`, read-only text, and optional dialog actions. |
 | Edit form | Supported | `Input`, `DateInput`, `TimeInput`, `NumberInput`, `Textarea`, `FileInput`, `Select`, `MultiSelect`, `Checkbox`, `CheckboxGroup`, `Switch`, `DatePicker`, `FileUpload`, validation feedback, save lifecycle actions. |
 | Confirmation flow | Supported | `Dialog`, targetless `display.element`, confirm/cancel actions, danger tone. |
+| Save feedback | Supported | `Toast`, targetless `display.element`, success/error tones, and Error Codes with `display: toast`. |
 | Approval flow | Alternative | Detail/edit patterns with explicit actions and rules. |
 | History/audit trail | Supported | `Table` or `List` with sampled rows. |
 | Permission-dependent display | Alternative | `visible when` / `hidden when` with semantic role conditions. |

@@ -376,6 +376,7 @@ function embedPartialPreviewsForResult(
 ): string {
   let output = html;
   const modalDisplays = displayEffects.filter((display) => !display.target && display.element && elementType(result, display.element) === "Dialog");
+  const toastDisplays = displayEffects.filter((display) => !display.target && display.element && elementType(result, display.element) === "Toast");
   for (const target of [
     ...partialTargets(result, viewport, { resolveViewportFallback: true }),
     ...partialTargetsFromDisplayEffects(displayEffects)
@@ -451,6 +452,30 @@ function embedPartialPreviewsForResult(
       output = appendModalOverlay(output, fragment.html, elementId);
     }
   }
+  const toastOverlays = toastDisplays.flatMap((display) => {
+    const elementId = display.element;
+    if (!elementId) {
+      return [];
+    }
+    const renderKey = `element:${elementId}`;
+    const fragment = renderMarkVSpecHtmlFragment(result, renderKey, {
+      includeConditionalContent: false,
+      viewport,
+      state: screenState,
+      messages: messagesForResult(result),
+      markerVisibility: { layout: true, element: true, action: true },
+      markerLink,
+      includeStyles: false
+    });
+    return fragment ? [{
+      elementId,
+      html: fragment.html,
+      placement: elementProperty(result, elementId, "placement") || "top-right"
+    }] : [];
+  });
+  if (toastOverlays.length > 0) {
+    output = appendToastOverlays(output, toastOverlays);
+  }
   return output;
 }
 
@@ -459,8 +484,42 @@ function appendModalOverlay(html: string, dialogHtml: string, dialogId: string):
   return html.replace(/<\/div>\s*$/u, `${overlay}</div>`);
 }
 
+function appendToastOverlays(
+  html: string,
+  toasts: Array<{ elementId: string; html: string; placement: string }>
+): string {
+  const groups = new Map<string, Array<{ elementId: string; html: string }>>();
+  for (const toast of toasts) {
+    const placement = normalizeToastPlacement(toast.placement);
+    const group = groups.get(placement) ?? [];
+    group.push({ elementId: toast.elementId, html: toast.html });
+    groups.set(placement, group);
+  }
+
+  const overlays = [...groups.entries()]
+    .map(([placement, group]) => {
+      const items = group
+        .map((toast) => `<div class="mm-toast-item" data-mm-display-toast="${escapeHtml(toast.elementId)}">${toast.html}</div>`)
+        .join("");
+      return `<div class="mm-toast-region mm-toast-region-${escapeHtml(placement)}" data-mm-display-toast-region="${escapeHtml(placement)}">${items}</div>`;
+    })
+    .join("");
+  return html.replace(/<\/div>\s*$/u, `${overlays}</div>`);
+}
+
+function normalizeToastPlacement(value: string): string {
+  return ["top-right", "top-left", "bottom-right", "bottom-left", "top", "bottom"].includes(value)
+    ? value
+    : "top-right";
+}
+
 function elementType(result: MarkVSpecParseResult, elementId: string): string | undefined {
   return result.elements.find((element) => element.id === elementId)?.type;
+}
+
+function elementProperty(result: MarkVSpecParseResult, elementId: string, key: string): string | undefined {
+  const value = result.elements.find((element) => element.id === elementId)?.properties[key];
+  return typeof value === "string" ? value : undefined;
 }
 
 function renderPartialPreviewPlaceholder(message: string): string {

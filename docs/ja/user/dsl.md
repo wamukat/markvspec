@@ -343,6 +343,7 @@ Element type です。
 - `Table`
 - `Banner`
 - `Dialog`
+- `Toast`
 - `Badge`
 - `Image`
 - `Icon`
@@ -793,6 +794,7 @@ wireframe preview では native `required` attribute や自動の `*` marker と
 - `Table`
 - `Banner`
 - `Dialog`
+- `Toast`
 - `Badge`
 - `Image`
 - `Icon`
@@ -1010,6 +1012,9 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 通常 Layout へ `L-DialogArea` のような専用領域を置くのは canonical ではありません。
 Dialog 内の操作は通常の `Button` element として定義し、Dialog の `actions:` に
 カンマ区切りで並べます。各 Button はそれぞれの `action:` から Action へ辿れるようにします。
+`Toast` は non-modal overlay 通知です。`message`、`tone`、`placement`、
+`duration` で表示内容と出し方を表します。Dialog と違い、画面操作をブロックせず、
+操作 button も必須ではありません。
 
 ```markdown
 ### E-ConfirmDialog Dialog
@@ -1031,6 +1036,15 @@ Dialog 内の操作は通常の `Button` element として定義し、Dialog の
 - variant: primary
 - tone: danger
 - action: A-ConfirmDelete
+```
+
+```markdown
+### E-SavedToast Toast
+
+- message: 保存しました。
+- tone: success
+- placement: top-right
+- duration: short
 ```
 
 ## variant と tone
@@ -1272,7 +1286,7 @@ execution detail も result classification も持たない、決定的な即時�
     - stop
 ```
 
-主な `Effects` entry は `model:`、`view:`、`state:`、`navigate:`、`display:` です。`stop` / `continue` は case-level の制御フローなので、`Effects` の外で case の最後に書きます。`display.target` は表示先の既存 `L-*` layout または `E-*` element を指し、`display.element` はその表示先に挿入または表示する既存の `E-*` element または `L-*` layout を1つだけ指します。直接の `display.content` と複数形の `display.elements` はサポートしません。例外として、`display.element` が `Dialog` の場合は `target` を省略でき、preview scenario では modal overlay として表示します。
+主な `Effects` entry は `model:`、`view:`、`state:`、`navigate:`、`display:` です。`stop` / `continue` は case-level の制御フローなので、`Effects` の外で case の最後に書きます。`display.target` は表示先の既存 `L-*` layout または `E-*` element を指し、`display.element` はその表示先に挿入または表示する既存の `E-*` element または `L-*` layout を1つだけ指します。直接の `display.content` と複数形の `display.elements` はサポートしません。例外として、`display.element` が `Dialog` の場合は `target` を省略でき、preview scenario では modal overlay として表示します。`display.element` が `Toast` の場合も `target` を省略でき、non-modal toast region に表示します。
 
 ```markdown
 - display:
@@ -1285,6 +1299,11 @@ execution detail も result classification も持たない、決定的な即時�
 ```markdown
 - display:
   - element: E-ConfirmDialog
+```
+
+```markdown
+- display:
+  - element: E-SavedToast
 ```
 
 複数の処理を並列に開始し、全完了後にまとめて判定する場合は、各 process に `group: <group-id>` を書き、同じ group を持つ Resolve process で集約します。

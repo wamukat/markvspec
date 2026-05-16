@@ -42,6 +42,7 @@ rule と validation の見出しは、document symbol と parser test が曖昧�
 | [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | `screen.load`、`.change` の未保存通知、`.blur` validation、`.focus` help、`.submit`、dialog click / `close` と Preview Scenarios の例。 |
 | [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md) | validation receive source、request parameters、server process detail、成功時 navigation の例。 |
 | [Single Field Validation](../../../examples/03-actions/single-field-validation.vspec.md) | 単項目 validation contract と、length / pattern / type / range / step などの element 入力仕様の対応例。 |
+| [Toast Feedback](../../../examples/03-actions/toast-feedback.vspec.md) | `Toast`、target なしの `display.element`、toast stack、success/error tone、`display: toast` の Error Codes の例。 |
 | [Parallel Initial Load](../../../examples/03-actions/parallel-initial-load.vspec.md) | parallel server call と `Resolve` の例。 |
 | [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md) | Display Content Spec の `label src`、`sample`、`src`、`format`、`value`、`params` を確認する例。 |
 | [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md) | 拡張 form、media、list、dialog 系 Element Type をまとめて確認する例。 |

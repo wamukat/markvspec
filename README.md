@@ -285,6 +285,7 @@ The `examples/` directory is organized as a learning path:
 - [examples/02-states/responsive-profile.vspec.md](examples/02-states/responsive-profile.vspec.md): mobile and desktop layouts.
 - [examples/03-actions/event-triggers.vspec.md](examples/03-actions/event-triggers.vspec.md): non-click element events and lifecycle triggers.
 - [examples/03-actions/form-submit-flow.vspec.md](examples/03-actions/form-submit-flow.vspec.md): validate, update model, server call, and navigation.
+- [examples/03-actions/toast-feedback.vspec.md](examples/03-actions/toast-feedback.vspec.md): non-modal toast feedback and targetless toast display.
 - [examples/03-actions/parallel-initial-load.vspec.md](examples/03-actions/parallel-initial-load.vspec.md): parallel server calls and `Resolve`.
 - [examples/04-real-world-screens/notice-detail.vspec.md](examples/04-real-world-screens/notice-detail.vspec.md): Display Content Spec fields for wording, data sources, formatting, values, and params.
 - [examples/04-real-world-screens/profile-edit-rich.vspec.md](examples/04-real-world-screens/profile-edit-rich.vspec.md): extended form, media, list, and dialog element types.
