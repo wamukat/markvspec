@@ -3101,10 +3101,10 @@ locale: ja
   assert.doesNotMatch(html, /<h2>部分更新<\/h2>/);
   assert.match(actionDetailsSection, /<dt>部分更新<\/dt><dd>[\s\S]*<th>ケース<\/th><th>対象<\/th><th>差し替え内容<\/th>/);
   assert.doesNotMatch(actionDetailsSection, /<dt>部分更新<\/dt><dd>[\s\S]*<th>結果<\/th>/);
-  assert.match(actionDetailsSection, new RegExp(`<dt>部分更新</dt><dd>[\\s\\S]*<ul class="spec-list spec-effect-list"><li>content 更新後のユーザー一覧</li><li>mode replace</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>レスポンスのユーザー一覧を ${sourceCodePattern("${model.users.items}")} に格納する</li><li>レスポンスのページ番号を ${sourceCodePattern("${model.page}")} に格納する</li><li>${sourceCodePattern("${model.error}")} を空にする</li></ul></li></ul>`));
+  assert.match(actionDetailsSection, new RegExp(`<dt>部分更新</dt><dd>[\\s\\S]*<ul class="spec-list spec-effect-list"><li>内容 更新後のユーザー一覧</li><li>モード replace</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>レスポンスのユーザー一覧を ${sourceCodePattern("${model.users.items}")} に格納する</li><li>レスポンスのページ番号を ${sourceCodePattern("${model.page}")} に格納する</li><li>${sourceCodePattern("${model.error}")} を空にする</li></ul></li></ul>`));
   assert.doesNotMatch(actionDetailsSection, /side effect レスポンス/);
-  assert.match(actionDetailsSection, new RegExp(`<div class="process-card-header"><span class="process-card-title">PartialRequest</span></div>[\\s\\S]*<ul class="spec-list spec-effect-list"><li>request: POST /users/search</li><li>update ${detailLayoutRef("T1", "User table")}</li><li>mode replace</li><li>content 更新後のユーザー一覧</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>レスポンスのユーザー一覧を ${sourceCodePattern("${model.users.items}")} に格納する</li><li>レスポンスのページ番号を ${sourceCodePattern("${model.page}")} に格納する</li><li>${sourceCodePattern("${model.error}")} を空にする</li></ul></li></ul>`));
-  assert.match(actionDetailsSection, new RegExp(`<li>update <ul class="spec-list spec-effect-list"><li>${detailLayoutRef("T1", "User table")}</li><li>content 検索結果を表示する</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>${sourceCodePattern("${model.audit}")} &lt; value &amp; retry</li></ul></li></ul></li>`));
+  assert.match(actionDetailsSection, new RegExp(`<div class="process-card-header"><span class="process-card-title">PartialRequest</span></div>[\\s\\S]*<ul class="spec-list spec-effect-list"><li>request: POST /users/search</li><li>更新 ${detailLayoutRef("T1", "User table")}</li><li>モード replace</li><li>内容 更新後のユーザー一覧</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>レスポンスのユーザー一覧を ${sourceCodePattern("${model.users.items}")} に格納する</li><li>レスポンスのページ番号を ${sourceCodePattern("${model.page}")} に格納する</li><li>${sourceCodePattern("${model.error}")} を空にする</li></ul></li></ul>`));
+  assert.match(actionDetailsSection, new RegExp(`<li>更新 <ul class="spec-list spec-effect-list"><li>${detailLayoutRef("T1", "User table")}</li><li>内容 検索結果を表示する</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>${sourceCodePattern("${model.audit}")} &lt; value &amp; retry</li></ul></li></ul></li>`));
 });
 
 test("renders model samples in generated design document", () => {
@@ -5515,6 +5515,99 @@ title: Direct Process
   assert.match(actionDetail, new RegExp(`<span class="process-card-title">${docLabel("P2", "result")} Set loaded</span>[\\s\\S]*<li>effect set state ${docLabel("loaded", "state")}</li>`));
   assert.match(actionDetail, new RegExp(`<span class="process-card-title">${docLabel("P3", "result")} Label only</span>\\s*</div>\\s*</div>`));
   assert.doesNotMatch(actionDetail, /<strong>success<\/strong>/);
+});
+
+test("localizes generated Japanese action detail process labels without translating author text", () => {
+  const source = `---
+id: SCR-JA-ACTION-LABELS
+type: screen
+title: Japanese Action Labels
+locale: ja
+---
+
+# SCR-JA-ACTION-LABELS Japanese Action Labels
+
+## States
+
+- idle*
+- loaded
+
+## Layout: desktop
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- L-MessageArea
+- E-RunButton
+
+### L-MessageArea Message area
+
+- stack
+
+## Elements
+
+### E-RunButton Button
+
+- label: Run
+
+### E-Message Text
+
+- sample: Loaded
+
+### E-SavedToast Toast
+
+- message: Saved
+
+## Actions
+
+### A-Run Run
+
+- Triggered
+  - E-RunButton.click
+- From
+  - idle
+- Process: ServerCall
+  - group: initial-load
+  - when: E-RunButton is enabled
+  - skip when: E-RunButton is hidden
+  - case: success
+    - description: keep this English author text
+    - response: 200 loaded
+    - display:
+      - target: L-MessageArea
+      - element: E-Message
+    - continue
+- Process: Resolve
+  - group: initial-load
+  - case: ready
+    - response: all done
+    - state: loaded
+    - stop
+- Process: Immediate
+  - navigate: SCR-NEXT
+- Process: Immediate
+  - display:
+    - element: E-SavedToast
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Run">[\s\S]*?<\/article>/)?.[0] ?? "";
+
+  assert.match(actionDetail, /並列グループ: initial-load/);
+  assert.match(actionDetail, /実行条件/);
+  assert.match(actionDetail, /スキップ条件/);
+  assert.match(actionDetail, /説明: keep this English author text/);
+  assert.match(actionDetail, /レスポンス 200 loaded/);
+  assert.match(actionDetail, /表示 [\s\S]*要素 [\s\S]*E-Message/);
+  assert.match(actionDetail, /処理を継続/);
+  assert.match(actionDetail, /効果 状態更新/);
+  assert.match(actionDetail, /処理を停止/);
+  assert.match(actionDetail, /効果 画面遷移/);
+  assert.match(actionDetail, /表示 [\s\S]*トースト表示領域[\s\S]*要素 [\s\S]*E-SavedToast/);
+  assert.doesNotMatch(actionDetail, /effect set state|stop process|continue process|navigate to|Parallel group:|skip when|modal overlay/);
 });
 
 test("renders nested process detail params without flattened dot keys", () => {

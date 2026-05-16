@@ -119,6 +119,28 @@ export type MessageKey =
   | "preview"
   | "previewUpdate"
   | "process"
+  | "processContent"
+  | "processContinue"
+  | "processDescription"
+  | "processDisplay"
+  | "processEffect"
+  | "processElement"
+  | "processFragment"
+  | "processGroup"
+  | "processMode"
+  | "processModalOverlay"
+  | "processNavigateTo"
+  | "processOverlay"
+  | "processParallelGroup"
+  | "processReceive"
+  | "processRequest"
+  | "processResponse"
+  | "processSetState"
+  | "processSkipWhen"
+  | "processStop"
+  | "processToastOverlay"
+  | "processUpdate"
+  | "processWhen"
   | "project"
   | "projectTransitionDiagram"
   | "projectTransitions"
@@ -308,6 +330,28 @@ const en: Record<MessageKey, string> = {
   preview: "Preview",
   previewUpdate: "Preview update",
   process: "Process",
+  processContent: "content",
+  processContinue: "continue process",
+  processDescription: "description",
+  processDisplay: "display",
+  processEffect: "effect",
+  processElement: "element",
+  processFragment: "fragment",
+  processGroup: "group",
+  processMode: "mode",
+  processModalOverlay: "modal overlay",
+  processNavigateTo: "navigate to",
+  processOverlay: "overlay",
+  processParallelGroup: "Parallel group",
+  processReceive: "receive",
+  processRequest: "request",
+  processResponse: "response",
+  processSetState: "set state",
+  processSkipWhen: "skip when",
+  processStop: "stop process",
+  processToastOverlay: "toast overlay",
+  processUpdate: "update",
+  processWhen: "when",
   properties: "Properties",
   project: "Project",
   projectTransitionDiagram: "Project Transition Diagram",
@@ -498,6 +542,28 @@ const ja: Record<MessageKey, string> = {
   preview: "プレビュー",
   previewUpdate: "プレビュー更新",
   process: "処理",
+  processContent: "内容",
+  processContinue: "処理を継続",
+  processDescription: "説明",
+  processDisplay: "表示",
+  processEffect: "効果",
+  processElement: "要素",
+  processFragment: "フラグメント",
+  processGroup: "グループ",
+  processMode: "モード",
+  processModalOverlay: "モーダルオーバーレイ",
+  processNavigateTo: "画面遷移",
+  processOverlay: "オーバーレイ",
+  processParallelGroup: "並列グループ",
+  processReceive: "受信",
+  processRequest: "リクエスト",
+  processResponse: "レスポンス",
+  processSetState: "状態更新",
+  processSkipWhen: "スキップ条件",
+  processStop: "処理を停止",
+  processToastOverlay: "トースト表示領域",
+  processUpdate: "更新",
+  processWhen: "実行条件",
   properties: "属性",
   project: "プロジェクト",
   projectTransitionDiagram: "プロジェクト遷移図",

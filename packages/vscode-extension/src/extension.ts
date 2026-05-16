@@ -4235,9 +4235,9 @@ function hasUpdateEffect(effect: PartialUpdateEffect): boolean {
 
 function renderPartialUpdateContent(result: ReturnType<typeof parseMarkVSpec>, update: PartialUpdateEffect): string {
   const items = [
-    update.fragment ? `fragment ${text(update.fragment)}` : "",
-    update.content ? `content ${text(update.content)}` : "",
-    update.mode ? `mode ${text(update.mode)}` : ""
+    update.fragment ? `${escapeHtml(label(result, "processFragment"))} ${text(update.fragment)}` : "",
+    update.content ? `${escapeHtml(label(result, "processContent"))} ${text(update.content)}` : "",
+    update.mode ? `${escapeHtml(label(result, "processMode"))} ${text(update.mode)}` : ""
   ].filter(Boolean);
 
   return renderDetailList(result, items, update.sideEffects ?? []);
@@ -5114,7 +5114,7 @@ function renderParallelProcessGroupCard(
   detailedReferences: boolean
 ): string {
   return `<div class="process-card process-parallel-group-card" role="listitem" data-process-group="${escapeHtml(groupName)}">
-    <div class="process-card-header"><span class="process-card-title">Parallel group: ${text(groupName)}</span></div>
+    <div class="process-card-header"><span class="process-card-title">${escapeHtml(label(result, "processParallelGroup"))}: ${text(groupName)}</span></div>
     <div class="process-parallel-children">${steps.map((step) => renderProcessStepCard(result, step, detailedReferences, "child")).join("")}</div>
   </div>`;
 }
@@ -5132,7 +5132,7 @@ function renderProcessStepCard(
     variant === "child" ? "process-step-card-child" : "",
     step.resolveGroup ? "process-resolve-card" : ""
   ].filter(Boolean).join(" ");
-  const resolveGroup = step.resolveGroup ? `<span class="process-card-meta">group ${text(step.resolveGroup)}</span>` : "";
+  const resolveGroup = step.resolveGroup ? `<span class="process-card-meta">${escapeHtml(label(result, "processGroup"))} ${text(step.resolveGroup)}</span>` : "";
   return `<div class="${classes}" role="${variant === "root" ? "listitem" : "group"}"${step.resolveGroup ? ` data-resolve-group="${escapeHtml(step.resolveGroup)}"` : ""}>
     <div class="process-card-header"><span class="process-card-title">${renderProcessStepLabel(step)}</span>${resolveGroup}</div>
     ${detailList}
@@ -5145,17 +5145,17 @@ function renderProcessStepDetailList(
   detailedReferences: boolean
 ): string {
   const details = [
-    ...step.when.map((condition) => `when ${detailedReferences ? renderDetailCondition(result, condition) : renderCondition(result, condition)}`),
-    ...step.skipWhen.map((condition) => `skip when ${detailedReferences ? renderDetailCondition(result, condition) : renderCondition(result, condition)}`),
+    ...step.when.map((condition) => `${escapeHtml(label(result, "processWhen"))} ${detailedReferences ? renderDetailCondition(result, condition) : renderCondition(result, condition)}`),
+    ...step.skipWhen.map((condition) => `${escapeHtml(label(result, "processSkipWhen"))} ${detailedReferences ? renderDetailCondition(result, condition) : renderCondition(result, condition)}`),
     renderProcessDataDetails(result, "receive", step.receives, detailedReferences),
     ...renderProcessStepDetails(result, step, detailedReferences),
     renderProcessDataDetails(result, "result", step.results, detailedReferences),
-    step.to ? `effect ${renderTransitionEffect(result, step.to)}` : "",
-    step.display ? `display ${renderDisplayEffect(result, step.display, detailedReferences)}` : "",
-    step.target ? `update ${detailedReferences ? referenceForDetailId(result, step.target) : referenceForId(result, step.target, "target")}` : "",
-    step.mode ? `mode ${text(step.mode)}` : "",
-    step.fragment ? `fragment ${text(step.fragment)}` : "",
-    step.content ? `content ${text(step.content)}` : ""
+    step.to ? `${escapeHtml(label(result, "processEffect"))} ${renderTransitionEffect(result, step.to)}` : "",
+    step.display ? `${escapeHtml(label(result, "processDisplay"))} ${renderDisplayEffect(result, step.display, detailedReferences)}` : "",
+    step.target ? `${escapeHtml(label(result, "processUpdate"))} ${detailedReferences ? referenceForDetailId(result, step.target) : referenceForId(result, step.target, "target")}` : "",
+    step.mode ? `${escapeHtml(label(result, "processMode"))} ${text(step.mode)}` : "",
+    step.fragment ? `${escapeHtml(label(result, "processFragment"))} ${text(step.fragment)}` : "",
+    step.content ? `${escapeHtml(label(result, "processContent"))} ${text(step.content)}` : ""
   ].filter(Boolean);
   const stepCases = renderProcessStepCases(result, step);
   return renderDetailList(result, [...details, stepCases], step.sideEffects);
@@ -5179,7 +5179,14 @@ function renderProcessDataDetails(
   }
 
   const items = details.map((detail) => `<li>${renderProcessStepDetail(result, detail, detailedReferences)}</li>`).join("");
-  return `${text(labelText)}<ul class="spec-list spec-nested-list">${items}</ul>`;
+  return `${escapeHtml(processDataLabel(result, labelText))}<ul class="spec-list spec-nested-list">${items}</ul>`;
+}
+
+function processDataLabel(result: ReturnType<typeof parseMarkVSpec>, labelText: string): string {
+  if (labelText === "receive") {
+    return label(result, "processReceive");
+  }
+  return labelText;
 }
 
 function renderProcessStepDetails(
@@ -5314,15 +5321,15 @@ function renderProcessStepCases(
   return `${label(result, "case")}<ul class="spec-list spec-nested-list">${step.outcomes.map((outcome) => {
     const update = renderUpdateEffect(result, outcome, true);
     const details = [
-      outcome.description ? `description: ${text(outcome.description)}` : "",
-      outcome.response ? `response ${text(outcome.response.definition)}` : "",
-      outcome.request ? `request ${renderActionRequest(outcome)}` : "",
+      outcome.description ? `${escapeHtml(label(result, "processDescription"))}: ${text(outcome.description)}` : "",
+      outcome.response ? `${escapeHtml(label(result, "processResponse"))} ${text(outcome.response.definition)}` : "",
+      outcome.request ? `${escapeHtml(label(result, "processRequest"))} ${renderActionRequest(outcome)}` : "",
       outcome.routeParams.length ? `${label(result, "routeParameters")} ${renderRouteParams(result, outcome.routeParams, true)}` : "",
       renderOutcomeTransition(result, outcome),
-      outcome.flow === "stop" ? "stop process" : "",
-      outcome.flow === "continue" ? "continue process" : "",
-      outcome.display ? `display ${renderDisplayEffect(result, outcome.display, true)}` : "",
-      update ? `update ${update}` : ""
+      outcome.flow === "stop" ? escapeHtml(label(result, "processStop")) : "",
+      outcome.flow === "continue" ? escapeHtml(label(result, "processContinue")) : "",
+      outcome.display ? `${escapeHtml(label(result, "processDisplay"))} ${renderDisplayEffect(result, outcome.display, true)}` : "",
+      update ? `${escapeHtml(label(result, "processUpdate"))} ${update}` : ""
     ].filter(Boolean);
     return `<li><strong>${renderResultLabel(outcome.result)}</strong>${details.length > 0 ? `<ul>${details.map((detail) => `<li>${detail}</li>`).join("")}</ul>` : ""}</li>`;
   }).join("")}</ul>`;
@@ -5332,7 +5339,7 @@ function renderOutcomeTransition(
   result: ReturnType<typeof parseMarkVSpec>,
   outcome: ReturnType<typeof parseMarkVSpec>["actions"][number]["outcomes"][number]
 ): string {
-  return outcome.to ? `effect ${renderTransitionEffect(result, outcome.to)}` : "";
+  return outcome.to ? `${escapeHtml(label(result, "processEffect"))} ${renderTransitionEffect(result, outcome.to)}` : "";
 }
 
 function renderActionTransitionList(
@@ -5374,13 +5381,13 @@ function renderActionCaseRows(
       const response = outcome.response ?? action.responses.find((candidate) => candidate.result === outcome.result);
       const update = outcome ? renderUpdateEffect(result, outcome, true) : "";
       const details = [
-        outcome.description ? `description: ${text(outcome.description)}` : "",
-        response ? `response ${text(response.definition)}` : "",
-        outcome?.request ? `request ${renderActionRequest(outcome)}` : "",
+        outcome.description ? `${escapeHtml(label(result, "processDescription"))}: ${text(outcome.description)}` : "",
+        response ? `${escapeHtml(label(result, "processResponse"))} ${text(response.definition)}` : "",
+        outcome?.request ? `${escapeHtml(label(result, "processRequest"))} ${renderActionRequest(outcome)}` : "",
         outcome?.routeParams.length ? `${label(result, "routeParameters")} ${renderRouteParams(result, outcome.routeParams, true)}` : "",
-        outcome.to ? `effect ${renderTransitionEffect(result, outcome.to)}` : "",
-        outcome.display ? `display ${renderDisplayEffect(result, outcome.display, true)}` : "",
-        update ? `update ${update}` : ""
+        outcome.to ? `${escapeHtml(label(result, "processEffect"))} ${renderTransitionEffect(result, outcome.to)}` : "",
+        outcome.display ? `${escapeHtml(label(result, "processDisplay"))} ${renderDisplayEffect(result, outcome.display, true)}` : "",
+        update ? `${escapeHtml(label(result, "processUpdate"))} ${update}` : ""
       ].filter(Boolean);
       return [`${label(result, "case")} ${outcome.result}`, details.length > 0 ? `<ul>${details.map((detail) => `<li>${detail}</li>`).join("")}</ul>` : ""];
     });
@@ -5410,10 +5417,10 @@ function normalizeProcessStepName(name: string): string {
 
 function renderTransitionEffect(result: ReturnType<typeof parseMarkVSpec>, target: string): string {
   if (target.startsWith("SCR-") || target.startsWith("/") || /^https?:\/\//.test(target)) {
-    return `navigate to ${renderNavigationTarget(target)}`;
+    return `${escapeHtml(label(result, "processNavigateTo"))} ${renderNavigationTarget(target)}`;
   }
 
-  return `set state ${renderStateTransitionTarget(result, target)}`;
+  return `${escapeHtml(label(result, "processSetState"))} ${renderStateTransitionTarget(result, target)}`;
 }
 
 function renderOutcomeEffect(
@@ -5440,9 +5447,9 @@ function renderUpdateEffect(
 ): string {
   const parts = [
     detailedReferences ? referenceForDetailId(result, action.target) : referenceForId(result, action.target, "target"),
-    action.content ? `content ${text(action.content)}` : "",
-    action.mode ? `mode ${text(action.mode)}` : "",
-    action.fragment ? `fragment ${text(action.fragment)}` : ""
+    action.content ? `${escapeHtml(label(result, "processContent"))} ${text(action.content)}` : "",
+    action.mode ? `${escapeHtml(label(result, "processMode"))} ${text(action.mode)}` : "",
+    action.fragment ? `${escapeHtml(label(result, "processFragment"))} ${text(action.fragment)}` : ""
   ].filter(Boolean);
 
   return renderDetailList(result, parts, action.sideEffects);
@@ -5455,18 +5462,29 @@ function renderDisplayEffect(
 ): string {
   const target = display.target
     ? detailedReferences ? referenceForDetailId(result, display.target) : referenceForId(result, display.target, "target")
-    : "modal overlay";
+    : escapeHtml(targetlessDisplayTargetLabel(result, display.element));
   const contentSource = display.contentSource.length > 0
     ? `<ul class="spec-list spec-nested-list">${display.contentSource.map((detail) => `<li>${renderProcessStepDetail(result, detail, detailedReferences)}</li>`).join("")}</ul>`
     : "";
   const parts = [
     target,
-    display.element ? `element ${referenceForDetailId(result, display.element)}` : "",
-    display.content ? `content ${text(display.content)}` : "",
-    contentSource ? `content ${contentSource}` : ""
+    display.element ? `${escapeHtml(label(result, "processElement"))} ${referenceForDetailId(result, display.element)}` : "",
+    display.content ? `${escapeHtml(label(result, "processContent"))} ${text(display.content)}` : "",
+    contentSource ? `${escapeHtml(label(result, "processContent"))} ${contentSource}` : ""
   ].filter(Boolean);
 
   return renderDetailList(result, parts, []);
+}
+
+function targetlessDisplayTargetLabel(result: ReturnType<typeof parseMarkVSpec>, elementId?: string): string {
+  const elementType = result.elements.find((element) => element.id === elementId)?.type.toLowerCase();
+  if (elementType === "dialog") {
+    return label(result, "processModalOverlay");
+  }
+  if (elementType === "toast") {
+    return label(result, "processToastOverlay");
+  }
+  return label(result, "processOverlay");
 }
 
 function renderDetailList(result: ReturnType<typeof parseMarkVSpec>, items: string[], sideEffects: string[]): string {

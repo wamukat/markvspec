@@ -22,9 +22,7 @@ interface ExampleAuditDocument {
 
 const workspaceRoot = findWorkspaceRoot(process.cwd());
 const examplesRoot = resolve(workspaceRoot, "examples");
-const knownIssueTickets: Record<string, string> = {
-  "ja-ui-english-leftover": "MarkVSpec#1072"
-};
+const knownIssueTickets: Record<string, string> = {};
 
 test("audits example preview regressions across shipped examples", () => {
   const findings: AuditFinding[] = [];
@@ -239,7 +237,7 @@ function auditJapaneseGeneratedActionText(findings: AuditFinding[]): void {
       "",
       loaded.focus ? { focus: loaded.focus, messages: loaded.messages } : { messages: loaded.messages }
     );
-    for (const term of ["effect set state", "stop process", "continue process", "navigate to", "Parallel group:"]) {
+    for (const term of ["effect set state", "stop process", "continue process", "navigate to", "Parallel group:", "modal overlay"]) {
       if (html.includes(term)) {
         findings.push({
           code: "ja-ui-english-leftover",
