@@ -992,7 +992,8 @@ function formatSemanticSectionLines(lines: string[]): string {
     const previousLine = output[output.length - 1];
     const needsLeadingBlank = output.length > 0 && (
       /^#{2,4}\s+/u.test(line) ||
-      /^-\s+(?:Triggered|From|Process|Effects|Cases|Otherwise)\s*$/u.test(line) ||
+      /^-\s+(?:Triggered|From|Effects|Otherwise)\s*$/u.test(line) ||
+      /^-\s+Process(?:\s+[A-Za-z][A-Za-z0-9_-]*)?\s*:/u.test(line) ||
       (previousLine !== undefined && /^#{2,4}\s+/u.test(previousLine))
     );
     if (needsLeadingBlank && output[output.length - 1] !== "") {
@@ -3585,6 +3586,12 @@ function conditionLabel(result: ReturnType<typeof parseMarkVSpec>, key: string):
   if (key === "enabled") {
     return label(result, "conditionEnabledShort");
   }
+  if (key === "selected") {
+    return "selected";
+  }
+  if (key === "active") {
+    return "active";
+  }
   if (key === "when") {
     return label(result, "conditionWhenShort");
   }
@@ -5186,6 +5193,9 @@ function processDataLabel(result: ReturnType<typeof parseMarkVSpec>, labelText: 
   if (labelText === "receive") {
     return label(result, "processReceive");
   }
+  if (labelText === "result") {
+    return label(result, "result");
+  }
   return labelText;
 }
 
@@ -5217,7 +5227,7 @@ function renderProcessStepDetail(
   detail: ReturnType<typeof parseMarkVSpec>["actions"][number]["processSteps"][number]["details"][number],
   detailedReferences: boolean
 ): string {
-  const key = detailedReferences ? renderDetailParamSource(result, detail.key) : renderParamSource(result, detail.key);
+  const key = renderProcessDetailKey(result, detail.key, detailedReferences);
   const value = detailedReferences ? renderDetailParamSource(result, detail.value) : renderParamSource(result, detail.value);
   return `${key}: ${value}`;
 }
@@ -5300,7 +5310,7 @@ function renderProcessDetailNode(
   node: ProcessDetailNode,
   detailedReferences: boolean
 ): string {
-  const key = detailedReferences ? renderDetailParamSource(result, node.key) : renderParamSource(result, node.key);
+  const key = renderProcessDetailKey(result, node.key, detailedReferences);
   const label = node.detail
     ? `${key}: ${detailedReferences ? renderDetailParamSource(result, node.detail.value) : renderParamSource(result, node.detail.value)}`
     : key;
@@ -5308,6 +5318,39 @@ function renderProcessDetailNode(
     ? `<ul class="spec-list spec-nested-list">${node.children.map((child) => `<li>${renderProcessDetailNode(result, child, detailedReferences)}</li>`).join("")}</ul>`
     : "";
   return `${label}${children}`;
+}
+
+function renderProcessDetailKey(result: ReturnType<typeof parseMarkVSpec>, key: string, detailedReferences: boolean): string {
+  const localized = processDetailKeyLabel(result, key);
+  if (localized) {
+    return escapeHtml(localized);
+  }
+  return detailedReferences ? renderDetailParamSource(result, key) : renderParamSource(result, key);
+}
+
+function processDetailKeyLabel(result: ReturnType<typeof parseMarkVSpec>, key: string): string | undefined {
+  switch (key) {
+    case "request":
+      return label(result, "processRequest");
+    case "params":
+      return label(result, "parameters");
+    case "result":
+      return label(result, "result");
+    case "server":
+      return label(result, "processServer");
+    case "validation":
+      return label(result, "validation");
+    case "receive":
+      return label(result, "processReceive");
+    case "response":
+      return label(result, "processResponse");
+    case "call":
+      return label(result, "run");
+    case "group":
+      return label(result, "processGroup");
+    default:
+      return undefined;
+  }
 }
 
 function renderProcessStepCases(

@@ -303,7 +303,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
     if (!action.triggeredBy) {
       diagnostics.push({
         severity: "warning",
-        message: `Action ${action.id} has no trigger. Add a Triggered block with E-*.event, A-*.response, screen.load, or partial.render.`,
+        message: `Action ${action.id} has no trigger. Add a Triggered block with E-*.event, A-ActionId.P-marker.response, screen.load, or partial.render.`,
         line: action.location.line
       });
     } else if (documentLifecycleTriggers.has(action.triggeredBy)) {
@@ -372,7 +372,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
     } else if (action.triggeredBy && !action.trigger) {
       diagnostics.push({
         severity: "warning",
-        message: `Action ${action.id} has invalid trigger ${action.triggeredBy}. Expected E-*.event, A-*.response, screen.load, or partial.render.`,
+        message: `Action ${action.id} has invalid trigger ${action.triggeredBy}. Expected E-*.event, A-ActionId.P-marker.response, screen.load, or partial.render.`,
         line: action.triggeredByLocation?.line ?? action.location.line
       });
     }

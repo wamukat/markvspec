@@ -1686,6 +1686,8 @@ MarkVSpec は内容を検証、集計、実装契約として解釈しません�
 - `examples/02-states/responsive-profile.vspec.md`
 - `examples/03-actions/event-triggers.vspec.md`
 - `examples/03-actions/form-submit-flow.vspec.md`
+- `examples/03-actions/single-field-validation.vspec.md`
+- `examples/03-actions/toast-feedback.vspec.md`
 - `examples/03-actions/parallel-initial-load.vspec.md`
 - `examples/04-real-world-screens/notice-detail.vspec.md`
 - `examples/04-real-world-screens/profile-edit-rich.vspec.md`

@@ -87,7 +87,7 @@
         },
         {
           "name": "markup.heading.section.markvspec",
-          "match": "^(##)\\s+(States|Layout|Slots|Elements|Form Groups|Actions|Model Samples|Validations|Business Rules|Error Codes|History Fields|History)\\s*$",
+          "match": "^(##)\\s+(States|Layout|Slots|Elements|Form Groups|Actions|Model Samples|View Context|View Context Samples|Preview Scenarios|Validations|Business Rules|Error Codes|History Fields|History)\\s*$",
           "captures": {
             "1": {
               "name": "punctuation.definition.heading.markvspec"
@@ -163,7 +163,7 @@
       "patterns": [
         {
           "name": "meta.action-group.markvspec",
-          "match": "^(\\s*-\\s+)(Triggered|From|Process|Effects|Otherwise|Cases)\\s*:?\\s*$",
+          "match": "^(\\s*-\\s+)(Triggered|From|Effects|Otherwise)\\s*:?\\s*$",
           "captures": {
             "1": {
               "name": "punctuation.definition.list.begin.markvspec"
@@ -174,8 +174,26 @@
           }
         },
         {
+          "name": "meta.process-heading.markvspec",
+          "match": "^(\\s*-\\s+)(Process)\\s+([A-Za-z][A-Za-z0-9_-]*)\\s*:\\s*(.+)$",
+          "captures": {
+            "1": {
+              "name": "punctuation.definition.list.begin.markvspec"
+            },
+            "2": {
+              "name": "keyword.control.action-group.markvspec"
+            },
+            "3": {
+              "name": "entity.name.tag.process-marker.markvspec"
+            },
+            "4": {
+              "name": "support.function.process-step.markvspec"
+            }
+          }
+        },
+        {
           "name": "meta.action-update.markvspec",
-          "match": "^(\\s*-\\s+)(update|params|parallel)(:)?\\s*.*$",
+          "match": "^(\\s*-\\s+)(case|request|receive|result|server|validation|update|params|group)(:)?\\s*.*$",
           "captures": {
             "1": {
               "name": "punctuation.definition.list.begin.markvspec"

@@ -53,7 +53,7 @@ export function applyActionBulletToContext(
       if (isHttpRequestLine(inlineProcess)) {
         diagnostics.push({
           severity: "warning",
-          message: `Action ${action.id} has malformed Process entry: ${inlineProcess}. Put request lines under an HttpRequest step.`,
+          message: `Action ${action.id} has malformed Process entry: ${inlineProcess}. Put request lines under a marked process such as Process P1: Submit request.`,
           line: bullet.location.line
         });
         return { block: "process", rejectedProcessStepIndent: bullet.indent };
@@ -63,7 +63,7 @@ export function applyActionBulletToContext(
       if (inlineProcessValue !== undefined && normalizedInlineProcessKey !== "validate" && normalizedInlineProcessKey !== "resolve") {
         diagnostics.push({
           severity: "warning",
-          message: `Action ${action.id} has malformed Process entry: ${inlineProcess}. Start with a process step such as HttpRequest.`,
+          message: `Action ${action.id} has malformed Process entry: ${inlineProcess}. Start with a marked process such as Process P1: Submit request.`,
           line: bullet.location.line
         });
         return { block: "process", rejectedProcessStepIndent: bullet.indent };
@@ -101,7 +101,7 @@ export function applyActionBulletToContext(
 
     diagnostics.push({
       severity: "warning",
-      message: `Action ${action.id} has unsupported top-level entry: ${bullet.text}. Use Triggered, From, Process: <type>, or Otherwise.`,
+      message: `Action ${action.id} has unsupported top-level entry: ${bullet.text}. Use Triggered, From, Process P1: <name>, or Otherwise.`,
       line: bullet.location.line
     });
     return {};
@@ -143,7 +143,7 @@ export function applyActionBulletToContext(
       if (isHttpRequestLine(stepName)) {
         diagnostics.push({
           severity: "warning",
-          message: `Action ${action.id} has malformed Process entry: ${bullet.text}. Put request lines under an HttpRequest step.`,
+          message: `Action ${action.id} has malformed Process entry: ${bullet.text}. Put request lines under a marked process such as Process P1: Submit request.`,
           line: bullet.location.line
         });
         return { block: context.block, processStep: context.processStep, ...nextNestedContext(bullet, context) };
@@ -229,7 +229,7 @@ export function applyActionBulletToContext(
     }
     diagnostics.push({
       severity: "warning",
-      message: `Action ${action.id} has malformed Process entry: ${bullet.text}. Start with a process step such as HttpRequest.`,
+      message: `Action ${action.id} has malformed Process entry: ${bullet.text}. Start with a marked process such as Process P1: Submit request.`,
       line: bullet.location.line
     });
     return { block: context.block };

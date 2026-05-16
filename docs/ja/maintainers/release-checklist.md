@@ -39,6 +39,8 @@ example を代表セットとして使う。
 - `examples/03-actions/event-triggers.vspec.md`: click 以外の element event と lifecycle trigger。
 - `examples/03-actions/form-submit-flow.vspec.md`: validation、model update、server call、navigation を含む action flow。
 - `examples/03-actions/parallel-initial-load.vspec.md`: parallel server call と Resolve の action flow。
+- `examples/03-actions/single-field-validation.vspec.md`: 単項目 validation に絞った挙動。
+- `examples/03-actions/toast-feedback.vspec.md`: non-modal Toast 表示と background feedback。
 - `examples/04-real-world-screens/notice-detail.vspec.md`: Display Content Spec の文言、データソース、format、value、params。
 - `examples/04-real-world-screens/profile-edit-rich.vspec.md`: 拡張 form、media、list、dialog 系 Element Type。
 - `examples/04-real-world-screens/search-list.vspec.md`: 検索、filter、pagination、Model Samples を含む実務寄り画面。
@@ -53,7 +55,11 @@ example を代表セットとして使う。
 - [ ] `npm run typecheck` が通る。
 - [ ] `npm test` が通る。
 - [ ] `npm run build` が通る。
+- [ ] `npm run audit:examples` が通る。
+- [ ] `npm run check:print-regression` が通る。PDF export が使えない環境では、
+  互換ブラウザがないため skip したことを明示する。
 - [ ] `npm run check:readme-release` が通る。
+- [ ] release 環境で `npm run check:release` が通る。
 - [ ] root、core、document-renderer、exporter、CLI、VS Code extension の package
   version が意図した release version と一致している。
 - [ ] VS Code Marketplace の extension ID が `wamukat.markvspec` であることを確認する。

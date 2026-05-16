@@ -186,9 +186,15 @@ view context の既定値は `values` の `*` で示します。`*` がない場
 
 `Preview Scenarios` は preview / export の追加表示単位です。state 一覧を絞り込むためのものではありません。`View Context Samples` や `Model Samples` に state との関連を持たせず、scenario が `state` / `model` / `view` を束ねます。これにより、状態、表示データ、表示文脈の責務を分離したまま、レビューしたい追加画面状態だけを明示できます。
 
-`Preview Scenarios` が存在する場合は、preview / export は `Preview Scenarios` に従います。その代わり、書き漏らしを防ぐため、`## States` に存在するすべての state が少なくとも 1 つの scenario に登場しなければ diagnostic error にします。同じ state に複数 scenario を定義することはできます。存在しない state / model sample / view context sample の参照も diagnostic error です。全組み合わせの自動生成は行いません。
+preview / export は常に `## States` の baseline preview を軸にします。`Preview Scenarios`
+は baseline を置き換える source of truth ではなく、特定の state に model / view /
+display の追加条件を重ねてレビューするための追加表示単位です。同じ state に複数
+scenario を定義することはできます。存在しない state / model sample /
+view context sample の参照は diagnostic error です。全組み合わせの自動生成は行いません。
 
-`Preview Scenarios` が存在しない場合だけ、MarkVSpec が全 state の baseline scenario を自動生成します。この fallback により、シンプルな画面では追加記述なしで全 state preview を維持できます。一方、`Preview Scenarios` を書いた画面では、それが preview / export の source of truth になります。
+`Preview Scenarios` が存在しない場合でも、MarkVSpec は全 state の baseline preview を
+出力します。この fallback により、シンプルな画面では追加記述なしで全 state preview を
+維持できます。
 
 ## Elements からの参照
 
@@ -212,9 +218,9 @@ view context の既定値は `values` の `*` で示します。`*` がない場
 
 ## Actions からの更新
 
-Action の効果は `model`、`state`、`view` の 3 種類として並べられます。Action 直下の `Effects` と旧 `cases:` block は canonical authoring から外し、効果は必ず `Process:` または `case:` 配下に書きます。
+Action の効果は `model`、`state`、`view` の 3 種類として並べられます。Action 直下の `Effects` と旧 `cases:` block は canonical authoring から外し、効果は必ず `Process Pn:` または `case:` 配下に書きます。
 
-`Process: <process-type>` と `case: <case-name>` を使い、複数 step は `Process:` を複数並べます。記載順を process order として扱います。
+`Process Pn: <process-name>` と `case: <case-name>` を使い、複数 step は `Process P1:`、`Process P2:` のように複数並べます。記載順を process order として扱います。
 
 ```markdown
 ### A-SubmitSearch Submit search
@@ -224,11 +230,11 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
 - From
   - idle
   - loaded
-- Process: Immediate
+- Process P1: Immediate view reset
   - Effects
     - view: ${view.isHelpPanelOpen} = false
     - view: ${view.selectedTab} = results
-- Process: Validate
+- Process P2: Validate search form
   - target: V-SearchForm
   - case: invalid
     - description: invalid search condition
@@ -238,7 +244,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
   - case: valid
     - Effects
       - continue
-- Process: HttpRequest
+- Process P3: Send search request
   - GET /search
     - keyword: E-KeywordInput.value
     - page: ${model.searchRequest.page}
@@ -255,10 +261,10 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
 ### A-ApplySearchResult Apply search result
 
 - Triggered
-  - A-SubmitSearch.response
+  - A-SubmitSearch.P3.response
 - From
   - loading
-- Process: HttpResponse
+- Process P1: Receive search response
   - case: success
     - description: 200 search result
     - Effects
@@ -278,14 +284,14 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
 
 この形で破綻しないための前提は次の通りです。
 
-- `Process: <process-type>` は Action 直下の process step を表す。`Process:` を複数書ける。
-- `case: <case-name>` は直近の `Process:` の結果分岐を表す。旧 `cases:` block は canonical form から外す。
-- `response`、`when`、`skip when`、request parameter、service call などの step detail は `Process:` 直下、または該当する `case:` 直下に置く。
-- `Effects` は `Process:` 直下、または `case:` 直下にだけ置ける。
-- `Validate` や `Resolve` のように引数が必要な process は、`Process: Validate` + `target: V-...`、`Process: Resolve` + `group: initial-load` のように detail として表す。
-- `Resolve: <group>` のような Action 直下の `Resolve` group は canonical form では廃止する。`Resolve` も処理列の一部として `Process: Resolve` に統一する。
+- `Process Pn: <process-name>` は Action 直下の process step を表す。`P1`、`P2` のような marker は後続参照用の安定 ID として扱う。
+- `case: <case-name>` は直近の `Process Pn:` の結果分岐を表す。旧 `cases:` block は canonical form から外す。
+- `response`、`when`、`skip when`、request parameter、service call などの step detail は `Process Pn:` 直下、または該当する `case:` 直下に置く。
+- `Effects` は `Process Pn:` 直下、または `case:` 直下にだけ置ける。
+- `Validate` や `Resolve` のように引数が必要な process は、`Process P2: Validate search form` + `target: V-...`、`Process P3: Resolve grouped processes` + `group: initial-load` のように detail として表す。
+- `Resolve: <group>` のような Action 直下の `Resolve` group は canonical form では廃止する。`Resolve` も処理列の一部として `Process Pn: Resolve ...` に統一する。
 
-並列 process と resolve は次のように表します。並列に参加する process は同じ `group` を持ち、各 case は結果や model 更新だけを残して `continue` します。最終的な `state` / `navigate` は `Process: Resolve` に寄せます。
+並列 process と resolve は次のように表します。並列に参加する process は同じ `group` を持ち、各 case は結果や model 更新だけを残して `continue` します。最終的な `state` / `navigate` は `Process Pn: Resolve ...` に寄せます。
 
 ```markdown
 ### A-InitialLoad Initial dashboard load
@@ -294,7 +300,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
   - screen.load
 - From
   - loading
-- Process: ServerCall
+- Process P1: Load member profile
   - group: initial-load
   - MemberQueryService.findSelfProfile()
   - case: success
@@ -308,7 +314,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
     - Effects
       - model: ${model.memberProfile.loaded} = false
       - continue
-- Process: ServerCall
+- Process P2: Load points
   - group: initial-load
   - PointQueryService.findSelfPoints()
   - case: success
@@ -322,7 +328,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
     - Effects
       - model: ${model.points.loaded} = false
       - continue
-- Process: Resolve
+- Process P3: Resolve grouped processes
   - group: initial-load
   - case: ready
     - description: profile and points loaded
@@ -336,7 +342,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
       - stop
 ```
 
-`group` を持つ `Process:` の `case:` では、`state` や `navigate` を直接書きません。並列 process の完了条件と最終遷移を `Process: Resolve` に集約することで、State Flow の分岐点を 1 箇所に保ちます。`Resolve` は外部呼び出しではなく、同じ Action 内の parallel group を集約する control process です。`Process: Resolve` は後続の `Process:` へ `continue` できるため、resolve 後に整形や追加判定を続ける Action も処理順どおりに読めます。
+`group` を持つ `Process Pn:` の `case:` では、`state` や `navigate` を直接書きません。並列 process の完了条件と最終遷移を `Process Pn: Resolve ...` に集約することで、State Flow の分岐点を 1 箇所に保ちます。`Resolve` は外部呼び出しではなく、同じ Action 内の parallel group を集約する control process です。`Process Pn: Resolve ...` は後続の `Process Pn:` へ `continue` できるため、resolve 後に整形や追加判定を続ける Action も処理順どおりに読めます。
 
 `view` 変更だけの Action は `State Flow` 図に表示しません。必要であれば、将来 `View Context` 専用の一覧または小さな matrix を生成します。
 
@@ -375,7 +381,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
 - `## Preview Scenarios` がある場合は、それを preview / export の source of truth とする。ただし、すべての state が少なくとも 1 scenario に登場しない場合は diagnostic error とする。
 - `View Context` の全組み合わせは自動生成しない。
 - Action DSL は compact canonical syntax に移行する。Action 直下 `Effects` と legacy `Process` -> step -> `cases:` は canonical form から外す。
-- `Resolve` は `Process: Resolve` に統一する。
+- `Resolve` は `Process Pn: Resolve ...` に統一する。
 - 2 値 enum と boolean の使い分けは warning 中心にする。`type: enum` の値が `true` / `false` だけの場合は warning、`type: boolean` に `open` / `closed` のような enum 風値を入れた場合は error とする。
 - 条件式の初期実装は単項条件、`not`、enum equality までに絞る。`and` / `or`、比較演算、`in` などは初期実装では扱わない。
 - `visible when`、`hidden when`、`disabled when`、`selected when`、`active when` は同じ条件解決に乗せる。

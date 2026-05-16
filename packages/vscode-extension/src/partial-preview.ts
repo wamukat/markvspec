@@ -732,7 +732,8 @@ function replaceLayoutContents(html: string, layoutId: string, content: string, 
 
 function replaceElementContents(html: string, elementId: string, content: string, partialId: string | undefined, partialPath: string | undefined): string {
   const marker = `data-mm-id="${escapeHtml(elementId)}"`;
-  const markerIndex = html.indexOf(marker);
+  const targetMarkerAttr = `data-mm-target-id="${escapeHtml(elementId)}"`;
+  const markerIndex = html.indexOf(marker) === -1 ? html.indexOf(targetMarkerAttr) : html.indexOf(marker);
   if (markerIndex === -1) {
     return html;
   }
@@ -756,7 +757,7 @@ function replaceElementContents(html: string, elementId: string, content: string
   const replaceStart = renderKeyStart !== -1 && html.slice(renderKeyStart, wrapperStart).trim() === ""
     ? renderKeyStart
     : wrapperStart;
-  const targetMarker = `<span class="mm-display-target-marker" data-mm-id="${escapeHtml(elementId)}"></span>`;
+  const targetMarker = `<span class="mm-display-target-marker" data-mm-target-id="${escapeHtml(elementId)}" aria-hidden="true"></span>`;
   const embedded = partialId
     ? `<div class="mm-element-wrap mm-partial-preview" data-mm-partial-preview="true" data-mm-partial-id="${escapeHtml(partialId)}">${targetMarker}${renderPartialPreviewBadge(partialId, partialPath)}${content}</div>`
     : `<div class="mm-element-wrap mm-partial-preview mm-display-preview" data-mm-display-preview="true">${targetMarker}${content}</div>`;

@@ -161,24 +161,32 @@ route: /login
   - E-SignInButton.click
 - From
   - idle
-- Process
-  - Validate: V-LoginForm
-    - cases:
-      - invalid:
-        - display:
-          - target: L-MessageArea
-          - element: E-ValidationMessage
-  - HttpRequest
-    - POST /login
+- Process P1: Validate login form
+  - receive:
+    - validation: V-LoginForm.result
+  - case: invalid
+    - Effects
+      - display:
+        - target: L-MessageArea
+        - element: E-ValidationMessage
+    - stop
+  - case: valid
+    - continue
+- Process P2: Send login request
+  - request:
+    - method: POST
+    - path: /login
+    - params:
       - email: E-EmailInput.value
-    - cases:
-      - sent:
-        - state: wait-auth
-      - send-failed:
-        - state: idle
-        - display:
-          - target: L-MessageArea
-          - element: E-SendErrorBanner
+  - case: sent
+    - Effects
+      - state: wait-auth
+  - case: send-failed
+    - Effects
+      - state: idle
+      - display:
+        - target: L-MessageArea
+        - element: E-SendErrorBanner
 
 ## Validations
 
@@ -285,6 +293,7 @@ The `examples/` directory is organized as a learning path:
 - [examples/02-states/responsive-profile.vspec.md](examples/02-states/responsive-profile.vspec.md): mobile and desktop layouts.
 - [examples/03-actions/event-triggers.vspec.md](examples/03-actions/event-triggers.vspec.md): non-click element events and lifecycle triggers.
 - [examples/03-actions/form-submit-flow.vspec.md](examples/03-actions/form-submit-flow.vspec.md): validate, update model, server call, and navigation.
+- [examples/03-actions/single-field-validation.vspec.md](examples/03-actions/single-field-validation.vspec.md): focused single-field validation contracts.
 - [examples/03-actions/toast-feedback.vspec.md](examples/03-actions/toast-feedback.vspec.md): non-modal toast feedback and targetless toast display.
 - [examples/03-actions/parallel-initial-load.vspec.md](examples/03-actions/parallel-initial-load.vspec.md): parallel server calls and `Resolve`.
 - [examples/04-real-world-screens/notice-detail.vspec.md](examples/04-real-world-screens/notice-detail.vspec.md): Display Content Spec fields for wording, data sources, formatting, values, and params.

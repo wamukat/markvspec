@@ -247,7 +247,7 @@ MarkVSpec では言葉を分けます。
 
 アクションは、ユーザー操作やシステムイベントをトリガーとして、処理、効果、結果を記述します。
 Action レベルの guard / `When` は使わず、操作可否は要素の `disabled when`、入力検証は
-`Validations` と `Validate: V-...` に分離します。
+`Validations` と process-scoped `receive: V-....result` に分離します。
 
 ```markdown
 ### A1:A-SubmitLogin ログイン送信
@@ -257,52 +257,61 @@ Action レベルの guard / `When` は使わず、操作可否は要素の `disa
 - From
   - idle
   - auth-error
-- Process
-  - Validate: V-LoginForm
-    - cases:
-      - invalid:
-        - state: validation-error
-  - Preprocess
-    - when: state is auth-error
-    - update:
+- Process P1: Validate login form
+  - receive:
+    - validation: V-LoginForm.result
+  - case: invalid
+    - Effects
+      - state: validation-error
+    - stop
+  - case: valid
+    - continue
+- Process P2: Clear stale message
+  - when: ${state.auth-error}
+  - Effects
+    - display:
       - target: L-MessageArea
-      - content: Empty message
-  - HttpRequest
-    - POST /login
+      - element: E-EmptyMessage
+- Process P3: Send login request
+  - request:
+    - method: POST
+    - path: /login
+    - params:
       - email: E-EmailInput.value
       - password: E-PasswordInput.value
-    - cases:
-      - sent:
-        - state: wait-auth
-      - send-failed:
-        - state: auth-error
+  - case: sent
+    - Effects
+      - state: wait-auth
+  - case: send-failed
+    - Effects
+      - state: auth-error
 ```
 
 処理ステップには `when` や `skip when` を置けます。これにより、同じアクションでも状態や条件に応じた前処理を表現できます。
 
 HTTP request のクリック Action では、送信できたかどうかを request step の
 `cases:` に書きます。レスポンス完了後の画面遷移や partial update は、
-`A-SubmitLogin.response` を trigger にする別 Action に分けます。
+`A-SubmitLogin.P3.response` を trigger にする別 Action に分けます。
 
 ```markdown
 ### A2:A-HandleLoginResponse ログイン応答処理
 
 - Triggered
-  - A-SubmitLogin.response
+  - A-SubmitLogin.P3.response
 - From
   - wait-auth
-- Process
-  - HttpResponse
-    - cases:
-      - success:
-        - response: 2xx authenticated user
-        - navigate: SCR-DASHBOARD
-      - failure:
-        - response: 401 invalid credentials
-        - state: auth-error
-        - update:
-          - target: L-MessageArea
-          - content: Authentication error message
+- Process P1: Receive auth response
+  - case: success
+    - response: 2xx authenticated user
+    - Effects
+      - navigate: SCR-DASHBOARD
+  - case: failure
+    - response: 401 invalid credentials
+    - Effects
+      - state: auth-error
+      - display:
+        - target: L-MessageArea
+        - element: E-AuthenticationErrorMessage
 ```
 
 `navigate: SCR-*` は別画面への遷移です。状態遷移図では画面内状態のノードとして扱わず、終端への遷移として描画します。
@@ -365,18 +374,20 @@ route: /mypage/partials/notices
   - partial.render
 - From
   - loading
-- Process
-  - ServerCall
+- Process P1: Find latest notices
+  - server:
     - NoticeQueryService.findLatest()
-    - cases:
-      - success:
-        - ${model.notices.items}: result.items
-        - ${model.notice}: ${model.notices.items} の現在行
-        - state: loaded
-      - empty:
-        - state: empty
-      - failure:
-        - state: load-error
+  - case: success
+    - Effects
+      - model: ${model.notices.items} = result.items
+      - model: ${model.notice} = ${model.notices.items} の現在行
+      - state: loaded
+  - case: empty
+    - Effects
+      - state: empty
+  - case: failure
+    - Effects
+      - state: load-error
 ```
 
 `partial.render` は partial 文書がサーバ側で描画される契機です。`ServerCall`

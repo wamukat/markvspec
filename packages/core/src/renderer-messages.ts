@@ -135,6 +135,7 @@ export type MessageKey =
   | "processReceive"
   | "processRequest"
   | "processResponse"
+  | "processServer"
   | "processSetState"
   | "processSkipWhen"
   | "processStop"
@@ -346,6 +347,7 @@ const en: Record<MessageKey, string> = {
   processReceive: "receive",
   processRequest: "request",
   processResponse: "response",
+  processServer: "server",
   processSetState: "set state",
   processSkipWhen: "skip when",
   processStop: "stop process",
@@ -558,6 +560,7 @@ const ja: Record<MessageKey, string> = {
   processReceive: "受信",
   processRequest: "リクエスト",
   processResponse: "レスポンス",
+  processServer: "サーバ",
   processSetState: "状態更新",
   processSkipWhen: "スキップ条件",
   processStop: "処理を停止",

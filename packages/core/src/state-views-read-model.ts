@@ -978,10 +978,13 @@ export function modelValuesForState(result: MarkVSpecParseResult, state: string 
 
     Object.assign(values, literalTrueModelValues(action));
 
-    const sourceActionId = action.triggeredBy?.match(/^(A-[\p{L}\p{N}-]+)\.response$/u)?.[1];
+    const processResponseTrigger = action.triggeredBy?.match(/^(A-[\p{L}\p{N}-]+)\.(P[A-Za-z0-9_-]+)\.response$/u);
+    const sourceActionId = processResponseTrigger?.[1];
+    const sourceProcessMarker = processResponseTrigger?.[2];
     const sourceAction = sourceActionId ? actionsById.get(sourceActionId) : undefined;
-    if (sourceAction) {
-      Object.assign(values, literalTrueModelValues(sourceAction));
+    const sourceProcess = sourceProcessMarker ? sourceAction?.processSteps.find((step) => step.marker === sourceProcessMarker) : undefined;
+    if (sourceProcess) {
+      Object.assign(values, literalTrueModelValuesFromStep(sourceProcess));
     }
 
     if (
@@ -1002,18 +1005,7 @@ function literalTrueModelValues(action: MarkVSpecParseResult["actions"][number])
     assignLiteralTrueModelValue(values, literalTrueModelSideEffect(sideEffect));
   }
   for (const step of action.processSteps) {
-    for (const detail of step.details) {
-      const modelKey = positiveModelCondition(detail.key);
-      assignLiteralTrueModelValue(values, detail.value.trim().toLowerCase() === "true" ? modelKey : undefined);
-    }
-    for (const sideEffect of step.sideEffects) {
-      assignLiteralTrueModelValue(values, literalTrueModelSideEffect(sideEffect));
-    }
-    for (const outcome of step.outcomes) {
-      for (const sideEffect of outcome.sideEffects) {
-        assignLiteralTrueModelValue(values, literalTrueModelSideEffect(sideEffect));
-      }
-    }
+    Object.assign(values, literalTrueModelValuesFromStep(step));
   }
   for (const outcome of action.outcomes) {
     for (const sideEffect of outcome.sideEffects) {
@@ -1021,6 +1013,23 @@ function literalTrueModelValues(action: MarkVSpecParseResult["actions"][number])
     }
   }
 
+  return values;
+}
+
+function literalTrueModelValuesFromStep(step: MarkVSpecParseResult["actions"][number]["processSteps"][number]): Record<string, boolean> {
+  const values: Record<string, boolean> = {};
+  for (const detail of step.details) {
+    const modelKey = positiveModelCondition(detail.key);
+    assignLiteralTrueModelValue(values, detail.value.trim().toLowerCase() === "true" ? modelKey : undefined);
+  }
+  for (const sideEffect of step.sideEffects) {
+    assignLiteralTrueModelValue(values, literalTrueModelSideEffect(sideEffect));
+  }
+  for (const outcome of step.outcomes) {
+    for (const sideEffect of outcome.sideEffects) {
+      assignLiteralTrueModelValue(values, literalTrueModelSideEffect(sideEffect));
+    }
+  }
   return values;
 }
 
@@ -1166,7 +1175,7 @@ function isSystemEventTrigger(triggeredBy: string | undefined): boolean {
     return true;
   }
 
-  return /^A-[\p{L}\p{N}-]+(?:\.P[A-Za-z0-9_-]+)?\.response$/u.test(triggeredBy ?? "");
+  return /^A-[\p{L}\p{N}-]+\.P[A-Za-z0-9_-]+\.response$/u.test(triggeredBy ?? "");
 }
 
 function actionHasVisibleElementMarker(

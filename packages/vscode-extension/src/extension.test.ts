@@ -719,17 +719,17 @@ default-state: loaded
   - screen.load
 - From
   - initializing
-- Process: Immediate
+- Process P1: Immediate
   - Effects
     - state: loading
 
 ### A2:A-HandleLoadResponse Handle load response
 
 - Triggered
-  - A-StartLoad.response
+  - A-StartLoad.P1.response
 - From
   - loading
-- Process: Immediate
+- Process P1: Immediate
   - case: success
     - response: 200
     - state: loaded
@@ -740,22 +740,22 @@ default-state: loaded
 ### A3:A-ResolveReady Resolve ready
 
 - Triggered
-  - A-HandleLoadResponse.response
+  - A-HandleLoadResponse.P1.response
 - From
   - loading
   - initializing
-- Process: Immediate
+- Process P1: Immediate
   - Effects
     - state: ready
 
 ### A4:A-ResolveReadyAuto Resolve ready automatically
 
 - Triggered
-  - A-HandleLoadResponse.response
+  - A-HandleLoadResponse.P1.response
 - From
   - loading
   - initializing
-- Process: Immediate
+- Process P1: Immediate
   - Effects
     - state: ready-auto
 `;
@@ -769,13 +769,13 @@ default-state: loaded
   const initializingSection = stateSection(html, "initializing");
   assert.match(initializingSection, /<aside class="system-events-box">\s*<h6 class="state-screen-detail-heading">System Events<\/h6>/);
   assert.match(initializingSection, new RegExp(`<ul>[\\s\\S]*<li>${actionBadge("A1", "A-StartLoad")} Start load<span class="system-event-trigger">（Trigger: ${docLabel("screen.load", "trigger")}）</span></li>`));
-  assert.match(initializingSection, new RegExp(`<li>${actionBadge("A3", "A-ResolveReady")} Resolve ready<span class="system-event-trigger">（Trigger: ${actionBadge("A2", "A-HandleLoadResponse")}\\.response）</span></li>`));
+  assert.match(initializingSection, new RegExp(`<li>${actionBadge("A3", "A-ResolveReady")} Resolve ready<span class="system-event-trigger">（Trigger: ${docLabel("A-HandleLoadResponse.P1.response", "trigger")}）</span></li>`));
   assert.doesNotMatch(initializingSection.match(/<aside class="system-events-box">[\s\S]*?<\/aside>/)?.[0] ?? "", /From:/);
 
   const loadingSection = stateSection(html, "loading");
   assert.match(loadingSection, /<aside class="system-events-box">\s*<h6 class="state-screen-detail-heading">System Events<\/h6>/);
-  assert.match(loadingSection, new RegExp(`<li>${actionBadge("A2", "A-HandleLoadResponse")} Handle load response<span class="system-event-trigger">（Trigger: ${actionBadge("A1", "A-StartLoad")}\\.response）</span></li>`));
-  assert.match(loadingSection, new RegExp(`<li>${actionBadge("A3", "A-ResolveReady")} ${repeatedBadge()} Resolve ready<span class="system-event-trigger">（Trigger: ${actionBadge("A2", "A-HandleLoadResponse")}\\.response）</span></li>`));
+  assert.match(loadingSection, new RegExp(`<li>${actionBadge("A2", "A-HandleLoadResponse")} Handle load response<span class="system-event-trigger">（Trigger: ${docLabel("A-StartLoad.P1.response", "trigger")}）</span></li>`));
+  assert.match(loadingSection, new RegExp(`<li>${actionBadge("A3", "A-ResolveReady")} ${repeatedBadge()} Resolve ready<span class="system-event-trigger">（Trigger: ${docLabel("A-HandleLoadResponse.P1.response", "trigger")}）</span></li>`));
   assert.doesNotMatch(loadingSection.match(/<aside class="system-events-box">[\s\S]*?<\/aside>/)?.[0] ?? "", /From:/);
   assert.doesNotMatch(loadingSection, /From:/);
   assert.match(loadingSection, new RegExp(`<td>${markerBadge("2", "element")}</td><td>${detailIdRef("E-Loading")}</td><td>Text</td>`));
@@ -856,7 +856,7 @@ locale: en
   - screen.load
 - From
   - idle
-- Process: Immediate
+- Process P1: Immediate
   - case: success
     - model: \${model.loaded} = true
     - state: loaded
@@ -3103,7 +3103,7 @@ locale: ja
   assert.doesNotMatch(actionDetailsSection, /<dt>部分更新<\/dt><dd>[\s\S]*<th>結果<\/th>/);
   assert.match(actionDetailsSection, new RegExp(`<dt>部分更新</dt><dd>[\\s\\S]*<ul class="spec-list spec-effect-list"><li>内容 更新後のユーザー一覧</li><li>モード replace</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>レスポンスのユーザー一覧を ${sourceCodePattern("${model.users.items}")} に格納する</li><li>レスポンスのページ番号を ${sourceCodePattern("${model.page}")} に格納する</li><li>${sourceCodePattern("${model.error}")} を空にする</li></ul></li></ul>`));
   assert.doesNotMatch(actionDetailsSection, /side effect レスポンス/);
-  assert.match(actionDetailsSection, new RegExp(`<div class="process-card-header"><span class="process-card-title">PartialRequest</span></div>[\\s\\S]*<ul class="spec-list spec-effect-list"><li>request: POST /users/search</li><li>更新 ${detailLayoutRef("T1", "User table")}</li><li>モード replace</li><li>内容 更新後のユーザー一覧</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>レスポンスのユーザー一覧を ${sourceCodePattern("${model.users.items}")} に格納する</li><li>レスポンスのページ番号を ${sourceCodePattern("${model.page}")} に格納する</li><li>${sourceCodePattern("${model.error}")} を空にする</li></ul></li></ul>`));
+  assert.match(actionDetailsSection, new RegExp(`<div class="process-card-header"><span class="process-card-title">PartialRequest</span></div>[\\s\\S]*<ul class="spec-list spec-effect-list"><li>リクエスト: POST /users/search</li><li>更新 ${detailLayoutRef("T1", "User table")}</li><li>モード replace</li><li>内容 更新後のユーザー一覧</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>レスポンスのユーザー一覧を ${sourceCodePattern("${model.users.items}")} に格納する</li><li>レスポンスのページ番号を ${sourceCodePattern("${model.page}")} に格納する</li><li>${sourceCodePattern("${model.error}")} を空にする</li></ul></li></ul>`));
   assert.match(actionDetailsSection, new RegExp(`<li>更新 <ul class="spec-list spec-effect-list"><li>${detailLayoutRef("T1", "User table")}</li><li>内容 検索結果を表示する</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>${sourceCodePattern("${model.audit}")} &lt; value &amp; retry</li></ul></li></ul></li>`));
 });
 
@@ -3609,10 +3609,10 @@ title: Transition Matrix
 ### A2:A-SubmitResponse Submit response
 
 - Triggered
-  - A-Submit.response
+  - A-Submit.P1.response
 - From
   - submitting
-- Process: Immediate
+- Process P1: Immediate
   - case: failure
     - response: 500
     - state: error
@@ -5465,8 +5465,8 @@ title: Multi Request
 
   assert.doesNotMatch(actionDetail, /<dt>Request<\/dt>|<dt>Parameters<\/dt>/);
   assert.doesNotMatch(actionDetail, /<dt>Overview<\/dt>/);
-  assert.match(actionDetail, new RegExp(`<dt>Process</dt><dd><div class="process-flow" role="list">[\\s\\S]*<span class="process-card-title">HttpRequest</span>[\\s\\S]*<li>request: GET /users\\?filter=&lt;active&gt;<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>page: ${sourceCodePattern("${model.requestedPage}")}</li></ul></li></ul></li><li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 users[\\s\\S]*effect set state ${docLabel("loaded", "state")}[\\s\\S]*stop process`));
-  assert.match(actionDetail, new RegExp(`<span class="process-card-title">HttpRequest</span>[\\s\\S]*<li>request: GET /roles<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>requestedPage: ${sourceCodePattern("${model.requestedPage}")}</li></ul></li></ul></li><li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 roles[\\s\\S]*effect set state ${docLabel("roles-loaded", "state")}[\\s\\S]*<strong>${docLabel("failure", "result")}</strong>[\\s\\S]*response HTTP error`));
+  assert.match(actionDetail, new RegExp(`<dt>Process</dt><dd><div class="process-flow" role="list">[\\s\\S]*<span class="process-card-title">HttpRequest</span>[\\s\\S]*<li>request: GET /users\\?filter=&lt;active&gt;<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>page: ${sourceCodePattern("${model.requestedPage}")}</li></ul></li></ul></li><li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 users[\\s\\S]*effect set state ${docLabel("loaded", "state")}[\\s\\S]*stop process`));
+  assert.match(actionDetail, new RegExp(`<span class="process-card-title">HttpRequest</span>[\\s\\S]*<li>request: GET /roles<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>requestedPage: ${sourceCodePattern("${model.requestedPage}")}</li></ul></li></ul></li><li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 roles[\\s\\S]*effect set state ${docLabel("roles-loaded", "state")}[\\s\\S]*<strong>${docLabel("failure", "result")}</strong>[\\s\\S]*response HTTP error`));
   assert.doesNotMatch(actionDetail, /flow (?:stop|continue)/);
   assert.doesNotMatch(actionDetail, /<dt>Case success<\/dt>|<dt>Case failure<\/dt>|<dt>Responses<\/dt>/);
   assert.doesNotMatch(actionDetail, /<active>/);
@@ -5678,12 +5678,12 @@ title: Nested Process Details
   const html = renderDesignDocumentHtml(result, preview);
   const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Submit">[\s\S]*?<\/article>/)?.[0] ?? "";
 
-  assert.match(actionDetail, new RegExp(`<li>request<ul class="spec-list spec-nested-list">[\\s\\S]*<li>method: POST</li>[\\s\\S]*<li>path: /subscriptions</li>[\\s\\S]*<li>params<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li><li>plan: ${detailElementRef("2", "E-PlanSelect")}\\.value</li></ul></li>[\\s\\S]*</ul></li>`));
-  assert.match(actionDetail, new RegExp(`<li>server: SubscriptionService\\.prepare\\(\\)<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
-  assert.match(actionDetail, new RegExp(`<li>sync: SubscriptionService\\.create\\(\\)<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li><li>plan: ${detailElementRef("2", "E-PlanSelect")}\\.value</li></ul></li></ul></li>`));
-  assert.match(actionDetail, new RegExp(`<span class="process-card-title">ServerCall</span>[\\s\\S]*<li>server: SubscriptionService\\.persist\\(\\)<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
-  assert.match(actionDetail, /<li>response: HTTP 200 persisted subscription<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>subscriptionId: response\.id<\/li><\/ul><\/li><\/ul><\/li>/);
-  assert.match(actionDetail, new RegExp(`<li>validation: ${detailIdRef("V-SubscriptionForm")}\\.result<ul class="spec-list spec-nested-list"><li>params<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
+  assert.match(actionDetail, new RegExp(`<li>request<ul class="spec-list spec-nested-list">[\\s\\S]*<li>method: POST</li>[\\s\\S]*<li>path: /subscriptions</li>[\\s\\S]*<li>Parameters<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li><li>plan: ${detailElementRef("2", "E-PlanSelect")}\\.value</li></ul></li>[\\s\\S]*</ul></li>`));
+  assert.match(actionDetail, new RegExp(`<li>server: SubscriptionService\\.prepare\\(\\)<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
+  assert.match(actionDetail, new RegExp(`<li>sync: SubscriptionService\\.create\\(\\)<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li><li>plan: ${detailElementRef("2", "E-PlanSelect")}\\.value</li></ul></li></ul></li>`));
+  assert.match(actionDetail, new RegExp(`<span class="process-card-title">ServerCall</span>[\\s\\S]*<li>server: SubscriptionService\\.persist\\(\\)<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
+  assert.match(actionDetail, /<li>response: HTTP 200 persisted subscription<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>subscriptionId: response\.id<\/li><\/ul><\/li><\/ul><\/li>/);
+  assert.match(actionDetail, new RegExp(`<li>Validation: ${detailIdRef("V-SubscriptionForm")}\\.result<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
   assert.doesNotMatch(actionDetail, /request\.params|server\.params|sync\.params|response\.params|validation\.params/);
 });
 
@@ -6857,7 +6857,7 @@ title: Quick Fix
   const diagnostic = createDiagnostic(
     source,
     "### A-Submit Submit",
-    "Action A-Submit has no trigger. Add a Triggered block with E-*.event, A-*.response, screen.load, or partial.render."
+    "Action A-Submit has no trigger. Add a Triggered block with E-*.event, A-ActionId.P-marker.response, screen.load, or partial.render."
   );
   const actions = createMarkVSpecCodeActions(document, [diagnostic]);
   const edits = actions[0]?.edit as unknown as { edits: Array<{ kind: string; newText?: string; position?: { line: number; character: number }; uri?: unknown }> };
@@ -6889,7 +6889,7 @@ Not an action heading
   const diagnostic = createDiagnostic(
     source,
     "Not an action heading",
-    "Action A-Submit has no trigger. Add a Triggered block with E-*.event, A-*.response, screen.load, or partial.render."
+    "Action A-Submit has no trigger. Add a Triggered block with E-*.event, A-ActionId.P-marker.response, screen.load, or partial.render."
   );
 
   assert.deepEqual(createMarkVSpecCodeActions(createTextDocument(source) as never, [diagnostic]), []);
@@ -7330,7 +7330,7 @@ test("declares MarkVSpec syntax highlighting contributions", () => {
   assert(!grammar.repository?.["references"]?.patterns?.some((pattern) => pattern.name === "constant.other.marker.markvspec"));
 
   const grammarSource = readFileSync(grammarPath, "utf8");
-  for (const token of ["SCR|TPL|PRT", "L|P|E|F|A|V|R", "L|P", "E-", "F-", "A-", "V-", "R-", "Slot", "Triggered", "Process", "Cases", "Form Groups", "Model Samples", "Business Rules", "Error Codes", "History Fields", "History", "HttpRequest", "PartialRequest", "ServerCall", "Resolve", "params", "parallel", "stop|continue"]) {
+  for (const token of ["SCR|TPL|PRT", "L|P|E|F|A|V|R", "L|P", "E-", "F-", "A-", "V-", "R-", "Slot", "Triggered", "Process", "View Context", "View Context Samples", "Preview Scenarios", "Form Groups", "Model Samples", "Business Rules", "Error Codes", "History Fields", "History", "HttpRequest", "PartialRequest", "ServerCall", "Resolve", "params", "group", "stop|continue"]) {
     assert.match(grammarSource, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
   const headingPatterns = grammar.repository?.["headings"]?.patterns ?? [];
@@ -7340,6 +7340,8 @@ test("declares MarkVSpec syntax highlighting contributions", () => {
   assert(sectionHeadingPatterns.some((pattern) => pattern.test("## Layout")));
   assert(sectionHeadingPatterns.some((pattern) => pattern.test("## Layout: mobile")));
   assert(sectionHeadingPatterns.some((pattern) => pattern.test("## Form Groups")));
+  assert(sectionHeadingPatterns.some((pattern) => pattern.test("## View Context")));
+  assert(sectionHeadingPatterns.some((pattern) => pattern.test("## Preview Scenarios")));
   assert(headingPatterns.some((pattern) => pattern.name === "markup.heading.object.markvspec" && new RegExp(pattern.match ?? "$.", "u").test("### P-Fields Fields")));
   assert(headingPatterns.some((pattern) => pattern.name === "markup.heading.object.markvspec" && new RegExp(pattern.match ?? "$.", "u").test("### F-LoginForm Login form")));
   assert(headingPatterns.some((pattern) => pattern.name === "markup.heading.object.markvspec" && new RegExp(pattern.match ?? "$.", "u").test("### V-LoginForm Login form validation")));
@@ -7381,8 +7383,8 @@ test("declares MarkVSpec syntax highlighting contributions", () => {
   assert(snippets["MarkVSpec Select Element"].body?.includes("- options:"));
   assert(snippets["MarkVSpec Select Element"].body?.includes("  - ${4:Active}"));
   assert(snippets["MarkVSpec Action"].body?.includes("- Triggered"));
-  assert(snippets["MarkVSpec Action"].body?.includes("- Process: HttpRequest"));
-  assert(snippets["MarkVSpec Action"].body?.includes("  - case: ${10:sent}"));
+  assert(snippets["MarkVSpec Action"].body?.includes("- Process ${6:P1}: ${7:Submit request}"));
+  assert(snippets["MarkVSpec Action"].body?.includes("  - case: ${12:sent}"));
   assert(!snippets["MarkVSpec Action"].body?.includes("- Effects"));
   assert(!snippets["MarkVSpec Action"].body?.includes("- Cases"));
 

@@ -33,6 +33,8 @@ HTML export, and PDF export:
 - `examples/03-actions/event-triggers.vspec.md`: non-click element events and lifecycle triggers.
 - `examples/03-actions/form-submit-flow.vspec.md`: action flow with validation, model update, server call, and navigation.
 - `examples/03-actions/parallel-initial-load.vspec.md`: parallel server call and Resolve action flow.
+- `examples/03-actions/single-field-validation.vspec.md`: focused single-field validation behavior.
+- `examples/03-actions/toast-feedback.vspec.md`: non-modal Toast display and background feedback.
 - `examples/04-real-world-screens/notice-detail.vspec.md`: Display Content Spec wording, data sources, format, value, and params.
 - `examples/04-real-world-screens/profile-edit-rich.vspec.md`: extended form, media, list, and dialog element types.
 - `examples/04-real-world-screens/search-list.vspec.md`: practical search, filters, pagination, and Model Samples.
@@ -47,7 +49,11 @@ HTML export, and PDF export:
 - [ ] `npm run typecheck` passes.
 - [ ] `npm test` passes.
 - [ ] `npm run build` passes.
+- [ ] `npm run audit:examples` passes.
+- [ ] `npm run check:print-regression` passes, or PDF export is explicitly skipped
+  because no compatible browser is available.
 - [ ] `npm run check:readme-release` passes.
+- [ ] `npm run check:release` passes in the release environment.
 - [ ] Root, core, document-renderer, exporter, CLI, and VS Code extension package
   versions match the intended release version.
 - [ ] VS Code Marketplace extension ID is confirmed as `wamukat.markvspec`.

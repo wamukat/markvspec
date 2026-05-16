@@ -401,14 +401,16 @@ function unsafeLayoutPartialReasons(
   if (
     previousLayout.properties["visible when"] !== currentLayout.properties["visible when"] ||
     previousLayout.properties["hidden when"] !== currentLayout.properties["hidden when"] ||
-    previousLayout.properties["disabled when"] !== currentLayout.properties["disabled when"]
+    previousLayout.properties["disabled when"] !== currentLayout.properties["disabled when"] ||
+    previousLayout.properties["selected when"] !== currentLayout.properties["selected when"] ||
+    previousLayout.properties["active when"] !== currentLayout.properties["active when"]
   ) {
-    reasons.push("Layout conditional visibility or disabled state changed.");
+    reasons.push("Layout conditional visibility, disabled, selected, or active state changed.");
   }
 
   const unsafePropertyKeys = changedKeys(previousLayout.properties, currentLayout.properties)
     .filter((key) => !safeLayoutPartialProperties.has(key))
-    .filter((key) => key !== "visible when" && key !== "hidden when" && key !== "disabled when");
+    .filter((key) => key !== "visible when" && key !== "hidden when" && key !== "disabled when" && key !== "selected when" && key !== "active when");
   if (unsafePropertyKeys.length > 0) {
     reasons.push(`Layout properties require full render: ${unsafePropertyKeys.join(", ")}.`);
   }
@@ -605,7 +607,13 @@ function unsafeLayoutContextReasons(layoutGroups: MarkVSpecLayoutGroup[], elemen
   const parentLayoutIds = layoutAncestorIdsForElement(layoutGroups, elementId);
   const contextualLayouts = layoutGroups.filter((group) =>
     parentLayoutIds.has(group.id) &&
-    (Boolean(group.properties["visible when"]) || Boolean(group.properties["hidden when"]) || Boolean(group.properties["disabled when"]))
+    (
+      Boolean(group.properties["visible when"]) ||
+      Boolean(group.properties["hidden when"]) ||
+      Boolean(group.properties["disabled when"]) ||
+      Boolean(group.properties["selected when"]) ||
+      Boolean(group.properties["active when"])
+    )
   );
   if (contextualLayouts.length === 0) {
     return [];

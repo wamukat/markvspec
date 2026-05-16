@@ -183,8 +183,9 @@ the page.
 
 - If framework-specific fragment names are needed, keep them in implementation
   notes; `display.element` should still point to authored UI that reviewers can inspect.
-- If `target` is omitted, the effect is a side effect rather than a rendered
-  partial update.
+- Targetless `Dialog` effects render as modal overlays, and targetless `Toast`
+  effects render in the toast region. Other effects without `target` are side
+  effects rather than rendered partial updates.
 - If multiple targets update for one result, document the primary target in the
   result row and describe additional effects in the result notes.
 - Keep server-side validation and client-side validation as separate actions

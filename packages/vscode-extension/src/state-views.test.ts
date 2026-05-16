@@ -430,7 +430,7 @@ viewport: mobile
 
 - From
   - init
-- Process: Immediate
+- Process P1: Immediate
   - Effects
     - state: idle
 `;
@@ -1024,10 +1024,10 @@ viewport: mobile
 ### A2:A-HandleSubmitResponse Handle submit response
 
 - Triggered
-  - A-Submit.response
+  - A-Submit.P1.response
 - From
   - loading
-- Process: Immediate
+- Process P1: Immediate
   - case: success
     - response: 200
     - state: idle
@@ -1040,9 +1040,9 @@ viewport: mobile
   const desktopSystemEvents = desktopLoadingSection.match(/<aside class="system-events-box"[\s\S]*?<\/aside>/)?.[0] ?? "";
 
   assert.match(mobileSystemEvents, /<aside class="system-events-box">/);
-  assert.match(mobileSystemEvents, new RegExp(`<li>${actionBadge("A2", "A-HandleSubmitResponse")} Handle submit response<span class="system-event-trigger">（Trigger: ${actionBadge("A1", "A-Submit")}\\.response）</span></li>`));
+  assert.match(mobileSystemEvents, new RegExp(`<li>${actionBadge("A2", "A-HandleSubmitResponse")} Handle submit response<span class="system-event-trigger">（Trigger: ${docLabel("A-Submit.P1.response", "trigger")}）</span></li>`));
   assert.match(desktopSystemEvents, /<aside class="system-events-box" data-mm-repeated-empty="true">/);
-  assert.match(desktopSystemEvents, new RegExp(`<li>${actionBadge("A2", "A-HandleSubmitResponse")} ${repeatedBadge()} Handle submit response<span class="system-event-trigger">（Trigger: ${actionBadge("A1", "A-Submit")}\\.response）</span></li>`));
+  assert.match(desktopSystemEvents, new RegExp(`<li>${actionBadge("A2", "A-HandleSubmitResponse")} ${repeatedBadge()} Handle submit response<span class="system-event-trigger">（Trigger: ${docLabel("A-Submit.P1.response", "trigger")}）</span></li>`));
 });
 
 test("keeps viewport-specific current layouts after cross-viewport dedupe", () => {

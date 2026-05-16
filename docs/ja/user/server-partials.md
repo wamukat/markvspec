@@ -62,10 +62,10 @@ screen 側の Action では、リクエストと画面上の置き換え結果�
       - display:
         - target: L-MessageArea
         - element: E-AuthErrorBanner
-      - fragment: auth/login :: message
 ```
 
-`element` が設計上の契約です。`fragment` は設計と Thymeleaf をつなぐ実装ヒントです。
+`element` が設計上の契約です。`fragment` など framework 固有の識別子は、
+構造化された `Effects` には入れず、実装メモや framework 側の設計に寄せます。
 
 screen 側で partial のプレビューを埋め込む場合は、置き換え先 layout に partial ID と
 画面状態ごとの partial 状態を指定します。これにより、同じ partial でも
@@ -196,7 +196,8 @@ scope します。
 
 - framework 固有の fragment 名が必要な場合は実装メモに寄せ、`display.element`
   は review 可能な作成済み UI を指すようにする。
-- `target` がない場合は、画面更新ではなく side effect として扱う。
+- `target` がない `Dialog` は modal overlay、`Toast` は toast region として表示する。
+  それ以外で `target` がない場合は、画面更新ではなく side effect として扱う。
 - 1つの result で複数 target を更新する場合は、result row には主 target を書き、
   追加の影響は result notes に記載する。
 - server-side validation と client-side validation は、trigger が異なるなら

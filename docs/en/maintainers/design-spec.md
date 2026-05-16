@@ -361,53 +361,61 @@ opaque expressions such as `${model.value}` for screen data, and `navigate` for 
 - From
   - idle
   - auth-error
-- Process
-  - Preprocess
-    - when: state is auth-error
-    - update:
+- Process P1: Clear stale message
+  - when: ${state.auth-error}
+  - Effects
+    - display:
       - target: L-MessageArea
-      - content: Empty message
-  - HttpRequest
-    - POST /login
-    - email: E-EmailInput.value
-    - password: E-PasswordInput.value
-- Effects
-  - state: wait-auth
+      - element: E-EmptyMessage
+- Process P2: Send login request
+  - request:
+    - method: POST
+    - path: /login
+    - params:
+      - email: E-SignInEmail.value
+      - password: E-SignInPassword.value
+  - case: sent
+    - Effects
+      - state: wait-auth
 
 ### A2:A-AuthResponse Handle auth response
 
 - Triggered
-  - A-SubmitLogin.response
+  - A-SubmitLogin.P2.response
 - From
   - wait-auth
-- Cases:
-  - success:
+- Process P1: Receive auth response
+  - case: success
     - response: 2xx authenticated user
-    - navigate: SCR-DASHBOARD
-  - failure:
+    - Effects
+      - navigate: SCR-DASHBOARD
+  - case: failure
     - response: 401 invalid credentials
-    - state: auth-error
-    - update:
-      - target: L-MessageArea
-      - content: Authentication error message
+    - Effects
+      - state: auth-error
+      - display:
+        - target: L-MessageArea
+        - element: E-AuthenticationErrorMessage
 
 ### A4:A-ValidateEmail Validate email
 
 - Triggered
   - E-EmailInput.blur
-- Cases:
-  - empty:
-    - from: idle
-    - state: validation-error
-    - update:
-      - target: L-EmailValidation
-      - content: Email is required.
-  - valid:
-    - from: validation-error
-    - state: idle
-    - update:
-      - target: L-EmailValidation
-      - content: Empty email validation
+- Process P1: Validate email field
+  - case: empty
+    - description: empty email in idle state
+    - Effects
+      - state: validation-error
+      - display:
+        - target: L-EmailValidation
+        - element: E-EmailRequiredMessage
+  - case: valid
+    - description: valid email after validation error
+    - Effects
+      - state: idle
+      - display:
+        - target: L-EmailValidation
+        - element: E-EmptyEmailValidation
 ```
 
 Client-side validation actions omit `HttpRequest`. The trigger and result-scoped
@@ -419,22 +427,25 @@ one state per field error and field-error combination.
 
 Use nested action groups when an action has several related details. Action-level
 guards are not modeled; put operability on elements with `disabled when`, and put
-input checks in `Validations` plus `Validate: V-...` process steps.
+input checks in `Validations` plus process-scoped `receive: V-....result` steps.
 
 ```markdown
-- Process
-  - HttpRequest
-    - POST /login
-    - email: E-EmailInput.value
-- Cases:
-  - success:
+- Process P1: Send login request
+  - request:
+    - method: POST
+    - path: /login
+    - params:
+      - email: E-EmailInput.value
+  - case: success
     - response: 2xx authenticated user
-    - navigate: SCR-DASHBOARD
-  - failure:
-    - state: auth-error
-    - update:
-      - target: L-MessageArea
-      - content: Authentication error message
+    - Effects
+      - navigate: SCR-DASHBOARD
+  - case: failure
+    - Effects
+      - state: auth-error
+      - display:
+        - target: L-MessageArea
+        - element: E-AuthenticationErrorMessage
 ```
 
 Request parameter bullets describe how request payload values are built. Use
@@ -550,18 +561,20 @@ route: /mypage/partials/notices
   - partial.render
 - From
   - loading
-- Process
-  - ServerCall
-    - client: NoticeQueryService.findLatest()
-    - ${model.notices.items}: result.items
-    - ${model.notice}: current item from ${model.notices.items}
-- Cases
-  - success:
-    - state: loaded
-  - empty:
-    - state: empty
-  - failure:
-    - state: load-error
+- Process P1: Find latest notices
+  - server:
+    - NoticeQueryService.findLatest()
+  - case: success
+    - Effects
+      - model: ${model.notices.items} = result.items
+      - model: ${model.notice} = current item from ${model.notices.items}
+      - state: loaded
+  - case: empty
+    - Effects
+      - state: empty
+  - case: failure
+    - Effects
+      - state: load-error
 ```
 
 `partial.render` is the lifecycle trigger for rendering the partial document on
@@ -735,53 +748,61 @@ status: draft
 - From
   - idle
   - auth-error
-- Process
-  - Preprocess
-    - when: state is auth-error
-    - update:
+- Process P1: Clear stale message
+  - when: ${state.auth-error}
+  - Effects
+    - display:
       - target: L-MessageArea
-      - content: Empty message
-  - HttpRequest
-    - POST /login
-    - email: E-EmailInput.value
-    - password: E-PasswordInput.value
-- Effects
-  - state: wait-auth
+      - element: E-EmptyMessage
+- Process P2: Send login request
+  - request:
+    - method: POST
+    - path: /login
+    - params:
+      - email: E-SignInEmail.value
+      - password: E-SignInPassword.value
+  - case: sent
+    - Effects
+      - state: wait-auth
 
 ### A2:A-AuthResponse Handle auth response
 
 - Triggered
-  - A-SubmitLogin.response
+  - A-SubmitLogin.P2.response
 - From
   - wait-auth
-- Cases:
-  - success:
+- Process P1: Receive auth response
+  - case: success
     - response: 2xx authenticated user
-    - navigate: SCR-DASHBOARD
-  - failure:
+    - Effects
+      - navigate: SCR-DASHBOARD
+  - case: failure
     - response: 401 invalid credentials
-    - state: auth-error
-    - update:
-      - target: L-MessageArea
-      - content: Authentication error message
+    - Effects
+      - state: auth-error
+      - display:
+        - target: L-MessageArea
+        - element: E-AuthenticationErrorMessage
 
 ### A4:A-ValidateEmail Validate email
 
 - Triggered
   - E-EmailInput.blur
-- Cases:
-  - empty:
-    - from: idle
-    - state: validation-error
-    - update:
-      - target: L-EmailValidation
-      - content: Email is required.
-  - valid:
-    - from: validation-error
-    - state: idle
-    - update:
-      - target: L-EmailValidation
-      - content: Empty email validation
+- Process P1: Validate email field
+  - case: empty
+    - description: empty email in idle state
+    - Effects
+      - state: validation-error
+      - display:
+        - target: L-EmailValidation
+        - element: E-EmailRequiredMessage
+  - case: valid
+    - description: valid email after validation error
+    - Effects
+      - state: idle
+      - display:
+        - target: L-EmailValidation
+        - element: E-EmptyEmailValidation
 ```
 
 ## Parser Responsibilities

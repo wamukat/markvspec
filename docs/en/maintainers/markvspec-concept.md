@@ -128,22 +128,24 @@ status: draft
   - E-SignInButton.click
 - From
   - idle
-- Process
-  - HttpRequest
-    - POST /login
-    - email: E-EmailInput.value
-    - password: E-PasswordInput.value
-- Effects
-  - state: wait-auth
-- Cases
-  - success:
-    - from: wait-auth
+- Process P1: Send login request
+  - request:
+    - method: POST
+    - path: /login
+    - params:
+      - email: E-EmailInput.value
+      - password: E-PasswordInput.value
+  - case: sent
+    - Effects
+      - state: wait-auth
+  - case: success
     - response: 2xx authenticated user
-    - navigate: SCR-DASHBOARD
-  - failure:
-    - from: wait-auth
+    - Effects
+      - navigate: SCR-DASHBOARD
+  - case: failure
     - response: 401 invalid credentials
-    - state: auth-error
+    - Effects
+      - state: auth-error
 
 ## Business Rules
 

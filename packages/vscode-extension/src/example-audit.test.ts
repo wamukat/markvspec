@@ -3,7 +3,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import test from "node:test";
 import { buildViewportStateScreenReadModels, stateScreenActionsForModel } from "@markvspec/core";
-import { loadScreenDocumentResult, renderDesignDocumentHtml } from "./extension.js";
+import { loadScreenDocumentResult, renderDesignDocumentHtml, renderStandaloneHtml } from "./extension.js";
 
 interface AuditFinding {
   code: string;
@@ -18,11 +18,21 @@ interface ExampleAuditDocument {
   file: string;
   result: ReturnType<typeof loadScreenDocumentResult>["result"];
   html: string;
+  standaloneHtml: string;
 }
 
 const workspaceRoot = findWorkspaceRoot(process.cwd());
 const examplesRoot = resolve(workspaceRoot, "examples");
-const knownIssueTickets: Record<string, string> = {};
+interface KnownIssue {
+  code: string;
+  ticket: string;
+  file?: string;
+  state?: string;
+  scenario?: string;
+  id?: string;
+}
+
+const knownIssues: KnownIssue[] = [];
 
 test("audits example preview regressions across shipped examples", () => {
   const findings: AuditFinding[] = [];
@@ -30,6 +40,8 @@ test("audits example preview regressions across shipped examples", () => {
 
   for (const document of documents) {
     auditDiagnostics(document, findings);
+    auditStandaloneExport(document, findings);
+    auditStateSections(document, findings);
     auditVisibleNotPlacedLayouts(document, findings);
     auditElementTriggerActionVisibility(document, findings);
     auditDialogActionPlacement(document, findings);
@@ -38,13 +50,15 @@ test("audits example preview regressions across shipped examples", () => {
   auditJapaneseGeneratedActionText(findings);
 
   const uniqueFindings = dedupeFindings(findings);
-  const unexpected = uniqueFindings.filter((finding) => !knownIssueTickets[finding.code]);
-  const known = uniqueFindings.filter((finding) => knownIssueTickets[finding.code]);
-  const knownCodes = new Set(known.map((finding) => finding.code));
+  const unexpected = uniqueFindings.filter((finding) => !knownIssueForFinding(finding));
+  const known = uniqueFindings.filter((finding) => knownIssueForFinding(finding));
 
   assert.deepEqual(unexpected, [], formatFindings("Unexpected preview audit findings", unexpected));
-  for (const code of Object.keys(knownIssueTickets)) {
-    assert(knownCodes.has(code), `Expected known issue detector ${code} (${knownIssueTickets[code]}) to report at least one finding.`);
+  for (const knownIssue of knownIssues) {
+    assert(
+      known.some((finding) => knownIssueMatches(knownIssue, finding)),
+      `Expected known issue detector ${knownIssue.code} (${knownIssue.ticket}) to report at least one matching finding.`
+    );
   }
 
   if (known.length > 0) {
@@ -63,7 +77,12 @@ function loadExampleDocuments(files: string[], findings: AuditFinding[]): Exampl
         "",
         loaded.focus ? { focus: loaded.focus, messages: loaded.messages } : { messages: loaded.messages }
       );
-      documents.push({ file: relative(workspaceRoot, file), result: loaded.result, html });
+      documents.push({
+        file: relative(workspaceRoot, file),
+        result: loaded.result,
+        html,
+        standaloneHtml: renderStandaloneHtml(loaded, undefined, relative(workspaceRoot, file))
+      });
     } catch (error) {
       findings.push({
         code: "preview-render-error",
@@ -86,6 +105,19 @@ function auditDiagnostics(document: ExampleAuditDocument, findings: AuditFinding
   }
 }
 
+function auditStandaloneExport(document: ExampleAuditDocument, findings: AuditFinding[]): void {
+  for (const term of [document.result.screen.id, "State Views", "Action Details"]) {
+    if (term && !document.standaloneHtml.includes(term)) {
+      findings.push({
+        code: "standalone-export-missing-section",
+        file: document.file,
+        id: term,
+        message: `Standalone export HTML does not contain expected term: ${term}.`
+      });
+    }
+  }
+}
+
 function auditVisibleNotPlacedLayouts(document: ExampleAuditDocument, findings: AuditFinding[]): void {
   for (const section of stateSections(document.html)) {
     const unplacedLayoutIds = [...section.html.matchAll(/mm-unplaced-badge[\s\S]*?<span class="mm-detail-ref-id">(L-[^<]+)<\/span>/gu)]
@@ -101,6 +133,27 @@ function auditVisibleNotPlacedLayouts(document: ExampleAuditDocument, findings: 
           message: `Layout ${layoutId} is marked not placed while it is present in the same state wireframe.`
         });
       }
+    }
+  }
+}
+
+function auditStateSections(document: ExampleAuditDocument, findings: AuditFinding[]): void {
+  const sections = stateSections(document.html);
+  const stateViewports = buildViewportStateScreenReadModels(document.result, document.result);
+  for (const model of stateViewports.flatMap((stateViewport) => stateViewport.models)) {
+    const section = sections.find((candidate) =>
+      candidate.title === model.stateViewTitle &&
+      candidate.state === model.stateName &&
+      candidate.viewport === model.viewport
+    );
+    if (!section) {
+      findings.push({
+        code: "state-view-section-missing",
+        file: document.file,
+        state: model.stateName,
+        scenario: model.scenario ? model.title : undefined,
+        message: `State view ${model.stateViewTitle} did not render a matching state-screen-section.`
+      });
     }
   }
 }
@@ -200,6 +253,32 @@ function auditDisplayEffects(document: ExampleAuditDocument, findings: AuditFind
           id: elementId,
           message: `Preview Scenario ${model.title} displays ${elementId}, but the rendered preview HTML does not contain ${expectedNeedle}.`
         });
+        continue;
+      }
+      if (elementTypeById.get(elementId) === "Toast") {
+        if (!section.html.includes("data-mm-display-toast-region=") || section.html.includes(`data-mm-display-modal="${elementId}"`)) {
+          findings.push({
+            code: "toast-display-region-invalid",
+            file: document.file,
+            state: model.stateName,
+            scenario: model.title,
+            id: elementId,
+            message: `Preview Scenario ${model.title} displays Toast ${elementId}, but the toast is not rendered in a toast region.`
+          });
+        }
+        continue;
+      }
+      if (display.target && elementTypeById.get(elementId) !== "Dialog") {
+        if (!isNeedleInsideRenderedTarget(section.html, display.target, expectedNeedle)) {
+          findings.push({
+            code: "display-effect-wrong-target",
+            file: document.file,
+            state: model.stateName,
+            scenario: model.title,
+            id: elementId,
+            message: `Preview Scenario ${model.title} displays ${elementId}, but it is not rendered inside target ${display.target}.`
+          });
+        }
       }
     }
   }
@@ -224,12 +303,7 @@ function dialogElementActionIds(document: ExampleAuditDocument): Map<string, str
 }
 
 function auditJapaneseGeneratedActionText(findings: AuditFinding[]): void {
-  const fixtures = [
-    "03-actions/parallel-initial-load.vspec.md",
-    "04-real-world-screens/login-basic.vspec.md"
-  ];
-  for (const fixture of fixtures) {
-    const file = resolve(examplesRoot, fixture);
+  for (const file of findExampleFiles(examplesRoot)) {
     const source = readFileSync(file, "utf8").replace("locale: en", "locale: ja");
     const loaded = loadScreenDocumentResult(createTextDocument(source, file) as never);
     const html = renderDesignDocumentHtml(
@@ -237,7 +311,7 @@ function auditJapaneseGeneratedActionText(findings: AuditFinding[]): void {
       "",
       loaded.focus ? { focus: loaded.focus, messages: loaded.messages } : { messages: loaded.messages }
     );
-    for (const term of ["effect set state", "stop process", "continue process", "navigate to", "Parallel group:", "modal overlay"]) {
+    for (const term of ["effect set state", "stop process", "continue process", "navigate to", "Parallel group:", "modal overlay", "request:", "result:"]) {
       if (html.includes(term)) {
         findings.push({
           code: "ja-ui-english-leftover",
@@ -248,6 +322,52 @@ function auditJapaneseGeneratedActionText(findings: AuditFinding[]): void {
       }
     }
   }
+}
+
+function isNeedleInsideRenderedTarget(sectionHtml: string, targetId: string, expectedNeedle: string): boolean {
+  if (targetId.startsWith("L-")) {
+    const targetIndex = sectionHtml.indexOf(`data-mm-id="${targetId}"`);
+    if (targetIndex === -1) {
+      return false;
+    }
+    const nextLayout = sectionHtml.indexOf("<!--mm-render-key:layout:", targetIndex + targetId.length);
+    const boundary = nextLayout === -1 ? sectionHtml.length : nextLayout;
+    const expectedIndex = sectionHtml.indexOf(expectedNeedle, targetIndex);
+    return expectedIndex !== -1 && expectedIndex < boundary;
+  }
+  let expectedIndex = sectionHtml.indexOf(expectedNeedle);
+  while (expectedIndex !== -1) {
+    const targetAttr = sectionHtml.lastIndexOf(`data-mm-id="${targetId}"`, expectedIndex);
+    const targetMarkerAttr = sectionHtml.lastIndexOf(`data-mm-target-id="${targetId}"`, expectedIndex);
+    const markerIndex = Math.max(targetAttr, targetMarkerAttr);
+    if (markerIndex !== -1) {
+      const openStart = sectionHtml.lastIndexOf(targetId.startsWith("L-") ? "<section" : '<div class="mm-', markerIndex);
+      const tagName = sectionHtml.startsWith("<section", openStart) ? "section" : "div";
+      const closeStart = openStart === -1 ? -1 : findMatchingTagClose(sectionHtml, openStart, tagName);
+      if (openStart !== -1 && closeStart !== -1 && expectedIndex < closeStart) {
+        return true;
+      }
+    }
+    expectedIndex = sectionHtml.indexOf(expectedNeedle, expectedIndex + expectedNeedle.length);
+  }
+  return false;
+}
+
+function findMatchingTagClose(html: string, openStart: number, tagName: "div" | "section"): number {
+  const tagPattern = new RegExp(`</?${tagName}\\\\b[^>]*>`, "gu");
+  tagPattern.lastIndex = openStart;
+  let depth = 0;
+  for (let match = tagPattern.exec(html); match; match = tagPattern.exec(html)) {
+    if (match[0].startsWith("</")) {
+      depth -= 1;
+      if (depth === 0) {
+        return match.index;
+      }
+    } else if (!match[0].endsWith("/>")) {
+      depth += 1;
+    }
+  }
+  return -1;
 }
 
 function stateSections(html: string): Array<{ title: string; state: string; viewport?: string; html: string }> {
@@ -314,7 +434,7 @@ function formatFindings(title: string, findings: AuditFinding[]): string {
   return [
     title,
     ...findings.map((finding) => [
-      `- ${finding.code}${knownIssueTickets[finding.code] ? ` (${knownIssueTickets[finding.code]})` : ""}`,
+      `- ${finding.code}${knownIssueForFinding(finding) ? ` (${knownIssueForFinding(finding)?.ticket})` : ""}`,
       `file=${finding.file}`,
       finding.state ? `state=${finding.state}` : "",
       finding.scenario ? `scenario=${finding.scenario}` : "",
@@ -334,4 +454,16 @@ function dedupeFindings(findings: AuditFinding[]): AuditFinding[] {
     seen.add(key);
     return true;
   });
+}
+
+function knownIssueForFinding(finding: AuditFinding): KnownIssue | undefined {
+  return knownIssues.find((knownIssue) => knownIssueMatches(knownIssue, finding));
+}
+
+function knownIssueMatches(knownIssue: KnownIssue, finding: AuditFinding): boolean {
+  return knownIssue.code === finding.code &&
+    (!knownIssue.file || knownIssue.file === finding.file) &&
+    (!knownIssue.state || knownIssue.state === finding.state) &&
+    (!knownIssue.scenario || knownIssue.scenario === finding.scenario) &&
+    (!knownIssue.id || knownIssue.id === finding.id);
 }

@@ -24,6 +24,32 @@ run npm run build -w @markvspec/cli
 run node packages/cli/dist/index.js validate "examples/**/*.vspec.md" --fail-on-warnings
 run node packages/cli/dist/index.js export html "examples/**/*.vspec.md" --out "$HTML_DIR"
 
+check_html_artifacts() {
+  local missing=0
+  local file
+  while IFS= read -r file; do
+    if ! grep -q 'State Views' "$file" && ! grep -q '状態ビュー' "$file"; then
+      printf 'Missing State Views section in %s\n' "$file" | tee -a "$LOG_FILE"
+      missing=1
+    fi
+    if ! grep -q 'class="doc-section state-screen-section"' "$file"; then
+      printf 'Missing rendered state screen sections in %s\n' "$file" | tee -a "$LOG_FILE"
+      missing=1
+    fi
+    if ! grep -q 'class="wireframe-section"' "$file"; then
+      printf 'Missing rendered wireframe sections in %s\n' "$file" | tee -a "$LOG_FILE"
+      missing=1
+    fi
+    if ! grep -q '@media print' "$file"; then
+      printf 'Missing print stylesheet in %s\n' "$file" | tee -a "$LOG_FILE"
+      missing=1
+    fi
+  done < <(find "$HTML_DIR" -type f -name '*.html' -size +0c | sort)
+  return "$missing"
+}
+
+check_html_artifacts
+
 printf '$ node packages/cli/dist/index.js export pdf examples/**/*.vspec.md --out %s\n' "$PDF_DIR" | tee -a "$LOG_FILE"
 if node packages/cli/dist/index.js export pdf "examples/**/*.vspec.md" --out "$PDF_DIR" 2>&1 | tee -a "$LOG_FILE"; then
   find "$PDF_DIR" -type f -name '*.pdf' -size +0c | sort > "$OUT_DIR/pdf-files.txt"

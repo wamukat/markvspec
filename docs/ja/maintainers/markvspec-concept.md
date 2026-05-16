@@ -92,15 +92,18 @@ status: draft
   - E-SignInButton.click
 - From
   - idle
-- Process
-  - HttpRequest
-    - POST /login
+- Process P1: Send login request
+  - request:
+    - method: POST
+    - path: /login
+    - params:
       - email: E-EmailInput.value
-    - cases:
-      - sent:
-        - state: wait-auth
-      - send-failed:
-        - state: auth-error
+  - case: sent
+    - Effects
+      - state: wait-auth
+  - case: send-failed
+    - Effects
+      - state: auth-error
 ```
 
 ## Front Matter

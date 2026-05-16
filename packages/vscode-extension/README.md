@@ -33,6 +33,8 @@ The active `examples/` directory is a learning path:
 - `examples/02-states/responsive-profile.vspec.md` covers mobile and desktop layouts.
 - `examples/03-actions/event-triggers.vspec.md` covers non-click events and lifecycle triggers.
 - `examples/03-actions/form-submit-flow.vspec.md` covers validation, model update, server call, and navigation.
+- `examples/03-actions/single-field-validation.vspec.md` covers focused single-field validation contracts.
+- `examples/03-actions/toast-feedback.vspec.md` covers non-modal toast feedback and targetless toast display.
 - `examples/03-actions/parallel-initial-load.vspec.md` covers parallel server calls and `Resolve`.
 - `examples/04-real-world-screens/notice-detail.vspec.md` covers Display Content Spec fields.
 - `examples/04-real-world-screens/profile-edit-rich.vspec.md` covers extended form, media, list, and dialog element types.
