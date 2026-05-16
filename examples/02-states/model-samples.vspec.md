@@ -37,7 +37,6 @@ empty-array syntax.
 - L-Summary
 - E-SubscriptionTable
 - E-EmptyMessage
-- E-ReloadButton
 
 ### L2:L-Summary Summary panel
 
@@ -90,32 +89,6 @@ empty-array syntax.
 
 - sample: No subscriptions are linked to this account.
 - visible when: empty
-
-### 8:E-ReloadButton Button
-
-- label: Reload samples
-- variant: secondary
-- action: A-ReloadSamples
-
-## Actions
-
-### A1:A-ReloadSamples Reload samples
-
-- Triggered
-  - E-ReloadButton.click
-- From
-  - loaded
-  - empty
-- Process P1: Send request
-  - request:
-    - method: GET
-    - path: /sample-account
-  - case: sent
-    - Effects
-      - state: loaded
-  - case: send-failed
-    - Effects
-      - state: empty
 
 ## Model Samples
 

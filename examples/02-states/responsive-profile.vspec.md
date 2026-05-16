@@ -114,16 +114,5 @@ viewport while keeping state behavior shared.
   - E-SaveButton.click
 - From
   - editing
-- Process P1: Call server service
-  - server:
-    - ProfileService.save()
-    - params:
-      - email: E-Email.value
-  - result:
-    - profile save request
-  - case: success
-    - Effects
-      - state: idle
-  - case: failure
-    - Effects
-      - state: editing
+- Process P1: Transition
+  - state: idle

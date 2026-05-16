@@ -100,8 +100,6 @@ handling. The click action only reaches `loading` after the request is sent.
   - request:
     - method: GET
     - path: /items
-    - params:
-      - page: ${model.page}
   - result:
     - item list request
   - case: sent
