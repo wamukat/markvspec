@@ -11,8 +11,8 @@ status: draft
 
 # SCR-FORM-SUBMIT-FLOW Form Submit Flow
 
-This example teaches an action that validates input, updates the model, calls a
-server, and navigates only after a successful response.
+This example teaches an action that validates input, sends request parameters,
+waits for the server response, and navigates only after success.
 
 ## States
 
@@ -65,12 +65,10 @@ server, and navigates only after a successful response.
 ### 2:E-EmailInput Input*
 
 - label: Email
-- value: ${model.email}
 - placeholder: user@example.com
 
 ### 3:E-PlanSelect Select
 
-- value: ${model.plan}
 - initial value: Standard
 - options:
   - Standard

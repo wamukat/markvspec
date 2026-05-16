@@ -12,7 +12,7 @@ status: draft
 # SCR-PARALLEL-INITIAL-LOAD Parallel Initial Load
 
 This example teaches parallel process groups. Two server calls start together and
-the `Process P3: Resolve initial load` step owns the final state transition.
+the `Process P3: Resolve grouped processes` step owns the final state transition.
 
 ## States
 

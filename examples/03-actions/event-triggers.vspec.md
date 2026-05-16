@@ -11,8 +11,8 @@ status: draft
 
 # SCR-EVENT-TRIGGERS Event Triggers
 
-This example teaches non-click element events and the common lifecycle triggers
-used around a form-like preferences screen.
+This example teaches non-click element events and lifecycle triggers around a
+small preferences form.
 
 ## States
 
@@ -20,14 +20,8 @@ used around a form-like preferences screen.
   - The screen is requesting saved preferences.
 - idle
   - Preferences are editable.
-- saving
-  - The save request was sent and the screen is waiting for the response.
-- saved
-  - Preferences were saved.
 - initialize-error
   - Saved preferences could not be loaded.
-- save-error
-  - Preferences could not be sent or saved.
 
 ## Layout: desktop
 
@@ -49,16 +43,13 @@ used around a form-like preferences screen.
 #### Items
 
 - E-LoadingBanner
-- E-SavedBanner
 - E-LoadErrorBanner
-- E-SaveErrorBanner
 
 ### L3:L-PreferencesForm Preferences form
 
 - stack
 - gap: sm
 - disabled when: initializing
-- disabled when: saving
 
 #### Items
 
@@ -91,7 +82,7 @@ used around a form-like preferences screen.
 
 #### Items
 
-- E-SaveButton
+- E-SubmitButton
 - E-DiscardButton
 
 ## Elements
@@ -116,51 +107,36 @@ used around a form-like preferences screen.
 - tone: danger
 - sample: Enter a valid notification email before saving.
 
-### 5:E-SavedBanner Banner
-
-- tone: success
-- sample: Preferences were saved.
-- visible when: saved
-
-### 6:E-LoadErrorBanner Banner
+### 5:E-LoadErrorBanner Banner
 
 - tone: danger
 - sample: Saved preferences could not be loaded.
 - visible when: initialize-error
 
-### 7:E-SaveErrorBanner Banner
-
-- tone: danger
-- sample: Preferences could not be saved.
-- visible when: save-error
-
-### 8:E-PreferencesForm custom:Form
+### 6:E-PreferencesForm custom:Form
 
 - label: Preferences form
-- purpose: Browser form submit boundary for the preferences fields.
+- purpose: Form submit event boundary for the preferences fields.
 - action: A-SubmitPreferences
 
-### 9:E-SearchInput Input
+### 7:E-SearchInput Input
 
 - label: Search keyword
-- value: ${model.keyword}
 - initial value: system alerts
 - placeholder: notification keyword
 - width: medium
 
-### 10:E-EmailInput Input*
+### 8:E-EmailInput Input*
 
 - label: Notification email
 - type: email
-- value: ${model.email}
 - initial value: member@example.com
 - placeholder: member@example.com
 - width: long
 
-### 11:E-DeliverySelect Select
+### 9:E-DeliverySelect Select
 
 - label: Delivery cadence
-- value: ${model.deliveryCadence}
 - initial value: Daily
 - width: medium
 - options:
@@ -168,24 +144,24 @@ used around a form-like preferences screen.
   - Daily
   - Weekly
 
-### 12:E-HelpIcon Icon
+### 10:E-HelpIcon Icon
 
 - label: Delivery help
 - name: circle-help
 
-### 13:E-SaveButton Button
+### 11:E-SubmitButton Button
 
-- label: Save preferences
+- label: Submit preferences
 - variant: primary
 - action: A-SubmitPreferences
 
-### 14:E-DiscardButton Button
+### 12:E-DiscardButton Button
 
 - label: Discard changes
 - variant: secondary
 - action: A-RequestDiscardDialog
 
-### 15:E-ConfirmDialog Dialog
+### 13:E-ConfirmDialog Dialog
 
 - title: Discard changes?
 - content: Closing this dialog keeps the current edits on the page.
@@ -276,7 +252,6 @@ used around a form-like preferences screen.
   - E-DiscardButton.click
 - From
   - idle
-  - save-error
 - Process P1: Apply immediate effect
   - case: done
     - Effects
@@ -300,7 +275,6 @@ used around a form-like preferences screen.
   - E-PreferencesForm.submit
 - From
   - idle
-  - save-error
 - Process P1: Check validation
   - receive:
     - validation: V-PreferencesForm.result
@@ -308,66 +282,32 @@ used around a form-like preferences screen.
     - description: required field missing or invalid
     - Effects
       - display:
-        - target: E-ValidationBanner
+        - target: L-ValidationArea
         - element: E-ValidationBanner
     - stop
   - case: valid
     - description: form fields are valid
-    - continue
-- Process P2: Submit preferences
-  - server:
-    - PreferencesCommandService.save()
-    - params:
-      - keyword: E-SearchInput.value
-      - email: E-EmailInput.value
-      - deliveryCadence: E-DeliverySelect.value
-  - result:
-    - preferences save request
-  - case: sent
     - Effects
-      - state: saving
-  - case: send-failed
-    - Effects
-      - state: save-error
-
-### A8:A-HandleSaveResponse Handle save response
-
-- Triggered
-  - A-SubmitPreferences.P2.response
-- From
-  - saving
-- Process P1: Handle server response
-  - receive:
-    - response: A-SubmitPreferences.P2.response
-  - case: success
-    - response: 200 saved preferences
-    - Effects
-      - state: saved
-  - case: failure
-    - response: 4xx or 5xx
-    - Effects
-      - state: save-error
+      - state: idle
+    - stop
 
 ## Preview Scenarios
 
 ### idle-help
 
 - state: idle
-- before: saving
 - cases:
   - A-ShowDeliveryHelp.P1.done
 
 ### idle-validation-error
 
 - state: idle
-- before: saving
 - cases:
   - A-ValidateEmail.P1.invalid
 
 ### idle-confirm-discard
 
 - state: idle
-- before: saved
 - cases:
   - A-RequestDiscardDialog.P1.done
 
@@ -384,10 +324,3 @@ used around a form-like preferences screen.
 - scope: composite
 - run: client
 - message: Notification email is required and must be an email address.
-
-## Business Rules
-
-### R-PREF-001
-
-- Do not submit preferences while the email field is empty or malformed.
-- Treat `sent` as the successful start of a save request, not as a completed save.

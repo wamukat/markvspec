@@ -20,12 +20,12 @@ smallest useful reference:
   handling, including loading, empty, loaded, and error states.
 - `Responsive Profile` teaches mobile and desktop layout variants over shared
   elements and state-aware actions.
-- `Form Submit Flow` teaches validation, model effects, server process details,
-  stop/continue flow, and success navigation.
+- `Form Submit Flow` teaches validation, request parameters, server process
+  details, stop/continue flow, and success navigation.
 - `Single Field Validation` teaches field-level validation contracts alongside
   element input constraints such as length, pattern, type, range, and step.
 - `Parallel Initial Load` teaches parallel process groups and
-  `Process P3: Resolve initial load` final state decisions.
+  `Process P3: Resolve grouped processes` final state decisions.
 - `Search List` teaches admin list patterns: filters, Select options, Tables,
   paging, loading/empty/error states, Model Updates, Model Samples, and
   response-driven result updates.
@@ -65,10 +65,10 @@ unambiguous.
 | [Async Loading](../../../examples/02-states/async-loading.vspec.md) | Request send and response handling. | Loading, loaded, empty, and load-error states, response cases, and Model Samples. |
 | [Model Samples](../../../examples/02-states/model-samples.vspec.md) | Dedicated model-backed preview data example. | List-first object and collection samples, state-specific sample sets, and supplemental empty table syntax. |
 | [Responsive Profile](../../../examples/02-states/responsive-profile.vspec.md) | Same content in mobile and desktop layouts. | Viewport-specific layout groups and state-aware actions. |
-| [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | Non-click events and lifecycle triggers. | `change`, `submit`, `focus`, `blur`, `open`, `close`, `screen.load`, and `A-Action.P-marker.response` in one preferences flow. |
-| [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md) | Submit action lifecycle. | Validation receive source, model effects, server process details, flow stop/continue, and success navigation. |
+| [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | Non-click events and lifecycle triggers. | `change`, `submit`, `focus`, `blur`, `close`, and `screen.load` in one preferences flow. |
+| [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md) | Submit action lifecycle. | Validation receive source, request parameters, server process details, flow stop/continue, and success navigation. |
 | [Single Field Validation](../../../examples/03-actions/single-field-validation.vspec.md) | Field-level validation examples. | Required, length, pattern, email, and numeric range validation contracts tied to element input specifications. |
-| [Parallel Initial Load](../../../examples/03-actions/parallel-initial-load.vspec.md) | Parallel server calls with a final resolver. | `group: initial-load`, `Process P3: Resolve initial load`, model side effects, and final state decisions. |
+| [Parallel Initial Load](../../../examples/03-actions/parallel-initial-load.vspec.md) | Parallel server calls with a final resolver. | `group: initial-load`, `Process P3: Resolve grouped processes`, model side effects, and final state decisions. |
 | [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md) | Display Content Spec field coverage. | `label src`, `placeholder src`, `sample`, `src`, `format`, machine `value`, and navigation `params`. |
 | [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md) | Element type coverage screen using a realistic profile/settings form. | `Textarea`, `MultiSelect`, `CheckboxGroup`, `Switch`, `RadioGroup`, `List`, `Dialog`, `Image`, `Icon`, `Divider`, file inputs, date/time inputs, and number input. |
 | [Search List](../../../examples/04-real-world-screens/search-list.vspec.md) | Search screen with filters and pagination. | Desktop toolbar, Select options, Table, empty state, load-error state, model effects, Model Samples, and display element replacement. |
