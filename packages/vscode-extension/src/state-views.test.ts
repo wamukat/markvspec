@@ -877,6 +877,89 @@ viewport: mobile
   assert.match(loadingSection, /<h5 class="state-screen-subheading">Actions<\/h5>\s*<p class="spec-empty">None\.<\/p>/);
 });
 
+test("excludes hidden viewport-specific element triggers from system events", () => {
+  const source = `---
+id: SCR-HIDDEN-ELEMENT-TRIGGER
+type: screen
+title: Hidden Element Trigger
+viewport: mobile
+---
+
+# SCR-HIDDEN-ELEMENT-TRIGGER Hidden Element Trigger
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-MobilePage Mobile page
+
+- stack
+
+#### Items
+
+- E-MobileTitle
+
+## Layout: desktop
+
+### L-DesktopPage Desktop page
+
+- stack
+
+#### Items
+
+- E-MobileTitle
+- E-DesktopOnlyLink
+
+## Elements
+
+### E-MobileTitle Heading
+
+- level: 1
+- label: Account
+
+### E-DesktopOnlyLink Link
+
+- label: Open password reset
+- action: A-ForgotPassword
+
+## Actions
+
+### A1:A-Load Load
+
+- Triggered
+  - screen.load
+- From
+  - idle
+- Process P1: Load
+  - case: done
+    - Effects
+      - state: idle
+
+### A2:A-ForgotPassword Open password reset
+
+- Triggered
+  - E-DesktopOnlyLink.click
+- From
+  - idle
+- Process P1: Navigate
+  - Effects
+    - navigate: SCR-PASSWORD-RESET
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const mobileIdleSection = viewportStateSection(html, "idle", "mobile");
+  const desktopIdleSection = viewportStateSection(html, "idle", "desktop");
+  const mobileSystemEvents = mobileIdleSection.match(/<aside class="system-events-box"[\s\S]*?<\/aside>/)?.[0] ?? "";
+  const desktopSystemEvents = desktopIdleSection.match(/<aside class="system-events-box"[\s\S]*?<\/aside>/)?.[0] ?? "";
+
+  assert.match(mobileSystemEvents, /<aside class="system-events-box">/);
+  assert.match(mobileSystemEvents, new RegExp(`<li>${actionBadge("A1", "A-Load")} Load<span class="system-event-trigger">（Trigger: ${docLabel("screen.load", "trigger")}）</span></li>`));
+  assert.doesNotMatch(mobileSystemEvents, /A-ForgotPassword|Open password reset|E-DesktopOnlyLink\.click/);
+  assert.doesNotMatch(desktopSystemEvents, /A-ForgotPassword|Open password reset|E-DesktopOnlyLink\.click/);
+});
+
 test("marks repeated system events from later current states", () => {
   const source = `---
 id: SCR-REPEATED-DIFF-SYSTEM-EVENTS

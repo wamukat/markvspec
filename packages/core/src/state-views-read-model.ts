@@ -1135,9 +1135,18 @@ export function systemEventActionsForState(
 ): MarkVSpecParseResult["actions"] {
   return result.actions.filter((action) =>
     (!focus || focus.actionIds.has(action.id)) &&
+    isSystemEventTrigger(action.triggeredBy) &&
     !actionHasVisibleElementMarker(result, action, renderedElementIds) &&
     actionAppliesToState(action, stateName, { initial, unscoped: "initial" })
   );
+}
+
+function isSystemEventTrigger(triggeredBy: string | undefined): boolean {
+  if (triggeredBy === "screen.load" || triggeredBy === "partial.render") {
+    return true;
+  }
+
+  return /^A-[\p{L}\p{N}-]+(?:\.P[A-Za-z0-9_-]+)?\.response$/u.test(triggeredBy ?? "");
 }
 
 function actionHasVisibleElementMarker(
