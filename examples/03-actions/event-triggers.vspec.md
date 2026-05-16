@@ -55,7 +55,7 @@ small preferences form.
 
 - E-PreferencesForm
 - "Search keyword": E-SearchInput
-- "Notification email*": E-EmailInput
+- "Notification email": E-EmailInput
 - "Delivery cadence": E-DeliverySelect
 - E-HelpIcon
 - L-HelpArea
@@ -126,7 +126,7 @@ small preferences form.
 - placeholder: notification keyword
 - width: medium
 
-### 8:E-EmailInput Input*
+### 8:E-EmailInput Input
 
 - label: Notification email
 - type: email

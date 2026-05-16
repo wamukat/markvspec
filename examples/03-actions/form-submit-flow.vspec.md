@@ -42,7 +42,7 @@ waits for the server response, and navigates only after success.
 
 #### Items
 
-- "Email*": E-EmailInput
+- "Email": E-EmailInput
 - "Plan": E-PlanSelect
 - E-SubmitButton
 
@@ -62,7 +62,7 @@ waits for the server response, and navigates only after success.
 - level: 1
 - label: Submit request
 
-### 2:E-EmailInput Input*
+### 2:E-EmailInput Input
 
 - label: Email
 - placeholder: user@example.com

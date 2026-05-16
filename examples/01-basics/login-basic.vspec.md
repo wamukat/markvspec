@@ -50,8 +50,8 @@ handling, and disabled controls while authentication is pending.
 
 #### Items
 
-- "Email*": E-EmailInput
-- "Password*": E-PasswordInput
+- "Email": E-EmailInput
+- "Password": E-PasswordInput
 - E-RememberMe
 - E-SignInButton
 - L-AuthProgress
@@ -126,8 +126,8 @@ handling, and disabled controls while authentication is pending.
 
 #### Items
 
-- "Email*": E-EmailInput
-- "Password*": E-PasswordInput
+- "Email": E-EmailInput
+- "Password": E-PasswordInput
 - L-DesktopActions
 - L-AuthProgress
 
@@ -201,7 +201,7 @@ handling, and disabled controls while authentication is pending.
 
 - sample: Sign in to continue.
 
-### 3:E-EmailInput Input*
+### 3:E-EmailInput Input
 
 - label: Email
 - value: ${model.email}
@@ -213,7 +213,7 @@ handling, and disabled controls while authentication is pending.
 - sample: Enter both email and password.
 - visible when: validation-error
 
-### 5:E-PasswordInput Input*
+### 5:E-PasswordInput Input
 
 - label: Password
 - type: password

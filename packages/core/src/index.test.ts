@@ -4725,10 +4725,10 @@ test("parses the login screen example", () => {
     location: { line: emailFieldItem.location.line }
   }, {
     type: "field",
-    label: "Email*",
+    label: "Email",
     elementId: "E-EmailInput",
     location: { line: emailFieldItem?.location.line },
-    raw: "\"Email*\": E-EmailInput"
+    raw: "\"Email\": E-EmailInput"
   });
   assert.equal(typeof emailFieldItem?.location.line, "number");
 
@@ -4751,7 +4751,7 @@ test("parses the login screen example", () => {
   assert.equal(emailInput?.type, "Input");
   assert.equal(emailInput?.properties["marker"], "3");
   assert.equal(emailInput?.properties["value"], "\${model.email}");
-  assert.equal(emailInput?.properties["required"], true);
+  assert.equal(emailInput?.properties["required"], undefined);
 
   const passwordInput = result.elements.find((element) => element.id === "E-PasswordInput");
   assert.equal(passwordInput?.properties["value"], "\${model.password}");
@@ -7140,7 +7140,7 @@ test("renders the login screen as low-fidelity HTML", () => {
   assert.match(html, /class="mm-wireframe"/);
   assert.match(html, /Login/);
   assert.match(html, /Sign in to continue\./);
-  assert.match(html, /<label class="mm-field-label">Email\*<\/label>/);
+  assert.match(html, /<label class="mm-field-label">Email<\/label>/);
   assert.match(html, /data-mm-id="E-EmailInput"/);
   assert.match(html, /mm-variant-primary/);
   assert.match(html, /<code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">7<\/code>/);

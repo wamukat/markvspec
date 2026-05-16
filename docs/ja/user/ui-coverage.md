@@ -15,7 +15,7 @@
 | 部品 | 状態 | MarkVSpec での表現 | 補足 |
 | --- | --- | --- | --- |
 | 見出し / 段落 / テキスト | 対応済み | `Heading`, `Paragraph`, `Text` | 静的文言と model 由来のサンプル値は `label`, `sample`, `src`, `format` で分けます。 |
-| テキスト入力 | 対応済み | `Input`, `Input*` | `value`, `initial value`, `placeholder`, validation, error text を書けます。 |
+| テキスト入力 | 対応済み | `Input` | `value`, `initial value`, `placeholder`, input rule、validation contract を書けます。必須判定は `## Validations` に書きます。 |
 | 日付 / 時刻 / 数値入力 | 対応済み | `DateInput`, `TimeInput`, `NumberInput`, `DatePicker` | `value: ${model.value}` と `initial value`、必要に応じて `min`, `max`, `step` を書きます。 |
 | ファイル入力 | 対応済み | `FileInput`, `FileUpload` | `accept`, `multiple`, `label`, `sample` で制約や補助文を表現します。 |
 | ボタン / リンク | 対応済み | `Button`, `Link` | `variant`, `tone`, `action`, `href`, route params を書けます。 |
@@ -39,7 +39,7 @@
 | --- | --- | --- |
 | 検索 / 一覧 | 対応済み | toolbar layout、`Table`、空状態 `Paragraph`、paging button、`loading` / `load-error` state。 |
 | 詳細 | 対応済み | stack/grid layout、`Badge`、`List`、read-only text、必要に応じて dialog action。 |
-| 編集フォーム | 対応済み | `Input*`、`DateInput`、`TimeInput`、`NumberInput`、`Textarea`、`FileInput`、`Select`、`MultiSelect`、`Checkbox`、`CheckboxGroup`、`Switch`、`DatePicker`、`FileUpload`、validation state、保存 lifecycle action。 |
+| 編集フォーム | 対応済み | `Input`、`DateInput`、`TimeInput`、`NumberInput`、`Textarea`、`FileInput`、`Select`、`MultiSelect`、`Checkbox`、`CheckboxGroup`、`Switch`、`DatePicker`、`FileUpload`、validation state、保存 lifecycle action。 |
 | 確認フロー | 対応済み | `Dialog`、`overlay`、confirm/cancel action、danger tone。 |
 | 承認フロー | 代替表現あり | 詳細 / 編集パターンに action と rule を明示します。 |
 | 履歴 / 監査ログ | 対応済み | `Table` または `List` にサンプル行を記載します。 |

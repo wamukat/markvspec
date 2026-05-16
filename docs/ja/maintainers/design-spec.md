@@ -182,10 +182,11 @@ Mermaid の SVG が利用できる場合はその SVG を印刷します。
 - label: ログイン
 ```
 
-入力必須は要素型の末尾に `*` を付けます。
+必須入力の product validation は `## Validations` の `rules: required` に書きます。
+Element heading は control type に集中させます。
 
 ```markdown
-### 3:E-EmailInput Input*
+### 3:E-EmailInput Input
 
 - value: ${model.email}
 - initial value: "test@example.com"

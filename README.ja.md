@@ -110,11 +110,12 @@ route: /login
 - level: 1
 - value: ログイン
 
-### 2:E-EmailInput Input*
+### 2:E-EmailInput Input
 
 - value: ${model.email}
 - initial value: "test@example.com"
-- validation: メールアドレス形式であること。
+- input rule:
+  - type: email
 
 ### 3:E-SignInButton Button
 
@@ -157,6 +158,9 @@ route: /login
 ### V-LoginForm ログインフォーム検証
 
 - target: F-LoginForm
+- rules:
+  - required:
+    - E-EmailInput
 - message: メールアドレスを入力してください。
 ```
 

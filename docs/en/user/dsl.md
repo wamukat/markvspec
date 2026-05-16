@@ -431,7 +431,7 @@ prefer ASCII markers so Mermaid labels, document symbols, and plain-text review
 comments stay easy to read.
 
 ```markdown
-### 2:E-EmailInput Input*
+### 2:E-EmailInput Input
 
 - value: ${model.email}
 - initial value: "test@example.com"
@@ -934,8 +934,10 @@ element-specific property such as a form field name. Generated action details
 identify element references with the element marker plus element ID, without
 adding the element type or display-content summary.
 
-Append `*` to the element type to mark an element as required in the generated
-design document. For example, `Input*` is equivalent to a `required` flag.
+Append `*` to the element type only when the element itself has input-level
+required metadata. For example, `Input*` is equivalent to a `required` flag in
+the Input Form Spec. It is not the canonical way to define product validation.
+Required validation belongs in `## Validations` under `rules: required`.
 Required metadata is not rendered as a native `required` attribute or an
 automatic `*` marker in the wireframe preview. If the screen should visibly show
 a required mark, write it into the authored label text.
@@ -1097,9 +1099,10 @@ row has a different title or date. Use stable IDs for bindings and interactions,
 but reserve visible markers for meaningful review targets or value variants such
 as read/unread badges.
 
-Flags are boolean properties. For required form controls, prefer the canonical
-heading suffix such as `Input*`; use a `required` flag only when a boolean
-property is clearer than the element type suffix.
+Flags are boolean properties. A `required` flag or `Input*` heading suffix is
+element metadata shown in Input Form Spec. Use it only for input-level UI
+requirements, not for product validation contracts. Prefer `## Validations`
+with `rules: required` when the design needs to specify validation behavior.
 
 ```markdown
 - required
@@ -1137,7 +1140,7 @@ document.
 Input values may define a model binding and an initial fallback value:
 
 ```markdown
-### 3:E-EmailInput Input*
+### 3:E-EmailInput Input
 
 - value: ${model.email}
 - initial value: "test@example.com"
@@ -1178,13 +1181,14 @@ addresses, and descriptive values. Buttons can use visual size presets:
 - size: large
 ```
 
-`validation` and `error text` are specification metadata for the generated
-Elements tables. They are not rendered automatically near the form control in
-the wireframe preview. If validation or error copy should appear on screen, model
-it as a visible element such as `Text` or `Banner`, usually with `visible when`.
+`validation` and `error text` are legacy descriptive metadata for the generated
+Elements tables. Prefer `## Validations` for validation contracts. They are not
+rendered automatically near the form control in the wireframe preview. If
+validation or error copy should appear on screen, model it as a visible element
+such as `Text` or `Banner`, usually with `visible when`.
 
 ```markdown
-### 3:E-EmailInput Input*
+### 3:E-EmailInput Input
 
 - value: ${model.email}
 - initial value: "test@example.com"
@@ -1198,7 +1202,7 @@ preview uses the same text as the option value. If an option label has a text
 source, write it after `:`.
 
 ```markdown
-### E-RoleSelect Select*
+### E-RoleSelect Select
 
 - value: ${model.role}
 - initial value: "Administrator"
@@ -1379,7 +1383,7 @@ screen details without introducing framework-specific widgets.
 - min: 2020-01-01
 - max: 2030-12-31
 
-### E-RequestedDate DateInput*
+### E-RequestedDate DateInput
 
 - value: ${model.requestedDate}
 - initial value: 2026-06-01
@@ -1393,7 +1397,7 @@ screen details without introducing framework-specific widgets.
 - min: 09:00
 - max: 18:00
 
-### E-Headcount NumberInput*
+### E-Headcount NumberInput
 
 - value: ${model.headcount}
 - initial value: 2
@@ -2001,6 +2005,12 @@ Use `## Validations` for single-field and composite validation contracts. A
 validation. Keep element `input rule` entries limited to input specifications
 such as type, length, range, pattern, IME, accept, and step. Validation rules,
 conditions, messages, and error codes belong in this section.
+
+For required fields, this section is canonical. Write `rules: required` here
+instead of repeating required intent in layout labels such as `"Email*"` or
+element headings such as `Input*`. If an element also carries required metadata
+for an input UI constraint, the generated Input Form Spec shows that element
+metadata separately from this Validations section.
 
 ```markdown
 ## Validations

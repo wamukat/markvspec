@@ -245,10 +245,11 @@ Use `Heading` with `level`, not `H1` through `H6` as element types.
 - label: Welcome back
 ```
 
-Append `*` to an element type to mark it required:
+Use `## Validations` with `rules: required` for required-field product
+validation. The element heading stays focused on the control type:
 
 ```markdown
-### 3:E-EmailInput Input*
+### 3:E-EmailInput Input
 
 - value: ${model.email}
 - initial value: "test@example.com"
@@ -685,11 +686,11 @@ status: draft
 - marker: 2
 - sample: Sign in with your account email and password.
 
-### 3:E-EmailInput Input*
+### 3:E-EmailInput Input
 
 - value: ${model.email}
-- validation: Must be a valid email address.
-- error text: Enter a valid email address.
+- input rule:
+  - type: email
 
 ### E-EmailRequiredText Text
 
@@ -698,11 +699,10 @@ status: draft
 - sample: Email is required.
 - visible when: validation-error
 
-### 4:E-PasswordInput Input*
+### 4:E-PasswordInput Input
 
 - type: password
 - value: ${model.password}
-- validation: Must not be empty.
 
 ### E-SignInButton Button
 

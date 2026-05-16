@@ -12,7 +12,9 @@ status: draft
 # SCR-SINGLE-FIELD-VALIDATION Single Field Validation
 
 This example focuses on element-level input specifications and the matching
-single-field validation contracts.
+single-field validation contracts. Required checks live in `## Validations`;
+element `input rule` entries stay limited to browser-facing constraints such as
+type, length, pattern, range, and step.
 
 ## States
 
@@ -40,8 +42,8 @@ single-field validation contracts.
 
 #### Items
 
-- "Username*": E-UsernameInput
-- "Email*": E-EmailInput
+- "Username": E-UsernameInput
+- "Email": E-EmailInput
 - "Age": E-AgeInput
 - E-CheckButton
 
@@ -64,7 +66,7 @@ single-field validation contracts.
 
 - sample: Each input declares browser-facing constraints, and each Validation contract declares the product rule that consumes the same field.
 
-### 3:E-UsernameInput Input*
+### 3:E-UsernameInput Input
 
 - label: Username
 - placeholder: wamukat
@@ -73,7 +75,7 @@ single-field validation contracts.
   - max length: 40
   - pattern: [a-z0-9-]+
 
-### 4:E-EmailInput Input*
+### 4:E-EmailInput Input
 
 - label: Email
 - type: email

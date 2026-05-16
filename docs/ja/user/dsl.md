@@ -447,7 +447,7 @@ marker はプレビューや設計書上に表示する短い番号です。ID �
 Mermaid label、document symbol、plain text review comment で読みやすいように `1`、`L1`、`A1` のような ASCII marker を優先します。
 
 ```markdown
-### 2:E-EmailInput Input*
+### 2:E-EmailInput Input
 
 - value: ${model.email}
 - initial value: "test@example.com"
@@ -764,13 +764,15 @@ name など要素固有の property として扱います。生成される Acti
 Element 参照を Element marker と Element ID で識別し、element type や
 表示内容要約は原則として足しません。
 
-`*` は generated design document の表で required として表すための
-メタデータです。wireframe preview では native `required` attribute や
-自動の `*` marker としては描画しません。画面上に必須マークを見せたい場合は、
-label 文字列に自分で書きます。
+`*` は Element 自体に input-level の required metadata がある場合だけ使います。
+たとえば `Input*` は Input Form Spec の required flag と同じ意味です。これは
+product validation を定義する canonical syntax ではありません。必須入力の
+validation contract は `## Validations` の `rules: required` に書きます。
+wireframe preview では native `required` attribute や自動の `*` marker としては
+描画しません。画面上に必須マークを見せたい場合は、label 文字列に自分で書きます。
 
 ```markdown
-### 3:E-EmailInput Input*
+### 3:E-EmailInput Input
 ```
 
 現行リリースの要素種別です。
@@ -904,7 +906,7 @@ partial update target には `L-*` の Layout ID を使います。複数項目�
 入力値は `${model.email}` のような不透明な式として表します。
 
 ```markdown
-### 3:E-EmailInput Input*
+### 3:E-EmailInput Input
 
 - value: ${model.email}
 - initial value: "test@example.com"
@@ -958,7 +960,7 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 表示ラベルに参照元がある場合は、項目の後ろに `:` で書きます。
 
 ```markdown
-### E-RoleSelect Select*
+### E-RoleSelect Select
 
 - value: ${model.role}
 - initial value: "Administrator"
@@ -1116,7 +1118,7 @@ UI 部品を、フレームワーク固有の widget 名に寄せずに表現す
 - min: 2020-01-01
 - max: 2030-12-31
 
-### E-RequestedDate DateInput*
+### E-RequestedDate DateInput
 
 - value: ${model.requestedDate}
 - initial value: 2026-06-01
@@ -1130,7 +1132,7 @@ UI 部品を、フレームワーク固有の widget 名に寄せずに表現す
 - min: 09:00
 - max: 18:00
 
-### E-Headcount NumberInput*
+### E-Headcount NumberInput
 
 - value: ${model.headcount}
 - initial value: 2
@@ -1358,6 +1360,12 @@ Thymeleaf や htmx による部分更新は、実装属性ではなく意味と�
 contract であり、Action をいつ起動するかは定義しません。要素側の
 `input rule` は type、長さ、範囲、pattern、IME、accept、step などの入力仕様に
 限定し、検証 rule、条件、メッセージ、error code はこの章に置きます。
+
+必須入力はこの章が canonical です。`"Email*"` のような layout label や
+`Input*` のような element heading に required の意図を重ねず、`rules:
+required` として書きます。Element 側にも入力 UI 制約として required metadata
+を持たせる場合、generated design document では Input Form Spec と Validations
+に分かれて表示されます。
 
 ```markdown
 ## Validations

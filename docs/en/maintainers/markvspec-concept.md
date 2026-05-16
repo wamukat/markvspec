@@ -96,13 +96,13 @@ status: draft
 - label: Welcome back
 - purpose: Greet returning users.
 
-### 3:E-EmailInput Input*
+### 3:E-EmailInput Input
 
 - value: ${model.email}
-- validation: Must be a valid email address.
-- error text: Enter a valid email address.
+- input rule:
+  - type: email
 
-### 4:E-PasswordInput Input*
+### 4:E-PasswordInput Input
 
 - type: password
 - value: ${model.password}

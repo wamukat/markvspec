@@ -61,13 +61,13 @@ small screens: Error Codes, custom History Fields, and History entries.
 - level: 1
 - value: Account settings
 
-### 2:E-DisplayNameInput Input*
+### 2:E-DisplayNameInput Input
 
 - value: ${model.displayName}
 - placeholder: Taylor Stone
 - width: medium
 
-### 3:E-EmailInput Input*
+### 3:E-EmailInput Input
 
 - value: ${model.email}
 - placeholder: taylor@example.com

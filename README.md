@@ -119,11 +119,12 @@ route: /login
 - level: 1
 - value: Sign in
 
-### 2:E-EmailInput Input*
+### 2:E-EmailInput Input
 
 - value: ${model.email}
 - initial value: "test@example.com"
-- validation: Must be an email address.
+- input rule:
+  - type: email
 
 ### 3:E-SignInButton Button
 
@@ -166,6 +167,9 @@ route: /login
 ### V-LoginForm Login form validation
 
 - target: F-LoginForm
+- rules:
+  - required:
+    - E-EmailInput
 - message: Email is required.
 ```
 

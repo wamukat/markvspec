@@ -315,7 +315,7 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(html, /<section class="doc-section state-flow-section" data-section-number="2">/);
   assert.match(html, /<h6 class="state-screen-detail-heading">Element Summary<\/h6>/);
   assert.match(html, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>/);
-  assert.match(html, new RegExp(`<td>${markerBadge("3", "element")}</td><td>${detailIdRef("E-EmailInput")}</td><td>Input</td><td>yes</td><td>${sourceCodePattern("${model.email}")}</td><td></td><td></td><td></td><td></td><td></td>`));
+  assert.match(html, new RegExp(`<td>${markerBadge("3", "element")}</td><td>${detailIdRef("E-EmailInput")}</td><td>Input</td><td></td><td>${sourceCodePattern("${model.email}")}</td><td></td><td></td><td></td><td></td><td></td>`));
   assert.match(html, new RegExp(`<td>${markerBadge("6", "element")}</td><td>${detailIdRef("E-RememberMe")}</td><td>Checkbox</td><td></td><td>${sourceCodePattern("${model.rememberMe}")}</td><td></td><td></td><td></td><td></td><td></td>`));
   assert.match(html, /Enter both email and password\./);
   assert.match(html, new RegExp(`email: ${detailElementRef("3", "E-EmailInput")}\\.value`));
@@ -3512,6 +3512,18 @@ viewport: mobile
 - Process: Immediate
   - Effects
     - state: editing
+
+## Validations
+
+### V-OptionalRequired Optional code required
+
+- target: E-Optional
+- rules:
+  - required:
+    - E-Optional
+- scope: field
+- run: client
+- message: Optional code is required by validation.
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -6951,7 +6963,8 @@ test("declares MarkVSpec syntax highlighting contributions", () => {
   assert(snippets["MarkVSpec Screen"].body?.includes("## Layout: ${4:mobile}"));
   assert(snippets["MarkVSpec Responsive Layouts"].body?.includes("## Layout: desktop"));
   assert(snippets["MarkVSpec Layout Group"].body?.includes("#### Items"));
-  assert(snippets["MarkVSpec Input Element"].body?.includes("### ${1:1}:${2:E-Input} Input*"));
+  assert(snippets["MarkVSpec Input Element"].body?.includes("### ${1:1}:${2:E-Input} Input"));
+  assert(!snippets["MarkVSpec Input Element"].body?.includes("Input*"));
   assert(snippets["MarkVSpec Button Element"].body?.includes("- variant: ${4|primary,secondary,tertiary|}"));
   assert(snippets["MarkVSpec Button Element"].body?.includes("- tone: ${5|neutral,info,success,warning,danger|}"));
   assert(snippets["MarkVSpec Select Element"].body?.includes("- options:"));

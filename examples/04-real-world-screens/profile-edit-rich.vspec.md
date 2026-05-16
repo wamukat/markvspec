@@ -146,7 +146,7 @@ confirmation dialog that are not covered by the smaller examples.
 - max: 2027-12-31
 - width: medium
 
-### 10:E-RequestedDate DateInput*
+### 10:E-RequestedDate DateInput
 
 - label: Requested review date
 - value: ${model.reviewDate}
@@ -164,7 +164,7 @@ confirmation dialog that are not covered by the smaller examples.
 - max: 18:00
 - width: short
 
-### 12:E-Headcount NumberInput*
+### 12:E-Headcount NumberInput
 
 - label: Team size
 - value: ${model.teamSize}

@@ -78,10 +78,11 @@ status: draft
 - level: 1
 - label: ログイン
 
-### 3:E-EmailInput Input*
+### 3:E-EmailInput Input
 
 - value: ${model.email}
-- validation: Must be a valid email address.
+- input rule:
+  - type: email
 
 ## Actions
 

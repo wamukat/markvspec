@@ -156,14 +156,14 @@
   },
   "MarkVSpec Input Element": {
     "prefix": "markvspec-element-input",
-    "description": "Create a required Input element with model binding and validation.",
+    "description": "Create an Input element with model binding and input constraints.",
     "body": [
-      "### ${1:1}:${2:E-Input} Input*",
+      "### ${1:1}:${2:E-Input} Input",
       "",
       "- value: \\${model.${3:field}}",
       "- initial value: ${4:initial value}",
-      "- validation: ${5:Must be valid.}",
-      "- error text: ${6:Enter a valid value.}",
+      "- input rule:",
+      "  - ${5:type}: ${6:text}",
       "${0}"
     ]
   },
