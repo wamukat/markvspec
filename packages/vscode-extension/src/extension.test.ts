@@ -317,6 +317,11 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(html, /<h3>Basic Info<\/h3>/);
   assert.match(html, /<dt>Route<\/dt><dd>\/login<\/dd>/);
   assert.match(html, /<dt>Viewport<\/dt><dd>mobile<\/dd>/);
+  const statesSection = docSectionByHeading(html, "States", "State Flow");
+  const statesTable = statesSection.match(/<div class="spec-table-wrap"><table class="spec-table">[\s\S]*?<\/table><\/div>/)?.[0] ?? "";
+  assert.match(statesTable, new RegExp(`<td>${docLabel("idle", "state")}</td><td>yes</td>`));
+  assert.match(statesTable, new RegExp(`<td>${docLabel("authenticating", "state")}</td><td>-</td>`));
+  assert.doesNotMatch(statesTable, /<td>no<\/td>/);
   assert.match(html, /<section class="doc-section state-views-section" data-section-number="3">/);
   assert.match(html, numberedHeadingPattern(2, "State Views"));
   assert.match(html, /<section class="state-viewport-section"(?=[^>]*\bdata-section-number="3\.1")(?=[^>]*\bdata-viewport="mobile")[^>]*>\s*<h3>\s*<span class="section-number">3\.1\.<\/span>\s*Viewport mobile<span class="state-badge">Default<\/span><\/h3>/);
@@ -441,6 +446,33 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(desktopAuthErrorWireframe, />9<\/code>/);
   const desktopWaitAuthSection = viewportStateSection(html, "authenticating", "desktop");
   assert.match(desktopWaitAuthSection, /mm-repeated-badge/);
+});
+
+test("renders non-initial states as dashes in localized state summaries", () => {
+  const source = `---
+id: SCR-JA-STATES
+type: screen
+title: Japanese States
+locale: ja
+---
+
+# SCR-JA-STATES Japanese States
+
+## States
+
+- idle*
+  - 初期状態
+- loaded
+  - 読み込み済み
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const statesSection = docSectionByHeading(html, "状態", "状態フロー");
+  const statesTable = statesSection.match(/<div class="spec-table-wrap"><table class="spec-table">[\s\S]*?<\/table><\/div>/)?.[0] ?? "";
+
+  assert.match(statesTable, new RegExp(`<td>${docLabel("idle", "state")}</td><td>はい</td>`));
+  assert.match(statesTable, new RegExp(`<td>${docLabel("loaded", "state")}</td><td>-</td>`));
+  assert.doesNotMatch(statesTable, /<td>いいえ<\/td>/);
 });
 
 test("localizes Action/Process diagnostics in preview diagnostics with the VS Code diagnostic formatter", () => {

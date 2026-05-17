@@ -4552,7 +4552,7 @@ function renderStatesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
     ${renderSectionOverview(sectionProse)}
     ${renderLocalizedTable(result,
       [label(result, "state"), label(result, "initial"), label(result, "description")],
-      result.states.map((state) => [renderStateLabel(state.name), state.initial ? text(label(result, "requiredYes")) : text(label(result, "requiredNo")), text(state.message)])
+      result.states.map((state) => [renderStateLabel(state.name), state.initial ? text(label(result, "requiredYes")) : "-", text(state.message)])
     )}
   </section>`;
 }
