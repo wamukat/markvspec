@@ -56,3 +56,154 @@
 3. 展開 / 折りたたみ状態を validation したくなったら Accordion を追加する。
 4. row layout による Pagination 表現が冗長になったら専用要素を追加する。
 5. state-flow 記法が固まった後、複数ステップ申込向けに Stepper を追加する。
+
+## 不足候補の分類
+
+ここでは見た目としてよく使われるかではなく、画面仕様として意味を持つかで分類します。
+選択状態、開閉状態、overlay、進捗、階層ナビゲーション、ページ移動などを持ち、
+Layout と既存 Element の組み合わせだけではレビューしにくいものを canonical 化候補とします。
+
+| 候補 | 分類 | 判断 | 理由 |
+| --- | --- | --- | --- |
+| Tabs | 追加候補 | canonical semantics を定義する | selected tab と tab panel の表示を View Context / Preview Scenarios と接続したい。 |
+| Menu / DropdownMenu / ActionMenu | 追加候補 | canonical semantics を定義する | item ごとの action と open/closed overlay 状態が Button 群だけでは埋もれる。 |
+| Popover / Tooltip | 追加候補 | anchored overlay として定義する | Dialog より軽い overlay で、anchor と表示条件が必要。 |
+| Accordion / Disclosure | 追加候補 | canonical semantics を定義する | 展開 / 折りたたみ対象を state 名の発明なしでレビューしたい。 |
+| ProgressBar | 追加候補 | canonical semantics を定義する | Spinner では表せない value/max/tone を持つ。 |
+| Stepper | 追加候補 | canonical semantics を定義する | current/completed/error step を持つ複数ステップ画面で必要。 |
+| Breadcrumb | 追加候補 | canonical semantics を定義する | 階層ナビゲーションでは current item と遷移先の区別が必要。 |
+| Pagination | 追加候補 | canonical semantics を定義する | 検索 / 一覧で page、total、next、previous、page size action が頻出する。 |
+| Skeleton | Layout pattern | まだ Element にはしない | loading placeholder は named skeleton region が必要になるまでは layout variant で足りる。 |
+| Card | Layout pattern | Layout variant のままにする | 画面上の container style であり、独立した仕様対象ではない。 |
+| Toolbar | Layout pattern | Layout + Button/Link 群で表す | action は通常の Element として並べた方が読みやすい。 |
+| SearchBox | Layout pattern | Input + Button + Action で表す | 既存の form/action primitive の組み合わせで意味が残る。 |
+| EmptyState | Layout/content pattern | Paragraph/Banner + visibility で表す | empty state は state/scenario に紐づく表示内容として扱う。 |
+| Avatar | Layout/content pattern | Image + Text で表す | 画像と名前を別々にレビューできる。 |
+| Chart / Map / RichTextEditor / Calendar / TreeView | custom/domain-specific | 反復する具体需要が出るまで `custom:*` | domain と interaction detail への依存が強い。 |
+
+## 最小構文案
+
+以下は未実装の構文案です。実装前に必要な最小形を記録するためのものです。
+
+### Tabs
+
+```markdown
+### E-SettingsTabs Tabs
+
+- value: ${view.selectedSettingsTab}
+- items:
+  - Profile: profile
+    - panel: L-ProfilePanel
+    - action: A-SelectProfileTab
+  - Billing: billing
+    - panel: L-BillingPanel
+    - action: A-SelectBillingTab
+```
+
+Preview 方針: tab strip を表示し、選択中 item を示す。各 item が制御する panel は
+Element Summary または専用の behavior 行で確認できるようにする。
+
+### Menu / DropdownMenu / ActionMenu
+
+```markdown
+### E-RowActions ActionMenu
+
+- label: More actions
+- open when: ${view.openActionMenuRowId} == ${model.row.id}
+- items:
+  - Edit: A-EditRow
+  - Disable: A-DisableRow
+```
+
+Preview 方針: trigger と item action を表示する。Preview Scenario で open の場合は
+anchored overlay として表示する。
+
+### Popover / Tooltip
+
+```markdown
+### E-PasswordHelp Popover
+
+- anchor: E-PasswordHelpButton
+- placement: bottom-start
+- visible when: ${view.isPasswordHelpOpen}
+- content: Password must be at least 12 characters.
+```
+
+Preview 方針: non-modal anchored overlay として表示し、anchor、placement、visibility、
+content を Display Content Spec で確認できるようにする。
+
+### Accordion / Disclosure
+
+```markdown
+### E-AdvancedFilters Accordion
+
+- value: ${view.expandedSections}
+- items:
+  - Advanced filters: filters
+    - panel: L-AdvancedFilterPanel
+```
+
+Preview 方針: active な View Context に応じて header と expanded panel を表示する。
+展開状態は screen state ではなく UI 局所値として扱う。
+
+### ProgressBar
+
+```markdown
+### E-UploadProgress ProgressBar
+
+- value: ${model.upload.percent}
+- max: 100
+- tone: info
+```
+
+Preview 方針: low-fidelity な bar を表示し、value/max/source を Display Content Spec に出す。
+
+### Stepper
+
+```markdown
+### E-ApplicationSteps Stepper
+
+- value: ${view.currentStep}
+- items:
+  - Profile: profile
+  - Confirm: confirm
+  - Complete: complete
+```
+
+Preview 方針: View Context または model 値から current/completed/pending/error を表示し、
+各 step を要約する。
+
+### Breadcrumb
+
+```markdown
+### E-AccountBreadcrumb Breadcrumb
+
+- items:
+  - Accounts: SCR-ACCOUNT-LIST
+  - Account detail
+```
+
+Preview 方針: compact path を表示し、遷移できる item と current item を分けて示す。
+
+### Pagination
+
+```markdown
+### E-SearchPagination Pagination
+
+- page: ${model.search.page}
+- total pages: ${model.search.totalPages}
+- page size: ${model.search.pageSize}
+- previous action: A-PreviousPage
+- next action: A-NextPage
+```
+
+Preview 方針: previous/next control、current page、total pages、page size を表示する。
+page 変更 action は Action Summary でも確認できるようにする。
+
+## Example 作成方針
+
+- Tabs は View Context の example 拡充時に focused example を追加する。
+- Pagination は row layout 代替表現が生成仕様上うるさくなった段階で、検索一覧 example に追加する。
+- Popover / Tooltip は Dialog / Toast との違いを示す overlay example として設計する。
+- Accordion / Stepper はどちらも screen state ではない UI 局所値が必要なので、View Context Samples と合わせて example 化する。
+- Skeleton / Card / Toolbar / SearchBox / EmptyState / Avatar は、当面 canonical Element ではなく Layout/content pattern の example として扱う。
