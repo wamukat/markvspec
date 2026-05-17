@@ -272,7 +272,7 @@ marker です。参照には marker ではなく ID を使います。
 
 - [examples/01-basics/hello-screen.vspec.md](examples/01-basics/hello-screen.vspec.md): 最小の画面。
 - [examples/02-states/async-loading.vspec.md](examples/02-states/async-loading.vspec.md): request send と response states。
-- [examples/02-states/scenario-samples.vspec.md](examples/02-states/scenario-samples.vspec.md): Element samples と Preview Scenario sample overrides。
+- [examples/02-states/scenario-samples.vspec.md](examples/02-states/scenario-samples.vspec.md): baseline Element samples に対する Preview Scenario data variation。
 - [examples/02-states/responsive-profile.vspec.md](examples/02-states/responsive-profile.vspec.md): mobile / desktop layout。
 - [examples/03-actions/event-triggers.vspec.md](examples/03-actions/event-triggers.vspec.md): click 以外の element event と lifecycle trigger。
 - [examples/03-actions/form-submit-flow.vspec.md](examples/03-actions/form-submit-flow.vspec.md): validate、model update、server call、navigation。

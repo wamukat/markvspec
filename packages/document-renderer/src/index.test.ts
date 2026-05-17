@@ -277,7 +277,7 @@ viewport: desktop
 
 - loading*
 - loaded
-- empty
+- load-error
 
 ## Layout: desktop
 
@@ -295,7 +295,7 @@ viewport: desktop
 ### E-SeatCount Text
 
 - source: data
-- sample: 12 seats
+- sample: 1 seat
 
 ### E-SubscriptionTable Table
 
@@ -311,7 +311,7 @@ viewport: desktop
 
 ## Preview Scenarios
 
-### loaded-renewal
+### loaded-renewal-risk
 
 - state: loaded
 - samples:
@@ -325,9 +325,9 @@ viewport: desktop
         - product: Analytics
         - seats: 4
 
-### empty-account
+### loaded-empty-account
 
-- state: empty
+- state: loaded
 - samples:
   - E-SeatCount: 0 seats
   - E-SubscriptionTable:
@@ -335,13 +335,13 @@ viewport: desktop
 `);
   const html = renderStaticDesignDocumentHtml(result);
   const baselineLoaded = stateViewSection(html, "loaded");
-  const loadedScenario = stateViewSection(html, "loaded / loaded-renewal");
-  const emptyScenario = stateViewSection(html, "empty / empty-account");
+  const loadedScenario = stateViewSection(html, "loaded / loaded-renewal-risk");
+  const emptyScenario = stateViewSection(html, "loaded / loaded-empty-account");
 
-  assert.match(html, /data-state-view-title="loaded \/ loaded-renewal"/);
-  assert.match(html, /data-state-view-title="empty \/ empty-account"/);
+  assert.match(html, /data-state-view-title="loaded \/ loaded-renewal-risk"/);
+  assert.match(html, /data-state-view-title="loaded \/ loaded-empty-account"/);
   assert.doesNotMatch(baselineLoaded, /Scenario Samples/);
-  assert.match(loadedScenario, /<span class="state-badge">loaded-renewal<\/span>/);
+  assert.match(loadedScenario, /<span class="state-badge">loaded-renewal-risk<\/span>/);
   assert.match(loadedScenario, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
   assert.match(loadedScenario, /E-SubscriptionTable/);
   assert.match(loadedScenario, /2 rows/);

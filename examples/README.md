@@ -5,7 +5,7 @@ the DSL, preview, State Views, Action Details, and export output.
 
 - `01-basics/hello-screen.vspec.md`: minimum document shape with metadata, one state, one viewport, layout, elements, and a click action marker.
 - `02-states/async-loading.vspec.md`: asynchronous state modeling for request send, response handling, loading, loaded, empty, and error previews.
-- `02-states/scenario-samples.vspec.md`: baseline Element samples and Preview Scenario sample overrides for scalar and table data.
+- `02-states/scenario-samples.vspec.md`: baseline Element samples and Preview Scenario data variations, including table `rows: []` in the same loaded state.
 - `02-states/responsive-profile.vspec.md`: mobile and desktop layout variants over shared elements.
 - `03-actions/event-triggers.vspec.md`: `screen.load`, `.change`, `.blur`, `.focus`, `.submit`, and dialog click/close triggers with visible display effects.
 - `03-actions/form-submit-flow.vspec.md`: submit lifecycle with validation receive source, request parameters, server process details, stop/continue flow, and navigation.

@@ -29,7 +29,7 @@ The active `examples/` directory is a learning path:
 - `examples/01-basics/hello-screen.vspec.md` is the smallest useful document.
 - `examples/04-real-world-screens/login-basic.vspec.md` covers a compact authentication flow with validation feedback scenarios.
 - `examples/02-states/async-loading.vspec.md` covers request send and response states.
-- `examples/02-states/scenario-samples.vspec.md` covers Element samples and Preview Scenario sample overrides.
+- `examples/02-states/scenario-samples.vspec.md` covers Preview Scenario data variations over baseline Element samples.
 - `examples/02-states/responsive-profile.vspec.md` covers mobile and desktop layouts.
 - `examples/03-actions/event-triggers.vspec.md` covers non-click events and lifecycle triggers.
 - `examples/03-actions/form-submit-flow.vspec.md` covers validation, server call, and navigation.

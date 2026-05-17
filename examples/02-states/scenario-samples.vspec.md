@@ -11,17 +11,19 @@ status: draft
 
 # SCR-SCENARIO-SAMPLES Scenario Samples
 
-This example focuses on preview data without a separate data model section.
-Read Element `sample` / `sample rows:` as the baseline display data, then compare
-the `## Preview Scenarios` overrides for the loaded and empty states.
+This example focuses on previewing data variations without a separate data
+model section. Read Element `sample` / `sample rows:` as neutral baseline data,
+then compare the `## Preview Scenarios` overrides that show different loaded
+account data without creating extra states.
 
 ## States
 
 - loading*
   - Account data is being loaded before scenario-specific data is available.
 - loaded
-- empty
-  - The account has no active subscriptions to render.
+  - Account data was loaded. Scenario samples decide which data variation is shown.
+- load-error
+  - Account data could not be loaded.
 
 ## Layout: desktop
 
@@ -36,7 +38,6 @@ the `## Preview Scenarios` overrides for the loaded and empty states.
 - E-LoadingMessage
 - L-Summary
 - E-SubscriptionTable
-- E-EmptyMessage
 
 ### L2:L-Summary Summary panel
 
@@ -50,7 +51,8 @@ the `## Preview Scenarios` overrides for the loaded and empty states.
 - E-MemberName
 - E-PlanName
 - E-SeatCount
-- E-StatusBanner
+- E-LoadedStatusBanner
+- E-LoadErrorMessage
 
 ## Elements
 
@@ -62,22 +64,22 @@ the `## Preview Scenarios` overrides for the loaded and empty states.
 ### 2:E-MemberName Text
 
 - source: data
-- sample: Morgan Lee
+- sample: Baseline Member
 
 ### 3:E-PlanName Text
 
 - source: data
-- sample: Team Pro
+- sample: Baseline Plan
 
 ### 4:E-SeatCount Text
 
 - source: data
-- sample: 12 seats
+- sample: 1 seat
 
-### 5:E-StatusBanner Banner
+### 5:E-LoadedStatusBanner Banner
 
-- tone: warning
-- text: Renewal attention required.
+- tone: info
+- text: Subscription data loaded for review.
 - visible when: loaded
 
 ### 6:E-SubscriptionTable Table
@@ -89,24 +91,21 @@ the `## Preview Scenarios` overrides for the loaded and empty states.
   - renewal: Renewal
 - sample rows:
   - row:
-    - product: Workspace
-    - seats: 8
-    - renewal: 2026-06-30
-  - row:
-    - product: Analytics
-    - seats: 4
-    - renewal: 2026-07-15
+    - product: Baseline workspace
+    - seats: 1
+    - renewal: 2026-08-01
 - visible when: loaded
 
-### 7:E-EmptyMessage Paragraph
-
-- text: No subscriptions are linked to this account.
-- visible when: empty
-
-### 8:E-LoadingMessage Text
+### 7:E-LoadingMessage Text
 
 - text: Loading account data...
 - visible when: loading
+
+### 8:E-LoadErrorMessage Paragraph
+
+- text: Account subscription data could not be loaded.
+- tone: danger
+- visible when: load-error
 
 ## Actions
 
@@ -139,11 +138,18 @@ the `## Preview Scenarios` overrides for the loaded and empty states.
   - case: empty
     - response: HTTP 200 with no subscription rows
     - Effects
-      - state: empty
+      - state: loaded
+  - case: failure
+    - response: HTTP 5xx or network failure
+    - Effects
+      - state: load-error
 
 ## Preview Scenarios
 
-### loaded-renewal
+### loaded-standard-account
+
+Shows a normal loaded account with a small subscription list. This scenario
+uses realistic account data instead of repeating the neutral baseline samples.
 
 - state: loaded
 - samples:
@@ -161,12 +167,40 @@ the `## Preview Scenarios` overrides for the loaded and empty states.
         - seats: 4
         - renewal: 2026-07-15
 
-### empty-account
+### loaded-empty-account
 
-- state: empty
+Shows the same loaded state when the response has no subscription rows. The
+`rows: []` sample demonstrates the table fallback without introducing an
+extra empty state.
+
+- state: loaded
 - samples:
-  - E-MemberName: Morgan Lee
-  - E-PlanName: Team Pro
+  - E-MemberName: Sam Carter
+  - E-PlanName: Starter
   - E-SeatCount: 0 seats
   - E-SubscriptionTable:
     - rows: []
+- cases:
+  - A-HandleAccountResponse.P1.empty
+
+### loaded-renewal-risk
+
+Shows a loaded account with subscriptions renewing soon, so reviewers can check
+whether the table data makes upcoming renewals clear for a high-seat enterprise
+account.
+
+- state: loaded
+- samples:
+  - E-MemberName: Alex Rivera
+  - E-PlanName: Enterprise
+  - E-SeatCount: 98 seats
+  - E-SubscriptionTable:
+    - rows:
+      - row:
+        - product: Core platform
+        - seats: 80
+        - renewal: 2026-05-31
+      - row:
+        - product: Analytics
+        - seats: 18
+        - renewal: 2026-06-07

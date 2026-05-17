@@ -189,15 +189,18 @@ test("exports preview scenarios and scenario samples in standalone HTML", () => 
     assert(!results[0]?.diagnostics.some((diagnostic) => diagnostic.severity === "error"));
     const html = readFileSync(join(outDir, "scenario-samples.html"), "utf8");
     const baselineLoaded = stateViewSection(html, "loaded");
-    const loadedScenario = stateViewSection(html, "loaded / loaded-renewal");
-    const emptyScenario = stateViewSection(html, "empty / empty-account");
+    const loadedScenario = stateViewSection(html, "loaded / loaded-standard-account");
+    const emptyScenario = stateViewSection(html, "loaded / loaded-empty-account");
+    const renewalScenario = stateViewSection(html, "loaded / loaded-renewal-risk");
 
-    assert.match(loadedScenario, /<span class="state-badge">loaded-renewal<\/span>/);
+    assert.match(loadedScenario, /<span class="state-badge">loaded-standard-account<\/span>/);
     assert.match(loadedScenario, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
     assert.match(loadedScenario, /E-SubscriptionTable/);
     assert.match(loadedScenario, /2 rows/);
     assert.match(emptyScenario, /0 seats/);
     assert.match(emptyScenario, /<code>rows: \[\]<\/code>/);
+    assert.match(renewalScenario, /98 seats/);
+    assert.doesNotMatch(emptyScenario, /Renewal attention required\./);
     assert.doesNotMatch(baselineLoaded, /Scenario Samples/);
   } finally {
     rmSync(dir, { recursive: true, force: true });

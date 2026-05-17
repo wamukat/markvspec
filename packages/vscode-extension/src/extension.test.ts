@@ -5742,9 +5742,9 @@ test("renders scenario sample values in display content spec", () => {
   const loadedSection = stateSection(html, "loaded");
   const displayContent = loadedSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
 
-  assert.match(displayContent, new RegExp(`<td>${detailElementRef("2", "E-MemberName")}</td><td>sample</td><td>Morgan Lee</td><td>-</td><td>${plainCodePattern("data")}</td>`));
-  assert.match(displayContent, new RegExp(`<td>${detailElementRef("3", "E-PlanName")}</td><td>sample</td><td>Team Pro</td><td>-</td><td>${plainCodePattern("data")}</td>`));
-  assert.match(displayContent, new RegExp(`<td>${detailElementRef("4", "E-SeatCount")}</td><td>sample</td><td>12 seats</td><td>-</td><td>${plainCodePattern("data")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("2", "E-MemberName")}</td><td>sample</td><td>Baseline Member</td><td>-</td><td>${plainCodePattern("data")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("3", "E-PlanName")}</td><td>sample</td><td>Baseline Plan</td><td>-</td><td>${plainCodePattern("data")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("4", "E-SeatCount")}</td><td>sample</td><td>1 seat</td><td>-</td><td>${plainCodePattern("data")}</td>`));
   assert.match(displayContent, new RegExp(`<td rowspan="7">${detailElementRef("6", "E-SubscriptionTable")}</td><td>table rows</td><td>see wireframe</td><td>-</td><td>${plainCodePattern("data")}</td>`));
   assert.match(displayContent, new RegExp(`<td>column: Product</td><td>Product</td><td>-</td><td>${plainCodePattern("data")}</td>`));
   assert.match(displayContent, new RegExp(`<td>column source: Product</td><td>product</td><td>-</td><td>${plainCodePattern("data")}</td>`));

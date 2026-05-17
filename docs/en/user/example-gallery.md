@@ -66,7 +66,7 @@ unambiguous.
 | --- | --- | --- |
 | [Hello Screen](../../../examples/01-basics/hello-screen.vspec.md) | Minimum useful screen. | Metadata, one state, one viewport, layout, elements, and a click action marker. |
 | [Async Loading](../../../examples/02-states/async-loading.vspec.md) | Request send and response handling. | Loading, loaded, empty, and load-error states, response cases, and table sample rows. |
-| [Scenario Samples](../../../examples/02-states/scenario-samples.vspec.md) | Dedicated preview data example. | Element `sample`, `sample rows:`, Preview Scenario `samples`, and explicit empty rows. |
+| [Scenario Samples](../../../examples/02-states/scenario-samples.vspec.md) | Dedicated preview data variation example. | Neutral Element `sample` / `sample rows:` plus loaded-state Preview Scenario `samples`, including `rows: []`. |
 | [Responsive Profile](../../../examples/02-states/responsive-profile.vspec.md) | Same content in mobile and desktop layouts. | Viewport-specific layout groups over shared elements. |
 | [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | Non-click events and lifecycle triggers. | `screen.load`, `.change` unsaved notice display, `.blur` validation, `.focus` help text, `.submit`, dialog click actions, `close`, and Preview Scenarios. |
 | [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md) | Submit action lifecycle. | Validation receive source, request parameters, server process details, flow stop/continue, and success navigation. |
