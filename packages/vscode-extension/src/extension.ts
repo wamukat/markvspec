@@ -1575,8 +1575,8 @@ function resolveDocumentReferencePaths(
   };
 }
 
-function focusScopeForScreen(result: ReturnType<typeof parseMarkVSpec>): FocusScope {
-  return {
+function focusScopeForScreen(result: ReturnType<typeof parseMarkVSpec>): FocusScope | undefined {
+  const focus = {
     layoutIds: new Set([
       ...result.layoutGroups.map((layout) => layout.id),
       ...result.slotContents.flatMap((slot) => slot.layoutGroups.map((layout) => layout.id))
@@ -1584,6 +1584,9 @@ function focusScopeForScreen(result: ReturnType<typeof parseMarkVSpec>): FocusSc
     elementIds: new Set(result.elements.map((element) => element.id)),
     actionIds: new Set(result.actions.map((action) => action.id))
   };
+  return focus.layoutIds.size > 0 || focus.elementIds.size > 0 || focus.actionIds.size > 0
+    ? focus
+    : undefined;
 }
 
 function readProjectFile(path: string): string | undefined {

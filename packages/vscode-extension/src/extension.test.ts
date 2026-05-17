@@ -4787,6 +4787,29 @@ title: Home
   assert.doesNotMatch(html, /partial-update-meta|partial-update-group/);
 });
 
+test("renders template slot gallery examples", () => {
+  const basicPath = resolve(extensionRoot, "../../examples/05-reuse/basic-slot-page.vspec.md");
+  const responsivePath = resolve(extensionRoot, "../../examples/05-reuse/responsive-slot-page.vspec.md");
+  const defaultPath = resolve(extensionRoot, "../../examples/05-reuse/default-slot-page.vspec.md");
+  const basicLoaded = loadScreenDocumentResult(createTextDocument(readFileSync(basicPath, "utf8"), basicPath) as vscode.TextDocument);
+  const responsiveLoaded = loadScreenDocumentResult(createTextDocument(readFileSync(responsivePath, "utf8"), responsivePath) as vscode.TextDocument);
+  const defaultLoaded = loadScreenDocumentResult(createTextDocument(readFileSync(defaultPath, "utf8"), defaultPath) as vscode.TextDocument);
+  const basicHtml = renderDesignDocumentHtml(basicLoaded.result, "", basicLoaded.focus ? { focus: basicLoaded.focus, messages: basicLoaded.messages } : { messages: basicLoaded.messages });
+  const responsiveHtml = renderDesignDocumentHtml(responsiveLoaded.result, "", responsiveLoaded.focus ? { focus: responsiveLoaded.focus, messages: responsiveLoaded.messages } : { messages: responsiveLoaded.messages });
+  const defaultHtml = renderDesignDocumentHtml(defaultLoaded.result, "", defaultLoaded.focus ? { focus: defaultLoaded.focus, messages: defaultLoaded.messages } : { messages: defaultLoaded.messages });
+  const mobileSection = viewportStateSection(responsiveHtml, "idle", "mobile");
+  const desktopSection = viewportStateSection(responsiveHtml, "idle", "desktop");
+
+  assert.match(basicHtml, /Account overview/);
+  assert.match(basicHtml, /This content is provided by the screen/);
+  assert.match(mobileSection, /Mobile overview/);
+  assert.doesNotMatch(mobileSection, /Desktop overview/);
+  assert.match(desktopSection, /Desktop overview/);
+  assert.doesNotMatch(desktopSection, /Mobile overview/);
+  assert.match(defaultHtml, /Default: E-EmptySlotMessage/);
+  assert.match(defaultHtml, /No content has been assigned to this template slot/);
+});
+
 test("only opens preview references inside a trusted workspace", () => {
   assert.equal(canOpenPreviewReference("/workspace/specs/home.vspec.md", "/workspace", true), true);
   assert.equal(canOpenPreviewReference("/workspace2/specs/home.vspec.md", "/workspace", true), false);

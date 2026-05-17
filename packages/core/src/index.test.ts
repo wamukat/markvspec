@@ -5462,8 +5462,12 @@ test("parses every release example without diagnostics", () => {
     "04-real-world-screens/notice-detail.vspec.md",
     "04-real-world-screens/profile-edit-rich.vspec.md",
     "04-real-world-screens/search-list.vspec.md",
+    "05-reuse/basic-slot-page.vspec.md",
+    "05-reuse/default-slot-page.vspec.md",
     "05-reuse/profile-page-with-template.vspec.md",
     "05-reuse/profile-summary.partial.vspec.md",
+    "05-reuse/responsive-slot-page.vspec.md",
+    "05-reuse/responsive-template-shell.vspec.md",
     "05-reuse/template-shell.vspec.md",
     "06-structured-sections/history-and-errors.vspec.md"
   ]);
@@ -5472,8 +5476,8 @@ test("parses every release example without diagnostics", () => {
     const source = readFileSync(examplePath(file), "utf8");
     const result = parseMarkVSpec(source);
     assert.deepEqual(result.diagnostics, [], file);
-    assert.ok(result.layoutGroups.length > 0 || result.slotContents.length > 0, file);
-    assert.ok(result.elements.length > 0, file);
+    assert.ok(result.layoutGroups.length > 0 || result.slotContents.length > 0 || Boolean(result.screen.template || result.screen.templateSrc), file);
+    assert.ok(result.elements.length > 0 || Boolean(result.screen.template || result.screen.templateSrc), file);
     if (result.screen.type === "template") {
       assert.ok(result.slotDefinitions.length > 0, file);
     }
@@ -5523,6 +5527,19 @@ test("renders realistic examples with canonical property encodings", () => {
   const templateResult = parseMarkVSpec(templateSource);
   assert.equal(templateResult.screen.type, "template");
   assert.equal(templateResult.slotDefinitions[0]?.name, "content");
+
+  const responsiveTemplate = parseMarkVSpec(readFileSync(examplePath("05-reuse/responsive-template-shell.vspec.md"), "utf8"));
+  const responsiveScreen = parseMarkVSpec(readFileSync(examplePath("05-reuse/responsive-slot-page.vspec.md"), "utf8"));
+  const responsiveHtmlMobile = renderMarkVSpecHtml(composeMarkVSpecTemplate(responsiveTemplate, responsiveScreen), { includeStyles: false, viewport: "mobile" });
+  const responsiveHtmlDesktop = renderMarkVSpecHtml(composeMarkVSpecTemplate(responsiveTemplate, responsiveScreen), { includeStyles: false, viewport: "desktop" });
+  assert.match(responsiveHtmlMobile, /Mobile overview/);
+  assert.doesNotMatch(responsiveHtmlMobile, /Desktop overview/);
+  assert.match(responsiveHtmlDesktop, /Desktop overview/);
+  assert.doesNotMatch(responsiveHtmlDesktop, /Mobile overview/);
+
+  const defaultSlotScreen = parseMarkVSpec(readFileSync(examplePath("05-reuse/default-slot-page.vspec.md"), "utf8"));
+  const defaultSlotHtml = renderMarkVSpecHtml(composeMarkVSpecTemplate(templateResult, defaultSlotScreen), { includeStyles: false, viewport: "desktop" });
+  assert.match(defaultSlotHtml, /No content has been assigned to this template slot/);
 });
 
 test("preserves unknown sections as notes", () => {
