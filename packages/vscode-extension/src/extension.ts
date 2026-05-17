@@ -3766,7 +3766,6 @@ function stateViewsRenderContext(result: ReturnType<typeof parseMarkVSpec>): Sta
     renderElementLabelSummary,
     renderElementValueSummary,
     renderConditionList: (groups) => renderConditionList(result, groups),
-    actionKind: (action) => actionKind(result, action),
     renderActionOverview: (action) => renderActionOverview(result, action),
     renderTrigger: (trigger) => renderTrigger(result, trigger)
   });
@@ -5185,39 +5184,8 @@ function renderStateTransitionTarget(result: ReturnType<typeof parseMarkVSpec>, 
   return marker || renderStateLabel(target);
 }
 
-function actionKind(
-  result: ReturnType<typeof parseMarkVSpec>,
-  action: ReturnType<typeof parseMarkVSpec>["actions"][number]
-): string {
-  if (action.outcomes.length > 0 || action.transitions.some((transition) => transition.result)) {
-    return "outcome";
-  }
-
-  if (hasHttpRequestStep(action) && (action.target || action.mode || action.fragment)) {
-    return "partial update";
-  }
-
-  if (hasHttpRequestStep(action)) {
-    return "request";
-  }
-
-  if (renderActionDestination(result, action)) {
-    return "navigation";
-  }
-
-  if (action.target || action.mode || action.fragment) {
-    return "update";
-  }
-
-  return "";
-}
-
 function renderActionRequest(action: { request?: { method: string; path: string } }): string {
   return action.request ? `${escapeHtml(action.request.method)} ${escapeHtml(action.request.path)}` : "";
-}
-
-function hasHttpRequestStep(action: Pick<ReturnType<typeof parseMarkVSpec>["actions"][number], "processSteps">): boolean {
-  return action.processSteps.some((step) => normalizeProcessStepName(step.name) === "httprequest");
 }
 
 function renderRouteParams(
@@ -5289,7 +5257,6 @@ function renderActionDetail(
 ): string {
   const rows = [
     [label(result, "overview"), renderActionOverview(result, action)],
-    [label(result, "kind"), text(actionKind(result, action))],
     [label(result, "trigger"), renderActionDetailTrigger(result, action.triggeredBy)],
     [label(result, "from"), renderFromStates(action.fromStates)],
     [label(result, "process"), renderProcessSteps(result, action, true)],

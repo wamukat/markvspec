@@ -43,7 +43,6 @@ export interface StateViewSpecTableHelpers {
   renderElementLabelSummary(properties: Record<string, string | true>): string;
   renderElementValueSummary(properties: Record<string, string | true>): string;
   renderConditionList(groups: Array<[string, string[]]>): string;
-  actionKind(action: ParsedAction): string;
   renderActionOverview(action: ParsedAction): string;
   renderTrigger(trigger: string | undefined): string;
 }
@@ -207,7 +206,6 @@ export function createStateViewSpecTableRenderer(
       [
         helpers.label("action"),
         helpers.label("trigger"),
-        helpers.label("kind"),
         ...(showOverview ? [helpers.label("overview")] : [])
       ],
       rows.map((row) => renderActionRow(row.action, state, stateNames, row.repeated, showOverview, row.overview))
@@ -224,7 +222,6 @@ export function createStateViewSpecTableRenderer(
   ): string[] => [
     renderRepeatedEntityRefCell(action.id, repeated),
     helpers.renderTrigger(action.triggeredBy),
-    helpers.text(helpers.actionKind(action)),
     ...(showOverview ? [overview] : [])
   ];
 

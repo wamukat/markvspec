@@ -375,7 +375,8 @@ test("renders generated design document sections without launching VS Code", () 
   const responseActionDetail = actionDetailsSection.match(/<article class="action-detail">\s*<h3 id="action-detail-A-HandleLoginResponse">[\s\S]*?<\/article>/)?.[0] ?? "";
   assert.match(actionDetailsSection, new RegExp(`<h3 id="action-detail-A-SubmitLogin">${actionBadge("A1", "A-SubmitLogin", false)} Submit login</h3>`));
   assert.doesNotMatch(actionDetailsSection, /<dt>Transitions<\/dt>/);
-  assert.match(actionDetailsSection, new RegExp(`<dt>Kind</dt>[\\s\\S]*<dt>Process</dt>[\\s\\S]*<dt>State Changes</dt>`));
+  assert.doesNotMatch(actionDetailsSection, /<dt>Kind<\/dt>/);
+  assert.match(actionDetailsSection, new RegExp(`<dt>Trigger</dt>[\\s\\S]*<dt>Process</dt>[\\s\\S]*<dt>State Changes</dt>`));
   assert.match(responseActionDetail, /<dt>Navigation<\/dt>/);
   assert.doesNotMatch(submitActionDetail, /<dt>Request<\/dt>|<dt>Parameters<\/dt>/);
   assert.match(submitActionDetail, /<dt>Process<\/dt><dd>[\s\S]*Submit login[\s\S]*element[\s\S]*E-RequestErrorBanner/);
@@ -1133,7 +1134,8 @@ locale: en
   const loadedSection = stateSection(html, "loaded");
   const availableActions = loadedSection.match(/<h5 class="state-screen-subheading">Actions<\/h5>[\s\S]*?<\/table>/)?.[0] ?? "";
 
-  assert.match(availableActions, /<th>Action<\/th><th>Trigger<\/th><th>Kind<\/th>/);
+  assert.match(availableActions, /<th>Action<\/th><th>Trigger<\/th>/);
+  assert.doesNotMatch(availableActions, /<th>Kind<\/th>/);
   assert.doesNotMatch(availableActions, /<th>Marker<\/th>/);
   assert.doesNotMatch(availableActions, /<th>Name<\/th>/);
   assert.doesNotMatch(availableActions, /<th>Overview<\/th>/);
@@ -1371,7 +1373,8 @@ Author overview only.
   const idleSection = stateSection(html, "idle");
   const actionsTable = idleSection.match(/<h5 class="state-screen-subheading">Actions<\/h5>[\s\S]*?<\/table>/)?.[0] ?? "";
 
-  assert.match(actionsTable, /<th>Action<\/th><th>Trigger<\/th><th>Kind<\/th><th>Overview<\/th>/);
+  assert.match(actionsTable, /<th>Action<\/th><th>Trigger<\/th><th>Overview<\/th>/);
+  assert.doesNotMatch(actionsTable, /<th>Kind<\/th>/);
   assert.match(actionsTable, /Author overview only\./);
   assert.doesNotMatch(actionsTable, /set state/);
 });
@@ -6943,7 +6946,8 @@ locale: en
   const idleActionsTable = idleSection.match(/<h5 class="state-screen-subheading">Actions<\/h5>\s*([\s\S]*?<\/table>)/)?.[1] ?? "";
   const errorActionsTable = errorSection.match(/<h5 class="state-screen-subheading">Actions<\/h5>\s*([\s\S]*?<\/table>)/)?.[1] ?? "";
 
-  assert.match(idleActionsTable, /<th>Action<\/th><th>Trigger<\/th><th>Kind<\/th>/);
+  assert.match(idleActionsTable, /<th>Action<\/th><th>Trigger<\/th>/);
+  assert.doesNotMatch(idleActionsTable, /<th>Kind<\/th>/);
   assert.doesNotMatch(idleActionsTable, /<th>Marker<\/th>/);
   assert.doesNotMatch(idleActionsTable, /<th>Name<\/th>/);
   assert.doesNotMatch(idleActionsTable, /<th>Overview<\/th>/);
