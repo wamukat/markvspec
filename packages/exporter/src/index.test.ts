@@ -339,7 +339,7 @@ test("exports responsive design document sections for every viewport", () => {
     assert.match(html, /\.history-section \{ break-before: page; page-break-before: always; \}/);
     assert.doesNotMatch(html, /\.state-screen-section \{ break-before: page; page-break-before: always; \}/);
     assert.doesNotMatch(html, /\.layout-spec-fragment, \.element-spec-fragment, \.action-spec-fragment \{ break-before: page; page-break-before: always; \}/);
-    assert.match(html, /\.wireframe-print-section, \.action-detail, \.model-update-group, \.model-sample-block \{ break-inside: avoid; page-break-inside: avoid; \}/);
+    assert.match(html, /\.wireframe-print-section, \.action-detail, \.note-block, \.process-card, \.model-sample-block \{ break-inside: avoid; page-break-inside: avoid; \}/);
     assert.match(html, /\.spec-table tr \{ break-inside: avoid; page-break-inside: avoid; \}/);
     assert.doesNotMatch(html, /\.spec-table-wrap, \.spec-table \{ break-inside: avoid; page-break-inside: avoid; \}/);
     assert.doesNotMatch(html, /\.state-screen-section:first-of-type/);

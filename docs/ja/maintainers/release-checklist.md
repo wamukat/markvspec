@@ -37,7 +37,7 @@ example を代表セットとして使う。
 - `examples/02-states/model-samples.vspec.md`: list 形式中心の Model Samples と空配列用 table 記法。
 - `examples/02-states/responsive-profile.vspec.md`: mobile / desktop のレスポンシブ layout と状態別表示。
 - `examples/03-actions/event-triggers.vspec.md`: click 以外の element event と lifecycle trigger。
-- `examples/03-actions/form-submit-flow.vspec.md`: validation、model update、server call、navigation を含む action flow。
+- `examples/03-actions/form-submit-flow.vspec.md`: validation、server call、display effect、navigation を含む action flow。
 - `examples/03-actions/parallel-initial-load.vspec.md`: parallel server call と Resolve の action flow。
 - `examples/03-actions/single-field-validation.vspec.md`: 単項目 validation に絞った挙動。
 - `examples/03-actions/toast-feedback.vspec.md`: non-modal Toast 表示と background feedback。

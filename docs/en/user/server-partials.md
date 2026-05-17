@@ -99,8 +99,7 @@ route: /mypage/partials/notices
   - case: success
     - description: 200 notices
     - Effects
-      - model: ${model.notices.items} = result.items
-      - model: ${model.notice} = current item from ${model.notices.items}
+      - state: loaded
 ```
 
 Architecture-specific words such as `bridge` are not MarkVSpec reserved words.

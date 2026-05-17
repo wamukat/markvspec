@@ -31,7 +31,7 @@ HTML export, and PDF export:
 - `examples/02-states/model-samples.vspec.md`: list-first Model Samples and supplemental empty table syntax.
 - `examples/02-states/responsive-profile.vspec.md`: mobile / desktop responsive layout and state-specific rendering.
 - `examples/03-actions/event-triggers.vspec.md`: non-click element events and lifecycle triggers.
-- `examples/03-actions/form-submit-flow.vspec.md`: action flow with validation, model update, server call, and navigation.
+- `examples/03-actions/form-submit-flow.vspec.md`: action flow with validation, server call, display effects, and navigation.
 - `examples/03-actions/parallel-initial-load.vspec.md`: parallel server call and Resolve action flow.
 - `examples/03-actions/single-field-validation.vspec.md`: focused single-field validation behavior.
 - `examples/03-actions/toast-feedback.vspec.md`: non-modal Toast display and background feedback.

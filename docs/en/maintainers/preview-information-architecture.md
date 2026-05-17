@@ -24,7 +24,6 @@ small amount of information, but each section must have one primary job.
 | Element Summary | Element catalog for the current wireframe context | marker, ID, type, triggered actions, description | display text, input constraints, visibility/disabled conditions, action process details |
 | Input Form Spec | What users can enter and which constraints apply | required flag, value initial/source, input details, constraints including readonly, format, visible condition, enabled condition | labels, placeholders, option labels, validation required rules, direct bind column, and other display text |
 | Display Content Spec | What appears in the UI and where it comes from | label, placeholder, help, sample, option label, i18n/model/source references, format, display condition, enabled condition | input constraints, action internals, validation conditions |
-| Model Updates | Model mutations caused by actions | action-level groups, trigger, context/process/case, model path, update expression | UI placement, transition diagrams, repeated action/trigger cells |
 | Action Summary | Operation catalog | marker, name, trigger, kind, overview | case-by-case request params, response body, update target details, action availability |
 | Action Details | Behavior contract | overview, kind, trigger, from, process, request, params, responses, cases, partial updates, updates, transitions, route params | visual layout details and action-level guards |
 | State Flow | Flow overview | Mermaid state diagram and a link to State Transitions | request parameters and UI element properties |
@@ -61,13 +60,13 @@ Detail sections should answer "exactly what happens?".
 - Partial updates live inside Action Details so readers can inspect targets,
   fragment/content, and resulting states or screens in the same action context
   as request, response, and cases.
-- Model Updates extract cross-cutting data changes from actions and group them
-  by action for auditing. The action and trigger appear once per group, while
-  rows stay focused on context/process/case, model path, and update expression.
 - Model Samples show the actual sample rows used to explain how `${model.value}`
   references render immediately before each state's Wireframe. They are not an
   independent section and should not collapse into column names and row counts
   only.
+- Action-side `${model.value}` mutation is not canonical and should not be
+  summarized as its own preview section. Display-value references remain visible
+  in State Views, Display Content Spec, Input Form Spec, and Model Samples.
 
 ## Recommended Output Order
 
@@ -79,12 +78,11 @@ Detail sections should answer "exactly what happens?".
 6. Viewport / State Wireframes, with Model Samples immediately before each state's Wireframe
 7. Screen Transitions
 8. State Transitions
-9. Model Updates
-10. Action Details
-11. Validations / Business Rules
-12. Error Codes
-13. Free-form Sections
-14. Diagnostics
+9. Action Details
+10. Validations / Business Rules
+11. Error Codes
+12. Free-form Sections
+13. Diagnostics
 
 Document references remain in the Screen section as document dependencies and
 render as a table of kind, ID, title, and status. This order lets readers

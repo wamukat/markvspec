@@ -12,7 +12,7 @@ status: draft
 # SCR-PARALLEL-INITIAL-LOAD Parallel Initial Load
 
 This example teaches parallel initial loading. Read the grouped server processes,
-model effects, response cases, and final `Process P3: Resolve grouped processes`
+response cases, and final `Process P3: Resolve grouped processes`
 step; it avoids user input so the ordering and final state decision are clear.
 
 ## States
@@ -89,14 +89,9 @@ step; it avoids user input so the ordering and final state decision are clear.
     - member profile load result
   - case: success
     - description: 200 member profile
-    - Effects
-      - model: ${model.memberProfile.loaded} = true
-      - model: ${model.memberProfile.name} = result.name
     - continue
   - case: failure
     - description: 5xx or timeout
-    - Effects
-      - model: ${model.memberProfile.loaded} = false
     - continue
 - Process P2: Call server service
   - group: initial-load
@@ -106,14 +101,9 @@ step; it avoids user input so the ordering and final state decision are clear.
     - points load result
   - case: success
     - description: 200 points
-    - Effects
-      - model: ${model.points.loaded} = true
-      - model: ${model.points.balance} = result.balance
     - continue
   - case: failure
     - description: 5xx or timeout
-    - Effects
-      - model: ${model.points.loaded} = false
     - continue
 - Process P3: Resolve grouped processes
   - group: initial-load

@@ -268,8 +268,6 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
   - case: success
     - description: 200 search result
     - Effects
-      - model: ${model.searchResult.items} = response.items
-      - model: ${model.searchResult.totalCount} = response.totalCount
       - state: loaded
       - view: ${view.selectedTab} = results
       - view: ${view.isHelpPanelOpen} = false
@@ -280,7 +278,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
       - view: ${view.isHelpPanelOpen} = false
 ```
 
-この整理案では、`model: ...` は画面データの更新、`state: loaded` は業務・処理 state の変更、`view: ${view.selectedTab} = results` や `view: ${view.isHelpPanelOpen} = false` は表示文脈の変更として扱います。
+この整理案では、`state: loaded` は業務・処理 state の変更、`view: ${view.selectedTab} = results` や `view: ${view.isHelpPanelOpen} = false` は表示文脈の変更として扱います。Action から `${model.*}` に代入する model mutation は canonical DSL から外し、表示値の由来は Element の `value:` / `src:` や Model Samples で確認します。
 
 この形で破綻しないための前提は次の通りです。
 
@@ -291,7 +289,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
 - `Validate` や `Resolve` のように引数が必要な process は、`Process P2: Validate search form` + `target: V-...`、`Process P3: Resolve grouped processes` + `group: initial-load` のように detail として表す。
 - `Resolve: <group>` のような Action 直下の `Resolve` group は canonical form では廃止する。`Resolve` も処理列の一部として `Process Pn: Resolve ...` に統一する。
 
-並列 process と resolve は次のように表します。並列に参加する process は同じ `group` を持ち、各 case は結果や model 更新だけを残して `continue` します。最終的な `state` / `navigate` は `Process Pn: Resolve ...` に寄せます。
+並列 process と resolve は次のように表します。並列に参加する process は同じ `group` を持ち、各 case は結果を分類して `continue` します。最終的な `state` / `navigate` は `Process Pn: Resolve ...` に寄せます。
 
 ```markdown
 ### A-InitialLoad Initial dashboard load
@@ -305,29 +303,19 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
   - MemberQueryService.findSelfProfile()
   - case: success
     - description: 200 member profile
-    - Effects
-      - model: ${model.memberProfile.loaded} = true
-      - model: ${model.memberProfile.name} = result.name
-      - continue
+    - continue
   - case: failure
     - description: 5xx or timeout
-    - Effects
-      - model: ${model.memberProfile.loaded} = false
-      - continue
+    - continue
 - Process P2: Load points
   - group: initial-load
   - PointQueryService.findSelfPoints()
   - case: success
     - description: 200 points
-    - Effects
-      - model: ${model.points.loaded} = true
-      - model: ${model.points.balance} = result.balance
-      - continue
+    - continue
   - case: failure
     - description: 5xx or timeout
-    - Effects
-      - model: ${model.points.loaded} = false
-      - continue
+    - continue
 - Process P3: Resolve grouped processes
   - group: initial-load
   - case: ready

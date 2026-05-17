@@ -28,7 +28,6 @@ MarkVSpec のプレビューは、生成された画面設計書です。上か�
 | 画面要素サマリー | 現在のワイヤーフレーム文脈の要素カタログ | marker、ID、type、関連Action、説明 | 表示文言、入力制約、visible/disabled条件、Action処理詳細 |
 | 入力フォーム仕様 | ユーザーが入力できる値と制約 | 入力要素側の必須、値の初期値/取得元、入力詳細、readonly を含む制約、表示形式、条件、有効条件 | label、placeholder、option label、validation required rule、独立した bind 列など |
 | 表示内容仕様 | 要素に表示される文言・値と取得元 | label、placeholder、help、sample、option label、src/i18n/model参照、format、表示条件、有効条件 | 入力制約、Action内部処理、validation条件 |
-| Model Updates | Actionによるmodel更新 | Action単位グループ、trigger、context/process/case、model path、update式 | UI配置、遷移図、各行でのaction/trigger反復 |
 | Action Summary | 操作一覧の俯瞰 | marker、name、trigger、kind、著者が書いた overview | case別request params、response body、update target詳細、Action の availability、自動要約 |
 | Action Details | 振る舞い仕様の本体 | 著者が書いた概要、種別、trigger、from、process、request、params、response、cases、partial updates、update、transition、route params、notes | 画面レイアウト詳細、Action レベルの guard、自動要約 |
 | State Flow | 状態遷移の全体像 | Mermaid state diagram、状態遷移表へのリンク | request parameter、UI要素プロパティ |
@@ -54,8 +53,8 @@ MarkVSpec のプレビューは、生成された画面設計書です。上か�
   marker と ID を併記し、Layout 参照は marker と Layout name、Action 参照は
   marker と Action name を表示して、Layout ID や Action ID だけの表示に戻さない。
 - 部分更新は Action Details 内に置き、request、response、case と同じ Action 文脈で target、fragment/content、結果の違いを確認できるようにする。
-- Model Updates は、Actionから横断的なデータ変更を抽出し、Action単位にグルーピングして監査しやすくする。Action と trigger はグループで一度だけ示し、行は context/process/case、model path、update に絞る。
 - Model Samples は、`${model.value}` 形式で参照する画面要素がどのようなデータで描画されるかを各 state の Wireframe 直前に実サンプル行で示す。独立セクションにはせず、列名と行数だけの一覧にも戻さない。
+- Action から `${model.value}` へ代入する model mutation は canonical DSL ではないため、独立した preview section として集計しない。表示値の由来参照は State Views、表示内容仕様、入力フォーム仕様、Model Samples で確認する。
 
 ## 推奨出力順
 
@@ -67,12 +66,11 @@ MarkVSpec のプレビューは、生成された画面設計書です。上か�
 6. Viewport / State Wireframes（各 state の Wireframe 直前に Model Samples）
 7. Screen Transitions
 8. 状態遷移表
-9. Model Updates
-10. Action Details
-11. Validations / Business Rules
-12. Error Codes
-13. 自由記述セクション
-14. Diagnostics
+9. Action Details
+10. Validations / Business Rules
+11. Error Codes
+12. 自由記述セクション
+13. Diagnostics
 
 参照設計書は Screen 内の文書依存関係として表形式で表示し、種別、ID、タイトル、
 状態の対応関係を読めるようにする。この順序により、状態語彙と

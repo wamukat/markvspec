@@ -209,9 +209,6 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
   - case: success
     - description: 200 saved preferences
     - Effects
-      - model: ${model.keyword} = result.keyword
-      - model: ${model.email} = result.email
-      - model: ${model.deliveryCadence} = result.deliveryCadence
       - state: idle
   - case: failure
     - description: 5xx or timeout

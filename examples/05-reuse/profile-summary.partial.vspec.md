@@ -72,7 +72,6 @@ global layout are handled by the host screen.
   - case: success
     - description: 200 member profile
     - Effects
-      - model: ${model.member} = result.member
       - state: loaded
     - stop
   - case: failure

@@ -302,7 +302,6 @@ test("renders generated design document sections without launching VS Code", () 
     numberedHeadingPattern(3, "Viewport mobile<span class=\"state-badge\">Default</span>"),
     new RegExp(`<h4 class="state-screen-heading">\\s*<span class="section-number">3\\.1\\.1\\.</span>\\s*State: ${docLabel("idle", "state", "state-label")}<span class="state-badge">initial</span></h4>`),
     numberedHeadingPattern(2, "Action Details"),
-    numberedHeadingPattern(2, "Model Updates"),
     numberedHeadingPattern(2, "Validations"),
     numberedHeadingPattern(2, "Business Rules"),
     numberedHeadingPattern(2, "Error Codes"),
@@ -362,7 +361,7 @@ test("renders generated design document sections without launching VS Code", () 
   assert.doesNotMatch(html, new RegExp(`<li>${detailIdRef("P-EmailField")}</li>`));
   assert.match(html, /element[\s\S]*E-ValidationMessage/);
   assert.match(html, new RegExp(`set state ${docLabel("idle", "state")}[\\s\\S]*element[\\s\\S]*E-AuthErrorBanner`));
-  const actionDetailsSection = docSectionByHeading(html, "Action Details", "Model Updates");
+  const actionDetailsSection = docSectionByHeading(html, "Action Details", "Validations");
   const submitActionDetail = actionDetailsSection.match(/<article class="action-detail">\s*<h3 id="action-detail-A-SubmitLogin">[\s\S]*?<\/article>/)?.[0] ?? "";
   const responseActionDetail = actionDetailsSection.match(/<article class="action-detail">\s*<h3 id="action-detail-A-HandleLoginResponse">[\s\S]*?<\/article>/)?.[0] ?? "";
   assert.match(actionDetailsSection, new RegExp(`<h3 id="action-detail-A-SubmitLogin">${actionBadge("A1", "A-SubmitLogin", false)} Submit login</h3>`));
@@ -1781,7 +1780,7 @@ test("does not render viewport filter controls in the preview shell", () => {
   assert.match(html, /\.history-section\{break-before:page;page-break-before:always\}/);
   assert.doesNotMatch(html, /\.state-screen-section\{break-before:page;page-break-before:always\}/);
   assert.doesNotMatch(html, /\.layout-spec-fragment, \.element-spec-fragment, \.action-spec-fragment\{break-before:page;page-break-before:always\}/);
-  assert.match(html, /\.wireframe-print-section, \.action-detail, \.model-update-group, \.model-sample-block\{break-inside:avoid;page-break-inside:avoid\}/);
+  assert.match(html, /\.wireframe-print-section, \.action-detail, \.note-block, \.process-card, \.model-sample-block\{break-inside:avoid;page-break-inside:avoid\}/);
   assert.match(html, /\.spec-table tr\{break-inside:avoid;page-break-inside:avoid\}/);
   assert.doesNotMatch(html, /\.spec-table-wrap, \.spec-table\{break-inside:avoid;page-break-inside:avoid\}/);
   assert.doesNotMatch(html, /\.state-screen-section \+ \.state-screen-section\{break-before:page;page-break-before:always\}/);
@@ -3050,7 +3049,7 @@ test("keeps action-level availability out of localized action details", () => {
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
   const html = renderDesignDocumentHtml(result, preview);
-  const actionDetailsSection = docSectionByHeading(html, "Action Details", "Model Updates");
+  const actionDetailsSection = docSectionByHeading(html, "Action Details", "Validations");
 
   assert.doesNotMatch(actionDetailsSection, /<dt>When<\/dt>|<dt>有効条件<\/dt>|condition-expression/);
   assert.doesNotMatch(actionDetailsSection, /enabled: all:/);
@@ -3177,15 +3176,15 @@ title: List
   assert.match(html, new RegExp(`Route Parameters <ul><li>noticeId: ${sourceCodePattern("${model.notice.noticeId}")}</li></ul>`));
 });
 
-test("renders model update summary from action process and outcomes", () => {
+test("omits model update summary and hides model mutation side effects from action details", () => {
   const source = `---
 id: SCR-MODEL-UPDATES
 type: screen
-title: Model Updates
+title: Legacy Model Mutations
 locale: ja
 ---
 
-# SCR-MODEL-UPDATES Model Updates
+# SCR-MODEL-UPDATES Legacy Model Mutations
 
 ## States
 
@@ -3225,21 +3224,15 @@ locale: ja
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
-  const section = docSectionByHeading(html, "モデル更新処理", "Validations");
-  const actionDetailsSection = docSectionByHeading(html, "アクション詳細", "モデル更新処理");
+  const actionDetailsSection = docSectionByHeading(html, "アクション詳細", "フォームグループ");
 
-  assert.match(section, /<div class="model-update-list">/);
-  assert.match(section, new RegExp(`<article class="model-update-group">[\\s\\S]*<h3>${refActionChip("A1", "A-LoadNotice", "お知らせ取得")}</h3>[\\s\\S]*<p class="model-update-meta"><span class="meta-label">トリガー:<\\/span> ${docLabel("screen.load", "trigger")}</p>`));
-  assert.equal((section.match(/<article class="model-update-group">/g) ?? []).length, 2);
-  assert.match(section, /<th>処理<\/th><th>モデル<\/th><th>更新<\/th>/);
-  assert.doesNotMatch(section, /<th>アクション<\/th>|<th>トリガー<\/th>/);
-  assert.match(section, new RegExp(`<td>success</td><td>${inlineTokenPattern("${model.notice}")}</td><td>model: ${sourceCodePattern("${model.notice}")} = NoticeDetailResult</td>`));
-  assert.match(section, new RegExp(`<td>${inlineTokenPattern("${model.notice.noticeId}")}</td><td>model: ${sourceCodePattern("${model.notice.noticeId}")} = ${sourceCodePattern("${route.noticeId}")}</td>`));
-  assert.match(section, new RegExp(`<h3>${refActionChip("A2", "A-RefreshMeta", "メタ情報更新")}</h3>[\\s\\S]*<p class="model-update-meta"><span class="meta-label">トリガー:<\\/span> ${docLabel("manual.refresh", "trigger")}</p>[\\s\\S]*<td>success</td><td>${inlineTokenPattern("${model.noticeMeta}")}</td><td>model: ${sourceCodePattern("${model.noticeMeta}")} = NoticeMetaResult</td>`));
+  assert.doesNotMatch(html, /<h2>モデル更新処理<\/h2>|<h2>Model Updates<\/h2>|model-update-list|model-update-group|model-update-meta/);
   assert.match(actionDetailsSection, new RegExp(`NoticeQueryService\\.findNotice\\(\\)<ul class="spec-list spec-nested-list"><li>noticeId: ${sourceCodePattern("${route.noticeId}")}</li></ul>`));
-  assert.equal((section.match(/お知らせ取得/g) ?? []).length, 2);
-  assert.equal((section.match(/screen\.load/g) ?? []).length, 1);
-  assert.doesNotMatch(section, /<code>model\.notice\.<\/code>/);
+  assert.doesNotMatch(actionDetailsSection, new RegExp(`model: ${sourceCodePattern("${model.notice}")} = NoticeDetailResult`));
+  assert.doesNotMatch(actionDetailsSection, new RegExp(`model: ${sourceCodePattern("${model.notice.noticeId}")} = ${sourceCodePattern("${route.noticeId}")}`));
+  assert.doesNotMatch(actionDetailsSection, new RegExp(`model: ${sourceCodePattern("${model.noticeMeta}")} = NoticeMetaResult`));
+  assert.match(actionDetailsSection, new RegExp(`<strong>${docLabel("success", "result")}<\\/strong>`));
+  assert.match(actionDetailsSection, new RegExp(`(?:effect set state|効果 状態更新) ${docLabel("idle", "state")}`));
 });
 
 test("groups partial update side effects under nested lists", () => {
@@ -3305,7 +3298,7 @@ locale: ja
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
-  const actionDetailsSection = docSectionByHeading(html, "アクション詳細", "モデル更新処理");
+  const actionDetailsSection = docSectionByHeading(html, "アクション詳細");
 
   assert.doesNotMatch(html, /<h2>部分更新<\/h2>/);
   assert.match(actionDetailsSection, /<dt>部分更新<\/dt><dd>[\s\S]*<th>ケース<\/th><th>対象<\/th><th>差し替え内容<\/th>/);
@@ -4626,7 +4619,7 @@ title: Home
   assert.match(html, /PartialRequest/);
   assert.match(html, /GET \/profile-card/);
   assert.match(html, /partial: PRT-PROFILE-CARD/);
-  assert.match(html, new RegExp(`model: ${sourceCodePattern("${model.profile.loaded}")} = true`));
+  assert.doesNotMatch(html, new RegExp(`model: ${sourceCodePattern("${model.profile.loaded}")} = true`));
   assert.doesNotMatch(html, /partial-update-meta|partial-update-group/);
 });
 
@@ -5860,7 +5853,7 @@ route: /users/:id
   assert.match(previewHtml, /\.history-section\{break-before:page;page-break-before:always\}/);
   assert.doesNotMatch(previewHtml, /\.state-screen-section\{break-before:page;page-break-before:always\}/);
   assert.doesNotMatch(previewHtml, /\.layout-spec-fragment, \.element-spec-fragment, \.action-spec-fragment\{break-before:page;page-break-before:always\}/);
-  assert.match(previewHtml, /\.wireframe-print-section, \.action-detail, \.model-update-group, \.model-sample-block\{break-inside:avoid;page-break-inside:avoid\}/);
+  assert.match(previewHtml, /\.wireframe-print-section, \.action-detail, \.note-block, \.process-card, \.model-sample-block\{break-inside:avoid;page-break-inside:avoid\}/);
   assert.match(previewHtml, /\.spec-table tr\{break-inside:avoid;page-break-inside:avoid\}/);
   assert.doesNotMatch(previewHtml, /\.spec-table-wrap, \.spec-table\{break-inside:avoid;page-break-inside:avoid\}/);
   assert.doesNotMatch(previewHtml, /@page markvspec-landscape/);

@@ -379,8 +379,6 @@ route: /mypage/partials/notices
     - NoticeQueryService.findLatest()
   - case: success
     - Effects
-      - model: ${model.notices.items} = result.items
-      - model: ${model.notice} = ${model.notices.items} の現在行
       - state: loaded
   - case: empty
     - Effects
@@ -404,7 +402,6 @@ MarkVSpec ツールは、Markdown の本文から次のようなビューを生�
 - Elements: 初期状態で表示される画面要素一覧。
 - Actions: 初期状態に関係するアクション一覧。概要は著者が Action 見出し直下に書いた場合だけ表示する。
 - State Views: 状態ごとのワイヤーフレーム、現在のレイアウト、現在の画面要素、現在のアクション。
-- モデル更新処理: Action 内に散らばる `${model.value}` 形式の代入と結果ごとの side effect の横断一覧。
 - Action Details: 著者が書いた概要、対象状態、処理、リクエスト、結果、更新、備考。
 - State Flow: Mermaid の状態遷移図。
 - Business Rules / 自由記述セクション。

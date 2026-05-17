@@ -3639,7 +3639,6 @@ export function renderDesignDocumentHtml(result: ReturnType<typeof parseMarkVSpe
     numberedSection((number) => withSectionNumber(renderStateFlowSpec(detailsResult), number)),
     numberedSection((number) => withSectionNumber(renderViewportStateScreensSpec(scope, number), number)),
     numberedSection((number) => withSectionNumber(renderActionDetailsSpec(detailsResult), number)),
-    numberedSection((number) => withSectionNumber(renderModelUpdatesSpec(detailsResult), number)),
     numberedSection((number) => withSectionNumber(renderFormGroupsSpec(detailsResult), number)),
     numberedSection((number) => withSectionNumber(renderValidationRulesSpec(detailsResult), number)),
     numberedSection((number) => withSectionNumber(renderRulesSpec(detailsResult), number)),
@@ -4260,41 +4259,6 @@ function renderPartialUpdateContent(result: ReturnType<typeof parseMarkVSpec>, u
   return renderDetailList(result, items, update.sideEffects ?? []);
 }
 
-interface ModelUpdateRow {
-  context: string;
-  model: string;
-  update: string;
-}
-
-function renderModelUpdatesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
-  const groups = result.actions.flatMap((action) => {
-    const rows = collectModelUpdateRows(result, action);
-    return rows.length > 0 ? [renderModelUpdateGroup(result, action, rows)] : [];
-  });
-
-  return `<section class="doc-section">
-    <h2>${label(result, "modelUpdates")}</h2>
-    ${groups.length > 0 ? `<div class="model-update-list">${groups.join("")}</div>` : `<p class="spec-empty">${label(result, "none")}</p>`}
-  </section>`;
-}
-
-function renderModelUpdateGroup(
-  result: ReturnType<typeof parseMarkVSpec>,
-  action: ReturnType<typeof parseMarkVSpec>["actions"][number],
-  rows: ModelUpdateRow[]
-): string {
-  const tableRows = rows.map((row) => [
-    text(row.context),
-    renderInlineToken(row.model),
-    row.update
-  ]);
-  return `<article class="model-update-group">
-    <h3>${referenceForId(result, action.id, "action")}</h3>
-    <p class="model-update-meta"><span class="meta-label">${label(result, "trigger")}:</span> ${renderTrigger(result, action.triggeredBy)}</p>
-    ${renderLocalizedTable(result, [label(result, "process"), label(result, "model"), label(result, "update")], tableRows)}
-  </article>`;
-}
-
 function renderModelSamplesForState(result: ReturnType<typeof parseMarkVSpec>, stateName: string | undefined): string {
   if (!stateName) {
     return "";
@@ -4343,54 +4307,6 @@ function renderModelSampleTable(
   }
 
   return renderLocalizedTable(result, sample.columns, rows);
-}
-
-function collectModelUpdateRows(
-  result: ReturnType<typeof parseMarkVSpec>,
-  action: ReturnType<typeof parseMarkVSpec>["actions"][number]
-): ModelUpdateRow[] {
-  const rows: ModelUpdateRow[] = [];
-
-  for (const step of action.processSteps) {
-    for (const detail of step.details) {
-      if (isModelReference(detail.key)) {
-        rows.push({
-          context: step.name,
-          model: detail.key,
-          update: renderParamSource(result, detail.value)
-        });
-      }
-    }
-
-    rows.push(...modelSideEffectRows(step.name, step.sideEffects));
-    for (const outcome of step.outcomes) {
-      rows.push(...modelSideEffectRows(outcome.result, outcome.sideEffects));
-    }
-  }
-
-  for (const outcome of action.outcomes) {
-    rows.push(...modelSideEffectRows(outcome.result, outcome.sideEffects));
-  }
-
-  return rows;
-}
-
-function modelSideEffectRows(
-  context: string,
-  sideEffects: string[]
-): ModelUpdateRow[] {
-  return sideEffects.flatMap((sideEffect) => {
-    const refs = [...new Set([...sideEffect.matchAll(/\$\{model\.[^}]+\}/gu)].map((match) => match[0]))];
-    return refs.map((model) => ({
-      context,
-      model,
-      update: renderExpressionTokens(sideEffect)
-    }));
-  });
-}
-
-function isModelReference(value: string): boolean {
-  return opaqueExpressionBody(value)?.startsWith("model.") ?? false;
 }
 
 function renderActionDetailsSpec(result: ReturnType<typeof parseMarkVSpec>): string {
@@ -5938,14 +5854,19 @@ function targetlessDisplayTargetLabel(result: ReturnType<typeof parseMarkVSpec>,
 }
 
 function renderDetailList(result: ReturnType<typeof parseMarkVSpec>, items: string[], sideEffects: string[]): string {
+  const canonicalSideEffects = sideEffects.filter((sideEffect) => !isModelMutationSideEffect(sideEffect));
   const listItems = [
     ...items.filter(Boolean).map((item) => `<li>${item}</li>`),
-    sideEffects.length > 0
-      ? `<li><span class="spec-list-label">${escapeHtml(label(result, "sideEffects"))}</span><ul class="spec-list spec-nested-list">${sideEffects.map((sideEffect) => `<li>${renderDetailParamSource(result, sideEffect)}</li>`).join("")}</ul></li>`
+    canonicalSideEffects.length > 0
+      ? `<li><span class="spec-list-label">${escapeHtml(label(result, "sideEffects"))}</span><ul class="spec-list spec-nested-list">${canonicalSideEffects.map((sideEffect) => `<li>${renderDetailParamSource(result, sideEffect)}</li>`).join("")}</ul></li>`
       : ""
   ].filter(Boolean);
 
   return listItems.length > 0 ? `<ul class="spec-list spec-effect-list">${listItems.join("")}</ul>` : "";
+}
+
+function isModelMutationSideEffect(sideEffect: string): boolean {
+  return /^model:\s*\$\{model\.[^}]+\}\s*=/u.test(sideEffect.trim());
 }
 
 function renderActionDestination(

@@ -485,10 +485,11 @@ such as permission or input value expressions, should remain visible in the mock
 and be documented in the layout, input form, display content, or action detail
 tables instead.
 
-Generated design documents should also include a Model Updates section. Model
-updates remain authored inside Actions, but the generated section collects
-`${model.value}` process assignments and outcome side effects that mention `${model.value}`
-so data population can be reviewed without scanning every action detail.
+Generated design documents should not include a Model Updates section. Action
+effects describe screen-visible outcomes such as state changes, navigation, and
+display changes; they do not canonically assign into `${model.value}`. Display
+value references such as `value: ${model.notice.title}` and Model Samples remain
+visible in State Views, Display Content Spec, and Input Form Spec.
 
 ## Thymeleaf And Htmx
 
@@ -568,8 +569,6 @@ route: /mypage/partials/notices
     - NoticeQueryService.findLatest()
   - case: success
     - Effects
-      - model: ${model.notices.items} = result.items
-      - model: ${model.notice} = current item from ${model.notices.items}
       - state: loaded
   - case: empty
     - Effects

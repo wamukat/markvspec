@@ -35,7 +35,7 @@ test("renders shared wireframe print selectors for compact and static HTML CSS",
   assert.match(standardPrintPolicyCss(), /\.history-section\{break-before:page;page-break-before:always\}/);
   assert.doesNotMatch(standardPrintPolicyCss(), /\.state-screen-section\{break-before:page/);
   assert.doesNotMatch(standardPrintPolicyCss(), /\.layout-spec-fragment, \.element-spec-fragment, \.action-spec-fragment\{break-before:page/);
-  assert.match(standardPrintPolicyCss({ spaced: true }), /\.wireframe-print-section, \.action-detail, \.model-update-group, \.model-sample-block \{ break-inside: avoid; page-break-inside: avoid; \}/);
+  assert.match(standardPrintPolicyCss({ spaced: true }), /\.wireframe-print-section, \.action-detail, \.note-block, \.process-card, \.model-sample-block \{ break-inside: avoid; page-break-inside: avoid; \}/);
   assert.doesNotMatch(standardPrintPolicyCss({ spaced: true }), /\.spec-table-wrap, \.spec-table \{ break-inside: avoid/);
   assert.match(standardPrintPolicyCss({ spaced: true }), /\.spec-table tr \{ break-inside: avoid; page-break-inside: avoid; \}/);
   assert.match(printScrollbarSuppressCss(), /html,body,main,\.content,\.preview,\.document,\.spec-table-wrap,\.wireframe-section,\.mermaid-render,\.mermaid-source,\.note-content,\.entity-notes pre,\.entity-overview pre\{overflow:visible!important;scrollbar-width:none!important;-ms-overflow-style:none!important\}/);

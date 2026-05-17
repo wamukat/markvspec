@@ -73,7 +73,7 @@ MARKVSPEC_REQUIRE_PDF=1 npm run check:print-regression
 - inline 目次の後と History の前は、章区切りとして改ページされる。
 - 各 state、Layouts、Elements、Actions は必ず新ページ開始にならず、
   wireframe、状態説明、関連表を同じ流れで読める。
-- wireframe 導入部、action detail、model update、model sample block は、
+- wireframe 導入部、action detail、process card、model sample block は、
   ブラウザが対応できる範囲で内部改ページされにくい。
 - table は全体を 1 ブロックとして固定せず、ヘッダと行単位で読みやすく印刷される。
 

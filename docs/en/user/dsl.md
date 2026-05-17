@@ -1560,38 +1560,17 @@ Generated design documents should list these as partial update flows so that
 reviewers can see trigger, request, target, mode, fragment/content, and outcome
 without reading framework-specific attributes.
 
-## Model Updates
+## Model References And Samples
 
-Model updates remain authored inside Actions because the Action is the source of
-truth for when data changes. The generated design document also collects these
-entries into a "Model Updates" section so reviewers can see every
-`${model.value}` style write in one place.
+`${model.*}` remains a display-value source. Use it in element `value:`, `src:`,
+`sample:`, option labels, request parameters, and other read positions where the
+screen needs to explain where displayed or submitted data comes from.
 
-The "Model Updates" section groups rows by Action. The Action marker, Action
-name, and trigger appear once in the group header, and the group's table stays
-focused on context/process/case, model path, and update content.
-
-MarkVSpec includes explicit `${model.value}` process details and outcome side
-effects that mention `${model.value}`.
-
-```markdown
-- Process P1: Load notice
-  - server:
-    - call: NoticeQueryService.findNotice()
-    - noticeId: ${route.noticeId}
-  - result:
-    - notice load result
-  - case: success
-    - description: 200 notice
-    - Effects
-      - model: ${model.notice} = NoticeDetailResult
-- Process P2: Show notice body
-  - case: success
-    - Effects
-      - display:
-        - target: L-NoticeBody
-        - element: E-NoticeBody
-```
+Do not use Action `Effects` to assign into `${model.*}`. Action-side model
+mutation is not canonical because it describes an implementation store or server
+model update rather than screen behavior. The generated design document therefore
+does not include a `Model Updates` section. Review displayed values in State
+Views, Display Content Spec, Input Form Spec, and Model Samples instead.
 
 Element variants describe visual emphasis or component style without naming CSS
 classes directly.
@@ -1824,7 +1803,6 @@ Preferred action groups and effects:
     - description: <human-readable case explanation>
     - response: <received response classification>
     - Effects
-      - model: ${model.<name>} = <source>
       - view: ${view.<name>} = <value>
       - state: <state>
       - navigate: <screen-id-or-route>
@@ -1906,13 +1884,9 @@ aggregate decision in a Resolve process with the same `group`.
     - call: MemberQueryService.findSelfProfile()
   - case: success
     - description: 200 member profile
-    - Effects
-      - model: ${model.memberProfile.loaded} = true
     - continue
   - case: failure
     - description: 5xx or timeout
-    - Effects
-      - model: ${model.memberProfile.loaded} = false
     - continue
 - Process P2: Load points
   - group: initial-load
@@ -1920,13 +1894,9 @@ aggregate decision in a Resolve process with the same `group`.
     - call: PointQueryService.findSelfPoints()
   - case: success
     - description: 200 points
-    - Effects
-      - model: ${model.points.loaded} = true
     - continue
   - case: failure
     - description: 5xx or timeout
-    - Effects
-      - model: ${model.points.loaded} = false
     - continue
 - Process P3: Resolve initial load
   - group: initial-load

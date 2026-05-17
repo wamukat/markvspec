@@ -1437,9 +1437,9 @@ title: Multi Request
   - E-NextPageButton.click
 - From
   - idle
-- Process: ModelUpdate
+- Process: PreparePage
   - Effects
-    - model: \${model.requestedPage} = \${model.nextPage}
+    - view: \${view.selectedTab} = users
 - Process: HttpRequest
   - GET /users
     - page: \${model.requestedPage}
@@ -1451,7 +1451,7 @@ title: Multi Request
   const action = result.actions[0];
 
   assert.deepEqual(action?.processSteps.map((step) => [step.name, step.details.map((detail) => [detail.key, detail.value])]), [
-    ["ModelUpdate", []],
+    ["PreparePage", []],
     ["HttpRequest", [["request", "GET /users"], ["page", "${model.requestedPage}"]]],
     ["HttpRequest", [["request", "GET /roles"], ["userId", "${model.userId}"]]]
   ]);
@@ -1511,7 +1511,6 @@ overview code block
 - Process P1: Submit request
   - case: success
     - Effects
-      - model: \${model.requestedPage} = \${model.nextPage}
       - state: loading
 
 備考をこういうところに書きたいよね。
@@ -6688,7 +6687,6 @@ title: Server Call
   - case: success
     - description: ApiBridgeResult.Success<MemberProfileDto>
     - Effects
-      - model: \${model.memberProfile.displayName} = MemberProfileDto.displayName
       - state: idle
 `;
   const result = parseMarkVSpec(source);
@@ -6798,7 +6796,6 @@ route: /mypage/partials/notices
   - case: success
     - description: 200 notices
     - Effects
-      - model: \${model.notices.items} = result.items
       - state: loaded
 `;
   const result = parseMarkVSpec(source);
@@ -6808,7 +6805,7 @@ route: /mypage/partials/notices
   assert.equal(result.screen.type, "partial");
   assert.equal(result.diagnostics.length, 0);
   assert.equal(action?.triggeredBy, "partial.render");
-  assert.deepEqual(success?.sideEffects, ["model: ${model.notices.items} = result.items"]);
+  assert.deepEqual(success?.sideEffects, []);
 });
 
 test("reports missing process step references", () => {
@@ -9998,8 +9995,6 @@ title: Parallel Process
   - MemberQueryService.findSelfProfile()
   - case: success
     - description: 200 member profile
-    - Effects
-      - model: \${model.memberProfile.loaded} = true
     - continue
   - case: failure
     - description: 5xx or timeout
@@ -10009,8 +10004,6 @@ title: Parallel Process
   - PointQueryService.findSelfPoints()
   - case: success
     - description: 200 points
-    - Effects
-      - model: \${model.points.loaded} = true
     - continue
   - case: failure
     - description: 5xx or timeout
@@ -10040,9 +10033,7 @@ title: Parallel Process
   assert.deepEqual(profile?.details.map((detail) => [detail.key, detail.value]), [
     ["call", "MemberQueryService.findSelfProfile()"]
   ]);
-  assert.deepEqual(profile?.outcomes.find((outcome) => outcome.result === "success")?.sideEffects, [
-    "model: ${model.memberProfile.loaded} = true"
-  ]);
+  assert.deepEqual(profile?.outcomes.find((outcome) => outcome.result === "success")?.sideEffects, []);
   assert.deepEqual(resolve?.outcomes.map((outcome) => [outcome.result, outcome.to, outcome.flow]), [
     ["ready", "idle", "stop"],
     ["failed", "load-error", "stop"]
@@ -11267,29 +11258,28 @@ title: Compact Action
   - idle
 - Process: Immediate
   - view: \${view.selectedTab} = results
-- Process: ModelUpdate
-  - model: \${model.searchRequest.keyword} = E-KeywordInput.value
+- Process: UpdateView
+  - view: \${view.selectedTab} = results
 - Process: HttpRequest
   - GET /search
     - keyword: E-KeywordInput.value
   - case: success
     - description: 200 search result
     - Effects
-      - model: \${model.searchResult.items} = response.items
       - state: loaded
 `;
 
   const result = parseMarkVSpec(source);
   const action = result.actions[0];
 
-  assert.deepEqual(action.processSteps.map((step) => step.name), ["Immediate", "ModelUpdate", "HttpRequest"]);
+  assert.deepEqual(action.processSteps.map((step) => step.name), ["Immediate", "UpdateView", "HttpRequest"]);
   assert.deepEqual(action.processSteps[0]?.sideEffects, ["view: ${view.selectedTab} = results"]);
-  assert.deepEqual(action.processSteps[1]?.sideEffects, ["model: ${model.searchRequest.keyword} = E-KeywordInput.value"]);
+  assert.deepEqual(action.processSteps[1]?.sideEffects, ["view: ${view.selectedTab} = results"]);
   assert.deepEqual(action.processSteps[2]?.details.map((detail) => [detail.key, detail.value]), [
     ["request", "GET /search"],
     ["keyword", "E-KeywordInput.value"]
   ]);
-  assert.deepEqual(action.processSteps[2]?.outcomes[0]?.sideEffects, ["model: ${model.searchResult.items} = response.items"]);
+  assert.deepEqual(action.processSteps[2]?.outcomes[0]?.sideEffects, []);
   assert.deepEqual(action.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
     ["idle", "success", "loaded"]
   ]);

@@ -1355,7 +1355,7 @@ execution detail も result classification も持たない、決定的な即時�
     - stop
 ```
 
-主な `Effects` entry は `model:`、`view:`、`state:`、`navigate:`、`display:` です。`stop` / `continue` は case-level の制御フローなので、`Effects` の外で case の最後に書きます。`display.target` は表示先の既存 `L-*` layout または `E-*` element を指します。また、Input 系 element に付属する field-level error slot として `E-*.error` も指定できます。`display.element` はその表示先に挿入または表示する既存の `E-*` element または `L-*` layout を1つだけ指します。`display.message` は `V-EmailRules.messages` のような validation / business rule の message group を指します。直接の `display.content` と複数形の `display.elements` はサポートしません。例外として、`display.element` が `Dialog` の場合は `target` を省略でき、preview scenario では modal overlay として表示します。`display.element` が `Toast` の場合も `target` を省略でき、non-modal toast region に表示します。
+主な `Effects` entry は `view:`、`state:`、`navigate:`、`display:` です。Action の `Effects` で `${model.*}` に代入する `model:` mutation は canonical DSL ではありません。`${model.*}` は、Element の `value:` / `src:`、request parameter、Model Samples などの読み取り参照として使い、Action では実装内部の store や server-side model への代入を書かないようにします。`stop` / `continue` は case-level の制御フローなので、`Effects` の外で case の最後に書きます。`display.target` は表示先の既存 `L-*` layout または `E-*` element を指します。また、Input 系 element に付属する field-level error slot として `E-*.error` も指定できます。`display.element` はその表示先に挿入または表示する既存の `E-*` element または `L-*` layout を1つだけ指します。`display.message` は `V-EmailRules.messages` のような validation / business rule の message group を指します。直接の `display.content` と複数形の `display.elements` はサポートしません。例外として、`display.element` が `Dialog` の場合は `target` を省略でき、preview scenario では modal overlay として表示します。`display.element` が `Toast` の場合も `target` を省略でき、non-modal toast region に表示します。
 
 ```markdown
 - display:
@@ -1400,8 +1400,6 @@ constraint の詳細は `V-*` 定義側に残します。
     - call: MemberQueryService.findSelfProfile()
   - case: success
     - description: 200 member profile
-    - Effects
-      - model: ${model.memberProfile.loaded} = true
     - continue
 - Process P2: Load points
   - group: initial-load
@@ -1409,8 +1407,6 @@ constraint の詳細は `V-*` 定義側に残します。
     - call: PointQueryService.findSelfPoints()
   - case: success
     - description: 200 points
-    - Effects
-      - model: ${model.points.loaded} = true
     - continue
 - Process P3: Resolve initial load
   - group: initial-load
@@ -1471,9 +1467,11 @@ Thymeleaf や htmx による部分更新は、実装属性ではなく意味と�
 
 これは SPA rerender、MPA の returned HTML、MPA+htmx partial replacement のいずれにも解釈できます。MarkVSpec authoring DSL には `hx-*` 属性や swap mode を出しません。
 
-## モデル更新処理
+## モデル参照と Model Samples
 
-モデル更新そのものは Action の中に書きます。生成される設計書ビューでは `${model.value}` 形式の式への更新を横断的に集約し、「モデル更新処理」として表示します。集約対象は、`Effects` 配下の明示的な `${model.value}` 形式の代入です。
+`${model.*}` は表示値やリクエスト値の参照元として使えます。Element の `value:` / `src:`、Action の `request.params`、Model Samples は canonical DSL の対象です。
+
+一方で、Action の `Effects` に `${model.*}` への代入を書く model mutation は canonical DSL ではありません。生成される設計書ビューにも、横断的なモデル更新セクションは表示しません。表示値の由来は State Views、表示内容仕様、入力フォーム仕様、Model Samples で確認します。
 
 `input:` は legacy syntax です。実行に渡す値は `request.params`、`server.params`、または `<custom detail>.params` に書きます。
 

@@ -106,7 +106,6 @@ export type MessageKey =
   | "missing"
   | "model"
   | "modelSamples"
-  | "modelUpdates"
   | "name"
   | "navigation"
   | "noSampleFieldsDefined"
@@ -337,7 +336,6 @@ const en: Record<MessageKey, string> = {
   missing: "missing",
   model: "Model",
   modelSamples: "Model Samples",
-  modelUpdates: "Model Updates",
   name: "Name",
   navigation: "Navigation",
   noSampleFieldsDefined: "No sample fields defined",
@@ -569,7 +567,6 @@ const ja: Record<MessageKey, string> = {
   missing: "未検出",
   model: "モデル",
   modelSamples: "モデルサンプル",
-  modelUpdates: "モデル更新処理",
   name: "名前",
   navigation: "ナビゲーション",
   noSampleFieldsDefined: "サンプル項目が定義されていません",

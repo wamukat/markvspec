@@ -152,11 +152,6 @@ ${baseWireframeViewportCss()}
 .entity-notes pre,.entity-overview pre{background:#f9fafb;border:1px solid #e5e7eb;border-radius:4px;margin:0;overflow:auto;padding:8px;white-space:pre-wrap}
 .doc-section>.entity-overview+.spec-table-wrap,.doc-section>.entity-overview+.spec-empty,.doc-section>.entity-overview+.form-group-spec-fragment,.element-spec-fragment>.entity-overview+.spec-table-wrap,.action-spec-fragment>.entity-overview+.spec-table-wrap{margin-top:12px}
 .doc-section>.spec-table-wrap+.entity-notes,.doc-section>.spec-empty+.entity-notes,.doc-section>.form-group-spec-fragment+.entity-notes,.element-spec-fragment>.spec-table-wrap+.entity-notes,.action-spec-fragment>.spec-table-wrap+.entity-notes{margin-top:12px}
-.model-update-list{display:grid;gap:12px}
-.model-update-group{border:1px solid #d1d5db;border-radius:6px;padding:12px}
-.model-update-group h3{align-items:center;display:flex;flex-wrap:wrap;font-size:14px;gap:6px;margin:0 0 8px}
-.model-update-meta{color:#4b5563;font-size:12px;margin:0 0 8px}
-.model-update-meta .meta-label{font-weight:600}
 .note-list{display:grid;gap:12px}
 .note-block{border:1px solid #d1d5db;border-radius:6px;padding:12px}
 .note-block h3{align-items:center;display:flex;font-size:14px;gap:8px;justify-content:space-between;margin:0 0 8px}

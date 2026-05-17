@@ -66,7 +66,7 @@ export function standardPrintPolicyCss(options: { spaced?: boolean } = {}): stri
   const rules = [
     [".toc-inline", "break-after: page; break-inside: avoid; page-break-after: always; page-break-inside: avoid"],
     [".history-section", "break-before: page; page-break-before: always"],
-    [".wireframe-print-section, .action-detail, .model-update-group, .model-sample-block", "break-inside: avoid; page-break-inside: avoid"],
+    [".wireframe-print-section, .action-detail, .note-block, .process-card, .model-sample-block", "break-inside: avoid; page-break-inside: avoid"],
     [".doc-section h2, .doc-section h3, .doc-section h4, .doc-section h5, .state-wireframe h3", "break-after: avoid; page-break-after: avoid"],
     [".spec-table tr", "break-inside: avoid; page-break-inside: avoid"]
   ];

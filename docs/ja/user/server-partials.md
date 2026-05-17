@@ -107,8 +107,7 @@ route: /mypage/partials/notices
   - case: success
     - description: 200 notices
     - Effects
-      - model: ${model.notices.items} = result.items
-      - model: ${model.notice} = ${model.notices.items} の現在行
+      - state: loaded
 ```
 
 `bridge` のような特定アーキテクチャの語は MarkVSpec の予約語にしません。
