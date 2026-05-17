@@ -73,6 +73,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   ]));
   const referencedPartialIds = new Map<string, SourceLocation>();
   const allLayoutGroups = [...result.layoutGroups, ...result.slotContents.flatMap((slot) => slot.layoutGroups)];
+  const layoutsById = new Map(allLayoutGroups.map((group) => [group.id, group]));
 
   validateTemplateScreenTopLevelLayouts(result, diagnostics);
   checkDuplicateLayoutGroups(result.layoutGroups, diagnostics);
@@ -621,7 +622,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
       validateOutcomeErrorCodes(action.id, outcome, errorCodeIds, diagnostics);
       validateOutcomeBusinessRules(action.id, outcome, ruleIds, diagnostics);
       collectPartialReference(outcome.content, firstPropertyLocation(outcome, "content") ?? outcome.location ?? action.location, referencedPartialIds);
-      validateDisplayEffect(action.id, `case ${outcome.result}`, outcome.display, targetLayoutIds, elementIds, elementsById, validationsById, rulesById, layoutIdsByViewport, diagnostics, referencedPartialIds);
+      validateDisplayEffect(action.id, `case ${outcome.result}`, outcome.display, targetLayoutIds, elementIds, layoutsById, elementsById, validationsById, rulesById, layoutIdsByViewport, diagnostics, referencedPartialIds);
     }
 
     for (const step of action.processSteps) {
@@ -663,10 +664,11 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
       validateUpdateMode(action.id, step, diagnostics, `process step ${step.name}`);
       validateProcessStepReferences(action.id, step, validationIds, errorCodeIds, diagnostics);
       validateProcessGranularity(action.id, step, diagnostics);
+      validateUnsupportedProcessLevelPartial(action.id, step, diagnostics);
       validateProcessBusinessRulePlacement(action.id, step, diagnostics);
       validateProcessDataReferences(action.id, step, actionIds, processMarkersByAction, layoutIds, elementIds, diagnostics);
       collectPartialReference(step.content, firstPropertyLocation(step, "content") ?? step.location, referencedPartialIds);
-      validateDisplayEffect(action.id, `process step ${processStepLabel(step)}`, step.display, targetLayoutIds, elementIds, elementsById, validationsById, rulesById, layoutIdsByViewport, diagnostics, referencedPartialIds);
+      validateDisplayEffect(action.id, `process step ${processStepLabel(step)}`, step.display, targetLayoutIds, elementIds, layoutsById, elementsById, validationsById, rulesById, layoutIdsByViewport, diagnostics, referencedPartialIds);
 
       for (const outcome of step.outcomes) {
         validateBusinessRuleOutcomeCaseName(action.id, step, outcome, diagnostics);
@@ -739,7 +741,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
         validateOutcomeErrorCodes(action.id, outcome, errorCodeIds, diagnostics);
         validateOutcomeBusinessRules(action.id, outcome, ruleIds, diagnostics);
         collectPartialReference(outcome.content, firstPropertyLocation(outcome, "content") ?? outcome.location ?? step.location, referencedPartialIds);
-        validateDisplayEffect(action.id, `process step ${processStepLabel(step)} case ${outcome.result}`, outcome.display, targetLayoutIds, elementIds, elementsById, validationsById, rulesById, layoutIdsByViewport, diagnostics, referencedPartialIds);
+        validateDisplayEffect(action.id, `process step ${processStepLabel(step)} case ${outcome.result}`, outcome.display, targetLayoutIds, elementIds, layoutsById, elementsById, validationsById, rulesById, layoutIdsByViewport, diagnostics, referencedPartialIds);
       }
     }
 
@@ -1317,6 +1319,20 @@ function validateProcessGranularity(actionId: string, step: MarkVSpecProcessStep
   }
 }
 
+function validateUnsupportedProcessLevelPartial(actionId: string, step: MarkVSpecProcessStep, diagnostics: MarkVSpecDiagnostic[]): void {
+  if (isPartialRequestStep(step.name)) {
+    return;
+  }
+
+  for (const detail of step.details.filter((candidate) => candidate.key === "partial")) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Action ${actionId} process step ${processStepLabel(step)} has unsupported process-level partial ${detail.value}. Put returned partial content under Effects display.partial on the response case.`,
+      line: detail.location.line
+    });
+  }
+}
+
 function validateProcessBusinessRulePlacement(actionId: string, step: MarkVSpecProcessStep, diagnostics: MarkVSpecDiagnostic[]): void {
   for (const detail of step.receives) {
     if (isBusinessRuleDetailKey(detail.key)) {
@@ -1607,12 +1623,89 @@ function isCanonicalProcessParamDetail(step: MarkVSpecProcessStep, detail: MarkV
   return detail.key.includes(".params.");
 }
 
+function validateDisplayPartialEffect(
+  actionId: string,
+  context: string,
+  display: MarkVSpecActionOutcome["display"],
+  layoutIds: Set<string>,
+  elementIds: Set<string>,
+  layoutsById: Map<string, MarkVSpecLayoutGroup>,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  if (!display?.partial) {
+    return;
+  }
+
+  const partialLine = firstPropertyLine(display, "partial") ?? display.location.line;
+  const targetLine = firstPropertyLine(display, "target") ?? display.location.line;
+  const target = display.target;
+
+  if (display.element) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Action ${actionId} ${context} display.partial ${display.partial} cannot be combined with display.element ${display.element}. Use exactly one display content source.`,
+      line: firstPropertyLine(display, "element") ?? partialLine
+    });
+  }
+
+  if (display.message) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Action ${actionId} ${context} display.partial ${display.partial} cannot be combined with display.message ${display.message}. Use exactly one display content source.`,
+      line: firstPropertyLine(display, "message") ?? partialLine
+    });
+  }
+
+  if (!partialIdRegex.test(display.partial)) {
+    return;
+  }
+
+  if (!target) {
+    diagnostics.push({
+      severity: "error",
+      message: `Action ${actionId} ${context} display.partial ${display.partial} requires target to reference an L-* partial host.`,
+      line: partialLine
+    });
+    return;
+  }
+
+  if (!layoutIds.has(target)) {
+    const targetKind = elementIds.has(target) ? "element" : "missing layout";
+    diagnostics.push({
+      severity: "error",
+      message: `Action ${actionId} ${context} display.partial ${display.partial} targets ${target}, but target must be an existing L-* partial host (${targetKind}).`,
+      line: targetLine
+    });
+    return;
+  }
+
+  const targetLayout = layoutsById.get(target);
+  const targetPartialId = targetLayout?.partial?.id;
+  if (!targetPartialId) {
+    diagnostics.push({
+      severity: "error",
+      message: `Action ${actionId} ${context} display.partial ${display.partial} targets ${target}, but layout ${target} is not a partial host with partial.id.`,
+      line: targetLine
+    });
+    return;
+  }
+
+  if (targetPartialId !== display.partial) {
+    diagnostics.push({
+      severity: "error",
+      message: `Action ${actionId} ${context} display.partial ${display.partial} targets ${target}, but layout ${target} declares partial.id ${targetPartialId}.`,
+      line: partialLine
+    });
+  }
+}
+
 function validateDisplayEffect(
   actionId: string,
   context: string,
   display: MarkVSpecActionOutcome["display"],
   layoutIds: Set<string>,
   elementIds: Set<string>,
+  layoutsById: Map<string, MarkVSpecLayoutGroup>,
   elementsById: Map<string, MarkVSpecElement>,
   validationsById: Map<string, MarkVSpecParseResult["validations"][number]>,
   rulesById: Map<string, MarkVSpecParseResult["rules"][number]>,
@@ -1681,6 +1774,8 @@ function validateDisplayEffect(
     });
   }
 
+  validateDisplayPartialEffect(actionId, context, display, layoutIds, elementIds, layoutsById, diagnostics);
+
   if (display.element && (display.propertyLocations["element"]?.length ?? 0) > 1) {
     diagnostics.push({
       severity: "error",
@@ -1723,7 +1818,7 @@ function validateDisplayEffect(
     } else if (!partialIdRegex.test(display.partial)) {
       diagnostics.push({
         severity: "error",
-        message: `Action ${actionId} ${context} display.partial must use a PRT-* partial ID.`,
+        message: `Action ${actionId} ${context} display.partial ${display.partial} must use a PRT-* partial ID.`,
         line: firstPropertyLine(display, "partial") ?? display.location.line
       });
     } else {

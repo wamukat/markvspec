@@ -4981,6 +4981,10 @@ references:
 ### L-ProfileSummaryHost Profile summary host
 
 - stack
+- partial:
+  - id: PRT-PROFILE-SUMMARY
+  - states:
+    - idle: loaded
 
 ## Actions
 

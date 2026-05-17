@@ -86,14 +86,10 @@ the reusable shell itself is defined in the template example.
   - request: GET /members/${route.memberId}/profile-summary
   - params:
     - memberId: ${route.memberId}
-  - partial: PRT-PROFILE-SUMMARY
   - case: sent
     - description: request accepted
     - Effects
       - state: loading
-      - display:
-        - target: L-ProfileContent
-        - element: L-ProfileSummaryHost
     - stop
   - case: send-failed
     - description: network error
@@ -115,8 +111,8 @@ the reusable shell itself is defined in the template example.
     - Effects
       - state: idle
       - display:
-        - target: L-ProfileContent
-        - element: L-ProfileSummaryHost
+        - target: L-ProfileSummaryHost
+        - partial: PRT-PROFILE-SUMMARY
     - stop
   - case: failure
     - response: 5xx or timeout

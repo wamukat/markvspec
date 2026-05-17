@@ -84,7 +84,7 @@ unambiguous.
 | [Responsive Template Shell](../../../examples/05-reuse/responsive-template-shell.vspec.md) | Shared responsive template shell. | Mobile and desktop template layouts that render the same `content` slot. |
 | [Responsive Slot Page](../../../examples/05-reuse/responsive-slot-page.vspec.md) | Viewport-specific template slot content. | `## Slot: content` fallback for mobile and `## Slot: content: desktop` override for desktop. |
 | [Default Slot Page](../../../examples/05-reuse/default-slot-page.vspec.md) | Template slot default fallback. | No screen slot content; preview renders template-owned `default: E-EmptySlotMessage`. |
-| [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md) | Screen using a template slot and partial. | Front Matter `template`, `references.partials`, `## Slot: content`, route params, and `display.element` references to the partial host layout. |
+| [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md) | Screen using a template slot and partial. | Front Matter `template`, `references.partials`, `## Slot: content`, route params, partial host layout metadata, and `display.partial` updates. |
 | [Profile Summary Partial](../../../examples/05-reuse/profile-summary.partial.vspec.md) | Partial document rendered inside a screen. | `type: partial`, partial route, partial-local states, and server-side build action. |
 | [History And Errors](../../../examples/06-structured-sections/history-and-errors.vspec.md) | Structured release-oriented sections. | Error Codes, custom History Fields, and History entries with Markdown body text. |
 

@@ -12759,6 +12759,10 @@ references:
 ### L-ProfileSummaryHost Profile summary host
 
 - stack
+- partial:
+  - id: PRT-PROFILE-SUMMARY
+  - states:
+    - idle: loaded
 
 ## Actions
 
@@ -12801,6 +12805,123 @@ references:
   assert.equal(scenario?.displayExplanations[0]?.contentKind, "partial");
   assert.equal(scenario?.displayExplanations[0]?.sourceId, "PRT-PROFILE-SUMMARY");
   assert.deepEqual(scenario?.displayExplanations[0]?.targetRefs, ["L-ProfileSummaryHost"]);
+});
+
+test("diagnoses invalid display.partial and process-level partial contracts", () => {
+  const source = `---
+id: SCR-PARTIAL-DIAGNOSTICS
+type: screen
+title: Partial Diagnostics
+references:
+  partials:
+    PRT-PROFILE: ../partials/profile.vspec.md
+    PRT-OTHER: ../partials/other.vspec.md
+---
+
+# SCR-PARTIAL-DIAGNOSTICS Partial Diagnostics
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-PlainHost Plain host
+
+- stack
+
+### L-OtherHost Other host
+
+- stack
+- partial:
+  - id: PRT-OTHER
+  - states:
+    - idle: loaded
+
+## Elements
+
+### E-Target Button
+
+- label: Target
+
+## Validations
+
+### V-Required Required
+
+- target: E-Target
+- message: Required.
+
+## Actions
+
+### A-InvalidPartial Invalid partial
+
+- Triggered
+  - screen.load
+- From
+  - idle
+- Process P1: Direct partial alias
+  - partial: PRT-PROFILE
+- Process P2: Missing target
+  - case: done
+    - Effects
+      - display:
+        - partial: PRT-PROFILE
+- Process P3: Element target
+  - case: done
+    - Effects
+      - display:
+        - target: E-Target
+        - partial: PRT-PROFILE
+- Process P4: Missing layout target
+  - case: done
+    - Effects
+      - display:
+        - target: L-Missing
+        - partial: PRT-PROFILE
+- Process P5: Non partial host
+  - case: done
+    - Effects
+      - display:
+        - target: L-PlainHost
+        - partial: PRT-PROFILE
+- Process P6: Mismatched partial host
+  - case: done
+    - Effects
+      - display:
+        - target: L-OtherHost
+        - partial: PRT-PROFILE
+- Process P7: Combined content sources
+  - case: done
+    - Effects
+      - display:
+        - target: L-OtherHost
+        - partial: PRT-OTHER
+        - element: E-Target
+        - message: V-Required.messages
+- Process P8: Invalid partial id
+  - case: done
+    - Effects
+      - display:
+        - target: L-OtherHost
+        - partial: E-Target
+`;
+
+  const result = parseMarkVSpec(source);
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert(messages.includes("Action A-InvalidPartial process step P1 Direct partial alias has unsupported process-level partial PRT-PROFILE. Put returned partial content under Effects display.partial on the response case."));
+  assert(messages.includes("Action A-InvalidPartial process step P2 Missing target case done display.partial PRT-PROFILE requires target to reference an L-* partial host."));
+  assert(messages.includes("Action A-InvalidPartial process step P3 Element target case done display.partial PRT-PROFILE targets E-Target, but target must be an existing L-* partial host (element)."));
+  assert(messages.includes("Action A-InvalidPartial process step P4 Missing layout target case done display.partial PRT-PROFILE targets L-Missing, but target must be an existing L-* partial host (missing layout)."));
+  assert(messages.includes("Action A-InvalidPartial process step P5 Non partial host case done display.partial PRT-PROFILE targets L-PlainHost, but layout L-PlainHost is not a partial host with partial.id."));
+  assert(messages.includes("Action A-InvalidPartial process step P6 Mismatched partial host case done display.partial PRT-PROFILE targets L-OtherHost, but layout L-OtherHost declares partial.id PRT-OTHER."));
+  assert(messages.includes("Action A-InvalidPartial process step P7 Combined content sources case done display.partial PRT-OTHER cannot be combined with display.element E-Target. Use exactly one display content source."));
+  assert(messages.includes("Action A-InvalidPartial process step P7 Combined content sources case done display.partial PRT-OTHER cannot be combined with display.message V-Required.messages. Use exactly one display content source."));
+  assert(messages.includes("Action A-InvalidPartial process step P8 Invalid partial id case done display.partial E-Target must use a PRT-* partial ID."));
+  assert.equal(
+    result.diagnostics.find((diagnostic) => diagnostic.message.includes("unsupported process-level partial"))?.line,
+    lineNumber(source, "  - partial: PRT-PROFILE")
+  );
 });
 
 test("preserves custom process details with nested params", () => {
