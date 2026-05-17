@@ -2120,7 +2120,7 @@ back to their first listed value.
 
 For a section-by-section reference that uses `Section Lead`, `Entity Block`,
 `Structured Body`, and `Entity Notes` terminology, see
-[Structured Section Reference](structured-section-reference.md).
+[Structured Section Reference](structured-section-reference.html).
 
 ## Field Validations and Cross-field Validations Sections
 

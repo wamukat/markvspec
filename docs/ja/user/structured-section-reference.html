@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MarkVSpec 構造化セクションリファレンス</title>
+  <style>
+    :root {
+      --page:#f6f7f9; --paper:#fff; --ink:#172033; --muted:#5f6b7a;
+      --line:#d8dee7; --soft:#e9edf3; --accent:#2f6fae;
+      --semantic:#047857; --prose:#b45309; --code:#111827; --code-ink:#e5edf8;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--page);color:var(--ink);font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    main{max-width:1220px;margin:0 auto;padding:28px}
+    header{border-bottom:1px solid var(--line);margin-bottom:20px;padding-bottom:18px}
+    h1{margin:0 0 8px;font-size:28px;letter-spacing:0}
+    h2{margin:28px 0 12px;font-size:18px;letter-spacing:0}
+    p{margin:0 0 10px}.lead{max-width:900px;color:var(--muted)}a{color:#1d5ea8}
+    code{border:1px solid var(--soft);border-radius:4px;background:#f8fafc;padding:1px 4px;font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    pre{margin:0;overflow:auto;border-radius:6px;background:var(--code);color:var(--code-ink);padding:12px;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    pre code{border:0;background:transparent;color:inherit;padding:0;font:inherit}
+    .nav{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.nav a{border:1px solid var(--line);border-radius:999px;background:var(--paper);padding:5px 10px;text-decoration:none;font-size:12px;font-weight:650}
+    .panel{border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:18px}
+    .matrix{overflow-x:auto}table{border-collapse:collapse;min-width:1120px;width:100%}th,td{border-bottom:1px solid var(--soft);padding:8px 10px;text-align:left;vertical-align:top}th{background:#f8fafc;font-size:12px}
+    .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;background:#fbfcfe;padding:2px 7px;font-size:11px;font-weight:700;white-space:nowrap}.semantic{color:var(--semantic)}.prose{color:var(--prose)}.preview{color:var(--accent)}
+    .layout-map{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.8fr);gap:14px;align-items:start}.callouts{display:grid;gap:8px}.callout{border-left:4px solid var(--accent);background:#edf5ff;padding:9px 11px}.callout strong{display:block;margin-bottom:2px}
+    @media (max-width:900px){main{padding:16px}.layout-map{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>構造化セクションリファレンス</h1>
+    <p class="lead">各 recognized <code>Section</code> について、<a href="document-structure.html">文書構造</a>で定義した用語を使い、役割、prose の所有先、parser が解釈する範囲、preview の表示位置、最小例を確認できます。</p>
+    <nav class="nav" aria-label="関連ドキュメント">
+      <a href="document-structure.html">文書構造</a>
+      <a href="structured-section-reference.md">Markdown reference</a>
+      <a href="dsl.md#文書構造の用語">DSL の用語定義</a>
+      <a href="../../en/user/structured-section-reference.html">English</a>
+    </nav>
+  </header>
+
+  <section class="panel" aria-labelledby="matrix-title">
+    <h2 id="matrix-title">Section Matrix</h2>
+    <div class="matrix">
+      <table>
+        <thead><tr><th>Section</th><th>役割</th><th>Lead / Notes</th><th>Entity Block</th><th>parser が解釈する Structured Body</th><th>Preview / generated document</th><th>最小例</th></tr></thead>
+        <tbody>
+          <tr><td><code>States</code></td><td>表示 state model。</td><td><span class="pill prose">Section Lead</span> は state list 前、<span class="pill prose">Section Notes</span> は後。</td><td>なし。</td><td>top-level state list。<code>*</code> が initial。</td><td>state list、state flow、baseline State Views。</td><td><pre><code>## States
+- idle*
+- loading</code></pre></td></tr>
+          <tr><td><code>Layout</code> / <code>Layout: &lt;viewport&gt;</code></td><td>viewport の wireframe layout group。</td><td>Section prose は viewport、layout prose は layout entity に属します。</td><td><code>### [marker:]L-* Name</code> または <code>P-*</code>。</td><td>layout kind/properties と <code>#### Items</code>。</td><td>wireframe と Layouts fragment。</td><td><pre><code>## Layout: mobile
+### L1:L-Page Page
+- stack
+#### Items
+- E-Title</code></pre></td></tr>
+          <tr><td><code>Slot: &lt;name&gt;</code></td><td>template slot へ差し込む screen content。</td><td>Layout と同じ所有関係。</td><td>Layout と同じ。</td><td>layout kind/properties と <code>#### Items</code>。</td><td>template slot に合成された wireframe。</td><td><pre><code>## Slot: content
+### L1:L-Main Main
+- stack</code></pre></td></tr>
+          <tr><td><code>Slots</code></td><td>template slot contract。</td><td>Section Lead は slot set、Entity Notes は slot ごと。</td><td><code>### &lt;slot-name&gt;</code>。</td><td><code>required</code> などの slot metadata。</td><td>template slot summary。</td><td><pre><code>## Slots
+### content
+- required: true</code></pre></td></tr>
+          <tr><td><code>Elements</code></td><td>UI element catalog。</td><td>Entity Lead/Notes は 1 element の説明。semantic は properties のみ。</td><td><code>### [marker:]E-* Type</code>。</td><td>label、src、action、conditions。</td><td>wireframe elements、Element Summary、details。</td><td><pre><code>## Elements
+### E-Submit Button
+- label: Submit</code></pre></td></tr>
+          <tr><td><code>Form Groups</code></td><td>form の意味単位。</td><td>section/entity prose は form metadata の前後に保持。</td><td><code>### F-* Name</code>。</td><td>fields、submit action、form metadata。</td><td>form group summary と validation context。</td><td><pre><code>## Form Groups
+### F-Login Login form
+- fields:
+  - E-Email</code></pre></td></tr>
+          <tr><td><code>Actions</code></td><td>user/system event と outcome。</td><td>Entity Lead は authored action overview。Entity Notes は details に表示。</td><td><code>### [marker:]A-* Name</code>。</td><td><code>Triggered</code>、<code>From</code>、<code>Process</code>、case、<code>Effects</code>、flow directives。</td><td>Action Summary、Action Details、markers、transitions。</td><td><pre><code>## Actions
+### A1:A-Submit Submit
+- Triggered
+  - E-Submit.click</code></pre></td></tr>
+          <tr><td><code>Model Samples</code></td><td>preview/export 用 sample data。</td><td>section、state group、sample set の prose を保持。</td><td>ID entity ではなく state/sample group。</td><td><code>### &lt;state&gt;</code>、<code>#### ${model.path}</code>、table/list。</td><td>Model Samples と model-backed preview values。</td><td><pre><code>## Model Samples
+### loaded
+#### ${model.items}
+| name |</code></pre></td></tr>
+          <tr><td><code>View Context</code></td><td>state とは別の UI-local context。</td><td>context definition ごとの prose を保持。</td><td>ID entity ではない definition heading。</td><td>type、values、default marker。</td><td>condition evaluation と State View resolution。</td><td><pre><code>## View Context
+### selectedTab
+- type: enum
+- values:
+  - results*
+  - filters</code></pre></td></tr>
+          <tr><td><code>View Context Samples</code></td><td>再利用する view value set。</td><td>sample prose を values の前後に保持。</td><td>ID entity ではない sample heading。</td><td><code>${view.*}</code> keyed view values。</td><td>Preview Scenario と baseline view resolution。</td><td><pre><code>## View Context Samples
+### help-open
+- ${view.isHelpOpen}: true</code></pre></td></tr>
+          <tr><td><code>Preview Scenarios</code></td><td>explicit preview combination。</td><td>scenario prose は preview case の説明。</td><td>ID entity ではない scenario heading。</td><td>state、model、view、before、case values。</td><td>baseline previews 後に追加表示。</td><td><pre><code>## Preview Scenarios
+### loaded-help
+- state: loaded</code></pre></td></tr>
+          <tr><td><code>Field Validations</code></td><td>single-field client validation contract。</td><td>Entity prose は rule intent。constraints/messages が semantic。</td><td><code>### [marker:]V-* Name</code>。</td><td>target、constraints、messages。<code>V-*.result</code>/<code>messages</code> を公開。</td><td>validation summary と display-message resolution。</td><td><pre><code>## Field Validations
+### V1:V-Email Email
+- target: E-Email
+- constraints:
+  - required:
+    - message: Required.</code></pre></td></tr>
+          <tr><td><code>Cross-field Validations</code></td><td>form / multi-input validation contract。</td><td>Entity prose は form-level validation intent。</td><td><code>### [marker:]V-* Name</code>。</td><td>target、inputs、check、messages。</td><td>validation summary と display-message resolution。</td><td><pre><code>## Cross-field Validations
+### V2:V-Login Login
+- target: F-Login
+- inputs:
+  - E-Email
+  - E-Password
+- check: E-Email.value and E-Password.value are present
+- message: Required.</code></pre></td></tr>
+          <tr><td><code>Validations</code></td><td>legacy-compatible validation section。</td><td>Entity prose を保持。新規 docs では split sections を優先。</td><td><code>### [marker:]V-* Name</code>。</td><td>validation properties、rules/constraints、target/scope/run、messages。</td><td>validation summary と display-message resolution。</td><td><pre><code>## Validations
+### V1:V-Required Required
+- target: E-Email
+- rules:
+  - required:
+    - E-Email
+- run: client
+- message: Required.</code></pre></td></tr>
+          <tr><td><code>Business Rules</code></td><td>domain / UI business rule。</td><td>prose は business rationale、messages は semantic。</td><td>任意の <code>### R-* Name</code>。</td><td>rule list または rule entity properties。</td><td>business rule summary と display-message resolution。</td><td><pre><code>## Business Rules
+### R-UniqueEmail Unique email
+- messages:
+  - Already used.</code></pre></td></tr>
+          <tr><td><code>Error Codes</code></td><td>具体的な API/UI error display contract。</td><td>Entity prose は error handling intent。</td><td><code>### ERR-* Name</code>。</td><td>code、message、display、target、condition。</td><td>error code summary と display-message resolution。</td><td><pre><code>## Error Codes
+### ERR-401 Unauthorized
+- business rule: R-Auth
+- target: L-MessageArea
+- message: Invalid credentials.
+- display: banner</code></pre></td></tr>
+          <tr><td><code>History Fields</code></td><td>history metadata schema。</td><td>field list 前が Section Lead、後が Section Notes。</td><td>なし。</td><td>nested metadata を持つ top-level field list。</td><td>history field summary。</td><td><pre><code>## History Fields
+- reviewer
+  - type: text</code></pre></td></tr>
+          <tr><td><code>History</code></td><td>document change history。</td><td>entry prose は history detail として保持。</td><td>history entry heading。通常 entity ではない。</td><td>entry metadata list と changes body。</td><td>history table/detail。</td><td><pre><code>## History
+### 2026-05-17
+- author: team
+- change: Initial draft</code></pre></td></tr>
+          <tr><td>Free-form sections</td><td>notes / open questions。</td><td>body 全体が prose。</td><td>DSL entity 解釈なし。</td><td>Markdown のみ。</td><td>authored Markdown として表示。</td><td><pre><code>## Open Questions
+- SSO support は必要か。</code></pre></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="layout-title">
+    <h2 id="layout-title">Layout prose ownership</h2>
+    <div class="layout-map">
+      <pre><code>## Layout: mobile
+(A)
+
+### L1:L-Page Async loading page
+(B)
+
+- stack
+- gap: md
+(C)
+
+#### Items
+(D)
+
+- E-Title
+- E-RefreshButton
+- L-StatusArea
+- E-ItemsTable
+- E-EmptyText
+(E)</code></pre>
+      <div class="callouts">
+        <div class="callout"><strong>(A) Section Lead</strong> viewport または slot layout 全体を説明します。</div>
+        <div class="callout"><strong>(B) Entity Lead</strong> <code>L-Page</code> を layout properties より前で説明します。</div>
+        <div class="callout"><strong>(C) Entity Notes</strong> layout properties 後の prose は現在の layout entity に属します。</div>
+        <div class="callout"><strong>(D) Entity Notes</strong> <code>#### Items</code> 直下の prose は Items 専用 DSL ではなく、layout entity notes です。</div>
+        <div class="callout"><strong>(E) Entity Notes</strong> item references 後の prose も同じ layout entity の補足です。</div>
+        <div class="callout"><strong>Preview location</strong> Layout の Entity Lead / Entity Notes は generated Layouts fragment に表示する対象です。wireframe 自体は Structured Body で決まります。</div>
+      </div>
+    </div>
+  </section>
+</main>
+</body>
+</html>

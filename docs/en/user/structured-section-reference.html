@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MarkVSpec Structured Section Reference</title>
+  <style>
+    :root {
+      --page:#f6f7f9; --paper:#fff; --ink:#172033; --muted:#5f6b7a;
+      --line:#d8dee7; --soft:#e9edf3; --accent:#2f6fae;
+      --semantic:#047857; --prose:#b45309; --code:#111827; --code-ink:#e5edf8;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--page);color:var(--ink);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    main{max-width:1220px;margin:0 auto;padding:28px}
+    header{border-bottom:1px solid var(--line);margin-bottom:20px;padding-bottom:18px}
+    h1{margin:0 0 8px;font-size:28px;letter-spacing:0}
+    h2{margin:28px 0 12px;font-size:18px;letter-spacing:0}
+    p{margin:0 0 10px}.lead{max-width:900px;color:var(--muted)}a{color:#1d5ea8}
+    code{border:1px solid var(--soft);border-radius:4px;background:#f8fafc;padding:1px 4px;font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    pre{margin:0;overflow:auto;border-radius:6px;background:var(--code);color:var(--code-ink);padding:12px;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    pre code{border:0;background:transparent;color:inherit;padding:0;font:inherit}
+    .nav{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.nav a{border:1px solid var(--line);border-radius:999px;background:var(--paper);padding:5px 10px;text-decoration:none;font-size:12px;font-weight:650}
+    .panel{border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:18px}
+    .matrix{overflow-x:auto}table{border-collapse:collapse;min-width:1120px;width:100%}th,td{border-bottom:1px solid var(--soft);padding:8px 10px;text-align:left;vertical-align:top}th{background:#f8fafc;font-size:12px}
+    .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;background:#fbfcfe;padding:2px 7px;font-size:11px;font-weight:700;white-space:nowrap}.semantic{color:var(--semantic)}.prose{color:var(--prose)}.preview{color:var(--accent)}
+    .layout-map{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.8fr);gap:14px;align-items:start}.callouts{display:grid;gap:8px}.callout{border-left:4px solid var(--accent);background:#edf5ff;padding:9px 11px}.callout strong{display:block;margin-bottom:2px}
+    @media (max-width:900px){main{padding:16px}.layout-map{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Structured Section Reference</h1>
+    <p class="lead">This visual reference explains each recognized MarkVSpec <code>Section</code> using the document structure terms from <a href="document-structure.html">Document Structure</a>. It shows section role, prose ownership, parser interpretation, preview location, and minimal source examples.</p>
+    <nav class="nav" aria-label="Related documentation">
+      <a href="document-structure.html">Document structure</a>
+      <a href="structured-section-reference.md">Markdown reference</a>
+      <a href="dsl.md#document-structure-terms">DSL terms</a>
+      <a href="../../ja/user/structured-section-reference.html">Japanese</a>
+    </nav>
+  </header>
+
+  <section class="panel" aria-labelledby="matrix-title">
+    <h2 id="matrix-title">Section Matrix</h2>
+    <div class="matrix">
+      <table>
+        <thead><tr><th>Section</th><th>Role</th><th>Lead / Notes</th><th>Entity Block</th><th>Structured Body interpreted by parser</th><th>Preview / generated document</th><th>Minimal example</th></tr></thead>
+        <tbody>
+          <tr><td><code>States</code></td><td>Display state model.</td><td><span class="pill prose">Section Lead</span> before state list; <span class="pill prose">Section Notes</span> after.</td><td>None.</td><td>Top-level state list; <code>*</code> initial.</td><td>State list, state flow, baseline State Views.</td><td><pre><code>## States
+- idle*
+- loading</code></pre></td></tr>
+          <tr><td><code>Layout</code> / <code>Layout: &lt;viewport&gt;</code></td><td>Viewport wireframe layout groups.</td><td>Section prose describes viewport; layout prose belongs to the layout entity.</td><td><code>### [marker:]L-* Name</code> or <code>P-*</code>.</td><td>Layout kind/properties and <code>#### Items</code>.</td><td>Wireframe and Layouts fragment.</td><td><pre><code>## Layout: mobile
+### L1:L-Page Page
+- stack
+#### Items
+- E-Title</code></pre></td></tr>
+          <tr><td><code>Slot: &lt;name&gt;</code></td><td>Screen-provided template slot content.</td><td>Same ownership as Layout.</td><td>Same as Layout.</td><td>Layout kind/properties and <code>#### Items</code>.</td><td>Composed slot wireframe.</td><td><pre><code>## Slot: content
+### L1:L-Main Main
+- stack</code></pre></td></tr>
+          <tr><td><code>Slots</code></td><td>Template slot contracts.</td><td>Section Lead for the slot set; Entity Notes per slot.</td><td><code>### &lt;slot-name&gt;</code>.</td><td>Slot metadata such as <code>required</code>.</td><td>Template slot summary.</td><td><pre><code>## Slots
+### content
+- required: true</code></pre></td></tr>
+          <tr><td><code>Elements</code></td><td>UI element catalog.</td><td>Entity Lead/Notes describe one element; only properties are semantic.</td><td><code>### [marker:]E-* Type</code>.</td><td>Element properties: label, src, action, conditions.</td><td>Wireframe elements, Element Summary, detail fragments.</td><td><pre><code>## Elements
+### E-Submit Button
+- label: Submit</code></pre></td></tr>
+          <tr><td><code>Form Groups</code></td><td>Semantic form units.</td><td>Section/entity prose is preserved around form metadata.</td><td><code>### F-* Name</code>.</td><td>Fields, submit action, form metadata.</td><td>Form group summary and validation context.</td><td><pre><code>## Form Groups
+### F-Login Login form
+- fields:
+  - E-Email</code></pre></td></tr>
+          <tr><td><code>Actions</code></td><td>User/system events and outcomes.</td><td>Entity Lead is the authored action overview; Entity Notes appear in details.</td><td><code>### [marker:]A-* Name</code>.</td><td><code>Triggered</code>, <code>From</code>, <code>Process</code>, cases, <code>Effects</code>, flow directives.</td><td>Action Summary, Action Details, action markers, state/screen transitions.</td><td><pre><code>## Actions
+### A1:A-Submit Submit
+- Triggered
+  - E-Submit.click</code></pre></td></tr>
+          <tr><td><code>Model Samples</code></td><td>Preview/export sample data.</td><td>Prose is preserved at section, state group, or sample set level.</td><td>State/sample groups, not ID entities.</td><td><code>### &lt;state&gt;</code>, <code>#### ${model.path}</code>, tables/lists.</td><td>Model Samples section and model-backed preview values.</td><td><pre><code>## Model Samples
+### loaded
+#### ${model.items}
+| name |</code></pre></td></tr>
+          <tr><td><code>View Context</code></td><td>UI-local context separate from state.</td><td>Prose describes each context definition.</td><td>Definition headings, not ID entities.</td><td>Type, values, and default marker.</td><td>Condition evaluation and State View resolution.</td><td><pre><code>## View Context
+### selectedTab
+- type: enum
+- values:
+  - results*
+  - filters</code></pre></td></tr>
+          <tr><td><code>View Context Samples</code></td><td>Reusable view value sets.</td><td>Sample prose is preserved around values.</td><td>Sample headings, not ID entities.</td><td>View values keyed by <code>${view.*}</code>.</td><td>Preview scenario and baseline view resolution.</td><td><pre><code>## View Context Samples
+### help-open
+- ${view.isHelpOpen}: true</code></pre></td></tr>
+          <tr><td><code>Preview Scenarios</code></td><td>Explicit preview combinations.</td><td>Scenario prose describes a preview case.</td><td>Scenario headings, not ID entities.</td><td>State, model, view, before, and case values.</td><td>Additional State Views after baseline previews.</td><td><pre><code>## Preview Scenarios
+### loaded-help
+- state: loaded</code></pre></td></tr>
+          <tr><td><code>Field Validations</code></td><td>Single-field client validation contracts.</td><td>Entity prose describes rule intent; constraints/messages are semantic.</td><td><code>### [marker:]V-* Name</code>.</td><td>Target, constraints, messages; exposes <code>V-*.result</code>/<code>messages</code>.</td><td>Validation summary and display-message resolution.</td><td><pre><code>## Field Validations
+### V1:V-Email Email
+- target: E-Email
+- constraints:
+  - required:
+    - message: Required.</code></pre></td></tr>
+          <tr><td><code>Cross-field Validations</code></td><td>Form or multi-input validation contracts.</td><td>Entity prose describes form-level validation intent.</td><td><code>### [marker:]V-* Name</code>.</td><td>Target, inputs, check, messages.</td><td>Validation summary and display-message resolution.</td><td><pre><code>## Cross-field Validations
+### V2:V-Login Login
+- target: F-Login
+- inputs:
+  - E-Email
+  - E-Password
+- check: E-Email.value and E-Password.value are present
+- message: Required.</code></pre></td></tr>
+          <tr><td><code>Validations</code></td><td>Legacy-compatible validation section.</td><td>Entity prose is preserved; prefer split sections for new docs.</td><td><code>### [marker:]V-* Name</code>.</td><td>Validation properties, rules/constraints, target/scope/run, messages.</td><td>Validation summary and display-message resolution.</td><td><pre><code>## Validations
+### V1:V-Required Required
+- target: E-Email
+- rules:
+  - required:
+    - E-Email
+- run: client
+- message: Required.</code></pre></td></tr>
+          <tr><td><code>Business Rules</code></td><td>Domain or UI business rules.</td><td>Prose can describe business rationale; messages are semantic.</td><td>Optional <code>### R-* Name</code>.</td><td>Rule list or rule entity properties.</td><td>Business rule summary and display-message resolution.</td><td><pre><code>## Business Rules
+### R-UniqueEmail Unique email
+- messages:
+  - Already used.</code></pre></td></tr>
+          <tr><td><code>Error Codes</code></td><td>Concrete API/UI error display contracts.</td><td>Entity prose describes error handling intent.</td><td><code>### ERR-* Name</code>.</td><td>Code, message, display, target, condition.</td><td>Error code summary and display-message resolution.</td><td><pre><code>## Error Codes
+### ERR-401 Unauthorized
+- business rule: R-Auth
+- target: L-MessageArea
+- message: Invalid credentials.
+- display: banner</code></pre></td></tr>
+          <tr><td><code>History Fields</code></td><td>History metadata schema.</td><td>Section Lead/Notes around the field list.</td><td>None.</td><td>Top-level field list with nested metadata.</td><td>History field summary.</td><td><pre><code>## History Fields
+- reviewer
+  - type: text</code></pre></td></tr>
+          <tr><td><code>History</code></td><td>Document change history.</td><td>Entry prose is preserved with history detail.</td><td>History entry headings, not normal entities.</td><td>Entry metadata list followed by changes body.</td><td>History table/detail.</td><td><pre><code>## History
+### 2026-05-17
+- author: team
+- change: Initial draft</code></pre></td></tr>
+          <tr><td>Free-form sections</td><td>Notes and open questions.</td><td>Entire body is prose.</td><td>No DSL entity interpretation.</td><td>Markdown only.</td><td>Rendered as authored Markdown.</td><td><pre><code>## Open Questions
+- Should SSO be supported?</code></pre></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="layout-title">
+    <h2 id="layout-title">Layout prose ownership</h2>
+    <div class="layout-map">
+      <pre><code>## Layout: mobile
+(A)
+
+### L1:L-Page Async loading page
+(B)
+
+- stack
+- gap: md
+(C)
+
+#### Items
+(D)
+
+- E-Title
+- E-RefreshButton
+- L-StatusArea
+- E-ItemsTable
+- E-EmptyText
+(E)</code></pre>
+      <div class="callouts">
+        <div class="callout"><strong>(A) Section Lead</strong> Describes the whole viewport or slot layout before any layout entity.</div>
+        <div class="callout"><strong>(B) Entity Lead</strong> Describes <code>L-Page</code> before layout properties.</div>
+        <div class="callout"><strong>(C) Entity Notes</strong> Prose after layout properties attaches to the current layout entity.</div>
+        <div class="callout"><strong>(D) Entity Notes</strong> Prose under <code>#### Items</code> is not Items-specific DSL; it remains layout entity notes.</div>
+        <div class="callout"><strong>(E) Entity Notes</strong> Prose after item references still supplements the same layout entity.</div>
+        <div class="callout"><strong>Preview location</strong> Layout Entity Lead and Entity Notes belong with the generated Layouts fragment. The wireframe itself is driven by the Structured Body.</div>
+      </div>
+    </div>
+  </section>
+</main>
+</body>
+</html>

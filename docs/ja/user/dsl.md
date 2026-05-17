@@ -1463,7 +1463,7 @@ Thymeleaf や htmx による部分更新は、実装属性ではなく意味と�
 ```
 
 各 section を `Section Lead`、`Entity Block`、`Structured Body`、`Entity Notes`
-などの用語で確認したい場合は、[構造化セクションリファレンス](structured-section-reference.md)
+などの用語で確認したい場合は、[構造化セクションリファレンス](structured-section-reference.html)
 を参照してください。
 
 ## Field Validations / Cross-field Validations
