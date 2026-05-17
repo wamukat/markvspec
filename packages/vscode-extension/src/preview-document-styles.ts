@@ -107,6 +107,11 @@ ${baseWireframeViewportCss()}
 .spec-table th{background:#f9fafb;font-weight:600;white-space:nowrap}
 .spec-table tbody tr:nth-child(even){background:#fcfcfd}
 .spec-table code:not(.mm-id):not(.mm-doc-label):not(.mm-document-ref-id){background:#f3f4f6;border-radius:3px;padding:1px 3px}
+.state-transition-context-heading{color:#374151;font-size:13px;font-weight:700;margin:12px 0 6px}
+.state-transition-axis-cell{min-width:112px;padding:6px 8px!important;position:relative}
+.state-transition-axis-cell::before{background:linear-gradient(to top right,transparent calc(50% - .5px),#cbd5e1 calc(50% - .5px),#cbd5e1 calc(50% + .5px),transparent calc(50% + .5px));content:"";inset:0;position:absolute}
+.state-transition-axis-labels{align-items:center;display:flex;gap:16px;inset:0;justify-content:space-between;padding:6px 8px;position:absolute}
+.state-transition-axis-labels .from,.state-transition-axis-labels .to{background:#f9fafb;padding:0 2px}
 .mm-inline-token{color:#0f766e;font-family:inherit;font-weight:650;padding:0 1px}
 .model-sample-block{margin:18px 0}
 .model-sample-path-heading{color:#374151;font-size:13px;font-weight:650;margin:8px 0 6px}
@@ -354,6 +359,11 @@ ${baseWireframeViewportCss()}
 .spec-table th{background:#f9fafb;font-weight:600;white-space:nowrap}
 .spec-table tbody tr:nth-child(even){background:#fcfcfd}
 .spec-table code:not(.mm-id):not(.mm-doc-label):not(.mm-document-ref-id){background:#f3f4f6;border-radius:3px;padding:1px 3px}
+.state-transition-context-heading{color:#374151;font-size:13px;font-weight:700;margin:12px 0 6px}
+.state-transition-axis-cell{min-width:112px;padding:6px 8px!important;position:relative}
+.state-transition-axis-cell::before{background:linear-gradient(to top right,transparent calc(50% - .5px),#cbd5e1 calc(50% - .5px),#cbd5e1 calc(50% + .5px),transparent calc(50% + .5px));content:"";inset:0;position:absolute}
+.state-transition-axis-labels{align-items:center;display:flex;gap:16px;inset:0;justify-content:space-between;padding:6px 8px;position:absolute}
+.state-transition-axis-labels .from,.state-transition-axis-labels .to{background:#f9fafb;padding:0 2px}
 .mm-repeated-badge{background:#f8fafc;border-color:#cbd5e1;color:#64748b}
 .mm-unplaced-badge{background:#fff7ed;border-color:#fdba74;color:#9a3412}
 .spec-table tr:has(.mm-repeated-badge){background:#f8fafc;color:#64748b}

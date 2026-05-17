@@ -187,8 +187,11 @@ export type MessageKey =
   | "slots"
   | "src"
   | "state"
+  | "stateDescriptions"
   | "stateFlow"
+  | "stateTransitionAxisDescription"
   | "stateTransitionTableReference"
+  | "stateTransitionNotes"
   | "stateViews"
   | "states"
   | "status"
@@ -407,8 +410,11 @@ const en: Record<MessageKey, string> = {
   slots: "Slots",
   src: "Source",
   state: "State",
+  stateDescriptions: "State Descriptions",
   stateFlow: "State Flow",
+  stateTransitionAxisDescription: "Rows are From states; columns are To states.",
   stateTransitionTableReference: "See State Transitions for details.",
+  stateTransitionNotes: "State Notes",
   stateViews: "State Views",
   states: "States",
   status: "Status",
@@ -628,8 +634,11 @@ const ja: Record<MessageKey, string> = {
   slots: "スロット",
   src: "参照元",
   state: "状態",
+  stateDescriptions: "状態説明",
   stateFlow: "状態遷移図",
+  stateTransitionAxisDescription: "行は From 状態、列は To 状態です。",
   stateTransitionTableReference: "詳細は状態遷移表を参照",
+  stateTransitionNotes: "状態補足",
   stateViews: "状態ビュー",
   states: "状態",
   status: "ステータス",

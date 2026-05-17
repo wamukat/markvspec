@@ -4405,6 +4405,7 @@ function renderStateFlowSpec(result: ReturnType<typeof parseMarkVSpec>): string 
 }
 
 function renderActionTransitionsSpec(result: ReturnType<typeof parseMarkVSpec>): string {
+  const sectionProse = sectionProseForKind(result, "States");
   const stateNames = orderedTransitionStateNames(result);
   const cellEvents = new Map<string, string[]>();
 
@@ -4428,7 +4429,9 @@ function renderActionTransitionsSpec(result: ReturnType<typeof parseMarkVSpec>):
 
   return `<section class="doc-section" id="state-transition-table">
     <h2>${label(result, "actionTransitions")}</h2>
+    ${renderStateTransitionDescriptions(result)}
     ${renderTransitionMatrixTable(result, stateNames, rows)}
+    ${renderStateTransitionNotes(result, sectionProse)}
   </section>`;
 }
 
@@ -4442,10 +4445,34 @@ function renderTransitionMatrixTable(
   }
 
   const headers = [
-    `<th>${label(result, "from")}</th>`,
+    `<th class="state-transition-axis-cell" scope="col" aria-label="${text(label(result, "stateTransitionAxisDescription"))}"><span class="state-transition-axis-labels" aria-hidden="true"><span class="from">${label(result, "from")}</span><span class="to">${label(result, "to")}</span></span></th>`,
     ...stateNames.map((state) => `<th>${renderStateLabel(state)}</th>`)
   ].join("");
-  return `<div class="spec-table-wrap"><table class="spec-table"><thead><tr>${headers}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${cell && cell.trim().length > 0 ? cell : "-"}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  return `<div class="spec-table-wrap"><table class="spec-table state-transition-matrix"><thead><tr>${headers}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell, index) => index === 0 ? `<th scope="row">${renderTableMatrixCell(cell)}</th>` : `<td>${renderTableMatrixCell(cell)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+
+function renderStateTransitionDescriptions(result: ReturnType<typeof parseMarkVSpec>): string {
+  if (result.states.length === 0) {
+    return "";
+  }
+
+  // Keep the complete state vocabulary visible before the matrix; missing descriptions use the shared "-" table fallback.
+  return `<h3 class="state-transition-context-heading">${label(result, "stateDescriptions")}</h3>${renderLocalizedTable(result,
+    [label(result, "state"), label(result, "description")],
+    result.states.map((state) => [renderStateLabel(state.name), text(state.message)])
+  )}`;
+}
+
+function renderStateTransitionNotes(
+  result: ReturnType<typeof parseMarkVSpec>,
+  sectionProse: ReturnType<typeof parseMarkVSpec>["sectionProse"]
+): string {
+  const notes = renderSectionNotes(sectionProse);
+  return notes ? `<h3 class="state-transition-context-heading">${label(result, "stateTransitionNotes")}</h3>${notes}` : "";
+}
+
+function renderTableMatrixCell(cell: string | undefined): string {
+  return cell && cell.trim().length > 0 ? cell : "-";
 }
 
 function orderedTransitionStateNames(result: ReturnType<typeof parseMarkVSpec>): string[] {
@@ -4659,7 +4686,6 @@ function renderStatesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
       [label(result, "state"), label(result, "initial"), label(result, "description")],
       result.states.map((state) => [renderStateLabel(state.name), state.initial ? text(label(result, "requiredYes")) : text(label(result, "requiredNo")), text(state.message)])
     )}
-    ${renderSectionNotes(sectionProse)}
   </section>`;
 }
 

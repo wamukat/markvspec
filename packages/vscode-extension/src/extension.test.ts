@@ -1529,6 +1529,10 @@ test("does not render viewport filter controls in the preview shell", () => {
   assert.match(html, /@media \(max-width:640px\)\{/);
   assert.match(html, /\.toolbar-controls\{justify-content:flex-start;width:100%\}/);
   assert.match(html, /\.spec-table tbody tr:nth-child\(even\)\{background:#fcfcfd\}/);
+  assert.match(html, /\.state-transition-context-heading\{color:#374151;font-size:13px;font-weight:700;margin:12px 0 6px\}/);
+  assert.match(html, /\.state-transition-axis-cell\{min-width:112px;padding:6px 8px!important;position:relative\}/);
+  assert.match(html, /\.state-transition-axis-cell::before\{background:linear-gradient\(to top right,transparent calc\(50% - \.5px\),#cbd5e1 calc\(50% - \.5px\),#cbd5e1 calc\(50% \+ \.5px\),transparent calc\(50% \+ \.5px\)\);content:"";inset:0;position:absolute\}/);
+  assert.match(html, /\.state-transition-axis-labels\{align-items:center;display:flex;gap:16px;inset:0;justify-content:space-between;padding:6px 8px;position:absolute\}/);
   assert.match(html, /\.wireframe-section\{max-width:100%;overflow-x:auto;overflow-y:visible;padding-bottom:4px\}/);
   assert.match(html, /\.wireframe-section \.mm-wireframe\{max-width:none;padding:0;position:relative\}/);
   assert.match(html, /\.state-screen-section\[data-viewport\] \.wireframe-section \.mm-wireframe:not\(\.mm-wireframe-empty\)\{max-width:none;min-width:var\(--markvspec-viewport-width, 100%\);width:var\(--markvspec-viewport-width, 100%\)\}/);
@@ -3584,9 +3588,15 @@ title: Transition Matrix
 
 ## States
 
+States section overview for the matrix.
+
 - idle*
+  - Ready for submit.
 - submitting
+  - Waiting for response.
 - error
+
+States section notes for the matrix.
 
 ## Elements
 
@@ -3626,9 +3636,13 @@ title: Transition Matrix
   const stateFlowSection = html.match(/<section class="doc-section state-flow-section"[^>]*>[\s\S]*?(?=<section class="doc-section state-views-section")/)?.[0] ?? "";
 
   assert.match(stateFlowSection, /<div class="state-flow-diagram">\s*<a class="state-flow-table-link" href="#state-transition-table" aria-label="See State Transitions for details\." title="See State Transitions for details\."><span class="state-flow-table-link-icon" aria-hidden="true"><\/span><span class="state-flow-table-link-label">See State Transitions for details\.<\/span><\/a>\s*<pre class="mermaid-source" data-mermaid-source>[\s\S]*<div class="mermaid-placeholder" data-mermaid-placeholder>Rendering Mermaid diagram\.\.\.<\/div>/);
-  assert.match(section, new RegExp(`<th>From</th><th>${docLabel("idle", "state")}</th><th>${docLabel("submitting", "state")}</th><th>${docLabel("error", "state")}</th>`));
-  assert.match(section, new RegExp(`<tr><td>${docLabel("idle", "state")}</td><td>-</td><td>${actionBadge("A1", "A-Submit")} Submit</td><td>-</td></tr>`));
-  assert.match(section, new RegExp(`<tr><td>${docLabel("submitting", "state")}</td><td>-</td><td>-</td><td>${actionBadge("A2", "A-SubmitResponse")}\\.failure Submit response</td></tr>`));
+  assert.match(section, /<h3 class="state-transition-context-heading">State Descriptions<\/h3>/);
+  assert.match(section, new RegExp(`<tr><td>${docLabel("idle", "state")}</td><td>Ready for submit\\.</td></tr>`));
+  assert.match(section, new RegExp(`<tr><td>${docLabel("error", "state")}</td><td>-</td></tr>`));
+  assert.match(section, new RegExp(`<th class="state-transition-axis-cell" scope="col" aria-label="Rows are From states; columns are To states\\."><span class="state-transition-axis-labels" aria-hidden="true"><span class="from">From</span><span class="to">To</span></span></th><th>${docLabel("idle", "state")}</th><th>${docLabel("submitting", "state")}</th><th>${docLabel("error", "state")}</th>`));
+  assert.match(section, new RegExp(`<tr><th scope="row">${docLabel("idle", "state")}</th><td>-</td><td>${actionBadge("A1", "A-Submit")} Submit</td><td>-</td></tr>`));
+  assert.match(section, new RegExp(`<tr><th scope="row">${docLabel("submitting", "state")}</th><td>-</td><td>-</td><td>${actionBadge("A2", "A-SubmitResponse")}\\.failure Submit response</td></tr>`));
+  assert.match(section, /<h3 class="state-transition-context-heading">State Notes<\/h3>\s*<div class="entity-notes"><p class="note-paragraph">States section notes for the matrix\.<\/p><\/div>/);
   assert.doesNotMatch(section, /E-SubmitButton\.click \/ /);
   assert.doesNotMatch(section, /SCR-DONE/);
   assert.doesNotMatch(html, /<h2>Action Transitions<\/h2>/);
@@ -6041,13 +6055,15 @@ Error Codes section notes.
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
   const states = docSectionByHeading(html, "States", "State Flow");
+  const stateTransitions = docSectionByHeading(html, "State Transitions", "Diagnostics");
   const formGroups = docSectionByHeading(html, "Form Groups", "Validations");
   const validations = docSectionByHeading(html, "Validations", "Business Rules");
   const rules = docSectionByHeading(html, "Business Rules", "Error Codes");
   const errorCodes = docSectionByHeading(html, "Error Codes");
   const idleSection = stateSection(html, "idle");
 
-  assert.match(states, /States section overview\.[\s\S]*Ready to edit\.[\s\S]*States section notes\./);
+  assert.match(states, /States section overview\.[\s\S]*Ready to edit\./);
+  assert.match(stateTransitions, /<h3 class="state-transition-context-heading">State Notes<\/h3>[\s\S]*States section notes\./);
   assert.match(idleSection, /<h5 class="state-screen-subheading">Elements<\/h5>[\s\S]*Elements section overview\.[\s\S]*E-EmailInput[\s\S]*Elements section notes\./);
   assert.match(idleSection, /<h5 class="state-screen-subheading">Actions<\/h5>[\s\S]*Actions section overview\.[\s\S]*Action overview\.[\s\S]*Actions section notes\./);
   assert.match(formGroups, /Form Groups section overview\.[\s\S]*<th>Overview<\/th>[\s\S]*Login form overview\.[\s\S]*Login form notes\.[\s\S]*Form Groups section notes\./);
