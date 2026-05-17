@@ -59,7 +59,7 @@ so field-level contracts remain the main topic.
 
 ### 2:E-LeadText Paragraph
 
-- sample: Each input declares browser-facing constraints, and each Validation contract declares the product rule that consumes the same field.
+- text: Each input declares browser-facing constraints, and each Validation contract declares the product rule that consumes the same field.
 
 ### 3:E-UsernameInput Input
 
@@ -95,7 +95,7 @@ so field-level contracts remain the main topic.
 ### 7:E-ValidationMessage Text
 
 - tone: danger
-- sample: Fix the highlighted fields.
+- text: Fix the highlighted fields.
 
 ## Form Groups
 

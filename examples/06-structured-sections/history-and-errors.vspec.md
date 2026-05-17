@@ -74,12 +74,12 @@ to the main screen examples.
 
 ### 5:E-ValidationMessage Text
 
-- sample: Display name and notification email are required.
+- text: Display name and notification email are required.
 
 ### 6:E-SaveErrorBanner Banner
 
 - tone: danger
-- sample: Account settings could not be saved.
+- text: Account settings could not be saved.
 
 ## Form Groups
 

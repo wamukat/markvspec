@@ -3697,7 +3697,7 @@ title: List
 
 ### E-お知らせリンク Link
 
-- sample: Notice
+- text: Notice
 - href: SCR-DETAIL
 - params:
   - extra: \${model.notice.extra}
@@ -7069,7 +7069,7 @@ title: Route Params
 
 ### E-Link Link
 
-- sample: Detail
+- text: Detail
 
 ## Actions
 
@@ -8080,13 +8080,13 @@ title: Helpers
 - label: Upload CSV
 - accept: .csv
 - multiple
-- sample: CSV files only
+- hint: CSV files only
 
 ### E-Attachment FileInput
 
 - label: Attach receipt
 - accept: application/pdf
-- sample: PDF only
+- hint: PDF only
 
 ### E-Divider Divider
 
@@ -8094,7 +8094,7 @@ title: Helpers
 
 ### E-Empty Paragraph
 
-- sample: No records. Change filters and search again.
+- text: No records. Change filters and search again.
 `;
 
   const result = parseMarkVSpec(source);
@@ -9112,12 +9112,14 @@ default-state: loaded
 
 ### 1:E-NoticeBadge Badge
 
+- source: data
 - sample: 未読
 - src: \${model.notice.read}
 - format: false -> 未読, true -> 既読
 
 ### 2:E-お知らせタイトル Link
 
+- source: data
 - sample: お知らせ
 - src: \${model.notice.title}
 - href: SCR-NOTICE-DETAIL
@@ -9198,6 +9200,7 @@ title: Profile
 
 ### 1:E-MemberName Text
 
+- source: data
 - sample: 読み込み中
 - src: \${model.profile.name}
 
@@ -9337,6 +9340,7 @@ default-state: idle
 ### E-MemberName Text
 
 - src: \${model.member.name}
+- source: data
 - sample: Taylor Stone
 `;
   const result = parseMarkVSpec(source);
@@ -9471,6 +9475,23 @@ title: Source Types
 
 - value: Fixed
 - source: fixed
+
+### E-FixedSample Text
+
+- sample: Fixed sample
+
+### E-ModelSample Text
+
+- src: \${model.profile.name}
+- sample: Taylor
+
+### E-FixedRows Table
+
+- Columns:
+  - name: Name
+- sample rows:
+  - row:
+    - name: Taylor
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
@@ -9481,6 +9502,59 @@ title: Source Types
   assert(messages.includes("Element E-ElementMissingValue source element requires value: E-*.value."));
   assert(messages.includes("Element E-ElementMissingTarget value references missing element E-Missing."));
   assert(!messages.some((message) => message.includes("E-ExplicitFixed")));
+  assert(messages.includes("Element E-FixedSample sample is only for source data preview values. Use text, label, message, or hint for fixed content."));
+  assert(messages.includes("Element E-ModelSample uses a model src with sample. Add source: data for data-derived preview values."));
+  assert(messages.includes("Element E-FixedRows sample rows is only for source data preview rows. Add source: data or remove sample rows."));
+});
+
+test("ignores fixed-source sample rows in baseline wireframes", () => {
+  const source = `---
+id: SCR-FIXED-SAMPLE-ROWS
+type: screen
+title: Fixed Sample Rows
+---
+
+# SCR-FIXED-SAMPLE-ROWS Fixed Sample Rows
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Root Root
+
+- stack
+
+#### Items
+
+- E-FixedList
+- E-FixedTable
+
+## Elements
+
+### E-FixedList List
+
+- sample rows:
+  - row:
+    - label: Invalid list sample
+
+### E-FixedTable Table
+
+- Columns:
+  - label: Label
+- sample rows:
+  - row:
+    - label: Invalid table sample
+`;
+  const result = parseMarkVSpec(source);
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+  const html = renderMarkVSpecHtml(result, { includeStyles: false });
+
+  assert(messages.includes("Element E-FixedList sample rows is only for source data preview rows. Add source: data or remove sample rows."));
+  assert(messages.includes("Element E-FixedTable sample rows is only for source data preview rows. Add source: data or remove sample rows."));
+  assert.doesNotMatch(html, /Invalid list sample/);
+  assert.doesNotMatch(html, /Invalid table sample/);
 });
 
 test("renders source element values from element source and initial values", () => {
@@ -10554,12 +10628,12 @@ default-state: loaded
 
 ### E-Loading Text
 
-- sample: Loading...
+- text: Loading...
 - visible when: loading
 
 ### E-Loaded Text
 
-- sample: Loaded content
+- text: Loaded content
 - visible when: loaded
 `;
   const result = parseMarkVSpec(source);
@@ -11149,10 +11223,12 @@ title: Sample Wireframe
 
 ### E-Title Text
 
+- source: data
 - sample: Fallback title
 
 ### E-Users Table
 
+- source: data
 - Columns:
   - name: Name
   - role: Role
@@ -11163,6 +11239,7 @@ title: Sample Wireframe
 
 ### E-Tags List
 
+- source: data
 - sample rows:
   - row:
     - label: Stable
@@ -11171,6 +11248,7 @@ title: Sample Wireframe
 
 ### E-EmptyUsers Table
 
+- source: data
 - Columns:
   - name: Name
 - sample rows: []
@@ -11734,11 +11812,11 @@ references:
 
 ### E-LoadingResults Banner
 
-- sample: Loading results.
+- text: Loading results.
 
 ### E-NoResults Banner
 
-- sample: No results
+- text: No results
 
 ## Actions
 

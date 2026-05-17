@@ -92,28 +92,28 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
 ### 2:E-LoadingBanner Banner
 
 - tone: info
-- sample: Loading saved preferences.
+- text: Loading saved preferences.
 - visible when: initializing
 
 ### 3:E-HelpText Text
 
-- sample: Delivery cadence controls how often notification digests are sent.
+- text: Delivery cadence controls how often notification digests are sent.
 
 ### 4:E-ValidationBanner Banner
 
 - tone: danger
-- sample: Enter a valid notification email before saving.
+- text: Enter a valid notification email before saving.
 
 ### 5:E-LoadErrorBanner Banner
 
 - tone: danger
-- sample: Saved preferences could not be loaded.
+- text: Saved preferences could not be loaded.
 - visible when: initialize-error
 
 ### 6:E-UnsavedNotice Banner
 
 - tone: info
-- sample: Preferences have unsaved changes.
+- text: Preferences have unsaved changes.
 
 ### 7:E-PreferencesForm custom:Form
 

@@ -861,7 +861,6 @@ wireframe preview では native `required` attribute や自動の `*` marker と
 ```markdown
 - label: ログイン
 - source: i18n
-- sample: ログイン
 - type: password
 - visible when: loading
 - hidden when: idle
@@ -888,6 +887,7 @@ wireframe preview では native `required` attribute や自動の `*` marker と
 ```markdown
 ### E-Greeting Text
 
+- source: data
 - sample: こんにちは「山田 太郎さん」
 - src: ${model.memberProfile.displayName}
 - format: こんにちは「{displayName}さん」
@@ -895,7 +895,7 @@ wireframe preview では native `required` attribute や自動の `*` marker と
 
 ### E-GreetingLoading Text
 
-- sample: 読み込み中...
+- text: 読み込み中...
 - visible when: not ${model.memberProfile.loaded}
 ```
 
@@ -905,12 +905,16 @@ wireframe preview では native `required` attribute や自動の `*` marker と
 - `label src`: `label` の任意の不透明な取得元。実装上の i18n key には使いません。翻訳管理対象であることは `source: i18n` で示します。
 - `placeholder`: 入力欄などに表示する補助文言。
 - `placeholder src`: `placeholder` の任意の不透明な取得元。実装上の i18n key には使いません。
-- `sample`: 動的データが実際に表示される時の代表表示例。
+- `text`: `Paragraph`、`Text`、`Banner`、`Badge` などの固定本文・固定表示文言。
+- `hint`: `FileUpload` / `FileInput` の固定補足文。
+- `sample`: `source: data` の Element で、動的データが実際に表示される時の preview 代表値。固定文言には使いません。
 - `src`: `sample` の取得元。`${model.notice.title}` や `${route.noticeId}` のような不透明な式。
 - `value`: 送信値、選択肢値、hidden value などの機械的な値。単なる表示サンプルには使いません。
 
-`format` は `src` の値を `sample` の形へ整形する規則です。生成される設計書では
-`label src`、`placeholder src`、`src`、`sample`、`value`、`format` を
+`format` は `src` の値を `sample` の形へ整形する規則です。wireframe preview は
+固定文言を `text` / `hint` から表示し、`sample` は `source: data` の baseline preview 値として使います。
+生成される設計書では
+`label src`、`placeholder src`、`src`、`sample`、`text`、`hint`、`value`、`format` を
 `表示内容仕様` に分離して表示します。入力フォーム仕様には入力制約を置き、
 label、placeholder、option label などの文言取得元は混ぜません。
 
@@ -1123,7 +1127,7 @@ Dialog 内の操作は通常の `Button` element として定義し、Dialog の
 ### E-ErrorBanner Banner
 
 - tone: danger
-- sample: メールアドレスまたはパスワードが正しくありません。
+- text: メールアドレスまたはパスワードが正しくありません。
 ```
 
 現行リリースの `variant` です。
@@ -1205,14 +1209,14 @@ UI 部品を、フレームワーク固有の widget 名に寄せずに表現す
 
 ### E-EmptyUsers Paragraph
 
-- sample: 該当するユーザーはありません。条件を変更して再検索してください。
+- text: 該当するユーザーはありません。条件を変更して再検索してください。
 - visible when: empty
 
 ### E-AvatarUpload FileUpload
 
 - label: アバターをアップロード
 - accept: image/png,image/jpeg
-- sample: PNG または JPEG、2 MB まで。
+- hint: PNG または JPEG、2 MB まで。
 
 ### E-StartDate DatePicker
 
@@ -1247,7 +1251,7 @@ UI 部品を、フレームワーク固有の widget 名に寄せずに表現す
 
 - label: 証憑ファイル
 - accept: application/pdf,image/png,image/jpeg
-- sample: PDF または画像を添付します。
+- hint: PDF または画像を添付します。
 ```
 
 ## Actions

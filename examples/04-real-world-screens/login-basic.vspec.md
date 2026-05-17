@@ -128,7 +128,7 @@ profile fields and reusable templates are left to later examples.
 
 ### 2:E-LeadText Paragraph
 
-- sample: Sign in to continue.
+- text: Sign in to continue.
 
 ### 3:E-EmailInput Input
 
@@ -139,7 +139,7 @@ profile fields and reusable templates are left to later examples.
 ### 4:E-ValidationMessage Text
 
 - tone: danger
-- sample: Enter both email and password.
+- text: Enter both email and password.
 
 ### 5:E-PasswordInput Input
 
@@ -169,12 +169,12 @@ profile fields and reusable templates are left to later examples.
 ### 9:E-AuthErrorBanner Banner
 
 - tone: danger
-- sample: The email address or password is incorrect.
+- text: The email address or password is incorrect.
 
 ### 10:E-RequestErrorBanner Banner
 
 - tone: danger
-- sample: The login request could not be sent.
+- text: The login request could not be sent.
 
 ### 11:E-AuthSpinner Spinner
 

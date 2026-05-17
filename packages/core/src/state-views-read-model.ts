@@ -889,8 +889,8 @@ function displayContentSpecRows(elements: ParsedElement[]): DisplayContentSpecRo
     const properties = element.properties;
     const rows: DisplayContentSpecRow[] = [];
     const displaySource = properties["src"];
-    const displaySample = properties["sample"];
     const sourceType = sourceTypeForElement(element);
+    const displaySample = sourceType === "data" ? properties["sample"] : undefined;
     if (element.type === "Table") {
       pushDisplayPropertyRow(rows, element, "table rows", "see wireframe", sourceType);
       pushDisplayPropertyRow(rows, element, "rows", properties["rows"], sourceType);
@@ -905,6 +905,7 @@ function displayContentSpecRows(elements: ParsedElement[]): DisplayContentSpecRo
     pushDisplayPropertyRow(rows, element, "placeholder src", properties["placeholder src"], sourceType);
     pushDisplayPropertyRow(rows, element, "help", properties["help"], sourceType);
     pushDisplayPropertyRow(rows, element, "help src", properties["help src"], sourceType);
+    pushDisplayPropertyRow(rows, element, "hint", properties["hint"], sourceType);
     pushDisplayPropertyRow(rows, element, "message", properties["message"], sourceType);
     pushDisplayPropertyRow(rows, element, "message src", properties["message src"], sourceType);
     pushDisplayPropertyRow(rows, element, "error text", properties["error text"], sourceType);

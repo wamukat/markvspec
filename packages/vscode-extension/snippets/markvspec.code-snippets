@@ -75,7 +75,7 @@
       "",
       "### ${8:1}:${7:E-Content} Text",
       "",
-      "- sample: ${9:Content}",
+      "- text: ${9:Content}",
       "",
       "## Actions",
       "",

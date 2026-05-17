@@ -222,19 +222,19 @@ viewport: mobile
 
 ### E-Status Banner
 
-- sample: Editing normally.
+- text: Editing normally.
 
 ### E-HelpText Text
 
-- sample: Delivery cadence help text.
+- text: Delivery cadence help text.
 
 ### E-StatusDraft Banner
 
-- sample: Status replaced by scenario.
+- text: Status replaced by scenario.
 
 ### E-StatusFinal Banner
 
-- sample: Status replaced by later scenario case.
+- text: Status replaced by later scenario case.
 
 ### E-ShowButton Button
 

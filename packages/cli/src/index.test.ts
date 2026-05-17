@@ -234,6 +234,6 @@ title: ${title}
 
 ### E-Title Heading
 
-- sample: ${title}
+- text: ${title}
 `;
 }

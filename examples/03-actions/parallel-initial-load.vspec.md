@@ -72,7 +72,7 @@ step; it avoids user input so the ordering and final state decision are clear.
 ### 4:E-LoadErrorBanner Banner
 
 - tone: danger
-- sample: Dashboard data could not be loaded.
+- text: Dashboard data could not be loaded.
 - visible when: initialize-error
 
 ## Actions

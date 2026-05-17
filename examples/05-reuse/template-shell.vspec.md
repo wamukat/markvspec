@@ -112,8 +112,8 @@ belong to the screens that use the template.
 
 ### 8:E-Footer Text
 
-- sample: MarkVSpec example gallery
+- text: MarkVSpec example gallery
 
 ### 9:E-EmptySlotMessage Paragraph
 
-- sample: No content has been assigned to this template slot.
+- text: No content has been assigned to this template slot.

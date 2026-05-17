@@ -98,12 +98,14 @@ is easy to inspect.
 ### 2:E-NoticeTitle Heading
 
 - level: 2
+- source: data
 - sample: Emergency maintenance on May 20
 - src: ${model.notice.title}
 
 ### 3:E-PriorityBadge Badge
 
 - label: Priority
+- source: data
 - sample: Important
 - src: ${model.notice.priority}
 - format: priority code to localized label
@@ -111,6 +113,7 @@ is easy to inspect.
 ### 4:E-PublishedAt Text
 
 - label: Published
+- source: data
 - sample: 2026/05/01
 - src: ${model.notice.publishedAt}
 - format: date yyyy/MM/dd
@@ -118,6 +121,7 @@ is easy to inspect.
 ### 5:E-RefundAmount Text
 
 - label: Refund amount
+- source: data
 - sample: USD 12.50
 - src: ${model.notice.refundAmount}
 - format: currency USD
@@ -125,12 +129,14 @@ is easy to inspect.
 ### 6:E-ContactEmail Link
 
 - label: Contact
+- source: data
 - sample: support@example.com
 - src: ${model.notice.contact.email}
 - href: mailto:support@example.com
 
 ### 7:E-NoticeBody Paragraph
 
+- source: data
 - sample: Service will be unavailable from 01:00 to 03:00 UTC while maintenance is performed.
 - src: ${model.notice.body}
 - format: markdown excerpt
@@ -157,6 +163,7 @@ is easy to inspect.
 ### 10:E-RelatedInvoiceLink Link
 
 - label: View related invoice
+- source: data
 - sample: INV-2026-0421
 - src: ${model.notice.invoiceNo}
 - href: SCR-INVOICE-DETAIL

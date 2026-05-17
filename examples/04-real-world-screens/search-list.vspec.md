@@ -119,7 +119,7 @@ outside this example.
 ### 6:E-LoadErrorBanner Banner
 
 - tone: danger
-- sample: Results could not be loaded.
+- text: Results could not be loaded.
 - visible when: load-error
 
 ### 7:E-UsersTable Table
@@ -143,7 +143,7 @@ outside this example.
 
 ### 8:E-EmptyText Paragraph
 
-- sample: No users match the current filters.
+- text: No users match the current filters.
 - visible when: empty
 
 ### 9:E-PreviousPageButton Button
@@ -153,7 +153,7 @@ outside this example.
 
 ### 10:E-PageSummary Text
 
-- sample: Page 1 of 3
+- text: Page 1 of 3
 
 ### 11:E-NextPageButton Button
 

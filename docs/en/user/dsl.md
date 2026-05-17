@@ -799,36 +799,24 @@ for each screen state.
     - idle: loaded
 ```
 
-Use Element `sample` and `sample rows:` for baseline preview data. Use
-Preview Scenario `samples` when a state/scenario needs different displayed
-values. Repeated rows or cards come from `sample rows:` / scenario `rows:`; do
-not assign separate IDs such as `E-Notice1Link` and `E-Notice2Link` to each
-rendered sample item.
+Use Element `sample` for baseline preview values on `source: data` elements and
+`sample rows:` for baseline preview rows on `source: data` Table/List elements.
+Use Preview Scenario `samples` when a state/scenario needs different displayed
+values. Repeated rows come from `sample rows:` / scenario `rows:`; do not assign
+separate IDs such as `E-Notice1Link` and `E-Notice2Link` to each rendered sample
+item.
 Use list syntax as the primary authoring style. Markdown tables are not
 canonical sample data because row and field boundaries are harder to validate.
 
 ```markdown
-### L-NoticeRows Notice Rows
+### E-NoticeTable Table
 
-- stack
-- visible when: loaded
-
-#### Items
-
-- L-NoticeRow
-
-### L-NoticeRow Notice Row
-
-- row
-- gap: sm
-- align: center
-
-#### Items
-
-- E-NoticeStatusBadge
-- E-NoticeLink
-- E-NoticePublishedAt
-
+- source: data
+- Columns:
+  - noticeId: Notice ID
+  - title: Title
+  - publishedAt: Published at
+  - read: Read
 - sample rows:
   - row:
     - noticeId: N-001
@@ -1070,13 +1058,14 @@ data.
 ```markdown
 ### E-Greeting Text
 
+- source: data
 - sample: Hello, Taylor
 - src: ${model.memberProfile.displayName}
 - visible when: ${model.memberProfile.loaded}
 
 ### E-GreetingLoading Text
 
-- sample: Loading...
+- text: Loading...
 - visible when: not ${model.memberProfile.loaded}
 ```
 
@@ -1087,8 +1076,11 @@ Display text separates static UI wording from dynamic data examples:
 - `label src`: an optional opaque source for `label`. Do not use it for
   implementation i18n keys; prefer `source: i18n` when the label is
   translation-backed.
-- `sample`: the representative display value shown in the wireframe for dynamic
-  data.
+- `text`: fixed body text for static `Paragraph`, `Text`, `Banner`, and `Badge`
+  content.
+- `hint`: fixed helper text for `FileUpload` and `FileInput`.
+- `sample`: the representative preview value for `source: data` elements. Do
+  not use it for fixed wording.
 - `src`: the data source represented by `sample`, written as an
   opaque expression such as `${model.notice.title}` or `${route.noticeId}`.
 - `value`: a mechanical value, such as a submitted form value, selected option
@@ -1132,6 +1124,7 @@ outside the app. `source: document` and old reference-path usage such as
 
 ### E-NoticeTitle Link
 
+- source: data
 - sample: Maintenance notice
 - src: ${model.notice.title}
 - href: SCR-NOTICE-DETAIL
@@ -1140,13 +1133,15 @@ outside the app. `source: document` and old reference-path usage such as
 
 ### E-NoticePublishedAt Text
 
+- source: data
 - sample: 2026/05/01
 - src: ${model.notice.publishedAt}
 - format: date yyyy/MM/dd
 ```
 
-Wireframes render the `sample` text. Generated design document tables
-surface `label src`, `placeholder src`, `src`, `sample`, `value`, and `format`
+Wireframes render fixed `text` / `hint` directly and use `sample` only as the
+baseline preview value for `source: data` elements. Generated design document tables
+surface `label src`, `placeholder src`, `src`, `sample`, `text`, `hint`, `value`, and `format`
 in Display Content Spec so implementation and review can verify wording,
 bindings, and machine values without mixing their meanings. Input Form Spec
 keeps input constraints separate from labels, placeholders, and option labels.
@@ -1479,14 +1474,14 @@ screen details without introducing framework-specific widgets.
 
 ### E-EmptyUsers Paragraph
 
-- sample: No users found. Change filters and search again.
+- text: No users found. Change filters and search again.
 - visible when: empty
 
 ### E-AvatarUpload FileUpload
 
 - label: Upload avatar
 - accept: image/png,image/jpeg
-- sample: PNG or JPEG, up to 2 MB.
+- hint: PNG or JPEG, up to 2 MB.
 
 ### E-StartDate DatePicker
 
@@ -1521,7 +1516,7 @@ screen details without introducing framework-specific widgets.
 
 - label: Evidence file
 - accept: application/pdf,image/png,image/jpeg
-- sample: Attach a PDF or image.
+- hint: Attach a PDF or image.
 ```
 
 ## Partial Updates
@@ -1598,7 +1593,7 @@ Examples:
 ### E-LeadText Paragraph
 
 - marker: 2
-- sample: Sign in with your account email and password.
+- text: Sign in with your account email and password.
 
 ### 5:E-SignInButton Button
 
@@ -1616,12 +1611,12 @@ Examples:
 ### E-ErrorBanner Banner
 
 - tone: danger
-- sample: Invalid email or password.
+- text: Invalid email or password.
 
 ### E-StatusBadge Badge
 
 - tone: success
-- sample: Active
+- text: Active
 ```
 
 Rendering tools may map `variant` and `tone` to framework-specific classes, such

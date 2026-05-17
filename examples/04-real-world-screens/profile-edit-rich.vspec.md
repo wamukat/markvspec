@@ -108,7 +108,7 @@ the primary purpose.
 
 ### 4:E-ProfileStatusBadge Badge
 
-- sample: Draft changes
+- text: Draft changes
 
 ### 5:E-FormDivider Divider
 
@@ -127,7 +127,7 @@ the primary purpose.
 
 - label: Upload avatar
 - accept: image/png,image/jpeg
-- sample: PNG or JPEG, up to 2 MB.
+- hint: PNG or JPEG, up to 2 MB.
 - width: long
 
 ### 8:E-EvidenceFile FileInput

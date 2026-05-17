@@ -48,11 +48,13 @@ const commonElementProperties = new Set([
   "description",
   "help",
   "help src",
+  "hint",
   "message",
   "message src",
   "sample",
   "source",
   "purpose",
+  "text",
   "value",
   "src",
   "format",
@@ -142,6 +144,7 @@ export function validateElementProperties(
   checkUnsupportedElementProperties(element, diagnostics);
   checkElementPresetProperties(element, diagnostics);
   checkElementSource(element, result, diagnostics);
+  checkSampleSource(element, diagnostics);
   checkTableProperties(element, diagnostics);
 }
 
@@ -288,6 +291,33 @@ function checkElementSource(element: MarkVSpecElement, result: MarkVSpecParseRes
 
   if (source === "element") {
     checkElementSourceReference(element, result, diagnostics);
+  }
+}
+
+function checkSampleSource(element: MarkVSpecElement, diagnostics: MarkVSpecDiagnostic[]): void {
+  const source = stringProperty(element, "source") || "fixed";
+  const sample = stringProperty(element, "sample");
+  const src = stringProperty(element, "src");
+  if (sample && src.startsWith("${model.") && source !== "data") {
+    diagnostics.push({
+      severity: "warning",
+      message: `Element ${element.id} uses a model src with sample. Add source: data for data-derived preview values.`,
+      line: firstPropertyLine(element, "src") ?? firstPropertyLine(element, "sample") ?? element.location.line
+    });
+  } else if (sample && source !== "data") {
+    diagnostics.push({
+      severity: "warning",
+      message: `Element ${element.id} sample is only for source data preview values. Use text, label, message, or hint for fixed content.`,
+      line: firstPropertyLine(element, "sample") ?? element.location.line
+    });
+  }
+
+  if (element.sampleRows && source !== "data") {
+    diagnostics.push({
+      severity: "warning",
+      message: `Element ${element.id} sample rows is only for source data preview rows. Add source: data or remove sample rows.`,
+      line: firstPropertyLine(element, "sample rows") ?? element.location.line
+    });
   }
 }
 

@@ -551,12 +551,14 @@ function renderElement(
   const sourceValue = sourceTypeForElement(element) === "element" ? elementValueFromElementSource(element, context, new Set()) : undefined;
   const formattedSourceValue = sourceValue === undefined ? "" : formatModelValue(sourceValue, stringProperty(element, "format"));
   const sampleOverride = context.sampleOverrides[element.id];
-  const sample = sampleOverride?.value ?? (formattedSourceValue || stringProperty(element, "sample"));
+  const sourceDataSample = sourceTypeForElement(element) === "data" ? stringProperty(element, "sample") : "";
+  const sample = sampleOverride?.value ?? (formattedSourceValue || sourceDataSample);
   const value = stringProperty(element, "value");
   const label = stringProperty(element, "label");
-  const staticLabel = label || sample || value;
-  const displayValue = sample || label || value;
-  const displayLabel = label || sample || value;
+  const textValue = stringProperty(element, "text");
+  const staticLabel = label || textValue || sample || value;
+  const displayValue = sample || textValue || label || value;
+  const displayLabel = label || textValue || sample || value;
   const disabled = forceDisabled || isElementDisabled(element, activeState, stateNames, options);
   const disabledAttribute = disabled ? " disabled" : "";
   const ariaDisabled = disabled ? ` aria-disabled="true"` : "";
@@ -612,7 +614,8 @@ function renderElement(
     const accept = stringProperty(element, "accept");
     const acceptAttribute = accept ? ` accept="${escapeHtml(accept)}"` : "";
     const multipleAttribute = element.properties["multiple"] === true ? " multiple" : "";
-    const helper = sample ? `<span class="mm-file-upload-helper">${escapeHtml(sample)}</span>` : "";
+    const helperText = stringProperty(element, "hint") || sample;
+    const helper = helperText ? `<span class="mm-file-upload-helper">${escapeHtml(helperText)}</span>` : "";
     return renderAnnotatedElement(markers, element.type, `<label class="${classes}" data-mm-id="${escapeHtml(element.id)}"${ariaDisabled}><input type="file"${acceptAttribute}${multipleAttribute}${disabledAttribute}>${escapeHtml(displayLabel || "Select file")}${helper}</label>`, elementWidthWrapperStyle(element));
   }
 
@@ -1156,7 +1159,8 @@ function renderTableCells(
 
 function listItemsForElement(element: MarkVSpecElement, context: RenderContext): string[] {
   const overrideRows = context.sampleOverrides[element.id]?.rows;
-  const rows = overrideRows ?? element.sampleRows;
+  const sourceDataRows = sourceTypeForElement(element) === "data" ? element.sampleRows : undefined;
+  const rows = overrideRows ?? sourceDataRows;
   if (rows) {
     if (rows.explicitEmpty && rows.rows.length === 0) {
       return ["(no data)"];
@@ -1189,7 +1193,7 @@ function tableRowsForElement(
     };
   }
 
-  if (element.sampleRows) {
+  if (sourceTypeForElement(element) === "data" && element.sampleRows) {
     return {
       rows: sampleRowsToTableRows(element.sampleRows.rows, columns),
       explicitEmpty: element.sampleRows.explicitEmpty

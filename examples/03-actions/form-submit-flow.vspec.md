@@ -79,7 +79,7 @@ try to cover non-submit element events.
 ### 5:E-SubmitError Banner
 
 - tone: danger
-- sample: Request could not be submitted.
+- text: Request could not be submitted.
 
 ## Form Groups
 

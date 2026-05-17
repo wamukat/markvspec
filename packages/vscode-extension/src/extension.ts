@@ -4111,7 +4111,8 @@ function renderDisplayContentValue(element: ParsedElement, value: string): strin
   if (hasOpaqueExpression(value)) {
     return renderExpressionTokens(value);
   }
-  return element.type === "Badge" && value === rawStringProperty(element.properties["sample"])
+  const dataSample = element.properties["source"] === "data" ? rawStringProperty(element.properties["sample"]) : "";
+  return element.type === "Badge" && (value === dataSample || value === rawStringProperty(element.properties["text"]))
     ? renderSemanticChip(value, rawStringProperty(element.properties["tone"]))
     : text(value);
 }
@@ -6087,7 +6088,7 @@ function renderElementContentDisplay(element: ReturnType<typeof parseMarkVSpec>[
 }
 
 function renderElementSampleSummary(element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
-  const sample = stringProperty(element.properties["sample"]);
+  const sample = element.properties["source"] === "data" ? stringProperty(element.properties["sample"]) : "";
   if (element.type === "Badge" && sample) {
     return renderSemanticChip(sample, stringProperty(element.properties["tone"]));
   }
@@ -6098,7 +6099,7 @@ function renderElementSampleSummary(element: ReturnType<typeof parseMarkVSpec>["
 function renderFormControlValueSource(result: ReturnType<typeof parseMarkVSpec>, element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
   const labelValue = stringProperty(element.properties["label"]);
   const labelSource = element.properties["label src"];
-  const sample = stringProperty(element.properties["sample"]);
+  const sample = element.properties["source"] === "data" ? stringProperty(element.properties["sample"]) : "";
   const value = stringProperty(element.properties["value"]);
   const rows = [
     labelValue ? renderValueWithOptionalSource(labelValue, labelSource) : "",
@@ -6232,11 +6233,13 @@ function renderElementDisplayValue(
   element: ReturnType<typeof parseMarkVSpec>["elements"][number]
 ): string {
   const labelValue = rawStringProperty(element.properties["label"]);
-  const sample = rawStringProperty(element.properties["sample"]);
+  const sample = element.properties["source"] === "data" ? rawStringProperty(element.properties["sample"]) : "";
+  const textValue = rawStringProperty(element.properties["text"]);
   const value = rawStringProperty(element.properties["value"]);
   const format = rawStringProperty(element.properties["format"]);
   const rows = [
     labelValue ? `${label(result, "label")}: ${renderValueWithOptionalSource(labelValue, element.properties["label src"])}` : "",
+    textValue ? `${label(result, "textValue")}: ${renderElementFixedTextDisplayValue(element, textValue)}` : "",
     sample ? `${label(result, "sample")}: ${renderElementSampleDisplayValue(element, sample)}` : "",
     !sample && element.properties["src"] ? `${label(result, "src")}: ${renderSourceSummary(element.properties["src"])}` : "",
     value ? `${label(result, "value")}: ${hasOpaqueExpression(value) ? renderExpressionTokens(value) : text(value)}` : "",
@@ -6256,6 +6259,12 @@ function renderElementSampleDisplayValue(element: ReturnType<typeof parseMarkVSp
     : text(sample);
   const source = renderSourceSummary(element.properties["src"]);
   return source ? `${renderedSample} (${source})` : renderedSample;
+}
+
+function renderElementFixedTextDisplayValue(element: ReturnType<typeof parseMarkVSpec>["elements"][number], value: string): string {
+  return element.type === "Badge"
+    ? renderSemanticChip(value, rawStringProperty(element.properties["tone"]))
+    : text(value);
 }
 
 function renderContentElementState(
@@ -6342,7 +6351,8 @@ function renderElementValueSummary(properties: Record<string, string | true>): s
 }
 
 function renderElementContentSummary(element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
-  return stringProperty(element.properties["sample"])
+  const sample = element.properties["source"] === "data" ? stringProperty(element.properties["sample"]) : "";
+  return sample
     || stringProperty(element.properties["label"])
     || stringProperty(element.properties["value"])
     || stringProperty(element.properties["content"])

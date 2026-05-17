@@ -73,7 +73,7 @@ the reusable shell itself is defined in the template example.
 ### 4:E-RefreshErrorBanner Banner
 
 - tone: danger
-- sample: Profile summary could not be refreshed.
+- text: Profile summary could not be refreshed.
 - visible when: load-error
 
 ## Actions

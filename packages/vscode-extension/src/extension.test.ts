@@ -3395,10 +3395,12 @@ title: Scenario Samples
 
 ### E-Title Text
 
+- source: data
 - sample: Fallback title
 
 ### E-Users Table
 
+- source: data
 - Columns:
   - name: Name
   - role: Role
@@ -3409,6 +3411,7 @@ title: Scenario Samples
 
 ### E-EmptyUsers Table
 
+- source: data
 - Columns:
   - name: Name
 - sample rows: []
@@ -3475,10 +3478,12 @@ locale: ja
 
 ### E-Title Text
 
+- source: data
 - sample: 通常タイトル
 
 ### E-Users Table
 
+- source: data
 - Columns:
   - name: 名前
 - sample rows:
@@ -4458,7 +4463,7 @@ viewport: mobile
 ### 1:E-Create Button
 
 - label: 新規作成
-- sample: 作成する
+- text: 作成する
 - src: \${model.action.createLabel}
 - value: create
 - format: button label
@@ -4470,7 +4475,7 @@ viewport: mobile
 ### 2:E-Export Link
 
 - label: CSV出力
-- sample: エクスポートする
+- text: エクスポートする
 - action: A-Export
 
 ## Actions
@@ -4501,7 +4506,7 @@ viewport: mobile
   assert.match(displayContent, /<th>番号\/ID<\/th><th>表示箇所<\/th><th>表示内容<\/th><th>表示形式<\/th><th>取得元<\/th><th>表示条件<\/th><th>有効条件<\/th>/);
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-Title", "E-Title")}</td><td>value</td><td>prefix ${sourceCodePattern("${model.action.title}")} &amp; ${sourceCodePattern("${model.action.kind}")} &lt;x&gt;</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>常に</td><td>常に</td>`));
   assert.match(displayContent, new RegExp(`<td rowspan="4">${detailElementRef("1", "E-Create")}</td><td>label</td><td>新規作成</td><td>-</td><td>${plainCodePattern("fixed")}</td><td><ul class="spec-list"><li>表示: empty</li><li>非表示: ${sourceCodePattern("${model.notice.read}")}</li></ul></td><td><ul class="spec-list"><li>有効: not ${sourceCodePattern("${model.saving}")}</li></ul></td>`));
-  assert.match(displayContent, new RegExp(`<tr><td>sample</td><td>作成する</td><td>button label</td><td>${plainCodePattern("fixed")}</td><td><ul class="spec-list"><li>表示: empty</li><li>非表示: ${sourceCodePattern("${model.notice.read}")}</li></ul></td>`));
+  assert.match(displayContent, new RegExp(`<tr><td>text</td><td>作成する</td><td>-</td><td>${plainCodePattern("fixed")}</td><td><ul class="spec-list"><li>表示: empty</li><li>非表示: ${sourceCodePattern("${model.notice.read}")}</li></ul></td>`));
   assert.match(displayContent, new RegExp(`<tr><td>src</td><td>${sourceCodePattern("${model.action.createLabel}")}</td><td>button label</td><td>${plainCodePattern("fixed")}</td><td><ul class="spec-list"><li>表示: empty</li><li>非表示: ${sourceCodePattern("${model.notice.read}")}</li></ul></td>`));
   assert.match(displayContent, new RegExp(`<tr><td>value</td><td>create</td><td>button label</td><td>${plainCodePattern("fixed")}</td><td><ul class="spec-list"><li>表示: empty</li><li>非表示: ${sourceCodePattern("${model.notice.read}")}</li></ul></td>`));
   assert.doesNotMatch(html, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">操作要素<\/h6>/);
@@ -4510,7 +4515,7 @@ viewport: mobile
   }
   assert.doesNotMatch(desktopSection, /表示内容仕様差分/);
   assert.match(desktopDisplayContent, new RegExp(`<td rowspan="2">${detailElementRef("2", "E-Export")}</td><td>label</td><td>CSV出力</td>`));
-  assert.match(desktopDisplayContent, /<tr><td>sample<\/td><td>エクスポートする<\/td>/);
+  assert.match(desktopDisplayContent, /<tr><td>text<\/td><td>エクスポートする<\/td>/);
 });
 
 test("does not infer model flags from any condition groups in state wireframes", () => {
@@ -5625,6 +5630,7 @@ default-state: loaded
 
 ### 1:E-NoticeLink Link
 
+- source: data
 - src: ${"${model.notice.title}"}
 - label: ${"${model.notice.title}"}
 - href: /notices/${"${model.notice.noticeId}"}
@@ -5632,18 +5638,19 @@ default-state: loaded
 
 ### 2:E-NoticePublishedAt Text
 
+- source: data
 - src: ${"${model.notice.publishedAt}"}
 - value: ${"${model.notice.publishedAt}"}
 
 ### 3:E-NoticeEmptyText Paragraph
 
-- sample: No notices.
+- text: No notices.
 - visible when: empty
 
 ### 4:E-NoticeErrorBanner Banner
 
 - tone: danger
-- sample: Notices could not be loaded.
+- text: Notices could not be loaded.
 - visible when: load-error
 
 ## Model Samples
@@ -7138,12 +7145,12 @@ viewport: mobile
 
 ### E-エラーバナー Banner
 
-- sample: Invalid login
+- text: Invalid login
 - tone: danger
 
 ### E-状態バッジ Badge
 
-- sample: Active
+- text: Active
 - tone: success
 
 ### E-Title Heading
@@ -7178,8 +7185,8 @@ viewport: mobile
   assert.match(displayContent, new RegExp(`<tr><td>option source</td><td>${sourceCodePattern("${copy.roles.viewer}")}</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td><td>always</td></tr>`));
   assert.match(displayContent, new RegExp(`<tr><td>option label</td><td>Administrator</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td><td>always</td></tr>`));
   assert.match(displayContent, new RegExp(`<tr><td>option source</td><td>${sourceCodePattern("${copy.roles.administrator}")}</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td><td>always</td></tr>`));
-  assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-エラーバナー", "E-エラーバナー")}</td><td>sample</td><td>Invalid login</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td>`));
-  assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-状態バッジ", "E-状態バッジ")}</td><td>sample</td><td>${semanticChip("Active", "success")}</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-エラーバナー", "E-エラーバナー")}</td><td>text</td><td>Invalid login</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-状態バッジ", "E-状態バッジ")}</td><td>text</td><td>${semanticChip("Active", "success")}</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td>`));
   assert.match(displayContent, new RegExp(`<td rowspan="2">${detailElementRef("E-Title", "E-Title")}</td><td>label</td><td>Login</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td>`));
   assert.match(displayContent, new RegExp(`<tr><td>label src</td><td>${sourceCodePattern("${copy.login.title}")}</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td>`));
   assert.doesNotMatch(html, /<div class="element-detail-group"><h4>Status Display<\/h4>/);

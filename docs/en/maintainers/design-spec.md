@@ -268,7 +268,7 @@ Use `Spinner` for loading or waiting feedback tied to a screen state, such as
 ```markdown
 ### E-LeadText Paragraph
 
-- sample: Sign in with your account email and password.
+- text: Sign in with your account email and password.
 ```
 
 Use `Text` for short labels, values, and compact text.
@@ -276,7 +276,7 @@ Use `Text` for short labels, values, and compact text.
 ```markdown
 ### E-RequiredText Text
 
-- sample: Required
+- text: Required
 ```
 
 ## Element Meaning
@@ -324,7 +324,7 @@ Examples:
 ### E-LoginErrorBanner Banner
 
 - tone: danger
-- sample: Invalid email or password.
+- text: Invalid email or password.
 ```
 
 Implementation tools may map `variant` and `tone` to Bootstrap, Tailwind, or an
@@ -697,7 +697,7 @@ status: draft
 ### E-LeadText Paragraph
 
 - marker: 2
-- sample: Sign in with your account email and password.
+- text: Sign in with your account email and password.
 
 ### 3:E-EmailInput Input
 
@@ -709,7 +709,7 @@ status: draft
 
 - marker: 8
 - tone: danger
-- sample: Email is required.
+- text: Email is required.
 - visible when: validation-error
 
 ### 4:E-PasswordInput Input
@@ -736,7 +736,7 @@ status: draft
 
 - marker: 7
 - tone: danger
-- sample: Invalid email or password.
+- text: Invalid email or password.
 - visible when: auth-error
 
 ## Actions

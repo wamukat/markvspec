@@ -71,7 +71,7 @@ loaded, empty, and error previews are the focus.
 ### 4:E-ErrorBanner Banner
 
 - tone: danger
-- sample: Items could not be loaded.
+- text: Items could not be loaded.
 - visible when: load-error
 
 ### 5:E-ItemsTable Table
@@ -91,7 +91,7 @@ loaded, empty, and error previews are the focus.
 
 ### 6:E-EmptyText Paragraph
 
-- sample: No items are available.
+- text: No items are available.
 - visible when: empty
 
 ## Actions

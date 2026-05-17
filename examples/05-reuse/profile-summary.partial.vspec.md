@@ -56,7 +56,7 @@ global layout are handled by the host screen.
 ### 4:E-ProfileError Banner
 
 - tone: danger
-- sample: Profile summary could not be loaded.
+- text: Profile summary could not be loaded.
 - visible when: load-error
 
 ## Actions

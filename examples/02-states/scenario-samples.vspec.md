@@ -77,7 +77,7 @@ the `## Preview Scenarios` overrides for the loaded and empty states.
 ### 5:E-StatusBanner Banner
 
 - tone: warning
-- sample: Renewal attention required.
+- text: Renewal attention required.
 - visible when: loaded
 
 ### 6:E-SubscriptionTable Table
@@ -100,12 +100,12 @@ the `## Preview Scenarios` overrides for the loaded and empty states.
 
 ### 7:E-EmptyMessage Paragraph
 
-- sample: No subscriptions are linked to this account.
+- text: No subscriptions are linked to this account.
 - visible when: empty
 
 ### 8:E-LoadingMessage Text
 
-- sample: Loading account data...
+- text: Loading account data...
 - visible when: loading
 
 ## Actions

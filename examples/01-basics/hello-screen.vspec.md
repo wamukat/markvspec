@@ -42,7 +42,7 @@ entry; it intentionally avoids validation, model data, and response handling.
 
 ### 2:E-Lead Paragraph
 
-- sample: This is the minimum screen specification that still renders a useful preview.
+- text: This is the minimum screen specification that still renders a useful preview.
 
 ### 3:E-ContinueButton Button
 
