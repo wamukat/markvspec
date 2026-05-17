@@ -45,7 +45,7 @@ example を代表セットとして使う。
 - `examples/04-real-world-screens/profile-edit-rich.vspec.md`: 拡張 form、media、list、dialog 系 Element Type。
 - `examples/04-real-world-screens/search-list.vspec.md`: 検索、filter、pagination、table sample rows を含む実務寄り画面。
 - `examples/05-reuse/template-shell.vspec.md`: template shell、slot、再利用構造。
-- `examples/05-reuse/profile-page-with-template.vspec.md`: template 合成、route params、partial refresh。
+- `examples/05-reuse/profile-page-with-template.vspec.md`: template 合成、route params、partial host metadata、`display.partial` refresh。
 - `examples/05-reuse/profile-summary.partial.vspec.md`: partial route、partial-local state。
 - `examples/06-structured-sections/history-and-errors.vspec.md`: Error Codes、History Fields、History。
 

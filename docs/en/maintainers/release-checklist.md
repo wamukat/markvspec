@@ -39,7 +39,7 @@ HTML export, and PDF export:
 - `examples/04-real-world-screens/profile-edit-rich.vspec.md`: extended form, media, list, and dialog element types.
 - `examples/04-real-world-screens/search-list.vspec.md`: practical search, filters, pagination, and table sample rows.
 - `examples/05-reuse/template-shell.vspec.md`: template shell, slots, and reusable structure.
-- `examples/05-reuse/profile-page-with-template.vspec.md`: template composition, route params, and partial refresh.
+- `examples/05-reuse/profile-page-with-template.vspec.md`: template composition, route params, partial host metadata, and `display.partial` refresh.
 - `examples/05-reuse/profile-summary.partial.vspec.md`: partial route and partial-local states.
 - `examples/06-structured-sections/history-and-errors.vspec.md`: Error Codes, History Fields, and History.
 

@@ -284,7 +284,7 @@ marker です。参照には marker ではなく ID を使います。
 - [examples/04-real-world-screens/search-list.vspec.md](examples/04-real-world-screens/search-list.vspec.md): search、filter、pagination、empty result、result replacement。
 - [examples/04-real-world-screens/login-basic.vspec.md](examples/04-real-world-screens/login-basic.vspec.md): form layout、validation feedback scenario、authentication progress。
 - [examples/05-reuse/template-shell.vspec.md](examples/05-reuse/template-shell.vspec.md): template shell と slot の基本。
-- [examples/05-reuse/profile-page-with-template.vspec.md](examples/05-reuse/profile-page-with-template.vspec.md): template 合成、route params、partial refresh。
+- [examples/05-reuse/profile-page-with-template.vspec.md](examples/05-reuse/profile-page-with-template.vspec.md): template 合成、route params、partial host metadata、`display.partial` refresh。
 - [examples/05-reuse/profile-summary.partial.vspec.md](examples/05-reuse/profile-summary.partial.vspec.md): partial route と partial-local state。
 - [examples/06-structured-sections/history-and-errors.vspec.md](examples/06-structured-sections/history-and-errors.vspec.md): Error Codes、History Fields、History。
 

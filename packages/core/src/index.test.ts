@@ -5484,6 +5484,22 @@ test("parses every release example without diagnostics", () => {
   }
 });
 
+test("keeps profile partial example on response-side display.partial syntax", () => {
+  const source = readFileSync(examplePath("05-reuse/profile-page-with-template.vspec.md"), "utf8");
+  const result = parseMarkVSpec(source);
+  const refresh = result.actions.find((action) => action.id === "A-RefreshProfile");
+  const response = result.actions.find((action) => action.id === "A-HandleProfileSummaryResponse");
+
+  assert(refresh);
+  assert(response);
+  assert.equal(refresh.processSteps.some((step) => step.details.some((detail) => detail.key === "partial")), false);
+  const successDisplay = response.processSteps[0]?.outcomes.find((outcome) => outcome.result === "success")?.display;
+  assert.equal(successDisplay?.target, "L-ProfileSummaryHost");
+  assert.equal(successDisplay?.partial, "PRT-PROFILE-SUMMARY");
+  const slotLayoutGroups = result.slotContents.flatMap((slot) => slot.layoutGroups);
+  assert.equal(slotLayoutGroups.find((group) => group.id === "L-ProfileSummaryHost")?.partial?.id, "PRT-PROFILE-SUMMARY");
+});
+
 test("keeps release examples migrated to scenario sample data", () => {
   const exampleFiles = listExampleVspecFiles();
 

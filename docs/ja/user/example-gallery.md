@@ -53,7 +53,7 @@ rule と validation の見出しは、document symbol と parser test が曖昧�
 | [Responsive Template Shell](../../../examples/05-reuse/responsive-template-shell.vspec.md) | mobile / desktop の template layout が同じ slot を描画する例。 |
 | [Responsive Slot Page](../../../examples/05-reuse/responsive-slot-page.vspec.md) | viewport 未指定 slot fallback と desktop 固有 slot override の例。 |
 | [Default Slot Page](../../../examples/05-reuse/default-slot-page.vspec.md) | screen が slot content を提供しない場合の template default fallback の例。 |
-| [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md) | template 合成、route params、partial refresh の例。 |
+| [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md) | template 合成、route params、partial host metadata、`display.partial` refresh の例。 |
 | [Profile Summary Partial](../../../examples/05-reuse/profile-summary.partial.vspec.md) | `type: partial`、partial route、partial-local state の例。 |
 | [History And Errors](../../../examples/06-structured-sections/history-and-errors.vspec.md) | Error Codes、History Fields、History の例。 |
 
@@ -66,5 +66,5 @@ rule と validation の見出しは、document symbol と parser test が曖昧�
 5. [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md) で Display Content Spec の文言、表示値、データソース、format、value、params を確認する。
 6. [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md) で拡張 Element Type の preview 表示を確認する。
 7. [Basic Slot Page](../../../examples/05-reuse/basic-slot-page.vspec.md)、[Responsive Slot Page](../../../examples/05-reuse/responsive-slot-page.vspec.md)、[Default Slot Page](../../../examples/05-reuse/default-slot-page.vspec.md) で template slot content、viewport 固有 slot override、default fallback を確認する。
-8. [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md) で template 合成と partial 参照を確認する。
+8. [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md) で template 合成、partial host、`display.partial` を確認する。
 9. [History And Errors](../../../examples/06-structured-sections/history-and-errors.vspec.md) で構造化された履歴とエラーコードを確認する。

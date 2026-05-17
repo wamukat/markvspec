@@ -40,7 +40,7 @@ The active `examples/` directory is a learning path:
 - `examples/04-real-world-screens/profile-edit-rich.vspec.md` covers extended form, media, list, and dialog element types.
 - `examples/04-real-world-screens/search-list.vspec.md` covers search, filters, pagination, and table sample rows.
 - `examples/05-reuse/template-shell.vspec.md` covers template slots.
-- `examples/05-reuse/profile-page-with-template.vspec.md` covers template composition, route params, and partial refresh.
+- `examples/05-reuse/profile-page-with-template.vspec.md` covers template composition, route params, partial host metadata, and `display.partial` refresh.
 - `examples/05-reuse/profile-summary.partial.vspec.md` covers partial routes and partial-local states.
 - `examples/06-structured-sections/history-and-errors.vspec.md` covers Error Codes, History Fields, and History.
 

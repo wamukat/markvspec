@@ -295,7 +295,7 @@ The `examples/` directory is organized as a learning path:
 - [examples/04-real-world-screens/search-list.vspec.md](examples/04-real-world-screens/search-list.vspec.md): search, filters, pagination, empty result, and result replacement.
 - [examples/04-real-world-screens/login-basic.vspec.md](examples/04-real-world-screens/login-basic.vspec.md): form layout, validation feedback scenarios, and authentication progress.
 - [examples/05-reuse/template-shell.vspec.md](examples/05-reuse/template-shell.vspec.md): template shell and slot basics.
-- [examples/05-reuse/profile-page-with-template.vspec.md](examples/05-reuse/profile-page-with-template.vspec.md): template composition, route params, and partial refresh.
+- [examples/05-reuse/profile-page-with-template.vspec.md](examples/05-reuse/profile-page-with-template.vspec.md): template composition, route params, partial host metadata, and `display.partial` refresh.
 - [examples/05-reuse/profile-summary.partial.vspec.md](examples/05-reuse/profile-summary.partial.vspec.md): partial route and partial-local states.
 - [examples/06-structured-sections/history-and-errors.vspec.md](examples/06-structured-sections/history-and-errors.vspec.md): Error Codes, History Fields, and History.
 

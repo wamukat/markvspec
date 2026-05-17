@@ -21,6 +21,6 @@ the DSL, preview, State Views, Action Details, and export output.
 - `05-reuse/responsive-template-shell.vspec.md`: mobile and desktop template shell that renders the same slot in different viewport layouts.
 - `05-reuse/responsive-slot-page.vspec.md`: viewport-neutral slot fallback for mobile and viewport-specific slot override for desktop.
 - `05-reuse/default-slot-page.vspec.md`: template slot default fallback when the screen intentionally provides no slot content.
-- `05-reuse/profile-page-with-template.vspec.md`: template composition, route params, referenced partials, slot content, and partial refresh.
+- `05-reuse/profile-page-with-template.vspec.md`: template composition, route params, referenced partials, slot content, partial host metadata, and `display.partial` refresh.
 - `05-reuse/profile-summary.partial.vspec.md`: partial document route, partial-local states, and server-side load/build action for a host screen.
 - `06-structured-sections/history-and-errors.vspec.md`: Error Codes, custom History Fields, History entries, and a small save flow that references them.
