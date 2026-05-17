@@ -13,13 +13,13 @@ The final specification should not silently discard authored prose. At the same 
 
 ## Terms
 
-- Section Overview
+- Section Lead
   - Supplemental prose inside a `##` section before the first structured data block.
   - Describes the whole section.
 - Section Notes
   - Supplemental prose inside a `##` section after section-level structured data.
   - Adds notes for the whole section.
-- Entity Overview
+- Entity Lead
   - Supplemental prose immediately under a `###` entity heading before the first entity structured data block.
   - Describes that entity.
 - Entity Notes
@@ -36,12 +36,12 @@ The final specification should not silently discard authored prose. At the same 
 ## Principles
 
 - Do not silently discard supplemental prose.
-- Prose before structured data is overview.
+- Prose before structured data is lead.
 - Prose after structured data is notes.
-- Preview / generated documents display overview and notes.
-- Unreserved `##` sections remain free-form sections; they are not split into overview / notes.
+- Preview / generated documents display lead and notes.
+- Unreserved `##` sections remain free-form sections; they are not split into lead / notes.
 - Do not warn merely because prose exists. Warn only when ownership cannot be decided or the prose looks like malformed structured data.
-- Breaking changes are acceptable where they make ownership explicit. Content previously treated as notes may become overview.
+- Breaking changes are acceptable where they make ownership explicit. Content previously treated as notes may become lead.
 
 ## Common Syntax
 
@@ -60,7 +60,7 @@ This screen models authentication progress as states.
 Handling:
 
 - `This screen...`
-  - Section Overview for `States`.
+  - Section Lead for `States`.
 - State list
   - Structured `States` data.
 - `` `auth-error` keeps... ``
@@ -70,14 +70,14 @@ Handling:
 
 ### Section Level
 
-Structured `##` sections may have Section Overview and Section Notes.
+Structured `##` sections may have Section Lead and Section Notes.
 
 - Supplemental prose before the first section-level structured data:
-  - Section Overview.
+  - Section Lead.
 - Supplemental prose after the last section-level structured data:
   - Section Notes.
 - In entity sections, supplemental prose before the first `###` entity:
-  - Section Overview.
+  - Section Lead.
 - In entity sections, supplemental prose after the first `###` entity:
   - Belongs to the previous entity by default.
   - Markdown does not provide a stable end marker for the last entity.
@@ -88,10 +88,10 @@ Structured `##` sections may have Section Overview and Section Notes.
 
 ### Entity Level
 
-Entities starting with a `###` heading may have Entity Overview and Entity Notes.
+Entities starting with a `###` heading may have Entity Lead and Entity Notes.
 
 - Supplemental prose immediately after the `###` heading and before the first entity structured data:
-  - Entity Overview.
+  - Entity Lead.
 - Supplemental prose after entity structured data until the next `###` heading or next `##` section:
   - Entity Notes.
 - If `### Section Notes` appears:
@@ -107,7 +107,7 @@ Malformed headings and malformed list items are not structured-data starts. Supp
 ### States
 
 - Structured data starts at the first top-level list item.
-- Section Overview describes the state list.
+- Section Lead describes the state list.
 - Section Notes adds notes for the state list.
 - Child list items under a state remain that state's description.
 - There are no entities.
@@ -115,37 +115,37 @@ Malformed headings and malformed list items are not structured-data starts. Supp
 ### Layout / Slot
 
 - Structured data starts at the first `### L-*` or `### P-*`.
-- Section Overview describes the viewport or slot content as a whole.
+- Section Lead describes the viewport or slot content as a whole.
 - Section Notes are written under `### Section Notes`.
-- Entity Overview is prose under `### L-*` / `### P-*` before layout properties or `#### Items`.
+- Entity Lead is prose under `### L-*` / `### P-*` before layout properties or `#### Items`.
 - Entity Notes are prose after layout properties or `#### Items`.
 - List items under `#### Items` remain layout items.
 
 ### Slots
 
 - Structured data starts at the first `### <slot-name>`.
-- Section Overview describes the slot definitions.
+- Section Lead describes the slot definitions.
 - Section Notes are written under `### Section Notes`.
-- Entity Overview / Notes describe individual slot definitions.
+- Entity Lead / Notes describe individual slot definitions.
 
 ### Elements
 
 - Structured data starts at the first `### E-*`.
-- Section Overview describes the element catalog.
+- Section Lead describes the element catalog.
 - Section Notes are written under `### Section Notes`.
-- Entity Overview appears in Element Summary Description and element detail.
-- Entity Notes appear in element detail. If shown in summaries, they should be less prominent than overview.
+- Entity Lead appears in Element Summary Description and element detail.
+- Entity Notes appear in element detail. If shown in summaries, they should be less prominent than lead.
 - `description` / `purpose` are short list descriptions.
-- Entity Overview is detailed prose.
-- Element Summary Description uses the first available value in this order: `description`, `purpose`, first Entity Overview paragraph.
-- Element detail shows both `description` / `purpose` and Entity Overview.
+- Entity Lead is detailed prose.
+- Element Summary Description uses the first available value in this order: `description`, `purpose`, first Entity Lead paragraph.
+- Element detail shows both `description` / `purpose` and Entity Lead.
 
 ### Form Groups
 
 - Structured data starts at the first `### F-*`.
-- Section Overview describes the form group list.
+- Section Lead describes the form group list.
 - Section Notes are written under `### Section Notes`.
-- Entity Overview describes the semantic form unit.
+- Entity Lead describes the semantic form unit.
 - Entity Notes add FormGroup notes.
 
 ### Actions
@@ -153,73 +153,73 @@ Malformed headings and malformed list items are not structured-data starts. Supp
 Actions formalize the existing behavior.
 
 - Structured data starts at the first `### A-*`.
-- Section Overview describes the action list.
+- Section Lead describes the action list.
 - Section Notes are written under `### Section Notes`.
-- Entity Overview is prose under the action heading before the first structured list such as `Triggered`, `From`, `Process`, `Cases`, or `Effects`.
-- Entity Overview appears in Action Summary and Action Details.
+- Entity Lead is prose under the action heading before the first structured list such as `Triggered`, `From`, `Process`, `Cases`, or `Effects`.
+- Entity Lead appears in Action Summary and Action Details.
 - Entity Notes are prose after the action structured list.
 - Entity Notes appear in Action Details, not Action Summary.
 
 ### Model Samples
 
-Model Samples have overview / notes at multiple levels.
+Model Samples have lead / notes at multiple levels.
 
 - Structured data starts at the first `### <state>`.
-- Section Overview describes all samples.
+- Section Lead describes all samples.
 - Section Notes are written under `### Section Notes`.
-- State sample group overview is prose under `### <state>` before the first `#### ${model.path}`.
+- State sample group lead is prose under `### <state>` before the first `#### ${model.path}`.
 - State sample group notes are written under `#### State Notes`.
 - The parser checks `#### State Notes` before normal sample-path parsing.
-- Sample set overview is prose under `#### ${model.path}` before the first table or list.
+- Sample set lead is prose under `#### ${model.path}` before the first table or list.
 - Sample set notes are prose after the sample set table or list.
 
 ### Validations
 
 - Structured data starts at the first `### V-*`.
-- Section Overview describes the validation list.
+- Section Lead describes the validation list.
 - Section Notes are written under `### Section Notes`.
-- Entity Overview describes the validation purpose.
+- Entity Lead describes the validation purpose.
 - Entity Notes add validation notes.
 
 ### Business Rules
 
 - Structured data starts at the first top-level list item or `### R-*`.
-- Section Overview describes the rule set.
+- Section Lead describes the rule set.
 - Section Notes are written under `### Section Notes`.
-- `### R-*` rules may have Entity Overview / Notes.
+- `### R-*` rules may have Entity Lead / Notes.
 - If there is no `### R-*` and only list items, the list is treated as the free-form `R-BusinessRules` rule.
 
 ### Error Codes
 
 - Structured data starts at the first `### ERR-*`.
-- Section Overview describes the error code list.
+- Section Lead describes the error code list.
 - Section Notes are written under `### Section Notes`.
-- Entity Overview describes the error code intent.
+- Entity Lead describes the error code intent.
 - Entity Notes add error code notes.
 
 ### History Fields
 
 - Structured data starts at the first field list item.
-- Section Overview describes the history metadata schema.
+- Section Lead describes the history metadata schema.
 - Section Notes describe the schema as a whole.
 - Because `History Fields` has no per-field entities, supplemental prose after the field list is Section Notes.
-- There is no field-level overview / notes.
+- There is no field-level lead / notes.
 
 ### History
 
 History entry body text is semantically changes, so it differs from normal entity sections.
 
 - Structured data starts at the first `### <version>`.
-- Section Overview describes the whole history.
+- Section Lead describes the whole history.
 - Section Notes are written under `### Section Notes`.
 - The metadata list after `### <version>` is history entry metadata.
 - Supplemental prose after metadata is the history entry changes body.
-- History entries do not have Entity Overview / Notes.
+- History entries do not have Entity Lead / Notes.
 
 ## Free-Form Sections
 
 Unreserved `##` sections are preserved as Markdown.
-They are not interpreted as structured DSL and are not split into Section Overview / Notes.
+They are not interpreted as structured DSL and are not split into Section Lead / Notes.
 
 ```markdown
 ## Implementation Memo
@@ -229,38 +229,38 @@ They are not interpreted as structured DSL and are not split into Section Overvi
 
 ## Display Rules
 
-- Section Overview appears immediately under the structured section heading.
+- Section Lead appears immediately under the structured section heading.
 - Section Notes appears at the end of the structured section.
-- Entity Overview appears in the entity detail location.
+- Entity Lead appears in the entity detail location.
 - Entity Notes appears in the entity detail location.
-- Whether overview appears in a list summary depends on the entity type.
+- Whether lead appears in a list summary depends on the entity type.
 
 Summary display policy:
 
 - Action Summary
-  - Shows Action Overview.
-  - Does not show Action Notes.
+  - Shows `Entity Lead`.
+  - Does not show `Entity Notes`.
 - Element Summary
-  - Shows Element Overview as Description.
-  - Element Notes primarily appear in detailed element sections.
+  - Shows `Entity Lead` as Description.
+  - `Entity Notes` primarily appear in detailed element sections.
 - Validation summary
-  - Shows Validation Overview in the existing table supplemental column.
-  - Shows Validation Notes in the same table with less emphasis.
+  - Shows `Entity Lead` in the existing table supplemental column.
+  - Shows `Entity Notes` in the same table with less emphasis.
   - No dedicated detail article in the initial implementation.
 - Form Groups
-  - Shows FormGroup Overview in the description column.
-  - Shows FormGroup Notes in the same table with less emphasis.
+  - Shows `Entity Lead` in the description column.
+  - Shows `Entity Notes` in the same table with less emphasis.
 - Error Codes
-  - Shows ErrorCode Overview / Notes in the existing table supplemental column.
+  - Shows `Entity Lead` / `Entity Notes` in the existing table supplemental column.
   - No dedicated detail article in the initial implementation.
 
 ## Diagnostics
 
-Do not warn when supplemental prose can be assigned to overview / notes.
+Do not warn when supplemental prose can be assigned to lead / notes.
 
 Warn for:
 
-- Supplemental prose in a structured section that cannot be assigned to any overview / notes owner.
+- Supplemental prose in a structured section that cannot be assigned to any lead / notes owner.
 - Supplemental prose after a malformed heading.
 - Top-level list items that look like structured data but are not valid in the current section.
 - HTML blocks, thematic breaks, or unknown Markdown blocks without a stable preview display policy.
@@ -311,11 +311,11 @@ For repeated section instances:
 
 ## Acceptance Criteria
 
-- Prose before the `## States` list is displayed as Section Overview.
+- Prose before the `## States` list is displayed as Section Lead.
 - Prose after the `## States` list is displayed as Section Notes.
 - State child lists remain state descriptions.
-- `## Actions` Action Overview / Notes remain compatible with existing behavior.
-- `## Elements` entity overview / notes appear in detail output.
+- `## Actions` `Entity Lead` / `Entity Notes` remain compatible with existing behavior.
+- `## Elements` entity lead / notes appear in detail output.
 - Supplemental prose in `## Validations`, `## Form Groups`, and `## Error Codes` is not silently discarded.
 - Unreserved `##` sections render as free-form Markdown sections.
 - Unowned prose produces diagnostics.

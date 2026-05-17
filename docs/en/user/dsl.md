@@ -182,13 +182,57 @@ in generated design documents but does not interpret their content as DSL
 semantics.
 
 Body text immediately after `# <ID> <Title>` and before the first level-2
-section is treated as the screen or partial description.
+section is treated as the screen or partial description. In the document
+structure terminology below, this area is the `Document Lead`.
 
 Use `History` and `History Fields` for structured change history. Use
 `Business Rules` for domain rules, and `Error Codes` for error display
 contracts. Field definitions, messages, permissions, API contracts, and test
 notes will be reintroduced only after their structured syntax is defined.
 There are no standard section names for those concepts in this release.
+
+### Document Structure Terms
+
+Use the following terms when discussing MarkVSpec document placement in Preview,
+parser behavior, documentation, and tickets. These names are canonical in both
+English and Japanese documentation.
+
+- `Document Header`: YAML Front Matter and the first level-1 heading. It is the
+  document-level entry point for metadata and the design subject title.
+- `Document Lead`: Markdown body directly below the level-1 heading and before
+  the first level-2 section. Use it for the screen, template, partial, or
+  example purpose.
+- `Section`: a level-2 heading such as `## States` or `## Actions`. Recognized
+  sections are interpreted by the parser; unrecognized sections remain
+  free-form Markdown.
+- `Section Lead`: Markdown body at the beginning of a section, before the first
+  `Entity Block` or other structured definition in that section.
+- `Entity Block`: an ID-bearing definition unit that starts with a level-3
+  heading such as `### A1:A-Submit Submit` or `### E-EmailInput Input`.
+- `Entity Lead`: Markdown body directly below an entity heading and before the
+  entity `Structured Body`.
+- `Structured Body`: the bullet lists, nested lists, and supported tables that
+  the parser, validator, and preview interpret as MarkVSpec semantics.
+- `Entity Notes`: supplemental Markdown after an entity `Structured Body` and
+  still inside the entity.
+- `Section Notes`: supplemental Markdown after the section's entity blocks or
+  other structured definitions.
+- `Free-form Section`: an unrecognized level-2 section, or a reserved section
+  such as `## Notes` / `## Open Questions` whose body is preserved as Markdown
+  and not interpreted as structured DSL.
+
+`Lead` content is displayed before the target it describes. For example,
+`Section Lead` appears before that section's table, list, or entity summary, and
+`Entity Lead` appears at the beginning of that entity's detail. `Notes` content
+is displayed after the target it supplements. For example, `Entity Notes` follow
+the entity's structured content, and `Section Notes` follow the section's
+structured content.
+
+`Structured Body` is the canonical machine-readable part of a structured
+section. Prose regions such as `Document Lead`, `Section Lead`, `Entity Lead`,
+`Entity Notes`, and `Section Notes` may contain normal Markdown, but they are not
+interpreted as DSL semantics. HTML comments (`<!-- -->`) in prose regions are
+authoring comments and are not displayed in preview or export output.
 
 ### Supplemental Prose in Structured Sections
 
@@ -198,8 +242,8 @@ supplemental prose. Put the prose where its owner is unambiguous.
 Section-level prose:
 
 - Prose immediately under a structured section such as `## States`, before the
-  first structured data block, is Section Overview.
-- Prose after structured data is Section Notes.
+  first structured data block, is `Section Lead`.
+- Prose after structured data is `Section Notes`.
 - In entity sections such as `Elements`, `Actions`, `Form Groups`,
   `Field Validations`, `Cross-field Validations`, `Business Rules`, and
   `Error Codes`, use `### Section Notes` when you need notes for the whole
@@ -208,12 +252,12 @@ Section-level prose:
 Entity-level prose:
 
 - Prose immediately under an entity heading such as `### E-*`, `### A-*`, or
-  `### V-*`, before the first structured list, is Entity Overview.
-- Prose after the structured list is Entity Notes.
+  `### V-*`, before the first structured list, is `Entity Lead`.
+- Prose after the structured list is `Entity Notes`.
 - Action overviews are not generated automatically. Write the action summary as
-  prose immediately under the action heading.
+  `Entity Lead` immediately under the action heading.
 - Put action notes, design caveats, and background that cannot be represented by
-  DSL lists after the action's structured list.
+  DSL lists after the action's structured list as `Entity Notes`.
 
 ```markdown
 ## Actions

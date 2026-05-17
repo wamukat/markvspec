@@ -166,7 +166,8 @@ partial 由来の内容で置き換えるか」を書きます。partial 側は�
 - `## History`
 
 `# <ID> <Title>` 直後から最初の level-2 セクションまでの本文は、画面または
-パーシャル自体の説明として扱います。上記以外の level-2 セクションは自由記述
+パーシャル自体の説明として扱います。下の文書構造用語では、この領域を
+`Document Lead` と呼びます。上記以外の level-2 セクションは自由記述
 セクションです。MarkVSpec は内容を意味解釈せず、通常の Markdown として
 生成される設計書ビューに残します。
 
@@ -175,6 +176,44 @@ partial 由来の内容で置き換えるか」を書きます。partial 側は�
 項目定義、メッセージ、権限、API 契約、テスト観点は、構造化記法を
 定義してから改めて追加します。現時点ではそれらの標準セクション名はありません。
 
+### 文書構造の用語
+
+Preview、parser、docs、ticket で MarkVSpec 文書内の位置を議論するときは、
+次の用語を使います。英語名を canonical とし、日本語文書でも同じ英語名を使います。
+
+- `Document Header`: YAML Front Matter と最初の level-1 見出しです。文書全体の
+  メタデータと設計対象名を書く入口です。
+- `Document Lead`: level-1 見出しの直下から最初の level-2 セクションまでの
+  Markdown 本文です。画面、template、partial、example の目的を書きます。
+- `Section`: `## States` や `## Actions` のような level-2 見出しです。
+  認識済み section は parser が解釈し、未認識 section は自由記述として残します。
+- `Section Lead`: section 冒頭、最初の `Entity Block` または構造化定義より前の
+  Markdown 本文です。
+- `Entity Block`: `### A1:A-Submit Submit` や `### E-EmailInput Input` のような
+  level-3 見出しで始まる ID 付き定義単位です。
+- `Entity Lead`: entity 見出し直後、entity の `Structured Body` より前の
+  Markdown 本文です。
+- `Structured Body`: parser、validator、preview が MarkVSpec の意味として解釈する
+  bullet、nested list、サポート対象の table です。
+- `Entity Notes`: entity の `Structured Body` の後ろにあり、同じ entity に属する
+  補足 Markdown です。
+- `Section Notes`: section の entity 群または構造化定義の後ろにある補足
+  Markdown です。
+- `Free-form Section`: 未認識の level-2 section、または `## Notes` /
+  `## Open Questions` のように Markdown として保持し、構造化 DSL としては
+  解釈しない section です。
+
+`Lead` は対象の前に表示します。たとえば `Section Lead` はその section の表、
+一覧、entity summary の前に表示し、`Entity Lead` は entity 詳細の冒頭に表示します。
+`Notes` は対象の後に表示します。たとえば `Entity Notes` は entity の構造化内容の後、
+`Section Notes` は section の構造化内容の後に表示します。
+
+`Structured Body` は構造化 section の正規データであり、機械的に解釈する領域です。
+`Document Lead`、`Section Lead`、`Entity Lead`、`Entity Notes`、`Section Notes`
+などの prose 領域には通常の Markdown を書けますが、DSL の意味としては解釈しません。
+prose 領域内の HTML コメント `<!-- -->` は authoring comment として扱い、
+preview や export には表示しません。
+
 ### 構造化セクション内の説明文
 
 構造化セクションでも、Markdown の本文、表、コードブロックを補足説明として書けます。
@@ -182,20 +221,20 @@ partial 由来の内容で置き換えるか」を書きます。partial 側は�
 
 セクション全体の説明です。
 
-- `## States` のような構造化セクション見出しの直後、最初の構造化データより前に置いた本文は Section Overview です。
-- 構造化データの後に置いた本文は、section notes として表示します。
+- `## States` のような構造化セクション見出しの直後、最初の構造化データより前に置いた本文は `Section Lead` です。
+- 構造化データの後に置いた本文は、`Section Notes` として表示します。
 - `Elements`、`Actions`、`Form Groups`、`Field Validations`、`Cross-field Validations`、
   `Business Rules`、`Error Codes` のように `###` entity 見出しを持つセクションで、セクション全体の後置補足を書きたい場合は
   `### Section Notes` 見出しを使います。
 
 entity ごとの説明です。
 
-- `### E-*`、`### A-*`、`### V-*` などの entity 見出し直下、最初の構造化リストより前の本文は Entity Overview です。
-- 構造化リストの後に置いた本文は Entity Notes です。
-- Action の Overview は自動生成しません。Action の要約を出したい場合は、Action 見出し直下に本文として書きます。
-- Action の補足、設計上の注意、記法で表しきれない背景は、Action の構造化リストの後に本文として書きます。
+- `### E-*`、`### A-*`、`### V-*` などの entity 見出し直下、最初の構造化リストより前の本文は `Entity Lead` です。
+- 構造化リストの後に置いた本文は `Entity Notes` です。
+- Action の Overview は自動生成しません。Action の要約を出したい場合は、Action 見出し直下に `Entity Lead` として書きます。
+- Action の補足、設計上の注意、記法で表しきれない背景は、Action の構造化リストの後に `Entity Notes` として書きます。
 
-次の例では、`States` の前置本文が Section Overview、状態リスト後の本文が Section Notes です。
+次の例では、`States` の前置本文が `Section Lead`、状態リスト後の本文が `Section Notes` です。
 
 ```markdown
 ## States
@@ -210,7 +249,7 @@ entity ごとの説明です。
 `authenticating` 中はフォームを無効化し、二重送信を防ぎます。
 ```
 
-次の例では、Action 見出し直下の本文が Action Overview、構造化リスト後の本文が Action Notes です。
+次の例では、Action 見出し直下の本文が `Entity Lead`、構造化リスト後の本文が `Entity Notes` です。
 
 ```markdown
 ## Actions
