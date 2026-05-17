@@ -12,7 +12,7 @@ status: draft
 # SCR-LOGIN Login
 
 This example teaches a compact login flow that still has real behavior. Read the
-responsive `## Layout`, required input `## Validations`, form `## Actions`,
+responsive `## Layout`, required input `## Cross-field Validations`, form `## Actions`,
 request parameters, response cases, disabled controls, and navigation; richer
 profile fields and reusable templates are left to later examples.
 
@@ -288,17 +288,15 @@ success or failure is handled by `A-HandleLoginResponse`.
 - cases:
   - A-HandleLoginResponse.P1.failure
 
-## Validations
+## Cross-field Validations
 
 ### V-LoginForm Required login fields
 
 - target: F-LoginForm
-- rules:
-  - required:
-    - E-EmailInput
-    - E-PasswordInput
-- scope: composite
-- run: client
+- inputs:
+  - E-EmailInput
+  - E-PasswordInput
+- check: E-EmailInput.value and E-PasswordInput.value are present
 - message: Email and password are required.
 
 ## Business Rules

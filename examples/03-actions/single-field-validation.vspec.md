@@ -12,7 +12,7 @@ status: draft
 # SCR-SINGLE-FIELD-VALIDATION Single Field Validation
 
 This example focuses only on single-field validation. Read the input element
-constraints, `## Validations`, validation receive source, and invalid/valid cases;
+constraints, `## Field Validations`, validation receive source, and invalid/valid cases;
 request sending, screen navigation, and multi-field form behavior are excluded
 so field-level contracts remain the main topic.
 
@@ -140,44 +140,31 @@ so field-level contracts remain the main topic.
 - cases:
   - A-CheckFields.P1.invalid
 
-## Validations
+## Field Validations
 
 ### V-UsernameRules Username rules
 
 - target: E-UsernameInput
-- rules:
+- constraints:
   - required:
-    - E-UsernameInput
-  - min-length:
-    - E-UsernameInput
-  - max-length:
-    - E-UsernameInput
+    - message: Username is required.
+  - length: element
+    - message: Username must be 3 to 40 lowercase letters, numbers, or hyphens.
   - pattern:
-    - E-UsernameInput
-- scope: field
-- run: client
-- message: Username must be 3 to 40 lowercase letters, numbers, or hyphens.
+    - message: Username can contain lowercase letters, numbers, and hyphens.
 
 ### V-EmailRules Email rules
 
 - target: E-EmailInput
-- rules:
+- constraints:
   - required:
-    - E-EmailInput
+    - message: Email is required.
   - email:
-    - E-EmailInput
-- scope: field
-- run: client
-- message: Enter a valid email address.
+    - message: Enter a valid email address.
 
 ### V-AgeRange Age range
 
 - target: E-AgeInput
-- rules:
-  - min:
-    - E-AgeInput
-  - max:
-    - E-AgeInput
-- scope: field
-- run: client
-- message: Age must be between 13 and 120.
+- constraints:
+  - range: element
+    - message: Age must be between 13 and 120.

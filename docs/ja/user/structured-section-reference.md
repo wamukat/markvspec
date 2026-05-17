@@ -19,15 +19,13 @@ level-2 section です。
 - `## View Context`
 - `## View Context Samples`
 - `## Preview Scenarios`
-- `## Validations`
+- `## Field Validations`
+- `## Cross-field Validations`
+- `## Validations` (legacy-compatible)
 - `## Business Rules`
 - `## Error Codes`
 - `## History Fields`
 - `## History`
-
-`Field Validations` と `Cross-field Validations` は、現行 grammar では独立した
-recognized section ではありません。どちらも `## Validations` に書き、validation の
-`scope` や `target` で区別します。
 
 `## Notes`、`## Open Questions`、その他の未認識 level-2 section は
 `Free-form Section` です。
@@ -59,7 +57,9 @@ recognized section ではありません。どちらも `## Validations` に書�
 | `View Context` | state とは別の UI-local context を定義する。 | ID entity ではない definition heading: `### <view-name>`。 | view type、values、default `*`。 | State View context resolution と condition evaluation。 |
 | `View Context Samples` | view context value set に名前を付ける。 | ID entity ではない sample heading: `### <sample-name>`。 | `${view.*}` keyed view values。 | Preview Scenario と baseline view resolution。 |
 | `Preview Scenarios` | state/model/view の explicit preview combination を追加する。 | ID entity ではない scenario heading: `### <scenario-name>`。 | state、model、view、before、case values。 | baseline state previews の後に追加表示される State Views。 |
-| `Validations` | client-side / screen-local validation contract を定義する。 | あり: `### [marker:]V-* Name`。 | target、scope、run、rules、messages。 | validation summary と display-message resolution。 |
+| `Field Validations` | client-side single-field validation contract を定義する。 | あり: `### [marker:]V-* Name`。 | `target`、optional `run`、`constraints`、messages。 | validation summary と display-message resolution。 |
+| `Cross-field Validations` | client-side form / multi-input validation contract を定義する。 | あり: `### [marker:]V-* Name`。 | `target`、`inputs`、`check`、optional `run`、messages。 | validation summary と display-message resolution。 |
+| `Validations` | legacy-compatible validation section。 | あり: `### [marker:]V-* Name`。 | target、scope/run、rules/constraints、messages。 | validation summary と display-message resolution。 |
 | `Business Rules` | domain rule / UI business rule を定義する。 | 任意: `### R-* Name`。なければ top-level list。 | rule list または rule entity properties。 | business rule summary と display-message resolution。 |
 | `Error Codes` | error code と UI display contract を対応付ける。 | あり: `### ERR-* Name`。 | code、message、display、target など。 | error code summary と display-message resolution。 |
 | `History Fields` | history entry の metadata field を定義する。 | なし。 | top-level field list。 | history field summary。 |
@@ -271,24 +271,23 @@ preview/export はすべての state を baseline として表示します。
 - view: default
 ```
 
-### Validations
+### Field Validations / Cross-field Validations
 
-single-field、form-level、composite、cross-field などの client-side / screen-local
-validation contract は `## Validations` に書きます。server 側で検出される domain
-constraint は `Business Rules`、具体的な API error は `Error Codes` に書きます。
+single-field は `## Field Validations`、form-level / multi-input は
+`## Cross-field Validations` に書きます。server 側で検出される domain constraint は
+`Business Rules`、具体的な API error は `Error Codes` に書きます。
 `### [marker:]V-* Name` heading は `Entity Block` です。`Structured Body` には
-target、scope、run、rules、messages を書きます。
+target、constraints または inputs/check、optional run、messages を書きます。
 
 ```markdown
-## Validations
+## Field Validations
 
 ### V-EmailRequired Email required
 
 - target: E-EmailInput
-- scope: single
-- run: client
-- rules
-  - required
+- constraints:
+  - required:
+    - message: Email is required.
 ```
 
 ### Business Rules

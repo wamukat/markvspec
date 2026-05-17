@@ -87,7 +87,7 @@
         },
         {
           "name": "markup.heading.section.markvspec",
-          "match": "^(##)\\s+(States|Layout|Slots|Elements|Form Groups|Actions|Model Samples|View Context|View Context Samples|Preview Scenarios|Validations|Business Rules|Error Codes|History Fields|History)\\s*$",
+          "match": "^(##)\\s+(States|Layout|Slots|Elements|Form Groups|Actions|Model Samples|View Context|View Context Samples|Preview Scenarios|Field Validations|Cross-field Validations|Validations|Business Rules|Error Codes|History Fields|History)\\s*$",
           "captures": {
             "1": {
               "name": "punctuation.definition.heading.markvspec"

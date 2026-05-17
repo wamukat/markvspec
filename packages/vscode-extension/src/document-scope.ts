@@ -156,6 +156,8 @@ function filterSectionProseForDetails(
       case "FormGroups":
         return result.formGroups.length > 0;
       case "Validations":
+      case "FieldValidations":
+      case "CrossFieldValidations":
         return result.validations.length > 0;
       case "BusinessRules":
         return result.rules.length > 0;

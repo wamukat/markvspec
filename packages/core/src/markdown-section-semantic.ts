@@ -167,7 +167,7 @@ export function parseSmallSectionSemantics(document: MarkdownDocument): SmallSec
   };
 }
 
-const recommendedSectionOrder = "States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Actions, Model Samples, View Context, View Context Samples, Preview Scenarios, Validations, Business Rules, Error Codes, History Fields, History";
+const recommendedSectionOrder = "States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Actions, Model Samples, View Context, View Context Samples, Preview Scenarios, Field Validations, Cross-field Validations, Validations, Business Rules, Error Codes, History Fields, History";
 
 function semanticSectionOrderDiagnostics(sections: SectionAst[]): MarkVSpecDiagnostic[] {
   const diagnostics: MarkVSpecDiagnostic[] = [];
@@ -215,16 +215,20 @@ function sectionOrderRank(kind: SectionKind): number {
       return 9;
     case "PreviewScenarios":
       return 10;
-    case "Validations":
+    case "FieldValidations":
       return 11;
-    case "BusinessRules":
+    case "CrossFieldValidations":
       return 12;
-    case "ErrorCodes":
+    case "Validations":
       return 13;
-    case "HistoryFields":
+    case "BusinessRules":
       return 14;
-    case "History":
+    case "ErrorCodes":
       return 15;
+    case "HistoryFields":
+      return 16;
+    case "History":
+      return 17;
     case "Unknown":
       return 0;
   }
@@ -282,6 +286,8 @@ function isSmallSemanticSection(kind: SectionKind): boolean {
     kind === "ViewContextSamples" ||
     kind === "PreviewScenarios" ||
     kind === "Validations" ||
+    kind === "FieldValidations" ||
+    kind === "CrossFieldValidations" ||
     kind === "BusinessRules" ||
     kind === "ErrorCodes" ||
     kind === "HistoryFields" ||
@@ -304,6 +310,10 @@ function parseSmallSection(document: MarkdownDocument, sections: SectionAst[], s
     case "PreviewScenarios":
       return resultFor(section, parsePreviewScenariosSection(section), ["preview-scenarios"]);
     case "Validations":
+      return resultFor(section, parseValidationsSection(section), ["validations:list"]);
+    case "FieldValidations":
+      return resultFor(section, parseValidationsSection(section), ["validations:list"]);
+    case "CrossFieldValidations":
       return resultFor(section, parseValidationsSection(section), ["validations:list"]);
     case "BusinessRules":
       return resultFor(section, parseRulesSection(section), ["rules:list"]);
@@ -1667,6 +1677,7 @@ function parsePreviewScenarioCaseReference(text: string, location: SourceLocatio
 function parseValidationsSection(section: SectionAst): Pick<SectionSemanticResult, "validations" | "sectionProse" | "dependencies"> {
   const validations: MarkVSpecValidationRule[] = [];
   const dependencies: SemanticDependency[] = [];
+  const sectionScope = validationScopeForSection(section.kind);
   let current: MarkVSpecValidationRule | undefined;
   let currentHasStructuredContent = false;
   let hasSeenEntity = false;
@@ -1702,8 +1713,15 @@ function parseValidationsSection(section: SectionAst): Pick<SectionSemanticResul
         name: match.groups?.name,
         bullets: [],
         rules: [],
-        properties: marker ? { marker } : {},
-        propertyLocations: marker ? { marker: [locationFromBlock(block)] } : {},
+        properties: {
+          ...(marker ? { marker } : {}),
+          ...(sectionScope ? { scope: sectionScope } : {}),
+          ...(sectionScope ? { run: "client" } : {})
+        },
+        propertyLocations: {
+          ...(marker ? { marker: [locationFromBlock(block)] } : {}),
+          ...(sectionScope ? { scope: [locationFromBlock(block)], run: [locationFromBlock(block)] } : {})
+        },
         location: locationFromBlock(block)
       };
       validations.push(current);
@@ -1736,7 +1754,7 @@ function parseValidationsSection(section: SectionAst): Pick<SectionSemanticResul
           continue;
         }
 
-        if (activeStructuredKey === "rules") {
+        if (activeStructuredKey === "rules" || activeStructuredKey === "constraints") {
           if (item.depth === 1) {
             const [namePart, valuePart] = splitKeyValue(bullet.text);
             const name = namePart.trim();
@@ -1748,6 +1766,30 @@ function parseValidationsSection(section: SectionAst): Pick<SectionSemanticResul
               raw: bullet.text
             };
             current.rules.push(activeRule);
+          } else if (activeRule) {
+            const [childKey, childValue] = splitKeyValue(bullet.text);
+            if (childKey.trim() === "message" && childValue !== undefined) {
+              addValidationProperty(current, "message", childValue.trim(), bullet.location);
+            } else if (childKey.trim() === "messages" && childValue !== undefined) {
+              addValidationProperty(current, "message", childValue.trim(), bullet.location);
+            } else {
+              activeRule.targets.push(bullet.text.trim());
+            }
+          }
+        } else if (activeStructuredKey === "inputs") {
+          if (item.depth === 1) {
+            addValidationProperty(current, "input", bullet.text.trim(), bullet.location);
+          }
+        } else if (item.depth === 1 && activeStructuredKey === "messages") {
+          addValidationProperty(current, "message", bullet.text.trim(), bullet.location);
+        } else if (item.depth === 1 && activeStructuredKey === "message") {
+          addValidationProperty(current, "message", bullet.text.trim(), bullet.location);
+        } else if (item.depth === 1 && activeStructuredKey === "target") {
+          addValidationProperty(current, "target", bullet.text.trim(), bullet.location);
+        } else if (item.depth === 1 && activeStructuredKey === "check") {
+          const [childKey, childValue] = splitKeyValue(bullet.text);
+          if (childKey.trim() === "message" && childValue !== undefined) {
+            addValidationProperty(current, "message", childValue.trim(), bullet.location);
           } else if (activeRule) {
             activeRule.targets.push(bullet.text.trim());
           }
@@ -1769,6 +1811,16 @@ function parseValidationsSection(section: SectionAst): Pick<SectionSemanticResul
     sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["validations:list", ...validations.map((validation) => validationRenderKey(validation.id))]),
     dependencies
   };
+}
+
+function validationScopeForSection(kind: SectionKind): "field" | "cross-field" | undefined {
+  if (kind === "FieldValidations") {
+    return "field";
+  }
+  if (kind === "CrossFieldValidations") {
+    return "cross-field";
+  }
+  return undefined;
 }
 
 function parseFormGroupsSection(section: SectionAst): Pick<SectionSemanticResult, "formGroups" | "sectionProse" | "dependencies"> {
@@ -2258,7 +2310,7 @@ function isRecognizedStructuredHeading(section: SectionAst, block: BlockAst): bo
   if (section.kind === "FormGroups") {
     return block.depth === 3 && new RegExp(String.raw`^${formGroupIdPattern}(?:\s+.+?)?\s*$`, "u").test(block.text);
   }
-  if (section.kind === "Validations") {
+  if (section.kind === "Validations" || section.kind === "FieldValidations" || section.kind === "CrossFieldValidations") {
     return block.depth === 3 && /^(?:[\p{L}\p{N}-]+:)?V-[\p{L}\p{N}-]+(?:\s+.+?)?\s*$/u.test(block.text);
   }
   if (section.kind === "ErrorCodes") {
@@ -2295,6 +2347,8 @@ function isEntityHeadingSection(kind: SectionKind): boolean {
     || kind === "Actions"
     || kind === "FormGroups"
     || kind === "Validations"
+    || kind === "FieldValidations"
+    || kind === "CrossFieldValidations"
     || kind === "BusinessRules"
     || kind === "ErrorCodes";
 }
@@ -2899,6 +2953,10 @@ function applyValidationBullet(validation: MarkVSpecValidationRule, text: string
 
   const normalizedKey = key.trim();
   const normalizedValue = value.trim();
+  addValidationProperty(validation, normalizedKey, normalizedValue, location);
+}
+
+function addValidationProperty(validation: MarkVSpecValidationRule, normalizedKey: string, normalizedValue: string, location: SourceLocation): void {
   const current = validation.properties[normalizedKey];
   if (current === undefined) {
     validation.properties[normalizedKey] = normalizedValue;

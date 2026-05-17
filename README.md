@@ -183,16 +183,14 @@ route: /login
         - target: L-MessageArea
         - element: E-SendErrorBanner
 
-## Validations
+## Field Validations
 
 ### V1:V-EmailRequired Email required
 
 - target: E-EmailInput
-- rules:
+- constraints:
   - required:
-    - E-EmailInput
-- run: client
-- message: Email is required.
+    - message: Email is required.
 ```
 
 For more realistic examples, see [Login Basic](examples/04-real-world-screens/login-basic.vspec.md)

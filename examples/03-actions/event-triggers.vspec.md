@@ -348,16 +348,12 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
 - cases:
   - A-RequestDiscardDialog.P1.done
 
-## Validations
+## Cross-field Validations
 
 ### V-PreferencesForm Required preference fields
 
 - target: F-PreferencesForm
-- rules:
-  - required:
-    - E-EmailInput
-  - email:
-    - E-EmailInput
-- scope: composite
-- run: client
+- inputs:
+  - E-EmailInput
+- check: E-EmailInput.value is present and valid email
 - message: Notification email is required and must be an email address.

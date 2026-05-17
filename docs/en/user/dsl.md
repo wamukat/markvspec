@@ -170,7 +170,9 @@ Recognized level-2 sections:
 - `## View Context`
 - `## View Context Samples`
 - `## Preview Scenarios`
-- `## Validations`
+- `## Field Validations`
+- `## Cross-field Validations`
+- `## Validations` (legacy-compatible)
 - `## Business Rules`
 - `## Error Codes`
 - `## History Fields`
@@ -985,7 +987,7 @@ Append `*` to the element type only when the element itself has input-level
 required metadata. For example, `Input*` is equivalent to a `required` flag in
 the Input Form Spec `Input Required` column. It is not the canonical way to
 define product validation. Required validation belongs in
-`## Validations` as a `required` constraint.
+`## Field Validations` as a `required` constraint.
 Required metadata is not rendered as a native `required` attribute or an
 automatic `*` marker in the wireframe preview. If the screen should visibly show
 a required mark, write it into the authored label text.
@@ -1151,7 +1153,7 @@ as read/unread badges.
 Flags are boolean properties. A `required` flag or `Input*` heading suffix is
 element metadata shown in the Input Form Spec `Input Required` column. Use it
 only for input-level UI requirements, not for product validation contracts.
-Prefer `## Validations` with a `required` constraint when the design needs
+Prefer `## Field Validations` with a `required` constraint when the design needs
 to specify validation behavior.
 
 ```markdown
@@ -1232,7 +1234,8 @@ addresses, and descriptive values. Buttons can use visual size presets:
 ```
 
 `validation` and `error text` are legacy descriptive metadata for the generated
-Elements tables. Prefer `## Validations` for validation contracts. They are not
+Elements tables. Prefer `## Field Validations` or `## Cross-field Validations`
+for validation contracts. They are not
 rendered automatically near the form control in the wireframe preview. If
 validation or error copy should appear on screen, model it as a visible element
 such as `Text` or `Banner`, usually with `visible when`.
@@ -2116,32 +2119,29 @@ For a section-by-section reference that uses `Section Lead`, `Entity Block`,
 `Structured Body`, and `Entity Notes` terminology, see
 [Structured Section Reference](structured-section-reference.md).
 
-## Validations Section
+## Field Validations and Cross-field Validations Sections
 
-Use `## Validations` for client-side and screen-local validation contracts.
-Field/single validation, cross-field validation, and form-level validation are
-categories inside this section, not separate recognized section names. A `V-*`
-entry defines what is validated; it does not define when an Action runs
-validation. Keep element input metadata limited to input UI specifications such
-as type, length, range, pattern, IME, accept, and step. Validation constraints,
-messages, and error codes belong in this section.
+Use `## Field Validations` and `## Cross-field Validations` for client-side and
+screen-local validation contracts. A `V-*` entry defines what is validated; it
+does not define when an Action runs validation. Keep element input metadata
+limited to input UI specifications such as type, length, range, pattern, IME,
+accept, and step. Validation constraints, messages, and error codes belong in
+these sections.
 
 For required fields, validation is canonical. Write `required` as a validation
 constraint instead of repeating required intent in layout labels such as
 `"Email*"` or element headings such as `Input*`.
 
 ```markdown
-## Validations
+## Field Validations
 
 ### V1:V-EmailRules Email rules
 
 - target: E-EmailInput
-- scope: single
-- run: client
 - constraints:
-  - required
+  - required:
     - message: Email is required.
-  - email
+  - email:
     - message: Enter a valid email address.
   - length: element
     - message: Email length must follow the input specification.
@@ -2157,17 +2157,17 @@ The heading marker, such as `V1:` in `### V1:V-EmailRules`, is expected for
 preview output. If it is missing, the validator should warn and use the
 validation ID as the marker label. The marker is a display label, not the
 reference ID; references use `V-*` IDs such as `V-EmailRules.result`.
-Supported summary keys are `target`, `run`, and `constraints`. `run` is
-validation-level only; the initial supported value is `client`.
+Supported summary keys are `target`, `run`, and `constraints`. You usually omit
+`run`; the initial supported value is `client`. Do not write `scope`; the
+section name determines whether a validation is field or cross-field.
 
 `length: element` reuses the target Element's min/max length input metadata.
 `range: element` reuses the target Element's min/max value metadata. If the
 referenced Element does not provide the needed input metadata, the validator
 warns. The preview does not invent a fallback message.
 
-For validation contracts that depend on several inputs or a whole form, keep the
-same `## Validations` section and set `scope: cross-field`, `scope: composite`,
-or the appropriate scope value on the validation.
+For validation contracts that depend on several inputs or a whole form, use
+`## Cross-field Validations`.
 
 ```markdown
 ## Form Groups
@@ -2179,13 +2179,11 @@ or the appropriate scope value on the validation.
   - E-PasswordInput
 - submit: A-SubmitLogin
 
-## Validations
+## Cross-field Validations
 
 ### V2:V-LoginForm Login form validation
 
 - target: F-LoginForm
-- scope: cross-field
-- run: client
 - inputs:
   - E-EmailInput
   - E-PasswordInput
@@ -2501,7 +2499,9 @@ view_context_samples = "## View Context Samples" view_context_sample*
 view_context_sample = "### " sample_name key_value*
 preview_scenarios = "## Preview Scenarios" preview_scenario*
 preview_scenario = "### " scenario_name key_value*
-validations       = "## Validations" validation*
+field_validations = "## Field Validations" field_validation*
+cross_field_validations = "## Cross-field Validations" cross_field_validation*
+validations       = "## Validations" validation* ; legacy-compatible
 business_rules    = "## Business Rules" rule*
 error_codes       = "## Error Codes" error_code*
 history_fields    = "## History Fields" history_field*

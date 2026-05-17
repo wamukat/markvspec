@@ -25,6 +25,8 @@ export type SectionKind =
   | "ViewContextSamples"
   | "PreviewScenarios"
   | "Validations"
+  | "FieldValidations"
+  | "CrossFieldValidations"
   | "BusinessRules"
   | "ErrorCodes"
   | "HistoryFields"
@@ -217,6 +219,10 @@ function sectionMetadata(title: string): { kind: SectionKind; viewport?: string;
       return { kind: "PreviewScenarios" };
     case "Validations":
       return { kind: "Validations" };
+    case "Field Validations":
+      return { kind: "FieldValidations" };
+    case "Cross-field Validations":
+      return { kind: "CrossFieldValidations" };
     case "Business Rules":
       return { kind: "BusinessRules" };
     case "Error Codes":

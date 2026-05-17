@@ -19,15 +19,13 @@ The current parser recognizes these sections:
 - `## View Context`
 - `## View Context Samples`
 - `## Preview Scenarios`
-- `## Validations`
+- `## Field Validations`
+- `## Cross-field Validations`
+- `## Validations` (legacy-compatible)
 - `## Business Rules`
 - `## Error Codes`
 - `## History Fields`
 - `## History`
-
-`Field Validations` and `Cross-field Validations` are validation categories in
-the current grammar, not separate recognized sections. Write both under
-`## Validations` and distinguish them with validation `scope` and `target`.
 
 Unrecognized level-2 sections, including `## Notes` and `## Open Questions`, are
 `Free-form Section`s.
@@ -60,7 +58,9 @@ Unrecognized level-2 sections, including `## Notes` and `## Open Questions`, are
 | `View Context` | Defines UI-local context separate from state. | Definition headings, not ID entities: `### <view-name>`. | View type, values, and optional default `*`. | State View context resolution and condition evaluation. |
 | `View Context Samples` | Names reusable view context value sets. | Sample headings, not ID entities: `### <sample-name>`. | View values keyed by `${view.*}`. | Preview scenario and baseline view resolution. |
 | `Preview Scenarios` | Adds explicit state/model/view preview combinations. | Scenario headings, not ID entities: `### <scenario-name>`. | State, model, view, before, and case values. | Additional State Views after baseline state previews. |
-| `Validations` | Defines client-side and screen-local validation contracts. | Yes: `### [marker:]V-* Name`. | Validation properties, rules, target/scope/run, and messages. | Validation summary and display-message resolution. |
+| `Field Validations` | Defines client-side single-field validation contracts. | Yes: `### [marker:]V-* Name`. | `target`, optional `run`, `constraints`, and messages. | Validation summary and display-message resolution. |
+| `Cross-field Validations` | Defines client-side form or multi-input validation contracts. | Yes: `### [marker:]V-* Name`. | `target`, `inputs`, `check`, optional `run`, and messages. | Validation summary and display-message resolution. |
+| `Validations` | Legacy-compatible validation section. | Yes: `### [marker:]V-* Name`. | Validation properties, rules/constraints, target/scope/run, and messages. | Validation summary and display-message resolution. |
 | `Business Rules` | Defines domain or UI business rules. | Optional: `### R-* Name`; otherwise top-level list. | Rule list or rule entity properties. | Business rule summary and display-message resolution. |
 | `Error Codes` | Maps error codes to UI display contracts. | Yes: `### ERR-* Name`. | Error code properties such as code, message, display, target. | Error code summary and display-message resolution. |
 | `History Fields` | Defines metadata fields used by history entries. | No. | Top-level field list. | History field summary. |
@@ -278,24 +278,23 @@ previews.
 - view: default
 ```
 
-### Validations
+### Field Validations / Cross-field Validations
 
-Use `Validations` for client-side and screen-local validation contracts such as
-single-field, form-level, composite, and cross-field checks. Server-detected
-domain constraints belong in `Business Rules`, and concrete API errors belong in
-`Error Codes`. Each `### [marker:]V-* Name` heading is an `Entity Block`.
-`Structured Body` contains target, scope, run, rules, and messages.
+Use `Field Validations` for single-field checks and `Cross-field Validations`
+for form-level or multi-input checks. Server-detected domain constraints belong
+in `Business Rules`, and concrete API errors belong in `Error Codes`. Each
+`### [marker:]V-* Name` heading is an `Entity Block`. `Structured Body`
+contains target, constraints or inputs/check, optional run, and messages.
 
 ```markdown
-## Validations
+## Field Validations
 
 ### V-EmailRequired Email required
 
 - target: E-EmailInput
-- scope: single
-- run: client
-- rules
-  - required
+- constraints:
+  - required:
+    - message: Email is required.
 ```
 
 ### Business Rules

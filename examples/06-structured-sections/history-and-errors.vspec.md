@@ -150,17 +150,15 @@ referenced from the same flow.
 - cases:
   - A-SaveAccount.P2.send-failed
 
-## Validations
+## Cross-field Validations
 
 ### V-AccountSettings Required account fields
 
 - target: F-AccountSettings
-- rules:
-  - required:
-    - E-DisplayNameInput
-    - E-EmailInput
-- scope: composite
-- run: client
+- inputs:
+  - E-DisplayNameInput
+  - E-EmailInput
+- check: E-DisplayNameInput.value and E-EmailInput.value are present
 - error code: ERR-ACCOUNT-REQUIRED
 - message: Display name and notification email are required.
 

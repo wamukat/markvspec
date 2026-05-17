@@ -1045,6 +1045,8 @@ function isSemanticSectionHeading(line: string): boolean {
     title === "Elements" ||
     title === "Actions" ||
     title === "Validations" ||
+    title === "Field Validations" ||
+    title === "Cross-field Validations" ||
     title === "Business Rules" ||
     title === "Error Codes" ||
     title === "Model Samples" ||
@@ -1196,7 +1198,7 @@ function symbolsForSection(
       .map((action) => createDocumentSymbol(document, `${formatMarkerPrefix(action.properties["marker"])}${action.id} ${action.name}`, "Action", vscode.SymbolKind.Event, action.location.line, nextSiblingLineEnd(document, action.location.line, section.endLine)));
   }
 
-  if (section.title === "Validations") {
+  if (section.title === "Validations" || section.title === "Field Validations" || section.title === "Cross-field Validations") {
     return result.validations
       .filter((validation) => isLineInSection(validation.location.line, section))
       .map((validation) => createDocumentSymbol(document, `${validation.id}${validation.name ? ` ${validation.name}` : ""}`, "Validation", vscode.SymbolKind.Operator, validation.location.line, nextSiblingLineEnd(document, validation.location.line, section.endLine)));
@@ -4691,6 +4693,11 @@ function renderStatesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
 
 function renderValidationRulesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
   const sectionProse = sectionProseForKind(result, "Validations");
+  const validationSectionProse = [
+    ...sectionProse,
+    ...sectionProseForKind(result, "FieldValidations"),
+    ...sectionProseForKind(result, "CrossFieldValidations")
+  ];
   const groups: Array<{
     key: "clientFieldValidations" | "clientCrossFieldValidations" | "serverFieldValidations" | "serverCrossFieldValidations";
     rules: ReturnType<typeof parseMarkVSpec>["validations"];
@@ -4714,9 +4721,9 @@ function renderValidationRulesSpec(result: ReturnType<typeof parseMarkVSpec>): s
 
   return `<section class="doc-section">
     <h2>${label(result, "validationRules")}</h2>
-    ${renderSectionOverview(sectionProse)}
+    ${renderSectionOverview(validationSectionProse)}
     ${content || `<p class="spec-empty">${label(result, "none")}</p>`}
-    ${renderSectionNotes(sectionProse)}
+    ${renderSectionNotes(validationSectionProse)}
   </section>`;
 }
 
@@ -4749,7 +4756,7 @@ function renderValidationRuleGroup(
         renderValidationProperty(result, validation, "target"),
         renderValidationResultReference(validation),
         renderValidationRules(result, validation),
-        renderValidationProperty(result, validation, "condition"),
+        renderValidationProperty(result, validation, "condition") || renderValidationProperty(result, validation, "when") || renderValidationProperty(result, validation, "check"),
         renderValidationProperty(result, validation, "message"),
         renderValidationProperty(result, validation, "error code") || renderValidationProperty(result, validation, "error codes"),
         ...(showNotes ? [renderEntityNotes(validation.notes)] : [])

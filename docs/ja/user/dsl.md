@@ -158,7 +158,9 @@ partial 由来の内容で置き換えるか」を書きます。partial 側は�
 - `## View Context`
 - `## View Context Samples`
 - `## Preview Scenarios`
-- `## Validations`
+- `## Field Validations`
+- `## Cross-field Validations`
+- `## Validations` (legacy-compatible)
 - `## Business Rules`
 - `## Error Codes`
 - `## History Fields`
@@ -806,7 +808,7 @@ Element 参照を Element marker と Element ID で識別し、element type や
 `*` は Element 自体に input-level の required metadata がある場合だけ使います。
 たとえば `Input*` は Input Form Spec の `入力必須` 列に出る required flag と
 同じ意味です。これは product validation を定義する canonical syntax では
-ありません。必須入力の validation contract は `## Validations` の
+ありません。必須入力の validation contract は `## Field Validations` の
 `required` constraint に書きます。
 wireframe preview では native `required` attribute や自動の `*` marker としては
 描画しません。画面上に必須マークを見せたい場合は、label 文字列に自分で書きます。
@@ -1461,31 +1463,27 @@ Thymeleaf や htmx による部分更新は、実装属性ではなく意味と�
 などの用語で確認したい場合は、[構造化セクションリファレンス](structured-section-reference.md)
 を参照してください。
 
-## Validations
+## Field Validations / Cross-field Validations
 
-`## Validations` は client-side / screen-local な検証契約を書きます。field/single validation、
-cross-field validation、form-level validation は、この section 内の category であり、
-独立した recognized section 名ではありません。`V-*` は何を検証するかの contract であり、
-Action をいつ起動するかは定義しません。Element 側の入力 metadata は type、長さ、範囲、
-pattern、IME、accept、step などの入力 UI 仕様に限定し、検証 constraint、message、
-error code はこの章に置きます。
+`## Field Validations` と `## Cross-field Validations` は client-side / screen-local な
+検証契約を書きます。`V-*` は何を検証するかの contract であり、Action をいつ起動するかは
+定義しません。Element 側の入力 metadata は type、長さ、範囲、pattern、IME、accept、step
+などの入力 UI 仕様に限定し、検証 constraint、message、error code はこの章に置きます。
 
 必須入力は Validation 側が canonical です。`"Email*"` のような layout label や
 `Input*` のような element heading に required の意図を重ねず、validation constraint
 として `required` を書きます。
 
 ```markdown
-## Validations
+## Field Validations
 
 ### V1:V-EmailRules Email rules
 
 - target: E-EmailInput
-- scope: single
-- run: client
 - constraints:
-  - required
+  - required:
     - message: Email is required.
-  - email
+  - email:
     - message: Enter a valid email address.
   - length: element
     - message: Email length must follow the input specification.
@@ -1501,15 +1499,15 @@ preview では `### V1:V-EmailRules` の `V1:` のような heading marker を�
 marker がない場合、validator は warning を出し、validation ID を marker label として
 使います。marker は表示用 label であり、参照 ID ではありません。参照には
 `V-EmailRules.result` のような `V-*` ID を使います。summary key は `target`、`run`、
-`constraints` を使います。`run` は validation 定義単位でのみ指定し、初期対応値は `client` です。
+`constraints` を使います。通常 `run` は省略し、初期対応値は `client` です。`scope` は書かず、
+section 名で field / cross-field を判定します。
 
 `length: element` は target Element の min/max length 入力 metadata を再利用します。
 `range: element` は target Element の min/max value 入力 metadata を再利用します。
 参照先 Element に必要な入力 metadata がなければ warning とし、preview は fallback
 message を作りません。
 
-複数 input または form 全体にまたがる検証契約も、同じ `## Validations` に書きます。
-validation に `scope: cross-field`、`scope: composite` などの scope value を指定します。
+複数 input または form 全体にまたがる検証契約は `## Cross-field Validations` に書きます。
 
 ```markdown
 ## Form Groups
@@ -1521,13 +1519,11 @@ validation に `scope: cross-field`、`scope: composite` などの scope value �
   - E-PasswordInput
 - submit: A-SubmitLogin
 
-## Validations
+## Cross-field Validations
 
 ### V2:V-LoginForm Login form validation
 
 - target: F-LoginForm
-- scope: cross-field
-- run: client
 - inputs:
   - E-EmailInput
   - E-PasswordInput

@@ -5493,7 +5493,7 @@ title: Section Order
     result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
     [[
       "warning",
-      "Section ## Layout: mobile appears after a later section. Recommended order is States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Actions, Model Samples, View Context, View Context Samples, Preview Scenarios, Validations, Business Rules, Error Codes, History Fields, History.",
+      "Section ## Layout: mobile appears after a later section. Recommended order is States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Actions, Model Samples, View Context, View Context Samples, Preview Scenarios, Field Validations, Cross-field Validations, Validations, Business Rules, Error Codes, History Fields, History.",
       lineNumber(source, "## Layout: mobile")
     ]]
   );
@@ -5674,12 +5674,13 @@ title: FormGroup Diagnostics
       ["error", "FormGroup F-LoginForm submit references missing action A-MissingSubmit.", lineNumber(source, "- submit: A-MissingSubmit")],
       ["warning", "Validation V-LoginForm targets layout L-LoginForm for composite validation. Use a FormGroup target such as F-LoginForm instead.", lineNumber(source, "- target: L-LoginForm")],
       ["error", "Validation V-LoginForm rule form-ready references missing form group F-MissingRuleForm.", lineNumber(source, "  - form-ready:")],
+      ["warning", "Validation V-LoginForm must not define scope; use Field Validations or Cross-field Validations section instead.", lineNumber(source, "- scope: composite")],
       ["error", "Validation V-MissingFormGroup targets missing form group F-MissingForm.", lineNumber(source, "- target: F-MissingForm")]
     ]
   );
 });
 
-test("accepts validation scope and run aliases used by grouped validation tables", () => {
+test("diagnoses unsupported validation run values", () => {
   const source = `---
 id: SCR-VALIDATION-GROUPS
 type: screen
@@ -5713,7 +5714,7 @@ title: Validation Groups
 - Triggered
   - E-メールアドレス入力.submit
 
-## Validations
+## Field Validations
 
 ### V-EmailRequired Email required
 
@@ -5721,9 +5722,10 @@ title: Validation Groups
 - rules:
   - required:
     - E-メールアドレス入力
-- scope: field
 - run: client
 - condition: E-メールアドレス入力.value is empty
+
+## Cross-field Validations
 
 ### V-PasswordConfirmation Password confirmation
 
@@ -5733,13 +5735,136 @@ title: Validation Groups
   - same-as:
     - E-パスワード入力
     - E-PasswordConfirmInput
-- scope: cross-field
 - run: server
 - condition: E-パスワード入力.value equals E-PasswordConfirmInput.value
 `;
   const result = parseMarkVSpec(source);
 
+  assert.deepEqual(
+    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+    [["warning", "Validation V-PasswordConfirmation run server is not supported. Use client.", lineNumber(source, "- run: server")]]
+  );
+});
+
+test("parses canonical field and cross-field validation sections", () => {
+  const source = `---
+id: SCR-CANONICAL-VALIDATIONS
+type: screen
+title: Canonical Validations
+---
+
+# SCR-CANONICAL-VALIDATIONS Canonical Validations
+
+## States
+
+- idle*
+
+## Elements
+
+### E-EmailInput Input
+
+- value: \${model.email}
+- input rule:
+  - min length: 3
+  - max length: 120
+
+### E-PasswordInput Input
+
+- value: \${model.password}
+
+### E-PasswordConfirmInput Input
+
+- value: \${model.passwordConfirm}
+
+## Form Groups
+
+### F-PasswordForm Password form
+
+- fields:
+  - E-PasswordInput
+  - E-PasswordConfirmInput
+
+## Field Validations
+
+### V1:V-EmailRules Email rules
+
+- target: E-EmailInput
+- constraints:
+  - required:
+    - message: Email is required.
+  - length: element
+    - message: Email length must follow the input specification.
+  - email:
+    - message: Enter a valid email address.
+
+## Cross-field Validations
+
+### V2:V-PasswordConfirmation Password confirmation
+
+- target: F-PasswordForm
+- inputs:
+  - E-PasswordInput
+  - E-PasswordConfirmInput
+- check: E-PasswordInput.value equals E-PasswordConfirmInput.value
+- message: Password and confirmation must match.
+`;
+  const result = parseMarkVSpec(source);
+
   assert.deepEqual(result.diagnostics, []);
+  assert.equal(result.validations.length, 2);
+  assert.equal(result.validations[0]?.properties["scope"], "field");
+  assert.equal(result.validations[0]?.properties["run"], "client");
+  assert.deepEqual(result.validations[0]?.rules.map((rule) => [rule.name, rule.targets]), [
+    ["required", []],
+    ["length", ["element"]],
+    ["email", []]
+  ]);
+  assert.deepEqual(result.validations[0]?.properties["message"], [
+    "Email is required.",
+    "Email length must follow the input specification.",
+    "Enter a valid email address."
+  ]);
+  assert.equal(result.validations[1]?.properties["scope"], "cross-field");
+  assert.deepEqual(result.validations[1]?.properties["input"], ["E-PasswordInput", "E-PasswordConfirmInput"]);
+  assert.equal(result.validations[1]?.properties["check"], "E-PasswordInput.value equals E-PasswordConfirmInput.value");
+  assert.equal(result.validations[1]?.properties["message"], "Password and confirmation must match.");
+});
+
+test("diagnoses authored validation scope in canonical split sections", () => {
+  const source = `---
+id: SCR-VALIDATION-SCOPE
+type: screen
+title: Validation Scope
+---
+
+# SCR-VALIDATION-SCOPE Validation Scope
+
+## States
+
+- idle*
+
+## Elements
+
+### E-EmailInput Input
+
+- value: \${model.email}
+
+## Field Validations
+
+### V-EmailRules Email rules
+
+- target: E-EmailInput
+- scope: composite
+- constraints:
+  - required:
+    - message: Email is required.
+`;
+  const result = parseMarkVSpec(source);
+
+  assert.deepEqual(
+    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+    [["warning", "Validation V-EmailRules must not define scope; use Field Validations or Cross-field Validations section instead.", lineNumber(source, "- scope: composite")]]
+  );
 });
 
 test("parses input rules and error code contracts", () => {
@@ -5781,12 +5906,10 @@ title: Input Contract
     - Effects
       - state: idle
 
-## Validations
+## Field Validations
 
 ### V-メール形式 Email format
 
-- scope: single
-- run: client
 - target: E-メールアドレス入力
 - rules:
   - email:

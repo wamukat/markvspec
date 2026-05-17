@@ -355,17 +355,14 @@ viewport: mobile
   - A-Submit.P1.invalid
   - A-Submit.P1.invalid-summary
 
-## Validations
+## Field Validations
 
 ### V1:V-EmailRequired Email required
 
 - target: E-EmailInput
-- rules:
+- constraints:
   - required:
-    - E-EmailInput
-- scope: field
-- run: client
-- message: Email is required.
+    - message: Email is required.
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));

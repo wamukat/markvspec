@@ -718,7 +718,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   for (const validation of result.validations) {
     validateValidationTargets(validation, targetLayoutIds, elementIds, formGroupIds, diagnostics);
     validateValidationTrigger(validation, diagnostics);
-    validateValidationRules(validation, elementIds, formGroupIds, diagnostics);
+    validateValidationRules(validation, elementIds, elementsById, formGroupIds, diagnostics);
     validateValidationCondition(validation, localIds, diagnostics);
     validateValidationErrorCodes(validation, errorCodeIds, diagnostics);
     validateValidationScopeAndRun(validation, diagnostics);
@@ -944,10 +944,11 @@ function validateValidationTrigger(
 function validateValidationRules(
   validation: MarkVSpecParseResult["validations"][number],
   elementIds: Set<string>,
+  elementsById: Map<string, MarkVSpecElement>,
   formGroupIds: Set<string>,
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
-  if (validation.rules.length === 0 && validationPropertyValues(validation, "condition").length === 0) {
+  if (validation.rules.length === 0 && validationPropertyValues(validation, "condition").length === 0 && validationPropertyValues(validation, "check").length === 0) {
     diagnostics.push({
       severity: "warning",
       message: `Validation ${validation.id} has no rules. Define rules or migrate legacy condition-only validation.`,
@@ -972,7 +973,54 @@ function validateValidationRules(
         });
       }
     }
+    validateElementBackedConstraint(validation, rule, elementsById, diagnostics);
   }
+}
+
+function validateElementBackedConstraint(
+  validation: MarkVSpecParseResult["validations"][number],
+  rule: MarkVSpecParseResult["validations"][number]["rules"][number],
+  elementsById: Map<string, MarkVSpecElement>,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  const normalizedName = rule.name.toLowerCase();
+  if (normalizedName !== "length" && normalizedName !== "range") {
+    return;
+  }
+  if (!rule.targets.some((target) => target.toLowerCase() === "element")) {
+    return;
+  }
+
+  const targetElementIds = validationPropertyValues(validation, "target").filter((target) => elementIdRegex.test(target));
+  if (targetElementIds.length !== 1) {
+    return;
+  }
+
+  const element = elementsById.get(targetElementIds[0] ?? "");
+  if (!element) {
+    return;
+  }
+
+  const hasNeededMetadata = normalizedName === "length"
+    ? elementHasAnyInputMetadata(element, ["min length", "max length", "min-length", "max-length", "minlength", "maxlength"])
+    : elementHasAnyInputMetadata(element, ["min", "max"]);
+  if (!hasNeededMetadata) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Validation ${validation.id} uses ${rule.name}: element, but target ${element.id} does not define matching ${rule.name} input metadata.`,
+      line: rule.location.line
+    });
+  }
+}
+
+function elementHasAnyInputMetadata(element: MarkVSpecElement, keys: string[]): boolean {
+  const normalizedKeys = new Set(keys.map((key) => key.toLowerCase()));
+  for (const key of Object.keys(element.properties)) {
+    if (normalizedKeys.has(key.toLowerCase())) {
+      return true;
+    }
+  }
+  return element.inputRules.some((rule) => normalizedKeys.has(rule.key.toLowerCase()));
 }
 
 function validateValidationErrorCodes(
@@ -1001,21 +1049,28 @@ function validateValidationScopeAndRun(
 ): void {
   const scopes = new Set(["single", "field", "composite", "cross-field"]);
   validationPropertyValues(validation, "scope").forEach((scope, index) => {
+    const line = validation.propertyLocations["scope"]?.[index]?.line ?? validation.location.line;
+    if (line !== validation.location.line) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Validation ${validation.id} must not define scope; use Field Validations or Cross-field Validations section instead.`,
+        line
+      });
+    }
     if (!scopes.has(scope)) {
       diagnostics.push({
         severity: "warning",
         message: `Validation ${validation.id} scope ${scope} is not recognized. Use single, field, composite, or cross-field.`,
-        line: validation.propertyLocations["scope"]?.[index]?.line ?? validation.location.line
+        line
       });
     }
   });
 
-  const runs = new Set(["client", "server", "server-response"]);
   validationPropertyValues(validation, "run").forEach((run, index) => {
-    if (!runs.has(run)) {
+    if (run !== "client") {
       diagnostics.push({
         severity: "warning",
-        message: `Validation ${validation.id} run ${run} is not recognized. Use client, server, or server-response.`,
+        message: `Validation ${validation.id} run ${run} is not supported. Use client.`,
         line: validation.propertyLocations["run"]?.[index]?.line ?? validation.location.line
       });
     }

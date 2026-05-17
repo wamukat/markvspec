@@ -182,17 +182,14 @@ try to cover non-submit element events.
 - cases:
   - A-HandleSubmitResponse.P1.business-rule-violation
 
-## Validations
+## Field Validations
 
 ### V1:V-SubmitRequest Required subscription email
 
 - target: E-EmailInput
-- rules:
+- constraints:
   - required:
-    - E-EmailInput
-- scope: field
-- run: client
-- message: Email is required before submitting the subscription request.
+    - message: Email is required before submitting the subscription request.
 
 ## Business Rules
 

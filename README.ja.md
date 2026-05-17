@@ -174,16 +174,14 @@ route: /login
         - target: L-MessageArea
         - element: E-SendErrorBanner
 
-## Validations
+## Field Validations
 
 ### V1:V-EmailRequired メールアドレス必須
 
 - target: E-EmailInput
-- rules:
+- constraints:
   - required:
-    - E-EmailInput
-- run: client
-- message: メールアドレスを入力してください。
+    - message: メールアドレスを入力してください。
 ```
 
 より実務寄りの例は [Login Basic](examples/04-real-world-screens/login-basic.vspec.md) と

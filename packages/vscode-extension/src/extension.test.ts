@@ -3997,9 +3997,10 @@ test("keeps validation required distinct from input required in single-field val
   assert.match(formControls, new RegExp(`<td>${markerBadge("3", "element")}</td><td>${detailIdRef("E-UsernameInput")}</td><td>Input</td><td>no</td>`));
   assert.match(formControls, new RegExp(`<td>${markerBadge("4", "element")}</td><td>${detailIdRef("E-EmailInput")}</td><td>Input</td><td>no</td>`));
   assert.match(clientFieldValidations, new RegExp(`<td><span class="mm-detail-ref-id">V-UsernameRules<\\/span><\\/td><td>Username rules<\\/td><td>${markerBadge("3", "element")}<\\/td>`));
-  assert.match(clientFieldValidations, new RegExp(`<li>required: ${markerBadge("3", "element")}<\\/li><li>min-length: ${markerBadge("3", "element")}<\\/li><li>max-length: ${markerBadge("3", "element")}<\\/li><li>pattern: ${markerBadge("3", "element")}<\\/li>`));
+  assert.match(clientFieldValidations, /<li>required<\/li><li>length: element<\/li><li>pattern<\/li>/);
+  assert.match(clientFieldValidations, /Username is required\.[\s\S]*Username must be 3 to 40 lowercase letters, numbers, or hyphens\.[\s\S]*Username can contain lowercase letters, numbers, and hyphens\./);
   assert.match(clientFieldValidations, new RegExp(`<td><span class="mm-detail-ref-id">V-EmailRules<\\/span><\\/td><td>Email rules<\\/td><td>${markerBadge("4", "element")}<\\/td>`));
-  assert.match(clientFieldValidations, new RegExp(`<li>required: ${markerBadge("4", "element")}<\\/li><li>email: ${markerBadge("4", "element")}<\\/li>`));
+  assert.match(clientFieldValidations, /<li>required<\/li><li>email<\/li>/);
 });
 
 test("keeps required metadata in the input required column for input form specs", () => {
@@ -7029,7 +7030,7 @@ test("creates document symbols for MarkVSpec structure", () => {
     "Form Groups",
     "Actions",
     "Preview Scenarios",
-    "Validations",
+    "Cross-field Validations",
     "Business Rules"
   ]);
 
