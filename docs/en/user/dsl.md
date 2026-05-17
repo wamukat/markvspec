@@ -1089,7 +1089,7 @@ Display text separates static UI wording from dynamic data examples:
   `${i18n.login.heading}`.
 - `sample`: the representative display value shown in the wireframe for dynamic
   data.
-- `src`: the data source or binding represented by `sample`, written as an
+- `src`: the data source represented by `sample`, written as an
   opaque expression such as `${model.notice.title}` or `${route.noticeId}`.
 - `value`: a mechanical value, such as a submitted form value, selected option
   value, or hidden value. Do not use it as a plain display sample.
@@ -1220,7 +1220,7 @@ targets and partial update targets. For validation across multiple fields,
 `target: F-LoginForm` makes the validated input group explicit in the design
 document.
 
-Input values may define a model binding and an initial fallback value:
+Input values may define an opaque data expression and an initial fallback value:
 
 ```markdown
 ### 3:E-EmailInput Input
@@ -1229,7 +1229,10 @@ Input values may define a model binding and an initial fallback value:
 - initial value: "test@example.com"
 ```
 
-This keeps the model binding and initial fallback value separate.
+This keeps the value source and initial fallback value separate. Do not use a
+separate `bind` property; it is outside the supported DSL. Request parameters
+should read explicit element values such as `E-EmailInput.value` or explicit
+model values where the model is the actual source.
 
 Input-like controls can use semantic width presets. `width` is supported by
 `Input`, `Textarea`, `Select`, `MultiSelect`, `DatePicker`, `DateInput`,

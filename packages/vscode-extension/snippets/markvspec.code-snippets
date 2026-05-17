@@ -156,7 +156,7 @@
   },
   "MarkVSpec Input Element": {
     "prefix": "markvspec-element-input",
-    "description": "Create an Input element with model binding and input constraints.",
+    "description": "Create an Input element with value source and input constraints.",
     "body": [
       "### ${1:1}:${2:E-Input} Input",
       "",

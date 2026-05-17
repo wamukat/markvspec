@@ -6809,7 +6809,6 @@ viewport: mobile
 - initial value: 2026-05-02
 - min: 2020-01-01
 - max: 2030-12-31
-- bind: \${model.endDate}
 
 ### E-StartTime TimeInput
 

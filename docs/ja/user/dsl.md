@@ -908,7 +908,7 @@ wireframe preview では native `required` attribute や自動の `*` marker と
 - `placeholder`: 入力欄などに表示する補助文言。
 - `placeholder src`: `placeholder` の取得元。主に `${i18n.login.email}` のような不透明な式。
 - `sample`: 動的データが実際に表示される時の代表表示例。
-- `src`: `sample` の取得元またはバインド先。`${model.notice.title}` や `${route.noticeId}` のような不透明な式。
+- `src`: `sample` の取得元。`${model.notice.title}` や `${route.noticeId}` のような不透明な式。
 - `value`: 送信値、選択肢値、hidden value などの機械的な値。単なる表示サンプルには使いません。
 
 `format` は `src` の値を `sample` の形へ整形する規則です。生成される設計書では
@@ -962,6 +962,11 @@ partial update target には `L-*` の Layout ID を使います。複数項目�
 
 - 画面データ: `${model.email}`
 - 初期表示値: `test@example.com`
+
+独立した `bind` property はサポート対象外です。入力値の由来は `value` や
+`source`、初期表示値は `initial value`、リクエストパラメータは
+`E-EmailInput.value` のような明示的な要素値参照、または実際の由来である
+model 値として書き分けます。
 
 初期値が不要な場合は次のように書けます。
 

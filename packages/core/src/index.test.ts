@@ -5886,7 +5886,6 @@ title: Input Contract
 
 - label: Email
 - value: \${model.email}
-- bind: \${model.email}
 - input rule:
   - type: email
   - max length: 255
@@ -9673,6 +9672,35 @@ title: Unsupported Props
   assert(diagnostic);
   assert.equal(diagnostic.severity, "warning");
   assert.equal(diagnostic.line, lineNumber(source, "- placeholder: Save button"));
+});
+
+test("warns for unsupported legacy bind element property", () => {
+  const source = `---
+id: SCR-UNSUPPORTED-BIND
+type: screen
+title: Unsupported Bind
+---
+
+# SCR-UNSUPPORTED-BIND Unsupported Bind
+
+## States
+
+- idle*
+
+## Elements
+
+### E-EmailInput Input
+
+- label: Email
+- value: \${model.email}
+- bind: \${model.email}
+`;
+  const result = parseMarkVSpec(source);
+  const diagnostic = result.diagnostics.find((item) => item.message === "Element E-EmailInput of type Input uses unsupported property bind.");
+
+  assert(diagnostic);
+  assert.equal(diagnostic.severity, "warning");
+  assert.equal(diagnostic.line, lineNumber(source, "- bind: ${model.email}"));
 });
 
 test("allows label src i18n references on element labels", () => {

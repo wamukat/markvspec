@@ -255,9 +255,11 @@ validation. The element heading stays focused on the control type:
 - initial value: "test@example.com"
 ```
 
-The value example is parsed as model binding `${model.email}`, while
-`initial value` supplies the initial display value. `Checkbox` supports the same
-separate `initial value` property for an initial checked state.
+The value example is an opaque data expression, while `initial value` supplies
+the initial display value. Do not use a separate `bind` property; it is outside
+the supported DSL because input value source, initial fallback, and request
+parameters should remain explicit. `Checkbox` supports the same separate
+`initial value` property for an initial checked state.
 
 Use `Paragraph` for prose and explanatory text.
 

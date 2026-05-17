@@ -17,7 +17,6 @@ export type MessageKey =
   | "always"
   | "availability"
   | "basicInfo"
-  | "bind"
   | "businessRule"
   | "businessRules"
   | "case"
@@ -246,7 +245,6 @@ const en: Record<MessageKey, string> = {
   always: "always",
   availability: "Availability",
   basicInfo: "Basic Info",
-  bind: "Bind",
   businessRule: "Business Rule",
   businessRules: "Business Rules",
   case: "Case",
@@ -476,7 +474,6 @@ const ja: Record<MessageKey, string> = {
   always: "常に",
   availability: "有効条件",
   basicInfo: "基本情報",
-  bind: "bind",
   businessRule: "業務ルール",
   businessRules: "業務ルール",
   case: "ケース",
