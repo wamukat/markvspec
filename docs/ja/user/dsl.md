@@ -501,11 +501,12 @@ Mermaid label、document symbol、plain text review comment で読みやすい�
 
 ルールです。
 
-- 見出しでは `<marker>:<id>` と書きます。
+- 見出しでは `<marker>:<id>` と書きます。Layout、Element、Action、
+  FormGroup、Validation、Business Rule の ID に指定できます。
 - 推奨 marker は、英数字、underscore、hyphen で構成する 1-12 文字です。先頭は英数字にします。それ以外の marker は互換のため読み取りますが warning にします。
 - 参照には marker ではなく ID を使います。
-- marker は Layout、Element、Action で使えます。
 - marker 表示は Layout、Element、Action ごとに ON / OFF できる想定です。
+  FormGroup marker は解決された Layout 範囲に表示するため、Layout marker の表示設定に従います。
 - marker の重複は少なくとも同じカテゴリ内で警告します。
 - rule と validation の見出しは、`### R-AccessControl Access control` や
   `### V-RequiredEmail Required email` のように安定 ID を直接使います。
@@ -931,7 +932,7 @@ label、placeholder、option label などの文言取得元は混ぜません。
 ```markdown
 ## Form Groups
 
-### F-LoginForm Login form
+### F1:F-LoginForm Login form
 
 - fields:
   - E-EmailInput
@@ -943,6 +944,11 @@ label、placeholder、option label などの文言取得元は混ぜません。
 `fields` には FormGroup に含める入力 Element ID を並べます。`submit` は送信
 Action を示します。FormGroup には Layout との紐づけを書きません。表示・更新対象は
 `L-*`、検証対象は `F-*` として分けます。
+
+`F1:` の marker は省略できます。省略した場合、preview の表や参照 chip では
+FormGroup ID を fallback marker label として使います。wireframe では、列挙された
+input elements をすべて含む最小の Layout 範囲に FormGroup marker を表示します。
+範囲を解決できない場合は wireframe には表示せず、warning を出します。
 
 `F-*` は Validation の `target` としてだけ使います。Action の update target や
 partial update target には `L-*` の Layout ID を使います。複数項目にまたがる

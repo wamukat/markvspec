@@ -42,7 +42,7 @@ interface EmbedPartialPreviewOptions {
   screenState: string | undefined;
   displayEffects?: MarkVSpecDisplayEffect[];
   messagesForResult: (result: MarkVSpecParseResult) => RendererMessages;
-  markerLink?: (id: string, category: "layout" | "element" | "action") => string | undefined;
+  markerLink?: (id: string, category: "layout" | "element" | "action" | "form-group") => string | undefined;
 }
 
 interface PartialTarget {
@@ -369,7 +369,7 @@ function embedPartialPreviewsForResult(
   partials: Map<string, MarkVSpecParseResult>,
   paths: Map<string, string> | undefined,
   messagesForResult: (result: MarkVSpecParseResult) => RendererMessages,
-  markerLink: ((id: string, category: "layout" | "element" | "action") => string | undefined) | undefined,
+  markerLink: ((id: string, category: "layout" | "element" | "action" | "form-group") => string | undefined) | undefined,
   displayEffects: MarkVSpecDisplayEffect[],
   stack: string[],
   depth: number
@@ -634,7 +634,7 @@ function renderFieldErrorDisplayContent(
   viewport: string | undefined,
   screenState: string | undefined,
   messagesForResult: (result: MarkVSpecParseResult) => RendererMessages,
-  markerLink: ((id: string, category: "layout" | "element" | "action") => string | undefined) | undefined
+  markerLink: ((id: string, category: "layout" | "element" | "action" | "form-group") => string | undefined) | undefined
 ): string {
   if (display.message) {
     return renderDisplayMessageContent(result, display.message, "mm-field-error-message");

@@ -491,7 +491,8 @@ comments stay easy to read.
 
 Marker rules:
 
-- A marker may be written before a Layout, Element, or Action ID as
+- A marker may be written before a Layout, Element, Action, FormGroup,
+  Validation, or Business Rule ID as
   `<marker>:<id>`.
 - The recommended marker shape is 1-12 ASCII letters, numbers, underscores, or
   hyphens, starting with a letter or number. Other marker shapes are accepted
@@ -502,6 +503,8 @@ Marker rules:
 - Preview marker display prefers `marker` when present, then falls back to the heading ID.
 - Duplicate markers should be reported at least within the same category.
 - Preview tools may toggle Layout, Element, and Action markers independently.
+  FormGroup markers follow the Layout marker visibility because they are drawn
+  on the resolved layout scope.
 - Rule and validation headings should use stable IDs directly, for example
   `### R-AccessControl Access control` and
   `### V-RequiredEmail Required email`.
@@ -1197,7 +1200,7 @@ target. FormGroup IDs use `F-*`.
 ```markdown
 ## Form Groups
 
-### F-LoginForm Login form
+### F1:F-LoginForm Login form
 
 - fields:
   - E-EmailInput
@@ -1209,6 +1212,12 @@ target. FormGroup IDs use `F-*`.
 `fields` lists the input Element IDs included in the FormGroup. `submit`
 identifies the submit Action. Do not bind a FormGroup to a Layout. Keep display
 and update targets as `L-*`, and validation targets as `F-*`.
+
+The `F1:` marker is optional. If it is omitted, preview tables and reference
+chips use the FormGroup ID as the fallback marker label. In wireframes,
+MarkVSpec displays the FormGroup marker on the smallest layout scope that
+contains all listed input elements. If that scope cannot be resolved, the
+marker is omitted from the wireframe and a warning is reported.
 
 Use `F-*` only as a Validation `target`. Use Layout IDs for Action update
 targets and partial update targets. For validation across multiple fields,
@@ -2515,6 +2524,7 @@ history           = "## History" history_entry*
 marker_prefix     = marker ":"
 layout_group      = "### " marker_prefix? layout_id " " name bullet*
 element           = "### " marker_prefix? element_id " " element_type required_suffix? bullet*
+form_group        = "### " marker_prefix? form_group_id " " name bullet*
 action            = "### " marker_prefix? action_id " " action_name action_group*
 action_group      = triggered_group | from_group | process_group | otherwise_group
 triggered_group   = "- Triggered" nested_bullet*

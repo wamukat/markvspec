@@ -197,11 +197,13 @@ body.hide-repeated-content .repeated-layout-only-message[data-mm-show-repeated-h
 .mm-partial-preview-badge{background:#eef2ff;border:1px solid #818cf8;border-radius:999px;color:#3730a3;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size:10px;font-weight:700;line-height:1;max-width:calc(100% - 12px);overflow:hidden;padding:3px 7px;position:absolute;right:4px;text-overflow:ellipsis;top:-11px;white-space:nowrap;z-index:3}
 .mm-id{align-items:center;align-self:flex-start;border:1px solid transparent;display:inline-flex;flex:0 0 auto;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size:9px;font-variant-numeric:tabular-nums;font-weight:700;justify-content:center;letter-spacing:0;line-height:1;margin-right:6px;min-height:16px;min-width:16px;padding:1px 4px;width:max-content}
 .mm-marker-layout{background:#ecfeff;border-color:#67e8f9;border-left:3px solid #0891b2;border-radius:4px;color:#155e75}
+.mm-marker-form-group{background:#f0fdf4;border-color:#86efac;border-left:3px solid #16a34a;border-radius:4px;color:#166534}
 .mm-marker-element{background:rgba(255,255,255,.72);border-color:#f59e0b;border-radius:999px;color:#92400e;box-shadow:0 1px 2px rgba(15,23,42,.12)}
 .mm-marker-action{background:rgba(255,255,255,.78);border-color:#22c55e;border-radius:4px;color:#166534;box-shadow:0 1px 2px rgba(15,23,42,.12)}
 .mm-marker-message{background:#fef2f2;border-color:#fca5a5;border-radius:4px;color:#991b1b;box-shadow:0 1px 2px rgba(15,23,42,.12);margin-right:4px}
 .mm-marker-link{display:inline-flex;pointer-events:auto;text-decoration:none}
 body.hide-marker-layout .mm-marker-layout{display:none}
+body.hide-marker-layout .mm-marker-form-group{display:none}
 body.hide-marker-element .mm-marker-element{display:none}
 body.hide-marker-action .mm-marker-action{display:none}
 @media (min-width:760px){
@@ -265,6 +267,7 @@ body.hide-marker-action .mm-marker-action{display:none}
     .mm-inline-token{color:inherit}
     .spec-table code.mm-id{padding:1px 4px}
     .mm-marker-layout{background:#ecfeff!important;border-color:#67e8f9!important;border-left-color:#0891b2!important;color:#155e75!important}
+    .mm-marker-form-group{background:#f0fdf4!important;border-color:#86efac!important;border-left-color:#16a34a!important;color:#166534!important}
     .mm-marker-element{background:rgba(255,255,255,.72)!important;border-color:#f59e0b!important;box-shadow:0 1px 2px rgba(15,23,42,.12)!important;color:#92400e!important}
     .mm-marker-action{background:rgba(255,255,255,.78)!important;border-color:#22c55e!important;box-shadow:0 1px 2px rgba(15,23,42,.12)!important;color:#166534!important}
     .mm-marker-message{background:#fef2f2!important;border-color:#fca5a5!important;box-shadow:0 1px 2px rgba(15,23,42,.12)!important;color:#991b1b!important}

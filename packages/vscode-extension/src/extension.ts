@@ -3930,16 +3930,14 @@ function renderFormGroupsSpecFragment(
   return `<div class="form-group-spec-fragment" data-mm-render-key="form-groups:list">
     ${renderLocalizedTable(result,
       [
-        label(result, "id"),
-        label(result, "name"),
+        markerIdHeader(result),
         ...(showOverview ? [label(result, "overview")] : []),
         label(result, "fields"),
         label(result, "submit"),
         ...(showNotes ? [label(result, "notes")] : [])
       ],
       formGroups.map((formGroup) => [
-        renderDetailRefId(formGroup.id),
-        text(formGroup.name),
+        referenceForDetailId(result, formGroup.id),
         ...(showOverview ? [renderEntityOverview(formGroup.overview)] : []),
         formGroup.fields.length > 0 ? `<ul class="spec-list">${formGroup.fields.map((field) => `<li>${referenceForDetailId(result, field.elementId)}</li>`).join("")}</ul>` : "",
         formGroup.submit ? referenceForDetailId(result, formGroup.submit.actionId) : "",
@@ -3947,6 +3945,10 @@ function renderFormGroupsSpecFragment(
       ])
     )}
   </div>`;
+}
+
+function markerIdHeader(result: ReturnType<typeof parseMarkVSpec>): string {
+  return `${label(result, "marker")}/${label(result, "id")}`;
 }
 
 function renderLayoutSpecFragment(
@@ -4610,8 +4612,7 @@ function renderValidationRuleGroup(
   const showNotes = validations.some((validation) => (validation.notes?.length ?? 0) > 0);
   const headers = scope === "field"
     ? [
-      label(result, "id"),
-      label(result, "name"),
+      markerIdHeader(result),
       ...(showOverview ? [label(result, "overview")] : []),
       label(result, "target"),
       label(result, "rule"),
@@ -4621,8 +4622,7 @@ function renderValidationRuleGroup(
       ...(showNotes ? [label(result, "notes")] : [])
     ]
     : [
-      label(result, "id"),
-      label(result, "name"),
+      markerIdHeader(result),
       ...(showOverview ? [label(result, "overview")] : []),
       label(result, "target"),
       label(result, "inputs"),
@@ -4659,8 +4659,7 @@ function renderFieldValidationRows(
 
     return rules.map((rule, index) => [
       ...rowspanPrefixCells(index === 0 ? rules.length : 0, [
-        renderDetailRefId(validation.id),
-        text(validation.name),
+        referenceForDetailId(result, validation.id),
         ...(showOverview ? [renderEntityOverview(validation.overview)] : []),
         renderValidationProperty(result, validation, "target")
       ]),
@@ -4683,8 +4682,7 @@ function renderCrossFieldValidationRows(
   showNotes: boolean
 ): TableCell[][] {
   return validations.map((validation) => [
-    renderDetailRefId(validation.id),
-    text(validation.name),
+    referenceForDetailId(result, validation.id),
     ...(showOverview ? [renderEntityOverview(validation.overview)] : []),
     renderValidationProperty(result, validation, "target"),
     renderValidationProperty(result, validation, "input") || renderValidationProperty(result, validation, "inputs"),
@@ -4939,16 +4937,14 @@ function renderRulesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
     ${renderSectionOverview(sectionProse)}
     ${renderLocalizedTable(result,
       [
-        label(result, "id"),
-        label(result, "name"),
+        markerIdHeader(result),
         ...(showOverview ? [label(result, "overview")] : []),
         label(result, "ruleText"),
         ...(showMessages ? [label(result, "message")] : []),
         ...(showNotes ? [label(result, "notes")] : [])
       ],
       result.rules.map((rule) => [
-        renderDetailRefId(rule.id),
-        text(rule.name),
+        referenceForDetailId(result, rule.id),
         ...(showOverview ? [renderEntityOverview(rule.overview)] : []),
         renderRuleText(rule),
         ...(showMessages ? [renderBusinessRuleProperty(result, rule, "messages") || renderBusinessRuleProperty(result, rule, "message")] : []),
@@ -5245,8 +5241,8 @@ function renderSourceWithReferences(result: ReturnType<typeof parseMarkVSpec>, s
     return escapeHtml(part).replace(/(^|[^\p{L}\p{N}-])((?:ERR|L|E|F|A|R|V)-[\p{L}\p{N}-]+)/gu, (_match, prefix: string, id: string) => {
       const reference = detailedReferences
         ? referenceForDetailId(result, id)
-        : id.startsWith("F-")
-          ? result.formGroups.some((candidate) => candidate.id === id) ? renderFormGroupReferenceId(id) : renderDetailRefId(id)
+        : id.startsWith("F-") || id.startsWith("V-") || id.startsWith("R-")
+          ? referenceChipForId(result, id) || renderDetailRefId(id)
           : markerBadgeForId(result, id) || renderDetailRefId(id);
       return `${prefix}${reference}`;
     });
@@ -5860,8 +5856,7 @@ function referenceForDetailId(result: ReturnType<typeof parseMarkVSpec>, id: str
 
   if (id.startsWith("F-")) {
     const formGroup = result.formGroups.find((candidate) => candidate.id === id);
-    const reference = formGroup ? renderFormGroupReferenceId(id) : renderDetailRefId(id);
-    return formGroup?.name ? `${reference} ${text(formGroup.name)}` : reference;
+    return referenceChipForId(result, id) || (formGroup ? renderFormGroupReferenceId(id) : renderDetailRefId(id));
   }
 
   return referenceChipForId(result, id) || (isDocumentRefId(id) ? renderDocumentRefId(id) : isInternalId(id) ? renderDetailRefId(id) : text(id));
@@ -5908,12 +5903,17 @@ function findMarker(result: ReturnType<typeof parseMarkVSpec>, id: string): stri
     return action.properties["marker"];
   }
 
+  const formGroup = result.formGroups.find((candidate) => candidate.id === id);
+  if (formGroup) {
+    return firstStringProperty(formGroup.properties["marker"]);
+  }
+
   return undefined;
 }
 
 interface EntityRefChipInput {
   readonly id: string;
-  readonly category: "action" | "layout" | "element" | "message";
+  readonly category: "action" | "layout" | "element" | "form-group" | "message";
   readonly marker?: string;
   readonly label?: string;
   readonly href?: string;
@@ -5991,6 +5991,17 @@ function referenceChipForId(result: ReturnType<typeof parseMarkVSpec>, id: strin
     });
   }
 
+  if (id.startsWith("F-")) {
+    const formGroup = result.formGroups.find((candidate) => candidate.id === id);
+    return renderEntityRefChip({
+      id,
+      category: "form-group",
+      marker: findMarker(result, id) || id,
+      label: formGroup?.name || id,
+      href: `#${formGroupsAnchor()}`
+    });
+  }
+
   if (id.startsWith("V-") || id.startsWith("R-")) {
     const validation = result.validations.find((candidate) => candidate.id === id);
     const rule = result.rules.find((candidate) => candidate.id === id);
@@ -6017,7 +6028,7 @@ function actionDetailAnchor(actionId: string): string {
   return `action-detail-${encodeURIComponent(actionId)}`;
 }
 
-function markerCategoryForId(id: string): "layout" | "element" | "action" | undefined {
+function markerCategoryForId(id: string): "layout" | "element" | "action" | "form-group" | undefined {
   if (id.startsWith("L-")) {
     return "layout";
   }
@@ -6028,6 +6039,10 @@ function markerCategoryForId(id: string): "layout" | "element" | "action" | unde
 
   if (id.startsWith("A-")) {
     return "action";
+  }
+
+  if (id.startsWith("F-")) {
+    return "form-group";
   }
 
   return undefined;

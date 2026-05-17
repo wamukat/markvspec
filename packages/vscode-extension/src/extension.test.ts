@@ -45,7 +45,7 @@ import { buildStateScreenReadModels } from "@markvspec/core";
 
 const extensionRoot = resolve(".");
 
-function markerBadge(value: string, category: "layout" | "element" | "action", linked = category === "action", anchorValue = value): string {
+function markerBadge(value: string, category: "layout" | "element" | "action" | "form-group", linked = category === "action", anchorValue = value): string {
   const badge = `<code class="mm-id mm-marker mm-marker-${category}" data-mm-marker-category="${category}">${escapeRegExp(value)}</code>`;
   if (!linked) {
     return badge;
@@ -82,6 +82,10 @@ function refActionChip(marker: string, actionId: string, actionName: string): st
 
 function refMessageChip(marker: string, id: string, label: string): string {
   return `<span class="mm-ref-chip mm-ref-chip-message"[^>]*><code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="${escapeRegExp(id)}">${escapeRegExp(marker)}</code> ${escapeRegExp(label)}</span>`;
+}
+
+function refFormGroupChip(marker: string, id: string, label: string): string {
+  return `<a class="mm-ref-chip mm-ref-chip-form-group" href="#form-groups"[^>]*data-mm-ref-id="${escapeRegExp(id)}"[^>]*>${markerBadge(marker, "form-group")} ${escapeRegExp(label)}</a>`;
 }
 
 function detailIdRef(id: string): string {
@@ -3784,23 +3788,23 @@ locale: ja
   assert.match(section, /<h3>クライアント複合項目検証<\/h3>/);
   assert.match(section, /<h3>サーバ単項目検証<\/h3>/);
   assert.match(section, /<h3>サーバ複合項目検証<\/h3>/);
-  assert.match(clientField, /<th>ID<\/th><th>名前<\/th><th>対象<\/th><th>ルール<\/th><th>条件<\/th><th>メッセージ<\/th><th>エラーコード<\/th>/);
+  assert.match(clientField, /<th>番号\/ID<\/th><th>対象<\/th><th>ルール<\/th><th>条件<\/th><th>メッセージ<\/th><th>エラーコード<\/th>/);
   assert.doesNotMatch(section, /<th>結果<\/th>/);
   assert.doesNotMatch(section, /<th>範囲<\/th>|<th>実行<\/th>/);
-  assert.match(clientField, /<td><span class="mm-detail-ref-id">V-EmailRequired<\/span><\/td><td>メール必須<\/td>/);
+  assert.match(clientField, new RegExp(`<td>${refMessageChip("V-EmailRequired", "V-EmailRequired", "メール必須")}</td>`));
   assert.match(clientField, /非推奨 condition:/);
   assert.doesNotMatch(clientField, /V-PasswordConfirmation|V-EmailUnique|V-AccountConsistency/);
-  assert.match(clientCrossField, /<th>ID<\/th><th>名前<\/th><th>対象<\/th><th>入力<\/th><th>チェック<\/th><th>条件<\/th><th>メッセージ<\/th><th>エラーコード<\/th>/);
-  assert.match(clientCrossField, /<td><span class="mm-detail-ref-id">V-PasswordConfirmation<\/span><\/td><td>パスワード確認<\/td>/);
+  assert.match(clientCrossField, /<th>番号\/ID<\/th><th>対象<\/th><th>入力<\/th><th>チェック<\/th><th>条件<\/th><th>メッセージ<\/th><th>エラーコード<\/th>/);
+  assert.match(clientCrossField, new RegExp(`<td>${refMessageChip("V-PasswordConfirmation", "V-PasswordConfirmation", "パスワード確認")}</td>`));
   assert.match(clientCrossField, new RegExp(`<li>${markerBadge("1", "element")}<\\/li><li>${markerBadge("2", "element")}<\\/li>`));
   assert.match(clientCrossField, /same-as/);
   assert.match(clientCrossField, new RegExp(`${markerBadge("1", "element")}\\.value equals ${markerBadge("2", "element")}\\.value`));
   assert.doesNotMatch(clientCrossField, /V-PasswordConfirmation\.result/);
   assert.doesNotMatch(clientCrossField, /V-EmailRequired|V-EmailUnique|V-AccountConsistency/);
-  assert.match(serverField, /<td><span class="mm-detail-ref-id">V-EmailUnique<\/span><\/td><td>メール重複<\/td>/);
+  assert.match(serverField, new RegExp(`<td>${refMessageChip("V-EmailUnique", "V-EmailUnique", "メール重複")}</td>`));
   assert.match(serverField, /ERR-EMAIL-TAKEN/);
   assert.doesNotMatch(serverField, /V-EmailRequired|V-PasswordConfirmation|V-AccountConsistency/);
-  assert.match(serverCrossField, /<td><span class="mm-detail-ref-id">V-AccountConsistency<\/span><\/td><td>アカウント整合性<\/td>/);
+  assert.match(serverCrossField, new RegExp(`<td>${refMessageChip("V-AccountConsistency", "V-AccountConsistency", "アカウント整合性")}</td>`));
   assert.match(serverCrossField, /ERR-ACCOUNT-CONSISTENCY/);
   assert.doesNotMatch(serverCrossField, /V-EmailRequired|V-PasswordConfirmation|V-EmailUnique/);
 });
@@ -3882,7 +3886,7 @@ locale: ja
 
 フォームグループ概要です。
 
-### F-LoginForm Login form
+### F1:F-LoginForm Login form
 
 - fields:
   - E-EmailInput
@@ -3931,18 +3935,19 @@ locale: ja
     numberedHeadingPattern(2, "Validations"),
     numberedHeadingPattern(2, "業務ルール")
   ]);
-  assert.doesNotMatch(idleSection, /フォームグループ|form-groups:list/);
+  assert.match(idleSection, /mm-marker-form-group" data-mm-marker-category="form-group">F1<\/code>/);
+  assert.doesNotMatch(idleSection, /form-groups:list/);
   assert.match(formGroups, numberedHeadingPattern(2, "フォームグループ", ' id="form-groups"'));
   assert.match(formGroups, /<div class="entity-overview"><p class="note-paragraph">フォームグループ概要です。<\/p><\/div>\s*<div class="form-group-spec-fragment"/);
-  assert.match(formGroups, /<th>ID<\/th><th>名前<\/th><th>項目<\/th><th>送信<\/th>/);
-  assert.match(formGroups, /<td><span class="mm-detail-ref-id">F-LoginForm<\/span><\/td><td>Login form<\/td>/);
+  assert.match(formGroups, /<th>番号\/ID<\/th><th>項目<\/th><th>送信<\/th>/);
+  assert.match(formGroups, new RegExp(`<td>${refFormGroupChip("F1", "F-LoginForm", "Login form")}</td>`));
   assert.match(formGroups, new RegExp(`<li>${detailElementRef("E-EmailInput", "E-EmailInput")}</li><li>${detailElementRef("E-PasswordInput", "E-PasswordInput")}</li>`));
   assert.match(formGroups, new RegExp(`<td>${refActionChip("A-SubmitLogin", "A-SubmitLogin", "Submit login")}</td>`));
-  assert.match(formGroups, /<td><span class="mm-detail-ref-id">F-DesktopOnlyForm<\/span><\/td><td>Desktop-only form<\/td>/);
+  assert.match(formGroups, new RegExp(`<td>${refFormGroupChip("F-DesktopOnlyForm", "F-DesktopOnlyForm", "Desktop-only form")}</td>`));
   assert.match(formGroups, new RegExp(`<li>${detailElementRef("E-DesktopOnlyInput", "E-DesktopOnlyInput")}</li>`));
   assert.doesNotMatch(formGroups, /<th>レイアウト<\/th>/);
   assert.match(formGroups, /<\/div>\s*<div class="entity-notes"><p class="note-paragraph">フォームグループ補足です。<\/p><\/div>/);
-  assert.match(validations, /<td><a class="mm-detail-ref-link" href="#form-groups"><span class="mm-detail-ref-id">F-LoginForm<\/span><\/a><\/td>/);
+  assert.match(validations, new RegExp(`<td>${refFormGroupChip("F1", "F-LoginForm", "Login form")}</td>`));
   assert.doesNotMatch(html, /id="form-group-F-LoginForm"/);
   assert.equal([...html.matchAll(/<h2 id="form-groups">\s*<span class="section-number">[\d.]+\.<\/span>\s*フォームグループ<\/h2>/g)].length, 1);
   assert.equal([...html.matchAll(/id="form-groups"/g)].length, 1);
@@ -4262,10 +4267,10 @@ test("keeps validation required distinct from input required in single-field val
   assert.doesNotMatch(formControls, /<th>Input Required<\/th>/);
   assert.match(formControls, new RegExp(`<td>${detailElementRef("3", "E-UsernameInput")}</td><td>Input</td><td>no</td>`));
   assert.match(formControls, new RegExp(`<td>${detailElementRef("4", "E-EmailInput")}</td><td>Input</td><td>no</td>`));
-  assert.match(clientFieldValidations, new RegExp(`<td rowspan="3"><span class="mm-detail-ref-id">V-UsernameRules<\\/span><\\/td><td rowspan="3">Username rules<\\/td><td rowspan="3">${markerBadge("3", "element")}<\\/td>`));
+  assert.match(clientFieldValidations, new RegExp(`<td rowspan="3">${refMessageChip("V-UsernameRules", "V-UsernameRules", "Username rules")}<\\/td><td rowspan="3">${markerBadge("3", "element")}<\\/td>`));
   assert.match(clientFieldValidations, /<td>required<\/td>[\s\S]*<td>length: element <span class="mm-muted">\(min length: 3, max length: 40\)<\/span><\/td>[\s\S]*<td>pattern<\/td>/);
   assert.match(clientFieldValidations, /Username is required\.[\s\S]*Username must be 3 to 40 lowercase letters, numbers, or hyphens\.[\s\S]*Username can contain lowercase letters, numbers, and hyphens\./);
-  assert.match(clientFieldValidations, new RegExp(`<td rowspan="2"><span class="mm-detail-ref-id">V-EmailRules<\\/span><\\/td><td rowspan="2">Email rules<\\/td><td rowspan="2">${markerBadge("4", "element")}<\\/td>`));
+  assert.match(clientFieldValidations, new RegExp(`<td rowspan="2">${refMessageChip("V-EmailRules", "V-EmailRules", "Email rules")}<\\/td><td rowspan="2">${markerBadge("4", "element")}<\\/td>`));
   assert.match(clientFieldValidations, /<td>required<\/td>[\s\S]*<td>email<\/td>/);
   assert.match(clientFieldValidations, new RegExp(`<td>range: element <span class="mm-muted">\\(min: 13, max: 120, step: 1\\)<\\/span><\\/td><td>${markerBadge("5", "element")}\\.value is present<\\/td><td>Age must be between 13 and 120\\.<\\/td>`));
   assert.doesNotMatch(clientFieldValidations, /<th>Result<\/th>|<th>Condition<\/th>/);
@@ -6657,6 +6662,16 @@ title: Template Prose
 
 - idle*
 
+## Layout: mobile
+
+### L-TemplateForm Template form layout
+
+- stack
+
+#### Items
+
+- E-TemplateInput
+
 ## Elements
 
 ### E-TemplateInput Input
@@ -6683,6 +6698,16 @@ title: Screen Prose
 ## States
 
 - idle*
+
+## Layout: mobile
+
+### L-ScreenForm Screen form layout
+
+- stack
+
+#### Items
+
+- E-ScreenInput
 
 ## Elements
 

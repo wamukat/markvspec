@@ -6,6 +6,7 @@ import { sourceTypeForElement } from "./source-types.js";
 import type {
   MarkVSpecAction,
   MarkVSpecElement,
+  MarkVSpecFormGroup,
   MarkVSpecLayoutGroup,
   MarkVSpecLayoutItem,
   MarkVSpecParseResult,
@@ -22,12 +23,14 @@ export function renderMarkVSpecHtml(result: MarkVSpecParseResult, options: MarkV
   const elementById = new Map(result.elements.map((element) => [element.id, element]));
   const stateNames = new Set(result.states.map((state) => state.name));
   const actionMarkersByElementId = mapActionMarkersByElementId(result.actions, result.elements, activeState);
+  const formGroupMarkersByLayoutId = mapFormGroupMarkersByLayoutId(result.formGroups, layoutGroups, layoutById);
   const containedLayoutIds = new Set<string>();
   const context = {
     ...renderContextForState(result, activeState),
     sampleOverrides: options.sampleOverrides ?? {},
     elementById,
-    actionMarkersByElementId
+    actionMarkersByElementId,
+    formGroupMarkersByLayoutId
   };
   const renderOptions = {
     ...options,
@@ -92,17 +95,19 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
   if (layoutMatch) {
     const [, viewport, layoutId] = layoutMatch;
     const layoutGroups = result.layoutGroups.filter((group) => group.viewport === viewport);
+    const layoutById = new Map(layoutGroups.map((group) => [group.id, group]));
     const layout = layoutGroups.find((candidate) => candidate.id === layoutId);
     if (!layout) {
       return undefined;
     }
+    const formGroupMarkersByLayoutId = mapFormGroupMarkersByLayoutId(result.formGroups, layoutGroups, layoutById);
 
     return {
       renderKey,
       html: renderLayoutGroup(
         layout,
         result,
-        new Map(layoutGroups.map((group) => [group.id, group])),
+        layoutById,
         mapSlotContentsByName(result.slotContents),
         elementById,
         actionMarkersByElementId,
@@ -114,7 +119,8 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
           ...renderContextForState(result, activeState),
           sampleOverrides: options.sampleOverrides ?? {},
           elementById,
-          actionMarkersByElementId
+          actionMarkersByElementId,
+          formGroupMarkersByLayoutId
         },
         false,
         undefined,
@@ -141,13 +147,15 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
     }
     const [insertionContext] = insertionContexts;
     const depth = insertionContext.depth + layoutDepthFor(layoutId, slotContent.layoutGroups);
+    const layoutById = new Map(slotContent.layoutGroups.map((group) => [group.id, group]));
+    const formGroupMarkersByLayoutId = mapFormGroupMarkersByLayoutId(result.formGroups, slotContent.layoutGroups, layoutById);
 
     return {
       renderKey,
       html: renderLayoutGroup(
         layout,
         result,
-        new Map(slotContent.layoutGroups.map((group) => [group.id, group])),
+        layoutById,
         slotContentsByName,
         elementById,
         actionMarkersByElementId,
@@ -160,6 +168,7 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
           sampleOverrides: options.sampleOverrides ?? {},
           elementById,
           actionMarkersByElementId,
+          formGroupMarkersByLayoutId,
           slotViewport: slotViewport === "default" ? activeViewport : slotViewport
         },
         insertionContext.parentDisabled,
@@ -195,10 +204,16 @@ interface RenderContext {
   sampleOverrides: Record<string, MarkVSpecParseResult["previewScenarios"][number]["samples"][number]>;
   elementById?: Map<string, MarkVSpecElement>;
   actionMarkersByElementId?: Map<string, ActionMarkerReference[]>;
+  formGroupMarkersByLayoutId?: Map<string, FormGroupMarkerReference[]>;
   suppressMarkers?: boolean;
   slotName?: string;
   slotRenderViewport?: string;
   slotViewport?: string;
+}
+
+interface FormGroupMarkerReference {
+  id: string;
+  marker?: string;
 }
 
 type WireframeSpacingKind = "margin" | "padding" | "gap";
@@ -337,7 +352,10 @@ function renderLayoutGroupOnce(
     depth
   );
   const placeholder = children ? "" : `<div class="mm-layout-placeholder">${escapeHtml(group.name || group.id)}</div>`;
-  const marker = context.suppressMarkers || group.documentRole === "template" || presentationPanel ? "" : renderMarker(group.id, group.properties["marker"], "layout", options);
+  const marker = context.suppressMarkers || group.documentRole === "template" || presentationPanel ? "" : [
+    renderMarker(group.id, group.properties["marker"], "layout", options),
+    ...(context.formGroupMarkersByLayoutId?.get(group.id) ?? []).map((formGroupMarker) => renderMarker(formGroupMarker.id, formGroupMarker.marker, "form-group", options))
+  ].join("");
   const renderKey = renderKeyOverride ?? layoutRenderKey(group, context);
 
   return `<!--mm-render-key:${escapeHtml(renderKey)}--><section class="${classes}"${styleAttribute} data-mm-id="${escapeHtml(group.id)}" data-mm-render-key="${escapeHtml(renderKey)}">${marker}${children || placeholder}</section>`;
@@ -1293,10 +1311,64 @@ function actionMarkerAppliesToState(action: MarkVSpecAction, activeState: string
   return actionAppliesToState(action, activeState, { unscoped: "always" });
 }
 
+function mapFormGroupMarkersByLayoutId(
+  formGroups: MarkVSpecFormGroup[],
+  layoutGroups: MarkVSpecLayoutGroup[],
+  layoutById: Map<string, MarkVSpecLayoutGroup>
+): Map<string, FormGroupMarkerReference[]> {
+  const byLayoutId = new Map<string, FormGroupMarkerReference[]>();
+  for (const formGroup of formGroups) {
+    const fieldIds = new Set(formGroup.fields.map((field) => field.elementId));
+    if (fieldIds.size === 0) {
+      continue;
+    }
+    const candidates = layoutGroups
+      .map((layout) => ({ layout, elementIds: layoutElementIds(layout, layoutById, new Set()) }))
+      .filter(({ elementIds }) => [...fieldIds].every((fieldId) => elementIds.has(fieldId)))
+      .sort((a, b) => a.elementIds.size - b.elementIds.size);
+    const target = candidates[0]?.layout;
+    if (!target) {
+      continue;
+    }
+    const markers = byLayoutId.get(target.id) ?? [];
+    markers.push({ id: formGroup.id, marker: firstStringProperty(formGroup.properties["marker"]) });
+    byLayoutId.set(target.id, markers);
+  }
+  return byLayoutId;
+}
+
+function layoutElementIds(
+  group: MarkVSpecLayoutGroup,
+  layoutById: Map<string, MarkVSpecLayoutGroup>,
+  visited: Set<string>
+): Set<string> {
+  if (visited.has(group.id)) {
+    return new Set();
+  }
+  visited.add(group.id);
+  const elementIds = new Set<string>();
+  for (const item of group.items) {
+    if (item.type === "contains") {
+      if (item.targetId.startsWith("E-")) {
+        elementIds.add(item.targetId);
+      }
+      const childLayout = layoutById.get(item.targetId);
+      if (childLayout) {
+        for (const elementId of layoutElementIds(childLayout, layoutById, new Set(visited))) {
+          elementIds.add(elementId);
+        }
+      }
+    } else if (item.type === "field") {
+      elementIds.add(item.elementId);
+    }
+  }
+  return elementIds;
+}
+
 function renderMarker(
   id: string,
   marker: string | undefined,
-  category: "layout" | "element" | "action",
+  category: "layout" | "element" | "action" | "form-group",
   options: MarkVSpecRenderOptions
 ): string {
   if (!isMarkerVisible(category, options)) {
@@ -1325,8 +1397,15 @@ function renderAnnotatedElement(markers: string, elementType: string, elementHtm
   return `${renderKey}<div class="${classes}"${styleAttribute}${renderKeyAttribute}>${elementHtml}<span class="mm-annotation-row">${markers}</span></div>`;
 }
 
-function isMarkerVisible(category: "layout" | "element" | "action", options: MarkVSpecRenderOptions): boolean {
+function isMarkerVisible(category: "layout" | "element" | "action" | "form-group", options: MarkVSpecRenderOptions): boolean {
+  if (category === "form-group") {
+    return options.markerVisibility?.formGroup ?? options.markerVisibility?.layout ?? options.showIds ?? false;
+  }
   return options.markerVisibility?.[category] ?? options.showIds ?? false;
+}
+
+function firstStringProperty(value: string | string[] | undefined): string | undefined {
+  return typeof value === "string" ? value : Array.isArray(value) ? value.find((item) => item.length > 0) : undefined;
 }
 
 function cssClass(prefix: string, value: string): string {
@@ -1392,7 +1471,8 @@ function renderDefaultStyles(): string {
 .mm-switch-track{align-items:center;background:#d1d5db;border-radius:999px;display:inline-flex;height:18px;padding:2px;width:34px}
 .mm-switch-thumb{background:#fff;border-radius:50%;box-shadow:0 1px 2px rgba(15,23,42,.28);display:block;height:14px;width:14px}
 .mm-element-switch input:checked + .mm-switch-track{background:#2563eb}.mm-element-switch input:checked + .mm-switch-track .mm-switch-thumb{transform:translateX(16px)}
-.mm-layout > .mm-marker-layout{left:-1px;position:absolute;top:-9px;z-index:2}
+.mm-layout > .mm-marker-layout,.mm-layout > .mm-marker-form-group{left:-1px;position:absolute;top:-9px;z-index:2}
+.mm-layout > .mm-marker-form-group{top:9px}
 .mm-element-wrap{display:block;max-width:100%;min-width:0;position:relative;width:max-content}
 .mm-element-wrap-table{display:block;max-width:100%;min-width:0;width:100%}
 .mm-annotation-row{align-items:center;display:inline-flex;flex-wrap:wrap;gap:2px;left:0;line-height:1;max-width:calc(100% + 12px);pointer-events:none;position:absolute;top:0;transform:translate(-35%,-35%);width:max-content;z-index:3}
@@ -1453,6 +1533,7 @@ function renderDefaultStyles(): string {
 .mm-tone-info{background:#e0f2fe;border-color:#38bdf8;color:#075985}
 .mm-id{align-items:center;align-self:flex-start;border:1px solid transparent;display:inline-flex;flex:0 0 auto;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size:9px;font-variant-numeric:tabular-nums;font-weight:700;justify-content:center;letter-spacing:0;line-height:1;margin-right:6px;min-height:16px;min-width:16px;padding:1px 4px;width:max-content}
 .mm-marker-layout{background:#ecfeff;border-color:#67e8f9;border-left:3px solid #0891b2;border-radius:4px;color:#155e75}
+.mm-marker-form-group{background:#f0fdf4;border-color:#86efac;border-left:3px solid #16a34a;border-radius:4px;color:#166534}
 .mm-marker-element{background:rgba(255,255,255,.72);border-color:#f59e0b;border-radius:999px;color:#92400e;box-shadow:0 1px 2px rgba(15,23,42,.12)}
 .mm-marker-action{background:rgba(255,255,255,.78);border-color:#22c55e;border-radius:4px;color:#166534;box-shadow:0 1px 2px rgba(15,23,42,.12)}
 .mm-marker-message{background:#fef2f2;border-color:#fca5a5;border-radius:4px;color:#991b1b;box-shadow:0 1px 2px rgba(15,23,42,.12);margin-right:4px}

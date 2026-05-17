@@ -651,12 +651,13 @@ export interface MarkVSpecRenderOptions {
   messages?: Partial<Pick<RendererMessages, "noVisibleElements">>;
   showIds?: boolean;
   includeConditionalContent?: boolean;
-  markerFilter?: (id: string, category: "layout" | "element" | "action") => boolean;
-  markerLink?: (id: string, category: "layout" | "element" | "action") => string | undefined;
+  markerFilter?: (id: string, category: "layout" | "element" | "action" | "form-group") => boolean;
+  markerLink?: (id: string, category: "layout" | "element" | "action" | "form-group") => string | undefined;
   markerVisibility?: {
     layout?: boolean;
     element?: boolean;
     action?: boolean;
+    formGroup?: boolean;
   };
   includeStyles?: boolean;
 }

@@ -258,7 +258,7 @@ title: Small AST
 
 ## Form Groups
 
-### F-ProfileForm Profile form
+### F1:F-ProfileForm Profile form
 
 - fields:
   - E-Name
@@ -380,10 +380,12 @@ Custom detail.
         raw: "submit: A-Save"
       },
       properties: {
+        marker: "F1",
         fields: "",
         submit: "A-Save"
       },
       propertyLocations: {
+        marker: [{ line: lineNumber(source, "### F1:F-ProfileForm Profile form") }],
         fields: [{ line: lineNumber(source, "- fields:") }],
         submit: [{ line: lineNumber(source, "- submit: A-Save") }]
       },
@@ -391,7 +393,7 @@ Custom detail.
         { text: "fields:", location: { line: lineNumber(source, "- fields:") } },
         { text: "submit: A-Save", location: { line: lineNumber(source, "- submit: A-Save") } }
       ],
-      location: { line: lineNumber(source, "### F-ProfileForm Profile form") }
+      location: { line: lineNumber(source, "### F1:F-ProfileForm Profile form") }
     }
   ]);
   assert.deepEqual(astResult.validations, [
@@ -1668,6 +1670,10 @@ Layout section overview.
 Layout entity overview.
 
 - stack
+
+#### Items
+
+- E-Name
 
 Layout entity notes.
 
@@ -5672,6 +5678,47 @@ title: FormGroup Diagnostics
   );
 });
 
+test("warns when a FormGroup scope cannot be resolved to a layout group", () => {
+  const source = `---
+id: SCR-FORMGROUP-SCOPE
+type: screen
+title: FormGroup Scope
+---
+
+# SCR-FORMGROUP-SCOPE FormGroup Scope
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Other Other
+
+- stack
+
+## Elements
+
+### E-Email Input
+
+- value: \${model.email}
+
+## Form Groups
+
+### F-LoginForm Login form
+
+- fields: E-Email
+`;
+  const result = parseMarkVSpec(source);
+
+  assert.deepEqual(
+    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+    [
+      ["warning", "FormGroup F-LoginForm scope cannot be resolved to a layout group. Preview will show the form group only in details.", lineNumber(source, "### F-LoginForm Login form")]
+    ]
+  );
+});
+
 test("diagnoses unsupported validation run values", () => {
   const source = `---
 id: SCR-VALIDATION-GROUPS
@@ -5750,6 +5797,17 @@ title: Canonical Validations
 ## States
 
 - idle*
+
+## Layout: mobile
+
+### L-PasswordForm Password form layout
+
+- stack
+
+#### Items
+
+- E-PasswordInput
+- E-PasswordConfirmInput
 
 ## Elements
 
@@ -7341,6 +7399,55 @@ test("renders the login screen as low-fidelity HTML", () => {
   assert.doesNotMatch(html, />パスワード欄</);
 });
 
+test("keeps FormGroup markers in layout fragments", () => {
+  const source = `---
+id: SCR-FORMGROUP-FRAGMENT
+type: screen
+title: FormGroup Fragment
+viewport: mobile
+---
+
+# SCR-FORMGROUP-FRAGMENT FormGroup Fragment
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L1:L-Form Form
+
+- stack
+
+#### Items
+
+- E-Email
+
+## Elements
+
+### E1:E-Email Input
+
+- value: \${model.email}
+
+## Form Groups
+
+### F1:F-LoginForm Login form
+
+- fields: E-Email
+`;
+  const result = parseMarkVSpec(source);
+  const fullHtml = renderMarkVSpecHtml(result, {
+    includeStyles: false,
+    markerVisibility: { layout: true, element: true, action: true }
+  });
+  const fragment = renderMarkVSpecHtmlFragment(result, "layout:mobile:L-Form", {
+    markerVisibility: { layout: true, element: true, action: true }
+  });
+
+  assert.match(fullHtml, /class="mm-id mm-marker mm-marker-form-group" data-mm-marker-category="form-group">F1<\/code>/);
+  assert.match(fragment?.html ?? "", /class="mm-id mm-marker mm-marker-form-group" data-mm-marker-category="form-group">F1<\/code>/);
+});
+
 test("keeps annotated fallback elements in block flow without a layout", () => {
   const source = `---
 id: SCR-FALLBACK
@@ -8563,6 +8670,24 @@ title: Markers
 - marker: 1
 - value: Two
 
+## Form Groups
+
+### FG:F-One One
+
+### FG:F-Two Two
+
+## Validations
+
+### MSG:V-One One
+
+### MSG:V-Two Two
+
+## Business Rules
+
+### MSG:R-One One
+
+### MSG:R-Two Two
+
 ## Actions
 
 ### Do:A-One one
@@ -8590,6 +8715,10 @@ title: Markers
 
   assert(messages.includes("Duplicate layout marker A in mobile: L-One and L-Two."));
   assert(messages.includes("Duplicate element marker 1: E-One and E-Two."));
+  assert(messages.includes("Duplicate form group marker FG: F-One and F-Two."));
+  assert(messages.includes("Duplicate message marker MSG: V-One and V-Two."));
+  assert(messages.includes("Duplicate message marker MSG: V-One and R-One."));
+  assert(messages.includes("Duplicate message marker MSG: V-One and R-Two."));
   assert(messages.includes("Duplicate action marker Do: A-One and A-Two."));
 });
 
@@ -8626,6 +8755,18 @@ title: Marker Shape
 - level: 1
 - value: Title
 
+## Form Groups
+
+### FormGroupMarkerTooLong:F-LoginForm Login form
+
+## Validations
+
+### bad.marker:V-Email Email validation
+
+## Business Rules
+
+### Bad!Rule:R-Policy Policy
+
 ## Actions
 
 ### Do!:A-Submit Submit
@@ -8644,6 +8785,9 @@ title: Marker Shape
   assert(messages.includes("Invalid layout marker LayoutMarkerTooLong on L-Page. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
   assert(messages.includes("Invalid layout marker bad.slot on L-SlotContent. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
   assert(messages.includes("Invalid element marker bad.marker on E-Title. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
+  assert(messages.includes("Invalid form group marker FormGroupMarkerTooLong on F-LoginForm. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
+  assert(messages.includes("Invalid message marker bad.marker on V-Email. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
+  assert(messages.includes("Invalid message marker Bad!Rule on R-Policy. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
   assert(messages.includes("Invalid action marker Do! on A-Submit. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
 });
 

@@ -23,6 +23,7 @@ import type {
   MarkVSpecDiagnostic,
   MarkVSpecDiagnosticSeverity,
   MarkVSpecElement,
+  MarkVSpecFormGroup,
   MarkVSpecLayoutGroup,
   MarkVSpecParseResult,
   MarkVSpecProcessStep,
@@ -97,6 +98,31 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
     diagnostics
   );
   checkMarkers(
+    result.formGroups.map((formGroup) => ({
+      id: formGroup.id,
+      marker: firstStringProperty(formGroup.properties["marker"]),
+      location: firstPropertyLine(formGroup, "marker") ? { line: firstPropertyLine(formGroup, "marker") ?? formGroup.location.line } : formGroup.location
+    })),
+    "form group",
+    diagnostics
+  );
+  checkMarkers(
+    [
+      ...result.validations.map((validation) => ({
+        id: validation.id,
+        marker: firstStringProperty(validation.properties["marker"]),
+        location: firstPropertyLine(validation, "marker") ? { line: firstPropertyLine(validation, "marker") ?? validation.location.line } : validation.location
+      })),
+      ...result.rules.map((rule) => ({
+        id: rule.id,
+        marker: firstStringProperty(rule.properties["marker"]),
+        location: firstPropertyLine(rule, "marker") ? { line: firstPropertyLine(rule, "marker") ?? rule.location.line } : rule.location
+      }))
+    ],
+    "message",
+    diagnostics
+  );
+  checkMarkers(
     result.elements.map((element) => ({
       id: element.id,
       marker: stringProperty(element, "marker"),
@@ -112,6 +138,31 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
       location: firstPropertyLine(action, "marker") ? { line: firstPropertyLine(action, "marker") ?? action.location.line } : action.location
     })),
     "action",
+    diagnostics
+  );
+  checkDuplicateMarkers(
+    result.formGroups.map((formGroup) => ({
+      id: formGroup.id,
+      marker: firstStringProperty(formGroup.properties["marker"]),
+      location: firstPropertyLine(formGroup, "marker") ? { line: firstPropertyLine(formGroup, "marker") ?? formGroup.location.line } : formGroup.location
+    })),
+    "form group",
+    diagnostics
+  );
+  checkDuplicateMarkers(
+    [
+      ...result.validations.map((validation) => ({
+        id: validation.id,
+        marker: firstStringProperty(validation.properties["marker"]),
+        location: firstPropertyLine(validation, "marker") ? { line: firstPropertyLine(validation, "marker") ?? validation.location.line } : validation.location
+      })),
+      ...result.rules.map((rule) => ({
+        id: rule.id,
+        marker: firstStringProperty(rule.properties["marker"]),
+        location: firstPropertyLine(rule, "marker") ? { line: firstPropertyLine(rule, "marker") ?? rule.location.line } : rule.location
+      }))
+    ],
+    "message",
     diagnostics
   );
   checkDuplicateMarkers(
@@ -800,9 +851,11 @@ function validateFormGroups(
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
   for (const formGroup of result.formGroups) {
+    let hasMissingField = false;
     for (const field of formGroup.fields) {
       const element = elementsById.get(field.elementId);
       if (!element) {
+        hasMissingField = true;
         diagnostics.push({
           severity: "error",
           message: `FormGroup ${formGroup.id} field references missing element ${field.elementId}.`,
@@ -827,7 +880,54 @@ function validateFormGroups(
       });
     }
 
+    if (!hasMissingField && formGroup.fields.length > 0 && !formGroupScopeCanBeResolved(result, formGroup)) {
+      diagnostics.push({
+        severity: "warning",
+        message: `FormGroup ${formGroup.id} scope cannot be resolved to a layout group. Preview will show the form group only in details.`,
+        line: formGroup.location.line
+      });
+    }
   }
+}
+
+function formGroupScopeCanBeResolved(result: MarkVSpecParseResult, formGroup: MarkVSpecFormGroup): boolean {
+  const fieldIds = new Set(formGroup.fields.map((field) => field.elementId));
+  if (fieldIds.size === 0) {
+    return false;
+  }
+  const layoutById = new Map(result.layoutGroups.map((group) => [group.id, group]));
+  return result.layoutGroups.some((group) => {
+    const elementIds = layoutElementIds(group, layoutById, new Set());
+    return [...fieldIds].every((fieldId) => elementIds.has(fieldId));
+  });
+}
+
+function layoutElementIds(
+  group: MarkVSpecLayoutGroup,
+  layoutById: Map<string, MarkVSpecLayoutGroup>,
+  visited: Set<string>
+): Set<string> {
+  if (visited.has(group.id)) {
+    return new Set();
+  }
+  visited.add(group.id);
+  const elementIds = new Set<string>();
+  for (const item of group.items) {
+    if (item.type === "contains") {
+      if (item.targetId.startsWith("E-")) {
+        elementIds.add(item.targetId);
+      }
+      const childLayout = layoutById.get(item.targetId);
+      if (childLayout) {
+        for (const elementId of layoutElementIds(childLayout, layoutById, new Set(visited))) {
+          elementIds.add(elementId);
+        }
+      }
+    } else if (item.type === "field") {
+      elementIds.add(item.elementId);
+    }
+  }
+  return elementIds;
 }
 
 function validateValidationTargets(
@@ -2643,6 +2743,10 @@ function extractRoutePlaceholders(route: string): Set<string> {
 function stringProperty(element: MarkVSpecElement, key: string): string {
   const value = element.properties[key];
   return typeof value === "string" ? value : "";
+}
+
+function firstStringProperty(value: string | string[] | undefined): string | undefined {
+  return typeof value === "string" ? value : Array.isArray(value) ? value.find((item) => item.length > 0) : undefined;
 }
 
 function commaListProperty(element: MarkVSpecElement, key: string): string[] {
