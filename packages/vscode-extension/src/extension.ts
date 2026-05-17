@@ -3750,6 +3750,13 @@ function stateViewsRenderContext(result: ReturnType<typeof parseMarkVSpec>): Sta
     renderLocalizedTableWithCells: (headers, rows) => renderLocalizedTableWithCells(result, headers, rows),
     markerBadgeForId: (id, linkAction) => markerBadgeForId(result, id, linkAction),
     renderDetailRefId,
+    renderEntityRef: (id, linkAction) => referenceChipForId(result, id, linkAction) || renderDetailRefId(id),
+    renderLayoutRef: (layout) => renderEntityRefChip({
+      id: layout.id,
+      category: "layout",
+      marker: firstStringProperty(layout.properties["marker"]) || layout.id,
+      label: layout.name || layout.id
+    }),
     renderEntityNotes,
     renderElementTypeSummary,
     renderElementActionReferences: (element) => renderElementActionReferences(result, element),
@@ -5842,10 +5849,11 @@ function renderEntityRefChip(input: EntityRefChipInput): string {
       : "";
   const classes = `mm-ref-chip mm-ref-chip-${input.category}`;
   const title = input.label ? ` title="${escapeHtml(`${input.id} ${input.label}`)}"` : ` title="${escapeHtml(input.id)}"`;
+  const refIdAttribute = ` data-mm-ref-id="${escapeHtml(input.id)}"`;
   const body = `${markerHtml}${labelHtml}`;
   return input.href
-    ? `<a class="${classes}" href="${escapeHtml(input.href)}"${title}>${body}</a>`
-    : `<span class="${classes}"${title}>${body}</span>`;
+    ? `<a class="${classes}" href="${escapeHtml(input.href)}"${refIdAttribute}${title}>${body}</a>`
+    : `<span class="${classes}"${refIdAttribute}${title}>${body}</span>`;
 }
 
 function markerBadgeForId(result: ReturnType<typeof parseMarkVSpec>, id: string | undefined, linkAction = true): string {

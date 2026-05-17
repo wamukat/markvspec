@@ -25,6 +25,8 @@ export interface StateViewSpecTableHelpers {
   renderLocalizedTableWithCells(headers: string[], rows: TableCell[][]): string;
   markerBadgeForId(id: string | undefined, linkAction?: boolean): string;
   renderDetailRefId(id: string): string;
+  renderEntityRef(id: string, linkAction?: boolean): string;
+  renderLayoutRef(layout: ParsedLayout): string;
   renderEntityNotes(notes: string[]): string;
   renderElementTypeSummary(element: ParsedElement): string;
   renderElementActionReferences(element: ParsedElement): string;
@@ -71,15 +73,21 @@ export function createStateViewSpecTableRenderer(
   result: MarkVSpecParseResult,
   helpers: StateViewSpecTableHelpers
 ): StateViewSpecTableRenderer {
+  const markerIdHeader = () => `${helpers.label("marker")}/${helpers.label("id")}`;
   const renderRepeatedLabel = () => `<span class="mm-chip mm-repeated-badge">${helpers.text(helpers.label("repeated"))}</span>`;
   const renderUnplacedLabel = () => `<span class="mm-chip mm-unplaced-badge" title="${helpers.text(helpers.label("notPlacedInCurrentLayout"))}"><span class="mm-unplaced-icon" aria-hidden="true"></span>${helpers.text(helpers.label("notPlacedInCurrentLayout"))}</span>`;
   const renderRepeatedMarkerCell = (id: string, repeated: boolean): string => {
     const marker = helpers.markerBadgeForId(id);
     return repeated ? `${marker} ${renderRepeatedLabel()}` : marker;
   };
-  const renderLayoutMarkerCell = (id: string, repeated: boolean, unplaced: boolean): string => {
-    const marker = renderRepeatedMarkerCell(id, repeated);
-    return unplaced ? `${marker} ${renderUnplacedLabel()}` : marker;
+  const renderRepeatedEntityRefCell = (id: string, repeated: boolean, linkAction = true): string => {
+    const ref = helpers.renderEntityRef(id, linkAction);
+    return repeated ? `${ref} ${renderRepeatedLabel()}` : ref;
+  };
+  const renderLayoutEntityRefCell = (layout: ParsedLayout, repeated: boolean, unplaced: boolean): string => {
+    const ref = helpers.renderLayoutRef(layout);
+    const withRepeated = repeated ? `${ref} ${renderRepeatedLabel()}` : ref;
+    return unplaced ? `${withRepeated} ${renderUnplacedLabel()}` : withRepeated;
   };
 
   const renderElementDetailGroup = (title: string, content: string, emptyWhenRepeatedHidden = false): string =>
@@ -110,10 +118,9 @@ export function createStateViewSpecTableRenderer(
 
   const renderElementSummaryTable = (elements: ParsedElement[], repeatedElementIds: ReadonlySet<string> | undefined, emptyWhenRepeatedHidden: boolean): string =>
     markRepeatedHiddenEmptyHtml(helpers.renderLocalizedTable(
-      [helpers.label("marker"), helpers.label("id"), helpers.label("type"), helpers.label("triggeredActions"), helpers.label("description")],
+      [markerIdHeader(), helpers.label("type"), helpers.label("triggeredActions"), helpers.label("description")],
       elements.map((element) => [
-        renderRepeatedMarkerCell(element.id, Boolean(repeatedElementIds?.has(element.id))),
-        helpers.renderDetailRefId(element.id),
+        renderRepeatedEntityRefCell(element.id, Boolean(repeatedElementIds?.has(element.id))),
         helpers.renderElementTypeSummary(element),
         helpers.renderElementActionReferences(element),
         helpers.renderElementDescription(element)
@@ -122,10 +129,9 @@ export function createStateViewSpecTableRenderer(
 
   const renderFormControlElementsTable = (elements: ParsedElement[], repeatedElementIds: ReadonlySet<string> | undefined, emptyWhenRepeatedHidden: boolean): string =>
     markRepeatedHiddenEmptyHtml(helpers.renderLocalizedTable(
-      [helpers.label("marker"), helpers.label("id"), helpers.label("type"), helpers.label("inputRequired"), helpers.label("initialValueSource"), helpers.label("inputSpec"), helpers.label("visibleWhen"), helpers.label("enabledWhen")],
+      [markerIdHeader(), helpers.label("type"), helpers.label("inputRequired"), helpers.label("initialValueSource"), helpers.label("inputSpec"), helpers.label("visibleWhen"), helpers.label("enabledWhen")],
       elements.map((element) => [
-        renderRepeatedMarkerCell(element.id, Boolean(repeatedElementIds?.has(element.id))),
-        helpers.renderDetailRefId(element.id),
+        renderRepeatedEntityRefCell(element.id, Boolean(repeatedElementIds?.has(element.id))),
         helpers.text(element.type),
         helpers.renderRequiredSpec(element),
         helpers.renderFormControlInitialValueSource(element),
@@ -138,11 +144,10 @@ export function createStateViewSpecTableRenderer(
   const renderDisplayContentSpecTable = (rows: DisplayContentSpecRow[], repeatedElementIds: ReadonlySet<string> | undefined, emptyWhenRepeatedHidden: boolean): string => {
     const spans = consecutiveRowspans(rows, (row, index) => repeatedElementIds?.has(row.element.id) ? `${row.element.id}\u0000${index}` : row.element.id);
     return markRepeatedHiddenEmptyHtml(helpers.renderLocalizedTableWithCells(
-      [helpers.label("marker"), helpers.label("id"), helpers.label("displayLocation"), helpers.label("displayValue"), helpers.label("format"), helpers.label("displaySource"), helpers.label("displayCondition"), helpers.label("enabledWhen")],
+      [markerIdHeader(), helpers.label("displayLocation"), helpers.label("displayValue"), helpers.label("format"), helpers.label("displaySource"), helpers.label("displayCondition"), helpers.label("enabledWhen")],
       rows.map((row, index) => [
         ...rowspanPrefixCells(spans[index] ?? 0, [
-          renderRepeatedMarkerCell(row.element.id, Boolean(repeatedElementIds?.has(row.element.id))),
-          helpers.renderDetailRefId(row.element.id)
+          renderRepeatedEntityRefCell(row.element.id, Boolean(repeatedElementIds?.has(row.element.id)))
         ]),
         helpers.text(row.location),
         helpers.renderDisplayContentValue(row.element, row.value),
@@ -161,8 +166,7 @@ export function createStateViewSpecTableRenderer(
     const layouts = stateScreenLayoutsForModel(result, model);
     const unplacedLayoutIds = stateScreenUnplacedLayoutIdsForModel(result, model);
     const rows = layouts.map((layout) => [
-      renderLayoutMarkerCell(layout.id, Boolean(repeatedLayoutIds?.has(layout.id)), unplacedLayoutIds.has(layout.id)),
-      helpers.renderDetailRefId(layout.id),
+      renderLayoutEntityRefCell(layout, Boolean(repeatedLayoutIds?.has(layout.id)), unplacedLayoutIds.has(layout.id)),
       helpers.text(layout.kind || ""),
       renderLayoutSettingsSummary(layout),
       renderLayoutConditionsSummary(layout),
@@ -175,7 +179,7 @@ export function createStateViewSpecTableRenderer(
     }
 
     return markRepeatedHiddenEmptyHtml(
-      helpers.renderLocalizedTable([helpers.label("marker"), helpers.label("id"), helpers.label("kind"), helpers.label("settings"), helpers.label("conditions"), helpers.label("items"), helpers.label("notes")], rows),
+      helpers.renderLocalizedTable([markerIdHeader(), helpers.label("kind"), helpers.label("settings"), helpers.label("conditions"), helpers.label("items"), helpers.label("notes")], rows),
       model.repeatedContent.layoutSpecEmptyWhenRepeatedHidden
     );
   };
@@ -216,7 +220,7 @@ export function createStateViewSpecTableRenderer(
     showOverview = false,
     overview = ""
   ): string[] => [
-    [renderRepeatedMarkerCell(action.id, repeated), helpers.text(action.name)].filter(Boolean).join(" "),
+    renderRepeatedEntityRefCell(action.id, repeated),
     helpers.renderTrigger(action.triggeredBy),
     helpers.text(helpers.actionKind(action)),
     ...(showOverview ? [overview] : [])

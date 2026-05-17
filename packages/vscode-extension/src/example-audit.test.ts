@@ -120,8 +120,9 @@ function auditStandaloneExport(document: ExampleAuditDocument, findings: AuditFi
 
 function auditVisibleNotPlacedLayouts(document: ExampleAuditDocument, findings: AuditFinding[]): void {
   for (const section of stateSections(document.html)) {
-    const unplacedLayoutIds = [...section.html.matchAll(/mm-unplaced-badge[\s\S]*?<span class="mm-detail-ref-id">(L-[^<]+)<\/span>/gu)]
-      .map((match) => match[1])
+    const unplacedRows = (section.html.match(/<tr>[\s\S]*?mm-unplaced-badge[\s\S]*?<\/tr>/gu) ?? []);
+    const unplacedLayoutIds = unplacedRows
+      .map((row) => /data-mm-ref-id="(L-[^"]+)"/u.exec(row)?.[1])
       .filter((id): id is string => Boolean(id));
     for (const layoutId of unplacedLayoutIds) {
       if (section.html.includes(`data-mm-id="${layoutId}"`)) {

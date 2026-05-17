@@ -42,6 +42,10 @@ function detailLayoutRef(marker: string, layoutName: string): string {
   return `(?:<span class="mm-ref-chip mm-ref-chip-layout"[^>]*>)?${markerBadge(marker, "layout")} ${escapeRegExp(layoutName)}(?:</span>)?`;
 }
 
+function detailLayoutRefById(marker: string, layoutId: string): string {
+  return `<span class="mm-ref-chip mm-ref-chip-layout"[^>]*data-mm-ref-id="${escapeRegExp(layoutId)}"[^>]*>${markerBadge(marker, "layout")} [^<]+</span>`;
+}
+
 function refActionChip(marker: string, actionId: string, actionName: string): string {
   return `<a class="mm-ref-chip mm-ref-chip-action" href="#action-detail-${escapeRegExp(encodeURIComponent(actionId))}"[^>]*><code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">${escapeRegExp(marker)}</code> ${escapeRegExp(actionName)}</a>`;
 }
@@ -529,8 +533,9 @@ viewport: mobile
   assert.match(scenarioSection, /Displayed messages/);
   assert.match(scenarioSection, /<code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="V-LoginFormRequired">V2<\/code> Login form required/);
   assert.match(scenarioSection, /<dt>Source<\/dt><dd>V-LoginFormRequired<\/dd>/);
-  assert.match(scenarioSection, new RegExp(`<dt>Displayed at</dt><dd><ul><li>${detailLayoutRef("MSG", "Mobile message area")}</li></ul></dd>`));
-  assert.doesNotMatch(scenarioSection, /Desktop message area/);
+  const displayedMessages = scenarioSection.match(/<aside class="display-explanations-box">[\s\S]*?<\/aside>/)?.[0] ?? "";
+  assert.match(displayedMessages, new RegExp(`<dt>Displayed at</dt><dd><ul><li>${detailLayoutRef("MSG", "Mobile message area")}</li></ul></dd>`));
+  assert.doesNotMatch(displayedMessages, /Desktop message area/);
   assert.match(scenarioSection, new RegExp(`<dt>Triggered by</dt><dd><ul><li>[\\s\\S]*${refActionChip("A-Submit", "A-Submit", "Submit")}[\\s\\S]*P1\\.invalid[\\s\\S]*</li></ul></dd>`));
   assert.match(scenarioSection, /<dt>Kind<\/dt><dd>client cross-field validation error<\/dd>/);
   assert.match(scenarioSection, /<dt>Message<\/dt><dd><ul><li>Email and password are required\.<\/li><\/ul><\/dd>/);
@@ -694,9 +699,9 @@ viewport: mobile
 
   assert.doesNotMatch(desktopSection, /<h5 class="state-screen-subheading">Layout Changes<\/h5>/);
   assert.match(desktopSection, /<h5 class="state-screen-subheading">Layouts<\/h5>/);
-  assert.doesNotMatch(desktopSection, new RegExp(`<td>${markerBadge("L9", "layout")}</td><td>${detailIdRef("L-MobileOnly")}`));
-  assert.match(desktopSection, new RegExp(`<td>${markerBadge("L8", "layout")}</td><td>${detailIdRef("L-DesktopOnly")}`));
-  assert.match(desktopSection, new RegExp(`<td>${markerBadge("E-DesktopOnly", "element")}</td><td>${detailIdRef("E-DesktopOnly")}</td>`));
+  assert.doesNotMatch(desktopSection, new RegExp(`<td>${detailLayoutRefById("L9", "L-MobileOnly")}`));
+  assert.match(desktopSection, new RegExp(`<td>${detailLayoutRefById("L8", "L-DesktopOnly")}`));
+  assert.match(desktopSection, new RegExp(`<td>${detailElementRef("E-DesktopOnly", "E-DesktopOnly")}</td>`));
   assert.match(desktopSection, new RegExp(repeatedBadge()));
   assert.match(html, /mm-gap-sm/);
   assert.match(html, /mm-gap-lg/);
@@ -779,15 +784,15 @@ viewport: mobile
   const desktopInitSection = viewportStateSection(html, "init", "desktop");
   const desktopIdleSection = viewportStateSection(html, "idle", "desktop");
 
-  assert.doesNotMatch(mobileIdleSection, new RegExp(`<td>${markerBadge("E-CommonInit", "element")}</td><td>${detailIdRef("E-CommonInit")}</td>`));
-  assert.match(mobileIdleSection, new RegExp(`<td>${markerBadge("E-CommonIdle", "element")}</td><td>${detailIdRef("E-CommonIdle")}</td>`));
-  assert.match(desktopInitSection, new RegExp(`<td>${markerBadge("E-DesktopInit", "element")}</td><td>${detailIdRef("E-DesktopInit")}</td>`));
-  assert.match(desktopInitSection, new RegExp(`<td>${markerBadge("E-CommonInit", "element")} ${repeatedBadge()}</td><td>${detailIdRef("E-CommonInit")}</td>`));
-  assert.doesNotMatch(desktopInitSection, new RegExp(`<td>${markerBadge("E-CommonIdle", "element")}</td><td>${detailIdRef("E-CommonIdle")}</td>`));
-  assert.doesNotMatch(desktopIdleSection, new RegExp(`<td>${markerBadge("E-CommonInit", "element")}(?: ${repeatedBadge()})?</td><td>${detailIdRef("E-CommonInit")}</td>`));
-  assert.match(desktopIdleSection, new RegExp(`<td>${markerBadge("E-CommonIdle", "element")} ${repeatedBadge()}</td><td>${detailIdRef("E-CommonIdle")}</td>`));
-  assert.doesNotMatch(desktopIdleSection, new RegExp(`<td>${markerBadge("E-DesktopInit", "element")}</td><td>${detailIdRef("E-DesktopInit")}</td>`));
-  assert.match(desktopIdleSection, new RegExp(`<td>${markerBadge("E-DesktopIdle", "element")}</td><td>${detailIdRef("E-DesktopIdle")}</td>`));
+  assert.doesNotMatch(mobileIdleSection, new RegExp(`<td>${detailElementRef("E-CommonInit", "E-CommonInit")}</td>`));
+  assert.match(mobileIdleSection, new RegExp(`<td>${detailElementRef("E-CommonIdle", "E-CommonIdle")}</td>`));
+  assert.match(desktopInitSection, new RegExp(`<td>${detailElementRef("E-DesktopInit", "E-DesktopInit")}</td>`));
+  assert.match(desktopInitSection, new RegExp(`<td>${detailElementRef("E-CommonInit", "E-CommonInit")} ${repeatedBadge()}</td>`));
+  assert.doesNotMatch(desktopInitSection, new RegExp(`<td>${detailElementRef("E-CommonIdle", "E-CommonIdle")}</td>`));
+  assert.doesNotMatch(desktopIdleSection, new RegExp(`<td>${detailElementRef("E-CommonInit", "E-CommonInit")}(?: ${repeatedBadge()})?</td>`));
+  assert.match(desktopIdleSection, new RegExp(`<td>${detailElementRef("E-CommonIdle", "E-CommonIdle")} ${repeatedBadge()}</td>`));
+  assert.doesNotMatch(desktopIdleSection, new RegExp(`<td>${detailElementRef("E-DesktopInit", "E-DesktopInit")}</td>`));
+  assert.match(desktopIdleSection, new RegExp(`<td>${detailElementRef("E-DesktopIdle", "E-DesktopIdle")}</td>`));
   assert.match(stateWireframeSection(mobileIdleSection), />E-CommonIdle<\/code>/);
   assert.match(stateWireframeSection(desktopIdleSection), />E-CommonIdle<\/code>/);
   assert.match(stateWireframeSection(desktopIdleSection), />E-DesktopIdle<\/code>/);
@@ -841,11 +846,11 @@ viewport: mobile
   const idleSection = viewportStateSection(html, "idle", "mobile");
   const loadingSection = viewportStateSection(html, "loading", "mobile");
 
-  assert.match(idleSection, new RegExp(`<td>${markerBadge("L1", "layout")}</td><td>${detailIdRef("L-Page")}</td><td>stack</td>`));
-  assert.match(idleSection, new RegExp(`<td>${markerBadge("E-NameInput", "element")}</td><td>${detailIdRef("E-NameInput")}</td><td>Input</td>`));
-  assert.match(loadingSection, new RegExp(`<td>${markerBadge("L1", "layout")} ${repeatedBadge()}</td><td>${detailIdRef("L-Page")}</td><td>stack</td>`));
-  assert.match(loadingSection, new RegExp(`<td>${markerBadge("E-NameInput", "element")} ${repeatedBadge()}</td><td>${detailIdRef("E-NameInput")}</td><td>Input</td>`));
-  assert.match(loadingSection, new RegExp(`<td>${markerBadge("E-LoadingOnly", "element")}</td><td>${detailIdRef("E-LoadingOnly")}</td><td>Text</td>`));
+  assert.match(idleSection, new RegExp(`<td>${detailLayoutRefById("L1", "L-Page")}</td><td>stack</td>`));
+  assert.match(idleSection, new RegExp(`<td>${detailElementRef("E-NameInput", "E-NameInput")}</td><td>Input</td>`));
+  assert.match(loadingSection, new RegExp(`<td>${detailLayoutRefById("L1", "L-Page")} ${repeatedBadge()}</td><td>stack</td>`));
+  assert.match(loadingSection, new RegExp(`<td>${detailElementRef("E-NameInput", "E-NameInput")} ${repeatedBadge()}</td><td>Input</td>`));
+  assert.match(loadingSection, new RegExp(`<td>${detailElementRef("E-LoadingOnly", "E-LoadingOnly")}</td><td>Text</td>`));
   assert.match(stateWireframeSection(loadingSection), /class="mm-id mm-marker mm-marker-repeated mm-marker-layout" data-mm-marker-category="layout" data-mm-repeated-marker="true">L1<\/code>/);
   assert.match(stateWireframeSection(loadingSection), /class="mm-id mm-marker mm-marker-repeated mm-marker-element" data-mm-marker-category="element" data-mm-repeated-marker="true">E-NameInput<\/code>/);
 });
@@ -915,9 +920,9 @@ viewport: mobile
   assert.match(loadedSection, /<div class="layout-spec-fragment" data-mm-render-key="layouts:list" data-mm-repeated-empty="true">/);
   assert.match(loadedSection, /<div class="element-spec-fragment" data-mm-render-key="elements:list" data-mm-repeated-empty="true">/);
   assert.match(loadedSection, /<div class="action-spec-fragment" data-mm-repeated-empty="true">/);
-  assert.match(loadedSection, new RegExp(`<td>${markerBadge("L1", "layout")} ${repeatedBadge()}</td><td>${detailIdRef("L-Page")}</td>`));
-  assert.match(loadedSection, new RegExp(`<td>${markerBadge("E-Title", "element")} ${repeatedBadge()}</td><td>${detailIdRef("E-Title")}</td>`));
-  assert.match(loadedSection, new RegExp(`<td><a class="mm-marker-link" href="#action-detail-A-Refresh"><code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1</code></a> ${repeatedBadge()} Refresh profile</td>`));
+  assert.match(loadedSection, new RegExp(`<td>${detailLayoutRefById("L1", "L-Page")} ${repeatedBadge()}</td>`));
+  assert.match(loadedSection, new RegExp(`<td>${detailElementRef("E-Title", "E-Title")} ${repeatedBadge()}</td>`));
+  assert.match(loadedSection, new RegExp(`<td>${refActionChip("A1", "A-Refresh", "Refresh profile")} ${repeatedBadge()}</td>`));
   assert.doesNotMatch(loadedSection, /<p class="spec-empty" data-mm-repeated-empty="true">None\.<\/p>/);
 });
 
@@ -955,14 +960,14 @@ test("marks login authenticating common specs as repeated while keeping progress
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
   const waitAuthSection = viewportStateSection(html, "authenticating", "mobile");
 
-  assert.match(waitAuthSection, new RegExp(`<td>${markerBadge("L1", "layout")} ${repeatedBadge()}</td><td>${detailIdRef("L-Page")}</td><td>stack</td>`));
-  assert.match(waitAuthSection, new RegExp(`<td>${markerBadge("L2", "layout")} ${repeatedBadge()}</td><td>${detailIdRef("L-LoginForm")}</td><td>stack</td>`));
-  assert.match(waitAuthSection, new RegExp(`<td>${markerBadge("1", "element")} ${repeatedBadge()}</td><td>${detailIdRef("E-PageTitle")}</td><td>Heading</td>`));
-  assert.match(waitAuthSection, new RegExp(`<td>${markerBadge("7", "element")} ${repeatedBadge()}</td><td>${detailIdRef("E-SignInButton")}</td><td>Button</td>`));
-  assert.match(waitAuthSection, new RegExp(`<td>${markerBadge("L7", "layout")}</td><td>${detailIdRef("L-AuthProgress")}</td><td>stack</td>`));
-  assert.match(waitAuthSection, new RegExp(`<td>${markerBadge("11", "element")}</td><td>${detailIdRef("E-AuthSpinner")}</td><td>Spinner</td>`));
-  assert.doesNotMatch(waitAuthSection, new RegExp(`<td>${markerBadge("L7", "layout")} ${repeatedBadge()}</td><td>${detailIdRef("L-AuthProgress")}`));
-  assert.doesNotMatch(waitAuthSection, new RegExp(`<td>${markerBadge("11", "element")} ${repeatedBadge()}</td><td>${detailIdRef("E-AuthSpinner")}`));
+  assert.match(waitAuthSection, new RegExp(`<td>${detailLayoutRefById("L1", "L-Page")} ${repeatedBadge()}</td><td>stack</td>`));
+  assert.match(waitAuthSection, new RegExp(`<td>${detailLayoutRefById("L2", "L-LoginForm")} ${repeatedBadge()}</td><td>stack</td>`));
+  assert.match(waitAuthSection, new RegExp(`<td>${detailElementRef("1", "E-PageTitle")} ${repeatedBadge()}</td><td>Heading</td>`));
+  assert.match(waitAuthSection, new RegExp(`<td>${detailElementRef("7", "E-SignInButton")} ${repeatedBadge()}</td><td>Button</td>`));
+  assert.match(waitAuthSection, new RegExp(`<td>${detailLayoutRefById("L7", "L-AuthProgress")}</td><td>stack</td>`));
+  assert.match(waitAuthSection, new RegExp(`<td>${detailElementRef("11", "E-AuthSpinner")}</td><td>Spinner</td>`));
+  assert.doesNotMatch(waitAuthSection, new RegExp(`<td>${detailLayoutRefById("L7", "L-AuthProgress")} ${repeatedBadge()}</td>`));
+  assert.doesNotMatch(waitAuthSection, new RegExp(`<td>${detailElementRef("11", "E-AuthSpinner")} ${repeatedBadge()}</td>`));
 });
 
 test("builds State Views ids from the read model", () => {
@@ -1098,7 +1103,7 @@ viewport: mobile
   assert.equal(desktopModel?.repeatedContent.inputFormSpecEmptyWhenRepeatedHidden, false);
   assert.equal(desktopModel?.repeatedContent.displayContentSpecEmptyWhenRepeatedHidden, true);
   assert.match(desktopIdleSection, /<div class="element-detail-group" data-mm-repeated-empty="true"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>/);
-  assert.match(desktopIdleSection, new RegExp(`<td>${markerBadge("E-OpenButton", "element")} ${repeatedBadge()}</td><td>${detailIdRef("E-OpenButton")}</td>`));
+  assert.match(desktopIdleSection, new RegExp(`<td>${detailElementRef("E-OpenButton", "E-OpenButton")} ${repeatedBadge()}</td>`));
 });
 
 test("marks repeated system events in state screens without DOM emptiness inference", () => {
@@ -1461,10 +1466,10 @@ viewport: mobile
   const mobileIdleSection = viewportStateSection(html, "idle", "mobile");
   const desktopIdleSection = viewportStateSection(html, "idle", "desktop");
 
-  assert.doesNotMatch(mobileIdleSection, new RegExp(`<td>${markerBadge("L2", "layout")}</td><td>${detailIdRef("L-ModePanel")}</td><td>stack</td>`));
-  assert.doesNotMatch(desktopIdleSection, new RegExp(`<td>${markerBadge("L2", "layout")}</td><td>${detailIdRef("L-ModePanel")}</td><td>row</td>`));
-  assert.match(mobileIdleSection, new RegExp(`<td>${markerBadge("E-Idle", "element")}</td><td>${detailIdRef("E-Idle")}</td><td>Text</td>`));
-  assert.match(desktopIdleSection, new RegExp(`<td>${markerBadge("E-Idle", "element")} ${repeatedBadge()}</td><td>${detailIdRef("E-Idle")}</td><td>Text</td>`));
+  assert.doesNotMatch(mobileIdleSection, new RegExp(`<td>${detailLayoutRefById("L2", "L-ModePanel")}</td><td>stack</td>`));
+  assert.doesNotMatch(desktopIdleSection, new RegExp(`<td>${detailLayoutRefById("L2", "L-ModePanel")}</td><td>row</td>`));
+  assert.match(mobileIdleSection, new RegExp(`<td>${detailElementRef("E-Idle", "E-Idle")}</td><td>Text</td>`));
+  assert.match(desktopIdleSection, new RegExp(`<td>${detailElementRef("E-Idle", "E-Idle")} ${repeatedBadge()}</td><td>Text</td>`));
 });
 
 test("limits State Views layout signatures to state-view-affecting properties and child structure", () => {
@@ -1619,13 +1624,13 @@ title: Markerless
 
   assert.match(html, /<h6 class="state-screen-detail-heading">Element Summary<\/h6>/);
   assert.match(html, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>/);
-  assert.match(html, new RegExp(`<td>${markerBadge("E-メールアドレス入力", "element")}</td><td>${detailIdRef("E-メールアドレス入力")}</td><td>Input</td><td>yes</td><td>${specSectionPattern("initial", ["a@example\\.com"])}${specSectionPattern("Source", [sourceCodePattern("${model.email}")])}</td><td>-</td><td>always</td><td>always</td>`));
+  assert.match(html, new RegExp(`<td>${detailElementRef("E-メールアドレス入力", "E-メールアドレス入力")}</td><td>Input</td><td>yes</td><td>${specSectionPattern("initial", ["a@example\\.com"])}${specSectionPattern("Source", [sourceCodePattern("${model.email}")])}</td><td>-</td><td>always</td><td>always</td>`));
   assert.match(html, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>/);
   assert.doesNotMatch(html, /<div class="element-detail-group"><h4>Actionable<\/h4>/);
-  assert.match(html, new RegExp(`<td>${markerBadge("E-SubmitButton", "element")}</td><td>${detailIdRef("E-SubmitButton")}</td><td>Button</td><td><ul class="spec-list"><li>${refActionChip("A-Submit", "A-Submit", "Submit")}</li></ul></td><td>-</td>`));
-  assert.match(html, new RegExp(`<td>${markerBadge("E-SubmitButton", "element")}</td><td>${detailIdRef("E-SubmitButton")}</td><td>label</td><td>Submit &amp; Continue</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td><td><ul class="spec-list"><li>enabled: not ${markerBadge("E-メールアドレス入力", "element")} is empty</li></ul></td>`));
+  assert.match(html, new RegExp(`<td>${detailElementRef("E-SubmitButton", "E-SubmitButton")}</td><td>Button</td><td><ul class="spec-list"><li>${refActionChip("A-Submit", "A-Submit", "Submit")}</li></ul></td><td>-</td>`));
+  assert.match(html, new RegExp(`<td>${detailElementRef("E-SubmitButton", "E-SubmitButton")}</td><td>label</td><td>Submit &amp; Continue</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td><td><ul class="spec-list"><li>enabled: not ${markerBadge("E-メールアドレス入力", "element")} is empty</li></ul></td>`));
   assert.doesNotMatch(html, /<h2>Visibility \/ Availability<\/h2>/);
-  assert.match(html, new RegExp(`<td>${markerBadge("L-Form", "layout")}</td><td>${detailIdRef("L-Form")}</td><td>stack</td><td>-</td><td><ul class="spec-list"><li>visible: user\\.role is admin, user\\.can access login</li></ul></td><td><ul class="spec-list"><li>Email: ${detailIdRef("E-メールアドレス入力")}</li><li>${detailIdRef("E-SubmitButton")}</li></ul></td><td>-</td>`));
+  assert.match(html, new RegExp(`<td>${detailLayoutRefById("L-Form", "L-Form")}</td><td>stack</td><td>-</td><td><ul class="spec-list"><li>visible: user\\.role is admin, user\\.can access login</li></ul></td><td><ul class="spec-list"><li>Email: ${detailIdRef("E-メールアドレス入力")}</li><li>${detailIdRef("E-SubmitButton")}</li></ul></td><td>-</td>`));
   assert.match(html, new RegExp(`email: ${detailElementRef("E-メールアドレス入力", "E-メールアドレス入力")}\\.value`));
   assert.match(html, new RegExp(`<dt>Trigger</dt><dd>${detailElementRef("E-SubmitButton", "E-SubmitButton")}\\.click</dd>`));
   assert.match(html, /S0 --&gt; S1: Submit/);
