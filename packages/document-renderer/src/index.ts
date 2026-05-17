@@ -247,7 +247,7 @@ function renderScenarioSamplesBox(
     const element = elementById.get(sample.elementId);
     const elementLabel = element?.properties["label"];
     const elementText = typeof elementLabel === "string" ? `${sample.elementId} ${elementLabel}` : sample.elementId;
-    return [escapeHtml(elementText), renderScenarioSampleValue(sample)];
+    return [escapeHtml(elementText), renderScenarioSampleValue(sample, messages)];
   });
   return `<aside class="scenario-samples-box">
     <h6 class="state-screen-detail-heading">${escapeHtml(messages.scenarioSamples)}</h6>
@@ -255,12 +255,12 @@ function renderScenarioSamplesBox(
   </aside>`;
 }
 
-function renderScenarioSampleValue(sample: StateScreenReadModel["scenarioSamples"][number]): string {
+function renderScenarioSampleValue(sample: StateScreenReadModel["scenarioSamples"][number], messages: RendererMessages): string {
   if (sample.rows) {
     if (sample.rows.explicitEmpty && sample.rows.rows.length === 0) {
       return "<code>rows: []</code>";
     }
-    return escapeHtml(`${sample.rows.rows.length} rows`);
+    return escapeHtml(`${sample.rows.rows.length} ${messages.scenarioSampleRowsUnit}`);
   }
   return escapeHtml(sample.value ?? "");
 }

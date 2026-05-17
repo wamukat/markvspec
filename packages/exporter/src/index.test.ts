@@ -204,6 +204,71 @@ test("exports preview scenarios and scenario samples in standalone HTML", () => 
   }
 });
 
+test("exports localized scenario sample row counts in standalone HTML", () => {
+  const dir = mkdtempSync(join(tmpdir(), "markvspec-html-scenarios-ja-"));
+  try {
+    const sourcePath = join(dir, "scenario-samples-ja.vspec.md");
+    const outDir = join(dir, "out");
+    writeFileSync(sourcePath, `---
+id: SCR-SCENARIO-SAMPLES-JA
+type: screen
+title: シナリオサンプル
+locale: ja
+---
+
+# SCR-SCENARIO-SAMPLES-JA シナリオサンプル
+
+## States
+
+- loaded*
+
+## Layout
+
+### L-Main Stack
+
+#### Items
+
+- E-Users
+
+## Elements
+
+### E-Users Table
+
+- Columns:
+  - name: 名前
+- sample rows:
+  - row:
+    - name: 通常
+
+## Preview Scenarios
+
+### loaded-special
+
+- state: loaded
+- samples:
+  - E-Users:
+    - rows:
+      - row:
+        - name: 一郎
+      - row:
+        - name: 二郎
+`);
+
+    const results = exportMarkVSpecHtmlFiles([sourcePath], outDir);
+
+    assert.equal(results.length, 1);
+    assert(!results[0]?.diagnostics.some((diagnostic) => diagnostic.severity === "error"));
+    const html = readFileSync(join(outDir, "scenario-samples-ja.html"), "utf8");
+    const scenarioSection = stateViewSection(html, "loaded / loaded-special");
+
+    assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">シナリオサンプル<\/h6>/);
+    assert.match(scenarioSection, /2 行/);
+    assert.doesNotMatch(scenarioSection, /2 rows/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("exports standalone HTML with explicit renderer messages", () => {
   const dir = mkdtempSync(join(tmpdir(), "markvspec-html-messages-"));
   try {

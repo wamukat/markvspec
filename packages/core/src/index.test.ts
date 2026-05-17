@@ -10769,6 +10769,7 @@ messages:
   formControls: 入力値
   conditionHiddenShort: 非表示
   scenarioSamples: シナリオ別サンプル
+  scenarioSampleRowsUnit: 件
 `);
 
     const result = resolveRendererMessages({ locale: "ja", sourcePath });
@@ -10777,6 +10778,7 @@ messages:
     assert.equal(result.messages.formControls, "入力値");
     assert.equal(result.messages.conditionHiddenShort, "非表示");
     assert.equal(result.messages.scenarioSamples, "シナリオ別サンプル");
+    assert.equal(result.messages.scenarioSampleRowsUnit, "件");
     assert.equal(result.messages.wireframe, "ワイヤーフレーム");
     assert.deepEqual(result.diagnostics, []);
   } finally {

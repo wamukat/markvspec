@@ -184,6 +184,7 @@ export type MessageKey =
   | "severity"
   | "sample"
   | "scenarioSamples"
+  | "scenarioSampleRowsUnit"
   | "scope"
   | "sideEffects"
   | "showRepeatedContent"
@@ -412,6 +413,7 @@ const en: Record<MessageKey, string> = {
   severity: "Severity",
   sample: "Sample",
   scenarioSamples: "Scenario Samples",
+  scenarioSampleRowsUnit: "rows",
   scope: "Scope",
   sideEffects: "Side effects",
   showRepeatedContent: "Show repeated content",
@@ -641,6 +643,7 @@ const ja: Record<MessageKey, string> = {
   severity: "重要度",
   sample: "サンプル",
   scenarioSamples: "シナリオサンプル",
+  scenarioSampleRowsUnit: "行",
   scope: "範囲",
   sideEffects: "副作用",
   showRepeatedContent: "既出を表示",

@@ -193,7 +193,7 @@ function renderScenarioSampleValue(
     if (sample.rows.explicitEmpty && sample.rows.rows.length === 0) {
       return `<code>rows: []</code>`;
     }
-    return format.text(`${sample.rows.rows.length} rows`);
+    return format.text(`${sample.rows.rows.length} ${format.label("scenarioSampleRowsUnit")}`);
   }
   return format.text(sample.value ?? "");
 }

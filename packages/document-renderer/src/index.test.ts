@@ -370,12 +370,21 @@ locale: ja
 #### Items
 
 - E-Title
+- E-Users
 
 ## Elements
 
 ### E-Title Text
 
 - sample: 通常タイトル
+
+### E-Users Table
+
+- Columns:
+  - name: 名前
+- sample rows:
+  - row:
+    - name: 通常
 
 ## Preview Scenarios
 
@@ -384,6 +393,12 @@ locale: ja
 - state: loaded
 - samples:
   - E-Title: 特別タイトル
+  - E-Users:
+    - rows:
+      - row:
+        - name: 一郎
+      - row:
+        - name: 二郎
 `);
   const html = renderStaticDesignDocumentHtml(result);
   const scenarioSection = stateViewSection(html, "loaded / loaded-special");
@@ -391,7 +406,9 @@ locale: ja
   assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">シナリオサンプル<\/h6>/);
   assert.match(scenarioSection, /<th>画面要素<\/th>/);
   assert.match(scenarioSection, /<th>サンプル<\/th>/);
+  assert.match(scenarioSection, /2 行/);
   assert.doesNotMatch(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>|<th>Sample<\/th>/);
+  assert.doesNotMatch(scenarioSection, /2 rows/);
 });
 
 function stateViewSection(html: string, title: string): string {
