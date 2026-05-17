@@ -170,8 +170,7 @@ Recognized level-2 sections:
 - `## View Context`
 - `## View Context Samples`
 - `## Preview Scenarios`
-- `## Field Validations`
-- `## Cross-field Validations`
+- `## Validations`
 - `## Business Rules`
 - `## Error Codes`
 - `## History Fields`
@@ -245,7 +244,7 @@ Section-level prose:
   first structured data block, is `Section Lead`.
 - Prose after structured data is `Section Notes`.
 - In entity sections such as `Elements`, `Actions`, `Form Groups`,
-  `Field Validations`, `Cross-field Validations`, `Business Rules`, and
+  `Validations`, `Business Rules`, and
   `Error Codes`, use `### Section Notes` when you need notes for the whole
   section after entities.
 
@@ -313,8 +312,7 @@ Level-2 section names:
 - `Form Groups`
 - `Actions`
 - `Model Samples`
-- `Field Validations`
-- `Cross-field Validations`
+- `Validations`
 - `Business Rules`
 - `Error Codes`
 - `History Fields`
@@ -987,7 +985,7 @@ Append `*` to the element type only when the element itself has input-level
 required metadata. For example, `Input*` is equivalent to a `required` flag in
 the Input Form Spec `Input Required` column. It is not the canonical way to
 define product validation. Required validation belongs in
-`## Field Validations` as a `required` constraint.
+`## Validations` as a `required` constraint.
 Required metadata is not rendered as a native `required` attribute or an
 automatic `*` marker in the wireframe preview. If the screen should visibly show
 a required mark, write it into the authored label text.
@@ -1153,7 +1151,7 @@ as read/unread badges.
 Flags are boolean properties. A `required` flag or `Input*` heading suffix is
 element metadata shown in the Input Form Spec `Input Required` column. Use it
 only for input-level UI requirements, not for product validation contracts.
-Prefer `## Field Validations` with a `required` constraint when the design needs
+Prefer `## Validations` with a `required` constraint when the design needs
 to specify validation behavior.
 
 ```markdown
@@ -1234,8 +1232,7 @@ addresses, and descriptive values. Buttons can use visual size presets:
 ```
 
 `validation` and `error text` are legacy descriptive metadata for the generated
-Elements tables. Prefer `## Field Validations` or `## Cross-field Validations`
-for validation contracts. They are not
+Elements tables. Prefer `## Validations` for validation contracts. They are not
 rendered automatically near the form control in the wireframe preview. If
 validation or error copy should appear on screen, model it as a visible element
 such as `Text` or `Banner`, usually with `visible when`.
@@ -1908,7 +1905,7 @@ aggregate decision in a Resolve process with the same `group`.
 
 Action-level `When` guards are not supported. Keep operation availability close
 to the element (`disabled when`) and keep validation rules under
-`Field Validations` or `Cross-field Validations`.
+`Validations`.
 Use a process-step `when` only when the condition belongs to a specific step; it
 does not guard the action transition itself.
 
@@ -2115,24 +2112,31 @@ Context fallback follows the same order: `View Context Samples.default`, then
 View Context default values. View Context definitions without a `*` default fall
 back to their first listed value.
 
-## Field Validations Section
+For a section-by-section reference that uses `Section Lead`, `Entity Block`,
+`Structured Body`, and `Entity Notes` terminology, see
+[Structured Section Reference](structured-section-reference.md).
 
-Use `## Field Validations` for validation contracts that belong to one input
-element. A `V-*` entry defines what is validated; it does not define when an
-Action runs validation. Keep element input metadata limited to input UI
-specifications such as type, length, range, pattern, IME, accept, and step.
-Validation constraints, messages, and error codes belong in this section.
+## Validations Section
+
+Use `## Validations` for client-side and screen-local validation contracts.
+Field/single validation, cross-field validation, and form-level validation are
+categories inside this section, not separate recognized section names. A `V-*`
+entry defines what is validated; it does not define when an Action runs
+validation. Keep element input metadata limited to input UI specifications such
+as type, length, range, pattern, IME, accept, and step. Validation constraints,
+messages, and error codes belong in this section.
 
 For required fields, validation is canonical. Write `required` as a validation
 constraint instead of repeating required intent in layout labels such as
 `"Email*"` or element headings such as `Input*`.
 
 ```markdown
-## Field Validations
+## Validations
 
 ### V1:V-EmailRules Email rules
 
 - target: E-EmailInput
+- scope: single
 - run: client
 - constraints:
   - required
@@ -2161,11 +2165,9 @@ validation-level only; the initial supported value is `client`.
 referenced Element does not provide the needed input metadata, the validator
 warns. The preview does not invent a fallback message.
 
-## Cross-field Validations Section
-
-Use `## Cross-field Validations` for validation contracts that depend on several
-inputs or a whole form. The section name defines the validation scope; do not
-write `scope:`.
+For validation contracts that depend on several inputs or a whole form, keep the
+same `## Validations` section and set `scope: cross-field`, `scope: composite`,
+or the appropriate scope value on the validation.
 
 ```markdown
 ## Form Groups
@@ -2177,11 +2179,12 @@ write `scope:`.
   - E-PasswordInput
 - submit: A-SubmitLogin
 
-## Cross-field Validations
+## Validations
 
 ### V2:V-LoginForm Login form validation
 
 - target: F-LoginForm
+- scope: cross-field
 - run: client
 - inputs:
   - E-EmailInput
@@ -2391,7 +2394,7 @@ contract.
 You can leave unresolved questions in a free-form section, but do not hand a
 spec with unresolved decisions to implementation or acceptance checks as if
 those questions were contract. Move implementation-relevant requirements into
-`Actions`, `Field Validations`, `Cross-field Validations`, `Business Rules`, or
+`Actions`, `Validations`, `Business Rules`, or
 `Error Codes`.
 
 ## Conditions
@@ -2483,10 +2486,11 @@ Warnings:
 ```text
 file              = front_matter document_heading section*
 document_heading  = "# " document_id " " title
-section           = states | layout | slot | elements | form_groups | actions | model_samples | view_context | view_context_samples | preview_scenarios | field_validations | cross_field_validations | business_rules | error_codes | history_fields | history | markdown
+section           = states | layout | slot | slots | elements | form_groups | actions | model_samples | view_context | view_context_samples | preview_scenarios | validations | business_rules | error_codes | history_fields | history | markdown
 states            = "## States" state_bullet*
-layout            = "## Layout:" viewport layout_group*
+layout            = ("## Layout" | "## Layout:" viewport) layout_group*
 slot              = "## Slot:" slot_name (":" viewport)? layout_group*
+slots             = "## Slots" slot_definition*
 elements          = "## Elements" element*
 form_groups       = "## Form Groups" form_group*
 actions           = "## Actions" action*
@@ -2497,8 +2501,7 @@ view_context_samples = "## View Context Samples" view_context_sample*
 view_context_sample = "### " sample_name key_value*
 preview_scenarios = "## Preview Scenarios" preview_scenario*
 preview_scenario = "### " scenario_name key_value*
-field_validations = "## Field Validations" field_validation*
-cross_field_validations = "## Cross-field Validations" cross_field_validation*
+validations       = "## Validations" validation*
 business_rules    = "## Business Rules" rule*
 error_codes       = "## Error Codes" error_code*
 history_fields    = "## History Fields" history_field*

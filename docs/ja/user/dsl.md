@@ -158,8 +158,7 @@ partial 由来の内容で置き換えるか」を書きます。partial 側は�
 - `## View Context`
 - `## View Context Samples`
 - `## Preview Scenarios`
-- `## Field Validations`
-- `## Cross-field Validations`
+- `## Validations`
 - `## Business Rules`
 - `## Error Codes`
 - `## History Fields`
@@ -223,7 +222,7 @@ preview や export には表示しません。
 
 - `## States` のような構造化セクション見出しの直後、最初の構造化データより前に置いた本文は `Section Lead` です。
 - 構造化データの後に置いた本文は、`Section Notes` として表示します。
-- `Elements`、`Actions`、`Form Groups`、`Field Validations`、`Cross-field Validations`、
+- `Elements`、`Actions`、`Form Groups`、`Validations`、
   `Business Rules`、`Error Codes` のように `###` entity 見出しを持つセクションで、セクション全体の後置補足を書きたい場合は
   `### Section Notes` 見出しを使います。
 
@@ -303,8 +302,7 @@ level-2 セクション名です。
 - `Form Groups`
 - `Actions`
 - `Model Samples`
-- `Field Validations`
-- `Cross-field Validations`
+- `Validations`
 - `Business Rules`
 - `Error Codes`
 - `History Fields`
@@ -808,7 +806,7 @@ Element 参照を Element marker と Element ID で識別し、element type や
 `*` は Element 自体に input-level の required metadata がある場合だけ使います。
 たとえば `Input*` は Input Form Spec の `入力必須` 列に出る required flag と
 同じ意味です。これは product validation を定義する canonical syntax では
-ありません。必須入力の validation contract は `## Field Validations` の
+ありません。必須入力の validation contract は `## Validations` の
 `required` constraint に書きます。
 wireframe preview では native `required` attribute や自動の `*` marker としては
 描画しません。画面上に必須マークを見せたい場合は、label 文字列に自分で書きます。
@@ -1394,7 +1392,7 @@ constraint の詳細は `V-*` 定義側に残します。
     - stop
 ```
 
-Action レベルの `When` / guard はサポートしません。操作可否は要素の `disabled when` に寄せ、入力検証は `Field Validations` または `Cross-field Validations` に書きます。
+Action レベルの `When` / guard はサポートしません。操作可否は要素の `disabled when` に寄せ、入力検証は `Validations` に書きます。
 
 イベント例は `E-SignInButton.click`、`E-EmailInput.blur`、`A-SubmitLogin.P2.response`、`screen.load`、`partial.render` です。現行リリースの要素イベントは `click`、`change`、`submit`、`focus`、`blur`、`open`、`close` です。Action lifecycle event は `response` です。
 
@@ -1459,23 +1457,30 @@ Thymeleaf や htmx による部分更新は、実装属性ではなく意味と�
       - email: E-EmailInput.value
 ```
 
-## Field Validations
+各 section を `Section Lead`、`Entity Block`、`Structured Body`、`Entity Notes`
+などの用語で確認したい場合は、[構造化セクションリファレンス](structured-section-reference.md)
+を参照してください。
 
-`## Field Validations` は、1 つの input element に閉じる検証契約を書きます。
-`V-*` は何を検証するかの contract であり、Action をいつ起動するかは定義しません。
-Element 側の入力 metadata は type、長さ、範囲、pattern、IME、accept、step などの
-入力 UI 仕様に限定し、検証 constraint、message、error code はこの章に置きます。
+## Validations
+
+`## Validations` は client-side / screen-local な検証契約を書きます。field/single validation、
+cross-field validation、form-level validation は、この section 内の category であり、
+独立した recognized section 名ではありません。`V-*` は何を検証するかの contract であり、
+Action をいつ起動するかは定義しません。Element 側の入力 metadata は type、長さ、範囲、
+pattern、IME、accept、step などの入力 UI 仕様に限定し、検証 constraint、message、
+error code はこの章に置きます。
 
 必須入力は Validation 側が canonical です。`"Email*"` のような layout label や
 `Input*` のような element heading に required の意図を重ねず、validation constraint
 として `required` を書きます。
 
 ```markdown
-## Field Validations
+## Validations
 
 ### V1:V-EmailRules Email rules
 
 - target: E-EmailInput
+- scope: single
 - run: client
 - constraints:
   - required
@@ -1503,10 +1508,8 @@ marker がない場合、validator は warning を出し、validation ID を mar
 参照先 Element に必要な入力 metadata がなければ warning とし、preview は fallback
 message を作りません。
 
-## Cross-field Validations
-
-`## Cross-field Validations` は、複数 input または form 全体にまたがる検証契約を
-書きます。scope は section 名から決まるため、`scope:` は書きません。
+複数 input または form 全体にまたがる検証契約も、同じ `## Validations` に書きます。
+validation に `scope: cross-field`、`scope: composite` などの scope value を指定します。
 
 ```markdown
 ## Form Groups
@@ -1518,11 +1521,12 @@ message を作りません。
   - E-PasswordInput
 - submit: A-SubmitLogin
 
-## Cross-field Validations
+## Validations
 
 ### V2:V-LoginForm Login form validation
 
 - target: F-LoginForm
+- scope: cross-field
 - run: client
 - inputs:
   - E-EmailInput
@@ -1822,7 +1826,7 @@ MarkVSpec は内容を検証、集計、実装契約として解釈しません�
 上の `Project Memo` は例示用の自由記述セクション名です。MarkVSpec の標準セクション名ではありません。
 未決事項を自由記述として残すことはできます。ただし、未決事項がある設計書をそのまま
 実装や受け入れ判定の入力にしないでください。実装契約として扱う情報は、
-`Actions`、`Field Validations`、`Cross-field Validations`、`Business Rules`、`Error Codes` など、
+`Actions`、`Validations`、`Business Rules`、`Error Codes` など、
 構造化された該当セクションへ移します。
 
 ## サンプル

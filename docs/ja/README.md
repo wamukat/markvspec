@@ -35,6 +35,7 @@ MarkVSpec では、Markdown で画面仕様を書き、VS Code で状態別プ�
 ### 設計書を書く
 
 - [DSL リファレンス](user/dsl.md): ファイル構造、Front Matter、Layout、Elements、Actions などの基本記法。
+- [構造化セクションリファレンス](user/structured-section-reference.md): section ごとの Lead、Entity Block、Structured Body、Notes の扱い。
 - [UI 部品・画面パターン対応範囲](user/ui-coverage.md): 対応している UI 部品と画面パターン。
 
 ### サンプルを見る

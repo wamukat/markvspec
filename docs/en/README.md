@@ -33,6 +33,7 @@ The directory is split into user-facing `user/` documents and maintainer-facing 
 ### Write Design Documents
 
 - [DSL reference](user/dsl.md): file structure, Front Matter, layouts, elements, actions, and validation rules.
+- [Structured section reference](user/structured-section-reference.md): section-by-section ownership of Lead, Entity Block, Structured Body, and Notes.
 - [UI coverage](user/ui-coverage.md): supported UI elements and screen patterns.
 
 ### Browse Examples
@@ -55,7 +56,7 @@ The directory is split into user-facing `user/` documents and maintainer-facing 
 - [Preview information architecture](maintainers/preview-information-architecture.md): preview structure and responsibilities.
 - [Preview style inventory](maintainers/preview-style-inventory.html): visual checklist for preview and generated-document styles.
 - [FormGroup design](maintainers/form-group-design.md): semantic form grouping and validation target design.
-- [Supplemental prose in structured sections](maintainers/structured-section-prose.md): overview/notes ownership inside structured DSL sections.
+- [Supplemental prose in structured sections](maintainers/structured-section-prose.md): Lead/Notes ownership inside structured DSL sections.
 - [Project index](maintainers/project-index.md): future project-index design.
 - [Project transition diagrams](maintainers/project-transition-diagrams.md): future transition-diagram design.
 - [Test organization](maintainers/test-organization.md): test file ownership and split policy.
