@@ -110,6 +110,7 @@ ${baseWireframeViewportCss()}
 .spec-table th{background:#f9fafb;font-weight:600;white-space:nowrap}
 .spec-table tbody tr:nth-child(even){background:#fcfcfd}
 .spec-table code:not(.mm-id):not(.mm-doc-label):not(.mm-document-ref-id){background:#f3f4f6;border-radius:3px;padding:1px 3px}
+.spec-default-always{color:#94a3b8;font-weight:500}
 .state-transition-context-heading{color:#374151;font-size:13px;font-weight:700;margin:12px 0 6px}
 .state-transition-axis-cell{min-width:112px;padding:6px 8px!important;position:relative}
 .state-transition-axis-cell::before{background:linear-gradient(to top right,transparent calc(50% - .5px),#cbd5e1 calc(50% - .5px),#cbd5e1 calc(50% + .5px),transparent calc(50% + .5px));content:"";inset:0;position:absolute}
@@ -365,6 +366,7 @@ ${baseWireframeViewportCss()}
 .spec-table th{background:#f9fafb;font-weight:600;white-space:nowrap}
 .spec-table tbody tr:nth-child(even){background:#fcfcfd}
 .spec-table code:not(.mm-id):not(.mm-doc-label):not(.mm-document-ref-id){background:#f3f4f6;border-radius:3px;padding:1px 3px}
+.spec-default-always{color:#94a3b8;font-weight:500}
 .state-transition-context-heading{color:#374151;font-size:13px;font-weight:700;margin:12px 0 6px}
 .state-transition-axis-cell{min-width:112px;padding:6px 8px!important;position:relative}
 .state-transition-axis-cell::before{background:linear-gradient(to top right,transparent calc(50% - .5px),#cbd5e1 calc(50% - .5px),#cbd5e1 calc(50% + .5px),transparent calc(50% + .5px));content:"";inset:0;position:absolute}

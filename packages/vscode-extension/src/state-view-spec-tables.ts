@@ -36,6 +36,8 @@ export interface StateViewSpecTableHelpers {
   renderInputSpec(element: ParsedElement): string;
   renderContentElementState(element: ParsedElement): string;
   renderEnabledConditionList(element: ParsedElement): string;
+  renderDisplayContentElementState(element: ParsedElement): string;
+  renderDisplayContentEnabledConditionList(element: ParsedElement): string;
   renderDisplayContentValue(element: ParsedElement, value: string): string;
   renderSourceSummary(value: string | true | undefined): string;
   renderElementLabelSummary(properties: Record<string, string | true>): string;
@@ -153,8 +155,8 @@ export function createStateViewSpecTableRenderer(
         helpers.renderDisplayContentValue(row.element, row.value),
         row.format ? helpers.text(row.format) : "",
         helpers.renderSourceSummary(row.source),
-        helpers.renderContentElementState(row.element),
-        helpers.renderEnabledConditionList(row.element)
+        helpers.renderDisplayContentElementState(row.element),
+        helpers.renderDisplayContentEnabledConditionList(row.element)
       ])
     ), emptyWhenRepeatedHidden);
   };

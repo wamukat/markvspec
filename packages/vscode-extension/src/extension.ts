@@ -3759,6 +3759,8 @@ function stateViewsRenderContext(result: ReturnType<typeof parseMarkVSpec>): Sta
     renderInputSpec: (element) => renderInputSpec(result, element),
     renderContentElementState: (element) => renderContentElementState(result, element),
     renderEnabledConditionList: (element) => renderEnabledConditionList(result, element),
+    renderDisplayContentElementState: (element) => renderDisplayContentElementState(result, element),
+    renderDisplayContentEnabledConditionList: (element) => renderDisplayContentEnabledConditionList(result, element),
     renderDisplayContentValue,
     renderSourceSummary,
     renderElementLabelSummary,
@@ -4105,6 +4107,10 @@ function renderEnabledConditionList(
     return text(label(result, "always"));
   }
   return `<ul class="spec-list">${element.disabledWhen.map((condition) => `<li>${escapeHtml(conditionLabel(result, "enabled"))}: ${label(result, "conditionNot")} ${renderCondition(result, condition)}</li>`).join("")}</ul>`;
+}
+
+function renderDefaultAlways(result: ReturnType<typeof parseMarkVSpec>): string {
+  return `<span class="spec-default-always">${text(label(result, "always"))}</span>`;
 }
 
 function renderDisplayContentValue(element: ParsedElement, value: string): string {
@@ -6275,6 +6281,25 @@ function renderContentElementState(
     ["visible", element.visibleWhen],
     ["hidden", element.hiddenWhen]
   ]) || text(label(result, "always"));
+}
+
+function renderDisplayContentElementState(
+  result: ReturnType<typeof parseMarkVSpec>,
+  element: ReturnType<typeof parseMarkVSpec>["elements"][number]
+): string {
+  return renderConditionList(result, [
+    ["visible", element.visibleWhen],
+    ["hidden", element.hiddenWhen]
+  ]) || renderDefaultAlways(result);
+}
+
+function renderDisplayContentEnabledConditionList(
+  result: ReturnType<typeof parseMarkVSpec>,
+  element: ReturnType<typeof parseMarkVSpec>["elements"][number]
+): string {
+  return element.disabledWhen.length === 0
+    ? renderDefaultAlways(result)
+    : renderEnabledConditionList(result, element);
 }
 
 function renderActionableElementState(
