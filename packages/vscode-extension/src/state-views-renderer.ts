@@ -165,52 +165,7 @@ function renderDisplayExplanationsBox(
   if (model.displayExplanations.length === 0) {
     return "";
   }
-  const messageExplanations = model.displayExplanations.filter((explanation) => explanation.contentKind === "message");
-  const updateExplanations = model.displayExplanations.filter((explanation) => explanation.contentKind === "element");
-  return [
-    renderDisplayedMessagesBox(result, context, model, messageExplanations),
-    renderDisplayUpdatesBox(result, context, model, updateExplanations)
-  ].filter(Boolean).join("");
-}
-
-function renderDisplayedMessagesBox(
-  result: MarkVSpecParseResult,
-  context: StateViewsRenderContext,
-  model: Pick<StateScreenReadModel, "viewport">,
-  explanations: StateScreenReadModel["displayExplanations"]
-): string {
-  if (explanations.length === 0) {
-    return "";
-  }
-  const { format } = context;
-  const items = explanations.map((explanation) => {
-    const source = format.renderEntityRef({
-      id: explanation.sourceId,
-      category: explanation.markerSource === "element" ? "element" : "message",
-      marker: explanation.markerId,
-      label: explanation.sourceName || explanation.sourceId,
-      displaySource: explanation.sourceId
-    });
-    const targetList = explanation.targetRefs.map((target) => `<li>${renderDisplayUpdateTarget(result, context, model, target)}</li>`).join("");
-    const triggerList = explanation.triggeredBy.map((trigger) => `<li>${renderDisplayUpdateTrigger(result, format, trigger)}</li>`).join("");
-    const summary = explanation.textSummary.length > 0
-      ? `<dt>${format.label("message")}</dt><dd><ul>${explanation.textSummary.map((line) => `<li>${format.text(line)}</li>`).join("")}</ul></dd>`
-      : "";
-    return `<div class="display-explanation-item">
-      <h6>${source}</h6>
-      <dl>
-        <dt>${format.label("displaySource")}</dt><dd>${format.text(explanation.sourceId)}</dd>
-        <dt>${format.label("displayedAt")}</dt><dd><ul>${targetList}</ul></dd>
-        <dt>${format.label("triggeredBy")}</dt><dd><ul>${triggerList}</ul></dd>
-        <dt>${format.label("kind")}</dt><dd>${format.text(explanation.kind)}</dd>
-        ${summary}
-      </dl>
-    </div>`;
-  }).join("");
-  return `<aside class="display-explanations-box">
-    <h6 class="state-screen-detail-heading">${format.label("displayedMessages")}</h6>
-    ${items}
-  </aside>`;
+  return renderDisplayUpdatesBox(result, context, model, model.displayExplanations);
 }
 
 function renderDisplayUpdatesBox(
@@ -282,7 +237,10 @@ function renderDisplayUpdateContent(
   model: StateScreenReadModel,
   explanation: StateScreenReadModel["displayExplanations"][number]
 ): string {
-  return renderDisplayUpdateEntityRef(result, context.format, model, explanation.sourceId, explanation.sourceName);
+  const reference = renderDisplayUpdateEntityRef(result, context.format, model, explanation.sourceId, explanation.sourceName);
+  return explanation.contentKind === "message"
+    ? `${reference}<span class="display-update-suffix">${context.format.text(".messages")}</span>`
+    : reference;
 }
 
 function renderDisplayUpdateEntityRef(
@@ -304,6 +262,18 @@ function renderDisplayUpdateEntityRef(
     const name = fallbackName || element?.id || id;
     return format.renderEntityRef({ id, category: "element", marker, label: name });
   }
+  if (id.startsWith("V-")) {
+    const validation = result.validations.find((candidate) => candidate.id === id);
+    const marker = stringPropertyValue(validation?.properties["marker"]) || id;
+    const name = fallbackName || validation?.name || id;
+    return format.renderEntityRef({ id, category: "message", marker, label: name, displaySource: id });
+  }
+  if (id.startsWith("R-")) {
+    const rule = result.rules.find((candidate) => candidate.id === id);
+    const marker = stringPropertyValue(rule?.properties["marker"]) || id;
+    const name = fallbackName || rule?.name || id;
+    return format.renderEntityRef({ id, category: "message", marker, label: name, displaySource: id });
+  }
   return `<span class="display-update-ref">${format.text(fallbackName || id)}</span>`;
 }
 
@@ -311,7 +281,7 @@ function actionMarker(action: MarkVSpecParseResult["actions"][number]): string {
   return stringPropertyValue(action.properties["marker"]) || action.id;
 }
 
-function stringPropertyValue(value: string | true | undefined): string | undefined {
+function stringPropertyValue(value: string | string[] | true | undefined): string | undefined {
   return typeof value === "string" && value ? value : undefined;
 }
 

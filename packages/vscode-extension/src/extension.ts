@@ -5923,24 +5923,7 @@ function renderDisplayMessageReference(result: ReturnType<typeof parseMarkVSpec>
   if (!sourceId) {
     return text(message);
   }
-  return `${displayMessageMarkerBadge(result, sourceId)} ${referenceForDetailId(result, sourceId)}<span class="mm-detail-ref-suffix">.messages</span>`;
-}
-
-function displayMessageMarkerBadge(result: ReturnType<typeof parseMarkVSpec>, sourceId: string): string {
-  const marker = sourceId.startsWith("V-")
-    ? validationMarker(result, sourceId)
-    : businessRuleMarker(result, sourceId);
-  return `<code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="${escapeHtml(sourceId)}">${escapeHtml(marker)}</code>`;
-}
-
-function validationMarker(result: ReturnType<typeof parseMarkVSpec>, validationId: string): string {
-  const marker = result.validations.find((validation) => validation.id === validationId)?.properties["marker"];
-  return typeof marker === "string" && marker ? marker : validationId;
-}
-
-function businessRuleMarker(result: ReturnType<typeof parseMarkVSpec>, ruleId: string): string {
-  const marker = result.rules.find((rule) => rule.id === ruleId)?.properties["marker"];
-  return typeof marker === "string" && marker ? marker : ruleId;
+  return `${referenceForDetailId(result, sourceId)}<span class="mm-detail-ref-suffix">.messages</span>`;
 }
 
 function targetlessDisplayTargetLabel(result: ReturnType<typeof parseMarkVSpec>, elementId?: string): string {

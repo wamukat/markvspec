@@ -408,10 +408,12 @@ viewport: mobile
   assert.match(wireframe, /data-mm-render-key="element:E-EmailInput"/);
   assert.match(wireframe, /<div class="mm-field-error" data-mm-field-error-for="E-EmailInput"><div class="mm-field-error-message" data-mm-display-source="V-EmailRequired"><code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="V-EmailRequired">V1<\/code>Email is required\.<\/div><\/div>/);
   assert.match(wireframe, /data-mm-render-key="layout:mobile:L-MessageArea"[\s\S]*<div class="mm-display-message" data-mm-display-source="V-EmailRequired"><code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="V-EmailRequired">V1<\/code>Email is required\.<\/div>/);
-  assert.match(scenarioSection, /Displayed messages/);
-  assert.match(scenarioSection, /<code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="V-EmailRequired">V1<\/code> Email required/);
-  assert.match(scenarioSection, new RegExp(`<dt>Displayed at</dt><dd><ul><li>${detailElementRef("E-EmailInput", "E-EmailInput")}<span class="display-update-suffix">\\.error</span></li><li>${detailLayoutRef("L-MessageArea", "Message area")}</li></ul></dd>`));
-  assert.match(scenarioSection, new RegExp(`<dt>Triggered by</dt><dd><ul><li>[\\s\\S]*${refActionChip("A-Submit", "A-Submit", "Submit")}[\\s\\S]*P1\\.invalid[\\s\\S]*</li><li>[\\s\\S]*${refActionChip("A-Submit", "A-Submit", "Submit")}[\\s\\S]*P1\\.invalid-summary[\\s\\S]*</li></ul></dd>`));
+  assert.doesNotMatch(scenarioSection, /Displayed messages/);
+  const displayUpdates = scenarioSection.match(/<aside class="display-explanations-box display-updates-box">[\s\S]*?<\/aside>/)?.[0] ?? "";
+  assert.match(displayUpdates, /<h6 class="state-screen-detail-heading">Display updates<\/h6>/);
+  assert.match(displayUpdates, /<th>Triggered by<\/th><th>Update<\/th>/);
+  assert.match(displayUpdates, new RegExp(`${refActionChip("A-Submit", "A-Submit", "Submit")}[\\s\\S]*P1\\.invalid[\\s\\S]*${detailElementRef("E-EmailInput", "E-EmailInput")}<span class="display-update-suffix">\\.error</span>[\\s\\S]*receives[\\s\\S]*${refMessageChip("V1", "V-EmailRequired", "Email required")}<span class="display-update-suffix">\\.messages</span>`));
+  assert.match(displayUpdates, new RegExp(`${refActionChip("A-Submit", "A-Submit", "Submit")}[\\s\\S]*P1\\.invalid-summary[\\s\\S]*${detailLayoutRef("L-MessageArea", "Message area")}[\\s\\S]*receives[\\s\\S]*${refMessageChip("V1", "V-EmailRequired", "Email required")}<span class="display-update-suffix">\\.messages</span>`));
   assert.doesNotMatch(scenarioSection, /not placed in current layout[\s\S]*E-EmailInput\.error/);
 });
 
@@ -530,15 +532,10 @@ viewport: mobile
 
   assert.deepEqual(result.diagnostics, []);
   assert.match(wireframe, /data-mm-render-key="layout:mobile:L-MessageArea"[\s\S]*<div class="mm-display-message" data-mm-display-source="V-LoginFormRequired"><code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="V-LoginFormRequired">V2<\/code>Email and password are required\.<\/div>/);
-  assert.match(scenarioSection, /Displayed messages/);
-  assert.match(scenarioSection, /<code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="V-LoginFormRequired">V2<\/code> Login form required/);
-  assert.match(scenarioSection, /<dt>Source<\/dt><dd>V-LoginFormRequired<\/dd>/);
-  const displayedMessages = scenarioSection.match(/<aside class="display-explanations-box">[\s\S]*?<\/aside>/)?.[0] ?? "";
-  assert.match(displayedMessages, new RegExp(`<dt>Displayed at</dt><dd><ul><li>${detailLayoutRef("MSG", "Mobile message area")}</li></ul></dd>`));
-  assert.doesNotMatch(displayedMessages, /Desktop message area/);
-  assert.match(scenarioSection, new RegExp(`<dt>Triggered by</dt><dd><ul><li>[\\s\\S]*${refActionChip("A-Submit", "A-Submit", "Submit")}[\\s\\S]*P1\\.invalid[\\s\\S]*</li></ul></dd>`));
-  assert.match(scenarioSection, /<dt>Kind<\/dt><dd>client cross-field validation error<\/dd>/);
-  assert.match(scenarioSection, /<dt>Message<\/dt><dd><ul><li>Email and password are required\.<\/li><\/ul><\/dd>/);
+  assert.doesNotMatch(scenarioSection, /Displayed messages/);
+  const displayUpdates = scenarioSection.match(/<aside class="display-explanations-box display-updates-box">[\s\S]*?<\/aside>/)?.[0] ?? "";
+  assert.match(displayUpdates, new RegExp(`${refActionChip("A-Submit", "A-Submit", "Submit")}[\\s\\S]*P1\\.invalid[\\s\\S]*${detailLayoutRef("MSG", "Mobile message area")}[\\s\\S]*receives[\\s\\S]*${refMessageChip("V2", "V-LoginFormRequired", "Login form required")}<span class="display-update-suffix">\\.messages</span>`));
+  assert.doesNotMatch(displayUpdates, /Desktop message area/);
 });
 
 test("renders business rule display message markers in scenario wireframes and action details", () => {
@@ -620,13 +617,12 @@ viewport: mobile
 
   assert.deepEqual(result.diagnostics, []);
   assert.match(wireframe, /<div class="mm-field-error" data-mm-field-error-for="E-EmailInput"><div class="mm-field-error-message" data-mm-display-source="R-EmailMustBeUnique"><code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="R-EmailMustBeUnique">R1<\/code>This email address is already registered\.<\/div><\/div>/);
-  assert.match(scenarioSection, /<code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="R-EmailMustBeUnique">R1<\/code> Email must be unique/);
-  assert.match(scenarioSection, /<dt>Source<\/dt><dd>R-EmailMustBeUnique<\/dd>/);
-  assert.match(scenarioSection, new RegExp(`<dt>Displayed at</dt><dd><ul><li>${detailElementRef("E-EmailInput", "E-EmailInput")}<span class="display-update-suffix">\\.error</span></li></ul></dd>`));
-  assert.match(scenarioSection, new RegExp(`<dt>Triggered by</dt><dd><ul><li>[\\s\\S]*${refActionChip("A-Submit", "A-Submit", "Submit")}[\\s\\S]*P1\\.business-rule-violation[\\s\\S]*</li></ul></dd>`));
-  assert.match(scenarioSection, /<dt>Kind<\/dt><dd>business rule message<\/dd>/);
+  assert.doesNotMatch(scenarioSection, /Displayed messages/);
+  const displayUpdates = scenarioSection.match(/<aside class="display-explanations-box display-updates-box">[\s\S]*?<\/aside>/)?.[0] ?? "";
+  assert.match(displayUpdates, new RegExp(`${refActionChip("A-Submit", "A-Submit", "Submit")}[\\s\\S]*P1\\.business-rule-violation[\\s\\S]*${detailElementRef("E-EmailInput", "E-EmailInput")}<span class="display-update-suffix">\\.error</span>[\\s\\S]*receives[\\s\\S]*${refMessageChip("R1", "R-EmailMustBeUnique", "Email must be unique")}<span class="display-update-suffix">\\.messages</span>`));
   assert.match(html, new RegExp(`<li>Business Rule ${refMessageChip("R1", "R-EmailMustBeUnique", "Email must be unique")}</li>`));
-  assert.match(html, new RegExp(`message <code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="R-EmailMustBeUnique">R1</code> ${refMessageChip("R1", "R-EmailMustBeUnique", "Email must be unique")}<span class="mm-detail-ref-suffix">\\.messages</span>`));
+  assert.match(html, new RegExp(`message ${refMessageChip("R1", "R-EmailMustBeUnique", "Email must be unique")}<span class="mm-detail-ref-suffix">\\.messages</span>`));
+  assert.doesNotMatch(html, new RegExp(`message <code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="R-EmailMustBeUnique">R1</code> ${refMessageChip("R1", "R-EmailMustBeUnique", "Email must be unique")}`));
 });
 
 test("shows subsequent viewport initial state as current state with repeated rows", () => {
