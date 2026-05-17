@@ -42,6 +42,7 @@ import {
   rawStringProperty,
   renderTable,
   renderTableWithCells,
+  rowspanPrefixCells,
   stringProperty,
   text
 } from "./design-document-renderer.js";
@@ -4710,7 +4711,9 @@ function renderValidationRulesSpec(result: ReturnType<typeof parseMarkVSpec>): s
     groups[groupIndex]?.rules.push(validation);
   }
   const content = groups
-    .map((group) => group.rules.length > 0 ? renderValidationRuleGroup(result, label(result, group.key), group.rules) : "")
+    .map((group) => group.rules.length > 0
+      ? renderValidationRuleGroup(result, label(result, group.key), group.key.includes("CrossField") ? "cross-field" : "field", group.rules)
+      : "")
     .filter(Boolean)
     .join("");
 
@@ -4725,39 +4728,97 @@ function renderValidationRulesSpec(result: ReturnType<typeof parseMarkVSpec>): s
 function renderValidationRuleGroup(
   result: ReturnType<typeof parseMarkVSpec>,
   heading: string,
+  scope: "field" | "cross-field",
   validations: ReturnType<typeof parseMarkVSpec>["validations"]
 ): string {
   const showOverview = validations.some((validation) => (validation.overview?.length ?? 0) > 0);
   const showNotes = validations.some((validation) => (validation.notes?.length ?? 0) > 0);
+  const headers = scope === "field"
+    ? [
+      label(result, "id"),
+      label(result, "name"),
+      ...(showOverview ? [label(result, "overview")] : []),
+      label(result, "target"),
+      label(result, "rule"),
+      label(result, "when"),
+      label(result, "message"),
+      label(result, "errorCode"),
+      ...(showNotes ? [label(result, "notes")] : [])
+    ]
+    : [
+      label(result, "id"),
+      label(result, "name"),
+      ...(showOverview ? [label(result, "overview")] : []),
+      label(result, "target"),
+      label(result, "inputs"),
+      label(result, "check"),
+      label(result, "when"),
+      label(result, "message"),
+      label(result, "errorCode"),
+      ...(showNotes ? [label(result, "notes")] : [])
+    ];
+  const rows = scope === "field"
+    ? renderFieldValidationRows(result, validations, showOverview, showNotes)
+    : renderCrossFieldValidationRows(result, validations, showOverview, showNotes);
   return [
     `<h3>${heading}</h3>`,
-    renderLocalizedTable(result,
-      [
-        label(result, "id"),
-        label(result, "name"),
-        ...(showOverview ? [label(result, "overview")] : []),
-        label(result, "target"),
-        label(result, "result"),
-        label(result, "rules"),
-        label(result, "condition"),
-        label(result, "message"),
-        label(result, "errorCode"),
-        ...(showNotes ? [label(result, "notes")] : [])
-      ],
-      validations.map((validation) => [
+    renderLocalizedTableWithCells(result, headers, rows)
+  ].join("");
+}
+
+function renderFieldValidationRows(
+  result: ReturnType<typeof parseMarkVSpec>,
+  validations: ReturnType<typeof parseMarkVSpec>["validations"],
+  showOverview: boolean,
+  showNotes: boolean
+): TableCell[][] {
+  return validations.flatMap((validation) => {
+    const rules = validation.rules.length > 0 ? validation.rules : [undefined];
+    const hasRuleMessages = validationHasRuleProperty(validation, "message");
+    const hasRuleErrorCodes = validationHasRuleProperty(validation, "error code");
+    const messageValues = hasRuleMessages ? undefined : validationPropertyValues(validation, "message");
+    const errorCodeValues = hasRuleErrorCodes ? undefined : [
+      ...validationPropertyValues(validation, "error code"),
+      ...validationPropertyValues(validation, "error codes")
+    ];
+
+    return rules.map((rule, index) => [
+      ...rowspanPrefixCells(index === 0 ? rules.length : 0, [
         renderDetailRefId(validation.id),
         text(validation.name),
         ...(showOverview ? [renderEntityOverview(validation.overview)] : []),
-        renderValidationProperty(result, validation, "target"),
-        renderValidationResultReference(validation),
-        renderValidationRules(result, validation),
-        renderValidationProperty(result, validation, "condition") || renderValidationProperty(result, validation, "when") || renderValidationProperty(result, validation, "check"),
-        renderValidationProperty(result, validation, "message"),
-        renderValidationProperty(result, validation, "error code") || renderValidationProperty(result, validation, "error codes"),
+        renderValidationProperty(result, validation, "target")
+      ]),
+      rule ? renderValidationRuleEntry(result, validation, rule) : text("-"),
+      renderValidationRuleProperty(result, rule, validation, "when", index)
+        || renderLegacyValidationCondition(result, validation),
+      renderValidationRuleProperty(result, rule, validation, "message", index, messageValues, !hasRuleMessages),
+      renderValidationRuleProperty(result, rule, validation, "error code", index, errorCodeValues, !hasRuleErrorCodes),
+      ...rowspanPrefixCells(index === 0 ? rules.length : 0, [
         ...(showNotes ? [renderEntityNotes(validation.notes)] : [])
       ])
-    )
-  ].join("");
+    ]);
+  });
+}
+
+function renderCrossFieldValidationRows(
+  result: ReturnType<typeof parseMarkVSpec>,
+  validations: ReturnType<typeof parseMarkVSpec>["validations"],
+  showOverview: boolean,
+  showNotes: boolean
+): TableCell[][] {
+  return validations.map((validation) => [
+    renderDetailRefId(validation.id),
+    text(validation.name),
+    ...(showOverview ? [renderEntityOverview(validation.overview)] : []),
+    renderValidationProperty(result, validation, "target"),
+    renderValidationProperty(result, validation, "input") || renderValidationProperty(result, validation, "inputs"),
+    renderValidationProperty(result, validation, "check") || renderValidationRules(result, validation),
+    renderValidationProperty(result, validation, "when") || renderLegacyValidationCondition(result, validation),
+    renderValidationProperty(result, validation, "message"),
+    renderValidationProperty(result, validation, "error code") || renderValidationProperty(result, validation, "error codes"),
+    ...(showNotes ? [renderEntityNotes(validation.notes)] : [])
+  ]);
 }
 
 function renderValidationResultReference(validation: ReturnType<typeof parseMarkVSpec>["validations"][number]): string {
@@ -4772,11 +4833,164 @@ function renderValidationRules(
     return "";
   }
   return `<ul class="spec-list">${validation.rules.map((rule) => {
-    const targets = rule.targets.length > 0
-      ? `: ${rule.targets.map((target) => referenceForId(result, target, "target")).join(", ")}`
+    const targets = validationRuleTargets(rule).length > 0
+      ? `: ${validationRuleTargets(rule).map((target) => referenceForId(result, target, "target")).join(", ")}`
       : "";
     return `<li>${text(rule.name)}${targets}</li>`;
   }).join("")}</ul>`;
+}
+
+function renderValidationRuleEntry(
+  result: ReturnType<typeof parseMarkVSpec>,
+  validation: ReturnType<typeof parseMarkVSpec>["validations"][number],
+  rule: ReturnType<typeof parseMarkVSpec>["validations"][number]["rules"][number]
+): string {
+  const targets = validationRuleTargets(rule);
+  const ruleText = targets.length > 0
+    ? `${text(rule.name)}: ${targets.map((target) => referenceForId(result, target, "target")).join(", ")}`
+    : text(rule.name);
+  const elementMetadata = renderValidationElementShortcutMetadata(result, validation, rule);
+  return elementMetadata ? `${ruleText} <span class="mm-muted">(${elementMetadata})</span>` : ruleText;
+}
+
+function validationRuleTargets(rule: ReturnType<typeof parseMarkVSpec>["validations"][number]["rules"][number]): string[] {
+  return rule.targets.filter((target) => validationRuleChildProperty(target) === undefined);
+}
+
+function renderValidationRuleProperty(
+  result: ReturnType<typeof parseMarkVSpec>,
+  rule: ReturnType<typeof parseMarkVSpec>["validations"][number]["rules"][number] | undefined,
+  validation: ReturnType<typeof parseMarkVSpec>["validations"][number],
+  key: "when" | "message" | "error code",
+  index: number,
+  fallbackValues?: string[],
+  useValidationFallback = true
+): string {
+  const ruleValues = rule ? validationRulePropertyValues(validation, rule, key) : [];
+  if (ruleValues.length > 0) {
+    return renderValidationValues(result, ruleValues);
+  }
+
+  if (fallbackValues && fallbackValues.length > 0) {
+    return renderValidationValues(result, fallbackValues.length === validation.rules.length ? [fallbackValues[index] ?? ""] : fallbackValues);
+  }
+
+  if (key === "error code" && useValidationFallback) {
+    const values = [
+      ...validationPropertyValues(validation, "error code"),
+      ...validationPropertyValues(validation, "error codes")
+    ];
+    return renderValidationValues(result, values);
+  }
+  return useValidationFallback ? renderValidationProperty(result, validation, key) : "";
+}
+
+function validationRulePropertyValues(
+  validation: ReturnType<typeof parseMarkVSpec>["validations"][number],
+  rule: ReturnType<typeof parseMarkVSpec>["validations"][number]["rules"][number],
+  key: string
+): string[] {
+  const normalizedKey = key.toLowerCase();
+  const valuesByLocation = validationPropertyValuesForRule(validation, rule, normalizedKey);
+  if (valuesByLocation.length > 0) {
+    return valuesByLocation;
+  }
+  return rule.targets.flatMap((target) => {
+    const property = validationRuleChildProperty(target);
+    return property?.key === normalizedKey ? [property.value] : [];
+  });
+}
+
+function validationHasRuleProperty(
+  validation: ReturnType<typeof parseMarkVSpec>["validations"][number],
+  key: string
+): boolean {
+  return validation.rules.some((rule) => validationRulePropertyValues(validation, rule, key).length > 0);
+}
+
+function validationPropertyValuesForRule(
+  validation: ReturnType<typeof parseMarkVSpec>["validations"][number],
+  rule: ReturnType<typeof parseMarkVSpec>["validations"][number]["rules"][number],
+  key: string
+): string[] {
+  const values = validationPropertyValues(validation, key);
+  const locations = validation.propertyLocations[key] ?? [];
+  if (values.length === 0 || locations.length === 0) {
+    return [];
+  }
+
+  const sortedRules = [...validation.rules].sort((a, b) => a.location.line - b.location.line);
+  const ruleIndex = sortedRules.indexOf(rule);
+  const nextRuleLine = sortedRules[ruleIndex + 1]?.location.line ?? Number.POSITIVE_INFINITY;
+  return values.filter((_, index) => {
+    const location = locations[index];
+    return location !== undefined && location.line > rule.location.line && location.line < nextRuleLine;
+  });
+}
+
+function renderValidationElementShortcutMetadata(
+  result: ReturnType<typeof parseMarkVSpec>,
+  validation: ReturnType<typeof parseMarkVSpec>["validations"][number],
+  rule: ReturnType<typeof parseMarkVSpec>["validations"][number]["rules"][number]
+): string {
+  const normalizedName = rule.name.toLowerCase();
+  const targets = validationRuleTargets(rule).map((target) => target.toLowerCase());
+  if ((normalizedName !== "length" && normalizedName !== "range") || !targets.includes("element")) {
+    return "";
+  }
+
+  const targetElement = validationPropertyValues(validation, "target")
+    .map((target) => result.elements.find((element) => element.id === target))
+    .find((element): element is NonNullable<typeof element> => Boolean(element));
+  if (!targetElement) {
+    return "";
+  }
+
+  const metadataKeys = normalizedName === "length"
+    ? [
+      { label: "min length", keys: ["min length", "min-length", "minlength"] },
+      { label: "max length", keys: ["max length", "max-length", "maxlength"] }
+    ]
+    : [
+      { label: "min", keys: ["min"] },
+      { label: "max", keys: ["max"] },
+      { label: "step", keys: ["step"] }
+    ];
+  const rows = metadataKeys.flatMap(({ label: metadataLabel, keys }) => {
+    const value = elementInputMetadataValue(targetElement, keys);
+    return value ? [`${text(metadataLabel)}: ${renderParamSource(result, value)}`] : [];
+  });
+  return rows.join(", ");
+}
+
+function elementInputMetadataValue(
+  element: ReturnType<typeof parseMarkVSpec>["elements"][number],
+  keys: string[]
+): string {
+  const normalizedKeys = new Set(keys.map((key) => key.toLowerCase()));
+  for (const [propertyKey, property] of Object.entries(element.properties)) {
+    if (!normalizedKeys.has(propertyKey.toLowerCase())) {
+      continue;
+    }
+    const propertyValue = rawStringProperty(property);
+    if (propertyValue) {
+      return propertyValue;
+    }
+  }
+  const inputRule = element.inputRules.find((rule) => normalizedKeys.has(rule.key.toLowerCase()));
+  return inputRule?.value ?? "";
+}
+
+function validationRuleChildProperty(value: string): { key: string; value: string } | undefined {
+  const match = value.match(/^([^:]+):\s*(.*)$/u);
+  if (!match) {
+    return undefined;
+  }
+  const key = match[1]?.trim().toLowerCase() ?? "";
+  if (key !== "when" && key !== "message" && key !== "messages" && key !== "error code" && key !== "error codes") {
+    return undefined;
+  }
+  return { key: key === "messages" ? "message" : key === "error codes" ? "error code" : key, value: match[2]?.trim() ?? "" };
 }
 
 function validationRunKind(validation: ReturnType<typeof parseMarkVSpec>["validations"][number]): "client" | "server" {
@@ -4801,20 +5015,43 @@ function firstValidationProperty(validation: ReturnType<typeof parseMarkVSpec>["
   return Array.isArray(value) ? value[0] ?? "" : value ?? "";
 }
 
+function validationPropertyValues(validation: ReturnType<typeof parseMarkVSpec>["validations"][number], key: string): string[] {
+  const value = validation.properties[key];
+  return Array.isArray(value) ? value : value ? [value] : [];
+}
+
 function renderValidationProperty(
   result: ReturnType<typeof parseMarkVSpec>,
   validation: ReturnType<typeof parseMarkVSpec>["validations"][number],
   key: string
 ): string {
-  const value = validation.properties[key];
-  const values = Array.isArray(value) ? value : value ? [value] : [];
-  if (values.length === 0) {
+  const values = validationPropertyValues(validation, key);
+  return renderValidationValues(result, values);
+}
+
+function renderValidationValues(
+  result: ReturnType<typeof parseMarkVSpec>,
+  values: string[]
+): string {
+  const presentValues = values.filter(Boolean);
+  if (presentValues.length === 0) {
     return "";
   }
 
-  return values.length === 1
-    ? renderParamSource(result, values[0] ?? "")
-    : `<ul class="spec-list">${values.map((item) => `<li>${renderParamSource(result, item)}</li>`).join("")}</ul>`;
+  return presentValues.length === 1
+    ? renderParamSource(result, presentValues[0] ?? "")
+    : `<ul class="spec-list">${presentValues.map((item) => `<li>${renderParamSource(result, item)}</li>`).join("")}</ul>`;
+}
+
+function renderLegacyValidationCondition(
+  result: ReturnType<typeof parseMarkVSpec>,
+  validation: ReturnType<typeof parseMarkVSpec>["validations"][number]
+): string {
+  const values = validationPropertyValues(validation, "condition");
+  if (values.length === 0) {
+    return "";
+  }
+  return `${text(label(result, "legacyCondition"))}: ${renderValidationValues(result, values)}`;
 }
 
 function renderRulesSpec(result: ReturnType<typeof parseMarkVSpec>): string {

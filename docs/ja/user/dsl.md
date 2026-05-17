@@ -1513,6 +1513,7 @@ Thymeleaf や htmx による部分更新は、実装属性ではなく意味と�
   - email:
     - message: Enter a valid email address.
   - length: element
+    - when: E-EmailInput.value is present
     - message: Email length must follow the input specification.
 ```
 
@@ -1528,11 +1529,18 @@ marker がない場合、validator は warning を出し、validation ID を mar
 `V-EmailRules.result` のような `V-*` ID を使います。summary key は `target`、`run`、
 `constraints` を使います。通常 `run` は省略し、初期対応値は `client` です。`scope` は書かず、
 section 名で field / cross-field を判定します。
+生成 preview の field validation 表は `ID`、`名前`、`対象`、`ルール`、`条件`、
+`メッセージ`、`エラーコード` を表示します。複数 constraint を持つ Validation は
+constraint ごとに 1 行で表示し、Validation の識別列は結合します。
 
 `length: element` は target Element の min/max length 入力 metadata を再利用します。
 `range: element` は target Element の min/max value 入力 metadata を再利用します。
 参照先 Element に必要な入力 metadata がなければ warning とし、preview は fallback
 message を作りません。
+これらのショートハンドを使った場合、preview は作者が書いたショートハンドを残しつつ、
+Element 側の実値を補足します。たとえば
+`length: element (min length: 3, max length: 40)` や
+`range: element (min: 13, max: 120, step: 1)` のように表示します。
 
 複数 input または form 全体にまたがる検証契約は `## Cross-field Validations` に書きます。
 
@@ -1565,6 +1573,9 @@ cross-field validation の対象としては使いません。
 summary key は `target`、`run`、`inputs`、`check`、`when`、`message` を使います。
 `check` と `when` は初期 DSL では人間可読 text であり、構造化 expression ではありません。
 `condition:` と `group:` は canonical syntax では使いません。
+生成 preview の cross-field validation 表は `ID`、`名前`、`対象`、`入力`、`チェック`、
+`条件`、`メッセージ`、`エラーコード` を表示します。`check` は検証内容、`when` は
+適用条件を表します。
 
 各 Validation は `<validation-id>.result` と `<validation-id>.messages` という暗黙の
 opaque reference を公開します。初期 Action contract では result value は `valid` /

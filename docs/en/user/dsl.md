@@ -2179,6 +2179,7 @@ constraint instead of repeating required intent in layout labels such as
   - email:
     - message: Enter a valid email address.
   - length: element
+    - when: E-EmailInput.value is present
     - message: Email length must follow the input specification.
 ```
 
@@ -2195,11 +2196,19 @@ reference ID; references use `V-*` IDs such as `V-EmailRules.result`.
 Supported summary keys are `target`, `run`, and `constraints`. You usually omit
 `run`; the initial supported value is `client`. Do not write `scope`; the
 section name determines whether a validation is field or cross-field.
+In the generated preview, field validation tables use `ID`, `Name`, `Target`,
+`Rule`, `When`, `Message`, and `Error Code`. A validation with multiple
+constraints is shown as one row per constraint, with the validation identity
+columns merged.
 
 `length: element` reuses the target Element's min/max length input metadata.
 `range: element` reuses the target Element's min/max value metadata. If the
 referenced Element does not provide the needed input metadata, the validator
 warns. The preview does not invent a fallback message.
+When these shorthand rules are used, the preview keeps the authored shorthand
+and supplements it with the Element's actual values, such as
+`length: element (min length: 3, max length: 40)` or
+`range: element (min: 13, max: 120, step: 1)`.
 
 For validation contracts that depend on several inputs or a whole form, use
 `## Cross-field Validations`.
@@ -2234,6 +2243,9 @@ responsibility.
 Supported summary keys are `target`, `run`, `inputs`, `check`, `when`, and
 `message`. `check` and `when` are human-readable text in the initial DSL; they
 are not structured expressions. `condition:` and `group:` are not canonical.
+In the generated preview, cross-field validation tables use `ID`, `Name`,
+`Target`, `Inputs`, `Check`, `When`, `Message`, and `Error Code`. `check`
+describes the validation content; `when` describes applicability.
 
 Each validation exposes implicit opaque references named `<validation-id>.result`
 and `<validation-id>.messages`. Result values are limited to `valid` and

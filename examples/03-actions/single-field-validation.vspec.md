@@ -167,4 +167,5 @@ so field-level contracts remain the main topic.
 - target: E-AgeInput
 - constraints:
   - range: element
+    - when: E-AgeInput.value is present
     - message: Age must be between 13 and 120.

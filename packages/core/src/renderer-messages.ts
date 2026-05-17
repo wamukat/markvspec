@@ -20,6 +20,7 @@ export type MessageKey =
   | "businessRule"
   | "businessRules"
   | "case"
+  | "check"
   | "clientCrossFieldValidations"
   | "clientFieldValidations"
   | "columns"
@@ -82,6 +83,7 @@ export type MessageKey =
   | "inputFormSpec"
   | "inputRequired"
   | "inputSpec"
+  | "inputs"
   | "items"
   | "kind"
   | "label"
@@ -89,6 +91,7 @@ export type MessageKey =
   | "layout"
   | "layouts"
   | "level"
+  | "legacyCondition"
   | "line"
   | "locale"
   | "loaded"
@@ -248,6 +251,7 @@ const en: Record<MessageKey, string> = {
   businessRule: "Business Rule",
   businessRules: "Business Rules",
   case: "Case",
+  check: "Check",
   clientCrossFieldValidations: "Client Cross-field Validations",
   clientFieldValidations: "Client Field Validations",
   columns: "Columns",
@@ -310,6 +314,7 @@ const en: Record<MessageKey, string> = {
   inputFormSpec: "Input Form Spec",
   inputRequired: "Required",
   inputSpec: "Spec",
+  inputs: "Inputs",
   items: "Items",
   kind: "Kind",
   label: "Label",
@@ -317,6 +322,7 @@ const en: Record<MessageKey, string> = {
   layout: "Layout",
   layouts: "Layouts",
   level: "Level",
+  legacyCondition: "legacy condition",
   line: "Line",
   locale: "Locale",
   loaded: "loaded",
@@ -477,6 +483,7 @@ const ja: Record<MessageKey, string> = {
   businessRule: "業務ルール",
   businessRules: "業務ルール",
   case: "ケース",
+  check: "チェック",
   clientCrossFieldValidations: "クライアント複合項目検証",
   clientFieldValidations: "クライアント単項目検証",
   columns: "列",
@@ -539,6 +546,7 @@ const ja: Record<MessageKey, string> = {
   inputFormSpec: "入力フォーム仕様",
   inputRequired: "必須",
   inputSpec: "仕様",
+  inputs: "入力",
   items: "項目",
   kind: "種別",
   label: "表示名",
@@ -546,6 +554,7 @@ const ja: Record<MessageKey, string> = {
   layout: "レイアウト",
   layouts: "レイアウト",
   level: "レベル",
+  legacyCondition: "非推奨 condition",
   line: "行",
   locale: "ロケール",
   loaded: "読み込み済み",

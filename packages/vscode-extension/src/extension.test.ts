@@ -3617,15 +3617,18 @@ locale: ja
   assert.match(section, /<h3>クライアント複合項目検証<\/h3>/);
   assert.match(section, /<h3>サーバ単項目検証<\/h3>/);
   assert.match(section, /<h3>サーバ複合項目検証<\/h3>/);
-  assert.match(clientField, /<th>ID<\/th><th>名前<\/th><th>対象<\/th><th>結果<\/th><th>ルール<\/th><th>条件<\/th><th>メッセージ<\/th><th>エラーコード<\/th>/);
+  assert.match(clientField, /<th>ID<\/th><th>名前<\/th><th>対象<\/th><th>ルール<\/th><th>条件<\/th><th>メッセージ<\/th><th>エラーコード<\/th>/);
+  assert.doesNotMatch(section, /<th>結果<\/th>/);
   assert.doesNotMatch(section, /<th>範囲<\/th>|<th>実行<\/th>/);
   assert.match(clientField, /<td><span class="mm-detail-ref-id">V-EmailRequired<\/span><\/td><td>メール必須<\/td>/);
+  assert.match(clientField, /非推奨 condition:/);
   assert.doesNotMatch(clientField, /V-PasswordConfirmation|V-EmailUnique|V-AccountConsistency/);
+  assert.match(clientCrossField, /<th>ID<\/th><th>名前<\/th><th>対象<\/th><th>入力<\/th><th>チェック<\/th><th>条件<\/th><th>メッセージ<\/th><th>エラーコード<\/th>/);
   assert.match(clientCrossField, /<td><span class="mm-detail-ref-id">V-PasswordConfirmation<\/span><\/td><td>パスワード確認<\/td>/);
   assert.match(clientCrossField, new RegExp(`<li>${markerBadge("1", "element")}<\\/li><li>${markerBadge("2", "element")}<\\/li>`));
-  assert.match(clientCrossField, /V-PasswordConfirmation\.result/);
   assert.match(clientCrossField, /same-as/);
   assert.match(clientCrossField, new RegExp(`${markerBadge("1", "element")}\\.value equals ${markerBadge("2", "element")}\\.value`));
+  assert.doesNotMatch(clientCrossField, /V-PasswordConfirmation\.result/);
   assert.doesNotMatch(clientCrossField, /V-EmailRequired|V-EmailUnique|V-AccountConsistency/);
   assert.match(serverField, /<td><span class="mm-detail-ref-id">V-EmailUnique<\/span><\/td><td>メール重複<\/td>/);
   assert.match(serverField, /ERR-EMAIL-TAKEN/);
@@ -4092,11 +4095,97 @@ test("keeps validation required distinct from input required in single-field val
   assert.doesNotMatch(formControls, /<th>Input Required<\/th>/);
   assert.match(formControls, new RegExp(`<td>${detailElementRef("3", "E-UsernameInput")}</td><td>Input</td><td>no</td>`));
   assert.match(formControls, new RegExp(`<td>${detailElementRef("4", "E-EmailInput")}</td><td>Input</td><td>no</td>`));
-  assert.match(clientFieldValidations, new RegExp(`<td><span class="mm-detail-ref-id">V-UsernameRules<\\/span><\\/td><td>Username rules<\\/td><td>${markerBadge("3", "element")}<\\/td>`));
-  assert.match(clientFieldValidations, /<li>required<\/li><li>length: element<\/li><li>pattern<\/li>/);
+  assert.match(clientFieldValidations, new RegExp(`<td rowspan="3"><span class="mm-detail-ref-id">V-UsernameRules<\\/span><\\/td><td rowspan="3">Username rules<\\/td><td rowspan="3">${markerBadge("3", "element")}<\\/td>`));
+  assert.match(clientFieldValidations, /<td>required<\/td>[\s\S]*<td>length: element <span class="mm-muted">\(min length: 3, max length: 40\)<\/span><\/td>[\s\S]*<td>pattern<\/td>/);
   assert.match(clientFieldValidations, /Username is required\.[\s\S]*Username must be 3 to 40 lowercase letters, numbers, or hyphens\.[\s\S]*Username can contain lowercase letters, numbers, and hyphens\./);
-  assert.match(clientFieldValidations, new RegExp(`<td><span class="mm-detail-ref-id">V-EmailRules<\\/span><\\/td><td>Email rules<\\/td><td>${markerBadge("4", "element")}<\\/td>`));
-  assert.match(clientFieldValidations, /<li>required<\/li><li>email<\/li>/);
+  assert.match(clientFieldValidations, new RegExp(`<td rowspan="2"><span class="mm-detail-ref-id">V-EmailRules<\\/span><\\/td><td rowspan="2">Email rules<\\/td><td rowspan="2">${markerBadge("4", "element")}<\\/td>`));
+  assert.match(clientFieldValidations, /<td>required<\/td>[\s\S]*<td>email<\/td>/);
+  assert.match(clientFieldValidations, new RegExp(`<td>range: element <span class="mm-muted">\\(min: 13, max: 120, step: 1\\)<\\/span><\\/td><td>${markerBadge("5", "element")}\\.value is present<\\/td><td>Age must be between 13 and 120\\.<\\/td>`));
+  assert.doesNotMatch(clientFieldValidations, /<th>Result<\/th>|<th>Condition<\/th>/);
+});
+
+test("keeps field validation rule messages attached to their constraint rows", () => {
+  const source = `---
+id: SCR-FIELD-VALIDATION-MESSAGES
+type: screen
+title: Field Validation Messages
+locale: en
+---
+
+# SCR-FIELD-VALIDATION-MESSAGES Field Validation Messages
+
+## States
+
+- idle*
+
+## Elements
+
+### 1:E-EmailInput Input
+
+- label: Email
+
+## Field Validations
+
+### V-EmailRules Email rules
+
+- target: E-EmailInput
+- constraints:
+  - required
+  - email:
+    - message: Enter a valid email address.
+  - pattern:
+    - message: Use a company address.
+    - message: Aliases are not allowed.
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const validationsSection = docSectionByHeading(html, "Validations");
+  const clientFieldValidations = validationsSection.match(/<h3>Client Field Validations<\/h3>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.match(clientFieldValidations, /<td>required<\/td><td>-<\/td><td>-<\/td><td>-<\/td>/);
+  assert.match(clientFieldValidations, /<td>email<\/td><td>-<\/td><td>Enter a valid email address\.<\/td><td>-<\/td>/);
+  assert.match(clientFieldValidations, /<td>pattern<\/td><td>-<\/td><td><ul class="spec-list"><li>Use a company address\.<\/li><li>Aliases are not allowed\.<\/li><\/ul><\/td><td>-<\/td>/);
+});
+
+test("expands length element validation shortcuts from accepted input metadata aliases", () => {
+  const source = `---
+id: SCR-LENGTH-ALIAS
+type: screen
+title: Length Alias
+locale: en
+---
+
+# SCR-LENGTH-ALIAS Length Alias
+
+## States
+
+- idle*
+
+## Elements
+
+### 1:E-CodeInput Input
+
+- label: Code
+- input rule:
+  - min-length: 3
+  - maxlength: 40
+
+## Field Validations
+
+### V-CodeRules Code rules
+
+- target: E-CodeInput
+- constraints:
+  - length: element
+    - message: Code length is constrained by the input metadata.
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const validationsSection = docSectionByHeading(html, "Validations");
+  const clientFieldValidations = validationsSection.match(/<h3>Client Field Validations<\/h3>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.equal(result.diagnostics.filter((diagnostic) => diagnostic.severity === "warning").length, 0);
+  assert.match(clientFieldValidations, /<td>length: element <span class="mm-muted">\(min length: 3, max length: 40\)<\/span><\/td>/);
 });
 
 test("keeps required metadata in the input required column for input form specs", () => {
