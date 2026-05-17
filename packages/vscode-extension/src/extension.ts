@@ -3755,9 +3755,8 @@ function stateViewsRenderContext(result: ReturnType<typeof parseMarkVSpec>): Sta
     renderElementActionReferences: (element) => renderElementActionReferences(result, element),
     renderElementDescription,
     renderRequiredSpec: (element) => renderRequiredSpec(result, element),
-    renderFormControlInitialValueSource,
+    renderFormControlInitialValueSource: (element) => renderFormControlInitialValueSource(result, element),
     renderInputSpec: (element) => renderInputSpec(result, element),
-    renderFormControlBind: (element) => renderFormControlBind(result, element),
     renderContentElementState: (element) => renderContentElementState(result, element),
     renderEnabledConditionList: (element) => renderEnabledConditionList(result, element),
     renderDisplayContentValue,
@@ -5926,37 +5925,67 @@ function renderFormControlValueSource(result: ReturnType<typeof parseMarkVSpec>,
   return rows.length === 1 ? rows[0] ?? "" : `<ul class="spec-list">${rows.map((row) => `<li>${row}</li>`).join("")}</ul>`;
 }
 
-function renderFormControlInitialValueSource(element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
+function renderFormControlInitialValueSource(
+  result: ReturnType<typeof parseMarkVSpec>,
+  element: ReturnType<typeof parseMarkVSpec>["elements"][number]
+): string {
   const initialValue = rawStringProperty(element.properties["initial value"]);
   const value = rawStringProperty(element.properties["value"]);
-  const rows = [
-    initialValue ? renderExpressionTokens(initialValue) : "",
-    value && !rawStringProperty(element.properties["bind"]) ? renderSourceSummary(value) || text(value) : ""
-  ].filter(Boolean);
-  if (rows.length === 0) {
-    return "";
-  }
-  return rows.length === 1 ? rows[0] ?? "" : `<ul class="spec-list">${rows.map((row) => `<li>${row}</li>`).join("")}</ul>`;
+  return renderSpecSections([
+    {
+      title: label(result, "initial"),
+      rows: initialValue ? [renderExpressionTokens(initialValue)] : []
+    },
+    {
+      title: label(result, "displaySource"),
+      rows: value ? [renderSourceSummary(value) || text(value)] : []
+    }
+  ]);
 }
 
 function renderInputSpec(
   result: ReturnType<typeof parseMarkVSpec>,
   element: ReturnType<typeof parseMarkVSpec>["elements"][number]
 ): string {
-  const rows = [
+  const inputRows = [
+    ...["type", "mode"].map((key) => {
+      const value = rawStringProperty(element.properties[key]);
+      return value ? `${text(key)}: ${renderParamSource(result, value)}` : "";
+    }),
+    element.selectOptions.length > 0
+      ? `${text(label(result, "options"))}: ${element.selectOptions.map((option) => renderValueWithOptionalSource(option.label, option.source)).join(", ")}`
+      : ""
+  ].filter(Boolean);
+  const constraintRows = [
     ...element.inputRules
       .filter((rule) => !isRequiredInputRule(rule))
       .map((rule) => rule.value ? `${text(rule.key)}: ${renderParamSource(result, rule.value)}` : text(rule.key)),
-    ...["type", "min", "max", "step", "accept", "multiple"].map((key) => {
+    ...["min", "max", "step", "min length", "max length", "accept", "multiple"].map((key) => {
       const property = element.properties[key];
       const value = rawStringProperty(property);
       if (value) {
         return `${text(key)}: ${renderParamSource(result, value)}`;
       }
       return property === true ? text(key) : "";
-    })
+    }),
+    element.properties["readonly"] === true || stringProperty(element.properties["readonly"]) ? text(label(result, "readonly")).toLowerCase() : ""
   ].filter(Boolean);
-  return rows.length === 1 ? rows[0] ?? "" : rows.length > 1 ? `<ul class="spec-list">${rows.map((row) => `<li>${row}</li>`).join("")}</ul>` : "";
+  const format = rawStringProperty(element.properties["format"]);
+  return renderSpecSections([
+    { title: label(result, "input"), rows: inputRows },
+    { title: label(result, "constraints"), rows: constraintRows },
+    { title: label(result, "format"), rows: format ? [renderParamSource(result, format)] : [] }
+  ]);
+}
+
+function renderSpecSections(sections: Array<{ title: string; rows: string[] }>): string {
+  const visibleSections = sections.filter((section) => section.rows.length > 0);
+  if (visibleSections.length === 0) {
+    return "";
+  }
+  return visibleSections.map((section) => (
+    `<div class="spec-section"><strong>${text(section.title)}</strong><ul class="spec-list">${section.rows.map((row) => `<li>${row}</li>`).join("")}</ul></div>`
+  )).join("");
 }
 
 function renderRequiredSpec(
@@ -6000,17 +6029,6 @@ function requiredWhenValue(rule: ReturnType<typeof parseMarkVSpec>["elements"][n
     return rule.value.trim();
   }
   return key.slice("required when".length).trim();
-}
-
-function renderFormControlBind(
-  result: ReturnType<typeof parseMarkVSpec>,
-  element: ReturnType<typeof parseMarkVSpec>["elements"][number]
-): string {
-  const bind = rawStringProperty(element.properties["bind"]);
-  if (bind) {
-    return renderParamSource(result, bind);
-  }
-  return "";
 }
 
 function renderActionableDisplayValue(

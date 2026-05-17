@@ -1300,11 +1300,11 @@
               <div class="spec-table-wrap">
                 <table class="spec-table">
                   <thead>
-                    <tr><th>Marker</th><th>ID</th><th>Type</th><th>Input Required</th><th>Input Spec</th><th>Visible When</th></tr>
+                    <tr><th>Marker</th><th>ID</th><th>Type</th><th>Required</th><th>Value</th><th>Spec</th><th>Condition</th></tr>
                   </thead>
                   <tbody>
-                    <tr><td><code class="mm-id mm-marker-element">E1</code></td><td><code>E-Name</code></td><td>Input</td><td>はい</td><td>max: 100</td><td>${model.userLoaded}</td></tr>
-                    <tr><td><code class="mm-id mm-marker-element">E2</code></td><td><code>E-Role</code></td><td>Select</td><td></td><td>選択肢: admin, member</td><td></td></tr>
+                    <tr><td><code class="mm-id mm-marker-element">E1</code></td><td><code>E-Name</code></td><td>Input</td><td>はい</td><td>${model.name}</td><td>Constraints: max: 100</td><td>${model.userLoaded}</td></tr>
+                    <tr><td><code class="mm-id mm-marker-element">E2</code></td><td><code>E-Role</code></td><td>Select</td><td></td><td></td><td>Input: options admin, member</td><td></td></tr>
                   </tbody>
                 </table>
               </div>

@@ -32,7 +32,6 @@ export interface StateViewSpecTableHelpers {
   renderRequiredSpec(element: ParsedElement): string;
   renderFormControlInitialValueSource(element: ParsedElement): string;
   renderInputSpec(element: ParsedElement): string;
-  renderFormControlBind(element: ParsedElement): string;
   renderContentElementState(element: ParsedElement): string;
   renderEnabledConditionList(element: ParsedElement): string;
   renderDisplayContentValue(element: ParsedElement, value: string): string;
@@ -123,7 +122,7 @@ export function createStateViewSpecTableRenderer(
 
   const renderFormControlElementsTable = (elements: ParsedElement[], repeatedElementIds: ReadonlySet<string> | undefined, emptyWhenRepeatedHidden: boolean): string =>
     markRepeatedHiddenEmptyHtml(helpers.renderLocalizedTable(
-      [helpers.label("marker"), helpers.label("id"), helpers.label("type"), helpers.label("inputRequired"), helpers.label("initialValueSource"), helpers.label("inputSpec"), helpers.label("visibleWhen"), helpers.label("enabledWhen"), helpers.label("readonly"), helpers.label("bind")],
+      [helpers.label("marker"), helpers.label("id"), helpers.label("type"), helpers.label("inputRequired"), helpers.label("initialValueSource"), helpers.label("inputSpec"), helpers.label("visibleWhen"), helpers.label("enabledWhen")],
       elements.map((element) => [
         renderRepeatedMarkerCell(element.id, Boolean(repeatedElementIds?.has(element.id))),
         helpers.renderDetailRefId(element.id),
@@ -132,9 +131,7 @@ export function createStateViewSpecTableRenderer(
         helpers.renderFormControlInitialValueSource(element),
         helpers.renderInputSpec(element),
         helpers.renderContentElementState(element),
-        helpers.renderEnabledConditionList(element),
-        element.properties["readonly"] === true || stringProperty(element.properties["readonly"]) ? helpers.text(helpers.label("requiredYes")) : helpers.text(helpers.label("requiredNo")),
-        helpers.renderFormControlBind(element)
+        helpers.renderEnabledConditionList(element)
       ])
     ), emptyWhenRepeatedHidden);
 

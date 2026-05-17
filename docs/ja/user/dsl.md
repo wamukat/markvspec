@@ -809,7 +809,7 @@ Element 参照を Element marker と Element ID で識別し、element type や
 表示内容要約は原則として足しません。
 
 `*` は Element 自体に input-level の required metadata がある場合だけ使います。
-たとえば `Input*` は Input Form Spec の `入力必須` 列に出る required flag と
+たとえば `Input*` は Input Form Spec の `必須` 列に出る required flag と
 同じ意味です。これは product validation を定義する canonical syntax では
 ありません。必須入力の validation contract は `## Field Validations` の
 `required` constraint に書きます。

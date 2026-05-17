@@ -988,7 +988,7 @@ adding the element type or display-content summary.
 
 Append `*` to the element type only when the element itself has input-level
 required metadata. For example, `Input*` is equivalent to a `required` flag in
-the Input Form Spec `Input Required` column. It is not the canonical way to
+the Input Form Spec `Required` column. It is not the canonical way to
 define product validation. Required validation belongs in
 `## Field Validations` as a `required` constraint.
 Required metadata is not rendered as a native `required` attribute or an
@@ -1182,7 +1182,7 @@ but reserve visible markers for meaningful review targets or value variants such
 as read/unread badges.
 
 Flags are boolean properties. A `required` flag or `Input*` heading suffix is
-element metadata shown in the Input Form Spec `Input Required` column. Use it
+element metadata shown in the Input Form Spec `Required` column. Use it
 only for input-level UI requirements, not for product validation contracts.
 Prefer `## Field Validations` with a `required` constraint when the design needs
 to specify validation behavior.

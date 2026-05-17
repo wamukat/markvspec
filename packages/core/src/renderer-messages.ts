@@ -39,6 +39,7 @@ export type MessageKey =
   | "contentsEmpty"
   | "contentsError"
   | "contentsLoading"
+  | "constraints"
   | "default"
   | "definitionContent"
   | "definitionDefinitions"
@@ -78,6 +79,7 @@ export type MessageKey =
   | "id"
   | "initial"
   | "initialValueSource"
+  | "input"
   | "inputFormSpec"
   | "inputRequired"
   | "inputSpec"
@@ -266,6 +268,7 @@ const en: Record<MessageKey, string> = {
   contentsEmpty: "No sections.",
   contentsError: "Unable to build contents.",
   contentsLoading: "Building contents...",
+  constraints: "Constraints",
   default: "Default",
   definitionContent: "Content",
   definitionDefinitions: "Definitions",
@@ -304,10 +307,11 @@ const en: Record<MessageKey, string> = {
   hideContents: "Hide contents",
   id: "ID",
   initial: "initial",
-  initialValueSource: "Initial / Source",
+  initialValueSource: "Value",
+  input: "Input",
   inputFormSpec: "Input Form Spec",
-  inputRequired: "Input Required",
-  inputSpec: "Input Spec",
+  inputRequired: "Required",
+  inputSpec: "Spec",
   items: "Items",
   kind: "Kind",
   label: "Label",
@@ -455,7 +459,7 @@ const en: Record<MessageKey, string> = {
   view: "View",
   viewport: "Viewport",
   when: "When",
-  visibleWhen: "Visible When",
+  visibleWhen: "Condition",
   wireframe: "Wireframe"
 };
 
@@ -494,6 +498,7 @@ const ja: Record<MessageKey, string> = {
   contentsEmpty: "表示できる章がありません。",
   contentsError: "目次を生成できませんでした。",
   contentsLoading: "目次を生成しています...",
+  constraints: "制約",
   default: "デフォルト",
   definitionContent: "差し込み内容",
   definitionDefinitions: "定義",
@@ -532,10 +537,11 @@ const ja: Record<MessageKey, string> = {
   hideContents: "目次を隠す",
   id: "ID",
   initial: "初期",
-  initialValueSource: "初期値(参照元)",
+  initialValueSource: "値",
+  input: "入力",
   inputFormSpec: "入力フォーム仕様",
-  inputRequired: "入力必須",
-  inputSpec: "入力仕様",
+  inputRequired: "必須",
+  inputSpec: "仕様",
   items: "項目",
   kind: "種別",
   label: "表示名",
@@ -683,7 +689,7 @@ const ja: Record<MessageKey, string> = {
   view: "表示",
   viewport: "ビューポート",
   when: "条件",
-  visibleWhen: "表示条件",
+  visibleWhen: "条件",
   wireframe: "ワイヤーフレーム"
 };
 
