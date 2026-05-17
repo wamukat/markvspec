@@ -391,6 +391,7 @@ function displayExplanationsForScenarioCases(
   const validationsById = new Map(result.validations.map((validation) => [validation.id, validation]));
   const rulesById = new Map(result.rules.map((rule) => [rule.id, rule]));
   const elementsById = new Map(result.elements.map((element) => [element.id, element]));
+  const layoutsById = new Map(result.layoutGroups.map((layout) => [layout.id, layout]));
 
   for (const caseRef of cases) {
     const action = result.actions.find((candidate) => candidate.id === caseRef.actionId);
@@ -412,6 +413,7 @@ function displayExplanationsForScenarioCases(
     const validation = sourceId.startsWith("V-") ? validationsById.get(sourceId) : undefined;
     const rule = sourceId.startsWith("R-") ? rulesById.get(sourceId) : undefined;
     const element = sourceId.startsWith("E-") || sourceId.startsWith("L-") ? elementsById.get(sourceId) : undefined;
+    const layout = sourceId.startsWith("L-") ? layoutsById.get(sourceId) : undefined;
     const markerId = displayExplanationMarker(sourceId, validation, rule);
     const key = `${sourceId}:${display.message ? "message" : "element"}`;
     const existing = explanations.get(key);
@@ -424,7 +426,7 @@ function displayExplanationsForScenarioCases(
       markerId,
       markerSource: sourceId.startsWith("V-") ? "validation" : sourceId.startsWith("R-") ? "business-rule" : "element",
       sourceId,
-      sourceName: validation?.name ?? rule?.name ?? elementDisplayName(element) ?? sourceId,
+      sourceName: validation?.name ?? rule?.name ?? elementDisplayName(element) ?? layoutDisplayName(layout) ?? sourceId,
       targetRefs: nextTargetRefs,
       contentKind: display.message ? "message" : "element",
       messageRef: display.message,
@@ -469,6 +471,10 @@ function elementDisplayName(element: ParsedElement | undefined): string | undefi
   return typeof label === "string" && label
     ? label
     : element?.id;
+}
+
+function layoutDisplayName(layout: ParsedLayout | undefined): string | undefined {
+  return layout?.name || layout?.id;
 }
 
 function validationPropertyValues(value: string | string[] | undefined): string[] {

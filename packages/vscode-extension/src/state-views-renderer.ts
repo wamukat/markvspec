@@ -133,7 +133,7 @@ function renderStateScreenSpec(
       ${specFragments.renderModelSamplesForState(model.stateName)}
       ${renderStateScreenSubheading(context, format.label("wireframe"))}
       <section class="wireframe-section">${annotatedWireframeHtml}</section>
-      ${renderDisplayExplanationsBox(context, model)}
+      ${renderDisplayExplanationsBox(result, context, model)}
       ${renderSystemEventsBox(result, context, model.renderedIds.elementIds, model.stateName, model.initial, model.focus, model.repeatedActionIds, model.repeatedContent.systemEventsEmptyWhenRepeatedHidden)}
     </section>
     ${repeatedLayoutOnlyMessage}
@@ -148,14 +148,30 @@ function renderStateScreenSubheading(context: StateViewsRenderContext, heading: 
 }
 
 function renderDisplayExplanationsBox(
+  result: MarkVSpecParseResult,
   context: StateViewsRenderContext,
   model: StateScreenReadModel
 ): string {
   if (model.displayExplanations.length === 0) {
     return "";
   }
+  const messageExplanations = model.displayExplanations.filter((explanation) => explanation.contentKind === "message");
+  const updateExplanations = model.displayExplanations.filter((explanation) => explanation.contentKind === "element");
+  return [
+    renderDisplayedMessagesBox(context, messageExplanations),
+    renderDisplayUpdatesBox(result, context, model, updateExplanations)
+  ].filter(Boolean).join("");
+}
+
+function renderDisplayedMessagesBox(
+  context: StateViewsRenderContext,
+  explanations: StateScreenReadModel["displayExplanations"]
+): string {
+  if (explanations.length === 0) {
+    return "";
+  }
   const { format } = context;
-  const items = model.displayExplanations.map((explanation) => {
+  const items = explanations.map((explanation) => {
     const source = `${renderDisplayExplanationMarker(format, explanation)} ${format.text(explanation.sourceName || explanation.sourceId)}`;
     const targetList = explanation.targetRefs.map((target) => `<li>${format.text(target)}</li>`).join("");
     const triggerList = explanation.triggeredBy.map((trigger) => `<li>${format.text(trigger)}</li>`).join("");
@@ -177,6 +193,112 @@ function renderDisplayExplanationsBox(
     <h6 class="state-screen-detail-heading">${format.label("displayedMessages")}</h6>
     ${items}
   </aside>`;
+}
+
+function renderDisplayUpdatesBox(
+  result: MarkVSpecParseResult,
+  context: StateViewsRenderContext,
+  model: StateScreenReadModel,
+  explanations: StateScreenReadModel["displayExplanations"]
+): string {
+  if (explanations.length === 0) {
+    return "";
+  }
+  const { format } = context;
+  const rows = explanations.map((explanation) => {
+    const triggeredBy = explanation.triggeredBy.map((trigger) => renderDisplayUpdateTrigger(result, format, trigger)).join("");
+    const targets = explanation.targetRefs.length > 0 ? explanation.targetRefs : ["(overlay)"];
+    const updateLines = targets.map((target) => `<div class="display-update-line">${renderDisplayUpdateTarget(result, context, model, target)}<span class="display-update-arrow">${format.label("displayReceives")}</span>${renderDisplayUpdateContent(result, context, model, explanation)}</div>`).join("");
+    return `<tr><td>${triggeredBy}</td><td>${updateLines}</td></tr>`;
+  }).join("");
+  return `<aside class="display-explanations-box display-updates-box">
+    <h6 class="state-screen-detail-heading">${format.label("displayUpdates")}</h6>
+    <div class="spec-table-wrap"><table class="spec-table display-updates-table"><thead><tr><th>${format.label("triggeredBy")}</th><th>${format.label("update")}</th></tr></thead><tbody>${rows}</tbody></table></div>
+  </aside>`;
+}
+
+function renderDisplayUpdateTrigger(
+  result: MarkVSpecParseResult,
+  format: StateViewsFormatters,
+  trigger: string
+): string {
+  const parsed = /^(.+?)\.([^.]+)\.([^.]+)$/u.exec(trigger);
+  if (!parsed) {
+    return `<div class="display-update-trigger">${format.text(trigger)}</div>`;
+  }
+  const [, actionId, processMarker, caseName] = parsed;
+  const action = result.actions.find((candidate) => candidate.id === actionId);
+  const actionRef = action
+    ? `${renderDisplayUpdateMarker(format, actionMarker(action), "action", action.id)} ${format.text(action.name || action.id)}`
+    : format.text(actionId);
+  return `<div class="display-update-trigger">
+    <div>${actionRef}</div>
+    <div class="display-update-note">${format.text(`${processMarker}.${caseName}`)}</div>
+  </div>`;
+}
+
+function renderDisplayUpdateTarget(
+  result: MarkVSpecParseResult,
+  context: StateViewsRenderContext,
+  model: StateScreenReadModel,
+  target: string
+): string {
+  const { format } = context;
+  if (target === "(overlay)") {
+    return `<span class="display-update-ref display-update-overlay">${format.text(format.label("processOverlay"))}</span>`;
+  }
+  const baseTarget = target.endsWith(".error") ? target.slice(0, -".error".length) : target;
+  const suffix = target.endsWith(".error") ? ".error" : "";
+  return `${renderDisplayUpdateEntityRef(result, format, model, baseTarget)}${suffix ? `<span class="display-update-suffix">${format.text(suffix)}</span>` : ""}`;
+}
+
+function renderDisplayUpdateContent(
+  result: MarkVSpecParseResult,
+  context: StateViewsRenderContext,
+  model: StateScreenReadModel,
+  explanation: StateScreenReadModel["displayExplanations"][number]
+): string {
+  return renderDisplayUpdateEntityRef(result, context.format, model, explanation.sourceId, explanation.sourceName);
+}
+
+function renderDisplayUpdateEntityRef(
+  result: MarkVSpecParseResult,
+  format: StateViewsFormatters,
+  model: StateScreenReadModel,
+  id: string,
+  fallbackName?: string
+): string {
+  if (id.startsWith("L-")) {
+    const layout = preferredLayoutGroupForViewport(result, id, model.viewport);
+    const marker = stringPropertyValue(layout?.properties["marker"]) || id;
+    const name = layout?.name || fallbackName || id;
+    return `<span class="display-update-ref display-update-layout">${renderDisplayUpdateMarker(format, marker, "layout")} ${format.text(name)}</span>`;
+  }
+  if (id.startsWith("E-")) {
+    const element = result.elements.find((candidate) => candidate.id === id);
+    const marker = stringPropertyValue(element?.properties["marker"]) || id;
+    const name = fallbackName || element?.id || id;
+    return `<span class="display-update-ref display-update-element">${renderDisplayUpdateMarker(format, marker, "element")} ${format.text(name)}</span>`;
+  }
+  return `<span class="display-update-ref">${format.text(fallbackName || id)}</span>`;
+}
+
+function renderDisplayUpdateMarker(
+  format: StateViewsFormatters,
+  marker: string,
+  category: "layout" | "element" | "action",
+  actionId?: string
+): string {
+  const badge = `<code class="mm-id mm-marker mm-marker-${category}" data-mm-marker-category="${category}">${format.escapeHtml(marker)}</code>`;
+  return actionId ? `<a class="mm-marker-link" href="#action-detail-${format.escapeHtml(encodeURIComponent(actionId))}">${badge}</a>` : badge;
+}
+
+function actionMarker(action: MarkVSpecParseResult["actions"][number]): string {
+  return stringPropertyValue(action.properties["marker"]) || action.id;
+}
+
+function stringPropertyValue(value: string | true | undefined): string | undefined {
+  return typeof value === "string" && value ? value : undefined;
 }
 
 function renderDisplayExplanationMarker(

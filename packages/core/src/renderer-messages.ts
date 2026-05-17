@@ -50,7 +50,9 @@ export type MessageKey =
   | "displayCondition"
   | "displayContentSpec"
   | "displayLocation"
+  | "displayReceives"
   | "displaySource"
+  | "displayUpdates"
   | "displayValue"
   | "displayedAt"
   | "displayedMessages"
@@ -275,7 +277,9 @@ const en: Record<MessageKey, string> = {
   displayCondition: "Condition",
   displayContentSpec: "Display Content Spec",
   displayLocation: "Location",
+  displayReceives: "receives",
   displaySource: "Source",
+  displayUpdates: "Display updates",
   displayValue: "Content",
   displayedAt: "Displayed at",
   displayedMessages: "Displayed messages",
@@ -501,7 +505,9 @@ const ja: Record<MessageKey, string> = {
   displayCondition: "表示条件",
   displayContentSpec: "表示内容仕様",
   displayLocation: "表示箇所",
+  displayReceives: "受け取る",
   displaySource: "取得元",
+  displayUpdates: "表示更新",
   displayValue: "表示内容",
   displayedAt: "表示先",
   displayedMessages: "表示メッセージ",

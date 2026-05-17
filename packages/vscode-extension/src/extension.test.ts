@@ -2145,8 +2145,8 @@ viewport: mobile
   const scenarioSection = stateViewTitleSection(html, "idle / deferred-visible");
   const baseRows = baseSection.match(/<tr>[\s\S]*?<\/tr>/g) ?? [];
   const scenarioRows = scenarioSection.match(/<tr>[\s\S]*?<\/tr>/g) ?? [];
-  const baseDeferredRow = baseRows.find((row) => row.includes(`>L-DeferredPanel<`)) ?? "";
-  const scenarioDeferredRow = scenarioRows.find((row) => row.includes(`>L-DeferredPanel<`)) ?? "";
+  const baseDeferredRow = baseRows.find((row) => row.includes(`>L-DeferredPanel<`) && row.includes(`mm-detail-ref-id`)) ?? "";
+  const scenarioDeferredRow = scenarioRows.find((row) => row.includes(`>L-DeferredPanel<`) && row.includes(`mm-detail-ref-id`)) ?? "";
 
   assert.match(baseDeferredRow, new RegExp(`${unplacedBadge()}[\\s\\S]*${detailIdRef("L-DeferredPanel")}`));
   assert.match(scenarioSection, /data-mm-id="L-DeferredPanel"/);
@@ -5408,6 +5408,33 @@ test("renders List items in display content spec without treating the list as in
 
   assert.doesNotMatch(inputForm, /E-AuditList/);
   assert.match(displayContent, new RegExp(`<td>${markerBadge("17", "element")}</td><td>${detailIdRef("E-AuditList")}</td><td>items</td><td>Created by Morgan Lee, Reviewed by Admin, Last edited today</td>`));
+});
+
+test("renders display.element scenario effects as display updates", () => {
+  const source = readFileSync(resolve("../../examples/04-real-world-screens/login-basic.vspec.md"), "utf8");
+  const html = renderDesignDocumentHtml(parseMarkVSpec(source), "");
+  const scenarioSection = stateViewTitleSection(html, "idle / idle-request-error");
+  const displayUpdates = scenarioSection.match(/<aside class="display-explanations-box display-updates-box">[\s\S]*?<\/aside>/)?.[0] ?? "";
+
+  assert.match(displayUpdates, /<h6 class="state-screen-detail-heading">Display updates<\/h6>/);
+  assert.match(displayUpdates, /<th>Triggered by<\/th><th>Update<\/th>/);
+  assert.match(displayUpdates, new RegExp(`${actionBadge("A1", "A-SubmitLogin")} Submit login[\\s\\S]*P2\\.send-failed`));
+  assert.match(displayUpdates, new RegExp(`${markerBadge("L3", "layout")} Message area[\\s\\S]*receives[\\s\\S]*${markerBadge("10", "element")} E-RequestErrorBanner`));
+  assert.doesNotMatch(displayUpdates, /The login request could not be sent\./);
+  assert.doesNotMatch(scenarioSection, /<h6 class="state-screen-detail-heading">Displayed messages<\/h6>/);
+});
+
+test("renders targetless dialog display.element effects as display updates", () => {
+  const source = readFileSync(resolve("../../examples/03-actions/event-triggers.vspec.md"), "utf8");
+  const html = renderDesignDocumentHtml(parseMarkVSpec(source), "");
+  const scenarioSection = stateViewTitleSection(html, "idle / idle-confirm-discard");
+  const displayUpdates = scenarioSection.match(/<aside class="display-explanations-box display-updates-box">[\s\S]*?<\/aside>/)?.[0] ?? "";
+
+  assert.match(displayUpdates, /<h6 class="state-screen-detail-heading">Display updates<\/h6>/);
+  assert.match(displayUpdates, new RegExp(`${actionBadge("A5", "A-RequestDiscardDialog")} Request discard dialog[\\s\\S]*P1\\.done`));
+  assert.match(displayUpdates, new RegExp(`overlay[\\s\\S]*receives[\\s\\S]*${markerBadge("14", "element")} E-ConfirmDialog`));
+  assert.doesNotMatch(displayUpdates, /Discard changes\\?/);
+  assert.doesNotMatch(scenarioSection, /<h6 class="state-screen-detail-heading">Displayed messages<\/h6>/);
 });
 
 test("builds browser command candidates and arguments for PDF export", () => {

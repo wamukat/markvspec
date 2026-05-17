@@ -346,6 +346,16 @@ ${previewScrollbarCss()}
 .display-explanation-item dt{color:#475569;font-weight:700}
 .display-explanation-item dd{margin:0}
 .display-explanation-item ul{margin:0;padding-left:18px}
+.display-updates-box .spec-table-wrap{margin-top:6px}
+.display-update-trigger{display:grid;gap:2px}
+.display-update-note{color:#64748b;font-size:11px}
+.display-update-line{align-items:center;display:flex;flex-wrap:wrap;gap:7px}
+.display-update-arrow{color:#64748b;font-weight:700}
+.display-update-ref{align-items:center;background:#fff;border:1px solid #cbd5e1;border-radius:4px;display:inline-flex;font-weight:600;gap:2px;line-height:1.2;padding:2px 7px;white-space:nowrap}
+.display-update-layout{border-color:#67e8f9;color:#155e75}
+.display-update-element{border-color:#f59e0b;color:#92400e}
+.display-update-overlay{color:#475569}
+.display-update-suffix{color:#64748b;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size:11px}
 .system-events-box{background:#f8fafc;border:1px dashed #94a3b8;border-radius:6px;margin:10px 0 0;padding:7px 12px 8px}
 .system-events-box h4,.system-events-box .state-screen-detail-heading{font-size:12px;margin:0 0 6px}
 .system-events-box ul{display:grid;gap:6px;list-style:disc;margin:0;padding-left:18px}
