@@ -1683,7 +1683,7 @@ test("does not render viewport filter controls in the preview shell", () => {
   assert.match(html, /body\.toc-collapsed \.toc,body\.toc-collapsed \.toc-inline\{display:none!important\}/);
   assert.match(html, /\.segmented button\[aria-pressed="true"\]\{background:#e0f2fe;border-color:#38bdf8;color:#075985;font-weight:700\}/);
   assert.doesNotMatch(html, /background:#1f2937|background:#111827|background:#000/);
-  assert.match(html, /:root\{--markvspec-sticky-offset:72px;--markvspec-heading-state-views:18px;--markvspec-heading-viewport:15px;--markvspec-heading-state:14px;--markvspec-heading-detail:12px;--markvspec-heading-badge:11px\}/);
+  assert.match(html, /:root\{--markvspec-sticky-offset:72px;--markvspec-heading-state-views:18px;--markvspec-heading-viewport:15px;--markvspec-heading-state:14px;--markvspec-heading-detail:12px;--markvspec-heading-badge:11px;--markvspec-screen-overview-border:1px;--markvspec-screen-overview-padding:12px;--markvspec-screen-content-inset:calc\(var\(--markvspec-screen-overview-border\) \+ var\(--markvspec-screen-overview-padding\)\)\}/);
   assert.match(html, /\.doc-section h2\{align-items:center;border-bottom:1px solid #d1d5db;display:flex;flex-wrap:wrap;font-size:var\(--markvspec-heading-state-views\);gap:8px;margin:0 0 12px;padding-bottom:6px\}/);
   assert.match(html, /\.doc-section h3\{font-size:var\(--markvspec-heading-viewport\);margin:22px 0 8px\}/);
   assert.match(html, /\.state-screen-heading\{align-items:center;display:flex;flex-wrap:wrap;font-size:var\(--markvspec-heading-state\);gap:8px;margin:18px 0 10px\}/);
@@ -1699,11 +1699,12 @@ test("does not render viewport filter controls in the preview shell", () => {
   assert.match(html, /\.doc-section>\.spec-table-wrap\+\.entity-notes,\.doc-section>\.spec-empty\+\.entity-notes,\.doc-section>\.form-group-spec-fragment\+\.entity-notes,\.element-spec-fragment>\.spec-table-wrap\+\.entity-notes,\.action-spec-fragment>\.spec-table-wrap\+\.entity-notes\{margin-top:12px\}/);
   assert.doesNotMatch(html, /\.spec-table td \.entity-overview\{margin-top:12px\}/);
   assert.doesNotMatch(html, /\.spec-table td \.entity-notes\{margin-top:12px\}/);
-  assert.match(html, /\.screen-overview\{border:1px solid #d1d5db;border-radius:6px;margin:0 0 12px;padding:12px\}/);
+  assert.match(html, /\.screen-overview\{border:var\(--markvspec-screen-overview-border\) solid #d1d5db;border-radius:6px;margin:0 0 12px;padding:var\(--markvspec-screen-overview-padding\)\}/);
   assert.match(html, /\.screen-overview-main\{min-width:0\}/);
   assert.match(html, /\.screen-description\{color:#374151;font-size:13px;line-height:1\.6;overflow-wrap:anywhere\}/);
   assert.doesNotMatch(html, /\.screen-description\{[^}]*max-width:72ch/);
   assert.match(html, /\.screen-overview-badges\{align-items:center;display:flex;float:right;flex-wrap:wrap;gap:6px;justify-content:flex-end;margin:0 0 6px 12px\}/);
+  assert.match(html, /\.screen-meta-block\{margin:12px var\(--markvspec-screen-content-inset\) 0\}/);
   assert.match(html, /\.screen-id code,\.mm-document-ref-id\{align-items:center;background:#fff;border:1px solid #111827;border-left:3px solid #111827;border-radius:4px;color:#111827;display:inline-flex;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size:11px;font-variant-numeric:tabular-nums;font-weight:700;justify-content:center;letter-spacing:0;line-height:1\.2;min-height:18px;padding:1px 6px;vertical-align:baseline;white-space:nowrap;width:max-content\}/);
   assert.doesNotMatch(html, /\.spec-table code\.mm-marker-element\{/);
   assert.doesNotMatch(html, /\.spec-table code\.mm-marker-action\{/);
