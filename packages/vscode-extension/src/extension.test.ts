@@ -3448,6 +3448,51 @@ title: Scenario Samples
   assert.match(scenarioSection, /E-EmptyUsers[\s\S]*<code>rows: \[\]<\/code>/);
 });
 
+test("localizes preview scenario sample table labels in generated state views", () => {
+  const source = `---
+id: SCR-SCENARIO-SAMPLES-JA
+type: screen
+title: シナリオサンプル
+locale: ja
+---
+
+# SCR-SCENARIO-SAMPLES-JA シナリオサンプル
+
+## States
+
+- loaded*
+
+## Layout
+
+### L-Main Stack
+
+#### Items
+
+- E-Title
+
+## Elements
+
+### E-Title Text
+
+- sample: 通常タイトル
+
+## Preview Scenarios
+
+### loaded-special
+
+- state: loaded
+- samples:
+  - E-Title: 特別タイトル
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const scenarioSection = stateViewTitleSection(html, "loaded / loaded-special");
+
+  assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">シナリオサンプル<\/h6>/);
+  assert.match(scenarioSection, /<th>画面要素<\/th><th>サンプル<\/th>/);
+  assert.doesNotMatch(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>|<th>Sample<\/th>/);
+});
+
 test("omits model sample state group and sample set prose from state views", () => {
   const source = `---
 id: SCR-MODEL-SAMPLE-PROSE

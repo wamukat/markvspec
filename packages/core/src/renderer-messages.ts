@@ -183,6 +183,7 @@ export type MessageKey =
   | "serverFieldValidations"
   | "severity"
   | "sample"
+  | "scenarioSamples"
   | "scope"
   | "sideEffects"
   | "showRepeatedContent"
@@ -410,6 +411,7 @@ const en: Record<MessageKey, string> = {
   serverFieldValidations: "Server Field Validations",
   severity: "Severity",
   sample: "Sample",
+  scenarioSamples: "Scenario Samples",
   scope: "Scope",
   sideEffects: "Side effects",
   showRepeatedContent: "Show repeated content",
@@ -638,6 +640,7 @@ const ja: Record<MessageKey, string> = {
   serverFieldValidations: "サーバ単項目検証",
   severity: "重要度",
   sample: "サンプル",
+  scenarioSamples: "シナリオサンプル",
   scope: "範囲",
   sideEffects: "副作用",
   showRepeatedContent: "既出を表示",

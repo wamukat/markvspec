@@ -10768,6 +10768,7 @@ test("resolves renderer messages with external overrides and built-in fallback",
 messages:
   formControls: 入力値
   conditionHiddenShort: 非表示
+  scenarioSamples: シナリオ別サンプル
 `);
 
     const result = resolveRendererMessages({ locale: "ja", sourcePath });
@@ -10775,6 +10776,7 @@ messages:
     assert.equal(result.sourcePath, messagePath);
     assert.equal(result.messages.formControls, "入力値");
     assert.equal(result.messages.conditionHiddenShort, "非表示");
+    assert.equal(result.messages.scenarioSamples, "シナリオ別サンプル");
     assert.equal(result.messages.wireframe, "ワイヤーフレーム");
     assert.deepEqual(result.diagnostics, []);
   } finally {
@@ -11018,6 +11020,30 @@ title: Scenario Samples
   ]);
   assert.equal(result.previewScenarios[1]?.samples[0]?.rows?.explicitEmpty, true);
   assert(!result.diagnostics.some((diagnostic) => diagnostic.severity === "error"));
+});
+
+test("diagnoses malformed Preview Scenario entries with samples guidance", () => {
+  const source = `---
+id: SCR-BAD-SCENARIO-ENTRY
+type: screen
+title: Bad Scenario Entry
+---
+# SCR-BAD-SCENARIO-ENTRY Bad Scenario Entry
+
+## States
+
+- idle*
+
+## Preview Scenarios
+
+### idle
+
+- unexpected
+`;
+
+  const messages = parseMarkVSpec(source).diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert(messages.includes("Preview Scenario idle has malformed entry: unexpected. Use state, model, view, samples, before, or cases."));
 });
 
 test("validates Preview Scenario sample targets and data source sample rows", () => {

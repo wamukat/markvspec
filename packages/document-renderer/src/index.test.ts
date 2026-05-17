@@ -349,6 +349,51 @@ viewport: desktop
   assert.match(emptyScenario, /<code>rows: \[\]<\/code>/);
 });
 
+test("localizes scenario samples labels in static state views", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-SCENARIO-SAMPLES-JA
+type: screen
+title: シナリオサンプル
+locale: ja
+---
+
+# SCR-SCENARIO-SAMPLES-JA シナリオサンプル
+
+## States
+
+- loaded*
+
+## Layout
+
+### L-Main Stack
+
+#### Items
+
+- E-Title
+
+## Elements
+
+### E-Title Text
+
+- sample: 通常タイトル
+
+## Preview Scenarios
+
+### loaded-special
+
+- state: loaded
+- samples:
+  - E-Title: 特別タイトル
+`);
+  const html = renderStaticDesignDocumentHtml(result);
+  const scenarioSection = stateViewSection(html, "loaded / loaded-special");
+
+  assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">シナリオサンプル<\/h6>/);
+  assert.match(scenarioSection, /<th>画面要素<\/th>/);
+  assert.match(scenarioSection, /<th>サンプル<\/th>/);
+  assert.doesNotMatch(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>|<th>Sample<\/th>/);
+});
+
 function stateViewSection(html: string, title: string): string {
   const startMatch = new RegExp(`<section class="doc-section state-screen-section"(?=[^>]*\\bdata-state-view-title="${title.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}")`, "u").exec(html);
   assert(startMatch, `Missing state view ${title}`);

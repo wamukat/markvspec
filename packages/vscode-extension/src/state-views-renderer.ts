@@ -179,8 +179,8 @@ function renderScenarioSamplesBox(
     return `<tr><td>${elementRef}</td><td>${renderScenarioSampleValue(context, sample)}</td></tr>`;
   }).join("");
   return `<aside class="scenario-samples-box">
-    <h6 class="state-screen-detail-heading">${format.text("Scenario Samples")}</h6>
-    <div class="spec-table-wrap"><table class="spec-table scenario-samples-table"><thead><tr><th>${format.label("elements")}</th><th>${format.text("Sample")}</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <h6 class="state-screen-detail-heading">${format.label("scenarioSamples")}</h6>
+    <div class="spec-table-wrap"><table class="spec-table scenario-samples-table"><thead><tr><th>${format.label("elements")}</th><th>${format.label("sample")}</th></tr></thead><tbody>${rows}</tbody></table></div>
   </aside>`;
 }
 

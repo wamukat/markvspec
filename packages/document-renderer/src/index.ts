@@ -250,8 +250,8 @@ function renderScenarioSamplesBox(
     return [escapeHtml(elementText), renderScenarioSampleValue(sample)];
   });
   return `<aside class="scenario-samples-box">
-    <h6 class="state-screen-detail-heading">Scenario Samples</h6>
-    ${renderTable([messages.elements, "Sample"], rows)}
+    <h6 class="state-screen-detail-heading">${escapeHtml(messages.scenarioSamples)}</h6>
+    ${renderTable([messages.elements, messages.sample], rows)}
   </aside>`;
 }
 

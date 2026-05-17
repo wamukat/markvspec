@@ -1476,7 +1476,7 @@ function parsePreviewScenariosSection(section: SectionAst): Pick<SectionSemantic
       if (value === undefined) {
         diagnostics.push({
           severity: "warning",
-          message: `Preview Scenario ${current.name} has malformed entry: ${bullet.text}. Use state, model, view, before, or cases.`,
+          message: `Preview Scenario ${current.name} has malformed entry: ${bullet.text}. Use state, model, view, samples, before, or cases.`,
           line: bullet.location.line
         });
         continue;
