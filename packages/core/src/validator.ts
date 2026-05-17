@@ -74,6 +74,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   const referencedPartialIds = new Map<string, SourceLocation>();
   const allLayoutGroups = [...result.layoutGroups, ...result.slotContents.flatMap((slot) => slot.layoutGroups)];
 
+  validateTemplateScreenTopLevelLayouts(result, diagnostics);
   checkDuplicateLayoutGroups(result.layoutGroups, diagnostics);
   checkDuplicates(result.elements, "element", diagnostics);
   checkDuplicates(result.formGroups, "form group", diagnostics);
@@ -2398,6 +2399,21 @@ function validateViewContexts(
   validateDataSourceSampleRows(result, diagnostics);
   validateConditionNamespaces(result, viewContextNames, stateNames, diagnostics);
   validateViewContextActionEffects(result, viewContextByName, diagnostics);
+}
+
+function validateTemplateScreenTopLevelLayouts(result: MarkVSpecParseResult, diagnostics: MarkVSpecDiagnostic[]): void {
+  if (result.screen.type !== "screen" || (!result.screen.template && !result.screen.templateSrc)) {
+    return;
+  }
+
+  for (const group of result.layoutGroups) {
+    const sectionLabel = group.viewport ? `## Layout: ${group.viewport}` : "## Layout";
+    diagnostics.push({
+      severity: "warning",
+      message: `Screen ${result.screen.id ?? "screen"} references a template but defines top-level ${sectionLabel}. Use canonical ## Slot:<name> / ## Slot:<name>:<viewport> sections for template content; top-level Layout sections are ignored in composed screen preview.`,
+      line: group.location.line
+    });
+  }
 }
 
 function validatePreviewScenarioSamples(

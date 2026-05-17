@@ -748,7 +748,8 @@ When a screen references a template, top-level `## Layout` and
 `## Layout:<viewport>` sections in that screen are noncanonical and should be
 reported as warnings. They are not rendered as another shell or separate frame
 in the composed screen preview; the rendered result is the template shell plus
-resolved slot content.
+resolved slot content. Use canonical `## Slot:<name>` or
+`## Slot:<name>:<viewport>` sections to provide template content.
 
 Template layout IDs and screen slot-content layout IDs are scoped separately
 during template composition, so matching layout IDs across that boundary are not

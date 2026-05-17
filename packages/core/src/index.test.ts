@@ -5081,6 +5081,159 @@ template:
   assert(desktopModels[0]?.renderedIds.elementIds.has("E-DesktopAction"));
 });
 
+test("warns when template screens define top-level Layout sections", () => {
+  const templateSource = `---
+id: TPL-WARNING-SHELL
+type: template
+title: Warning Shell
+---
+
+# TPL-WARNING-SHELL Warning Shell
+
+## Layout: desktop
+
+### L-Shell Shell
+
+- stack
+
+#### Items
+
+- slot: content
+
+## Slots
+
+### content Content
+
+- required
+`;
+  const mixedScreenSource = `---
+id: SCR-MIXED-LAYOUT
+type: screen
+title: Mixed Layout
+template:
+  id: TPL-WARNING-SHELL
+  src: ../templates/warning-shell.vspec.md
+---
+
+# SCR-MIXED-LAYOUT Mixed Layout
+
+## States
+
+- idle*
+
+## Layout: desktop
+
+### L-IgnoredScreenShell Ignored screen shell
+
+- stack
+
+#### Items
+
+- E-IgnoredScreenOnly
+
+## Slot: content
+
+### L-Content Content
+
+- stack
+
+#### Items
+
+- E-VisibleContent
+
+## Elements
+
+### E-IgnoredScreenOnly Text
+
+- value: Ignored screen-only layout content
+
+### E-VisibleContent Text
+
+- value: Visible slot content
+`;
+  const normalScreenSource = `---
+id: SCR-NORMAL-LAYOUT
+type: screen
+title: Normal Layout
+---
+
+# SCR-NORMAL-LAYOUT Normal Layout
+
+## States
+
+- idle*
+
+## Layout: desktop
+
+### L-NormalShell Normal shell
+
+- stack
+`;
+  const partialSource = `---
+id: PRT-LAYOUT
+type: partial
+title: Layout Partial
+---
+
+# PRT-LAYOUT Layout Partial
+
+## States
+
+- idle*
+
+## Layout: desktop
+
+### L-PartialShell Partial shell
+
+- stack
+`;
+  const slotOnlySource = `---
+id: SCR-SLOT-ONLY
+type: screen
+title: Slot Only
+template:
+  id: TPL-WARNING-SHELL
+  src: ../templates/warning-shell.vspec.md
+---
+
+# SCR-SLOT-ONLY Slot Only
+
+## States
+
+- idle*
+
+## Slot: content
+
+### L-Content Content
+
+- stack
+
+#### Items
+
+- E-VisibleContent
+
+## Elements
+
+### E-VisibleContent Text
+
+- value: Visible slot content
+`;
+  const template = parseMarkVSpec(templateSource);
+  const mixedScreen = parseMarkVSpec(mixedScreenSource);
+  const composed = composeMarkVSpecTemplate(template, mixedScreen);
+  const html = renderMarkVSpecHtml(composed, { includeStyles: false, viewport: "desktop" });
+
+  assert(mixedScreen.diagnostics.some((diagnostic) =>
+    diagnostic.severity === "warning" &&
+    diagnostic.message === "Screen SCR-MIXED-LAYOUT references a template but defines top-level ## Layout: desktop. Use canonical ## Slot:<name> / ## Slot:<name>:<viewport> sections for template content; top-level Layout sections are ignored in composed screen preview."
+  ));
+  assert(!parseMarkVSpec(normalScreenSource).diagnostics.some((diagnostic) => diagnostic.message.includes("top-level ## Layout")));
+  assert(!parseMarkVSpec(partialSource).diagnostics.some((diagnostic) => diagnostic.message.includes("top-level ## Layout")));
+  assert(!parseMarkVSpec(slotOnlySource).diagnostics.some((diagnostic) => diagnostic.message.includes("top-level ## Layout")));
+  assert.match(html, /Visible slot content/);
+  assert.doesNotMatch(html, /Ignored screen-only layout content/);
+});
+
 test("reports duplicate IDs between template and composed screen content", () => {
   const template = parseMarkVSpec(`---
 id: TPL-SHELL

@@ -708,7 +708,8 @@ default ID が存在しない、または無効な場合、MarkVSpec は fallbac
 Template を参照する screen に top-level の `## Layout` または `## Layout:<viewport>`
 を書くことは非 canonical であり、warning 対象です。それらは合成 screen preview では
 別の shell や別 frame として描画しません。描画結果は template shell と解決済み
-slot content です。
+slot content です。template content は canonical な `## Slot:<name>` または
+`## Slot:<name>:<viewport>` section で指定します。
 
 template layout ID と screen slot content の layout ID は、template 合成時には別スコープとして扱います。
 この境界をまたいで同じ layout ID があっても重複診断にはしません。Element、Action、Validation、
