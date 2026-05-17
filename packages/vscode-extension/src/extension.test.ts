@@ -1780,7 +1780,7 @@ test("does not render viewport filter controls in the preview shell", () => {
   assert.match(html, /\.history-section\{break-before:page;page-break-before:always\}/);
   assert.doesNotMatch(html, /\.state-screen-section\{break-before:page;page-break-before:always\}/);
   assert.doesNotMatch(html, /\.layout-spec-fragment, \.element-spec-fragment, \.action-spec-fragment\{break-before:page;page-break-before:always\}/);
-  assert.match(html, /\.wireframe-print-section, \.action-detail, \.note-block, \.process-card, \.model-sample-block\{break-inside:avoid;page-break-inside:avoid\}/);
+  assert.match(html, /\.wireframe-print-section, \.action-detail, \.note-block, \.process-card\{break-inside:avoid;page-break-inside:avoid\}/);
   assert.match(html, /\.spec-table tr\{break-inside:avoid;page-break-inside:avoid\}/);
   assert.doesNotMatch(html, /\.spec-table-wrap, \.spec-table\{break-inside:avoid;page-break-inside:avoid\}/);
   assert.doesNotMatch(html, /\.state-screen-section \+ \.state-screen-section\{break-before:page;page-break-before:always\}/);
@@ -3491,7 +3491,7 @@ Model Samples section notes.
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
   const loadedSection = stateSection(html, "loaded");
 
-  assert.doesNotMatch(loadedSection, /Model Samples|model-sample-block|Model Samples section overview|Loaded group overview|Users sample overview|Users sample notes|Loaded group notes|Model Samples section notes/);
+  assert.doesNotMatch(loadedSection, /model-sample-block|Model Samples section overview|Loaded group overview|Users sample overview|Users sample notes|Loaded group notes|Model Samples section notes/);
 });
 
 test("omits composed model sample prose from state views", () => {
@@ -5603,10 +5603,10 @@ default-state: loaded
 
   assert.match(html, /<h2>Partial<\/h2>/);
   assert.match(loadedSection, /data-mm-id="L-NoticeCard"/);
-  assert.equal([...loadedSection.matchAll(/<a class="mm-element mm-element-link" data-mm-id="E-NoticeLink"/g)].length, 3);
+  assert.equal([...loadedSection.matchAll(/<a class="mm-element mm-element-link" data-mm-id="E-NoticeLink"/g)].length, 1);
   assert.match(loadedSection, /data-mm-id="E-NoticeLink"/);
   assert.match(loadedSection, /Maintenance window/);
-  assert.match(loadedSection, /2026-05-01/);
+  assert.doesNotMatch(loadedSection, /2026-05-01/);
   assert.match(loadedSection, /notice\.title/);
   assert.match(loadedSection, /notice\.publishedAt/);
   assert.doesNotMatch(loadedSection, /<div class="element-detail-group"><h4>State Display Differences<\/h4>/);
@@ -5917,7 +5917,7 @@ route: /users/:id
   assert.match(previewHtml, /\.history-section\{break-before:page;page-break-before:always\}/);
   assert.doesNotMatch(previewHtml, /\.state-screen-section\{break-before:page;page-break-before:always\}/);
   assert.doesNotMatch(previewHtml, /\.layout-spec-fragment, \.element-spec-fragment, \.action-spec-fragment\{break-before:page;page-break-before:always\}/);
-  assert.match(previewHtml, /\.wireframe-print-section, \.action-detail, \.note-block, \.process-card, \.model-sample-block\{break-inside:avoid;page-break-inside:avoid\}/);
+  assert.match(previewHtml, /\.wireframe-print-section, \.action-detail, \.note-block, \.process-card\{break-inside:avoid;page-break-inside:avoid\}/);
   assert.match(previewHtml, /\.spec-table tr\{break-inside:avoid;page-break-inside:avoid\}/);
   assert.doesNotMatch(previewHtml, /\.spec-table-wrap, \.spec-table\{break-inside:avoid;page-break-inside:avoid\}/);
   assert.doesNotMatch(previewHtml, /@page markvspec-landscape/);
@@ -7449,7 +7449,6 @@ viewport: mobile
   const elements = screen.children.find((child) => child.name === "Elements");
   const actions = screen.children.find((child) => child.name === "Actions");
   const validations = screen.children.find((child) => child.name === "Validations");
-  const modelSamples = screen.children.find((child) => child.name === "Model Samples");
   const businessRules = screen.children.find((child) => child.name === "Business Rules");
   const errorCodes = screen.children.find((child) => child.name === "Error Codes");
 
@@ -7460,8 +7459,9 @@ viewport: mobile
   assert.equal(elements?.children[0]?.detail, "見出し");
   assert.equal(actions?.children[0]?.name, "A1:A-日本語操作 日本語操作");
   assert.equal(validations?.children[0]?.name, "V-日本語検証 日本語検証");
-  assert.equal(modelSamples?.children[0]?.name, "\${model.お知らせ.items}");
-  assert.equal(modelSamples?.children[0]?.detail, "初期");
+  const modelSamples = screen.children.find((child) => child.name === "Model Samples");
+  assert.equal(modelSamples?.detail, "Section");
+  assert.deepEqual(modelSamples?.children, []);
   assert.equal(businessRules?.children[0]?.name, "R-日本語業務ルール 業務ルール");
   assert.equal(errorCodes?.children[0]?.name, "ERR-日本語 日本語エラー");
 });
@@ -7963,7 +7963,7 @@ test("declares MarkVSpec syntax highlighting contributions", () => {
   assert(!grammar.repository?.["references"]?.patterns?.some((pattern) => pattern.name === "constant.other.marker.markvspec"));
 
   const grammarSource = readFileSync(grammarPath, "utf8");
-  for (const token of ["SCR|TPL|PRT", "L|P|E|F|A|V|R", "L|P", "E-", "F-", "A-", "V-", "R-", "Slot", "Triggered", "Process", "View Context", "View Context Samples", "Preview Scenarios", "Form Groups", "Model Samples", "Business Rules", "Error Codes", "History Fields", "History", "HttpRequest", "PartialRequest", "ServerCall", "Resolve", "params", "group", "stop|continue"]) {
+  for (const token of ["SCR|TPL|PRT", "L|P|E|F|A|V|R", "L|P", "E-", "F-", "A-", "V-", "R-", "Slot", "Triggered", "Process", "View Context", "View Context Samples", "Preview Scenarios", "Form Groups", "Business Rules", "Error Codes", "History Fields", "History", "HttpRequest", "PartialRequest", "ServerCall", "Resolve", "params", "group", "stop|continue"]) {
     assert.match(grammarSource, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
   const headingPatterns = grammar.repository?.["headings"]?.patterns ?? [];

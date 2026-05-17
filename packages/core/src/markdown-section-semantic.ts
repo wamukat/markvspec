@@ -35,7 +35,6 @@ import {
   type SectionAst,
   type SectionKind
 } from "./markdown-section-ast.js";
-import { isCollectionModelSamplePath } from "./model-paths.js";
 import { filterLinesWithoutStandaloneHtmlComments, isStandaloneHtmlCommentBlock } from "./markdown-html-comments.js";
 
 export interface SemanticDependency {
@@ -168,7 +167,7 @@ export function parseSmallSectionSemantics(document: MarkdownDocument): SmallSec
   };
 }
 
-const recommendedSectionOrder = "States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Actions, Model Samples, View Context, View Context Samples, Preview Scenarios, Field Validations, Cross-field Validations, Validations, Business Rules, Error Codes, History Fields, History";
+const recommendedSectionOrder = "States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Actions, View Context, View Context Samples, Preview Scenarios, Field Validations, Cross-field Validations, Validations, Business Rules, Error Codes, History Fields, History";
 
 function semanticSectionOrderDiagnostics(sections: SectionAst[]): MarkVSpecDiagnostic[] {
   const diagnostics: MarkVSpecDiagnostic[] = [];
@@ -208,28 +207,27 @@ function sectionOrderRank(kind: SectionKind): number {
       return 5;
     case "Actions":
       return 6;
-    case "ModelSamples":
-      return 7;
     case "ViewContext":
-      return 8;
+      return 7;
     case "ViewContextSamples":
-      return 9;
+      return 8;
     case "PreviewScenarios":
-      return 10;
+      return 9;
     case "FieldValidations":
-      return 11;
+      return 10;
     case "CrossFieldValidations":
-      return 12;
+      return 11;
     case "Validations":
-      return 13;
+      return 12;
     case "BusinessRules":
-      return 14;
+      return 13;
     case "ErrorCodes":
-      return 15;
+      return 14;
     case "HistoryFields":
-      return 16;
+      return 15;
     case "History":
-      return 17;
+      return 16;
+    case "ModelSamples":
     case "Unknown":
       return 0;
   }
@@ -303,7 +301,7 @@ function parseSmallSection(document: MarkdownDocument, sections: SectionAst[], s
     case "FormGroups":
       return resultFor(section, parseFormGroupsSection(section), ["form-groups:list"]);
     case "ModelSamples":
-      return resultFor(section, parseModelSamplesSection(section), ["model-samples"]);
+      return resultFor(section, unsupportedModelSamplesSection(section), ["unsupported:model-samples"]);
     case "ViewContext":
       return resultFor(section, parseViewContextSection(section), ["view-context"]);
     case "ViewContextSamples":
@@ -496,7 +494,7 @@ function parseLayoutOrSlotSection(section: SectionAst): LayoutSectionSemanticRes
       if (layoutSubsection === "Repeat") {
         diagnostics.push({
           severity: "error",
-          message: `Layout ${currentLayout.id} uses removed Repeat subsection. Use ## Model Samples instead.`,
+          message: `Layout ${currentLayout.id} uses removed Repeat subsection. Use Element sample rows or Preview Scenario samples instead.`,
           line: locationFromBlock(block).line
         });
       }
@@ -1107,215 +1105,17 @@ function parseStateText(text: string, location: SourceLocation, diagnostics: Mar
   };
 }
 
-function parseModelSamplesSection(section: SectionAst): Pick<SectionSemanticResult, "modelSamples" | "modelSampleGroups" | "sectionProse" | "diagnostics" | "dependencies"> {
-  const samples: MarkVSpecModelSampleSet[] = [];
-  const groups: MarkVSpecModelSampleGroup[] = [];
-  const diagnostics: MarkVSpecDiagnostic[] = [];
-  const dependencies: SemanticDependency[] = [];
-  let currentGroup: MarkVSpecModelSampleGroup | undefined;
-  let currentSet: MarkVSpecModelSampleSet | undefined;
-  let currentSetHasStructuredData = false;
-  let hasSeenStateGroup = false;
-  let inSectionNotes = false;
-  let inStateNotes = false;
-  const sectionOverviewBlocks: BlockAst[] = [];
-  const sectionNoteBlocks: BlockAst[] = [];
-
-  for (const block of section.blocks) {
-    if (isSectionNotesHeading(block)) {
-      currentGroup = undefined;
-      currentSet = undefined;
-      currentSetHasStructuredData = false;
-      inSectionNotes = true;
-      inStateNotes = false;
-      hasSeenStateGroup = true;
-      continue;
-    }
-    if (inSectionNotes) {
-      if (isEntityNoteBlock(block)) {
-        sectionNoteBlocks.push(block);
-      }
-      continue;
-    }
-    if (block.type === "heading" && block.depth === 3) {
-      currentGroup = {
-        state: block.text.trim(),
-        location: locationFromBlock(block)
-      };
-      groups.push(currentGroup);
-      currentSet = undefined;
-      currentSetHasStructuredData = false;
-      hasSeenStateGroup = true;
-      inStateNotes = false;
-      continue;
-    }
-    if (block.type === "heading" && block.depth === 4 && block.text.trim() === "State Notes" && currentGroup) {
-      currentSet = undefined;
-      currentSetHasStructuredData = false;
-      inStateNotes = true;
-      continue;
-    }
-    if (block.type === "heading" && block.depth === 4 && currentGroup) {
-      currentSet = {
-        state: currentGroup.state,
-        path: block.text.trim(),
-        columns: [],
-        rows: [],
-        location: locationFromBlock(block)
-      };
-      samples.push(currentSet);
-      dependencies.push({
-        source: { type: "entity", id: `model-sample:${currentGroup.state}:${currentSet.path}` },
-        target: { type: "entity", id: `state:${currentGroup.state}` },
-        direction: "source-invalidates-target",
-        kind: "references"
-      });
-      currentSetHasStructuredData = false;
-      inStateNotes = false;
-      continue;
-    }
-    if (block.type === "heading" && block.depth === 4 && !currentGroup) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Model Samples path ${block.text.trim()} has no parent state heading.`,
-        line: locationFromBlock(block).line
-      });
-      currentSet = undefined;
-      continue;
-    }
-    if (!currentGroup) {
-      if (!hasSeenStateGroup && isEntityNoteBlock(block)) {
-        sectionOverviewBlocks.push(block);
-      }
-      continue;
-    }
-    if (inStateNotes) {
-      if (isEntityNoteBlock(block)) {
-        appendEntityNoteLines(currentGroup, block);
-      }
-      continue;
-    }
-    if (!currentSet) {
-      if (isEntityNoteBlock(block)) {
-        appendEntityOverviewLines(currentGroup, block);
-      }
-      continue;
-    }
-    if (isEntityNoteBlock(block) && block.type !== "table") {
-      appendEntityProseLines(currentSet, block, currentSetHasStructuredData);
-      continue;
-    }
-    if (block.type === "table" && currentSet) {
-      currentSetHasStructuredData = true;
-      applyModelSampleTable(currentSet, block);
-    }
-    if (block.type === "list" && currentSet) {
-      currentSetHasStructuredData = true;
-      applyModelSampleList(currentSet, block);
-    }
-  }
-
+function unsupportedModelSamplesSection(section: SectionAst): Pick<SectionSemanticResult, "modelSamples" | "modelSampleGroups" | "sectionProse" | "diagnostics" | "dependencies"> {
   return {
-    modelSamples: samples,
-    modelSampleGroups: groups,
-    sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["model-samples"]),
-    diagnostics,
-    dependencies
-  };
-}
-
-function applyModelSampleTable(sample: MarkVSpecModelSampleSet, block: Extract<BlockAst, { type: "table" }>): void {
-  const [columns, ...rows] = block.rowSources.length > 0
-    ? block.rowSources.map((row) => ({ cells: row.cells, raw: row.raw, line: row.range?.start.line }))
-    : block.rows.map((cells) => ({ cells, raw: `| ${cells.join(" | ")} |`, line: block.range?.start.line }));
-
-  if (!columns) {
-    return;
-  }
-  sample.columns = columns.cells;
-  for (const row of rows) {
-    sample.rows.push(parseModelSampleRow(sample.columns, row.cells, row.raw, row.line ?? block.range?.start.line ?? sample.location.line));
-  }
-}
-
-function applyModelSampleList(sample: MarkVSpecModelSampleSet, block: Extract<BlockAst, { type: "list" }>): void {
-  const bullets = listItems([block]).map((item) => parsedBulletFromListItem(item));
-  if (!isCollectionModelSamplePath(sample.path)) {
-    const [firstBullet] = bullets;
-    if (!firstBullet) {
-      return;
-    }
-
-    const row: MarkVSpecModelSampleRow = {
-      values: {},
-      location: firstBullet.location,
-      raw: bullets.map((bullet) => bullet.text).join("\n")
-    };
-    sample.rows.push(row);
-    for (const bullet of bullets) {
-      for (const line of modelSampleListLines(bullet)) {
-        const [key, value] = splitKeyValue(line.text);
-        applyModelSampleListValue(sample, row, key, value, line);
-      }
-    }
-    return;
-  }
-
-  let currentRow: MarkVSpecModelSampleRow | undefined;
-  for (const bullet of bullets) {
-    if (bullet.indent === 0) {
-      currentRow = {
-        values: {},
-        location: bullet.location,
-        raw: bullet.text
-      };
-      sample.rows.push(currentRow);
-      for (const line of modelSampleListLines(bullet)) {
-        const [key, value] = splitKeyValue(line.text);
-        applyModelSampleListValue(sample, currentRow, key, value, line);
-      }
-      continue;
-    }
-
-    if (currentRow) {
-      for (const line of modelSampleListLines(bullet)) {
-        const [key, value] = splitKeyValue(line.text);
-        applyModelSampleListValue(sample, currentRow, key, value, line);
-      }
-    }
-  }
-}
-
-function modelSampleListLines(bullet: ParsedBullet): ParsedBullet[] {
-  return bullet.text
-    .split(/\n/u)
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((text) => ({ text, indent: bullet.indent, location: bullet.location }));
-}
-
-function applyModelSampleListValue(
-  sample: MarkVSpecModelSampleSet,
-  row: MarkVSpecModelSampleRow,
-  key: string,
-  value: string | undefined,
-  bullet: ParsedBullet
-): void {
-  const column = key.trim();
-  if (!column) {
-    return;
-  }
-  if (!sample.columns.includes(column)) {
-    sample.columns.push(column);
-  }
-  row.values[column] = value?.trim() ?? "";
-}
-
-function parseModelSampleRow(columns: string[], cells: string[], raw: string, line: number): MarkVSpecModelSampleRow {
-  return {
-    values: Object.fromEntries(columns.map((column, index) => [column, cells[index] ?? ""])),
-    location: { line },
-    raw
+    modelSamples: [],
+    modelSampleGroups: [],
+    sectionProse: [],
+    diagnostics: [{
+      severity: "warning",
+      message: "## Model Samples is no longer canonical. Use Element sample rows or Preview Scenario samples instead.",
+      line: section.heading.range.start.line
+    }],
+    dependencies: []
   };
 }
 

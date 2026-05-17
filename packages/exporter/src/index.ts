@@ -530,8 +530,6 @@ function standaloneHtml(
       .state-screen-detail-heading { color: #475569; font-size: 12px; font-weight: 700; margin: 0 0 8px; }
       .state-screen-section h2, .state-screen-section h3, .state-screen-section h4, .state-screen-section h5, .state-screen-section h6 { margin: 0 0 12px; }
       .state-badge { background: #dbeafe; border: 1px solid #60a5fa; border-radius: 999px; color: #1e3a8a; font-size: var(--markvspec-heading-badge); font-weight: 600; padding: 1px 6px; }
-      .model-sample-block { margin: 18px 0; }
-      .model-sample-block h3 { align-items: baseline; display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
       .spec-empty { color: #6b7280; font-size: 12px; font-weight: 400; }
       .spec-table-wrap { max-width: 100%; overflow: auto; }
       .spec-table { border-collapse: collapse; font-size: 12px; width: 100%; }

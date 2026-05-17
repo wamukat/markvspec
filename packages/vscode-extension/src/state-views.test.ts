@@ -168,7 +168,6 @@ Elements overview.
       sectionProseForKind: (kind) => result.sectionProse.filter((candidate) => candidate.kind === kind)
     },
     specFragments: {
-      renderModelSamplesForState: () => "",
       renderLayoutSpecFragment: () => "",
       renderElementSpecFragment: (_heading, _content, sectionProse) => {
         receivedOverview = sectionProse.flatMap((candidate) => candidate.overview);

@@ -57,7 +57,6 @@ export type MessageKey =
   | "displayValue"
   | "displayedAt"
   | "displayedMessages"
-  | "emptyArray"
   | "element"
   | "elementSummary"
   | "elements"
@@ -105,10 +104,8 @@ export type MessageKey =
   | "message"
   | "missing"
   | "model"
-  | "modelSamples"
   | "name"
   | "navigation"
-  | "noSampleFieldsDefined"
   | "noVisibleElements"
   | "notPlacedInCurrentLayout"
   | "none"
@@ -287,7 +284,6 @@ const en: Record<MessageKey, string> = {
   displayValue: "Content",
   displayedAt: "Displayed at",
   displayedMessages: "Displayed messages",
-  emptyArray: "Empty array",
   element: "Element",
   elementSummary: "Element Summary",
   elements: "Elements",
@@ -335,10 +331,8 @@ const en: Record<MessageKey, string> = {
   message: "Message",
   missing: "missing",
   model: "Model",
-  modelSamples: "Model Samples",
   name: "Name",
   navigation: "Navigation",
-  noSampleFieldsDefined: "No sample fields defined",
   noVisibleElements: "No visible elements",
   notPlacedInCurrentLayout: "not placed in current layout",
   none: "None.",
@@ -518,7 +512,6 @@ const ja: Record<MessageKey, string> = {
   displayValue: "表示内容",
   displayedAt: "表示先",
   displayedMessages: "表示メッセージ",
-  emptyArray: "空配列",
   element: "画面要素",
   elementSummary: "画面要素サマリー",
   elements: "画面要素",
@@ -566,10 +559,8 @@ const ja: Record<MessageKey, string> = {
   message: "メッセージ",
   missing: "未検出",
   model: "モデル",
-  modelSamples: "モデルサンプル",
   name: "名前",
   navigation: "ナビゲーション",
-  noSampleFieldsDefined: "サンプル項目が定義されていません",
   noVisibleElements: "表示される要素はありません",
   notPlacedInCurrentLayout: "現在のレイアウトに未配置",
   none: "なし。",

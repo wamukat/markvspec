@@ -47,6 +47,6 @@ npx @markvspec/cli@latest export pdf examples/04-real-world-screens/login-basic.
   章区切りとして改ページします。
 - 各 state、Layouts、Elements、Actions は必ず新ページから始めるのではなく、
   ワイヤーフレーム、状態説明、関連表を同じ流れで読めるよう通常フローで配置します。
-- wireframe 導入部、action detail、process card、model sample block には
+- wireframe 導入部、action detail、process card、note block には
   `break-inside: avoid` と旧 `page-break-*` fallback を指定します。table は全体を
   固定せず、ヘッダと行単位で印刷しやすくします。

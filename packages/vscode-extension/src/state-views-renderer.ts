@@ -35,7 +35,6 @@ export interface StateViewEntityRef {
 }
 
 export interface StateViewsSpecFragmentRenderers {
-  renderModelSamplesForState(stateName: string | undefined): string;
   renderLayoutSpecFragment(heading: string, content: string, headingLevel: 3 | 5, emptyWhenRepeatedHidden: boolean): string;
   renderElementSpecFragment(
     heading: string,

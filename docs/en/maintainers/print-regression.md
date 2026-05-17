@@ -73,8 +73,8 @@ Check the generated HTML or PDF for these points:
   before History as chapter boundaries.
 - States, Layouts, Elements, and Actions do not always start on a new page; the
   wireframe, state description, and related tables remain readable in one flow.
-- Wireframe introductions, action details, process cards, and model sample
-  blocks should avoid internal page breaks where the browser can honor the
+- Wireframe introductions, action details, process cards, and note blocks
+  should avoid internal page breaks where the browser can honor the
   request.
 - Tables are not kept as one large block; headers and rows should remain
   readable in print.

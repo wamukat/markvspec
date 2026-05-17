@@ -34,7 +34,7 @@ small while avoiding the unreliable VS Code webview print workflow.
 - States, Layouts, Elements, and Actions do not always start on a new page. They
   stay in the normal flow so the wireframe, state description, and related
   tables can be read together.
-- Wireframe introductions, action details, process cards, and model sample
-  blocks request `break-inside: avoid` with legacy `page-break-*` fallbacks.
+- Wireframe introductions, action details, process cards, and note blocks
+  request `break-inside: avoid` with legacy `page-break-*` fallbacks.
   Tables are not kept as one large block; headers and rows are optimized for
   print instead.

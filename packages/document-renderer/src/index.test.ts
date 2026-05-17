@@ -35,7 +35,7 @@ test("renders shared wireframe print selectors for compact and static HTML CSS",
   assert.match(standardPrintPolicyCss(), /\.history-section\{break-before:page;page-break-before:always\}/);
   assert.doesNotMatch(standardPrintPolicyCss(), /\.state-screen-section\{break-before:page/);
   assert.doesNotMatch(standardPrintPolicyCss(), /\.layout-spec-fragment, \.element-spec-fragment, \.action-spec-fragment\{break-before:page/);
-  assert.match(standardPrintPolicyCss({ spaced: true }), /\.wireframe-print-section, \.action-detail, \.note-block, \.process-card, \.model-sample-block \{ break-inside: avoid; page-break-inside: avoid; \}/);
+  assert.match(standardPrintPolicyCss({ spaced: true }), /\.wireframe-print-section, \.action-detail, \.note-block, \.process-card \{ break-inside: avoid; page-break-inside: avoid; \}/);
   assert.doesNotMatch(standardPrintPolicyCss({ spaced: true }), /\.spec-table-wrap, \.spec-table \{ break-inside: avoid/);
   assert.match(standardPrintPolicyCss({ spaced: true }), /\.spec-table tr \{ break-inside: avoid; page-break-inside: avoid; \}/);
   assert.match(printScrollbarSuppressCss(), /html,body,main,\.content,\.preview,\.document,\.spec-table-wrap,\.wireframe-section,\.mermaid-render,\.mermaid-source,\.note-content,\.entity-notes pre,\.entity-overview pre\{overflow:visible!important;scrollbar-width:none!important;-ms-overflow-style:none!important\}/);
@@ -214,22 +214,12 @@ title: Messages
 
 - sample: Hello
 
-## Model Samples
-
-### idle
-
-#### model.items
-
-| value |
-|---|
 `);
   const html = renderStaticDesignDocumentHtml(result, {
     messages: {
       ...messagesForLocale("en"),
       default: "Base",
-      emptyArray: "Empty sample",
       initial: "start",
-      modelSamples: "Samples",
       view: "View",
       wireframe: "Canvas"
     }
@@ -237,14 +227,11 @@ title: Messages
 
   assert.match(html, /<h3>Base View<\/h3>/);
   assert.match(html, /<h4 class="state-screen-heading">State: idle start<\/h4>/);
-  assert.match(html, /<h5 class="state-screen-subheading">Samples<\/h5>/);
-  assert.match(html, /<h6 class="model-sample-path-heading state-screen-detail-heading"><code>model\.items<\/code><\/h6>/);
-  assert.match(html, /<p class="spec-empty">Empty sample<\/p>/);
   assert.match(html, /<h5 class="state-screen-subheading">Canvas<\/h5>/);
   assert.doesNotMatch(html, /<h2>Samples<\/h2>|Rows:|Sample Data|Count: 0/);
 });
 
-test("renders missing static model sample values as dashes", () => {
+test("renders missing static table sample values as empty wireframe cells", () => {
   const result = parseMarkVSpec(`---
 id: SCR-STATIC-SAMPLES
 type: screen
@@ -257,18 +244,21 @@ title: Static Samples
 
 - loaded*
 
-## Model Samples
+## Elements
 
-### loaded
+### E-Members Table
 
-#### model.members
-
-| name | role |
-|---|---|
-| Jane | |
+- source: data
+- Columns:
+  - name: Name
+  - role: Role
+- sample rows:
+  - row:
+    - name: Jane
+    - role:
 `);
   const html = renderStaticDesignDocumentHtml(result);
 
-  assert.match(html, /<th>name<\/th><th>role<\/th>/);
-  assert.match(html, /<td>Jane<\/td><td>-<\/td>/);
+  assert.match(html, /<th>Name<\/th><th>Role<\/th>/);
+  assert.match(html, /<td>Jane<\/td><td><\/td>/);
 });

@@ -13,7 +13,6 @@ import {
 } from "./ids.js";
 import { effectiveHistoryFields } from "./history.js";
 import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
-import { aliasForModelPath, sourcePathKey } from "./model-paths.js";
 import {
   isInputElementType,
   isKnownElementType,
@@ -66,7 +65,6 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   const stateNames = new Set(result.states.map((state) => state.name));
   const viewContextNames = new Set(result.viewContexts.map((context) => context.name));
   const viewContextSampleNames = new Set(result.viewContextSamples.map((sample) => sample.name));
-  const modelSampleGroupNames = new Set(result.modelSampleGroups.map((group) => group.state));
   const localIds = new Set([...semanticLayoutIds, ...semanticSlotContentLayoutIds, ...elementIds, ...actionIds, ...validationIds, ...ruleIds, ...errorCodeIds]);
   const processMarkersByAction = new Map(result.actions.map((action) => [
     action.id,
@@ -86,7 +84,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   checkDuplicates(result.viewContexts.map((context) => ({ id: context.name, location: context.location })), "view context", diagnostics);
   checkDuplicates(result.viewContextSamples.map((sample) => ({ id: sample.name, location: sample.location })), "view context sample", diagnostics);
   checkDuplicates(result.previewScenarios.map((scenario) => ({ id: scenario.name, location: scenario.location })), "preview scenario", diagnostics);
-  validateViewContexts(result, viewContextNames, viewContextSampleNames, stateNames, modelSampleGroupNames, elementsById, diagnostics);
+  validateViewContexts(result, viewContextNames, viewContextSampleNames, stateNames, elementsById, diagnostics);
   checkDuplicateLayoutMarkers(result.layoutGroups.filter((group) => !isPresentationPanelId(group.id)), diagnostics);
   checkConsistentLayoutMarkers(result.layoutGroups.filter((group) => !isPresentationPanelId(group.id)), diagnostics);
   checkMarkers(
@@ -166,7 +164,6 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
       line: initialStates[1]?.location.line
     });
   }
-  validateModelSamples(result, stateNames, diagnostics);
 
   for (const group of result.layoutGroups) {
     validatePresentationPanelProperties(group, diagnostics);
@@ -794,48 +791,6 @@ function isIsoDate(value: string): boolean {
   const day = Number(match[3]);
   const date = new Date(Date.UTC(year, month - 1, day));
   return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
-}
-
-function validateModelSamples(result: MarkVSpecParseResult, stateNames: Set<string>, diagnostics: MarkVSpecDiagnostic[]): void {
-  for (const sample of result.modelSamples) {
-    if (!stateNames.has(sample.state)) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Model Samples state ${sample.state} is not defined in States.`,
-        line: sample.location.line
-      });
-    }
-    if (sample.columns.length === 0) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Model Samples path ${sample.path} has no sample fields defined.`,
-        line: sample.location.line
-      });
-    }
-  }
-
-  for (const element of result.elements) {
-    const source = stringProperty(element, "src");
-    if (!source) {
-      continue;
-    }
-    const sourceKey = sourcePathKey(source);
-    const alias = result.modelSamples
-      .map((sample) => aliasForModelPath(sample.path, { stripCollectionSuffix: true }))
-      .find((candidate) => sourceKey.startsWith(`${candidate}.`));
-    if (!alias) {
-      continue;
-    }
-    const column = sourceKey.slice(alias.length + 1);
-    const matchingSamples = result.modelSamples.filter((sample) => aliasForModelPath(sample.path, { stripCollectionSuffix: true }) === alias);
-    if (matchingSamples.length > 0 && !matchingSamples.some((sample) => sample.columns.includes(column))) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Element ${element.id} src ${source} does not match any Model Samples column.`,
-        line: firstPropertyLine(element, "src") ?? element.location.line
-      });
-    }
-  }
 }
 
 function validateFormGroups(
@@ -2267,7 +2222,6 @@ function validateViewContexts(
   viewContextNames: Set<string>,
   viewContextSampleNames: Set<string>,
   stateNames: Set<string>,
-  modelSampleGroupNames: Set<string>,
   elementsById: Map<string, MarkVSpecElement>,
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
@@ -2309,14 +2263,6 @@ function validateViewContexts(
           severity: "error",
           message: `Preview Scenario ${scenario.name} references missing state ${scenario.state}.`,
           line: firstPropertyLine(scenario, "state") ?? scenario.location.line
-        });
-      }
-
-      if (scenario.model && !modelSampleGroupNames.has(scenario.model)) {
-        diagnostics.push({
-          severity: "error",
-          message: `Preview Scenario ${scenario.name} references missing model sample ${scenario.model}.`,
-          line: firstPropertyLine(scenario, "model") ?? scenario.location.line
         });
       }
 
@@ -2400,9 +2346,6 @@ function validateDataSourceSampleRows(
     if (element.properties["source"] !== "data") {
       continue;
     }
-    if (hasLegacyRowsModelSample(element, result)) {
-      continue;
-    }
     if (element.sampleRows || scenarioRowElementIds.has(element.id)) {
       continue;
     }
@@ -2412,15 +2355,6 @@ function validateDataSourceSampleRows(
       line: firstPropertyLine(element, "source") ?? element.location.line
     });
   }
-}
-
-function hasLegacyRowsModelSample(element: MarkVSpecElement, result: MarkVSpecParseResult): boolean {
-  const rows = stringProperty(element, "rows");
-  if (!rows) {
-    return false;
-  }
-  const sourceKey = sourcePathKey(rows);
-  return result.modelSamples.some((sample) => sourceKey === sourcePathKey(sample.path));
 }
 
 function validateConditionNamespaces(

@@ -66,7 +66,7 @@ export function standardPrintPolicyCss(options: { spaced?: boolean } = {}): stri
   const rules = [
     [".toc-inline", "break-after: page; break-inside: avoid; page-break-after: always; page-break-inside: avoid"],
     [".history-section", "break-before: page; page-break-before: always"],
-    [".wireframe-print-section, .action-detail, .note-block, .process-card, .model-sample-block", "break-inside: avoid; page-break-inside: avoid"],
+    [".wireframe-print-section, .action-detail, .note-block, .process-card", "break-inside: avoid; page-break-inside: avoid"],
     [".doc-section h2, .doc-section h3, .doc-section h4, .doc-section h5, .state-wireframe h3", "break-after: avoid; page-break-after: avoid"],
     [".spec-table tr", "break-inside: avoid; page-break-inside: avoid"]
   ];
@@ -205,27 +205,10 @@ function renderStateScreenSection(
   return `<section class="doc-section state-screen-section"${stateAttrs}${viewportAttrs}>
   <section class="wireframe-print-section">
     <h4 class="state-screen-heading">${escapeHtml(stateHeading)}</h4>
-    ${renderModelSamplesForState(result, state?.name, messages)}
     <h5 class="state-screen-subheading">${escapeHtml(messages.wireframe)}</h5>
     <section class="wireframe-section">${wireframe}</section>
   </section>
 </section>`;
-}
-
-function renderModelSamplesForState(result: MarkVSpecParseResult, stateName: string | undefined, messages: RendererMessages): string {
-  if (!stateName) {
-    return "";
-  }
-
-  const samples = result.modelSamples.filter((sample) => sample.state === stateName);
-  if (samples.length === 0) {
-    return "";
-  }
-
-  return `<section class="model-sample-group">
-    <h5 class="state-screen-subheading">${escapeHtml(messages.modelSamples)}</h5>
-    ${samples.map((sample) => renderModelSample(sample, messages)).join("")}
-  </section>`;
 }
 
 function displayStates(result: MarkVSpecParseResult): Array<MarkVSpecState | undefined> {
@@ -251,23 +234,6 @@ function layoutViewports(result: MarkVSpecParseResult): string[] {
   }
 
   return viewports;
-}
-
-function renderModelSample(sample: MarkVSpecParseResult["modelSamples"][number], messages: RendererMessages): string {
-  return `<section class="model-sample-block"><h6 class="model-sample-path-heading state-screen-detail-heading"><code>${escapeHtml(sample.path)}</code></h6>${renderModelSampleTable(sample, messages)}</section>`;
-}
-
-function renderModelSampleTable(sample: MarkVSpecParseResult["modelSamples"][number], messages: RendererMessages): string {
-  if (sample.columns.length === 0) {
-    return `<p class="spec-empty">${escapeHtml(messages.noSampleFieldsDefined)}</p>`;
-  }
-
-  if (sample.rows.length === 0) {
-    const headerOnlyTable = `<div class="spec-table-wrap"><table class="spec-table"><thead><tr>${sample.columns.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr></thead><tbody></tbody></table></div>`;
-    return `${headerOnlyTable}<p class="spec-empty">${escapeHtml(messages.emptyArray)}</p>`;
-  }
-
-  return renderTable(sample.columns, sample.rows.map((row) => sample.columns.map((header) => escapeHtml(row.values[header] ?? ""))));
 }
 
 function renderHistorySection(result: MarkVSpecParseResult, messages: RendererMessages): string {

@@ -339,7 +339,7 @@ test("exports responsive design document sections for every viewport", () => {
     assert.match(html, /\.history-section \{ break-before: page; page-break-before: always; \}/);
     assert.doesNotMatch(html, /\.state-screen-section \{ break-before: page; page-break-before: always; \}/);
     assert.doesNotMatch(html, /\.layout-spec-fragment, \.element-spec-fragment, \.action-spec-fragment \{ break-before: page; page-break-before: always; \}/);
-    assert.match(html, /\.wireframe-print-section, \.action-detail, \.note-block, \.process-card, \.model-sample-block \{ break-inside: avoid; page-break-inside: avoid; \}/);
+    assert.match(html, /\.wireframe-print-section, \.action-detail, \.note-block, \.process-card \{ break-inside: avoid; page-break-inside: avoid; \}/);
     assert.match(html, /\.spec-table tr \{ break-inside: avoid; page-break-inside: avoid; \}/);
     assert.doesNotMatch(html, /\.spec-table-wrap, \.spec-table \{ break-inside: avoid; page-break-inside: avoid; \}/);
     assert.doesNotMatch(html, /\.state-screen-section:first-of-type/);
@@ -359,11 +359,7 @@ test("exports responsive design document sections for every viewport", () => {
     assert.match(html, /\.state-screen-section\[data-viewport\] \.wireframe-section \.mm-wireframe:not\(\.mm-wireframe-empty\) \{ max-width: none !important; width: var\(--markvspec-viewport-width, 100%\) !important; zoom: var\(--markvspec-print-scale, 1\) !important; \}/);
     assert.match(html, /\.wireframe-section \.mm-element-table th,\s+\.wireframe-section \.mm-element-table td \{ box-sizing: border-box; overflow-wrap: anywhere; word-break: break-word; \}/);
     assert.doesNotMatch(html, /<h2>Model Samples<\/h2>|Rows:|Sample Data/);
-    assert.match(html, /<h4 class="state-screen-heading">State: loaded[\s\S]*<h5 class="state-screen-subheading">Model Samples<\/h5>[\s\S]*<h6 class="model-sample-path-heading state-screen-detail-heading"><code>model\.items<\/code><\/h6>/);
-    assert.match(html, /<th>id<\/th><th>name<\/th>/);
-    assert.match(html, /<td>U-001<\/td><td>佐藤 &lt;Admin &amp; Ops&gt;<\/td>/);
-    assert.match(html, /<td>U-002<\/td><td>田中 芽衣<\/td>/);
-    assert.match(html, /<h4 class="state-screen-heading">State: empty[\s\S]*<h5 class="state-screen-subheading">Model Samples<\/h5>[\s\S]*<h6 class="model-sample-path-heading state-screen-detail-heading"><code>model\.items<\/code><\/h6>[\s\S]*<p class="spec-empty">Empty array<\/p>/);
+    assert.doesNotMatch(html, /model-sample-path-heading|U-001|U-002|Empty array/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -533,23 +529,6 @@ viewport: mobile
 
 - sample: Responsive
 
-## Model Samples
-
-### loaded
-
-#### model.items
-
-| id | name |
-|---|---|
-| U-001 | 佐藤 <Admin & Ops> |
-| U-002 | 田中 芽衣 |
-
-### empty
-
-#### model.items
-
-| id | name |
-|---|---|
 `;
 }
 

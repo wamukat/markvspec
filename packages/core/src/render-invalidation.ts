@@ -1,6 +1,5 @@
 import { parseMarkdownDocument, topLevelProseLines } from "./markdown-document.js";
 import { collectSectionAst, type BlockAst, type SectionAst } from "./markdown-section-ast.js";
-import { aliasForModelPath, isCollectionModelSamplePath, sourcePathKey } from "./model-paths.js";
 import {
   parseActionSectionSemantics,
   parseElementSectionSemantics,
@@ -8,7 +7,7 @@ import {
   parseSmallSectionSemantics,
   type SemanticDependency
 } from "./markdown-section-semantic.js";
-import type { MarkVSpecDiagnostic, MarkVSpecElement, MarkVSpecFormGroup, MarkVSpecLayoutGroup, MarkVSpecModelSampleSet } from "./types.js";
+import type { MarkVSpecDiagnostic, MarkVSpecElement, MarkVSpecFormGroup, MarkVSpecLayoutGroup } from "./types.js";
 
 export interface MarkVSpecRenderInvalidation {
   changedSectionIds: string[];
@@ -123,7 +122,6 @@ function renderSemanticsForSource(source: string): {
   elements: MarkVSpecElement[];
   formGroups: MarkVSpecFormGroup[];
   layoutGroups: MarkVSpecLayoutGroup[];
-  modelSamples: MarkVSpecModelSampleSet[];
   states: string[];
 } {
   const diagnostics: MarkVSpecDiagnostic[] = [];
@@ -154,7 +152,6 @@ function renderSemanticsForSource(source: string): {
     elements: elementSemantics.elements,
     formGroups: smallSemantics.formGroups,
     layoutGroups: layoutSemantics.layoutGroups,
-    modelSamples: smallSemantics.modelSamples,
     states: smallSemantics.states.map((state) => state.name)
   };
 }
@@ -218,28 +215,6 @@ function safePartialElementInvalidation(
       previewDocumentRenderKeys: [],
       diagnosticsMayChange: true,
       fullRenderReasons: unsafeReasons
-    };
-  }
-  const sourceDiagnosticReasons = unsafeSourceDiagnosticReasons(previous, current, elementId);
-  if (sourceDiagnosticReasons.length > 0) {
-    return {
-      requiresFullRender: true,
-      impactedRenderKeys: [...impactedRenderKeys].sort(),
-      wireframeRenderKeys: [],
-      previewDocumentRenderKeys: [],
-      diagnosticsMayChange: true,
-      fullRenderReasons: sourceDiagnosticReasons
-    };
-  }
-  const repeatContextReasons = unsafeModelRepeatContextReasons(previous, current, elementId);
-  if (repeatContextReasons.length > 0) {
-    return {
-      requiresFullRender: true,
-      impactedRenderKeys: [...impactedRenderKeys].sort(),
-      wireframeRenderKeys: [],
-      previewDocumentRenderKeys: [],
-      diagnosticsMayChange: false,
-      fullRenderReasons: repeatContextReasons
     };
   }
   const layoutContextReasons = unsafeLayoutContextReasons(current.layoutGroups, elementId);
@@ -389,9 +364,6 @@ function unsafeLayoutPartialReasons(
   if (!isLeafLayoutForPartial(current.layoutGroups, currentLayout)) {
     reasons.push(`Layout ${currentLayout.id} is not a leaf layout for partial updates.`);
   }
-  if (layoutHasRepeatContext(previous, previousLayout) || layoutHasRepeatContext(current, currentLayout)) {
-    reasons.push(`Layout ${currentLayout.id} participates in model-sample repeat rendering.`);
-  }
   if (layoutMembershipFingerprint(previousLayout) !== layoutMembershipFingerprint(currentLayout)) {
     reasons.push("Layout membership changed.");
   }
@@ -479,24 +451,6 @@ function isLeafLayoutForPartial(layoutGroups: MarkVSpecLayoutGroup[], layout: Ma
     });
 }
 
-function layoutHasRepeatContext(
-  source: ReturnType<typeof renderSemanticsForSource>,
-  layout: MarkVSpecLayoutGroup
-): boolean {
-  const elementById = new Map(source.elements.map((element) => [element.id, element]));
-  const repeatSources = repeatingSourceAliases(source.modelSamples);
-  if (repeatSources.length === 0) {
-    return false;
-  }
-
-  return layout.items.some((item) => {
-    const elementId = item.type === "contains" ? item.targetId : item.type === "field" ? item.elementId : undefined;
-    const element = elementId ? elementById.get(elementId) : undefined;
-    const sourceProperty = stringProperty(element?.properties["src"]);
-    return Boolean(sourceProperty && repeatSources.some((alias) => sourceProperty.startsWith(`${alias}.`)));
-  });
-}
-
 function unsafeElementPartialReasons(previous: MarkVSpecElement, current: MarkVSpecElement): string[] {
   const reasons: string[] = [];
   if (previous.type !== current.type) {
@@ -530,77 +484,6 @@ function unsafeElementPartialReasons(previous: MarkVSpecElement, current: MarkVS
     reasons.push(`Element properties require full render: ${unsafePropertyKeys.join(", ")}.`);
   }
   return reasons;
-}
-
-function unsafeSourceDiagnosticReasons(
-  previous: ReturnType<typeof renderSemanticsForSource>,
-  current: ReturnType<typeof renderSemanticsForSource>,
-  elementId: string
-): string[] {
-  const previousElement = previous.elements.find((element) => element.id === elementId);
-  const currentElement = current.elements.find((element) => element.id === elementId);
-  const previousSource = stringProperty(previousElement?.properties["src"]);
-  const currentSource = stringProperty(currentElement?.properties["src"]);
-  if (!previousSource || !currentSource || previousSource === currentSource) {
-    return [];
-  }
-
-  const previousMatch = modelSampleSourceMatch(previous.modelSamples, previousSource);
-  const currentMatch = modelSampleSourceMatch(current.modelSamples, currentSource);
-  if (!previousMatch && !currentMatch) {
-    return [];
-  }
-  if (previousMatch?.valid === true && currentMatch?.valid === true) {
-    return [];
-  }
-
-  return ["Element source can change Model Samples diagnostics."];
-}
-
-function unsafeModelRepeatContextReasons(
-  previous: ReturnType<typeof renderSemanticsForSource>,
-  current: ReturnType<typeof renderSemanticsForSource>,
-  elementId: string
-): string[] {
-  const previousElement = previous.elements.find((element) => element.id === elementId);
-  const currentElement = current.elements.find((element) => element.id === elementId);
-  const sourceChanged = previousElement && currentElement && previousElement.properties["src"] !== currentElement.properties["src"];
-  if (!sourceChanged) {
-    return [];
-  }
-  const repeatSources = [
-    ...repeatingSourceAliases(previous.modelSamples),
-    ...repeatingSourceAliases(current.modelSamples)
-  ];
-  const sources = [
-    stringProperty(previousElement?.properties["src"]),
-    stringProperty(currentElement?.properties["src"])
-  ].filter(Boolean);
-  if (!sources.some((source) => repeatSources.some((alias) => sourcePathKey(source).startsWith(`${alias}.`)))) {
-    return [];
-  }
-
-  return ["Element source participates in model-sample repeat rendering."];
-}
-
-function modelSampleSourceMatch(samples: MarkVSpecModelSampleSet[], source: string): { valid: boolean } | undefined {
-  const sourceKey = sourcePathKey(source);
-  const alias = samples.map((sample) => aliasForModelPath(sample.path)).find((candidate) => sourceKey.startsWith(`${candidate}.`));
-  if (!alias) {
-    return undefined;
-  }
-  const matchingSamples = samples.filter((sample) => aliasForModelPath(sample.path) === alias);
-  if (matchingSamples.length === 0) {
-    return undefined;
-  }
-  const column = sourceKey.slice(alias.length + 1);
-  return { valid: matchingSamples.some((sample) => sample.columns.includes(column)) };
-}
-
-function repeatingSourceAliases(samples: MarkVSpecModelSampleSet[]): string[] {
-  return samples
-    .filter((sample) => isCollectionModelSamplePath(sample.path) && sample.rows.length !== 1)
-    .map((sample) => aliasForModelPath(sample.path));
 }
 
 function unsafeLayoutContextReasons(layoutGroups: MarkVSpecLayoutGroup[], elementId: string): string[] {

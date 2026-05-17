@@ -1,5 +1,5 @@
 import { isLocalId, isPresentationPanelId, opaqueExpressionBody } from "./ids.js";
-import { aliasForModelPath, isCollectionModelSamplePath, sourcePathKey } from "./model-paths.js";
+import { sourcePathKey } from "./model-paths.js";
 import { messagesForLocale } from "./renderer-messages.js";
 import { actionAppliesToState } from "./action-applicability.js";
 import { sourceTypeForElement } from "./source-types.js";
@@ -192,8 +192,6 @@ interface ActionMarkerReference {
 }
 
 interface RenderContext {
-  modelAliases: Record<string, Record<string, string>>;
-  modelSampleRows: Record<string, MarkVSpecParseResult["modelSamples"][number]["rows"]>;
   sampleOverrides: Record<string, MarkVSpecParseResult["previewScenarios"][number]["samples"][number]>;
   elementById?: Map<string, MarkVSpecElement>;
   actionMarkersByElementId?: Map<string, ActionMarkerReference[]>;
@@ -273,33 +271,6 @@ function renderLayoutGroup(
 ): string {
   if (!options.includeConditionalContent && !isLayoutVisible(group, activeState, stateNames, options)) {
     return "";
-  }
-
-  const repeats = modelSampleRepeatsForGroup(group, result, layoutById, elementById, activeState, context);
-  if (repeats) {
-    return repeats.rows.map((row, index) => renderLayoutGroupOnce(
-      group,
-      result,
-      layoutById,
-      slotContentsByName,
-      elementById,
-      actionMarkersByElementId,
-      activeState,
-      stateNames,
-      options,
-      visited,
-      {
-        ...context,
-        modelAliases: {
-          ...context.modelAliases,
-          [repeats.alias]: row.values
-        },
-        suppressMarkers: context.suppressMarkers || index > 0
-      },
-      parentDisabled,
-      renderKeyOverride,
-      depth
-    )).join("");
   }
 
   return renderLayoutGroupOnce(group, result, layoutById, slotContentsByName, elementById, actionMarkersByElementId, activeState, stateNames, options, visited, context, parentDisabled, renderKeyOverride, depth);
@@ -419,7 +390,7 @@ function renderLayoutGroupChildren(
 }
 
 function emptyRenderContext(): RenderContext {
-  return { modelAliases: {}, modelSampleRows: {}, sampleOverrides: {} };
+  return { sampleOverrides: {} };
 }
 
 function layoutDepthFor(layoutId: string, layoutGroups: MarkVSpecLayoutGroup[]): number {
@@ -551,57 +522,8 @@ function layoutDepthStyle(depth: number): string {
   ].join(";");
 }
 
-function renderContextForState(result: MarkVSpecParseResult, activeState: string | undefined): RenderContext {
-  if (!activeState) {
-    return emptyRenderContext();
-  }
-
-  const modelAliases = Object.fromEntries(result.modelSamples
-    .filter((sample) => sample.state === activeState && sample.rows.length === 1)
-    .map((sample) => [aliasForModelPath(sample.path, { stripCollectionSuffix: true }), sample.rows[0].values]));
-  const modelSampleRows = Object.fromEntries(result.modelSamples
-    .filter((sample) => sample.state === activeState)
-    .map((sample) => [sourcePathKey(sample.path), sample.rows]));
-  return { modelAliases, modelSampleRows, sampleOverrides: {} };
-}
-
-function modelSampleRepeatsForGroup(
-  group: MarkVSpecLayoutGroup,
-  result: MarkVSpecParseResult,
-  layoutById: Map<string, MarkVSpecLayoutGroup>,
-  elementById: Map<string, MarkVSpecElement>,
-  activeState: string | undefined,
-  context: RenderContext
-): { alias: string; rows: MarkVSpecParseResult["modelSamples"][number]["rows"] } | undefined {
-  if (!activeState) {
-    return undefined;
-  }
-
-  const directSources = directElementSourcesForGroup(group, elementById);
-  const sample = result.modelSamples.find((candidate) =>
-    candidate.state === activeState &&
-    isCollectionModelSamplePath(candidate.path) &&
-    directSources.some((source) => sourcePathKey(source).startsWith(`${aliasForModelPath(candidate.path, { stripCollectionSuffix: true })}.`))
-  );
-  if (!sample) {
-    return undefined;
-  }
-
-  const alias = aliasForModelPath(sample.path, { stripCollectionSuffix: true });
-  if (context.modelAliases[alias]) {
-    return undefined;
-  }
-
-  return { alias, rows: sample.rows };
-}
-
-function directElementSourcesForGroup(group: MarkVSpecLayoutGroup, elementById: Map<string, MarkVSpecElement>): string[] {
-  return group.items.flatMap((item) => {
-    const elementId = item.type === "contains" ? item.targetId : item.type === "field" ? item.elementId : undefined;
-    const element = elementId ? elementById.get(elementId) : undefined;
-    const source = element ? stringProperty(element, "src") : "";
-    return source ? [source] : [];
-  });
+function renderContextForState(_result: MarkVSpecParseResult, _activeState: string | undefined): RenderContext {
+  return emptyRenderContext();
 }
 
 function renderElement(
@@ -626,8 +548,7 @@ function renderElement(
     elementSizePreset(element) ? cssClass("mm-size", elementSizePreset(element) ?? "") : ""
   ].filter(Boolean).join(" ");
 
-  const elementSourceValue = sourceTypeForElement(element) === "element" ? elementValueFromElementSource(element, context, new Set()) : undefined;
-  const sourceValue = elementSourceValue ?? modelValueForElement(element, context);
+  const sourceValue = sourceTypeForElement(element) === "element" ? elementValueFromElementSource(element, context, new Set()) : undefined;
   const formattedSourceValue = sourceValue === undefined ? "" : formatModelValue(sourceValue, stringProperty(element, "format"));
   const sampleOverride = context.sampleOverrides[element.id];
   const sample = sampleOverride?.value ?? (formattedSourceValue || stringProperty(element, "sample"));
@@ -1121,26 +1042,6 @@ function stringProperty(element: MarkVSpecElement, key: string): string {
   return typeof value === "string" ? value : "";
 }
 
-function modelValueForSource(source: string, context: RenderContext): string | undefined {
-  const sourceKey = sourcePathKey(source);
-  for (const [alias, values] of Object.entries(context.modelAliases)) {
-    if (!sourceKey.startsWith(`${alias}.`)) {
-      continue;
-    }
-
-    const key = sourceKey.slice(alias.length + 1);
-    return values[key];
-  }
-
-  return undefined;
-}
-
-function modelValueForElement(element: MarkVSpecElement, context: RenderContext): string | undefined {
-  const valueSource = stringProperty(element, "value");
-  const value = valueSource ? modelValueForSource(valueSource, context) : undefined;
-  return value ?? modelValueForSource(stringProperty(element, "src"), context);
-}
-
 function elementValueFromElementSource(
   element: MarkVSpecElement,
   context: RenderContext,
@@ -1164,8 +1065,7 @@ function elementValueFromElementSource(
     }
   }
 
-  return modelValueForElement(target, context)
-    ?? stringProperty(target, "initial value")
+  return stringProperty(target, "initial value")
     ?? stringProperty(target, "sample")
     ?? inputLiteralValue(stringProperty(target, "value"))
     ?? undefined;
@@ -1296,26 +1196,7 @@ function tableRowsForElement(
     };
   }
 
-  const source = stringProperty(element, "rows");
-  const sourceKey = source ? sourcePathKey(source) : "";
-  const modelRows = sourceKey ? context.modelSampleRows[sourceKey] : undefined;
-  if (!modelRows || modelRows.length === 0) {
-    return { rows: element.tableRows, explicitEmpty: false };
-  }
-
-  return { rows: modelRows.map((row) => ({
-    location: row.location,
-    raw: row.raw,
-    cells: columns.map((column) => {
-      const key = tableColumnSampleKeys(column).find((candidate) => row.values[candidate] !== undefined) ?? column.label;
-      return {
-        column: key,
-        value: row.values[key] ?? row.values[column.label] ?? "",
-        location: row.location,
-        raw: `${key}: ${row.values[key] ?? ""}`
-      };
-    })
-  })), explicitEmpty: false };
+  return { rows: element.tableRows, explicitEmpty: false };
 }
 
 function sampleRowsToTableRows(

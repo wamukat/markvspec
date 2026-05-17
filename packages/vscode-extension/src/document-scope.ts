@@ -151,8 +151,6 @@ function filterSectionProseForDetails(
         return result.elements.length > 0;
       case "Actions":
         return result.actions.length > 0;
-      case "ModelSamples":
-        return result.modelSamples.length > 0;
       case "FormGroups":
         return result.formGroups.length > 0;
       case "Validations":

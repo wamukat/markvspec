@@ -116,8 +116,6 @@ ${baseWireframeViewportCss()}
 .state-transition-axis-labels{align-items:center;display:flex;gap:16px;inset:0;justify-content:space-between;padding:6px 8px;position:absolute}
 .state-transition-axis-labels .from,.state-transition-axis-labels .to{background:#f9fafb;padding:0 2px}
 .mm-inline-token{color:#0f766e;font-family:inherit;font-weight:650;padding:0 1px}
-.model-sample-block{margin:18px 0}
-.model-sample-path-heading{color:#374151;font-size:13px;font-weight:650;margin:8px 0 6px}
 .mermaid-block{position:relative}
 .mermaid-source{background:#f9fafb;border:1px solid #d1d5db;border-radius:6px;box-sizing:border-box;display:none;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size:12px;line-height:1.5;margin:0;overflow:auto;padding:34px 12px 12px;white-space:pre}
 .mermaid-source code{background:transparent;border:0;border-radius:0;color:inherit;font:inherit;padding:0}
@@ -377,8 +375,6 @@ ${baseWireframeViewportCss()}
 .spec-table tr:has(.mm-repeated-badge){background:#f8fafc;color:#64748b}
 .spec-table tr:has(.mm-unplaced-badge){background:#fff7ed}
 .mm-inline-token{color:#0f766e;font-family:inherit;font-weight:650;padding:0 1px}
-.model-sample-block{margin:18px 0}
-.model-sample-path-heading{color:#374151;font-size:13px;font-weight:650;margin:8px 0 6px}
 .spec-empty{color:#6b7280;font-size:12px}
 .spec-reference{font-size:12px;margin:0 0 10px}
 .mermaid-block{position:relative}

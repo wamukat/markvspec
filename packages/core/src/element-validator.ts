@@ -141,7 +141,7 @@ export function validateElementProperties(
   checkUnsupportedElementProperties(element, diagnostics);
   checkElementPresetProperties(element, diagnostics);
   checkElementSource(element, result, diagnostics);
-  checkTableProperties(element, result, diagnostics);
+  checkTableProperties(element, diagnostics);
 }
 
 function checkUnsupportedElementProperties(element: MarkVSpecElement, diagnostics: MarkVSpecDiagnostic[]): void {
@@ -205,22 +205,18 @@ function checkElementPresetProperties(element: MarkVSpecElement, diagnostics: Ma
   }
 }
 
-function checkTableProperties(element: MarkVSpecElement, result: MarkVSpecParseResult, diagnostics: MarkVSpecDiagnostic[]): void {
+function checkTableProperties(element: MarkVSpecElement, diagnostics: MarkVSpecDiagnostic[]): void {
   if (element.type !== "Table") {
     return;
   }
 
   const rows = stringProperty(element, "rows");
   if (rows) {
-    const sourceKey = opaqueExpressionBody(rows) ?? rows;
-    const hasSample = result.modelSamples.some((sample) => (opaqueExpressionBody(sample.path) ?? sample.path) === sourceKey);
-    if (!hasSample) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Element ${element.id} rows ${rows} does not match any Model Samples path.`,
-        line: firstPropertyLine(element, "rows") ?? element.location.line
-      });
-    }
+    diagnostics.push({
+      severity: "warning",
+      message: `Element ${element.id} rows is not canonical. Use sample rows or Preview Scenario samples instead.`,
+      line: firstPropertyLine(element, "rows") ?? element.location.line
+    });
   }
 
   for (const column of element.tableColumns) {

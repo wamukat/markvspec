@@ -1050,7 +1050,6 @@ function isSemanticSectionHeading(line: string): boolean {
     title === "Cross-field Validations" ||
     title === "Business Rules" ||
     title === "Error Codes" ||
-    title === "Model Samples" ||
     title === "Slots" ||
     /^Slot(?::\s*.+)?$/u.test(title) ||
     /^Layout(?::\s*.+)?$/u.test(title);
@@ -1203,12 +1202,6 @@ function symbolsForSection(
     return result.validations
       .filter((validation) => isLineInSection(validation.location.line, section))
       .map((validation) => createDocumentSymbol(document, `${validation.id}${validation.name ? ` ${validation.name}` : ""}`, "Validation", vscode.SymbolKind.Operator, validation.location.line, nextSiblingLineEnd(document, validation.location.line, section.endLine)));
-  }
-
-  if (section.title === "Model Samples") {
-    return result.modelSamples
-      .filter((sample) => isLineInSection(sample.location.line, section))
-      .map((sample) => createDocumentSymbol(document, sample.path, sample.state, vscode.SymbolKind.Array, sample.location.line, nextSiblingLineEnd(document, sample.location.line, section.endLine)));
   }
 
   if (section.title === "Business Rules") {
@@ -3790,7 +3783,6 @@ function stateViewsRenderContext(result: ReturnType<typeof parseMarkVSpec>): Sta
       sectionProseForKind: (kind) => sectionProseForKind(result, kind),
     },
     specFragments: {
-      renderModelSamplesForState: (stateName) => renderModelSamplesForState(result, stateName),
       renderLayoutSpecFragment: (heading, content, headingLevel, emptyWhenRepeatedHidden) =>
         renderLayoutSpecFragment(result, heading, content, headingLevel, emptyWhenRepeatedHidden),
       renderElementSpecFragment: (heading, content, sectionProse, headingLevel, emptyWhenRepeatedHidden) =>
@@ -4268,56 +4260,6 @@ function renderPartialUpdateContent(result: ReturnType<typeof parseMarkVSpec>, u
   ].filter(Boolean);
 
   return renderDetailList(result, items, update.sideEffects ?? []);
-}
-
-function renderModelSamplesForState(result: ReturnType<typeof parseMarkVSpec>, stateName: string | undefined): string {
-  if (!stateName) {
-    return "";
-  }
-
-  const samples = result.modelSamples.filter((sample) => sample.state === stateName);
-  if (samples.length === 0) {
-    return "";
-  }
-  const groups = result.modelSampleGroups.filter((candidate) => candidate.state === stateName);
-  const sectionProse = result.sectionProse.filter((candidate) => candidate.kind === "ModelSamples");
-  return `<section class="model-sample-group">
-    ${renderStateScreenSubheading(label(result, "modelSamples"))}
-    ${renderEntityOverview(joinProseLineGroups(sectionProse.map((candidate) => candidate.overview)))}
-    ${renderEntityOverview(joinProseLineGroups(groups.map((candidate) => candidate.overview ?? [])))}
-    ${samples.map((sample) => renderModelSampleSpec(result, sample)).join("")}
-    ${renderEntityNotes(joinProseLineGroups(groups.map((candidate) => candidate.notes ?? [])))}
-    ${renderEntityNotes(joinProseLineGroups(sectionProse.map((candidate) => candidate.notes)))}
-  </section>`;
-}
-
-function renderModelSampleSpec(
-  result: ReturnType<typeof parseMarkVSpec>,
-  sample: ReturnType<typeof parseMarkVSpec>["modelSamples"][number]
-): string {
-  return `<article class="model-sample-block">
-    <h6 class="model-sample-path-heading state-screen-detail-heading">${renderInlineToken(sample.path)}</h6>
-    ${renderEntityOverview(sample.overview)}
-    ${renderModelSampleTable(result, sample)}
-    ${renderEntityNotes(sample.notes)}
-  </article>`;
-}
-
-function renderModelSampleTable(
-  result: ReturnType<typeof parseMarkVSpec>,
-  sample: ReturnType<typeof parseMarkVSpec>["modelSamples"][number]
-): string {
-  if (sample.columns.length === 0) {
-    return `<p class="spec-empty">${label(result, "noSampleFieldsDefined")}</p>`;
-  }
-
-  const rows = sample.rows.map((row) => sample.columns.map((column) => text(row.values[column] ?? "")));
-  if (rows.length === 0) {
-    const headerOnlyTable = `<div class="spec-table-wrap"><table class="spec-table"><thead><tr>${sample.columns.map((column) => `<th>${text(column)}</th>`).join("")}</tr></thead><tbody></tbody></table></div>`;
-    return `${headerOnlyTable}<p class="spec-empty">${label(result, "emptyArray")}</p>`;
-  }
-
-  return renderLocalizedTable(result, sample.columns, rows);
 }
 
 function renderActionDetailsSpec(result: ReturnType<typeof parseMarkVSpec>): string {

@@ -1,6 +1,5 @@
 import { actionAppliesToState } from "./action-applicability.js";
 import { resolveLayoutGroupsForViewport } from "./layout-resolution.js";
-import { aliasForModelPath, sourcePathKey } from "./model-paths.js";
 import { stateViewLayoutSignature } from "./state-view-signatures.js";
 import { sourceTypeForElement } from "./source-types.js";
 import type { MarkVSpecParseResult } from "./types.js";
@@ -789,7 +788,7 @@ export function stateScreenElementGroups(
   other: ParsedElement[];
 } {
   const formControls = elements.filter((element) => isFormControlElement(element.type));
-  const displayContentRows = displayContentSpecRows(elements, result, stateName);
+  const displayContentRows = displayContentSpecRows(elements);
   const categorizedIds = new Set([
     ...formControls.map((element) => element.id),
     ...displayContentRows.map((row) => row.element.id)
@@ -885,16 +884,12 @@ function elementDefinitionSignature(result: MarkVSpecParseResult, id: string): s
   });
 }
 
-function displayContentSpecRows(
-  elements: ParsedElement[],
-  result: MarkVSpecParseResult | undefined,
-  stateName: string | undefined
-): DisplayContentSpecRow[] {
+function displayContentSpecRows(elements: ParsedElement[]): DisplayContentSpecRow[] {
   return elements.flatMap((element) => {
     const properties = element.properties;
     const rows: DisplayContentSpecRow[] = [];
     const displaySource = properties["src"];
-    const displaySample = properties["sample"] ?? modelSampleValueForSource(rawStringProperty(displaySource), result, stateName);
+    const displaySample = properties["sample"];
     const sourceType = sourceTypeForElement(element);
     if (element.type === "Table") {
       pushDisplayPropertyRow(rows, element, "table rows", "see wireframe", sourceType);
@@ -933,34 +928,6 @@ function displayContentSpecRows(
     }
     return rows;
   });
-}
-
-function modelSampleValueForSource(
-  source: string | undefined,
-  result: MarkVSpecParseResult | undefined,
-  stateName: string | undefined
-): string | undefined {
-  if (!source || !result || !stateName) {
-    return undefined;
-  }
-
-  const sourceKey = sourcePathKey(source);
-  for (const sample of result.modelSamples) {
-    if (sample.state !== stateName || sample.rows.length !== 1) {
-      continue;
-    }
-    const alias = aliasForModelPath(sample.path, { stripCollectionSuffix: true });
-    if (!sourceKey.startsWith(`${alias}.`)) {
-      continue;
-    }
-    const key = sourceKey.slice(alias.length + 1);
-    const value = sample.rows[0]?.values[key];
-    if (value !== undefined) {
-      return value;
-    }
-  }
-
-  return undefined;
 }
 
 function pushDisplayPropertyRow(
