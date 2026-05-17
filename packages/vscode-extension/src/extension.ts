@@ -3738,7 +3738,7 @@ function renderStateScreenWireframe(
   model: StateScreenReadModel,
   index: number
 ): string {
-  return renderWireframeFor(wireframeResult, model.viewport, model.stateName, index === 0, model.focus, model.modelValues, model.viewValues, model.displayEffects);
+  return renderWireframeFor(wireframeResult, model.viewport, model.stateName, index === 0, model.focus, model.modelValues, model.viewValues, model.displayEffects, model.scenarioSamples);
 }
 
 function stateViewsRenderContext(result: ReturnType<typeof parseMarkVSpec>): StateViewsRenderContext {
@@ -3809,7 +3809,8 @@ function renderWireframeFor(
   focus?: FocusScope,
   modelValues?: Record<string, boolean | number | string>,
   viewValues?: Record<string, boolean | number | string>,
-  displayEffects?: StateScreenReadModel["displayEffects"]
+  displayEffects?: StateScreenReadModel["displayEffects"],
+  scenarioSamples?: StateScreenReadModel["scenarioSamples"]
 ): string {
   const html = renderMarkVSpecHtml(result, {
     includeConditionalContent: false,
@@ -3817,6 +3818,7 @@ function renderWireframeFor(
     state,
     modelValues,
     viewValues,
+    sampleOverrides: sampleOverridesFromScenarioSamples(scenarioSamples),
     messages: rendererMessagesForResult(result),
     markerVisibility: {
       layout: true,
@@ -3836,6 +3838,15 @@ function renderWireframeFor(
     messagesForResult: rendererMessagesForResult,
     markerLink: (id, category) => category === "action" ? `#${actionDetailAnchor(id)}` : undefined
   });
+}
+
+function sampleOverridesFromScenarioSamples(
+  samples: StateScreenReadModel["scenarioSamples"] | undefined
+): NonNullable<Parameters<typeof renderMarkVSpecHtml>[1]>["sampleOverrides"] {
+  if (!samples || samples.length === 0) {
+    return undefined;
+  }
+  return Object.fromEntries(samples.map((sample) => [sample.elementId, sample]));
 }
 
 function renderStateScreenSubheading(heading: string): string {

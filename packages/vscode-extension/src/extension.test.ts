@@ -3309,7 +3309,7 @@ locale: ja
   assert.match(actionDetailsSection, new RegExp(`<li>更新 <ul class="spec-list spec-effect-list"><li>${detailLayoutRef("T1", "User table")}</li><li>内容 検索結果を表示する</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>${sourceCodePattern("${model.audit}")} &lt; value &amp; retry</li></ul></li></ul></li>`));
 });
 
-test("renders model samples in generated design document", () => {
+test("omits model sample blocks from state wireframe sections", () => {
   const source = `---
 id: SCR-MODEL-SAMPLES
 type: screen
@@ -3362,20 +3362,93 @@ locale: ja
   const undefinedSection = stateSection(html, "undefined");
 
   assert.doesNotMatch(html, /<h2>モデルサンプル<\/h2>/);
-  assert.match(loadedSection, /<h5 class="state-screen-subheading">モデルサンプル<\/h5>[\s\S]*<h6 class="model-sample-path-heading state-screen-detail-heading"><span class="mm-inline-token">\$\{model\.noticeList\.items\}<\/span><\/h6>[\s\S]*<h6 class="model-sample-path-heading state-screen-detail-heading"><span class="mm-inline-token">\$\{model\.noticeList\.meta\}<\/span><\/h6>[\s\S]*<h5 class="state-screen-subheading">ワイヤーフレーム<\/h5>/);
-  assert.doesNotMatch(loadedSection, /行数:|サンプルデータ/);
-  assert.doesNotMatch(loadedSection, /mm-doc-label-state">loaded<\/code> <code>\$\{model\.noticeList/);
-  assert.match(loadedSection, /<th>noticeId<\/th><th>title<\/th><th>read<\/th>/);
-  assert.match(loadedSection, /<td>N-001<\/td><td>メンテナンスのお知らせ<\/td><td>false<\/td>/);
-  assert.match(loadedSection, /<td>N-002<\/td><td>利用規約改定のお知らせ<\/td><td>true<\/td>/);
-  assert.match(loadedSection, /<th>total<\/th>[\s\S]*<td>2<\/td>/);
-  assert.match(emptySection, /<h5 class="state-screen-subheading">モデルサンプル<\/h5>[\s\S]*<h6 class="model-sample-path-heading state-screen-detail-heading"><span class="mm-inline-token">\$\{model\.noticeList\.items\}<\/span><\/h6>[\s\S]*<th>noticeId<\/th><th>title<\/th><th>read<\/th>[\s\S]*<p class="spec-empty">空配列<\/p>[\s\S]*<h5 class="state-screen-subheading">ワイヤーフレーム<\/h5>/);
-  assert.doesNotMatch(emptySection, /mm-doc-label-state">empty<\/code> <code>\$\{model\.noticeList/);
-  assert.doesNotMatch(missingSection, /model-sample-block|\$\{model\.noticeList/);
-  assert.match(undefinedSection, /<h5 class="state-screen-subheading">モデルサンプル<\/h5>[\s\S]*<h6 class="model-sample-path-heading state-screen-detail-heading"><span class="mm-inline-token">\$\{model\.notice\}<\/span><\/h6>[\s\S]*<p class="spec-empty">サンプル項目が定義されていません<\/p>/);
+  for (const section of [loadedSection, emptySection, missingSection, undefinedSection]) {
+    assert.doesNotMatch(section, /model-sample-group|model-sample-block|<h5 class="state-screen-subheading">モデルサンプル<\/h5>/);
+    assert.match(section, /<h5 class="state-screen-subheading">ワイヤーフレーム<\/h5>/);
+  }
 });
 
-test("renders model sample state group and sample set prose", () => {
+test("renders preview scenario samples in generated state views", () => {
+  const source = `---
+id: SCR-SCENARIO-SAMPLES
+type: screen
+title: Scenario Samples
+---
+
+# SCR-SCENARIO-SAMPLES Scenario Samples
+
+## States
+
+- loaded*
+
+## Layout
+
+### L-Main Stack
+
+#### Items
+
+- E-Title
+- E-Users
+- E-EmptyUsers
+
+## Elements
+
+### E-Title Text
+
+- sample: Fallback title
+
+### E-Users Table
+
+- Columns:
+  - name: Name
+  - role: Role
+- sample rows:
+  - row:
+    - name: Alice
+    - role: Admin
+
+### E-EmptyUsers Table
+
+- Columns:
+  - name: Name
+- sample rows: []
+
+## Preview Scenarios
+
+### loaded-users
+
+- state: loaded
+- samples:
+  - E-Title: Scenario title
+  - E-Users:
+    - rows:
+      - row:
+        - name: Carol
+        - role: Owner
+  - E-EmptyUsers:
+    - rows: []
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const baseSection = stateViewTitleSection(html, "loaded");
+  const scenarioSection = stateViewTitleSection(html, "loaded / loaded-users");
+  const baseWireframe = stateWireframeSection(baseSection);
+  const scenarioWireframe = stateWireframeSection(scenarioSection);
+
+  assert.match(baseWireframe, /Fallback title/);
+  assert.match(baseWireframe, /<td>Alice<\/td><td>Admin<\/td>/);
+  assert.doesNotMatch(baseSection, /Scenario Samples/);
+  assert.match(scenarioWireframe, /Scenario title/);
+  assert.match(scenarioWireframe, /<td>Carol<\/td><td>Owner<\/td>/);
+  assert.doesNotMatch(scenarioWireframe, /Fallback title|<td>Alice<\/td><td>Admin<\/td>/);
+  assert.match(scenarioWireframe, /<td class="mm-table-empty" colspan="1">\(no data\)<\/td>/);
+  assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
+  assert.match(scenarioSection, /E-Title[\s\S]*Scenario title/);
+  assert.match(scenarioSection, /E-Users[\s\S]*1 rows/);
+  assert.match(scenarioSection, /E-EmptyUsers[\s\S]*<code>rows: \[\]<\/code>/);
+});
+
+test("omits model sample state group and sample set prose from state views", () => {
   const source = `---
 id: SCR-MODEL-SAMPLE-PROSE
 type: screen
@@ -3418,12 +3491,10 @@ Model Samples section notes.
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
   const loadedSection = stateSection(html, "loaded");
 
-  assert.match(loadedSection, /<h5 class="state-screen-subheading">Model Samples<\/h5>[\s\S]*<div class="entity-overview"><p class="note-paragraph">Model Samples section overview\.<\/p><\/div>[\s\S]*<div class="entity-overview"><p class="note-paragraph">Loaded group overview\.<\/p><\/div>/);
-  assert.match(loadedSection, /<h6 class="model-sample-path-heading state-screen-detail-heading"><span class="mm-inline-token">\$\{model\.users\.items\}<\/span><\/h6>\s*<div class="entity-overview"><p class="note-paragraph">Users sample overview\.<\/p><\/div>/);
-  assert.match(loadedSection, /<div class="entity-notes"><p class="note-paragraph">Users sample notes\.<\/p><\/div>[\s\S]*<div class="entity-notes"><p class="note-paragraph">Loaded group notes\.<\/p><\/div>[\s\S]*<div class="entity-notes"><p class="note-paragraph">Model Samples section notes\.<\/p><\/div>/);
+  assert.doesNotMatch(loadedSection, /Model Samples|model-sample-block|Model Samples section overview|Loaded group overview|Users sample overview|Users sample notes|Loaded group notes|Model Samples section notes/);
 });
 
-test("combines composed model sample prose for matching states", () => {
+test("omits composed model sample prose from state views", () => {
   const templateSource = `---
 id: TPL-MODEL-SAMPLES
 type: template
@@ -3504,12 +3575,7 @@ Screen section notes.
   const html = renderDesignDocumentHtml(composed, renderMarkVSpecHtml(composed, { includeStyles: false }));
   const loadedSection = stateSection(html, "loaded");
 
-  assert.match(loadedSection, /<p class="note-paragraph">Template section overview\.<\/p><p class="note-paragraph">Screen section overview\.<\/p>/);
-  assert.match(loadedSection, /<p class="note-paragraph">Template group overview\.<\/p><p class="note-paragraph">Screen group overview\.<\/p>/);
-  assert.match(loadedSection, /\$\{model\.template\.items\}[\s\S]*Template set overview\.[\s\S]*Template set notes\./);
-  assert.match(loadedSection, /\$\{model\.screen\.items\}[\s\S]*Screen set overview\.[\s\S]*Screen set notes\./);
-  assert.match(loadedSection, /<p class="note-paragraph">Template group notes\.<\/p><p class="note-paragraph">Screen group notes\.<\/p>/);
-  assert.match(loadedSection, /<p class="note-paragraph">Template section notes\.<\/p><p class="note-paragraph">Screen section notes\.<\/p>/);
+  assert.doesNotMatch(loadedSection, /Template section overview|Screen section overview|Template group overview|Screen group overview|\$\{model\.template\.items\}|\$\{model\.screen\.items\}|Template set overview|Screen set overview|Template group notes|Screen group notes|Template section notes|Screen section notes/);
 });
 
 test("renders validation rules in client and server scope groups", () => {

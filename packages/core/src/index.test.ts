@@ -11143,6 +11143,96 @@ title: Bad Scenario Samples
   assert(messages.includes("Preview Scenario idle rows sample target E-Title must be a Table or List element."));
 });
 
+test("renders Element and Preview Scenario samples in wireframes", () => {
+  const source = `---
+id: SCR-SAMPLE-WIREFRAME
+type: screen
+title: Sample Wireframe
+---
+# SCR-SAMPLE-WIREFRAME Sample Wireframe
+
+## States
+
+- loaded*
+
+## Layout
+
+### L-Main Stack
+
+#### Items
+
+- E-Title
+- E-Users
+- E-Tags
+- E-EmptyUsers
+
+## Elements
+
+### E-Title Text
+
+- sample: Fallback title
+
+### E-Users Table
+
+- Columns:
+  - name: Name
+  - role: Role
+- sample rows:
+  - row:
+    - name: Alice
+    - role: Admin
+
+### E-Tags List
+
+- sample rows:
+  - row:
+    - label: Stable
+  - row:
+    - label: Preview
+
+### E-EmptyUsers Table
+
+- Columns:
+  - name: Name
+- sample rows: []
+
+## Preview Scenarios
+
+### loaded-users
+
+- state: loaded
+- samples:
+  - E-Title: Scenario title
+  - E-Users:
+    - rows:
+      - row:
+        - name: Carol
+        - role: Owner
+  - E-Tags:
+    - rows: []
+  - E-EmptyUsers:
+    - rows: []
+`;
+  const result = parseMarkVSpec(source);
+  const scenario = result.previewScenarios.find((candidate) => candidate.name === "loaded-users");
+  assert(scenario);
+  const baselineHtml = renderMarkVSpecHtml(result, { includeStyles: false, state: "loaded" });
+  const scenarioHtml = renderMarkVSpecHtml(result, {
+    includeStyles: false,
+    state: "loaded",
+    sampleOverrides: Object.fromEntries(scenario.samples.map((sample) => [sample.elementId, sample]))
+  });
+
+  assert.match(baselineHtml, /Fallback title/);
+  assert.match(baselineHtml, /<td>Alice<\/td><td>Admin<\/td>/);
+  assert.match(baselineHtml, /<li>Stable<\/li><li>Preview<\/li>/);
+  assert.match(baselineHtml, /<td class="mm-table-empty" colspan="1">\(no data\)<\/td>/);
+  assert.match(scenarioHtml, /Scenario title/);
+  assert.match(scenarioHtml, /<td>Carol<\/td><td>Owner<\/td>/);
+  assert.match(scenarioHtml, /<li>\(no data\)<\/li>/);
+  assert.doesNotMatch(scenarioHtml, /Fallback title|<td>Alice<\/td><td>Admin<\/td>|<li>Stable<\/li>/);
+});
+
 test("validates view context values and preview scenario coverage", () => {
   const source = `---
 id: SCR-BAD-VIEW-CONTEXT

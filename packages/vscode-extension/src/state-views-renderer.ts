@@ -140,9 +140,9 @@ function renderStateScreenSpec(
     <section class="wireframe-print-section">
       <h4 class="state-screen-heading">${numberedHeading}</h4>
       ${messageHtml}
-      ${specFragments.renderModelSamplesForState(model.stateName)}
       ${renderStateScreenSubheading(context, format.label("wireframe"))}
       <section class="wireframe-section">${annotatedWireframeHtml}</section>
+      ${renderScenarioSamplesBox(result, context, model)}
       ${renderDisplayExplanationsBox(result, context, model)}
       ${renderSystemEventsBox(result, context, model.renderedIds.elementIds, model.stateName, model.initial, model.focus, model.repeatedActionIds, model.repeatedContent.systemEventsEmptyWhenRepeatedHidden)}
     </section>
@@ -155,6 +155,48 @@ function renderStateScreenSpec(
 
 function renderStateScreenSubheading(context: StateViewsRenderContext, heading: string): string {
   return `<h5 class="state-screen-subheading">${context.format.escapeHtml(heading)}</h5>`;
+}
+
+function renderScenarioSamplesBox(
+  result: MarkVSpecParseResult,
+  context: StateViewsRenderContext,
+  model: StateScreenReadModel
+): string {
+  if (model.scenarioSamples.length === 0) {
+    return "";
+  }
+  const { format } = context;
+  const elementById = new Map(result.elements.map((element) => [element.id, element]));
+  const rows = model.scenarioSamples.map((sample) => {
+    const element = elementById.get(sample.elementId);
+    const elementRef = element
+      ? format.renderEntityRef({
+        id: element.id,
+        category: "element",
+        marker: typeof element.properties["marker"] === "string" ? element.properties["marker"] : element.id,
+        label: typeof element.properties["label"] === "string" ? element.properties["label"] : element.id
+      })
+      : format.text(sample.elementId);
+    return `<tr><td>${elementRef}</td><td>${renderScenarioSampleValue(context, sample)}</td></tr>`;
+  }).join("");
+  return `<aside class="scenario-samples-box">
+    <h6 class="state-screen-detail-heading">${format.text("Scenario Samples")}</h6>
+    <div class="spec-table-wrap"><table class="spec-table scenario-samples-table"><thead><tr><th>${format.label("elements")}</th><th>${format.text("Sample")}</th></tr></thead><tbody>${rows}</tbody></table></div>
+  </aside>`;
+}
+
+function renderScenarioSampleValue(
+  context: StateViewsRenderContext,
+  sample: StateScreenReadModel["scenarioSamples"][number]
+): string {
+  const { format } = context;
+  if (sample.rows) {
+    if (sample.rows.explicitEmpty && sample.rows.rows.length === 0) {
+      return `<code>rows: []</code>`;
+    }
+    return format.text(`${sample.rows.rows.length} rows`);
+  }
+  return format.text(sample.value ?? "");
 }
 
 function renderDisplayExplanationsBox(

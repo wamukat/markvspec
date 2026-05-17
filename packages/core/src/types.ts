@@ -647,6 +647,7 @@ export interface MarkVSpecRenderOptions {
   viewport?: string;
   modelValues?: Record<string, boolean | number | string>;
   viewValues?: Record<string, boolean | number | string>;
+  sampleOverrides?: Record<string, MarkVSpecPreviewScenarioSample>;
   messages?: Partial<Pick<RendererMessages, "noVisibleElements">>;
   showIds?: boolean;
   includeConditionalContent?: boolean;

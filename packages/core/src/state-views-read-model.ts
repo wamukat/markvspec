@@ -53,6 +53,7 @@ export interface StateScreenReadModel {
   readonly focus?: FocusScope;
   readonly modelValues: Record<string, boolean>;
   readonly viewValues: Record<string, boolean | number | string>;
+  readonly scenarioSamples: ParsedPreviewScenario["samples"];
   readonly renderedIds: RenderedIds;
   readonly displayEffects: ParsedDisplayEffect[];
   readonly displayExplanations: StateScreenDisplayExplanation[];
@@ -163,6 +164,7 @@ export function buildStateScreenReadModels(
       focus,
       modelValues: displayModelValues,
       viewValues: displayViewValues,
+      scenarioSamples: [],
       renderedIds: ids,
       displayEffects: [],
       displayExplanations: [],
@@ -179,6 +181,7 @@ export function buildStateScreenReadModels(
         focus,
         modelValues: displayModelValues,
         viewValues: displayViewValues,
+        scenarioSamples: [],
         renderedIds: ids,
         displayEffects: [],
         displayExplanations: [],
@@ -190,7 +193,7 @@ export function buildStateScreenReadModels(
   }
 
   const stateNames = new Set(result.states.map((state) => state.name));
-  const stateRenderings = new Map<string, { ids: RenderedIds; actionIds: Set<string>; modelValues: Record<string, boolean>; viewValues: Record<string, boolean | number | string>; displayEffects: ParsedDisplayEffect[]; displayExplanations: StateScreenDisplayExplanation[] }>();
+  const stateRenderings = new Map<string, { ids: RenderedIds; actionIds: Set<string>; modelValues: Record<string, boolean>; viewValues: Record<string, boolean | number | string>; scenarioSamples: ParsedPreviewScenario["samples"]; displayEffects: ParsedDisplayEffect[]; displayExplanations: StateScreenDisplayExplanation[] }>();
   if (displayStateName) {
     const displayIds = stateScreenRenderedIdsFromReadModel(wireframeResult, viewport, displayStateName, displayModelValues, displayViewValues);
     stateRenderings.set(displayStateName, {
@@ -198,6 +201,7 @@ export function buildStateScreenReadModels(
       actionIds: relevantActionIdsForState(wireframeResult, displayStateName, displayIds.elementIds),
       modelValues: displayModelValues,
       viewValues: displayViewValues,
+      scenarioSamples: [],
       displayEffects: [],
       displayExplanations: []
     });
@@ -211,7 +215,7 @@ export function buildStateScreenReadModels(
     const stateViewValues = viewValuesForScenario(wireframeResult, undefined);
     const ids = stateScreenRenderedIdsFromReadModel(wireframeResult, viewport, stateName, stateModelValues, stateViewValues);
     const actionIds = relevantActionIdsForState(wireframeResult, stateName, ids.elementIds);
-    const rendered = { ids, actionIds, modelValues: stateModelValues, viewValues: stateViewValues, displayEffects: [], displayExplanations: [] };
+    const rendered = { ids, actionIds, modelValues: stateModelValues, viewValues: stateViewValues, scenarioSamples: [], displayEffects: [], displayExplanations: [] };
     stateRenderings.set(stateName, rendered);
     return rendered;
   };
@@ -221,6 +225,7 @@ export function buildStateScreenReadModels(
     stateName: string,
     modelName: string | undefined,
     viewName: string | undefined,
+    samples: ParsedPreviewScenario["samples"],
     cases: MarkVSpecParseResult["previewScenarios"][number]["cases"]
   ) => {
     const modelValues = modelValuesForState(scenarioResult, modelName ?? stateName);
@@ -234,6 +239,7 @@ export function buildStateScreenReadModels(
       actionIds: relevantActionIdsForState(scenarioResult, stateName, ids.elementIds),
       modelValues,
       viewValues,
+      scenarioSamples: samples,
       displayEffects,
       displayExplanations
     };
@@ -244,7 +250,7 @@ export function buildStateScreenReadModels(
   return displays
     .map((display, index) => {
       const current = display.scenario
-        ? renderScenario(wireframeResult, viewport, display.state.name, display.scenario.model, display.scenario.view, display.scenario.cases)
+        ? renderScenario(wireframeResult, viewport, display.state.name, display.scenario.model, display.scenario.view, display.scenario.samples, display.scenario.cases)
         : renderState(display.state.name);
       const title = display.scenario
         ? display.scenario.name
@@ -264,6 +270,7 @@ export function buildStateScreenReadModels(
         focus,
         modelValues: current.modelValues,
         viewValues: current.viewValues,
+        scenarioSamples: current.scenarioSamples,
         renderedIds: current.ids,
         displayEffects: current.displayEffects,
         displayExplanations: current.displayExplanations,
@@ -280,6 +287,7 @@ export function buildStateScreenReadModels(
           focus,
           modelValues: current.modelValues,
           viewValues: current.viewValues,
+          scenarioSamples: current.scenarioSamples,
           renderedIds: current.ids,
           displayEffects: current.displayEffects,
           displayExplanations: current.displayExplanations,

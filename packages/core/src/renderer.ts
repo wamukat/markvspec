@@ -25,6 +25,7 @@ export function renderMarkVSpecHtml(result: MarkVSpecParseResult, options: MarkV
   const containedLayoutIds = new Set<string>();
   const context = {
     ...renderContextForState(result, activeState),
+    sampleOverrides: options.sampleOverrides ?? {},
     elementById,
     actionMarkersByElementId
   };
@@ -80,6 +81,7 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
       renderKey,
       html: renderElement(element, actionMarkersByElementId, activeState, stateNames, { ...options, viewValues: options.viewValues ?? defaultViewValues(result) }, false, {
         ...renderContextForState(result, activeState),
+        sampleOverrides: options.sampleOverrides ?? {},
         elementById,
         actionMarkersByElementId
       })
@@ -110,6 +112,7 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
         new Set(),
         {
           ...renderContextForState(result, activeState),
+          sampleOverrides: options.sampleOverrides ?? {},
           elementById,
           actionMarkersByElementId
         },
@@ -154,6 +157,7 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
         new Set(),
         {
           ...renderContextForState(result, activeState),
+          sampleOverrides: options.sampleOverrides ?? {},
           elementById,
           actionMarkersByElementId,
           slotViewport: slotViewport === "default" ? activeViewport : slotViewport
@@ -190,6 +194,7 @@ interface ActionMarkerReference {
 interface RenderContext {
   modelAliases: Record<string, Record<string, string>>;
   modelSampleRows: Record<string, MarkVSpecParseResult["modelSamples"][number]["rows"]>;
+  sampleOverrides: Record<string, MarkVSpecParseResult["previewScenarios"][number]["samples"][number]>;
   elementById?: Map<string, MarkVSpecElement>;
   actionMarkersByElementId?: Map<string, ActionMarkerReference[]>;
   suppressMarkers?: boolean;
@@ -414,7 +419,7 @@ function renderLayoutGroupChildren(
 }
 
 function emptyRenderContext(): RenderContext {
-  return { modelAliases: {}, modelSampleRows: {} };
+  return { modelAliases: {}, modelSampleRows: {}, sampleOverrides: {} };
 }
 
 function layoutDepthFor(layoutId: string, layoutGroups: MarkVSpecLayoutGroup[]): number {
@@ -557,7 +562,7 @@ function renderContextForState(result: MarkVSpecParseResult, activeState: string
   const modelSampleRows = Object.fromEntries(result.modelSamples
     .filter((sample) => sample.state === activeState)
     .map((sample) => [sourcePathKey(sample.path), sample.rows]));
-  return { modelAliases, modelSampleRows };
+  return { modelAliases, modelSampleRows, sampleOverrides: {} };
 }
 
 function modelSampleRepeatsForGroup(
@@ -624,7 +629,8 @@ function renderElement(
   const elementSourceValue = sourceTypeForElement(element) === "element" ? elementValueFromElementSource(element, context, new Set()) : undefined;
   const sourceValue = elementSourceValue ?? modelValueForElement(element, context);
   const formattedSourceValue = sourceValue === undefined ? "" : formatModelValue(sourceValue, stringProperty(element, "format"));
-  const sample = formattedSourceValue || stringProperty(element, "sample");
+  const sampleOverride = context.sampleOverrides[element.id];
+  const sample = sampleOverride?.value ?? (formattedSourceValue || stringProperty(element, "sample"));
   const value = stringProperty(element, "value");
   const label = stringProperty(element, "label");
   const staticLabel = label || sample || value;
@@ -762,14 +768,15 @@ function renderElement(
   }
 
   if (element.type === "List") {
-    const items = parseDelimitedList(stringProperty(element, "items"), ",");
+    const items = listItemsForElement(element, context);
     const itemHtml = items.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
     return renderAnnotatedElement(markers, element.type, `<ul class="${classes}" data-mm-id="${escapeHtml(element.id)}">${itemHtml}</ul>`);
   }
 
   if (element.type === "Table") {
     const columns = element.tableColumns;
-    const rows = tableRowsForElement(element, columns, context);
+    const rowSet = tableRowsForElement(element, columns, context);
+    const rows = rowSet.rows;
     const columnWidth = columns.length > 0 ? `${100 / columns.length}%` : "";
     const colgroupHtml = columns.length > 0
       ? `<colgroup>${columns.map(() => `<col style="width:${columnWidth}">`).join("")}</colgroup>`
@@ -777,7 +784,11 @@ function renderElement(
     const headerHtml = columns.length > 0
       ? `<thead><tr>${columns.map((column) => `<th>${renderTableColumnHeader(column)}</th>`).join("")}</tr></thead>`
       : "";
-    const bodyHtml = rows.map((row) => `<tr>${renderTableCells(columns, row.cells)}</tr>`).join("");
+    const bodyHtml = rows.length > 0
+      ? rows.map((row) => `<tr>${renderTableCells(columns, row.cells)}</tr>`).join("")
+      : rowSet.explicitEmpty
+        ? `<tr><td class="mm-table-empty" colspan="${Math.max(columns.length, 1)}">(no data)</td></tr>`
+        : "";
     return renderAnnotatedElement(
       markers,
       element.type,
@@ -1243,24 +1254,56 @@ function renderTableCells(
     .join("");
 }
 
+function listItemsForElement(element: MarkVSpecElement, context: RenderContext): string[] {
+  const overrideRows = context.sampleOverrides[element.id]?.rows;
+  const rows = overrideRows ?? element.sampleRows;
+  if (rows) {
+    if (rows.explicitEmpty && rows.rows.length === 0) {
+      return ["(no data)"];
+    }
+    return rows.rows.map((row) => Object.values(row.fields).filter(Boolean).join(" / ")).filter(Boolean);
+  }
+  return parseDelimitedList(stringProperty(element, "items"), ",");
+}
+
 function renderTableColumnHeader(column: MarkVSpecElement["tableColumns"][number]): string {
   const sortLabel = column.sort === "asc" ? " &#8593;" : column.sort === "desc" ? " &#8595;" : column.sortable ? " &#8597;" : "";
   return `${escapeHtml(column.label)}${sortLabel}`;
+}
+
+interface RenderedTableRows {
+  rows: MarkVSpecElement["tableRows"];
+  explicitEmpty: boolean;
 }
 
 function tableRowsForElement(
   element: MarkVSpecElement,
   columns: MarkVSpecElement["tableColumns"],
   context: RenderContext
-): MarkVSpecElement["tableRows"] {
+): RenderedTableRows {
+  const overrideRows = context.sampleOverrides[element.id]?.rows;
+  if (overrideRows) {
+    return {
+      rows: sampleRowsToTableRows(overrideRows.rows, columns),
+      explicitEmpty: overrideRows.explicitEmpty
+    };
+  }
+
+  if (element.sampleRows) {
+    return {
+      rows: sampleRowsToTableRows(element.sampleRows.rows, columns),
+      explicitEmpty: element.sampleRows.explicitEmpty
+    };
+  }
+
   const source = stringProperty(element, "rows");
   const sourceKey = source ? sourcePathKey(source) : "";
   const modelRows = sourceKey ? context.modelSampleRows[sourceKey] : undefined;
   if (!modelRows || modelRows.length === 0) {
-    return element.tableRows;
+    return { rows: element.tableRows, explicitEmpty: false };
   }
 
-  return modelRows.map((row) => ({
+  return { rows: modelRows.map((row) => ({
     location: row.location,
     raw: row.raw,
     cells: columns.map((column) => {
@@ -1272,6 +1315,32 @@ function tableRowsForElement(
         raw: `${key}: ${row.values[key] ?? ""}`
       };
     })
+  })), explicitEmpty: false };
+}
+
+function sampleRowsToTableRows(
+  rows: NonNullable<MarkVSpecElement["sampleRows"]>["rows"],
+  columns: MarkVSpecElement["tableColumns"]
+): MarkVSpecElement["tableRows"] {
+  return rows.map((row) => ({
+    location: row.location,
+    raw: row.raw,
+    cells: columns.length > 0
+      ? columns.map((column) => {
+          const key = tableColumnSampleKeys(column).find((candidate) => row.fields[candidate] !== undefined) ?? column.label;
+          return {
+            column: key,
+            value: row.fields[key] ?? row.fields[column.label] ?? "",
+            location: row.fieldLocations[key]?.[0] ?? row.location,
+            raw: `${key}: ${row.fields[key] ?? ""}`
+          };
+        })
+      : Object.entries(row.fields).map(([key, value]) => ({
+          column: key,
+          value,
+          location: row.fieldLocations[key]?.[0] ?? row.location,
+          raw: `${key}: ${value}`
+        }))
   }));
 }
 
@@ -1452,6 +1521,7 @@ function renderDefaultStyles(): string {
 .mm-element-wrap-table .mm-element-table{table-layout:fixed;width:100%}
 .mm-element-table caption{text-align:left}
 .mm-element-table th,.mm-element-table td{border:1px solid #d1d5db;padding:4px 6px;text-align:left}
+.mm-element-table .mm-table-empty{color:#6b7280;font-style:italic;text-align:center}
 .mm-element-dialog{background:#fff;border:2px solid #9ca3af;border-radius:6px;max-width:360px;padding:12px}
 .mm-dialog-title{font-weight:600;margin-bottom:8px}
 .mm-dialog-body{color:#374151}
