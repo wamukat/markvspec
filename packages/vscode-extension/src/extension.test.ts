@@ -3768,9 +3768,11 @@ States section notes for the matrix.
   const stateFlowSection = html.match(/<section class="doc-section state-flow-section"[^>]*>[\s\S]*?(?=<section class="doc-section state-views-section")/)?.[0] ?? "";
 
   assert.match(stateFlowSection, /<div class="state-flow-diagram">\s*<a class="state-flow-table-link" href="#state-transition-table" aria-label="See State Transitions for details\." title="See State Transitions for details\."><span class="state-flow-table-link-icon" aria-hidden="true"><\/span><span class="state-flow-table-link-label">See State Transitions for details\.<\/span><\/a>\s*<pre class="mermaid-source" data-mermaid-source>[\s\S]*<div class="mermaid-placeholder" data-mermaid-placeholder>Rendering Mermaid diagram\.\.\.<\/div>/);
-  assert.match(section, /<h3 class="state-transition-context-heading">State Descriptions<\/h3>/);
-  assert.match(section, new RegExp(`<tr><td>${docLabel("idle", "state")}</td><td>Ready for submit\\.</td></tr>`));
-  assert.match(section, new RegExp(`<tr><td>${docLabel("error", "state")}</td><td>-</td></tr>`));
+  assert.match(section, /<div class="entity-overview"><p class="note-paragraph">States section overview for the matrix\.<\/p><\/div>\s*<div class="spec-table-wrap"><table class="spec-table state-transition-matrix">/);
+  assert.doesNotMatch(section, /State Descriptions/);
+  assert.doesNotMatch(section, /<th>State<\/th><th>Description<\/th>/);
+  assert.doesNotMatch(section, /Ready for submit\./);
+  assert.doesNotMatch(section, /Waiting for response\./);
   assert.match(section, new RegExp(`<th class="state-transition-axis-cell" scope="col" aria-label="Rows are From states; columns are To states\\."><span class="state-transition-axis-labels" aria-hidden="true"><span class="from">From</span><span class="to">To</span></span></th><th>${docLabel("idle", "state")}</th><th>${docLabel("submitting", "state")}</th><th>${docLabel("error", "state")}</th>`));
   assert.match(section, new RegExp(`<tr><th scope="row">${docLabel("idle", "state")}</th><td>-</td><td>${actionBadge("A1", "A-Submit")} Submit</td><td>-</td></tr>`));
   assert.match(section, new RegExp(`<tr><th scope="row">${docLabel("submitting", "state")}</th><td>-</td><td>-</td><td>${actionBadge("A2", "A-SubmitResponse")}\\.failure Submit response</td></tr>`));

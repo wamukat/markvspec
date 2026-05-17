@@ -190,7 +190,6 @@ export type MessageKey =
   | "src"
   | "state"
   | "stateChanges"
-  | "stateDescriptions"
   | "stateFlow"
   | "stateTransitionAxisDescription"
   | "stateTransitionTableReference"
@@ -416,7 +415,6 @@ const en: Record<MessageKey, string> = {
   src: "Source",
   state: "State",
   stateChanges: "State Changes",
-  stateDescriptions: "State Descriptions",
   stateFlow: "State Flow",
   stateTransitionAxisDescription: "Rows are From states; columns are To states.",
   stateTransitionTableReference: "See State Transitions for details.",
@@ -643,7 +641,6 @@ const ja: Record<MessageKey, string> = {
   src: "参照元",
   state: "状態",
   stateChanges: "状態変更",
-  stateDescriptions: "状態説明",
   stateFlow: "状態遷移図",
   stateTransitionAxisDescription: "行は From 状態、列は To 状態です。",
   stateTransitionTableReference: "詳細は状態遷移表を参照",

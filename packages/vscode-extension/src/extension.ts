@@ -4431,7 +4431,7 @@ function renderActionTransitionsSpec(result: ReturnType<typeof parseMarkVSpec>):
 
   return `<section class="doc-section" id="state-transition-table">
     <h2>${label(result, "actionTransitions")}</h2>
-    ${renderStateTransitionDescriptions(result)}
+    ${renderSectionOverview(sectionProse)}
     ${renderTransitionMatrixTable(result, stateNames, rows)}
     ${renderStateTransitionNotes(result, sectionProse)}
   </section>`;
@@ -4451,18 +4451,6 @@ function renderTransitionMatrixTable(
     ...stateNames.map((state) => `<th>${renderStateLabel(state)}</th>`)
   ].join("");
   return `<div class="spec-table-wrap"><table class="spec-table state-transition-matrix"><thead><tr>${headers}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell, index) => index === 0 ? `<th scope="row">${renderTableMatrixCell(cell)}</th>` : `<td>${renderTableMatrixCell(cell)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
-}
-
-function renderStateTransitionDescriptions(result: ReturnType<typeof parseMarkVSpec>): string {
-  if (result.states.length === 0) {
-    return "";
-  }
-
-  // Keep the complete state vocabulary visible before the matrix; missing descriptions use the shared "-" table fallback.
-  return `<h3 class="state-transition-context-heading">${label(result, "stateDescriptions")}</h3>${renderLocalizedTable(result,
-    [label(result, "state"), label(result, "description")],
-    result.states.map((state) => [renderStateLabel(state.name), text(state.message)])
-  )}`;
 }
 
 function renderStateTransitionNotes(
