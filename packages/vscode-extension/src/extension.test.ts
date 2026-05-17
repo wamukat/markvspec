@@ -47,7 +47,13 @@ const extensionRoot = resolve(".");
 
 function markerBadge(value: string, category: "layout" | "element" | "action", linked = category === "action", anchorValue = value): string {
   const badge = `<code class="mm-id mm-marker mm-marker-${category}" data-mm-marker-category="${category}">${escapeRegExp(value)}</code>`;
-  return linked ? `<a class="mm-marker-link" href="#action-detail-${escapeRegExp(encodeURIComponent(anchorValue))}">${badge}</a>` : badge;
+  if (!linked) {
+    return badge;
+  }
+  const href = `#action-detail-${escapeRegExp(encodeURIComponent(anchorValue))}`;
+  return category === "action"
+    ? `(?:<a class="mm-marker-link" href="${href}">${badge}</a>|<a class="mm-ref-chip mm-ref-chip-action" href="${href}"[^>]*>${badge})`
+    : `<a class="mm-marker-link" href="${href}">${badge}</a>`;
 }
 
 function actionBadge(marker: string, actionId: string, linked = true): string {
@@ -55,15 +61,23 @@ function actionBadge(marker: string, actionId: string, linked = true): string {
 }
 
 function detailElementRef(marker: string, elementId: string): string {
-  return `${markerBadge(marker, "element")} ${detailIdRef(elementId)}`;
+  return `(?:<span class="mm-ref-chip mm-ref-chip-element"[^>]*>)?${markerBadge(marker, "element")} ${detailIdRef(elementId)}(?:</span>)?`;
 }
 
 function detailLayoutRef(marker: string, layoutName: string): string {
-  return `${markerBadge(marker, "layout")} ${escapeRegExp(layoutName)}`;
+  return `(?:<span class="mm-ref-chip mm-ref-chip-layout"[^>]*>)?${markerBadge(marker, "layout")} ${escapeRegExp(layoutName)}(?:</span>)?`;
 }
 
 function detailActionRef(marker: string, actionId: string, actionName: string): string {
-  return `${actionBadge(marker, actionId)} ${escapeRegExp(actionName)}`;
+  return `(?:<a class="mm-ref-chip mm-ref-chip-action" href="#action-detail-${escapeRegExp(encodeURIComponent(actionId))}"[^>]*>)?${actionBadge(marker, actionId)} ${escapeRegExp(actionName)}(?:</a>)?`;
+}
+
+function refActionChip(marker: string, actionId: string, actionName: string): string {
+  return `<a class="mm-ref-chip mm-ref-chip-action" href="#action-detail-${escapeRegExp(encodeURIComponent(actionId))}"[^>]*><code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">${escapeRegExp(marker)}</code> ${escapeRegExp(actionName)}</a>`;
+}
+
+function refMessageChip(marker: string, id: string, label: string): string {
+  return `<span class="mm-ref-chip mm-ref-chip-message"[^>]*><code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="${escapeRegExp(id)}">${escapeRegExp(marker)}</code> ${escapeRegExp(label)}</span>`;
 }
 
 function detailIdRef(id: string): string {
@@ -373,8 +387,8 @@ test("renders generated design document sections without launching VS Code", () 
   assert.doesNotMatch(html, /Handle login response \/ success \/ navigate/);
   assert.match(html, /Handle login response \/ failure/);
   assert.match(html, new RegExp(`${actionBadge("A1", "A-SubmitLogin")}[\\s\\S]*Submit login[\\s\\S]*${docLabel("idle", "state")}[\\s\\S]*${docLabel("sent", "result")}[\\s\\S]*${docLabel("authenticating", "state")}`));
-  assert.match(html, new RegExp(`<td>${docLabel("A-SubmitLogin.P2.response", "trigger")}</td><td>${actionBadge("A2", "A-HandleLoginResponse")} ${detailIdRef("A-HandleLoginResponse")} Handle login response<ul class="spec-list"><li>Case: ${docLabel("success", "result")}</li></ul></td><td>${docLabel("authenticating", "state")}</td><td>screen ${documentRef("SCR-HOME")}</td><td>-</td>`));
-  assert.match(html, new RegExp(`<td>${markerBadge("8", "element")}\\.click</td><td>${actionBadge("A3", "A-ForgotPassword")} ${detailIdRef("A-ForgotPassword")} Open password reset</td><td>${docLabel("idle", "state")}</td><td>screen ${documentRef("SCR-PASSWORD-RESET")}</td><td>-</td>`));
+  assert.match(html, new RegExp(`<td>${docLabel("A-SubmitLogin.P2.response", "trigger")}</td><td>${refActionChip("A2", "A-HandleLoginResponse", "Handle login response")}<ul class="spec-list"><li>Case: ${docLabel("success", "result")}</li></ul></td><td>${docLabel("authenticating", "state")}</td><td>screen ${documentRef("SCR-HOME")}</td><td>-</td>`));
+  assert.match(html, new RegExp(`<td>${detailElementRef("8", "E-ForgotPasswordLink")}\\.click</td><td>${refActionChip("A3", "A-ForgotPassword", "Open password reset")}</td><td>${docLabel("idle", "state")}</td><td>screen ${documentRef("SCR-PASSWORD-RESET")}</td><td>-</td>`));
   assert.match(html, /data-state-view-title="authenticating" data-state="authenticating" data-viewport="mobile"/);
   const waitAuthSection = viewportStateSection(html, "authenticating", "mobile");
   assert.match(waitAuthSection, /<h6 class="state-screen-detail-heading">Element Summary<\/h6>/);
@@ -3160,15 +3174,15 @@ locale: ja
   const actionDetailsSection = docSectionByHeading(html, "アクション詳細", "モデル更新処理");
 
   assert.match(section, /<div class="model-update-list">/);
-  assert.match(section, new RegExp(`<article class="model-update-group">[\\s\\S]*<h3>${actionBadge("A1", "A-LoadNotice")} お知らせ取得</h3>[\\s\\S]*<p class="model-update-meta"><span class="meta-label">トリガー:<\\/span> ${docLabel("screen.load", "trigger")}</p>`));
+  assert.match(section, new RegExp(`<article class="model-update-group">[\\s\\S]*<h3>${refActionChip("A1", "A-LoadNotice", "お知らせ取得")}</h3>[\\s\\S]*<p class="model-update-meta"><span class="meta-label">トリガー:<\\/span> ${docLabel("screen.load", "trigger")}</p>`));
   assert.equal((section.match(/<article class="model-update-group">/g) ?? []).length, 2);
   assert.match(section, /<th>処理<\/th><th>モデル<\/th><th>更新<\/th>/);
   assert.doesNotMatch(section, /<th>アクション<\/th>|<th>トリガー<\/th>/);
   assert.match(section, new RegExp(`<td>success</td><td>${inlineTokenPattern("${model.notice}")}</td><td>model: ${sourceCodePattern("${model.notice}")} = NoticeDetailResult</td>`));
   assert.match(section, new RegExp(`<td>${inlineTokenPattern("${model.notice.noticeId}")}</td><td>model: ${sourceCodePattern("${model.notice.noticeId}")} = ${sourceCodePattern("${route.noticeId}")}</td>`));
-  assert.match(section, new RegExp(`<h3>${actionBadge("A2", "A-RefreshMeta")} メタ情報更新</h3>[\\s\\S]*<p class="model-update-meta"><span class="meta-label">トリガー:<\\/span> ${docLabel("manual.refresh", "trigger")}</p>[\\s\\S]*<td>success</td><td>${inlineTokenPattern("${model.noticeMeta}")}</td><td>model: ${sourceCodePattern("${model.noticeMeta}")} = NoticeMetaResult</td>`));
+  assert.match(section, new RegExp(`<h3>${refActionChip("A2", "A-RefreshMeta", "メタ情報更新")}</h3>[\\s\\S]*<p class="model-update-meta"><span class="meta-label">トリガー:<\\/span> ${docLabel("manual.refresh", "trigger")}</p>[\\s\\S]*<td>success</td><td>${inlineTokenPattern("${model.noticeMeta}")}</td><td>model: ${sourceCodePattern("${model.noticeMeta}")} = NoticeMetaResult</td>`));
   assert.match(actionDetailsSection, new RegExp(`NoticeQueryService\\.findNotice\\(\\)<ul class="spec-list spec-nested-list"><li>noticeId: ${sourceCodePattern("${route.noticeId}")}</li></ul>`));
-  assert.equal((section.match(/お知らせ取得/g) ?? []).length, 1);
+  assert.equal((section.match(/お知らせ取得/g) ?? []).length, 2);
   assert.equal((section.match(/screen\.load/g) ?? []).length, 1);
   assert.doesNotMatch(section, /<code>model\.notice\.<\/code>/);
 });
@@ -3697,10 +3711,10 @@ locale: ja
   assert.match(formGroups, /<div class="entity-overview"><p class="note-paragraph">フォームグループ概要です。<\/p><\/div>\s*<div class="form-group-spec-fragment"/);
   assert.match(formGroups, /<th>ID<\/th><th>名前<\/th><th>項目<\/th><th>送信<\/th>/);
   assert.match(formGroups, /<td><span class="mm-detail-ref-id">F-LoginForm<\/span><\/td><td>Login form<\/td>/);
-  assert.match(formGroups, /<li><span class="mm-detail-ref-id">E-EmailInput<\/span><\/li><li><span class="mm-detail-ref-id">E-PasswordInput<\/span><\/li>/);
-  assert.match(formGroups, /<td><a class="mm-marker-link" href="#action-detail-A-SubmitLogin"><code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A-SubmitLogin<\/code><\/a> Submit login<\/td>/);
+  assert.match(formGroups, new RegExp(`<li>${detailElementRef("E-EmailInput", "E-EmailInput")}</li><li>${detailElementRef("E-PasswordInput", "E-PasswordInput")}</li>`));
+  assert.match(formGroups, new RegExp(`<td>${refActionChip("A-SubmitLogin", "A-SubmitLogin", "Submit login")}</td>`));
   assert.match(formGroups, /<td><span class="mm-detail-ref-id">F-DesktopOnlyForm<\/span><\/td><td>Desktop-only form<\/td>/);
-  assert.match(formGroups, /<li><span class="mm-detail-ref-id">E-DesktopOnlyInput<\/span><\/li>/);
+  assert.match(formGroups, new RegExp(`<li>${detailElementRef("E-DesktopOnlyInput", "E-DesktopOnlyInput")}</li>`));
   assert.doesNotMatch(formGroups, /<th>レイアウト<\/th>/);
   assert.match(formGroups, /<\/div>\s*<div class="entity-notes"><p class="note-paragraph">フォームグループ補足です。<\/p><\/div>/);
   assert.match(validations, /<td><a class="mm-detail-ref-link" href="#form-groups"><span class="mm-detail-ref-id">F-LoginForm<\/span><\/a><\/td>/);
@@ -3778,8 +3792,8 @@ States section notes for the matrix.
   assert.doesNotMatch(section, /Ready for submit\./);
   assert.doesNotMatch(section, /Waiting for response\./);
   assert.match(section, new RegExp(`<th class="state-transition-axis-cell" scope="col" aria-label="Rows are From states; columns are To states\\."><span class="state-transition-axis-labels" aria-hidden="true"><span class="from">From</span><span class="to">To</span></span></th><th>${docLabel("idle", "state")}</th><th>${docLabel("submitting", "state")}</th><th>${docLabel("error", "state")}</th>`));
-  assert.match(section, new RegExp(`<tr><th scope="row">${docLabel("idle", "state")}</th><td>-</td><td>${actionBadge("A1", "A-Submit")} Submit</td><td>-</td></tr>`));
-  assert.match(section, new RegExp(`<tr><th scope="row">${docLabel("submitting", "state")}</th><td>-</td><td>-</td><td>${actionBadge("A2", "A-SubmitResponse")}\\.failure Submit response</td></tr>`));
+  assert.match(section, new RegExp(`<tr><th scope="row">${docLabel("idle", "state")}</th><td>-</td><td>${refActionChip("A1", "A-Submit", "Submit")}</td><td>-</td></tr>`));
+  assert.match(section, new RegExp(`<tr><th scope="row">${docLabel("submitting", "state")}</th><td>-</td><td>-</td><td>${refActionChip("A2", "A-SubmitResponse", "Submit response")}<div class="mm-ref-chip-note">failure</div></td></tr>`));
   assert.match(section, /<h3 class="state-transition-context-heading">State Notes<\/h3>\s*<div class="entity-notes"><p class="note-paragraph">States section notes for the matrix\.<\/p><\/div>/);
   assert.doesNotMatch(section, /E-SubmitButton\.click \/ /);
   assert.doesNotMatch(section, /SCR-DONE/);
@@ -3877,10 +3891,10 @@ title: Screen Transitions
 
   assert.match(section, /<th>Trigger<\/th><th>Action<\/th><th>From<\/th><th>To<\/th><th>Params<\/th>/);
   assert.doesNotMatch(section, /<th>Name<\/th>|<th>Result<\/th>|<th>Case<\/th>|<th>Target Type<\/th>|<th>Target<\/th>/);
-  assert.match(section, new RegExp(`<td>${markerBadge("1", "element")}\\.click</td><td>${actionBadge("A1", "A-ForgotPassword")} ${detailIdRef("A-ForgotPassword")} Open password reset</td><td>${docLabel("idle", "state")}</td><td>screen ${documentRef("SCR-PASSWORD-RESET")}</td><td>-</td>`));
-  assert.match(section, new RegExp(`<td>${docLabel("A-Submit.P1.response", "trigger")}</td><td>${actionBadge("A3", "A-SubmitResponse")} ${detailIdRef("A-SubmitResponse")} Handle response<ul class="spec-list"><li>Case: ${docLabel("success", "result")}</li></ul></td><td>${docLabel("submitting", "state")}</td><td>screen ${documentRef("SCR-HOME")}</td><td><ul><li>userId: ${sourceCodePattern("${model.auth.userId}")}</li></ul></td>`));
-  assert.match(section, new RegExp(`<td>${markerBadge("1", "element")}\\.click</td><td>${actionBadge("A4", "A-OpenDocs")} ${detailIdRef("A-OpenDocs")} Open docs</td><td>${docLabel("idle", "state")}</td><td>URL https://example\\.com/help</td><td>-</td>`));
-  assert.match(section, new RegExp(`<td>${markerBadge("2", "element")}\\.click</td><td>${actionBadge("A5", "A-OpenSettings")} ${detailIdRef("A-OpenSettings")} Open settings</td><td>${docLabel("idle", "state")}</td><td>route /settings</td><td>-</td>`));
+  assert.match(section, new RegExp(`<td>${detailElementRef("1", "E-ForgotPasswordLink")}\\.click</td><td>${refActionChip("A1", "A-ForgotPassword", "Open password reset")}</td><td>${docLabel("idle", "state")}</td><td>screen ${documentRef("SCR-PASSWORD-RESET")}</td><td>-</td>`));
+  assert.match(section, new RegExp(`<td>${docLabel("A-Submit.P1.response", "trigger")}</td><td>${refActionChip("A3", "A-SubmitResponse", "Handle response")}<ul class="spec-list"><li>Case: ${docLabel("success", "result")}</li></ul></td><td>${docLabel("submitting", "state")}</td><td>screen ${documentRef("SCR-HOME")}</td><td><ul><li>userId: ${sourceCodePattern("${model.auth.userId}")}</li></ul></td>`));
+  assert.match(section, new RegExp(`<td>${detailElementRef("1", "E-ForgotPasswordLink")}\\.click</td><td>${refActionChip("A4", "A-OpenDocs", "Open docs")}</td><td>${docLabel("idle", "state")}</td><td>URL https://example\\.com/help</td><td>-</td>`));
+  assert.match(section, new RegExp(`<td>${detailElementRef("2", "E-SubmitButton")}\\.click</td><td>${refActionChip("A5", "A-OpenSettings", "Open settings")}</td><td>${docLabel("idle", "state")}</td><td>route /settings</td><td>-</td>`));
   assert.doesNotMatch(section, new RegExp(`${actionBadge("A2", "A-Submit")} ${detailIdRef("A-Submit")} Submit login`));
   assert.doesNotMatch(section, /failure/);
 });
@@ -4198,7 +4212,7 @@ viewport: mobile
   const desktopDisplayContent = desktopSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">表示内容仕様<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
 
   assert.match(elementSummary, /<th>番号<\/th><th>ID<\/th><th>種別<\/th><th>関連アクション<\/th><th>説明<\/th>/);
-  assert.match(elementSummary, new RegExp(`<td>${markerBadge("1", "element")}</td><td>${detailIdRef("E-Create")}</td><td>Button</td><td><ul class="spec-list"><li>${actionBadge("A1", "A-Create")}</li></ul></td><td>-</td>`));
+  assert.match(elementSummary, new RegExp(`<td>${markerBadge("1", "element")}</td><td>${detailIdRef("E-Create")}</td><td>Button</td><td><ul class="spec-list"><li>${refActionChip("A1", "A-Create", "新規作成")}</li></ul></td><td>-</td>`));
   assert.match(displayContent, /<th>番号<\/th><th>ID<\/th><th>表示箇所<\/th><th>表示内容<\/th><th>表示形式<\/th><th>取得元<\/th><th>表示条件<\/th><th>有効条件<\/th>/);
   assert.match(displayContent, new RegExp(`<td>${markerBadge("E-Title", "element")}</td><td>${detailIdRef("E-Title")}</td><td>value</td><td>prefix ${sourceCodePattern("${model.action.title}")} &amp; ${sourceCodePattern("${model.action.kind}")} &lt;x&gt;</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>常に</td><td>常に</td>`));
   assert.match(displayContent, new RegExp(`<td rowspan="5">${markerBadge("1", "element")}</td><td rowspan="5">${detailIdRef("E-Create")}</td><td>label</td><td>新規作成</td><td>-</td><td>${plainCodePattern("fixed")}</td><td><ul class="spec-list"><li>表示: empty</li><li>非表示: ${sourceCodePattern("${model.notice.read}")}</li></ul></td><td><ul class="spec-list"><li>有効: not ${sourceCodePattern("${model.saving}")}</li></ul></td>`));
@@ -5428,8 +5442,8 @@ test("renders display.element scenario effects as display updates", () => {
 
   assert.match(displayUpdates, /<h6 class="state-screen-detail-heading">Display updates<\/h6>/);
   assert.match(displayUpdates, /<th>Triggered by<\/th><th>Update<\/th>/);
-  assert.match(displayUpdates, new RegExp(`${actionBadge("A1", "A-SubmitLogin")} Submit login[\\s\\S]*P2\\.send-failed`));
-  assert.match(displayUpdates, new RegExp(`${markerBadge("L3", "layout")} Message area[\\s\\S]*receives[\\s\\S]*${markerBadge("10", "element")} E-RequestErrorBanner`));
+  assert.match(displayUpdates, new RegExp(`${refActionChip("A1", "A-SubmitLogin", "Submit login")}[\\s\\S]*P2\\.send-failed`));
+  assert.match(displayUpdates, new RegExp(`${detailLayoutRef("L3", "Message area")}[\\s\\S]*receives[\\s\\S]*${detailElementRef("10", "E-RequestErrorBanner")}`));
   assert.doesNotMatch(displayUpdates, /The login request could not be sent\./);
   assert.doesNotMatch(scenarioSection, /<h6 class="state-screen-detail-heading">Displayed messages<\/h6>/);
 });
@@ -5441,8 +5455,8 @@ test("renders targetless dialog display.element effects as display updates", () 
   const displayUpdates = scenarioSection.match(/<aside class="display-explanations-box display-updates-box">[\s\S]*?<\/aside>/)?.[0] ?? "";
 
   assert.match(displayUpdates, /<h6 class="state-screen-detail-heading">Display updates<\/h6>/);
-  assert.match(displayUpdates, new RegExp(`${actionBadge("A5", "A-RequestDiscardDialog")} Request discard dialog[\\s\\S]*P1\\.done`));
-  assert.match(displayUpdates, new RegExp(`overlay[\\s\\S]*receives[\\s\\S]*${markerBadge("14", "element")} E-ConfirmDialog`));
+  assert.match(displayUpdates, new RegExp(`${refActionChip("A5", "A-RequestDiscardDialog", "Request discard dialog")}[\\s\\S]*P1\\.done`));
+  assert.match(displayUpdates, new RegExp(`overlay[\\s\\S]*receives[\\s\\S]*${detailElementRef("14", "E-ConfirmDialog")}`));
   assert.doesNotMatch(displayUpdates, /Discard changes\\?/);
   assert.doesNotMatch(scenarioSection, /<h6 class="state-screen-detail-heading">Displayed messages<\/h6>/);
 });
@@ -5994,7 +6008,7 @@ title: Nested Process Details
   assert.match(actionDetail, new RegExp(`<li>sync: SubscriptionService\\.create\\(\\)<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li><li>plan: ${detailElementRef("2", "E-PlanSelect")}\\.value</li></ul></li></ul></li>`));
   assert.match(actionDetail, new RegExp(`<span class="process-card-title">ServerCall</span>[\\s\\S]*<li>server: SubscriptionService\\.persist\\(\\)<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
   assert.match(actionDetail, /<li>response: HTTP 200 persisted subscription<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>subscriptionId: response\.id<\/li><\/ul><\/li><\/ul><\/li>/);
-  assert.match(actionDetail, new RegExp(`<li>Validation: ${detailIdRef("V-SubscriptionForm")}\\.result<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
+  assert.match(actionDetail, new RegExp(`<li>Validation: ${refMessageChip("V-SubscriptionForm", "V-SubscriptionForm", "V-SubscriptionForm")}\\.result<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
   assert.doesNotMatch(actionDetail, /request\.params|server\.params|sync\.params|response\.params|validation\.params/);
 });
 

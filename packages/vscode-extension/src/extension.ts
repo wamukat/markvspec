@@ -3776,7 +3776,8 @@ function stateViewsRenderContext(result: ReturnType<typeof parseMarkVSpec>): Sta
       escapeHtml,
       renderSectionNumber,
       renderStateLabel,
-      renderTrigger: (trigger) => renderTrigger(result, trigger)
+      renderTrigger: (trigger) => renderTrigger(result, trigger),
+      renderEntityRef: renderEntityRefChip
     },
     prose: {
       sectionProseForKind: (kind) => sectionProseForKind(result, kind),
@@ -4280,7 +4281,7 @@ function renderModelUpdateGroup(
     row.update
   ]);
   return `<article class="model-update-group">
-    <h3>${referenceForId(result, action.id, "action")} ${text(action.name)}</h3>
+    <h3>${referenceForId(result, action.id, "action")}</h3>
     <p class="model-update-meta"><span class="meta-label">${label(result, "trigger")}:</span> ${renderTrigger(result, action.triggeredBy)}</p>
     ${renderLocalizedTable(result, [label(result, "process"), label(result, "model"), label(result, "update")], tableRows)}
   </article>`;
@@ -4498,9 +4499,9 @@ function renderTransitionMatrixEvent(
   action: ReturnType<typeof parseMarkVSpec>["actions"][number],
   resultName: string | undefined
 ): string {
-  const actionReference = referenceForId(result, action.id, "action");
-  const resultSuffix = resultName ? `.${text(resultName)}` : "";
-  return `${actionReference}${resultSuffix} ${text(action.name)}`;
+  const actionReference = referenceForDetailId(result, action.id);
+  const resultSuffix = resultName ? `<div class="mm-ref-chip-note">${text(resultName)}</div>` : "";
+  return `${actionReference}${resultSuffix}`;
 }
 
 function renderScreenTransitionsSpec(result: ReturnType<typeof parseMarkVSpec>): string {
@@ -4525,7 +4526,7 @@ function renderScreenTransitionAction(
   action: ReturnType<typeof parseMarkVSpec>["actions"][number],
   resultName: string | undefined
 ): string {
-  const actionRef = [referenceForId(result, action.id, "action"), renderDetailRefId(action.id), text(action.name)].filter(Boolean).join(" ");
+  const actionRef = referenceForDetailId(result, action.id);
   if (!resultName) {
     return actionRef;
   }
@@ -5013,8 +5014,8 @@ function renderTrigger(result: ReturnType<typeof parseMarkVSpec>, trigger: strin
     return renderTriggerLabel(trigger);
   }
 
-  const marker = markerBadgeForId(result, match[1]);
-  return `${marker || code(match[1])}.${escapeHtml(match[2])}`;
+  const reference = referenceForId(result, match[1], match[1].startsWith("A-") ? "action" : "element");
+  return `${reference || code(match[1])}.${escapeHtml(match[2])}`;
 }
 
 function renderActionDetailTrigger(result: ReturnType<typeof parseMarkVSpec>, trigger: string | undefined): string {
@@ -5645,7 +5646,7 @@ function renderDisplayEffect(
   detailedReferences = false
 ): string {
   const target = display.target
-    ? detailedReferences ? referenceForDetailId(result, display.target) : referenceForId(result, display.target, "target")
+    ? referenceForDisplayTarget(result, display.target, detailedReferences)
     : escapeHtml(targetlessDisplayTargetLabel(result, display.element));
   const contentSource = display.contentSource.length > 0
     ? `<ul class="spec-list spec-nested-list">${display.contentSource.map((detail) => `<li>${renderProcessStepDetail(result, detail, detailedReferences)}</li>`).join("")}</ul>`
@@ -5659,6 +5660,17 @@ function renderDisplayEffect(
   ].filter(Boolean);
 
   return renderDetailList(result, parts, []);
+}
+
+function referenceForDisplayTarget(
+  result: ReturnType<typeof parseMarkVSpec>,
+  target: string,
+  detailedReferences: boolean
+): string {
+  const suffix = target.endsWith(".error") ? ".error" : "";
+  const id = suffix ? target.slice(0, -suffix.length) : target;
+  const reference = detailedReferences ? referenceForDetailId(result, id) : referenceForId(result, id, "target");
+  return suffix ? `${reference}<span class="mm-detail-ref-suffix">${escapeHtml(suffix)}</span>` : reference;
 }
 
 function renderDisplayMessageReference(result: ReturnType<typeof parseMarkVSpec>, message: string): string {
@@ -5733,7 +5745,7 @@ function referenceForId(
     return "";
   }
 
-  return markerBadgeForId(result, id) || (category === "target" && isDocumentRefId(id) ? renderDocumentRefId(id) : category === "target" && !isInternalId(id) ? text(id) : isInternalId(id) ? renderDetailRefId(id) : text(id));
+  return referenceChipForId(result, id) || (category === "target" && isDocumentRefId(id) ? renderDocumentRefId(id) : category === "target" && !isInternalId(id) ? text(id) : isInternalId(id) ? renderDetailRefId(id) : text(id));
 }
 
 function referenceForDetailId(result: ReturnType<typeof parseMarkVSpec>, id: string | undefined): string {
@@ -5742,23 +5754,15 @@ function referenceForDetailId(result: ReturnType<typeof parseMarkVSpec>, id: str
   }
 
   if (id.startsWith("L-")) {
-    const layout = allResolvedLayoutGroups(result).find((candidate) => candidate.id === id);
-    const marker = findMarker(result, id) ? markerBadgeForId(result, id) : "";
-    const label = layout?.name ? text(layout.name) : renderDetailRefId(id);
-    return marker ? `${marker} ${label}` : label;
+    return referenceChipForId(result, id) || renderDetailRefId(id);
   }
 
   if (id.startsWith("E-")) {
-    const marker = findMarker(result, id) ? markerBadgeForId(result, id) : "";
-    const label = renderDetailRefId(id);
-    return marker ? `${marker} ${label}` : label;
+    return referenceChipForId(result, id) || renderDetailRefId(id);
   }
 
   if (id.startsWith("A-")) {
-    const action = result.actions.find((candidate) => candidate.id === id);
-    const marker = markerBadgeForId(result, id);
-    const label = action?.name ? text(action.name) : renderDetailRefId(id);
-    return marker ? `${marker} ${label}` : label;
+    return referenceChipForId(result, id) || renderDetailRefId(id);
   }
 
   if (id.startsWith("F-")) {
@@ -5767,7 +5771,7 @@ function referenceForDetailId(result: ReturnType<typeof parseMarkVSpec>, id: str
     return formGroup?.name ? `${reference} ${text(formGroup.name)}` : reference;
   }
 
-  return markerBadgeForId(result, id) || (isDocumentRefId(id) ? renderDocumentRefId(id) : isInternalId(id) ? renderDetailRefId(id) : text(id));
+  return referenceChipForId(result, id) || (isDocumentRefId(id) ? renderDocumentRefId(id) : isInternalId(id) ? renderDetailRefId(id) : text(id));
 }
 
 function renderDetailRefId(id: string): string {
@@ -5814,6 +5818,36 @@ function findMarker(result: ReturnType<typeof parseMarkVSpec>, id: string): stri
   return undefined;
 }
 
+interface EntityRefChipInput {
+  readonly id: string;
+  readonly category: "action" | "layout" | "element" | "message";
+  readonly marker?: string;
+  readonly label?: string;
+  readonly href?: string;
+  readonly displaySource?: string;
+}
+
+function renderEntityRefChip(input: EntityRefChipInput): string {
+  const marker = input.marker?.trim() || input.id;
+  const markerAttributes = [
+    `class="mm-id mm-marker mm-marker-${input.category}"`,
+    `data-mm-marker-category="${escapeHtml(input.category)}"`,
+    input.displaySource ? `data-mm-display-source="${escapeHtml(input.displaySource)}"` : ""
+  ].filter(Boolean).join(" ");
+  const markerHtml = `<code ${markerAttributes}>${escapeHtml(marker)}</code>`;
+  const labelHtml = input.category === "element"
+    ? ` ${renderDetailRefId(input.id)}`
+    : input.label
+      ? ` ${text(input.label)}`
+      : "";
+  const classes = `mm-ref-chip mm-ref-chip-${input.category}`;
+  const title = input.label ? ` title="${escapeHtml(`${input.id} ${input.label}`)}"` : ` title="${escapeHtml(input.id)}"`;
+  const body = `${markerHtml}${labelHtml}`;
+  return input.href
+    ? `<a class="${classes}" href="${escapeHtml(input.href)}"${title}>${body}</a>`
+    : `<span class="${classes}"${title}>${body}</span>`;
+}
+
 function markerBadgeForId(result: ReturnType<typeof parseMarkVSpec>, id: string | undefined, linkAction = true): string {
   if (!id || !isInternalId(id)) {
     return "";
@@ -5830,6 +5864,59 @@ function markerBadgeForId(result: ReturnType<typeof parseMarkVSpec>, id: string 
     return `<a class="mm-marker-link" href="#${actionDetailAnchor(id)}">${badge}</a>`;
   }
   return badge;
+}
+
+function referenceChipForId(result: ReturnType<typeof parseMarkVSpec>, id: string, linkAction = true): string {
+  if (id.startsWith("A-")) {
+    const action = result.actions.find((candidate) => candidate.id === id);
+    return renderEntityRefChip({
+      id,
+      category: "action",
+      marker: findMarker(result, id) || id,
+      label: action?.name || id,
+      href: linkAction ? `#${actionDetailAnchor(id)}` : undefined
+    });
+  }
+
+  if (id.startsWith("L-")) {
+    const layout = preferredLayoutById(result, id);
+    return renderEntityRefChip({
+      id,
+      category: "layout",
+      marker: findMarker(result, id) || id,
+      label: layout?.name || id
+    });
+  }
+
+  if (id.startsWith("E-")) {
+    return renderEntityRefChip({
+      id,
+      category: "element",
+      marker: findMarker(result, id) || id,
+      label: id
+    });
+  }
+
+  if (id.startsWith("V-") || id.startsWith("R-")) {
+    const validation = result.validations.find((candidate) => candidate.id === id);
+    const rule = result.rules.find((candidate) => candidate.id === id);
+    return renderEntityRefChip({
+      id,
+      category: "message",
+      marker: firstStringProperty(validation?.properties["marker"]) || firstStringProperty(rule?.properties["marker"]) || id,
+      label: validation?.name || rule?.name || id,
+      displaySource: id
+    });
+  }
+
+  return "";
+}
+
+function firstStringProperty(value: string | string[] | true | undefined): string | undefined {
+  if (typeof value === "string") {
+    return value;
+  }
+  return Array.isArray(value) ? value.find((item) => item.length > 0) : undefined;
 }
 
 function actionDetailAnchor(actionId: string): string {

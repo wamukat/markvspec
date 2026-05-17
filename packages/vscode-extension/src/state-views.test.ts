@@ -17,7 +17,13 @@ const extensionRoot = resolve(".");
 
 function markerBadge(value: string, category: "layout" | "element" | "action", linked = category === "action", anchorValue = value): string {
   const badge = `<code class="mm-id mm-marker mm-marker-${category}" data-mm-marker-category="${category}">${escapeRegExp(value)}</code>`;
-  return linked ? `<a class="mm-marker-link" href="#action-detail-${escapeRegExp(encodeURIComponent(anchorValue))}">${badge}</a>` : badge;
+  if (!linked) {
+    return badge;
+  }
+  const href = `#action-detail-${escapeRegExp(encodeURIComponent(anchorValue))}`;
+  return category === "action"
+    ? `(?:<a class="mm-marker-link" href="${href}">${badge}</a>|<a class="mm-ref-chip mm-ref-chip-action" href="${href}"[^>]*>${badge})`
+    : `<a class="mm-marker-link" href="${href}">${badge}</a>`;
 }
 
 function actionBadge(marker: string, actionId: string, linked = true): string {
@@ -26,6 +32,22 @@ function actionBadge(marker: string, actionId: string, linked = true): string {
 
 function detailIdRef(id: string): string {
   return `<span class="mm-detail-ref-id">${escapeRegExp(id)}</span>`;
+}
+
+function detailElementRef(marker: string, elementId: string): string {
+  return `(?:<span class="mm-ref-chip mm-ref-chip-element"[^>]*>)?${markerBadge(marker, "element")} ${detailIdRef(elementId)}(?:</span>)?`;
+}
+
+function detailLayoutRef(marker: string, layoutName: string): string {
+  return `(?:<span class="mm-ref-chip mm-ref-chip-layout"[^>]*>)?${markerBadge(marker, "layout")} ${escapeRegExp(layoutName)}(?:</span>)?`;
+}
+
+function refActionChip(marker: string, actionId: string, actionName: string): string {
+  return `<a class="mm-ref-chip mm-ref-chip-action" href="#action-detail-${escapeRegExp(encodeURIComponent(actionId))}"[^>]*><code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">${escapeRegExp(marker)}</code> ${escapeRegExp(actionName)}</a>`;
+}
+
+function refMessageChip(marker: string, id: string, label: string): string {
+  return `<span class="mm-ref-chip mm-ref-chip-message"[^>]*><code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="${escapeRegExp(id)}">${escapeRegExp(marker)}</code> ${escapeRegExp(label)}</span>`;
 }
 
 function repeatedBadge(label = "Repeated"): string {
@@ -135,7 +157,8 @@ Elements overview.
       escapeHtml: (value) => value,
       renderSectionNumber: (value) => value,
       renderStateLabel: (value) => value,
-      renderTrigger: (value) => value ?? ""
+      renderTrigger: (value) => value ?? "",
+      renderEntityRef: ({ marker, label, id }) => [marker, label ?? id].filter(Boolean).join(" ")
     },
     prose: {
       sectionProseForKind: (kind) => result.sectionProse.filter((candidate) => candidate.kind === kind)
@@ -383,8 +406,8 @@ viewport: mobile
   assert.match(wireframe, /data-mm-render-key="layout:mobile:L-MessageArea"[\s\S]*<div class="mm-display-message" data-mm-display-source="V-EmailRequired"><code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="V-EmailRequired">V1<\/code>Email is required\.<\/div>/);
   assert.match(scenarioSection, /Displayed messages/);
   assert.match(scenarioSection, /<code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="V-EmailRequired">V1<\/code> Email required/);
-  assert.match(scenarioSection, /<dt>Displayed at<\/dt><dd><ul><li>E-EmailInput\.error<\/li><li>L-MessageArea<\/li><\/ul><\/dd>/);
-  assert.match(scenarioSection, /<dt>Triggered by<\/dt><dd><ul><li>A-Submit\.P1\.invalid<\/li><li>A-Submit\.P1\.invalid-summary<\/li><\/ul><\/dd>/);
+  assert.match(scenarioSection, new RegExp(`<dt>Displayed at</dt><dd><ul><li>${detailElementRef("E-EmailInput", "E-EmailInput")}<span class="display-update-suffix">\\.error</span></li><li>${detailLayoutRef("L-MessageArea", "Message area")}</li></ul></dd>`));
+  assert.match(scenarioSection, new RegExp(`<dt>Triggered by</dt><dd><ul><li>[\\s\\S]*${refActionChip("A-Submit", "A-Submit", "Submit")}[\\s\\S]*P1\\.invalid[\\s\\S]*</li><li>[\\s\\S]*${refActionChip("A-Submit", "A-Submit", "Submit")}[\\s\\S]*P1\\.invalid-summary[\\s\\S]*</li></ul></dd>`));
   assert.doesNotMatch(scenarioSection, /not placed in current layout[\s\S]*E-EmailInput\.error/);
 });
 
@@ -401,6 +424,24 @@ viewport: mobile
 
 - idle*
 
+## Layout: desktop
+
+### L-Form Desktop form
+
+- stack
+
+#### Items
+
+- E-EmailInput
+- E-PasswordInput
+- L-MessageArea
+- E-SubmitButton
+
+### L-MessageArea Desktop message area
+
+- stack
+- marker: MSG
+
 ## Layout: mobile
 
 ### L-Form Form
@@ -414,9 +455,10 @@ viewport: mobile
 - L-MessageArea
 - E-SubmitButton
 
-### L-MessageArea Message area
+### L-MessageArea Mobile message area
 
 - stack
+- marker: MSG
 
 ## Elements
 
@@ -487,8 +529,9 @@ viewport: mobile
   assert.match(scenarioSection, /Displayed messages/);
   assert.match(scenarioSection, /<code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="V-LoginFormRequired">V2<\/code> Login form required/);
   assert.match(scenarioSection, /<dt>Source<\/dt><dd>V-LoginFormRequired<\/dd>/);
-  assert.match(scenarioSection, /<dt>Displayed at<\/dt><dd><ul><li>L-MessageArea<\/li><\/ul><\/dd>/);
-  assert.match(scenarioSection, /<dt>Triggered by<\/dt><dd><ul><li>A-Submit\.P1\.invalid<\/li><\/ul><\/dd>/);
+  assert.match(scenarioSection, new RegExp(`<dt>Displayed at</dt><dd><ul><li>${detailLayoutRef("MSG", "Mobile message area")}</li></ul></dd>`));
+  assert.doesNotMatch(scenarioSection, /Desktop message area/);
+  assert.match(scenarioSection, new RegExp(`<dt>Triggered by</dt><dd><ul><li>[\\s\\S]*${refActionChip("A-Submit", "A-Submit", "Submit")}[\\s\\S]*P1\\.invalid[\\s\\S]*</li></ul></dd>`));
   assert.match(scenarioSection, /<dt>Kind<\/dt><dd>client cross-field validation error<\/dd>/);
   assert.match(scenarioSection, /<dt>Message<\/dt><dd><ul><li>Email and password are required\.<\/li><\/ul><\/dd>/);
 });
@@ -574,11 +617,11 @@ viewport: mobile
   assert.match(wireframe, /<div class="mm-field-error" data-mm-field-error-for="E-EmailInput"><div class="mm-field-error-message" data-mm-display-source="R-EmailMustBeUnique"><code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="R-EmailMustBeUnique">R1<\/code>This email address is already registered\.<\/div><\/div>/);
   assert.match(scenarioSection, /<code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="R-EmailMustBeUnique">R1<\/code> Email must be unique/);
   assert.match(scenarioSection, /<dt>Source<\/dt><dd>R-EmailMustBeUnique<\/dd>/);
-  assert.match(scenarioSection, /<dt>Displayed at<\/dt><dd><ul><li>E-EmailInput\.error<\/li><\/ul><\/dd>/);
-  assert.match(scenarioSection, /<dt>Triggered by<\/dt><dd><ul><li>A-Submit\.P1\.business-rule-violation<\/li><\/ul><\/dd>/);
+  assert.match(scenarioSection, new RegExp(`<dt>Displayed at</dt><dd><ul><li>${detailElementRef("E-EmailInput", "E-EmailInput")}<span class="display-update-suffix">\\.error</span></li></ul></dd>`));
+  assert.match(scenarioSection, new RegExp(`<dt>Triggered by</dt><dd><ul><li>[\\s\\S]*${refActionChip("A-Submit", "A-Submit", "Submit")}[\\s\\S]*P1\\.business-rule-violation[\\s\\S]*</li></ul></dd>`));
   assert.match(scenarioSection, /<dt>Kind<\/dt><dd>business rule message<\/dd>/);
-  assert.match(html, /<li>Business Rule <span class="mm-detail-ref-id">R-EmailMustBeUnique<\/span><\/li>/);
-  assert.match(html, /message <code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="R-EmailMustBeUnique">R1<\/code> <span class="mm-detail-ref-id">R-EmailMustBeUnique<\/span><span class="mm-detail-ref-suffix">\.messages<\/span>/);
+  assert.match(html, new RegExp(`<li>Business Rule ${refMessageChip("R1", "R-EmailMustBeUnique", "Email must be unique")}</li>`));
+  assert.match(html, new RegExp(`message <code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="R-EmailMustBeUnique">R1</code> ${refMessageChip("R1", "R-EmailMustBeUnique", "Email must be unique")}<span class="mm-detail-ref-suffix">\\.messages</span>`));
 });
 
 test("shows subsequent viewport initial state as current state with repeated rows", () => {
@@ -1579,12 +1622,12 @@ title: Markerless
   assert.match(html, new RegExp(`<td>${markerBadge("E-メールアドレス入力", "element")}</td><td>${detailIdRef("E-メールアドレス入力")}</td><td>Input</td><td>yes</td><td>${specSectionPattern("initial", ["a@example\\.com"])}${specSectionPattern("Source", [sourceCodePattern("${model.email}")])}</td><td>-</td><td>always</td><td>always</td>`));
   assert.match(html, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>/);
   assert.doesNotMatch(html, /<div class="element-detail-group"><h4>Actionable<\/h4>/);
-  assert.match(html, new RegExp(`<td>${markerBadge("E-SubmitButton", "element")}</td><td>${detailIdRef("E-SubmitButton")}</td><td>Button</td><td><ul class="spec-list"><li>${markerBadge("A-Submit", "action")}</li></ul></td><td>-</td>`));
+  assert.match(html, new RegExp(`<td>${markerBadge("E-SubmitButton", "element")}</td><td>${detailIdRef("E-SubmitButton")}</td><td>Button</td><td><ul class="spec-list"><li>${refActionChip("A-Submit", "A-Submit", "Submit")}</li></ul></td><td>-</td>`));
   assert.match(html, new RegExp(`<td>${markerBadge("E-SubmitButton", "element")}</td><td>${detailIdRef("E-SubmitButton")}</td><td>label</td><td>Submit &amp; Continue</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td><td><ul class="spec-list"><li>enabled: not ${markerBadge("E-メールアドレス入力", "element")} is empty</li></ul></td>`));
   assert.doesNotMatch(html, /<h2>Visibility \/ Availability<\/h2>/);
   assert.match(html, new RegExp(`<td>${markerBadge("L-Form", "layout")}</td><td>${detailIdRef("L-Form")}</td><td>stack</td><td>-</td><td><ul class="spec-list"><li>visible: user\\.role is admin, user\\.can access login</li></ul></td><td><ul class="spec-list"><li>Email: ${detailIdRef("E-メールアドレス入力")}</li><li>${detailIdRef("E-SubmitButton")}</li></ul></td><td>-</td>`));
-  assert.match(html, /email: <span class="mm-detail-ref-id">E-メールアドレス入力<\/span>\.value/);
-  assert.match(html, /<dt>Trigger<\/dt><dd><span class="mm-detail-ref-id">E-SubmitButton<\/span>\.click<\/dd>/);
+  assert.match(html, new RegExp(`email: ${detailElementRef("E-メールアドレス入力", "E-メールアドレス入力")}\\.value`));
+  assert.match(html, new RegExp(`<dt>Trigger</dt><dd>${detailElementRef("E-SubmitButton", "E-SubmitButton")}\\.click</dd>`));
   assert.match(html, /S0 --&gt; S1: Submit/);
   const idleSection = stateSection(html, "idle");
   assert.doesNotMatch(idleSection, /system-events-box/);

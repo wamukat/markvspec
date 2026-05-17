@@ -18,10 +18,20 @@ export interface StateViewsFormatters {
   renderSectionNumber(sectionNumber: string): string;
   renderStateLabel(value: string, extraClass?: string): string;
   renderTrigger(trigger: string | undefined): string;
+  renderEntityRef(input: StateViewEntityRef): string;
 }
 
 export interface StateViewsProseProvider {
   sectionProseForKind(kind: string): MarkVSpecParseResult["sectionProse"];
+}
+
+export interface StateViewEntityRef {
+  readonly id: string;
+  readonly category: "action" | "layout" | "element" | "message";
+  readonly marker?: string;
+  readonly label?: string;
+  readonly href?: string;
+  readonly displaySource?: string;
 }
 
 export interface StateViewsSpecFragmentRenderers {
@@ -158,13 +168,15 @@ function renderDisplayExplanationsBox(
   const messageExplanations = model.displayExplanations.filter((explanation) => explanation.contentKind === "message");
   const updateExplanations = model.displayExplanations.filter((explanation) => explanation.contentKind === "element");
   return [
-    renderDisplayedMessagesBox(context, messageExplanations),
+    renderDisplayedMessagesBox(result, context, model, messageExplanations),
     renderDisplayUpdatesBox(result, context, model, updateExplanations)
   ].filter(Boolean).join("");
 }
 
 function renderDisplayedMessagesBox(
+  result: MarkVSpecParseResult,
   context: StateViewsRenderContext,
+  model: Pick<StateScreenReadModel, "viewport">,
   explanations: StateScreenReadModel["displayExplanations"]
 ): string {
   if (explanations.length === 0) {
@@ -172,9 +184,15 @@ function renderDisplayedMessagesBox(
   }
   const { format } = context;
   const items = explanations.map((explanation) => {
-    const source = `${renderDisplayExplanationMarker(format, explanation)} ${format.text(explanation.sourceName || explanation.sourceId)}`;
-    const targetList = explanation.targetRefs.map((target) => `<li>${format.text(target)}</li>`).join("");
-    const triggerList = explanation.triggeredBy.map((trigger) => `<li>${format.text(trigger)}</li>`).join("");
+    const source = format.renderEntityRef({
+      id: explanation.sourceId,
+      category: explanation.markerSource === "element" ? "element" : "message",
+      marker: explanation.markerId,
+      label: explanation.sourceName || explanation.sourceId,
+      displaySource: explanation.sourceId
+    });
+    const targetList = explanation.targetRefs.map((target) => `<li>${renderDisplayUpdateTarget(result, context, model, target)}</li>`).join("");
+    const triggerList = explanation.triggeredBy.map((trigger) => `<li>${renderDisplayUpdateTrigger(result, format, trigger)}</li>`).join("");
     const summary = explanation.textSummary.length > 0
       ? `<dt>${format.label("message")}</dt><dd><ul>${explanation.textSummary.map((line) => `<li>${format.text(line)}</li>`).join("")}</ul></dd>`
       : "";
@@ -229,7 +247,13 @@ function renderDisplayUpdateTrigger(
   const [, actionId, processMarker, caseName] = parsed;
   const action = result.actions.find((candidate) => candidate.id === actionId);
   const actionRef = action
-    ? `${renderDisplayUpdateMarker(format, actionMarker(action), "action", action.id)} ${format.text(action.name || action.id)}`
+    ? format.renderEntityRef({
+      id: action.id,
+      category: "action",
+      marker: actionMarker(action),
+      label: action.name || action.id,
+      href: `#action-detail-${format.escapeHtml(encodeURIComponent(action.id))}`
+    })
     : format.text(actionId);
   return `<div class="display-update-trigger">
     <div>${actionRef}</div>
@@ -240,7 +264,7 @@ function renderDisplayUpdateTrigger(
 function renderDisplayUpdateTarget(
   result: MarkVSpecParseResult,
   context: StateViewsRenderContext,
-  model: StateScreenReadModel,
+  model: Pick<StateScreenReadModel, "viewport">,
   target: string
 ): string {
   const { format } = context;
@@ -264,7 +288,7 @@ function renderDisplayUpdateContent(
 function renderDisplayUpdateEntityRef(
   result: MarkVSpecParseResult,
   format: StateViewsFormatters,
-  model: StateScreenReadModel,
+  model: Pick<StateScreenReadModel, "viewport">,
   id: string,
   fallbackName?: string
 ): string {
@@ -272,25 +296,15 @@ function renderDisplayUpdateEntityRef(
     const layout = preferredLayoutGroupForViewport(result, id, model.viewport);
     const marker = stringPropertyValue(layout?.properties["marker"]) || id;
     const name = layout?.name || fallbackName || id;
-    return `<span class="display-update-ref display-update-layout">${renderDisplayUpdateMarker(format, marker, "layout")} ${format.text(name)}</span>`;
+    return format.renderEntityRef({ id, category: "layout", marker, label: name });
   }
   if (id.startsWith("E-")) {
     const element = result.elements.find((candidate) => candidate.id === id);
     const marker = stringPropertyValue(element?.properties["marker"]) || id;
     const name = fallbackName || element?.id || id;
-    return `<span class="display-update-ref display-update-element">${renderDisplayUpdateMarker(format, marker, "element")} ${format.text(name)}</span>`;
+    return format.renderEntityRef({ id, category: "element", marker, label: name });
   }
   return `<span class="display-update-ref">${format.text(fallbackName || id)}</span>`;
-}
-
-function renderDisplayUpdateMarker(
-  format: StateViewsFormatters,
-  marker: string,
-  category: "layout" | "element" | "action",
-  actionId?: string
-): string {
-  const badge = `<code class="mm-id mm-marker mm-marker-${category}" data-mm-marker-category="${category}">${format.escapeHtml(marker)}</code>`;
-  return actionId ? `<a class="mm-marker-link" href="#action-detail-${format.escapeHtml(encodeURIComponent(actionId))}">${badge}</a>` : badge;
 }
 
 function actionMarker(action: MarkVSpecParseResult["actions"][number]): string {
@@ -299,14 +313,6 @@ function actionMarker(action: MarkVSpecParseResult["actions"][number]): string {
 
 function stringPropertyValue(value: string | true | undefined): string | undefined {
   return typeof value === "string" && value ? value : undefined;
-}
-
-function renderDisplayExplanationMarker(
-  format: StateViewsFormatters,
-  explanation: StateScreenReadModel["displayExplanations"][number]
-): string {
-  const markerCategory = explanation.markerSource === "element" ? "element" : "message";
-  return `<code class="mm-id mm-marker mm-marker-${markerCategory}" data-mm-marker-category="${markerCategory}" data-mm-display-source="${format.escapeHtml(explanation.sourceId)}">${format.escapeHtml(explanation.markerId)}</code>`;
 }
 
 function repeatedHiddenEmptyAttr(emptyWhenRepeatedHidden: boolean): string {
