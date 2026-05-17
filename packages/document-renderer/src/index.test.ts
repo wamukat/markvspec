@@ -159,7 +159,7 @@ Initial \`static\` release.
   assert.match(html, /<li>Added export history\.<\/li>/);
   assert.match(html, /<section class="doc-section state-views-section">\s*<h2>State Views<\/h2>/);
   assert.match(html, /<section class="state-viewport-section" data-viewport="mobile">\s*<h3>Viewport mobile <span class="state-badge">Default<\/span><\/h3>/);
-  assert.match(html, /<section class="doc-section state-screen-section" data-state="idle" data-viewport="mobile" style="--markvspec-viewport-width:390px;--markvspec-print-scale:1">/);
+  assert.match(html, /<section class="doc-section state-screen-section"(?=[^>]*\bdata-state="idle")(?=[^>]*\bdata-viewport="mobile")(?=[^>]*\bstyle="--markvspec-viewport-width:390px;--markvspec-print-scale:1")/);
   assert.match(html, /<h4 class="state-screen-heading">State: idle initial<\/h4>/);
   assert.match(html, /<h5 class="state-screen-subheading">Wireframe<\/h5>/);
 });
@@ -262,3 +262,97 @@ title: Static Samples
   assert.match(html, /<th>Name<\/th><th>Role<\/th>/);
   assert.match(html, /<td>Jane<\/td><td><\/td>/);
 });
+
+test("renders preview scenarios and scenario samples in static state views", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-SCENARIO-SAMPLES
+type: screen
+title: Scenario Samples
+viewport: desktop
+---
+
+# SCR-SCENARIO-SAMPLES Scenario Samples
+
+## States
+
+- loading*
+- loaded
+- empty
+
+## Layout: desktop
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- E-SeatCount
+- E-SubscriptionTable
+
+## Elements
+
+### E-SeatCount Text
+
+- source: data
+- sample: 12 seats
+
+### E-SubscriptionTable Table
+
+- source: data
+- Columns:
+  - product: Product
+  - seats: Seats
+- sample rows:
+  - row:
+    - product: Workspace
+    - seats: 8
+- visible when: loaded
+
+## Preview Scenarios
+
+### loaded-renewal
+
+- state: loaded
+- samples:
+  - E-SeatCount: 12 seats
+  - E-SubscriptionTable:
+    - rows:
+      - row:
+        - product: Workspace
+        - seats: 8
+      - row:
+        - product: Analytics
+        - seats: 4
+
+### empty-account
+
+- state: empty
+- samples:
+  - E-SeatCount: 0 seats
+  - E-SubscriptionTable:
+    - rows: []
+`);
+  const html = renderStaticDesignDocumentHtml(result);
+  const baselineLoaded = stateViewSection(html, "loaded");
+  const loadedScenario = stateViewSection(html, "loaded / loaded-renewal");
+  const emptyScenario = stateViewSection(html, "empty / empty-account");
+
+  assert.match(html, /data-state-view-title="loaded \/ loaded-renewal"/);
+  assert.match(html, /data-state-view-title="empty \/ empty-account"/);
+  assert.doesNotMatch(baselineLoaded, /Scenario Samples/);
+  assert.match(loadedScenario, /<span class="state-badge">loaded-renewal<\/span>/);
+  assert.match(loadedScenario, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
+  assert.match(loadedScenario, /E-SubscriptionTable/);
+  assert.match(loadedScenario, /2 rows/);
+  assert.match(emptyScenario, /0 seats/);
+  assert.match(emptyScenario, /<code>rows: \[\]<\/code>/);
+});
+
+function stateViewSection(html: string, title: string): string {
+  const startMatch = new RegExp(`<section class="doc-section state-screen-section"(?=[^>]*\\bdata-state-view-title="${title.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}")`, "u").exec(html);
+  assert(startMatch, `Missing state view ${title}`);
+  const start = startMatch.index;
+  const next = html.indexOf(`<section class="doc-section state-screen-section"`, start + startMatch[0].length);
+  return html.slice(start, next === -1 ? undefined : next);
+}

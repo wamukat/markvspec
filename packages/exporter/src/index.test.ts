@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import test from "node:test";
 import {
   defaultExportHtmlBaseName,
@@ -165,7 +165,7 @@ test("exports standalone HTML files", () => {
     assert(existsSync(join(outDir, "sample.html")));
     const html = readFileSync(join(outDir, "sample.html"), "utf8");
     assert.match(html, /Sample/);
-    assert.match(html, /class="doc-section state-screen-section" data-state="idle"/);
+    assert.match(html, /class="doc-section state-screen-section"(?=[^>]*\bdata-state="idle")/);
     assert.match(html, /<section class="doc-section state-views-section">\s*<h2>State Views<\/h2>/);
     assert.match(html, /<h4 class="state-screen-heading">State: idle initial<\/h4>/);
     assert.match(html, /<h5 class="state-screen-subheading">Wireframe<\/h5>/);
@@ -173,6 +173,32 @@ test("exports standalone HTML files", () => {
     assert.match(html, /\.state-viewport-section > h3 \{ font-size: var\(--markvspec-heading-viewport\); margin: 22px 0 8px; \}/);
     assert.match(html, /\.state-screen-heading \{ font-size: var\(--markvspec-heading-state\); margin: 0 0 12px; \}/);
     assert.match(html, /@media print \{[\s\S]*:root \{ --markvspec-heading-state-views: 15pt; --markvspec-heading-viewport: 12\.5pt; --markvspec-heading-state: 11\.5pt; --markvspec-heading-detail: 10pt; --markvspec-heading-badge: 8\.5pt; \}/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("exports preview scenarios and scenario samples in standalone HTML", () => {
+  const dir = mkdtempSync(join(tmpdir(), "markvspec-html-scenarios-"));
+  try {
+    const sourcePath = resolve("../../examples/02-states/scenario-samples.vspec.md");
+    const outDir = join(dir, "out");
+    const results = exportMarkVSpecHtmlFiles([sourcePath], outDir);
+
+    assert.equal(results.length, 1);
+    assert(!results[0]?.diagnostics.some((diagnostic) => diagnostic.severity === "error"));
+    const html = readFileSync(join(outDir, "scenario-samples.html"), "utf8");
+    const baselineLoaded = stateViewSection(html, "loaded");
+    const loadedScenario = stateViewSection(html, "loaded / loaded-renewal");
+    const emptyScenario = stateViewSection(html, "empty / empty-account");
+
+    assert.match(loadedScenario, /<span class="state-badge">loaded-renewal<\/span>/);
+    assert.match(loadedScenario, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
+    assert.match(loadedScenario, /E-SubscriptionTable/);
+    assert.match(loadedScenario, /2 rows/);
+    assert.match(emptyScenario, /0 seats/);
+    assert.match(emptyScenario, /<code>rows: \[\]<\/code>/);
+    assert.doesNotMatch(baselineLoaded, /Scenario Samples/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -314,7 +340,7 @@ test("exports state sections from the initial state even when default-state is s
 
     exportMarkVSpecHtmlFiles([sourcePath], outDir);
     const html = readFileSync(join(outDir, "state-order.html"), "utf8");
-    const states = [...html.matchAll(/class="doc-section state-screen-section" data-state="([^"]+)"/g)].map((match) => match[1]);
+    const states = [...html.matchAll(/<section class="doc-section state-screen-section"[^>]*\bdata-state="([^"]+)"/g)].map((match) => match[1]);
 
     assert.deepEqual(states.slice(0, 3), ["initializing", "loading", "loaded"]);
   } finally {
@@ -332,8 +358,8 @@ test("exports responsive design document sections for every viewport", () => {
     exportMarkVSpecHtmlFiles([sourcePath], outDir);
     const html = readFileSync(join(outDir, "responsive.html"), "utf8");
 
-    assert.match(html, /data-state="idle" data-viewport="mobile" style="--markvspec-viewport-width:390px;--markvspec-print-scale:1"/);
-    assert.match(html, /data-state="idle" data-viewport="desktop" style="--markvspec-viewport-width:960px;--markvspec-print-scale:1"/);
+    assert.match(html, /<section class="doc-section state-screen-section"(?=[^>]*\bdata-state="idle")(?=[^>]*\bdata-viewport="mobile")(?=[^>]*\bstyle="--markvspec-viewport-width:390px;--markvspec-print-scale:1")/);
+    assert.match(html, /<section class="doc-section state-screen-section"(?=[^>]*\bdata-state="idle")(?=[^>]*\bdata-viewport="desktop")(?=[^>]*\bstyle="--markvspec-viewport-width:960px;--markvspec-print-scale:1")/);
     assert.match(html, /@page \{ margin: 14mm; size: A4 landscape; \}/);
     assert.match(html, /\.toc-inline \{ break-after: page; break-inside: avoid; page-break-after: always; page-break-inside: avoid; \}/);
     assert.match(html, /\.history-section \{ break-before: page; page-break-before: always; \}/);
@@ -530,6 +556,18 @@ viewport: mobile
 - sample: Responsive
 
 `;
+}
+
+function stateViewSection(html: string, title: string): string {
+  const startMatch = new RegExp(`<section class="doc-section state-screen-section"(?=[^>]*\\bdata-state-view-title="${escapeRegExp(title)}")`, "u").exec(html);
+  assert(startMatch, `Missing state view ${title}`);
+  const start = startMatch.index;
+  const next = html.indexOf(`<section class="doc-section state-screen-section"`, start + startMatch[0].length);
+  return html.slice(start, next === -1 ? undefined : next);
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 }
 
 function pdfPageOrientations(pdfPath: string): Array<"portrait" | "landscape"> {

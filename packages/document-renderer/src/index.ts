@@ -1,5 +1,5 @@
-import { effectiveHistoryFields, messagesForLocale, renderMarkVSpecHtml } from "@markvspec/core";
-import type { MarkVSpecParseResult, MarkVSpecState, RendererMessages } from "@markvspec/core";
+import { buildViewportStateScreenReadModels, effectiveHistoryFields, messagesForLocale, renderMarkVSpecHtml } from "@markvspec/core";
+import type { MarkVSpecParseResult, RendererMessages, StateScreenReadModel } from "@markvspec/core";
 
 export type MarkVSpecDocumentViewport = "mobile" | "tablet" | "desktop" | string;
 
@@ -124,12 +124,11 @@ export type TableCell = string | undefined | null | {
 
 export function renderStaticDesignDocumentHtml(result: MarkVSpecParseResult, options: RenderStaticDesignDocumentOptions = {}): string {
   const messages = options.messages ?? messagesForLocale(result.screen.locale);
-  const viewports = layoutViewports(result);
 
   return renderDesignDocumentSections([
     renderDocumentOverviewSection(result, messages),
     renderHistorySection(result, messages),
-    renderStateViewsSection(result, viewports, messages)
+    renderStateViewsSection(result, messages)
   ]);
 }
 
@@ -156,11 +155,18 @@ function renderDocumentOverviewSection(result: MarkVSpecParseResult, messages: R
   return `<section class="doc-section screen-spec-section"><h2>${escapeHtml(heading)}</h2>${description}${table}</section>`;
 }
 
-function renderStateViewsSection(result: MarkVSpecParseResult, viewports: string[], messages: RendererMessages): string {
-  const states = displayStates(result);
-  const viewportSections = viewports.length === 0
-    ? renderStateViewportSection(result, states, undefined, false, messages)
-    : viewports.map((viewport, index) => renderStateViewportSection(result, states, viewport, index === 0, messages)).join("");
+function renderStateViewsSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
+  const viewportSections = buildViewportStateScreenReadModels(result, result, undefined, {
+    label: (key) => key === "default" ? messages.default : messages.viewport
+  }).map((viewportModel) =>
+    renderStateViewportSection(
+      result,
+      viewportModel.models,
+      viewportModel.viewport,
+      viewportModel.isDefault,
+      messages
+    )
+  ).join("");
   return `<section class="doc-section state-views-section">
   <h2>${escapeHtml(messages.stateViews)}</h2>
   ${viewportSections}
@@ -169,7 +175,7 @@ function renderStateViewsSection(result: MarkVSpecParseResult, viewports: string
 
 function renderStateViewportSection(
   result: MarkVSpecParseResult,
-  states: Array<MarkVSpecState | undefined>,
+  models: StateScreenReadModel[],
   viewport: string | undefined,
   isDefault: boolean,
   messages: RendererMessages
@@ -179,61 +185,84 @@ function renderStateViewportSection(
   const viewportLabel = viewport ? `${messages.viewport} ${viewport}` : `${messages.default} ${messages.view}`;
   return `<section class="state-viewport-section"${viewportAttr}>
   <h3>${escapeHtml(viewportLabel)}${defaultBadge}</h3>
-  ${states.map((state) => renderStateScreenSection(result, state, viewport, messages)).join("")}
+  ${models.map((model, index) => renderStateScreenSection(result, model, messages, index === 0)).join("")}
 </section>`;
 }
 
 function renderStateScreenSection(
   result: MarkVSpecParseResult,
-  state: MarkVSpecState | undefined,
-  viewport: string | undefined,
-  messages: RendererMessages
+  model: StateScreenReadModel,
+  messages: RendererMessages,
+  includeStyles: boolean
 ): string {
-  const viewportAttrs = viewport ? ` data-viewport="${escapeHtml(viewport)}" style="${viewportPrintStyle(viewport)}"` : "";
-  const stateAttrs = state ? ` data-state="${escapeHtml(state.name)}"` : "";
-  const stateHeading = state
-    ? `${messages.state}: ${state.name}${state.initial ? ` ${messages.initial}` : ""}`
-    : `${messages.default} ${messages.view}`;
+  const viewportAttrs = model.viewport ? ` data-viewport="${escapeHtml(model.viewport)}" style="${viewportPrintStyle(model.viewport)}"` : "";
+  const stateAttrs = model.stateName ? ` data-state="${escapeHtml(model.stateName)}"` : "";
+  const stateViewTitleAttr = ` data-state-view-title="${escapeHtml(model.stateViewTitle)}"`;
+  const initialBadge = model.initial ? ` ${escapeHtml(messages.initial)}` : "";
+  const scenarioBadge = model.stateName && model.scenario ? ` <span class="state-badge">${escapeHtml(model.title)}</span>` : "";
+  const stateHeading = model.stateName
+    ? `${escapeHtml(messages.state)}: ${escapeHtml(model.stateName)}${initialBadge}${scenarioBadge}`
+    : `${escapeHtml(messages.default)} ${escapeHtml(messages.view)}`;
   const wireframe = renderMarkVSpecHtml(result, {
-    includeStyles: true,
+    includeStyles,
     markerVisibility: { layout: true, element: true, action: true },
     messages,
-    state: state?.name,
-    viewport
+    modelValues: model.modelValues,
+    sampleOverrides: sampleOverridesFromScenarioSamples(model.scenarioSamples),
+    state: model.stateName,
+    viewport: model.viewport,
+    viewValues: model.viewValues
   });
 
-  return `<section class="doc-section state-screen-section"${stateAttrs}${viewportAttrs}>
+  return `<section class="doc-section state-screen-section"${stateViewTitleAttr}${stateAttrs}${viewportAttrs}>
   <section class="wireframe-print-section">
-    <h4 class="state-screen-heading">${escapeHtml(stateHeading)}</h4>
+    <h4 class="state-screen-heading">${stateHeading}</h4>
     <h5 class="state-screen-subheading">${escapeHtml(messages.wireframe)}</h5>
     <section class="wireframe-section">${wireframe}</section>
+    ${renderScenarioSamplesBox(result, model, messages)}
   </section>
 </section>`;
 }
 
-function displayStates(result: MarkVSpecParseResult): Array<MarkVSpecState | undefined> {
-  if (result.states.length === 0) {
-    return [undefined];
+function sampleOverridesFromScenarioSamples(
+  samples: StateScreenReadModel["scenarioSamples"]
+): NonNullable<Parameters<typeof renderMarkVSpecHtml>[1]>["sampleOverrides"] | undefined {
+  if (samples.length === 0) {
+    return undefined;
   }
-
-  const initialState = result.states.find((state) => state.initial);
-  const firstState = initialState ?? result.states[0];
-  return [
-    firstState,
-    ...result.states.filter((state) => state.name !== firstState?.name)
-  ];
+  return Object.fromEntries(samples.map((sample) => [sample.elementId, sample]));
 }
 
-function layoutViewports(result: MarkVSpecParseResult): string[] {
-  const viewports = [...new Set(result.layoutGroups.map((layout) => layout.viewport))];
-  if (result.screen.viewport && viewports.includes(result.screen.viewport)) {
-    return [
-      result.screen.viewport,
-      ...viewports.filter((viewport) => viewport !== result.screen.viewport)
-    ];
+function renderScenarioSamplesBox(
+  result: MarkVSpecParseResult,
+  model: StateScreenReadModel,
+  messages: RendererMessages
+): string {
+  if (model.scenarioSamples.length === 0) {
+    return "";
   }
 
-  return viewports;
+  const elementById = new Map(result.elements.map((element) => [element.id, element]));
+  const rows = model.scenarioSamples.map((sample) => {
+    const element = elementById.get(sample.elementId);
+    const elementLabel = element?.properties["label"];
+    const elementText = typeof elementLabel === "string" ? `${sample.elementId} ${elementLabel}` : sample.elementId;
+    return [escapeHtml(elementText), renderScenarioSampleValue(sample)];
+  });
+  return `<aside class="scenario-samples-box">
+    <h6 class="state-screen-detail-heading">Scenario Samples</h6>
+    ${renderTable([messages.elements, "Sample"], rows)}
+  </aside>`;
+}
+
+function renderScenarioSampleValue(sample: StateScreenReadModel["scenarioSamples"][number]): string {
+  if (sample.rows) {
+    if (sample.rows.explicitEmpty && sample.rows.rows.length === 0) {
+      return "<code>rows: []</code>";
+    }
+    return escapeHtml(`${sample.rows.rows.length} rows`);
+  }
+  return escapeHtml(sample.value ?? "");
 }
 
 function renderHistorySection(result: MarkVSpecParseResult, messages: RendererMessages): string {
