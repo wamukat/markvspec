@@ -45,6 +45,10 @@ function sourceCodePattern(value: string): string {
   return inlineTokenPattern(value);
 }
 
+function plainCodePattern(value: string): string {
+  return `<code>${escapeRegExp(value)}</code>`;
+}
+
 function inlineTokenPattern(value: string): string {
   return `<span class="mm-inline-token">${escapeRegExp(value)}</span>`;
 }
@@ -1572,7 +1576,7 @@ title: Markerless
   assert.match(html, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>/);
   assert.doesNotMatch(html, /<div class="element-detail-group"><h4>Actionable<\/h4>/);
   assert.match(html, new RegExp(`<td>${markerBadge("E-SubmitButton", "element")}</td><td>${detailIdRef("E-SubmitButton")}</td><td>Button</td><td><ul class="spec-list"><li>${markerBadge("A-Submit", "action")}</li></ul></td><td>-</td>`));
-  assert.match(html, new RegExp(`<td>${markerBadge("E-SubmitButton", "element")}</td><td>${detailIdRef("E-SubmitButton")}</td><td>label</td><td>Submit &amp; Continue</td><td>-</td><td>-</td><td>always</td><td><ul class="spec-list"><li>enabled: not ${markerBadge("E-メールアドレス入力", "element")} is empty</li></ul></td>`));
+  assert.match(html, new RegExp(`<td>${markerBadge("E-SubmitButton", "element")}</td><td>${detailIdRef("E-SubmitButton")}</td><td>label</td><td>Submit &amp; Continue</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td><td><ul class="spec-list"><li>enabled: not ${markerBadge("E-メールアドレス入力", "element")} is empty</li></ul></td>`));
   assert.doesNotMatch(html, /<h2>Visibility \/ Availability<\/h2>/);
   assert.match(html, new RegExp(`<td>${markerBadge("L-Form", "layout")}</td><td>${detailIdRef("L-Form")}</td><td>stack</td><td>-</td><td><ul class="spec-list"><li>visible: user\\.role is admin, user\\.can access login</li></ul></td><td><ul class="spec-list"><li>Email: ${detailIdRef("E-メールアドレス入力")}</li><li>${detailIdRef("E-SubmitButton")}</li></ul></td><td>-</td>`));
   assert.match(html, /email: <span class="mm-detail-ref-id">E-メールアドレス入力<\/span>\.value/);

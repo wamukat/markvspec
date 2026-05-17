@@ -76,7 +76,8 @@ data contract stays visible.
 
 ### 6:E-SubscriptionTable Table
 
-- source: ${model.subscriptions.items}
+- rows: ${model.subscriptions.items}
+- source: data
 - Columns:
   - product: Product
   - seats: Seats

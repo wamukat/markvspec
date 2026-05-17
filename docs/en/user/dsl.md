@@ -1093,8 +1093,36 @@ Display text separates static UI wording from dynamic data examples:
   opaque expression such as `${model.notice.title}` or `${route.noticeId}`.
 - `value`: a mechanical value, such as a submitted form value, selected option
   value, or hidden value. Do not use it as a plain display sample.
+- `source`: the origin category for the element's displayed value or wording.
+  It is not a reference path.
 
 `format` describes how a `src` value is transformed into the `sample`.
+
+`source` accepts only these source types: `fixed`, `i18n`, `data`, `route`,
+`element`, `asset`, `external`, and `computed`. If omitted, `source` is treated
+as `fixed`; explicitly writing `source: fixed` is also valid.
+
+- `fixed`: fixed content written directly in the MarkVSpec document.
+- `i18n`: wording that should be managed by internationalization resources.
+  Do not write i18n keys, namespaces, bundle names, or translation file names in
+  `source`; use `source: i18n` only to mark that the text is translation-backed.
+- `data`: raw business data, screen data, API response data, server-side model
+  data, or Sample Data Model values.
+- `route`: URL path parameters, query strings, and route parameters.
+- `element`: another element's current value, referenced by a separate property
+  such as `value: E-EmailInput.value`. This is not data binding.
+- `asset`: app-managed images, icons, and static files.
+- `external`: URLs, services, embeds, or delivered resources outside the app's
+  control.
+- `computed`: a value derived by formatting, combining, or calculating from
+  other values.
+
+Use `data` for values as received from data sources. Use `computed` when the
+display value is derived from those values. Use `element` only when another
+element's value is displayed as-is; use `computed` when that value is transformed.
+Use `asset` for app-managed resources and `external` for resources managed
+outside the app. `source: document` and old reference-path usage such as
+`source: ${model.users.items}` are invalid.
 
 ```markdown
 ### E-PageTitle Heading
@@ -1303,9 +1331,9 @@ source, one default value, and one options list.
 
 `List` uses a compact property for short sequences. `Table` uses nested
 Markdown lists so columns and sample rows remain readable without delimiter
-parsing. For model-backed tables, prefer `source` plus list-based
-`## Model Samples`; the table preview will render rows from the active state's
-sample data.
+parsing. For model-backed tables, use `rows` for the concrete Model Samples
+path and `source: data` for the origin category; the table preview will render
+rows from the active state's sample data.
 
 Use colon-suffixed block starters for nested element blocks: `options:`,
 `Columns:`, `Sample Rows:`, `params:`, and `input rule:`.
@@ -1318,7 +1346,8 @@ Use colon-suffixed block starters for nested element blocks: `options:`,
 ### E-Users Table
 
 - label: Users
-- source: ${model.users.items}
+- rows: ${model.users.items}
+- source: data
 - Columns:
   - name: Name
     sortable: true

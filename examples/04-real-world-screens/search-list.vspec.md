@@ -126,7 +126,8 @@ is outside this example.
 
 ### 7:E-UsersTable Table
 
-- source: ${model.users.items}
+- rows: ${model.users.items}
+- source: data
 - Columns:
   - name: Name
     sortable: true

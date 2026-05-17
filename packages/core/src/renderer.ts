@@ -2,6 +2,7 @@ import { isLocalId, isPresentationPanelId, opaqueExpressionBody } from "./ids.js
 import { aliasForModelPath, isCollectionModelSamplePath, sourcePathKey } from "./model-paths.js";
 import { messagesForLocale } from "./renderer-messages.js";
 import { actionAppliesToState } from "./action-applicability.js";
+import { sourceTypeForElement } from "./source-types.js";
 import type {
   MarkVSpecAction,
   MarkVSpecElement,
@@ -620,7 +621,8 @@ function renderElement(
     elementSizePreset(element) ? cssClass("mm-size", elementSizePreset(element) ?? "") : ""
   ].filter(Boolean).join(" ");
 
-  const sourceValue = modelValueForSource(stringProperty(element, "src"), context);
+  const elementSourceValue = sourceTypeForElement(element) === "element" ? elementValueFromElementSource(element, context, new Set()) : undefined;
+  const sourceValue = elementSourceValue ?? modelValueForElement(element, context);
   const formattedSourceValue = sourceValue === undefined ? "" : formatModelValue(sourceValue, stringProperty(element, "format"));
   const sample = formattedSourceValue || stringProperty(element, "sample");
   const value = stringProperty(element, "value");
@@ -1122,6 +1124,47 @@ function modelValueForSource(source: string, context: RenderContext): string | u
   return undefined;
 }
 
+function modelValueForElement(element: MarkVSpecElement, context: RenderContext): string | undefined {
+  const valueSource = stringProperty(element, "value");
+  const value = valueSource ? modelValueForSource(valueSource, context) : undefined;
+  return value ?? modelValueForSource(stringProperty(element, "src"), context);
+}
+
+function elementValueFromElementSource(
+  element: MarkVSpecElement,
+  context: RenderContext,
+  visited: Set<string>
+): string | undefined {
+  if (visited.has(element.id)) {
+    return undefined;
+  }
+  visited.add(element.id);
+
+  const targetId = elementValueReferenceId(stringProperty(element, "value"));
+  const target = targetId ? context.elementById?.get(targetId) : undefined;
+  if (!target) {
+    return undefined;
+  }
+
+  if (sourceTypeForElement(target) === "element") {
+    const nested = elementValueFromElementSource(target, context, visited);
+    if (nested !== undefined) {
+      return nested;
+    }
+  }
+
+  return modelValueForElement(target, context)
+    ?? stringProperty(target, "initial value")
+    ?? stringProperty(target, "sample")
+    ?? inputLiteralValue(stringProperty(target, "value"))
+    ?? undefined;
+}
+
+function elementValueReferenceId(value: string): string | undefined {
+  const match = /^(E-[\p{L}\p{N}-]+)\.value$/u.exec(value);
+  return match?.[1];
+}
+
 function formatModelValue(value: string, format: string): string {
   if (format.trim() === "date yyyy/MM/dd") {
     const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
@@ -1210,7 +1253,7 @@ function tableRowsForElement(
   columns: MarkVSpecElement["tableColumns"],
   context: RenderContext
 ): MarkVSpecElement["tableRows"] {
-  const source = stringProperty(element, "source");
+  const source = stringProperty(element, "rows");
   const sourceKey = source ? sourcePathKey(source) : "";
   const modelRows = sourceKey ? context.modelSampleRows[sourceKey] : undefined;
   if (!modelRows || modelRows.length === 0) {

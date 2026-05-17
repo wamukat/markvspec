@@ -1,4 +1,5 @@
-import { opaqueExpressionBody } from "./ids.js";
+import { elementIdPattern, opaqueExpressionBody } from "./ids.js";
+import { isMarkVSpecSourceType } from "./source-types.js";
 import type {
   MarkVSpecDiagnostic,
   MarkVSpecElement,
@@ -49,6 +50,7 @@ const commonElementProperties = new Set([
   "message",
   "message src",
   "sample",
+  "source",
   "purpose",
   "value",
   "src",
@@ -84,7 +86,7 @@ const elementTypeProperties = new Map<string, Set<string>>([
   ["Switch", new Set(["checked"])],
   ["RadioGroup", new Set(["name"])],
   ["List", new Set(["items"])],
-  ["Table", new Set(["source"])],
+  ["Table", new Set(["rows"])],
   ["Banner", new Set()],
   ["Dialog", new Set(["title", "content", "actions"])],
   ["Toast", new Set(["placement", "duration"])],
@@ -139,6 +141,7 @@ export function validateElementProperties(
 ): void {
   checkUnsupportedElementProperties(element, diagnostics);
   checkElementPresetProperties(element, diagnostics);
+  checkElementSource(element, result, diagnostics);
   checkTableProperties(element, result, diagnostics);
 }
 
@@ -208,15 +211,15 @@ function checkTableProperties(element: MarkVSpecElement, result: MarkVSpecParseR
     return;
   }
 
-  const source = stringProperty(element, "source");
-  if (source) {
-    const sourceKey = opaqueExpressionBody(source) ?? source;
+  const rows = stringProperty(element, "rows");
+  if (rows) {
+    const sourceKey = opaqueExpressionBody(rows) ?? rows;
     const hasSample = result.modelSamples.some((sample) => (opaqueExpressionBody(sample.path) ?? sample.path) === sourceKey);
     if (!hasSample) {
       diagnostics.push({
         severity: "warning",
-        message: `Element ${element.id} source ${source} does not match any Model Samples path.`,
-        line: firstPropertyLine(element, "source") ?? element.location.line
+        message: `Element ${element.id} rows ${rows} does not match any Model Samples path.`,
+        line: firstPropertyLine(element, "rows") ?? element.location.line
       });
     }
   }
@@ -239,6 +242,107 @@ function checkTableProperties(element: MarkVSpecElement, result: MarkVSpecParseR
       }
     }
   }
+}
+
+function checkElementSource(element: MarkVSpecElement, result: MarkVSpecParseResult, diagnostics: MarkVSpecDiagnostic[]): void {
+  const source = element.properties["source"];
+  if (source === undefined) {
+    return;
+  }
+
+  const line = firstPropertyLine(element, "source") ?? element.location.line;
+  if (source === true) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Element ${element.id} source must be one of fixed, i18n, data, route, element, asset, external, computed.`,
+      line
+    });
+    return;
+  }
+
+  if (opaqueExpressionBody(source)) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Element ${element.id} source must be a source type, not a reference expression. Use rows, src, value, or another property for ${source}.`,
+      line
+    });
+    return;
+  }
+
+  if (!isMarkVSpecSourceType(source)) {
+    diagnostics.push({
+      severity: "warning",
+      message: source === "document"
+        ? `Element ${element.id} source document is not supported. Use fixed for document-authored content.`
+        : `Element ${element.id} source must be one of fixed, i18n, data, route, element, asset, external, computed.`,
+      line
+    });
+    return;
+  }
+
+  if (source === "element") {
+    checkElementSourceReference(element, result, diagnostics);
+  }
+}
+
+const elementValueReferenceRegex = new RegExp(String.raw`^(${elementIdPattern})\.value$`, "u");
+
+function checkElementSourceReference(element: MarkVSpecElement, result: MarkVSpecParseResult, diagnostics: MarkVSpecDiagnostic[]): void {
+  const value = stringProperty(element, "value");
+  const line = firstPropertyLine(element, "value") ?? firstPropertyLine(element, "source") ?? element.location.line;
+  const match = elementValueReferenceRegex.exec(value);
+  if (!match) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Element ${element.id} source element requires value: E-*.value.`,
+      line
+    });
+    return;
+  }
+
+  const elementsById = new Map(result.elements.map((candidate) => [candidate.id, candidate]));
+  const targetId = match[1];
+  if (!elementsById.has(targetId)) {
+    diagnostics.push({
+      severity: "error",
+      message: `Element ${element.id} value references missing element ${targetId}.`,
+      line
+    });
+    return;
+  }
+
+  const cycle = elementSourceCycleFor(element.id, elementsById);
+  if (cycle) {
+    diagnostics.push({
+      severity: "error",
+      message: `Element ${element.id} source element has circular value reference: ${cycle.join(" -> ")}.`,
+      line
+    });
+  }
+}
+
+function elementSourceCycleFor(
+  startId: string,
+  elementsById: Map<string, MarkVSpecElement>
+): string[] | undefined {
+  const seen = new Set<string>();
+  const path: string[] = [];
+  let currentId: string | undefined = startId;
+  while (currentId) {
+    if (seen.has(currentId)) {
+      const cycleStart = path.indexOf(currentId);
+      return [...path.slice(cycleStart), currentId];
+    }
+    seen.add(currentId);
+    path.push(currentId);
+    const current = elementsById.get(currentId);
+    if (!current || current.properties["source"] !== "element") {
+      return undefined;
+    }
+    const match = elementValueReferenceRegex.exec(stringProperty(current, "value"));
+    currentId = match?.[1];
+  }
+  return undefined;
 }
 
 function stringProperty(element: MarkVSpecElement, key: string): string {

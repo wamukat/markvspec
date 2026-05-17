@@ -1016,9 +1016,27 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
   - オーナー: ${i18n.roles.owner}
 ```
 
+`source` は値や文言の由来分類です。参照パスや i18n key は書きません。
+許可値は `fixed`, `i18n`, `data`, `route`, `element`, `asset`, `external`, `computed` です。
+未指定時は `fixed` と同義で、`source: fixed` の明示も許可されます。
+
+- `fixed`: MarkVSpec 文書内に直接書いた固定値、固定文言、固定表示内容。
+- `i18n`: 国際化リソースで管理する表示文言。`source` に i18n key、namespace、bundle 名、翻訳ファイル名は書きません。
+- `data`: 業務データ、画面データ、API 応答、サーバ側モデル、Sample Data Model などから来る生値。
+- `route`: URL path parameter、query string、route parameter などのルーティング由来の値。
+- `element`: `value: E-EmailInput.value` のように別 property で参照した他要素の現在値。双方向 binding ではありません。
+- `asset`: アプリ管理下の画像、アイコン、静的ファイルなど。
+- `external`: アプリ管理外の URL、外部サービス、外部埋め込み、外部配信リソースなど。
+- `computed`: 他の値を加工、結合、計算して得る導出値。
+
+データソースから来る生値は `data`、加工・結合・計算した表示値は `computed` とします。
+他要素の値をそのまま表示する場合は `element`、加工する場合は `computed` とします。
+アプリ管理下のリソースは `asset`、アプリ管理外のリソースは `external` とします。
+`source: document` や `source: ${model.users.items}` のような旧来の参照パス指定は不許可です。
+
 `Table` は Markdown table ではなく、ネストした Markdown リストで列とサンプル行を書きます。
 区切り文字を使った文字列操作を避け、設計書として読みやすい形を優先します。モデルに紐づくテーブルは
-`source` と list 形式の `## Model Samples` を使うと、active state のサンプルデータから preview の行が生成されます。
+具体的な Model Samples path を `rows` に書き、由来分類として `source: data` を書くと、active state のサンプルデータから preview の行が生成されます。
 
 ネストした Element ブロックの開始は `options:`, `Columns:`, `Sample Rows:`, `params:`, `input rule:` のようにコロン付きで書きます。
 
@@ -1026,7 +1044,8 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 ### E-Users Table
 
 - label: Users
-- source: ${model.users.items}
+- rows: ${model.users.items}
+- source: data
 - Columns:
   - name: 名前
     sortable: true

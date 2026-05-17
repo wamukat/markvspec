@@ -76,7 +76,8 @@ loaded, empty, and error previews are the focus.
 
 ### 5:E-ItemsTable Table
 
-- source: ${model.items.rows}
+- rows: ${model.items.rows}
+- source: data
 - Columns:
   - name: Name
   - status: Status

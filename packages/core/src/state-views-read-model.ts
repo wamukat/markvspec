@@ -2,6 +2,7 @@ import { actionAppliesToState } from "./action-applicability.js";
 import { resolveLayoutGroupsForViewport } from "./layout-resolution.js";
 import { aliasForModelPath, sourcePathKey } from "./model-paths.js";
 import { stateViewLayoutSignature } from "./state-view-signatures.js";
+import { sourceTypeForElement } from "./source-types.js";
 import type { MarkVSpecParseResult } from "./types.js";
 
 export interface FocusScope {
@@ -886,32 +887,41 @@ function displayContentSpecRows(
     const rows: DisplayContentSpecRow[] = [];
     const displaySource = properties["src"];
     const displaySample = properties["sample"] ?? modelSampleValueForSource(rawStringProperty(displaySource), result, stateName);
+    const sourceType = sourceTypeForElement(element);
     if (element.type === "Table") {
-      pushDisplayPropertyRow(rows, element, "table rows", "see wireframe", properties["source"]);
+      pushDisplayPropertyRow(rows, element, "table rows", "see wireframe", sourceType);
+      pushDisplayPropertyRow(rows, element, "rows", properties["rows"], sourceType);
       for (const column of element.tableColumns) {
-        pushDisplayPropertyRow(rows, element, `column: ${column.label}`, column.label, column.source);
+        pushDisplayPropertyRow(rows, element, `column: ${column.label}`, column.label, sourceType);
+        pushDisplayPropertyRow(rows, element, `column source: ${column.label}`, column.source, sourceType);
       }
     }
-    pushDisplayPropertyRow(rows, element, "label", properties["label"], properties["label src"]);
-    pushDisplayPropertyRow(rows, element, "placeholder", properties["placeholder"], properties["placeholder src"]);
-    pushDisplayPropertyRow(rows, element, "help", properties["help"], properties["help src"]);
-    pushDisplayPropertyRow(rows, element, "message", properties["message"], properties["message src"]);
-    pushDisplayPropertyRow(rows, element, "error text", properties["error text"]);
-    pushDisplayPropertyRow(rows, element, "sample", displaySample, displaySource, rawStringProperty(properties["format"]));
-    pushDisplayPropertyRow(rows, element, "value", displayValueProperty(element), displayValueSource(element), rawStringProperty(properties["format"]));
-    pushDisplayPropertyRow(rows, element, "content", properties["content"]);
-    pushDisplayPropertyRow(rows, element, "text", properties["text"]);
-    pushDisplayPropertyRow(rows, element, "title", properties["title"]);
-    pushDisplayPropertyRow(rows, element, "alt", properties["alt"]);
-    pushDisplayPropertyRow(rows, element, "name", properties["name"]);
-    pushDisplayPropertyRow(rows, element, "items", properties["items"]);
+    pushDisplayPropertyRow(rows, element, "label", properties["label"], sourceType);
+    pushDisplayPropertyRow(rows, element, "label src", properties["label src"], sourceType);
+    pushDisplayPropertyRow(rows, element, "placeholder", properties["placeholder"], sourceType);
+    pushDisplayPropertyRow(rows, element, "placeholder src", properties["placeholder src"], sourceType);
+    pushDisplayPropertyRow(rows, element, "help", properties["help"], sourceType);
+    pushDisplayPropertyRow(rows, element, "help src", properties["help src"], sourceType);
+    pushDisplayPropertyRow(rows, element, "message", properties["message"], sourceType);
+    pushDisplayPropertyRow(rows, element, "message src", properties["message src"], sourceType);
+    pushDisplayPropertyRow(rows, element, "error text", properties["error text"], sourceType);
+    pushDisplayPropertyRow(rows, element, "sample", displaySample, sourceType, rawStringProperty(properties["format"]));
+    pushDisplayPropertyRow(rows, element, "src", displaySource, sourceType, rawStringProperty(properties["format"]));
+    pushDisplayPropertyRow(rows, element, "value", displayValueProperty(element), sourceType, rawStringProperty(properties["format"]));
+    pushDisplayPropertyRow(rows, element, "content", properties["content"], sourceType);
+    pushDisplayPropertyRow(rows, element, "text", properties["text"], sourceType);
+    pushDisplayPropertyRow(rows, element, "title", properties["title"], sourceType);
+    pushDisplayPropertyRow(rows, element, "alt", properties["alt"], sourceType);
+    pushDisplayPropertyRow(rows, element, "name", properties["name"], sourceType);
+    pushDisplayPropertyRow(rows, element, "items", properties["items"], sourceType);
     for (const option of element.selectOptions) {
       rows.push({
         element,
         location: "option label",
         value: option.label,
-        source: option.source
+        source: sourceType
       });
+      pushDisplayPropertyRow(rows, element, "option source", option.source, sourceType);
     }
     return rows;
   });

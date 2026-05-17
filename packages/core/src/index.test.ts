@@ -7786,7 +7786,7 @@ title: List Table
   assert.match(html, /<tbody><tr><td>Alice<\/td><td>Admin<\/td><\/tr><tr><td>Bob<\/td><td><\/td><\/tr><tr><td>Eve &lt;Root&gt;<\/td><td>Owner &amp; Admin<\/td><\/tr><\/tbody>/);
 });
 
-test("warns for unsupported compact Table columns and rows properties", () => {
+test("warns for unsupported compact Table columns and row sample shortcuts", () => {
   const source = `---
 id: SCR-USERS
 type: screen
@@ -7815,7 +7815,7 @@ title: Users
   const html = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true });
 
   assert(result.diagnostics.some((item) => item.message === "Element E-Users of type Table uses unsupported property columns."));
-  assert(result.diagnostics.some((item) => item.message === "Element E-Users of type Table uses unsupported property rows."));
+  assert(result.diagnostics.some((item) => item.message === "Element E-Users rows Alice|Admin; Bob|Viewer does not match any Model Samples path."));
   assert(result.diagnostics.some((item) => item.message === "Element E-UsersTypo of type Table uses unsupported property Columns."));
   assert(result.diagnostics.some((item) => item.message === "Element E-UsersTypo of type Table uses unsupported property Sample Rows."));
   assert.doesNotMatch(html, /<th>Name<\/th>/);
@@ -9301,7 +9301,8 @@ default-state: idle
 ### 1:E-UsersTable Table
 
 - label: Users
-- source: \${model.users.items}
+- rows: \${model.users.items}
+- source: data
 - Columns:
   - name: Name
     sortable: true
@@ -9403,7 +9404,8 @@ default-state: idle
 ### E-UsersTable Table
 
 - label: Users
-- source: \${model.users.items}
+- rows: \${model.users.items}
+- source: data
 - Columns:
   - Name: \${model.user.name}
   - Role: \${model.user.role}
@@ -9427,7 +9429,7 @@ default-state: idle
   assert.match(html, /<tbody><tr><td>Taylor Stone<\/td><td>Administrator<\/td><\/tr><tr><td>Riley Chen<\/td><td>Member<\/td><\/tr><\/tbody>/);
 });
 
-test("warns for invalid Table source and sort metadata", () => {
+test("warns for invalid Table rows and sort metadata", () => {
   const source = `---
 id: SCR-BAD-TABLE
 type: screen
@@ -9445,7 +9447,8 @@ default-state: idle
 
 ### E-UsersTable Table
 
-- source: \${model.users.missing}
+- rows: \${model.users.missing}
+- source: data
 - Columns:
   - name: Name
     sortable: yes
@@ -9465,11 +9468,143 @@ default-state: idle
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Element E-UsersTable source \${model.users.missing} does not match any Model Samples path."));
+  assert(messages.includes("Element E-UsersTable rows \${model.users.missing} does not match any Model Samples path."));
   assert(messages.includes("Element E-UsersTable table column Name sortable must be true or false."));
   assert(messages.includes("Element E-UsersTable table column Name sort must be asc or desc."));
   assert(messages.includes("Element E-UsersTable table column Role sortable must be true or false."));
   assert(messages.includes("Element E-UsersTable table column Role sort must be asc or desc."));
+});
+
+test("validates element source types", () => {
+  const source = `---
+id: SCR-SOURCE-TYPES
+type: screen
+title: Source Types
+---
+
+# SCR-SOURCE-TYPES Source Types
+
+## Elements
+
+### E-Unsupported Text
+
+- value: Unsupported
+- source: cms
+
+### E-Document Text
+
+- value: Document
+- source: document
+
+### E-OldSource Text
+
+- value: Old
+- source: \${model.old.value}
+
+### E-ElementMissingValue Text
+
+- source: element
+
+### E-ElementMissingTarget Text
+
+- value: E-Missing.value
+- source: element
+
+### E-ExplicitFixed Text
+
+- value: Fixed
+- source: fixed
+`;
+  const result = parseMarkVSpec(source);
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert(messages.includes("Element E-Unsupported source must be one of fixed, i18n, data, route, element, asset, external, computed."));
+  assert(messages.includes("Element E-Document source document is not supported. Use fixed for document-authored content."));
+  assert(messages.includes("Element E-OldSource source must be a source type, not a reference expression. Use rows, src, value, or another property for \${model.old.value}."));
+  assert(messages.includes("Element E-ElementMissingValue source element requires value: E-*.value."));
+  assert(messages.includes("Element E-ElementMissingTarget value references missing element E-Missing."));
+  assert(!messages.some((message) => message.includes("E-ExplicitFixed")));
+});
+
+test("renders source element values from model samples and initial values", () => {
+  const source = `---
+id: SCR-ELEMENT-SOURCE
+type: screen
+title: Element Source
+default-state: loaded
+---
+
+# SCR-ELEMENT-SOURCE Element Source
+
+## States
+
+- loaded*
+
+## Elements
+
+### E-EmailInput Input
+
+- value: \${model.email}
+- source: data
+
+### E-EmailPreview Text
+
+- value: E-EmailInput.value
+- source: element
+
+### E-NameInput Input
+
+- value: \${model.name}
+- initial value: Fallback Name
+- source: data
+
+### E-NamePreview Text
+
+- value: E-NameInput.value
+- source: element
+
+## Model Samples
+
+### loaded
+
+#### \${model}
+
+- email: member@example.com
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderMarkVSpecHtml(result, { includeStyles: false });
+
+  assert.equal(result.diagnostics.length, 0);
+  assert.match(html, /member@example\.com/);
+  assert.match(html, /Fallback Name/);
+});
+
+test("diagnoses circular source element values", () => {
+  const source = `---
+id: SCR-ELEMENT-SOURCE-CYCLE
+type: screen
+title: Element Source Cycle
+---
+
+# SCR-ELEMENT-SOURCE-CYCLE Element Source Cycle
+
+## Elements
+
+### E-First Text
+
+- value: E-Second.value
+- source: element
+
+### E-Second Text
+
+- value: E-First.value
+- source: element
+`;
+  const result = parseMarkVSpec(source);
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert(messages.includes("Element E-First source element has circular value reference: E-First -> E-Second -> E-First."));
+  assert(messages.includes("Element E-Second source element has circular value reference: E-Second -> E-First -> E-Second."));
 });
 
 test("warns when opaque model expression sources miss sample columns", () => {
