@@ -102,6 +102,7 @@ export type MessageKey =
   | "modelSamples"
   | "modelUpdates"
   | "name"
+  | "navigation"
   | "noSampleFieldsDefined"
   | "noVisibleElements"
   | "notPlacedInCurrentLayout"
@@ -187,6 +188,7 @@ export type MessageKey =
   | "slots"
   | "src"
   | "state"
+  | "stateChanges"
   | "stateDescriptions"
   | "stateFlow"
   | "stateTransitionAxisDescription"
@@ -325,6 +327,7 @@ const en: Record<MessageKey, string> = {
   modelSamples: "Model Samples",
   modelUpdates: "Model Updates",
   name: "Name",
+  navigation: "Navigation",
   noSampleFieldsDefined: "No sample fields defined",
   noVisibleElements: "No visible elements",
   notPlacedInCurrentLayout: "not placed in current layout",
@@ -410,6 +413,7 @@ const en: Record<MessageKey, string> = {
   slots: "Slots",
   src: "Source",
   state: "State",
+  stateChanges: "State Changes",
   stateDescriptions: "State Descriptions",
   stateFlow: "State Flow",
   stateTransitionAxisDescription: "Rows are From states; columns are To states.",
@@ -549,6 +553,7 @@ const ja: Record<MessageKey, string> = {
   modelSamples: "モデルサンプル",
   modelUpdates: "モデル更新処理",
   name: "名前",
+  navigation: "ナビゲーション",
   noSampleFieldsDefined: "サンプル項目が定義されていません",
   noVisibleElements: "表示される要素はありません",
   notPlacedInCurrentLayout: "現在のレイアウトに未配置",
@@ -634,6 +639,7 @@ const ja: Record<MessageKey, string> = {
   slots: "スロット",
   src: "参照元",
   state: "状態",
+  stateChanges: "状態変更",
   stateDescriptions: "状態説明",
   stateFlow: "状態遷移図",
   stateTransitionAxisDescription: "行は From 状態、列は To 状態です。",

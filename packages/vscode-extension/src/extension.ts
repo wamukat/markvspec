@@ -5182,7 +5182,8 @@ function renderActionDetail(
     ...renderActionCaseRows(result, action),
     [label(result, "partialUpdates"), renderActionPartialUpdates(result, action)],
     [label(result, "update"), renderUpdateEffect(result, action, true)],
-    [label(result, "transitions"), renderActionTransitionList(result, action)],
+    [label(result, "stateChanges"), renderActionStateChangeList(result, action)],
+    [label(result, "navigation"), renderActionNavigationList(result, action)],
     [label(result, "routeParameters"), renderRouteParams(result, action.routeParams, true)],
     [label(result, "notes"), renderEntityNotes(action.notes)]
   ].filter(([, value]) => value);
@@ -5492,18 +5493,49 @@ function renderOutcomeTransition(
   return outcome.to ? `${escapeHtml(label(result, "processEffect"))} ${renderTransitionEffect(result, outcome.to)}` : "";
 }
 
-function renderActionTransitionList(
+function renderActionStateChangeList(
   result: ReturnType<typeof parseMarkVSpec>,
   action: ReturnType<typeof parseMarkVSpec>["actions"][number]
 ): string {
-  if (action.transitions.length === 0) {
+  return renderActionTransitionDetails(result, action, action.transitions.filter((transition) => !isTerminalTransitionTarget(transition.to)), "state");
+}
+
+function renderActionNavigationList(
+  result: ReturnType<typeof parseMarkVSpec>,
+  action: ReturnType<typeof parseMarkVSpec>["actions"][number]
+): string {
+  return renderActionTransitionDetails(result, action, action.transitions.filter((transition) => isTerminalTransitionTarget(transition.to)), "navigation");
+}
+
+function renderActionTransitionDetails(
+  result: ReturnType<typeof parseMarkVSpec>,
+  action: ReturnType<typeof parseMarkVSpec>["actions"][number],
+  transitions: ReturnType<typeof parseMarkVSpec>["actions"][number]["transitions"],
+  kind: "state" | "navigation"
+): string {
+  if (transitions.length === 0) {
     return "";
   }
 
-  return `<ul>${sortActionTransitionsByState(result, action.transitions).map((transition) => {
-    const source = transition.result ? `${renderStateLabel(transition.from)}.${renderResultLabel(transition.result)}` : renderStateLabel(transition.from);
-    return `<li>${source} -> ${renderStateTransitionTarget(result, transition.to)}</li>`;
+  return `<ul class="spec-list">${sortActionTransitionsByState(result, transitions).map((transition) => {
+    const outcome = transition.result ? findActionOutcomeForTransition(action, transition) : undefined;
+    const params = kind === "navigation" ? renderActionNavigationParams(result, action, outcome) : "";
+    const details = [
+      `${label(result, "from")}: ${renderStateLabel(transition.from)}`,
+      transition.result ? `${label(result, "case")}: ${renderResultLabel(transition.result)}` : "",
+      `${label(result, "to")}: ${kind === "navigation" ? renderNavigationTarget(transition.to) : renderStateLabel(transition.to)}`,
+      params ? `${label(result, "params")}: ${params}` : ""
+    ].filter(Boolean);
+    return `<li>${details.join("; ")}</li>`;
   }).join("")}</ul>`;
+}
+
+function renderActionNavigationParams(
+  result: ReturnType<typeof parseMarkVSpec>,
+  action: ReturnType<typeof parseMarkVSpec>["actions"][number],
+  outcome: ReturnType<typeof parseMarkVSpec>["actions"][number]["outcomes"][number] | ReturnType<typeof parseMarkVSpec>["actions"][number]["processSteps"][number]["outcomes"][number] | undefined
+): string {
+  return renderRouteParams(result, [...action.routeParams, ...(outcome?.routeParams ?? [])], true);
 }
 
 function sortActionTransitionsByState(

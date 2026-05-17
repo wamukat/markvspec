@@ -344,7 +344,9 @@ test("renders generated design document sections without launching VS Code", () 
   const submitActionDetail = actionDetailsSection.match(/<article class="action-detail">\s*<h3 id="action-detail-A-SubmitLogin">[\s\S]*?<\/article>/)?.[0] ?? "";
   const responseActionDetail = actionDetailsSection.match(/<article class="action-detail">\s*<h3 id="action-detail-A-HandleLoginResponse">[\s\S]*?<\/article>/)?.[0] ?? "";
   assert.match(actionDetailsSection, new RegExp(`<h3 id="action-detail-A-SubmitLogin">${actionBadge("A1", "A-SubmitLogin", false)} Submit login</h3>`));
-  assert.match(actionDetailsSection, new RegExp(`<dt>Kind</dt>[\\s\\S]*<dt>Process</dt>[\\s\\S]*<dt>Transitions</dt>`));
+  assert.doesNotMatch(actionDetailsSection, /<dt>Transitions<\/dt>/);
+  assert.match(actionDetailsSection, new RegExp(`<dt>Kind</dt>[\\s\\S]*<dt>Process</dt>[\\s\\S]*<dt>State Changes</dt>`));
+  assert.match(responseActionDetail, /<dt>Navigation<\/dt>/);
   assert.doesNotMatch(submitActionDetail, /<dt>Request<\/dt>|<dt>Parameters<\/dt>/);
   assert.match(submitActionDetail, /<dt>Process<\/dt><dd>[\s\S]*Submit login[\s\S]*element[\s\S]*E-RequestErrorBanner/);
   assert.match(responseActionDetail, /<dt>Process<\/dt><dd>[\s\S]*Handle response[\s\S]*element[\s\S]*E-AuthErrorBanner/);
@@ -417,7 +419,6 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(desktopAuthErrorWireframe, />L3<\/code>/);
   assert.match(desktopAuthErrorWireframe, />9<\/code>/);
   const desktopWaitAuthSection = viewportStateSection(html, "authenticating", "desktop");
-  assert.doesNotMatch(desktopWaitAuthSection, /From:/);
   assert.match(desktopWaitAuthSection, /mm-repeated-badge/);
 });
 
@@ -777,28 +778,23 @@ default-state: loaded
   assert.match(loadingSection, new RegExp(`<li>${actionBadge("A2", "A-HandleLoadResponse")} Handle load response<span class="system-event-trigger">（Trigger: ${docLabel("A-StartLoad.P1.response", "trigger")}）</span></li>`));
   assert.match(loadingSection, new RegExp(`<li>${actionBadge("A3", "A-ResolveReady")} ${repeatedBadge()} Resolve ready<span class="system-event-trigger">（Trigger: ${docLabel("A-HandleLoadResponse.P1.response", "trigger")}）</span></li>`));
   assert.doesNotMatch(loadingSection.match(/<aside class="system-events-box">[\s\S]*?<\/aside>/)?.[0] ?? "", /From:/);
-  assert.doesNotMatch(loadingSection, /From:/);
   assert.match(loadingSection, new RegExp(`<td>${markerBadge("2", "element")}</td><td>${detailIdRef("E-Loading")}</td><td>Text</td>`));
   assert.doesNotMatch(loadingSection, new RegExp(`<td>${markerBadge("1", "element")}</td><td>${detailIdRef("E-Initializing")}</td><td>Text</td>`));
 
   const loadedSection = stateSection(html, "loaded");
   assert.doesNotMatch(loadedSection, /system-events-box/);
-  assert.doesNotMatch(loadedSection, /From:/);
   assert.match(loadedSection, new RegExp(`<td>${markerBadge("3", "element")}</td><td>${detailIdRef("E-Loaded")}</td><td>Text</td>`));
   assert.doesNotMatch(loadedSection, new RegExp(`<td>${markerBadge("2", "element")}</td><td>${detailIdRef("E-Loading")}</td><td>Text</td>`));
 
   const loadErrorSection = stateSection(html, "load-error");
-  assert.doesNotMatch(loadErrorSection, /From:/);
   assert.match(loadErrorSection, new RegExp(`<td>${markerBadge("4", "element")}</td><td>${detailIdRef("E-LoadError")}</td><td>Alert</td>`));
   assert.doesNotMatch(loadErrorSection, new RegExp(`<td>${markerBadge("2", "element")}</td><td>${detailIdRef("E-Loading")}</td><td>Text</td>`));
 
   const readySection = stateSection(html, "ready");
-  assert.doesNotMatch(readySection, /From:/);
   assert.match(readySection, new RegExp(`<td>${markerBadge("5", "element")}</td><td>${detailIdRef("E-Ready")}</td><td>Text</td>`));
   assert.doesNotMatch(readySection, new RegExp(`<td>${markerBadge("2", "element")}</td><td>${detailIdRef("E-Loading")}</td><td>Text</td>`));
 
   const readyAutoSection = stateSection(html, "ready-auto");
-  assert.doesNotMatch(readyAutoSection, /From:/);
   assert.match(readyAutoSection, new RegExp(`<td>${markerBadge("6", "element")}</td><td>${detailIdRef("E-ReadyAuto")}</td><td>Text</td>`));
   assert.doesNotMatch(readyAutoSection, new RegExp(`<td>${markerBadge("1", "element")}</td><td>${detailIdRef("E-Initializing")}</td><td>Text</td>`));
 });
@@ -6465,14 +6461,91 @@ locale: en
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
   const actionDetail = html.match(/<article class="action-detail">[\s\S]*?<h3 id="action-detail-A-Submit">[\s\S]*?<\/article>/)?.[0] ?? "";
-  const transitions = actionDetail.match(/<dt>Transitions<\/dt><dd><ul>([\s\S]*?)<\/ul><\/dd>/)?.[1] ?? "";
-  const idleSent = transitions.indexOf(`${docLabel("idle", "state")}.${docLabel("sent", "result")} -> ${docLabel("loading", "state")}`);
-  const idleFailed = transitions.indexOf(`${docLabel("idle", "state")}.${docLabel("failed", "result")} -> ${docLabel("error", "state")}`);
-  const errorRetry = transitions.indexOf(`${docLabel("error", "state")}.${docLabel("retry", "result")} -> ${docLabel("loading", "state")}`);
+  const stateChanges = actionDetail.match(/<dt>State Changes<\/dt><dd><ul class="spec-list">([\s\S]*?)<\/ul><\/dd>/)?.[1] ?? "";
+  const idleSent = stateChanges.indexOf(`From: ${docLabel("idle", "state")}; Case: ${docLabel("sent", "result")}; To: ${docLabel("loading", "state")}`);
+  const idleFailed = stateChanges.indexOf(`From: ${docLabel("idle", "state")}; Case: ${docLabel("failed", "result")}; To: ${docLabel("error", "state")}`);
+  const errorRetry = stateChanges.indexOf(`From: ${docLabel("error", "state")}; Case: ${docLabel("retry", "result")}; To: ${docLabel("loading", "state")}`);
 
   assert(idleSent >= 0);
   assert(idleFailed > idleSent);
   assert(errorRetry > idleFailed);
+  assert.doesNotMatch(actionDetail, /<dt>Transitions<\/dt>| -> /);
+});
+
+test("separates action detail state changes from navigation targets", () => {
+  const source = `---
+id: SCR-ACTION-DETAIL-NAVIGATION
+type: screen
+title: Action Detail Navigation
+locale: en
+---
+
+# SCR-ACTION-DETAIL-NAVIGATION Action Detail Navigation
+
+## States
+
+- idle*
+- loading
+- error
+
+## Elements
+
+### E-SubmitButton Button
+
+- label: Submit
+
+## Actions
+
+### A-Submit Submit
+
+- Triggered
+  - E-SubmitButton.click
+- From
+  - idle
+- Process P1: Immediate
+  - Effects
+    - state: loading
+- Process P2: Immediate
+  - case: success
+    - navigate: SCR-DONE
+    - params:
+      - userId: \${model.userId}
+  - case: failure
+    - state: error
+
+### A-ExternalHelp External help
+
+- Triggered
+  - E-SubmitButton.click
+- From
+  - idle
+- Process: Immediate
+  - Effects
+    - navigate: https://example.com/help
+
+### A-Settings Settings
+
+- Triggered
+  - E-SubmitButton.click
+- From
+  - idle
+- Process: Immediate
+  - Effects
+    - navigate: /settings
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
+  const submitDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Submit">[\s\S]*?<\/article>/)?.[0] ?? "";
+  const helpDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-ExternalHelp">[\s\S]*?<\/article>/)?.[0] ?? "";
+  const settingsDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Settings">[\s\S]*?<\/article>/)?.[0] ?? "";
+
+  assert.doesNotMatch(submitDetail, /<dt>Transitions<\/dt>|idle -&gt; SCR-DONE| -> /);
+  assert.match(submitDetail, new RegExp(`<dt>State Changes</dt><dd><ul class="spec-list">[\\s\\S]*From: ${docLabel("idle", "state")}; To: ${docLabel("loading", "state")}[\\s\\S]*From: ${docLabel("idle", "state")}; Case: ${docLabel("failure", "result")}; To: ${docLabel("error", "state")}`));
+  assert.match(submitDetail, new RegExp(`<dt>Navigation</dt><dd><ul class="spec-list">[\\s\\S]*From: ${docLabel("idle", "state")}; Case: ${docLabel("success", "result")}; To: ${documentRef("SCR-DONE")}; Params: <ul><li>userId: ${sourceCodePattern("${model.userId}")}</li></ul>`));
+  assert.doesNotMatch(helpDetail, /<dt>State Changes<\/dt>/);
+  assert.match(helpDetail, /<dt>Navigation<\/dt><dd><ul class="spec-list"><li>From: <code class="mm-doc-label mm-doc-label-state">idle<\/code>; To: https:\/\/example\.com\/help<\/li><\/ul><\/dd>/);
+  assert.doesNotMatch(settingsDetail, /<dt>State Changes<\/dt>/);
+  assert.match(settingsDetail, /<dt>Navigation<\/dt><dd><ul class="spec-list"><li>From: <code class="mm-doc-label mm-doc-label-state">idle<\/code>; To: \/settings<\/li><\/ul><\/dd>/);
 });
 
 test("groups element details by behavior in the generated design document", () => {
