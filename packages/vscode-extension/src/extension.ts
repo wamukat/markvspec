@@ -5472,10 +5472,10 @@ function renderProcessStepCases(
       outcome.errorCodes.length ? `${escapeHtml(label(result, "errorCodes"))} ${renderDetailReferences(result, outcome.errorCodes)}` : "",
       outcome.routeParams.length ? `${label(result, "routeParameters")} ${renderRouteParams(result, outcome.routeParams, true)}` : "",
       renderOutcomeTransition(result, outcome),
-      outcome.flow === "stop" ? escapeHtml(label(result, "processStop")) : "",
-      outcome.flow === "continue" ? escapeHtml(label(result, "processContinue")) : "",
       outcome.display ? `${escapeHtml(label(result, "processDisplay"))} ${renderDisplayEffect(result, outcome.display, true)}` : "",
-      update ? `${escapeHtml(label(result, "processUpdate"))} ${update}` : ""
+      update ? `${escapeHtml(label(result, "processUpdate"))} ${update}` : "",
+      outcome.flow === "stop" ? escapeHtml(label(result, "processStop")) : "",
+      outcome.flow === "continue" ? escapeHtml(label(result, "processContinue")) : ""
     ].filter(Boolean);
     return `<li><strong>${renderResultLabel(outcome.result)}</strong>${details.length > 0 ? `<ul>${details.map((detail) => `<li>${detail}</li>`).join("")}</ul>` : ""}</li>`;
   }).join("")}</ul>`;

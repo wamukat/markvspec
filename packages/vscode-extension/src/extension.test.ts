@@ -5734,6 +5734,16 @@ title: Multi Request
   assert.doesNotMatch(actionDetail, /<active>/);
 });
 
+test("renders process control at the end of process cases", () => {
+  const source = readFileSync(resolve("../../examples/04-real-world-screens/profile-edit-rich.vspec.md"), "utf8");
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-RequestDiscardDialog">[\s\S]*?<\/article>/)?.[0] ?? "";
+
+  assert.match(actionDetail, new RegExp(`<strong>${docLabel("done", "result")}</strong>[\\s\\S]*<li>display <ul class="spec-list spec-effect-list"><li>modal overlay</li><li>element ${detailElementRef("20", "E-DiscardDialog")}</li></ul></li><li>stop process</li>`));
+  assert.doesNotMatch(actionDetail, /<strong><code class="mm-doc-label mm-doc-label-result">done<\/code><\/strong>[\s\S]*<li>stop process<\/li><li>display /);
+});
+
 test("renders direct immediate process effects in action details", () => {
   const source = `---
 id: SCR-DIRECT-PROCESS
@@ -5865,8 +5875,10 @@ locale: ja
   assert.match(actionDetail, /レスポンス 200 loaded/);
   assert.match(actionDetail, /表示 [\s\S]*要素 [\s\S]*E-Message/);
   assert.match(actionDetail, /処理を継続/);
+  assert.match(actionDetail, /<strong><code class="mm-doc-label mm-doc-label-result">success<\/code><\/strong>[\s\S]*<li>表示 [\s\S]*E-Message[\s\S]*<\/li><li>処理を継続<\/li>/);
   assert.match(actionDetail, /効果 状態更新/);
   assert.match(actionDetail, /処理を停止/);
+  assert.match(actionDetail, /<strong><code class="mm-doc-label mm-doc-label-result">ready<\/code><\/strong>[\s\S]*<li>効果 状態更新[\s\S]*<\/li><li>処理を停止<\/li>/);
   assert.match(actionDetail, /効果 画面遷移/);
   assert.match(actionDetail, /表示 [\s\S]*トースト表示領域[\s\S]*要素 [\s\S]*E-SavedToast/);
   assert.doesNotMatch(actionDetail, /effect set state|stop process|continue process|navigate to|Parallel group:|skip when|modal overlay/);
