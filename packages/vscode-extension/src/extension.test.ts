@@ -7041,8 +7041,11 @@ viewport: mobile
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
+  const elementSummary = html.match(/<h6 class="state-screen-detail-heading">Element Summary<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
 
   assert.match(html, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>/);
+  assert.match(elementSummary, new RegExp(`<td>${detailElementRef("E-状態バッジ", "E-状態バッジ")}</td><td>Badge</td>`));
+  assert.doesNotMatch(elementSummary, /<span class="mm-chip mm-chip-type">Badge<\/span>/);
   assert.match(html, new RegExp(`<td>${detailElementRef("E-ロール選択", "E-ロール選択")}</td><td>Select</td><td>no</td><td>${specSectionPattern("initial", ["Viewer"])}${specSectionPattern("Source", [sourceCodePattern("${model.role}")])}</td><td>${specSectionPattern("Input", [`Options: Viewer \\(${sourceCodePattern("${i18n.roles.viewer}")}\\), Administrator \\(${sourceCodePattern("${i18n.roles.administrator}")}\\)`])}</td><td>always</td><td>always</td>`));
   assert.match(html, new RegExp(`<td>${detailElementRef("E-StartDate", "E-StartDate")}</td><td>DatePicker</td><td>no</td><td>${specSectionPattern("Source", [sourceCodePattern("${model.startDate}")])}</td><td>${specSectionPattern("Constraints", ["min: 2020-01-01", "max: 2030-12-31"])}</td><td>always</td><td><ul class="spec-list"><li>enabled: not ${sourceCodePattern("${model.readonly}")}</li></ul></td>`));
   assert.match(html, new RegExp(`<td>${detailElementRef("E-EndDate", "E-EndDate")}</td><td>DateInput</td><td>yes</td><td>${specSectionPattern("initial", ["2026-05-02"])}${specSectionPattern("Source", [sourceCodePattern("${model.endDate}")])}</td><td>${specSectionPattern("Constraints", ["min: 2020-01-01", "max: 2030-12-31"])}</td><td>always</td><td>always</td>`));

@@ -6204,7 +6204,7 @@ function renderElementDescription(element: ReturnType<typeof parseMarkVSpec>["el
 }
 
 function renderElementTypeSummary(element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
-  return element.type === "Badge" ? renderSemanticChip(element.type, undefined, "type") : text(element.type);
+  return text(element.type);
 }
 
 function renderElementDisplayName(
