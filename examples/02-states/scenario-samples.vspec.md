@@ -4,7 +4,6 @@ type: screen
 title: Scenario Samples
 route: /scenario-samples
 locale: en
-viewport: desktop
 ---
 
 # SCR-SCENARIO-SAMPLES Scenario Samples

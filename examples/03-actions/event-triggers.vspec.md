@@ -4,7 +4,6 @@ type: screen
 title: Event Triggers
 route: /preferences/events
 locale: en
-viewport: desktop
 ---
 
 # SCR-EVENT-TRIGGERS Event Triggers

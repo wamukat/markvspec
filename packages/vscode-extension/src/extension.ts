@@ -1073,13 +1073,13 @@ function createMissingTriggerAction(document: vscode.TextDocument, diagnostic: v
 }
 
 function createLayoutViewportAction(document: vscode.TextDocument, diagnostic: vscode.Diagnostic): vscode.CodeAction | undefined {
-  const viewport = parseFrontMatterViewport(document.getText());
-  if (!viewport) {
+  const line = diagnostic.range.start.line;
+  if (document.lineAt(line).text.trim() !== "## Layout") {
     return undefined;
   }
 
-  const line = diagnostic.range.start.line;
-  if (document.lineAt(line).text.trim() !== "## Layout") {
+  const viewport = inferLayoutViewportCandidate(document, line);
+  if (!viewport) {
     return undefined;
   }
 
@@ -1276,33 +1276,19 @@ function formatMarkerPrefix(marker: string | true | undefined): string {
   return typeof marker === "string" && marker ? `${marker}:` : "";
 }
 
-function parseFrontMatterViewport(source: string): string | undefined {
-  const lines = source.split(/\r?\n/);
-  if (lines[0] !== "---") {
-    return undefined;
-  }
-
-  for (let index = 1; index < lines.length; index += 1) {
-    const line = lines[index];
-    if (line === "---") {
-      return undefined;
+function inferLayoutViewportCandidate(document: vscode.TextDocument, bareLayoutLine: number): string | undefined {
+  const viewports = new Set<string>();
+  for (let line = 0; line < document.lineCount; line += 1) {
+    if (line === bareLayoutLine) {
+      continue;
     }
-
-    const match = /^viewport:\s*(.+?)\s*$/.exec(line);
+    const match = /^##\s+Layout:\s*(.+?)\s*$/.exec(document.lineAt(line).text);
     if (match) {
-      return unquoteYamlScalar(match[1].trim());
+      viewports.add(match[1].trim());
     }
   }
 
-  return undefined;
-}
-
-function unquoteYamlScalar(value: string): string {
-  if ((value.startsWith("\"") && value.endsWith("\"")) || (value.startsWith("'") && value.endsWith("'"))) {
-    return value.slice(1, -1);
-  }
-
-  return value;
+  return viewports.size === 1 ? [...viewports][0] : undefined;
 }
 
 function escapeRegExpForPattern(value: string): string {
@@ -3964,8 +3950,7 @@ function renderScreenSpec(result: ReturnType<typeof parseMarkVSpec>): string {
   const heading = screen.type === "template" ? label(result, "template") : screen.type === "partial" ? label(result, "partial") : label(result, "screen");
   const title = screen.title || screen.heading || screen.id || "";
   const facts = ([
-    [label(result, "route"), screen.route ?? ""],
-    [label(result, "viewport"), screen.viewport ?? ""]
+    [label(result, "route"), screen.route ?? ""]
   ] satisfies Array<[string, string]>).filter(([, value]) => value.trim().length > 0);
   const references = renderScreenReferences(result);
   const otherMetadata = renderScreenOtherMetadata(result);

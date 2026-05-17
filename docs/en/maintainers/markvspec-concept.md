@@ -44,7 +44,6 @@ id: SCR-LOGIN
 type: screen
 title: Login
 route: /login
-viewport: mobile
 ---
 
 # SCR-LOGIN Login

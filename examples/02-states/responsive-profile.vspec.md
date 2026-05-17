@@ -4,7 +4,6 @@ type: screen
 title: Responsive Profile
 route: /profile
 locale: en
-viewport: mobile
 ---
 
 # SCR-RESPONSIVE-PROFILE Responsive Profile

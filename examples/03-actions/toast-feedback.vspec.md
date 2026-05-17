@@ -4,7 +4,6 @@ type: screen
 title: Toast Feedback
 route: /settings/toast-feedback
 locale: en
-viewport: desktop
 ---
 
 # SCR-TOAST-FEEDBACK Toast Feedback

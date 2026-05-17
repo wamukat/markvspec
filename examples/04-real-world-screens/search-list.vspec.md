@@ -4,7 +4,6 @@ type: screen
 title: Search List
 route: /users
 locale: en
-viewport: desktop
 ---
 
 # SCR-USERS Search List

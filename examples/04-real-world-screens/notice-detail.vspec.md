@@ -4,7 +4,6 @@ type: screen
 title: Notice Detail
 route: /notices/:noticeId
 locale: en
-viewport: desktop
 ---
 
 # SCR-NOTICE-DETAIL Notice Detail

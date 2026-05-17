@@ -127,7 +127,6 @@ test("keeps State Views prose lookup separate from spec fragment rendering", () 
 id: SCR-STATE-VIEWS-PROSE
 type: screen
 title: State Views Prose
-viewport: mobile
 ---
 
 # SCR-STATE-VIEWS-PROSE State Views Prose
@@ -198,7 +197,6 @@ test("renders preview scenario display effects and scenario titles", () => {
 id: SCR-SCENARIO-DISPLAY
 type: screen
 title: Scenario Display
-viewport: mobile
 ---
 # SCR-SCENARIO-DISPLAY Scenario Display
 
@@ -328,7 +326,6 @@ test("renders preview scenario field error display messages near inputs", () => 
 id: SCR-FIELD-ERROR-PREVIEW
 type: screen
 title: Field Error Preview
-viewport: mobile
 ---
 # SCR-FIELD-ERROR-PREVIEW Field Error Preview
 
@@ -425,7 +422,6 @@ test("renders preview scenario cross-field display messages with explanations", 
 id: SCR-CROSS-FIELD-PREVIEW
 type: screen
 title: Cross-field Preview
-viewport: mobile
 ---
 # SCR-CROSS-FIELD-PREVIEW Cross-field Preview
 
@@ -534,11 +530,11 @@ viewport: mobile
   const wireframe = stateWireframeSection(scenarioSection);
 
   assert.deepEqual(result.diagnostics, []);
-  assert.match(wireframe, /data-mm-render-key="layout:mobile:L-MessageArea"[\s\S]*<div class="mm-display-message" data-mm-display-source="V-LoginFormRequired"><code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="V-LoginFormRequired">V2<\/code>Email and password are required\.<\/div>/);
+  assert.match(wireframe, /data-mm-render-key="layout:desktop:L-MessageArea"[\s\S]*<div class="mm-display-message" data-mm-display-source="V-LoginFormRequired"><code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="V-LoginFormRequired">V2<\/code>Email and password are required\.<\/div>/);
   assert.doesNotMatch(scenarioSection, /Displayed messages/);
   const displayUpdates = scenarioSection.match(/<aside class="display-explanations-box display-updates-box">[\s\S]*?<\/aside>/)?.[0] ?? "";
-  assert.match(displayUpdates, new RegExp(`${refActionChip("A-Submit", "A-Submit", "Submit")}[\\s\\S]*P1\\.invalid[\\s\\S]*${detailLayoutRef("MSG", "Mobile message area")}[\\s\\S]*receives[\\s\\S]*${refMessageChip("V2", "V-LoginFormRequired", "Login form required")}<span class="display-update-suffix">\\.messages</span>`));
-  assert.doesNotMatch(displayUpdates, /Desktop message area/);
+  assert.match(displayUpdates, new RegExp(`${refActionChip("A-Submit", "A-Submit", "Submit")}[\\s\\S]*P1\\.invalid[\\s\\S]*${detailLayoutRef("MSG", "Desktop message area")}[\\s\\S]*receives[\\s\\S]*${refMessageChip("V2", "V-LoginFormRequired", "Login form required")}<span class="display-update-suffix">\\.messages</span>`));
+  assert.doesNotMatch(displayUpdates, /Mobile message area/);
 });
 
 test("renders business rule display message markers in scenario wireframes and action details", () => {
@@ -546,7 +542,6 @@ test("renders business rule display message markers in scenario wireframes and a
 id: SCR-BUSINESS-RULE-DISPLAY
 type: screen
 title: Business Rule Display
-viewport: mobile
 ---
 # SCR-BUSINESS-RULE-DISPLAY Business Rule Display
 
@@ -633,7 +628,6 @@ test("shows subsequent viewport initial state as current state with repeated row
 id: SCR-RESPONSIVE-DIFF
 type: screen
 title: Responsive Diff
-viewport: mobile
 ---
 
 # SCR-RESPONSIVE-DIFF Responsive Diff
@@ -711,7 +705,6 @@ test("deduplicates repeated current state specs across viewports", () => {
 id: SCR-RESPONSIVE-STATE-DEDUP
 type: screen
 title: Responsive State Dedup
-viewport: mobile
 ---
 
 # SCR-RESPONSIVE-STATE-DEDUP Responsive State Dedup
@@ -805,7 +798,6 @@ test("deduplicates repeated current state specs across later states in the same 
 id: SCR-SAME-VIEWPORT-STATE-DEDUP
 type: screen
 title: Same Viewport State Dedup
-viewport: mobile
 ---
 
 # SCR-SAME-VIEWPORT-STATE-DEDUP Same Viewport State Dedup
@@ -859,7 +851,6 @@ test("marks all-repeated state view spec fragments empty when repeated rows are 
 id: SCR-ALL-REPEATED-STATE-SPECS
 type: screen
 title: All Repeated State Specs
-viewport: mobile
 ---
 
 # SCR-ALL-REPEATED-STATE-SPECS All Repeated State Specs
@@ -987,7 +978,6 @@ test("computes repeated hidden empty flags from the rendered spec result", () =>
 id: SCR-SPEC-ONLY
 type: screen
 title: Spec Only
-viewport: mobile
 ---
 
 # SCR-SPEC-ONLY Spec Only
@@ -1000,7 +990,6 @@ viewport: mobile
 id: SCR-WIREFRAME
 type: screen
 title: Wireframe
-viewport: mobile
 ---
 
 # SCR-WIREFRAME Wireframe
@@ -1053,7 +1042,6 @@ test("does not treat empty state detail categories as repeated content", () => {
 id: SCR-EMPTY-DETAIL-CATEGORIES
 type: screen
 title: Empty Detail Categories
-viewport: mobile
 ---
 
 # SCR-EMPTY-DETAIL-CATEGORIES Empty Detail Categories
@@ -1110,7 +1098,6 @@ test("marks repeated system events in state screens without DOM emptiness infere
 id: SCR-REPEATED-SYSTEM-EVENTS
 type: screen
 title: Repeated System Events
-viewport: mobile
 ---
 
 # SCR-REPEATED-SYSTEM-EVENTS Repeated System Events
@@ -1164,7 +1151,6 @@ test("uses explicit From states for system event relevance", () => {
 id: SCR-SYSTEM-EVENT-FROM
 type: screen
 title: System Event From
-viewport: mobile
 ---
 
 # SCR-SYSTEM-EVENT-FROM System Event From
@@ -1225,7 +1211,6 @@ test("excludes hidden viewport-specific element triggers from system events", ()
 id: SCR-HIDDEN-ELEMENT-TRIGGER
 type: screen
 title: Hidden Element Trigger
-viewport: mobile
 ---
 
 # SCR-HIDDEN-ELEMENT-TRIGGER Hidden Element Trigger
@@ -1308,7 +1293,6 @@ test("marks repeated system events from later current states", () => {
 id: SCR-REPEATED-DIFF-SYSTEM-EVENTS
 type: screen
 title: Repeated Diff System Events
-viewport: mobile
 ---
 
 # SCR-REPEATED-DIFF-SYSTEM-EVENTS Repeated Diff System Events
@@ -1393,7 +1377,6 @@ test("keeps viewport-specific current layouts after cross-viewport dedupe", () =
 id: SCR-RESPONSIVE-REMOVED-LAYOUT
 type: screen
 title: Responsive Removed Layout
-viewport: mobile
 ---
 
 # SCR-RESPONSIVE-REMOVED-LAYOUT Responsive Removed Layout
@@ -1489,7 +1472,6 @@ test("limits State Views layout signatures to state-view-affecting properties an
 id: SCR-LAYOUT-SIGNATURE
 type: screen
 title: Layout Signature
-viewport: mobile
 ---
 
 # SCR-LAYOUT-SIGNATURE Layout Signature

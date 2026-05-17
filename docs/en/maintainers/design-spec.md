@@ -83,7 +83,6 @@ id: SCR-LOGIN
 type: screen
 title: Login
 route: /login
-viewport: mobile
 default-state: idle
 ---
 ```
@@ -606,7 +605,6 @@ id: SCR-LOGIN
 type: screen
 title: Login
 route: /login
-viewport: mobile
 ---
 
 # SCR-LOGIN Login

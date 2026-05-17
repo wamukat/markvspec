@@ -4,7 +4,6 @@ type: screen
 title: Hello Screen
 route: /hello
 locale: en
-viewport: mobile
 ---
 
 # SCR-HELLO Hello Screen

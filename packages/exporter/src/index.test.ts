@@ -586,7 +586,6 @@ function responsiveScreen(): string {
 id: SCR-RESPONSIVE
 type: screen
 title: Responsive
-viewport: mobile
 ---
 
 # SCR-RESPONSIVE Responsive

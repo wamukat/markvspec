@@ -701,7 +701,6 @@ test("limits State Views layout signatures to state-view-affecting properties in
 id: SCR-LAYOUT-SIGNATURE
 type: screen
 title: Layout Signature
-viewport: mobile
 ---
 
 # SCR-LAYOUT-SIGNATURE Layout Signature
@@ -1458,7 +1457,6 @@ test("preserves entity-level supplemental notes", () => {
 id: SCR-ENTITY-NOTES
 type: screen
 title: Entity Notes
-viewport: mobile
 ---
 
 # SCR-ENTITY-NOTES Entity Notes
@@ -1524,7 +1522,6 @@ test("preserves markdown source in entity prose blocks", () => {
 id: SCR-MARKDOWN-PROSE
 type: screen
 title: Markdown Prose
-viewport: mobile
 ---
 
 # SCR-MARKDOWN-PROSE Markdown Prose
@@ -1578,7 +1575,6 @@ test("ignores standalone HTML comments in structured prose areas", () => {
 id: SCR-COMMENT-PROSE
 type: screen
 title: Comment Prose
-viewport: mobile
 ---
 
 # SCR-COMMENT-PROSE Comment Prose
@@ -1652,7 +1648,6 @@ test("unifies entity overview and notes across structured entity sections", () =
 id: SCR-ENTITY-PROSE
 type: screen
 title: Entity Prose
-viewport: mobile
 ---
 
 # SCR-ENTITY-PROSE Entity Prose
@@ -2693,7 +2688,6 @@ test("keeps nested layout depth styling in layout fragments", () => {
 id: SCR-NESTED-FRAGMENT
 type: screen
 title: Nested Fragment
-viewport: mobile
 ---
 
 # SCR-NESTED-FRAGMENT Nested Fragment
@@ -2773,24 +2767,27 @@ screens:
   assert.deepEqual(result.diagnostics, []);
 });
 
-test("warns and ignores removed Front Matter owner and status metadata", () => {
+test("warns and ignores removed Front Matter owner, status, and viewport metadata", () => {
   const source = `---
 id: SCR-REMOVED-META
 type: screen
 title: Removed Metadata
 owner: docs
 status: draft
+viewport: mobile
 ---
 
 # SCR-REMOVED-META Removed Metadata
 `;
   const result = parseMarkVSpec(source);
 
+  assert.equal((result.screen as { viewport?: unknown }).viewport, undefined);
   assert.deepEqual(
     result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
     [
       ["warning", "Front Matter field owner is no longer canonical and is ignored.", 1],
-      ["warning", "Front Matter field status is no longer canonical and is ignored.", 1]
+      ["warning", "Front Matter field status is no longer canonical and is ignored.", 1],
+      ["warning", "Front Matter field viewport is no longer canonical and is ignored.", 1]
     ]
   );
 });
@@ -3178,7 +3175,6 @@ screens:
 id: TPL-MYPAGE-SHELL
 type: template
 title: My Page Shell
-viewport: desktop
 ---
 
 # TPL-MYPAGE-SHELL My Page Shell
@@ -3263,7 +3259,6 @@ screens:
 id: TPL-MYPAGE-SHELL
 type: template
 title: My Page Shell
-viewport: desktop
 ---
 
 # TPL-MYPAGE-SHELL My Page Shell
@@ -4092,7 +4087,6 @@ test("renders template slots standalone and composes screen slot content", () =>
 id: TPL-MYPAGE-SHELL
 type: template
 title: マイページ共通レイアウト
-viewport: desktop
 ---
 
 # TPL-MYPAGE-SHELL マイページ共通レイアウト
@@ -4363,7 +4357,6 @@ test("counts slot content depth from the template insertion point", () => {
 id: TPL-NESTED-SHELL
 type: template
 title: Nested Shell
-viewport: desktop
 ---
 
 # TPL-NESTED-SHELL Nested Shell
@@ -4426,7 +4419,6 @@ test("skips slot content fragments for multiple template insertion points", () =
 id: TPL-MULTI-SLOT
 type: template
 title: Multi Slot
-viewport: desktop
 ---
 
 # TPL-MULTI-SLOT Multi Slot
@@ -4522,7 +4514,6 @@ test("renders viewport-specific slot content with common fallback", () => {
 id: TPL-RESPONSIVE-SHELL
 type: template
 title: Responsive Shell
-viewport: mobile
 ---
 
 # TPL-RESPONSIVE-SHELL Responsive Shell
@@ -7448,7 +7439,6 @@ test("keeps FormGroup markers in layout fragments", () => {
 id: SCR-FORMGROUP-FRAGMENT
 type: screen
 title: FormGroup Fragment
-viewport: mobile
 ---
 
 # SCR-FORMGROUP-FRAGMENT FormGroup Fragment
@@ -7537,7 +7527,6 @@ id: SCR-EMPTY-WIREFRAME
 type: screen
 title: Empty Wireframe
 locale: ja
-viewport: desktop
 ---
 
 # SCR-EMPTY-WIREFRAME Empty Wireframe
@@ -8373,7 +8362,6 @@ test("renders presentation panels without layout chrome or markers", () => {
 id: SCR-PRESENTATION-PANEL
 type: screen
 title: Presentation Panel
-viewport: mobile
 ---
 
 # SCR-PRESENTATION-PANEL Presentation Panel
@@ -8428,7 +8416,6 @@ test("rejects semantic controls on presentation panels", () => {
 id: SCR-BAD-PRESENTATION-PANEL
 type: screen
 title: Bad Presentation Panel
-viewport: mobile
 ---
 
 # SCR-BAD-PRESENTATION-PANEL Bad Presentation Panel
@@ -8559,7 +8546,6 @@ test("keeps mobile row fields within the viewport", () => {
 id: SCR-MOBILE-FIELD
 type: screen
 title: Mobile Field
-viewport: mobile
 ---
 
 # SCR-MOBILE-FIELD Mobile Field
@@ -8614,7 +8600,6 @@ test("renders semantic input widths and button sizes", () => {
 id: SCR-FORM-SIZING
 type: screen
 title: Form Sizing
-viewport: desktop
 ---
 
 # SCR-FORM-SIZING Form Sizing
@@ -11878,7 +11863,6 @@ id: SCR-DIAG-I18N
 type: screen
 title: Diagnostic i18n
 locale: ja
-viewport: mobile
 ---
 
 # SCR-DIAG-I18N Diagnostic i18n

@@ -4,7 +4,6 @@ type: screen
 title: Parallel Initial Load
 route: /dashboard
 locale: en
-viewport: desktop
 ---
 
 # SCR-PARALLEL-INITIAL-LOAD Parallel Initial Load

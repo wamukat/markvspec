@@ -748,9 +748,6 @@ function resolvePreviewViewport(result: MarkVSpecParseResult, requestedViewport:
   if (requestedViewport && viewports.includes(requestedViewport)) {
     return requestedViewport;
   }
-  if (result.screen.viewport && viewports.includes(result.screen.viewport)) {
-    return result.screen.viewport;
-  }
   return viewports[0];
 }
 

@@ -4,7 +4,6 @@ type: screen
 title: Async Loading
 route: /async-loading
 locale: en
-viewport: mobile
 ---
 
 # SCR-ASYNC-LOADING Async Loading

@@ -243,10 +243,6 @@ function resolveViewport(result: MarkVSpecParseResult, requestedViewport: string
     return requestedViewport;
   }
 
-  if (result.screen.viewport && viewports.includes(result.screen.viewport)) {
-    return result.screen.viewport;
-  }
-
   return viewports[0];
 }
 

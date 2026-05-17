@@ -324,7 +324,7 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(html, /<div class="screen-title">Login<\/div>/);
   assert.match(html, /<h3>Basic Info<\/h3>/);
   assert.match(html, /<dt>Route<\/dt><dd>\/login<\/dd>/);
-  assert.match(html, /<dt>Viewport<\/dt><dd>mobile<\/dd>/);
+  assert.doesNotMatch(html, /<dt>Viewport<\/dt>/);
   const statesSection = docSectionByHeading(html, "States", "State Flow");
   const statesTable = statesSection.match(/<div class="spec-table-wrap"><table class="spec-table">[\s\S]*?<\/table><\/div>/)?.[0] ?? "";
   assert.match(statesTable, new RegExp(`<td>${docLabel("idle", "state")}</td><td>yes</td>`));
@@ -490,7 +490,6 @@ id: SCR-DIAG-I18N-PREVIEW
 type: screen
 title: Diagnostic i18n Preview
 locale: ja
-viewport: mobile
 ---
 
 # SCR-DIAG-I18N-PREVIEW Diagnostic i18n Preview
@@ -546,7 +545,6 @@ test("keeps presentation panels out of generated layout specs", () => {
 id: SCR-PRESENTATION
 type: screen
 title: Presentation Panel
-viewport: mobile
 locale: en
 ---
 
@@ -710,7 +708,6 @@ test("orders state previews from the initial state and renders current state spe
 id: SCR-STATE-VIEWS
 type: screen
 title: State Views
-viewport: mobile
 locale: en
 default-state: loaded
 ---
@@ -866,7 +863,6 @@ test("builds state screen read models for each current state", () => {
 id: SCR-STATE-READ-MODEL
 type: screen
 title: State Read Model
-viewport: mobile
 locale: en
 ---
 
@@ -947,7 +943,6 @@ id: SCR-CHANGED-DIFF
 type: screen
 title: Changed Diff
 locale: en
-viewport: mobile
 ---
 
 # SCR-CHANGED-DIFF Changed Diff
@@ -1037,7 +1032,6 @@ test("omits legacy state change sections while keeping current changed specs", (
 id: SCR-CHANGED-ONLY-SPECS
 type: screen
 title: Changed Only Specs
-viewport: mobile
 locale: en
 ---
 
@@ -1083,7 +1077,6 @@ test("renders state action availability as current actions without removed actio
 id: SCR-ACTION-AVAILABILITY
 type: screen
 title: Action Availability
-viewport: mobile
 locale: en
 ---
 
@@ -1153,7 +1146,6 @@ test("splits State Views layout properties into settings conditions items and no
 id: SCR-LAYOUT-SPEC-COLUMNS
 type: screen
 title: Layout Spec Columns
-viewport: mobile
 locale: en
 ---
 
@@ -1215,7 +1207,6 @@ test("renders State Views layout Marker/ID chips from the current viewport layou
 id: SCR-LAYOUT-REF-VIEWPORT
 type: screen
 title: Layout Ref Viewport
-viewport: mobile
 ---
 
 # SCR-LAYOUT-REF-VIEWPORT Layout Ref Viewport
@@ -1266,7 +1257,6 @@ test("does not reintroduce legacy diff badge class names", () => {
 id: SCR-REPEATED-BADGE-CLASS
 type: screen
 title: Repeated Badge Class
-viewport: mobile
 locale: en
 ---
 
@@ -1317,7 +1307,6 @@ test("shows State Views action overview only when author overview exists", () =>
 id: SCR-ACTION-OVERVIEW-COLUMN
 type: screen
 title: Action Overview Column
-viewport: mobile
 locale: en
 ---
 
@@ -1402,7 +1391,6 @@ test("renders localized state change headings without difference wording", () =>
 id: SCR-STATE-CHANGE-LABELS
 type: screen
 title: State Change Labels
-viewport: mobile
 locale: ja
 ---
 
@@ -1841,7 +1829,6 @@ test("applies scalar preview scenario display effects without partial references
 id: SCR-SCENARIO-DISPLAY
 type: screen
 title: Scenario Display
-viewport: mobile
 ---
 
 # SCR-SCENARIO-DISPLAY Scenario Display
@@ -1917,7 +1904,6 @@ test("renders targetless dialog display effects as modal overlays", () => {
 id: SCR-DIALOG-SCENARIO
 type: screen
 title: Dialog Scenario
-viewport: mobile
 ---
 
 # SCR-DIALOG-SCENARIO Dialog Scenario
@@ -2034,7 +2020,6 @@ test("renders targetless toast display effects as non-modal overlay stacks", () 
 id: SCR-TOAST-SCENARIO
 type: screen
 title: Toast Scenario
-viewport: mobile
 ---
 
 # SCR-TOAST-SCENARIO Toast Scenario
@@ -2137,7 +2122,6 @@ test("marks unplaced layouts in state view specs without rendering them in wiref
 id: SCR-UNPLACED-LAYOUT
 type: screen
 title: Unplaced Layout
-viewport: mobile
 ---
 
 # SCR-UNPLACED-LAYOUT Unplaced Layout
@@ -2191,7 +2175,6 @@ test("does not mark display-inserted layouts as unplaced in preview scenario spe
 id: SCR-SCENARIO-UNPLACED-LAYOUT
 type: screen
 title: Scenario Unplaced Layout
-viewport: mobile
 ---
 
 # SCR-SCENARIO-UNPLACED-LAYOUT Scenario Unplaced Layout
@@ -4366,7 +4349,6 @@ id: SCR-REQUIRED-SPEC
 type: screen
 title: Required Spec
 locale: ja
-viewport: mobile
 ---
 
 # SCR-REQUIRED-SPEC Required Spec
@@ -4468,7 +4450,6 @@ id: SCR-ACTIONABLES
 type: screen
 title: Actionables
 locale: ja
-viewport: mobile
 ---
 
 # SCR-ACTIONABLES Actionables
@@ -5355,7 +5336,6 @@ references:
 id: SCR-POINTS
 type: screen
 title: Points
-viewport: mobile
 references:
   partials:
     PRT-POINTS-CONTENT: ../partials/points-content.vspec.md
@@ -6411,7 +6391,6 @@ test("renders entity-level supplemental notes in generated design documents", ()
 id: SCR-ENTITY-NOTES
 type: screen
 title: Entity Notes
-viewport: mobile
 ---
 
 # SCR-ENTITY-NOTES Entity Notes
@@ -6738,7 +6717,6 @@ test("links action badges to action detail anchors by internal action IDs", () =
 id: SCR-ACTION-ANCHORS
 type: screen
 title: Action Anchors
-viewport: mobile
 ---
 
 # SCR-ACTION-ANCHORS Action Anchors
@@ -6789,7 +6767,6 @@ test("keeps element-bound lifecycle actions out of system event boxes", () => {
 id: SCR-ELEMENT-BOUND-LIFECYCLE
 type: screen
 title: Element Bound Lifecycle
-viewport: mobile
 locale: en
 ---
 
@@ -6841,7 +6818,6 @@ test("does not synthesize action overview summaries", () => {
 id: SCR-DEDUP-EFFECTS
 type: screen
 title: Dedup Effects
-viewport: mobile
 locale: en
 ---
 
@@ -7127,7 +7103,6 @@ test("groups element details by behavior in the generated design document", () =
 id: SCR-ELEMENT-GROUPS
 type: screen
 title: Element Groups
-viewport: mobile
 ---
 
 # SCR-ELEMENT-GROUPS Element Groups
@@ -7338,7 +7313,6 @@ test("renders markdown notation in supplemental prose", () => {
 id: SCR-MARKDOWN-PROSE
 type: screen
 title: Markdown Prose
-viewport: mobile
 ---
 
 # SCR-MARKDOWN-PROSE Markdown Prose
@@ -7459,7 +7433,7 @@ test("creates document symbols for MarkVSpec structure", () => {
 
   assert.equal(screen.name, "SCR-LOGIN Login");
   assert.equal(screen.detail, "Screen");
-  assert.equal(screen.selectionRange.start.line, 9);
+  assert.equal(screen.selectionRange.start.line, 8);
   assert.deepEqual(screen.children.map((child) => child.name), [
     "States",
     "Layout: mobile",
@@ -7515,7 +7489,6 @@ test("creates document symbols for Japanese IDs and names", () => {
 id: SCR-JA
 type: screen
 title: 日本語画面
-viewport: mobile
 ---
 
 # SCR-JA 日本語画面
@@ -7670,10 +7643,15 @@ test("creates a quick fix for bare Layout sections when a default viewport is kn
 id: SCR-LAYOUT-FIX
 type: screen
 title: Layout Fix
-viewport: mobile
 ---
 
 # SCR-LAYOUT-FIX Layout Fix
+
+## Layout: mobile
+
+### L-Existing Existing
+
+- stack
 
 ## Layout
 `;
@@ -7690,8 +7668,8 @@ viewport: mobile
   assert.equal(actions[0]?.title, "Change to ## Layout: mobile");
   assert.equal(edits.edits[0]?.kind, "replace");
   assert.equal(edits.edits[0]?.newText, "## Layout: mobile");
-  assert.deepEqual(edits.edits[0]?.range?.start, { line: 9, character: 0 });
-  assert.deepEqual(edits.edits[0]?.range?.end, { line: 9, character: 9 });
+  assert.deepEqual(edits.edits[0]?.range?.start, { line: 14, character: 0 });
+  assert.deepEqual(edits.edits[0]?.range?.end, { line: 14, character: 9 });
 });
 
 test("does not create a Layout viewport quick fix without a known default viewport", () => {
@@ -7719,7 +7697,6 @@ test("creates a quick fix to move direct layout child references under Items", (
 id: SCR-ITEM-FIX
 type: screen
 title: Item Fix
-viewport: mobile
 ---
 
 # SCR-ITEM-FIX Item Fix
@@ -7750,11 +7727,11 @@ viewport: mobile
   assert.equal(actions.length, 1);
   assert.equal(actions[0]?.title, "Move E-Title under #### Items");
   assert.equal(edits.edits[0]?.kind, "delete");
-  assert.deepEqual(edits.edits[0]?.range?.start, { line: 14, character: 0 });
-  assert.deepEqual(edits.edits[0]?.range?.end, { line: 15, character: 0 });
+  assert.deepEqual(edits.edits[0]?.range?.start, { line: 13, character: 0 });
+  assert.deepEqual(edits.edits[0]?.range?.end, { line: 14, character: 0 });
   assert.equal(edits.edits[1]?.kind, "insert");
   assert.deepEqual(edits.edits[1]?.uri, (document as { uri: unknown }).uri);
-  assert.equal(edits.edits[1]?.position?.line, 17);
+  assert.equal(edits.edits[1]?.position?.line, 16);
   assert.equal(edits.edits[1]?.position?.character, 0);
   assert.equal(edits.edits[1]?.newText, "\n#### Items\n\n- E-Title\n");
 });
@@ -7764,7 +7741,6 @@ test("moves direct layout child references before existing Items without merging
 id: SCR-ITEM-FIX-EXISTING
 type: screen
 title: Item Fix Existing
-viewport: mobile
 ---
 
 # SCR-ITEM-FIX-EXISTING Item Fix Existing
@@ -7800,7 +7776,7 @@ viewport: mobile
 
   assert.equal(actions.length, 1);
   assert.equal(edits.edits[1]?.kind, "insert");
-  assert.equal(edits.edits[1]?.position?.line, 17);
+  assert.equal(edits.edits[1]?.position?.line, 16);
   assert.equal(edits.edits[1]?.position?.character, 0);
   assert.equal(edits.edits[1]?.newText, "- E-Moved\n");
 });
@@ -7810,7 +7786,6 @@ test("removes direct layout child references at end of file", () => {
 id: SCR-ITEM-FIX-EOF
 type: screen
 title: Item Fix EOF
-viewport: mobile
 ---
 
 # SCR-ITEM-FIX-EOF Item Fix EOF
@@ -7832,10 +7807,10 @@ viewport: mobile
 
   assert.equal(actions.length, 1);
   assert.equal(edits.edits[0]?.kind, "delete");
-  assert.deepEqual(edits.edits[0]?.range?.start, { line: 14, character: 0 });
-  assert.deepEqual(edits.edits[0]?.range?.end, { line: 14, character: 9 });
+  assert.deepEqual(edits.edits[0]?.range?.start, { line: 13, character: 0 });
+  assert.deepEqual(edits.edits[0]?.range?.end, { line: 13, character: 9 });
   assert.equal(edits.edits[1]?.kind, "insert");
-  assert.equal(edits.edits[1]?.position?.line, 15);
+  assert.equal(edits.edits[1]?.position?.line, 14);
   assert.equal(edits.edits[1]?.position?.character, 0);
   assert.equal(edits.edits[1]?.newText, "\n#### Items\n\n- E-Title\n");
 });
@@ -8169,7 +8144,6 @@ test("declares MarkVSpec syntax highlighting contributions", () => {
 id: SCR-SNIPPET
 type: screen
 title: Snippet
-viewport: mobile
 ---
 
 # SCR-SNIPPET Snippet

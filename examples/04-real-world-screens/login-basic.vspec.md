@@ -4,7 +4,6 @@ type: screen
 title: Login
 route: /login
 locale: en
-viewport: mobile
 ---
 
 # SCR-LOGIN Login

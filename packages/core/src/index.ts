@@ -281,7 +281,6 @@ function parseScreen(
     title: frontMatter["title"],
     description: frontMatter["description"],
     route: frontMatter["route"],
-    viewport: frontMatter["viewport"],
     template: template?.id,
     templateSrc: template?.src,
     locale: frontMatter["locale"],
@@ -339,7 +338,7 @@ function parseScreen(
     });
   }
 
-  for (const key of ["owner", "status"]) {
+  for (const key of ["owner", "status", "viewport"]) {
     if (frontMatter[key]) {
       diagnostics.push({
         severity: "warning",

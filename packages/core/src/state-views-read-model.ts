@@ -1091,10 +1091,6 @@ function layoutViewports(result: MarkVSpecParseResult): string[] {
 }
 
 function resolveDocumentViewport(result: MarkVSpecParseResult, viewports: string[]): string {
-  if (result.screen.viewport && viewports.includes(result.screen.viewport)) {
-    return result.screen.viewport;
-  }
-
   return viewports[0] ?? "";
 }
 
@@ -1337,9 +1333,6 @@ function stateScreenActiveViewport(result: MarkVSpecParseResult, requestedViewpo
   const viewports = layoutViewports(result);
   if (requestedViewport && viewports.includes(requestedViewport)) {
     return requestedViewport;
-  }
-  if (result.screen.viewport && viewports.includes(result.screen.viewport)) {
-    return result.screen.viewport;
   }
   return viewports[0];
 }

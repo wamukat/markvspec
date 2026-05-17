@@ -3,7 +3,6 @@ id: PRT-PROFILE-SUMMARY
 type: partial
 title: Profile Summary Partial
 locale: en
-viewport: desktop
 ---
 
 # PRT-PROFILE-SUMMARY Profile Summary Partial

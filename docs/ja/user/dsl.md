@@ -62,8 +62,8 @@ Front Matter は YAML です。文書全体のメタデータだけを書きま�
 - `tags`
 - `version`
 
-`owner` と `status` は canonical な Front Matter ではありません。残っている場合は
-警告し、プレビューや export のメタデータ表示では無視します。
+`owner`、`status`、`viewport` は canonical な Front Matter ではありません。
+残っている場合は警告し、プレビューや export のメタデータ表示、default viewport 判定では無視します。
 
 画面が利用する template は `template.id` / `template.src` で指定します。Partial は設計書 ID で読みやすく書き、
 プレビューでは実ファイルを読み込みたい場合に `references.partials` を使います。
@@ -572,13 +572,11 @@ Layout はビューポート単位で書きます。`## Layout: mobile` や
 - E-SignInButton
 ```
 
-Front Matter の `viewport` が Layout のビューポート名と一致する場合は、
-それを基準ビューポートとして扱います。一致しない場合は、最初の
-`## Layout: <viewport>` が基準です。設計書出力では印刷や PDF 化を前提に
-すべてのビューポートを表示し、各ビューポート/状態ごとの現在の仕様として
-要素一覧とアクション一覧を表示します。同じ内容が前の状態にも出ている行には
-repeated マーカーが付くことがあります。同じ layout ID を複数ビューポートに
-書く場合、marker は同じ値に揃えます。
+文書中で最初に出現する `## Layout: <viewport>` を基準ビューポートとして扱います。
+設計書出力では印刷や PDF 化を前提にすべてのビューポートを表示し、
+各ビューポート/状態ごとの現在の仕様として要素一覧とアクション一覧を表示します。
+同じ内容が前の状態にも出ている行には repeated マーカーが付くことがあります。
+同じ layout ID を複数ビューポートに書く場合、marker は同じ値に揃えます。
 
 ## Template と Slot
 
@@ -590,7 +588,6 @@ Template は、共通のページ枠を表す独立した設計書です。Templ
 id: TPL-MYPAGE-SHELL
 type: template
 title: マイページ共通レイアウト
-viewport: desktop
 ---
 
 # TPL-MYPAGE-SHELL マイページ共通レイアウト

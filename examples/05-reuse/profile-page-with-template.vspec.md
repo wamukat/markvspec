@@ -4,7 +4,6 @@ type: screen
 title: Profile Home
 route: /members/:memberId
 locale: en
-viewport: desktop
 template:
   id: TPL-MYPAGE-SHELL
   src: ./template-shell.vspec.md

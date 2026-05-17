@@ -32,7 +32,6 @@ export interface MarkVSpecScreenSummary {
   title?: string;
   description?: string;
   route?: string;
-  viewport?: string;
   template?: string;
   templateSrc?: string;
   locale?: string;

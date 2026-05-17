@@ -56,7 +56,6 @@ id: SCR-STATIC-EMPTY
 type: screen
 title: Static Empty
 locale: ja
-viewport: desktop
 ---
 
 # SCR-STATIC-EMPTY Static Empty
@@ -99,7 +98,6 @@ test("renders reusable design document sections and static state previews", () =
 id: SCR-STATIC
 type: screen
 title: Static
-viewport: mobile
 ---
 
 # SCR-STATIC Static
@@ -268,7 +266,6 @@ test("renders preview scenarios and scenario samples in static state views", () 
 id: SCR-SCENARIO-SAMPLES
 type: screen
 title: Scenario Samples
-viewport: desktop
 ---
 
 # SCR-SCENARIO-SAMPLES Scenario Samples

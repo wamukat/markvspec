@@ -4,7 +4,6 @@ type: screen
 title: Single Field Validation
 route: /single-field-validation
 locale: en
-viewport: desktop
 ---
 
 # SCR-SINGLE-FIELD-VALIDATION Single Field Validation

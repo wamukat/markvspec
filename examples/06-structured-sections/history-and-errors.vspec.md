@@ -4,7 +4,6 @@ type: screen
 title: Account Settings
 route: /settings/account
 locale: en
-viewport: desktop
 ---
 
 # SCR-ACCOUNT-SETTINGS Account Settings

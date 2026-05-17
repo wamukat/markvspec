@@ -8,7 +8,6 @@
       "type: screen",
       "title: ${2:Screen Title}",
       "route: ${3:/path}",
-      "viewport: ${4:mobile}",
       "---",
       "",
       "# SCR-${1:SCREEN} ${2:Screen Title}",

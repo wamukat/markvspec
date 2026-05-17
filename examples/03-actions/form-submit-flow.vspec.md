@@ -4,7 +4,6 @@ type: screen
 title: Form Submit Flow
 route: /form-submit
 locale: en
-viewport: desktop
 ---
 
 # SCR-FORM-SUBMIT-FLOW Form Submit Flow

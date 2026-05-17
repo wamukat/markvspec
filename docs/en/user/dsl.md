@@ -93,9 +93,10 @@ Optional fields:
 - `tags`
 - `version`
 
-`owner` and `status` are no longer canonical Front Matter fields. If they remain
-in a document, MarkVSpec warns and ignores them instead of showing them in
-preview or export metadata.
+`owner`, `status`, and `viewport` are no longer canonical Front Matter fields.
+If they remain in a document, MarkVSpec warns and ignores them instead of
+showing them in preview/export metadata or using them for default viewport
+selection.
 
 The first level-1 heading should repeat the design subject ID and title:
 
@@ -606,12 +607,11 @@ Layout groups are level-3 headings inside a viewport layout section.
 - E-SignInButton
 ```
 
-The baseline viewport is `viewport` in Front Matter when it matches a layout
-section. Otherwise, the first `## Layout: <viewport>` section is the baseline.
-Generated design documents render every viewport for print/export. Element and
-action lists are shown as current specifications for each viewport/state pair.
-Rows that repeat the same rendered specification from an earlier state may be
-marked as repeated.
+The first `## Layout: <viewport>` section in document order is the baseline
+viewport. Generated design documents render every viewport for print/export.
+Element and action lists are shown as current specifications for each
+viewport/state pair. Rows that repeat the same rendered specification from an
+earlier state may be marked as repeated.
 When the same layout ID appears in multiple viewport sections, keep its marker
 consistent across those sections.
 
@@ -626,7 +626,6 @@ placeholder areas.
 id: TPL-MYPAGE-SHELL
 type: template
 title: My Page Shell
-viewport: desktop
 ---
 
 # TPL-MYPAGE-SHELL My Page Shell

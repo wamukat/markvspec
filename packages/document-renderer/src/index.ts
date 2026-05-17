@@ -137,8 +137,7 @@ function renderDocumentOverviewSection(result: MarkVSpecParseResult, messages: R
   const heading = screen.type === "template" ? messages.template : screen.type === "partial" ? messages.partial : messages.screen;
   const facts = [
     [messages.id, screen.id ?? ""],
-    [messages.route, screen.route ?? ""],
-    [messages.viewport, screen.viewport ?? ""]
+    [messages.route, screen.route ?? ""]
   ].filter(([, value]) => value.trim().length > 0);
   if (!screen.description && facts.length === 0) {
     return "";

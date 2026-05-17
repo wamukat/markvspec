@@ -4,7 +4,6 @@ type: screen
 title: Profile Edit Rich
 route: /profile/edit-rich
 locale: en
-viewport: desktop
 ---
 
 # SCR-PROFILE-EDIT-RICH Profile Edit Rich
