@@ -709,20 +709,22 @@ export function stateScreenLayoutsForModel(result: MarkVSpecParseResult, model: 
 
 export function stateScreenUnplacedLayoutIdsForModel(result: MarkVSpecParseResult, model: StateScreenReadModel): Set<string> {
   const placedLayoutIds = stateScreenPlacedLayoutIdsForModel(result, model);
+  const defaultLayoutIds = slotDefaultLayoutIds(result);
   return new Set(resolveLayoutGroupsForViewport(result, {
     viewport: model.viewport,
     focusLayoutIds: model.focus?.layoutIds
   })
-    .filter((layout) => layout.id.startsWith("L-") && !placedLayoutIds.has(layout.id))
+    .filter((layout) => layout.id.startsWith("L-") && !placedLayoutIds.has(layout.id) && !defaultLayoutIds.has(layout.id))
     .map((layout) => layout.id));
 }
 
 function stateScreenPlacedLayoutIdsForModel(result: MarkVSpecParseResult, model: StateScreenReadModel): Set<string> {
   const activeViewport = stateScreenActiveViewport(result, model.viewport);
+  const defaultLayoutIds = slotDefaultLayoutIds(result);
   const layoutGroups = activeViewport ? resolveLayoutGroupsForViewport(result, {
     viewport: activeViewport,
     focusLayoutIds: model.focus?.layoutIds
-  }) : [];
+  }).filter((group) => !defaultLayoutIds.has(group.id)) : [];
   const layoutById = new Map(layoutGroups.map((group) => [group.id, group]));
   const slotContentsByName = stateScreenSlotContentsByName(result.slotContents);
   const placedLayoutIds = new Set<string>(model.renderedIds.layoutIds);
@@ -1195,7 +1197,8 @@ function stateScreenRenderedIdsFromReadModel(
   const stateNames = new Set(result.states.map((state) => state.name));
   const options = { modelValues, viewValues };
   const activeViewport = stateScreenActiveViewport(result, viewport);
-  const layoutGroups = activeViewport ? result.layoutGroups.filter((group) => group.viewport === activeViewport) : [];
+  const defaultLayoutIds = slotDefaultLayoutIds(result);
+  const layoutGroups = activeViewport ? result.layoutGroups.filter((group) => group.viewport === activeViewport && !defaultLayoutIds.has(group.id)) : [];
   const layoutById = new Map(layoutGroups.map((group) => [group.id, group]));
   const elementById = new Map(result.elements.map((element) => [element.id, element]));
   const slotContentsByName = stateScreenSlotContentsByName(result.slotContents);
@@ -1370,6 +1373,12 @@ function resolveStateScreenSlotContent(slotContentsByName: Map<string, ParsedSlo
   const slots = slotContentsByName.get(name) ?? [];
   return slots.find((slot) => slot.viewport === viewport)
     ?? slots.find((slot) => !slot.viewport);
+}
+
+function slotDefaultLayoutIds(result: MarkVSpecParseResult): Set<string> {
+  return new Set(result.slotDefinitions
+    .map((slot) => typeof slot.properties["default"] === "string" ? slot.properties["default"].trim() : "")
+    .filter((defaultId) => defaultId.startsWith("L-")));
 }
 
 function isStateScreenElementVisible(

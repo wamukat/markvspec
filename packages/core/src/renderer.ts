@@ -44,6 +44,11 @@ export function renderMarkVSpecHtml(result: MarkVSpecParseResult, options: MarkV
       }
     }
   }
+  for (const layoutId of slotDefaultLayoutIds(result)) {
+    if (layoutById.has(layoutId)) {
+      containedLayoutIds.add(layoutId);
+    }
+  }
 
   const rootGroups = rootLayoutGroups(layoutGroups, layoutById, containedLayoutIds);
   const renderedBody = rootGroups.length > 0
@@ -178,6 +183,35 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
     };
   }
 
+  const slotDefaultMatch = /^slot-default:([^:]+):([^:]+):(.+)$/u.exec(renderKey);
+  if (slotDefaultMatch) {
+    const [, slotName, slotViewport, defaultId] = slotDefaultMatch;
+    const activeViewport = resolveViewport(result, options.viewport);
+    const layoutGroups = activeViewport ? result.layoutGroups.filter((group) => group.viewport === activeViewport) : [];
+    const layoutById = new Map(layoutGroups.map((group) => [group.id, group]));
+    const slotContentsByName = mapSlotContentsByName(result.slotContents);
+    const insertionContexts = slotInsertionContextsFor(slotName, layoutGroups, activeState, stateNames, options);
+    if (insertionContexts.length !== 1) {
+      return undefined;
+    }
+
+    const [insertionContext] = insertionContexts;
+    const renderOptions = { ...options, viewValues: options.viewValues ?? defaultViewValues(result) };
+    const context = {
+      ...renderContextForState(result, activeState),
+      sampleOverrides: options.sampleOverrides ?? {},
+      elementById,
+      actionMarkersByElementId,
+      formGroupMarkersByLayoutId: mapFormGroupMarkersByLayoutId(result.formGroups, layoutGroups, layoutById),
+      slotViewport: slotViewport === "default" ? activeViewport : slotViewport
+    };
+    const defaultHtml = renderSlotDefault(slotName, slotViewport === "default" ? activeViewport ?? "" : slotViewport, result, layoutById, slotContentsByName, elementById, actionMarkersByElementId, activeState, stateNames, renderOptions, insertionContext.parentDisabled, context, insertionContext.depth);
+    if (!defaultHtml || slotDefaultId(result, slotName) !== defaultId) {
+      return undefined;
+    }
+    return { renderKey, html: defaultHtml };
+  }
+
   return undefined;
 }
 
@@ -235,6 +269,12 @@ function resolveSlotContent(slotContentsByName: SlotContentsByName, name: string
   const slots = slotContentsByName.get(name) ?? [];
   return slots.find((slot) => slot.viewport === viewport)
     ?? slots.find((slot) => !slot.viewport);
+}
+
+function slotDefaultLayoutIds(result: MarkVSpecParseResult): Set<string> {
+  return new Set(result.slotDefinitions
+    .map((slot) => typeof slot.properties["default"] === "string" ? slot.properties["default"].trim() : "")
+    .filter((defaultId) => defaultId.startsWith("L-")));
 }
 
 function resolveViewport(result: MarkVSpecParseResult, requestedViewport: string | undefined): string | undefined {
@@ -394,7 +434,7 @@ function renderLayoutGroupChildren(
     }
 
     if (item.type === "slot") {
-      return renderSlot(item.name, group.viewport || context.slotViewport || "", result, slotContentsByName, elementById, actionMarkersByElementId, activeState, stateNames, options, childDisabled, context, depth + 1);
+      return renderSlot(item.name, group.viewport || context.slotViewport || "", result, layoutById, slotContentsByName, elementById, actionMarkersByElementId, activeState, stateNames, options, childDisabled, context, depth + 1);
     }
 
     return "";
@@ -843,6 +883,7 @@ function renderSlot(
   name: string,
   viewport: string,
   result: MarkVSpecParseResult,
+  currentLayoutById: Map<string, MarkVSpecLayoutGroup>,
   slotContentsByName: SlotContentsByName,
   elementById: Map<string, MarkVSpecElement>,
   actionMarkersByElementId: Map<string, ActionMarkerReference[]>,
@@ -855,6 +896,10 @@ function renderSlot(
 ): string {
   const slotContent = resolveSlotContent(slotContentsByName, name, viewport);
   if (!slotContent || slotContent.layoutGroups.length === 0) {
+    const defaultHtml = renderSlotDefault(name, viewport, result, currentLayoutById, slotContentsByName, elementById, actionMarkersByElementId, activeState, stateNames, options, parentDisabled, context, depth);
+    if (defaultHtml) {
+      return defaultHtml;
+    }
     const renderKey = `slot:${name}`;
     return `<!--mm-render-key:${escapeHtml(renderKey)}--><div class="mm-slot-placeholder" data-mm-slot="${escapeHtml(name)}" data-mm-render-key="${escapeHtml(renderKey)}">Slot: ${escapeHtml(name)}</div>`;
   }
@@ -894,6 +939,53 @@ function renderSlot(
       depth
     ))
     .join("");
+}
+
+function renderSlotDefault(
+  name: string,
+  viewport: string,
+  result: MarkVSpecParseResult,
+  layoutById: Map<string, MarkVSpecLayoutGroup>,
+  slotContentsByName: SlotContentsByName,
+  elementById: Map<string, MarkVSpecElement>,
+  actionMarkersByElementId: Map<string, ActionMarkerReference[]>,
+  activeState: string | undefined,
+  stateNames: Set<string>,
+  options: MarkVSpecRenderOptions,
+  parentDisabled: boolean,
+  context: RenderContext,
+  depth: number
+): string {
+  const defaultId = slotDefaultId(result, name);
+  if (!defaultId) {
+    return "";
+  }
+
+  const renderKey = `slot-default:${name}:${viewport || "default"}:${defaultId}`;
+  const label = `<div class="mm-slot-default-label">Default: ${escapeHtml(defaultId)}</div>`;
+  const defaultContext = {
+    ...context,
+    slotName: name,
+    slotRenderViewport: "default",
+    slotViewport: viewport
+  };
+
+  const layout = layoutById.get(defaultId);
+  if (layout) {
+    return `<!--mm-render-key:${escapeHtml(renderKey)}--><div class="mm-slot-default" data-mm-slot="${escapeHtml(name)}" data-mm-slot-default="${escapeHtml(defaultId)}" data-mm-render-key="${escapeHtml(renderKey)}">${label}${renderLayoutGroup(layout, result, layoutById, slotContentsByName, elementById, actionMarkersByElementId, activeState, stateNames, options, new Set(), defaultContext, parentDisabled, renderKey, depth)}</div>`;
+  }
+
+  const element = elementById.get(defaultId);
+  if (element) {
+    return `<!--mm-render-key:${escapeHtml(renderKey)}--><div class="mm-slot-default" data-mm-slot="${escapeHtml(name)}" data-mm-slot-default="${escapeHtml(defaultId)}" data-mm-render-key="${escapeHtml(renderKey)}">${label}${renderElement(element, actionMarkersByElementId, activeState, stateNames, options, parentDisabled, defaultContext)}</div>`;
+  }
+
+  return "";
+}
+
+function slotDefaultId(result: MarkVSpecParseResult, name: string): string {
+  const slotDefinition = result.slotDefinitions.find((slot) => slot.name === name);
+  return typeof slotDefinition?.properties["default"] === "string" ? slotDefinition.properties["default"].trim() : "";
 }
 
 function layoutRenderKey(group: MarkVSpecLayoutGroup, context: RenderContext): string {
@@ -1469,6 +1561,8 @@ function renderDefaultStyles(): string {
 .mm-field-error-message{white-space:normal}
 .mm-display-message{color:#b91c1c;font-size:12px;font-weight:600;line-height:1.35}
 .mm-slot-placeholder{align-items:center;background:#f8fafc;border:1px dashed #94a3b8;border-radius:6px;color:#475569;display:flex;font-size:12px;font-weight:600;justify-content:center;margin:3px 0;min-height:88px;padding:14px;text-align:center;width:100%}
+.mm-slot-default{border:1px dashed #cbd5e1;border-radius:6px;margin:3px 0;padding:6px;width:100%}
+.mm-slot-default-label{color:#64748b;font-size:11px;font-weight:700;line-height:1.2;margin-bottom:4px}
 .mm-element{border:1px solid #d1d5db;border-radius:4px;margin:3px 0;min-height:28px;padding:6px 8px}
 .mm-element-heading,.mm-element-paragraph,.mm-element-text{border:0;padding:0}
 .mm-element-input,.mm-element-textarea,.mm-element-select,.mm-element-multiselect,.mm-element-datepicker,.mm-element-dateinput,.mm-element-timeinput,.mm-element-numberinput{background:white;min-width:0;width:min(220px,100%)}

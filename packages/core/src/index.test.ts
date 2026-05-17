@@ -38,6 +38,7 @@ import {
   renderProjectTransitionMermaid,
   resolveRendererMessages,
   resolveProjectPath,
+  stateScreenLayoutsForModel,
   supportedDiagnosticMessageCodes
 } from "./index.js";
 
@@ -4915,6 +4916,169 @@ template:
   assert.equal((tabletHtml.match(/data-mm-id="L-TabletSidebar"/g) ?? []).length, 1);
   assert.equal((tabletHtml.match(/Tablet sidebar/g) ?? []).length, 1);
   assert.doesNotMatch(tabletHtml, /Common sidebar/);
+});
+
+test("renders template slot defaults without treating them as screen content", () => {
+  const templateSource = `---
+id: TPL-DEFAULT-SHELL
+type: template
+title: Default Shell
+---
+
+# TPL-DEFAULT-SHELL Default Shell
+
+## Layout: mobile
+
+### L-MobileShell Mobile Shell
+
+- stack
+
+#### Items
+
+- slot: hero
+- slot: notice
+- slot: action
+
+### L-DefaultNotice Default Notice
+
+- stack
+
+#### Items
+
+- E-DefaultNoticeText
+
+### L-DefaultAction Default Action
+
+- stack
+
+#### Items
+
+- E-DefaultActionText
+
+## Layout: desktop
+
+### L-DesktopShell Desktop Shell
+
+- stack
+
+#### Items
+
+- slot: hero
+- slot: notice
+- slot: action
+
+### L-DefaultNotice Default Notice
+
+- stack
+
+#### Items
+
+- E-DefaultNoticeText
+
+### L-DefaultAction Default Action
+
+- stack
+
+#### Items
+
+- E-DefaultActionText
+
+## Slots
+
+### hero Hero
+
+- default: E-DefaultHero
+
+### notice Notice
+
+- default: L-DefaultNotice
+
+### action Action
+
+- default: L-DefaultAction
+
+## Elements
+
+### E-DefaultHero Heading
+
+- value: Template hero
+
+### E-DefaultNoticeText Text
+
+- value: Template notice
+
+### E-DefaultActionText Text
+
+- value: Template action
+`;
+  const screenSource = `---
+id: SCR-DEFAULT-HOME
+type: screen
+title: Default Home
+template:
+  id: TPL-DEFAULT-SHELL
+  src: ../templates/default-shell.vspec.md
+---
+
+# SCR-DEFAULT-HOME Default Home
+
+## States
+
+- idle*
+
+## Slot: action
+
+### L-CommonAction Common Action
+
+- stack
+
+#### Items
+
+- E-CommonAction
+
+## Slot: action: desktop
+
+### L-DesktopAction Desktop Action
+
+- stack
+
+#### Items
+
+- E-DesktopAction
+
+## Elements
+
+### E-CommonAction Button
+
+- label: Common action
+
+### E-DesktopAction Button
+
+- label: Desktop action
+`;
+  const composed = composeMarkVSpecTemplate(parseMarkVSpec(templateSource), parseMarkVSpec(screenSource));
+  const mobileHtml = renderMarkVSpecHtml(composed, { includeStyles: false, viewport: "mobile" });
+  const desktopHtml = renderMarkVSpecHtml(composed, { includeStyles: false, viewport: "desktop" });
+  const heroFragment = renderMarkVSpecHtmlFragment(composed, "slot-default:hero:mobile:E-DefaultHero", { includeStyles: false, viewport: "mobile" });
+  const mobileModels = buildStateScreenReadModels(composed, composed, "mobile");
+  const desktopModels = buildStateScreenReadModels(composed, composed, "desktop");
+
+  assert.match(mobileHtml, /Default: E-DefaultHero/);
+  assert.match(mobileHtml, /Template hero/);
+  assert.match(mobileHtml, /Default: L-DefaultNotice/);
+  assert.match(mobileHtml, /Template notice/);
+  assert.match(mobileHtml, /Common action/);
+  assert.doesNotMatch(mobileHtml, /Template action/);
+  assert.doesNotMatch(mobileHtml, /Desktop action/);
+  assert.match(desktopHtml, /Desktop action/);
+  assert.doesNotMatch(desktopHtml, /Common action/);
+  assert.doesNotMatch(desktopHtml, /Template action/);
+  assert.match(heroFragment?.html ?? "", /Template hero/);
+  assert(!mobileModels[0]?.renderedIds.elementIds.has("E-DefaultHero"));
+  assert(!mobileModels[0]?.renderedIds.layoutIds.has("L-DefaultNotice"));
+  assert(!stateScreenLayoutsForModel(composed, mobileModels[0]!).some((layout) => layout.id === "L-DefaultNotice"));
+  assert(mobileModels[0]?.renderedIds.elementIds.has("E-CommonAction"));
+  assert(desktopModels[0]?.renderedIds.elementIds.has("E-DesktopAction"));
 });
 
 test("reports duplicate IDs between template and composed screen content", () => {
