@@ -150,6 +150,9 @@ Initial \`static\` release.
   assert.match(html, /<div class="screen-description"><p>Static screen overview\.<\/p><\/div>/);
   assert.match(html, /<th>Field<\/th><th>Value<\/th>/);
   assert.match(html, /<td>ID<\/td><td>SCR-STATIC<\/td>/);
+  assert.match(html, /<td>Version<\/td><td>ver 1\.0<\/td>/);
+  assert.match(html, /<td>Date<\/td><td>2026-05-13<\/td>/);
+  assert.match(html, /<td>Author<\/td><td>Alice<\/td>/);
   assert.match(html, /<section class="doc-section history-section"><h2>History<\/h2>/);
   assert.match(html, /<th>Version<\/th><th>Date<\/th><th>Author<\/th><th>Reviewer<\/th><th>Reason<\/th><th>Ticket<\/th><th>Changes<\/th>/);
   assert.match(html, /<td>ver 1\.0<\/td><td>2026-05-13<\/td><td>Alice<\/td><td>-<\/td><td>-<\/td><td>MM-1<\/td>/);

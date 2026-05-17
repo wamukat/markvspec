@@ -325,6 +325,9 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(html, /<h3>Basic Info<\/h3>/);
   assert.match(html, /<dt>Route<\/dt><dd>\/login<\/dd>/);
   assert.doesNotMatch(html, /<dt>Viewport<\/dt>/);
+  assert.doesNotMatch(html, /<dt>Version<\/dt>/);
+  assert.doesNotMatch(html, /<dt>Date<\/dt>/);
+  assert.doesNotMatch(html, /<dt>Author<\/dt>/);
   const statesSection = docSectionByHeading(html, "States", "State Flow");
   const statesTable = statesSection.match(/<div class="spec-table-wrap"><table class="spec-table">[\s\S]*?<\/table><\/div>/)?.[0] ?? "";
   assert.match(statesTable, new RegExp(`<td>${docLabel("idle", "state")}</td><td>yes</td>`));
@@ -7379,6 +7382,7 @@ test("renders structured history entries in the generated design document", () =
 id: SCR-HISTORY
 type: screen
 title: History
+version: 9.9
 ---
 
 # SCR-HISTORY History
@@ -7408,6 +7412,13 @@ Initial release.
 
 - Added the login form.
 
+### ver 0.9
+
+- date: 2026-05-01
+- author: Bob
+
+Backfilled historical note.
+
 ### Section Notes
 
 History section notes.
@@ -7416,6 +7427,11 @@ History section notes.
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
 
   assert.deepEqual(result.diagnostics, []);
+  assert.match(html, /<h3>Basic Info<\/h3>/);
+  assert.match(html, /<dt>Version<\/dt><dd>ver 0\.9<\/dd>/);
+  assert.match(html, /<dt>Date<\/dt><dd>2026-05-01<\/dd>/);
+  assert.match(html, /<dt>Author<\/dt><dd>Bob<\/dd>/);
+  assert.doesNotMatch(html, /<dt>Version<\/dt><dd>9\.9<\/dd>/);
   assert.match(html, /<h2>History<\/h2>/);
   assert.match(html, /<div class="entity-overview"><p class="note-paragraph">History section overview\.<\/p><\/div>[\s\S]*<table/);
   assert.match(html, /<th>Version<\/th><th>Date<\/th><th>Author<\/th><th>Reviewer<\/th><th>Reason<\/th><th>Ticket<\/th><th>Changes<\/th>/);

@@ -1,4 +1,4 @@
-import { buildViewportStateScreenReadModels, effectiveHistoryFields, messagesForLocale, renderMarkVSpecHtml } from "@markvspec/core";
+import { buildViewportStateScreenReadModels, effectiveHistoryFields, latestHistoryBasicInfo, messagesForLocale, renderMarkVSpecHtml } from "@markvspec/core";
 import type { MarkVSpecParseResult, RendererMessages, StateScreenReadModel } from "@markvspec/core";
 
 export type MarkVSpecDocumentViewport = "mobile" | "tablet" | "desktop" | string;
@@ -135,9 +135,13 @@ export function renderStaticDesignDocumentHtml(result: MarkVSpecParseResult, opt
 function renderDocumentOverviewSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
   const screen = result.screen;
   const heading = screen.type === "template" ? messages.template : screen.type === "partial" ? messages.partial : messages.screen;
+  const latestHistory = latestHistoryBasicInfo(result.historyEntries);
   const facts = [
     [messages.id, screen.id ?? ""],
-    [messages.route, screen.route ?? ""]
+    [messages.route, screen.route ?? ""],
+    [messages.version, latestHistory?.version ?? ""],
+    [messages.date, latestHistory?.date ?? ""],
+    [messages.author, latestHistory?.author ?? ""]
   ].filter(([, value]) => value.trim().length > 0);
   if (!screen.description && facts.length === 0) {
     return "";

@@ -20,6 +20,7 @@ import {
   diagnoseAiDesignInputDocument,
   evaluateMarkVSpecDiagnostics,
   isProjectReferenceAllowed,
+  latestHistoryBasicInfo,
   loadMarkVSpecProject,
   modelValuesForState,
   parseMarkVSpec,
@@ -2815,6 +2816,35 @@ screens:
       ["warning", "Front Matter field status is no longer canonical and is ignored.", 1]
     ]
   );
+});
+
+test("derives Basic Info history values from the latest history entry only", () => {
+  const source = `---
+id: SCR-HISTORY-BASIC-INFO
+type: screen
+title: History Basic Info
+---
+
+# SCR-HISTORY-BASIC-INFO History Basic Info
+
+## History
+
+### ver 2.0
+
+- date: 2026-05-14
+- author: Alice
+
+### ver 1.0
+
+- reason: Backfilled historical note
+`;
+  const result = parseMarkVSpec(source);
+
+  assert.deepEqual(latestHistoryBasicInfo(result.historyEntries), {
+    version: "ver 1.0",
+    date: undefined,
+    author: undefined
+  });
 });
 
 test("derives project semantics from shared AST utilities", () => {

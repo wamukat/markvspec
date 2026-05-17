@@ -15,6 +15,7 @@ export type MessageKey =
   | "all"
   | "any"
   | "always"
+  | "author"
   | "availability"
   | "basicInfo"
   | "businessRule"
@@ -40,6 +41,7 @@ export type MessageKey =
   | "contentsError"
   | "contentsLoading"
   | "constraints"
+  | "date"
   | "default"
   | "definitionContent"
   | "definitionDefinitions"
@@ -227,6 +229,7 @@ export type MessageKey =
   | "validationRules"
   | "value"
   | "valueModel"
+  | "version"
   | "view"
   | "viewport"
   | "when"
@@ -238,6 +241,7 @@ const en: Record<MessageKey, string> = {
   actionDetails: "Action Details",
   actionTransitions: "State Transitions",
   actionable: "Actionable",
+  author: "Author",
   autoUpdate: "Auto update",
   autoUpdatePreview: "Toggle auto preview update",
   actions: "Actions",
@@ -269,6 +273,7 @@ const en: Record<MessageKey, string> = {
   contentsError: "Unable to build contents.",
   contentsLoading: "Building contents...",
   constraints: "Constraints",
+  date: "Date",
   default: "Default",
   definitionContent: "Content",
   definitionDefinitions: "Definitions",
@@ -456,6 +461,7 @@ const en: Record<MessageKey, string> = {
   validationRules: "Validations",
   value: "Value",
   valueModel: "Value / Source",
+  version: "Version",
   view: "View",
   viewport: "Viewport",
   when: "When",
@@ -468,6 +474,7 @@ const ja: Record<MessageKey, string> = {
   actionDetails: "アクション詳細",
   actionTransitions: "状態遷移表",
   actionable: "操作要素",
+  author: "作成者",
   autoUpdate: "自動更新",
   autoUpdatePreview: "プレビューの自動更新を切り替え",
   actions: "アクション",
@@ -499,6 +506,7 @@ const ja: Record<MessageKey, string> = {
   contentsError: "目次を生成できませんでした。",
   contentsLoading: "目次を生成しています...",
   constraints: "制約",
+  date: "日付",
   default: "デフォルト",
   definitionContent: "差し込み内容",
   definitionDefinitions: "定義",
@@ -686,6 +694,7 @@ const ja: Record<MessageKey, string> = {
   validationRules: "Validations",
   value: "値",
   valueModel: "値 / 参照元",
+  version: "バージョン",
   view: "表示",
   viewport: "ビューポート",
   when: "条件",

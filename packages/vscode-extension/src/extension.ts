@@ -7,6 +7,7 @@ import {
   composeMarkVSpecTemplate,
   computeMarkVSpecRenderInvalidation,
   effectiveHistoryFields,
+  latestHistoryBasicInfo,
   loadMarkVSpecProject,
   parseMarkVSpec,
   parseMarkVSpecProject,
@@ -3949,8 +3950,12 @@ function renderScreenSpec(result: ReturnType<typeof parseMarkVSpec>): string {
   const screen = result.screen;
   const heading = screen.type === "template" ? label(result, "template") : screen.type === "partial" ? label(result, "partial") : label(result, "screen");
   const title = screen.title || screen.heading || screen.id || "";
+  const latestHistory = latestHistoryBasicInfo(result.historyEntries);
   const facts = ([
-    [label(result, "route"), screen.route ?? ""]
+    [label(result, "route"), screen.route ?? ""],
+    [label(result, "version"), latestHistory?.version ?? ""],
+    [label(result, "date"), latestHistory?.date ?? ""],
+    [label(result, "author"), latestHistory?.author ?? ""]
   ] satisfies Array<[string, string]>).filter(([, value]) => value.trim().length > 0);
   const references = renderScreenReferences(result);
   const otherMetadata = renderScreenOtherMetadata(result);

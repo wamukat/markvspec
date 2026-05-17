@@ -1,4 +1,10 @@
-import type { MarkVSpecHistoryFieldSchema } from "./types.js";
+import type { MarkVSpecHistoryEntry, MarkVSpecHistoryFieldSchema } from "./types.js";
+
+export interface MarkVSpecLatestHistoryBasicInfo {
+  version?: string;
+  date?: string;
+  author?: string;
+}
 
 export const standardHistoryFields: MarkVSpecHistoryFieldSchema[] = [
   {
@@ -41,4 +47,18 @@ export function effectiveHistoryFields(customFields: MarkVSpecHistoryFieldSchema
     fields.set(field.key, field);
   }
   return [...fields.values()];
+}
+
+export function latestHistoryBasicInfo(entries: MarkVSpecHistoryEntry[]): MarkVSpecLatestHistoryBasicInfo | undefined {
+  const latest = entries.at(-1);
+  if (!latest) {
+    return undefined;
+  }
+
+  const info: MarkVSpecLatestHistoryBasicInfo = {
+    version: latest.version.trim() || undefined,
+    date: latest.fields.date?.trim() || undefined,
+    author: latest.fields.author?.trim() || undefined
+  };
+  return Object.values(info).some((value) => value !== undefined) ? info : undefined;
 }
