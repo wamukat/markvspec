@@ -5399,6 +5399,17 @@ test("renders src-only model sample values in display content spec", () => {
   assert.doesNotMatch(loadedSection, /<h6 class="state-screen-detail-heading">Other<\/h6>/);
 });
 
+test("renders List items in display content spec without treating the list as input", () => {
+  const source = readFileSync(resolve("../../examples/04-real-world-screens/profile-edit-rich.vspec.md"), "utf8");
+  const html = renderDesignDocumentHtml(parseMarkVSpec(source), "");
+  const idleSection = stateSection(html, "idle");
+  const inputForm = idleSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+  const displayContent = idleSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.doesNotMatch(inputForm, /E-AuditList/);
+  assert.match(displayContent, new RegExp(`<td>${markerBadge("17", "element")}</td><td>${detailIdRef("E-AuditList")}</td><td>items</td><td>Created by Morgan Lee, Reviewed by Admin, Last edited today</td>`));
+});
+
 test("builds browser command candidates and arguments for PDF export", () => {
   const previousLocalAppData = process.env["LOCALAPPDATA"];
   const previousProgramFiles = process.env["PROGRAMFILES"];

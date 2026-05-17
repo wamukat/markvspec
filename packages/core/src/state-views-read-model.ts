@@ -898,6 +898,7 @@ function displayContentSpecRows(
     pushDisplayPropertyRow(rows, element, "title", properties["title"]);
     pushDisplayPropertyRow(rows, element, "alt", properties["alt"]);
     pushDisplayPropertyRow(rows, element, "name", properties["name"]);
+    pushDisplayPropertyRow(rows, element, "items", properties["items"]);
     for (const option of element.selectOptions) {
       rows.push({
         element,
