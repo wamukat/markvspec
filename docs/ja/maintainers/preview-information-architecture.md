@@ -23,7 +23,7 @@ MarkVSpec のプレビューは、生成された画面設計書です。上か�
 | セクション | 主目的 | 表示するもの | 表示しないもの |
 |---|---|---|---|
 | Screen | 設計書の入口 | 文書ID、タイトル、種別、route、owner、status、解決済み参照 | default-state、locale、partial state map、action結果、element詳細 |
-| Wireframe | 画面構造と状態別の見え方 | 対象stateのModel Samples、Layout構造、Element配置、marker、自動イベント、partial preview配置、viewport/stateごとの現在仕様 | Element全プロパティ、Action内部処理、通信詳細 |
+| Wireframe | 画面構造と状態別の見え方 | Element samples、対象stateのscenario samples、Layout構造、Element配置、marker、自動イベント、partial preview配置、viewport/stateごとの現在仕様 | Element全プロパティ、Action内部処理、通信詳細 |
 | Layouts | 現在のワイヤーフレーム文脈で表示されるLayout | marker、名前、種別、layoutプロパティ、item参照 | Elementの振る舞い、Action詳細 |
 | 画面要素サマリー | 現在のワイヤーフレーム文脈の要素カタログ | marker、ID、type、関連Action、説明 | 表示文言、入力制約、visible/disabled条件、Action処理詳細 |
 | 入力フォーム仕様 | ユーザーが入力できる値と制約 | 入力要素側の必須、値の初期値/取得元、入力詳細、readonly を含む制約、表示形式、条件、有効条件 | label、placeholder、option label、validation required rule、独立した bind 列など |
@@ -53,8 +53,8 @@ MarkVSpec のプレビューは、生成された画面設計書です。上か�
   marker と ID を併記し、Layout 参照は marker と Layout name、Action 参照は
   marker と Action name を表示して、Layout ID や Action ID だけの表示に戻さない。
 - 部分更新は Action Details 内に置き、request、response、case と同じ Action 文脈で target、fragment/content、結果の違いを確認できるようにする。
-- Model Samples は、`${model.value}` 形式で参照する画面要素がどのようなデータで描画されるかを各 state の Wireframe 直前に実サンプル行で示す。独立セクションにはせず、列名と行数だけの一覧にも戻さない。
-- Action から `${model.value}` へ代入する model mutation は canonical DSL ではないため、独立した preview section として集計しない。表示値の由来参照は State Views、表示内容仕様、入力フォーム仕様、Model Samples で確認する。
+- Element samples と Preview Scenario samples は、wireframe で使う実サンプル値を示す。Scenario override は該当 wireframe の下に小さな `Scenario Samples` 表として表示する。
+- Action から `${model.value}` へ代入する model mutation は canonical DSL ではないため、独立した preview section として集計しない。表示値の由来参照は State Views、表示内容仕様、入力フォーム仕様で確認する。
 
 ## 推奨出力順
 
@@ -63,7 +63,7 @@ MarkVSpec のプレビューは、生成された画面設計書です。上か�
 3. Table of Contents
 4. States
 5. State Flow
-6. Viewport / State Wireframes（各 state の Wireframe 直前に Model Samples）
+6. Viewport / State Wireframes（scenario samples がある場合は wireframe 下に Scenario Samples）
 7. Screen Transitions
 8. 状態遷移表
 9. Action Details

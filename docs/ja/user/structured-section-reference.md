@@ -15,7 +15,6 @@ level-2 section です。
 - `## Elements`
 - `## Form Groups`
 - `## Actions`
-- `## Model Samples`
 - `## View Context`
 - `## View Context Samples`
 - `## Preview Scenarios`
@@ -53,10 +52,9 @@ level-2 section です。
 | `Elements` | UI element を定義する。 | あり: `### [marker:]E-* Type`。 | `label`、`src`、`action`、`visible when` などの element properties。 | wireframe elements、Element Summary、detail fragments。 |
 | `Form Groups` | form の意味単位を定義する。 | あり: `### F-* Name`。 | field/member references と submit/validation metadata。 | form group summary と validation context。 |
 | `Actions` | user/system event と process outcome を定義する。 | あり: `### [marker:]A-* Name`。 | `Triggered`、`From`、`Process`、process `case`、`Effects`、`stop`、`continue`。 | Action Summary、Action Details、action markers、state flow、transition diagrams。 |
-| `Model Samples` | preview/export 用 sample data を定義する。 | ID entity ではなく state/sample group。 | `### <state>`、`#### ${model.path}`、Markdown table/list。 | Model Samples section と model-backed preview values。 |
 | `View Context` | state とは別の UI-local context を定義する。 | ID entity ではない definition heading: `### <view-name>`。 | view type、values、default `*`。 | State View context resolution と condition evaluation。 |
 | `View Context Samples` | view context value set に名前を付ける。 | ID entity ではない sample heading: `### <sample-name>`。 | `${view.*}` keyed view values。 | Preview Scenario と baseline view resolution。 |
-| `Preview Scenarios` | state/model/view の explicit preview combination を追加する。 | ID entity ではない scenario heading: `### <scenario-name>`。 | state、model、view、before、case values。 | baseline state previews の後に追加表示される State Views。 |
+| `Preview Scenarios` | state/view/sample の explicit preview combination を追加する。 | ID entity ではない scenario heading: `### <scenario-name>`。 | state、view、before、case values、`samples`。 | baseline state previews の後に追加表示される State Views。 |
 | `Field Validations` | client-side single-field validation contract を定義する。 | あり: `### [marker:]V-* Name`。 | `target`、optional `run`、`constraints`、messages。 | validation summary と display-message resolution。 |
 | `Cross-field Validations` | client-side form / multi-input validation contract を定義する。 | あり: `### [marker:]V-* Name`。 | `target`、`inputs`、`check`、optional `run`、messages。 | validation summary と display-message resolution。 |
 | `Validations` | legacy-compatible validation section。 | あり: `### [marker:]V-* Name`。 | target、scope/run、rules/constraints、messages。 | validation summary と display-message resolution。 |
@@ -199,23 +197,23 @@ form を検証して送信する。
       - state: loading
 ```
 
-### Model Samples
+### Preview Scenarios
 
-`Model Samples` は ID 付き entity ではなく、state/sample group の階層を持ちます。
-`Section Lead` は sample 全体の説明です。`### <state>` は state sample group、
-`#### ${model.path}` は sample set を開始します。sample set 内の table/list は
-`Structured Body` です。group/sample の prose はその階層の prose として保持します。
+`Preview Scenarios` は ID 付き entity ではなく、scenario heading の階層を持ちます。
+`Section Lead` は scenario 全体の説明です。`### <scenario-name>` は scenario を開始し、
+`state`、`view`、`before`、display `cases`、Element ID keyed の `samples` を束ねます。
 
 ```markdown
-## Model Samples
+## Preview Scenarios
 
-### loaded
+### loaded-with-results
 
-#### ${model.items}
-
-| name |
-| --- |
-| First item |
+- state: loaded
+- samples:
+  - E-ItemsTable:
+    - rows:
+      - row:
+        - name: First item
 ```
 
 ### View Context

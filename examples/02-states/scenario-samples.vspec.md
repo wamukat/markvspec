@@ -1,33 +1,31 @@
 ---
-id: SCR-MODEL-SAMPLES
+id: SCR-SCENARIO-SAMPLES
 type: screen
-title: Model Samples
-route: /model-samples
+title: Scenario Samples
+route: /scenario-samples
 owner: docs
 locale: en
 viewport: desktop
 status: draft
 ---
 
-# SCR-MODEL-SAMPLES Model Samples
+# SCR-SCENARIO-SAMPLES Scenario Samples
 
-This example focuses on list-style `## Model Samples` and model-backed preview
-content. Read the sample sets, `${model.*}` references, and state-specific
-preview output together. The load flow is intentionally minimal so the sample
-data contract stays visible while `loading`, `loaded`, and `empty` still form a
-coherent state flow.
+This example focuses on preview data without a separate data model section.
+Read Element `sample` / `sample rows:` as the baseline display data, then compare
+the `## Preview Scenarios` overrides for the loaded and empty states.
 
 ## States
 
 - loading*
-  - Account data is being loaded before the model-backed preview is available.
+  - Account data is being loaded before scenario-specific data is available.
 - loaded
 - empty
   - The account has no active subscriptions to render.
 
 ## Layout: desktop
 
-### L1:L-Page Model samples page
+### L1:L-Page Scenario samples page
 
 - stack
 - gap: md
@@ -45,6 +43,7 @@ coherent state flow.
 - grid
 - columns: 3
 - gap: sm
+- hidden when: loading
 
 #### Items
 
@@ -58,25 +57,22 @@ coherent state flow.
 ### 1:E-Title Heading
 
 - level: 1
-- label: Model samples
+- label: Scenario samples
 
 ### 2:E-MemberName Text
 
-- src: ${model.member.name}
-- visible when: loaded
-- visible when: empty
+- source: data
+- sample: Morgan Lee
 
 ### 3:E-PlanName Text
 
-- src: ${model.account.plan}
-- visible when: loaded
-- visible when: empty
+- source: data
+- sample: Team Pro
 
 ### 4:E-SeatCount Text
 
-- src: ${model.account.seats}
-- visible when: loaded
-- visible when: empty
+- source: data
+- sample: 12 seats
 
 ### 5:E-StatusBanner Banner
 
@@ -86,12 +82,20 @@ coherent state flow.
 
 ### 6:E-SubscriptionTable Table
 
-- rows: ${model.subscriptions.items}
 - source: data
 - Columns:
   - product: Product
   - seats: Seats
   - renewal: Renewal
+- sample rows:
+  - row:
+    - product: Workspace
+    - seats: 8
+    - renewal: 2026-06-30
+  - row:
+    - product: Analytics
+    - seats: 4
+    - renewal: 2026-07-15
 - visible when: loaded
 
 ### 7:E-EmptyMessage Paragraph
@@ -137,40 +141,32 @@ coherent state flow.
     - Effects
       - state: empty
 
-## Model Samples
+## Preview Scenarios
 
-### loaded
+### loaded-renewal
 
-#### ${model.member}
+- state: loaded
+- samples:
+  - E-MemberName: Morgan Lee
+  - E-PlanName: Team Pro
+  - E-SeatCount: 12 seats
+  - E-SubscriptionTable:
+    - rows:
+      - row:
+        - product: Workspace
+        - seats: 8
+        - renewal: 2026-06-30
+      - row:
+        - product: Analytics
+        - seats: 4
+        - renewal: 2026-07-15
 
-- name: Morgan Lee
+### empty-account
 
-#### ${model.account}
-
-- plan: Team Pro
-- seats: 12
-
-#### ${model.subscriptions.items}
-
-- product: Workspace
-  seats: 8
-  renewal: 2026-06-30
-- product: Analytics
-  seats: 4
-  renewal: 2026-07-15
-
-### empty
-
-#### ${model.member}
-
-- name: Morgan Lee
-
-#### ${model.account}
-
-- plan: Team Pro
-- seats: 0
-
-#### ${model.subscriptions.items}
-
-| product | seats | renewal |
-| --- | --- | --- |
+- state: empty
+- samples:
+  - E-MemberName: Morgan Lee
+  - E-PlanName: Team Pro
+  - E-SeatCount: 0 seats
+  - E-SubscriptionTable:
+    - rows: []

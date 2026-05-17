@@ -38,7 +38,7 @@ MarkVSpec は制約付き DSL であると同時に Markdown です。利用者�
   - paragraph、Markdown table、code block を指します。
   - list item と heading は構造化候補として扱うため、この分類には含めません。
   - Markdown table は、セクション文法が構造化データとして要求する場所では構造化データを優先します。
-    例えば `Model Samples` の sample set 直下にある table は sample row であり、任意本文ではありません。
+    例えば Element の `sample rows:` 直下にある table は sample row であり、任意本文ではありません。
   - HTML block、thematic break、未知の Markdown block は任意本文として保持しません。対応するまでは diagnostic の対象です。
 - 構造化データ
   - セクションごとの DSL として解釈される heading、list、table などです。
@@ -203,25 +203,22 @@ Actions は既存方針を正式仕様にします。
   - action の構造化 list 後の任意本文。
   - Action Details に表示します。Action Summary には表示しません。
 
-### Model Samples
+### Preview Scenarios
 
-Model Samples は階層ごとに lead / notes を持てます。
+Preview Scenarios は section と scenario ごとに lead / notes を持てます。
 
 - 構造化データの開始
-  - 最初の `### <state>`。
+  - 最初の `### <scenario-name>`。
 - Section Lead
-  - sample 全体の説明として表示します。
+  - scenario 一覧全体の説明として表示します。
 - Section Notes
-  - `### Section Notes` に書かれた sample 全体の補足として表示します。
-- State sample group lead
-  - `### <state>` 直下、最初の `#### ${model.path}` より前の任意本文。
-- State sample group notes
-  - state group 内の `#### State Notes` に書かれた任意本文。
-  - parser は通常の sample path 判定より先に `#### State Notes` を判定します。
-- Sample set lead
-  - `#### ${model.path}` 直下、最初の table または list より前の任意本文。
-- Sample set notes
-  - sample set の table または list 後の任意本文。
+  - `### Section Notes` に書かれた scenario 一覧全体の補足として表示します。
+- Scenario lead
+  - `### <scenario-name>` 直下、最初の scenario property より前の任意本文。
+- Scenario notes
+  - scenario property 後の任意本文。
+- `samples` と `display` の子リスト
+  - scenario の構造化データとして扱います。
 
 ### Validations
 
@@ -369,7 +366,7 @@ interface MarkVSpecSectionProse {
 ```
 
 entity 型は既存の `overview?: string[]` / `notes?: string[]` を拡張して使います。
-Model Samples は state group / sample set へ prose を持たせるため、専用の型拡張が必要です。
+Preview Scenarios は scenario entry へ prose を持たせるため、専用の型拡張が必要です。
 History entry は `bodyLines` を changes として維持し、entry overview / notes は追加しません。
 
 複数インスタンスを持つセクションでは、prose も該当インスタンスに紐づけます。
@@ -392,8 +389,8 @@ History entry は `bodyLines` を changes として維持し、entry overview / 
 2. Entity prose の統一
    - Layout、Slots、Elements、Form Groups、Actions、Validations、Business Rules、Error Codes に overview / notes を持たせる。
    - Action の既存 overview / notes 挙動を canonical として整理する。
-3. Model Samples の階層 prose
-   - section、state group、sample set の overview / notes を表現する。
+3. Preview Scenarios の階層 prose
+   - section、scenario entry の overview / notes を表現する。
 4. History / History Fields の prose
    - raw line parser を使うため、他セクションとは別チケットで実装する。
    - History entry の changes との境界を regression test で固定する。

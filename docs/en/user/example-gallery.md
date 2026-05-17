@@ -31,7 +31,7 @@ smallest useful reference:
 - `Parallel Initial Load` teaches parallel process groups and
   `Process P3: Resolve grouped processes` final state decisions.
 - `Search List` teaches admin list patterns: filters, Select options, Tables,
-  paging, loading/empty/error states, Model Samples, and response-driven result
+  paging, loading/empty/error states, Scenario samples, and response-driven result
   replacement.
 - `Template Shell`, `Profile Page With Template`, and `Profile Summary Partial`
   teach templates, slots, template composition, partial hosts,
@@ -65,8 +65,8 @@ unambiguous.
 | Example | Purpose | Demonstrates |
 | --- | --- | --- |
 | [Hello Screen](../../../examples/01-basics/hello-screen.vspec.md) | Minimum useful screen. | Metadata, one state, one viewport, layout, elements, and a click action marker. |
-| [Async Loading](../../../examples/02-states/async-loading.vspec.md) | Request send and response handling. | Loading, loaded, empty, and load-error states, response cases, and Model Samples. |
-| [Model Samples](../../../examples/02-states/model-samples.vspec.md) | Dedicated model-backed preview data example. | List-first object and collection samples, state-specific sample sets, and supplemental empty table syntax. |
+| [Async Loading](../../../examples/02-states/async-loading.vspec.md) | Request send and response handling. | Loading, loaded, empty, and load-error states, response cases, and table sample rows. |
+| [Scenario Samples](../../../examples/02-states/scenario-samples.vspec.md) | Dedicated preview data example. | Element `sample`, `sample rows:`, Preview Scenario `samples`, and explicit empty rows. |
 | [Responsive Profile](../../../examples/02-states/responsive-profile.vspec.md) | Same content in mobile and desktop layouts. | Viewport-specific layout groups over shared elements. |
 | [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | Non-click events and lifecycle triggers. | `screen.load`, `.change` unsaved notice display, `.blur` validation, `.focus` help text, `.submit`, dialog click actions, `close`, and Preview Scenarios. |
 | [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md) | Submit action lifecycle. | Validation receive source, request parameters, server process details, flow stop/continue, and success navigation. |
@@ -75,7 +75,7 @@ unambiguous.
 | [Parallel Initial Load](../../../examples/03-actions/parallel-initial-load.vspec.md) | Parallel server calls with a final resolver. | `group: initial-load`, `Process P3: Resolve grouped processes`, response cases, and final state decisions. |
 | [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md) | Display Content Spec field coverage. | `label`, `placeholder`, `sample`, `src`, `format`, machine `value`, and navigation `params`. |
 | [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md) | Element type coverage screen using a realistic profile/settings form. | `Textarea`, `MultiSelect`, `CheckboxGroup`, `Switch`, `RadioGroup`, `List`, `Dialog`, `Image`, `Icon`, `Divider`, file inputs, date/time inputs, and number input. |
-| [Search List](../../../examples/04-real-world-screens/search-list.vspec.md) | Search screen with filters and pagination. | Desktop toolbar, Select options, Table, empty state, load-error state, Model Samples, and display element replacement. |
+| [Search List](../../../examples/04-real-world-screens/search-list.vspec.md) | Search screen with filters and pagination. | Desktop toolbar, Select options, Table sample rows, empty state, load-error state, and display element replacement. |
 | [Login Basic](../../../examples/04-real-world-screens/login-basic.vspec.md) | Compact authentication flow with mobile and desktop layouts. | Required inputs, validation/auth/request messages as display scenarios, spinner overlay, disabled controls, request parameters, response cases, screen navigation, and Business Rules. |
 | [Template Shell](../../../examples/05-reuse/template-shell.vspec.md) | Shared template shell. | Template document unit, navigation frame, top bar, language Select, and `content` slot placeholder. |
 | [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md) | Screen using a template slot and partial. | Front Matter `template`, `references.partials`, `## Slot: content`, route params, and `display.element` references to the partial host layout. |
@@ -89,9 +89,9 @@ unambiguous.
 2. Toggle Layout, Element, and Action markers.
 3. Switch viewport filters between `All`, `mobile`, and `desktop`.
 4. Open [Search List](../../../examples/04-real-world-screens/search-list.vspec.md)
-   and confirm model-backed rows render in the `idle` state.
-5. Open [Model Samples](../../../examples/02-states/model-samples.vspec.md)
-   and confirm list-style object and collection samples render.
+   and confirm table sample rows render in the `idle` state.
+5. Open [Scenario Samples](../../../examples/02-states/scenario-samples.vspec.md)
+   and confirm scenario sample overrides render.
 6. Open [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md)
    and confirm non-click events and lifecycle triggers render in Action Details.
 7. Open [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md)

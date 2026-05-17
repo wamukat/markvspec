@@ -116,7 +116,6 @@ The current release recognizes these sections:
 - `## Layout: <viewport>`
 - `## Elements`
 - `## Actions`
-- `## Model Samples`
 - `## Validations`
 - `## Business Rules`
 
@@ -488,8 +487,8 @@ tables instead.
 Generated design documents should not include a Model Updates section. Action
 effects describe screen-visible outcomes such as state changes, navigation, and
 display changes; they do not canonically assign into `${model.value}`. Display
-value references such as `value: ${model.notice.title}` and Model Samples remain
-visible in State Views, Display Content Spec, and Input Form Spec.
+values should be reviewed through State Views, Display Content Spec, Input Form
+Spec, Element samples, and Preview Scenario samples.
 
 ## Thymeleaf And Htmx
 

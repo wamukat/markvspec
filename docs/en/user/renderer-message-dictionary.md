@@ -38,7 +38,7 @@ Included:
 - Generated design document section headings.
 - Preview and generated-document table names, column names, and fixed labels.
 - Condition labels such as `visible`, `hidden`, and `disabled`.
-- Generated helper text such as `None.`, Model Samples `Empty array` / `No sample fields defined`, and `No visible elements`.
+- Generated helper text such as `None.`, scenario sample empty-row messages, and `No visible elements`.
 
 Excluded:
 

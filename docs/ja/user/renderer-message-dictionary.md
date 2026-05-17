@@ -46,7 +46,7 @@ npx @markvspec/cli@latest export pdf examples/04-real-world-screens/login-basic.
 - design document の章見出し
 - preview / generated document の表名、列名、固定ラベル
 - `visible` / `hidden` / `disabled` などの条件表示ラベル
-- `None.`、Model Samples の `Empty array` / `No sample fields defined`、空の wireframe に表示する `No visible elements` などの MarkVSpec が生成する補助文言
+- `None.`、scenario sample の空行メッセージ、空の wireframe に表示する `No visible elements` などの MarkVSpec が生成する補助文言
 
 対象外:
 

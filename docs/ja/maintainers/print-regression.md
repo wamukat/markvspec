@@ -37,7 +37,7 @@ MARKVSPEC_REQUIRE_PDF=1 npm run check:print-regression
 - `examples/01-basics/hello-screen.vspec.md`
 - `examples/04-real-world-screens/login-basic.vspec.md`
 - `examples/02-states/async-loading.vspec.md`
-- `examples/02-states/model-samples.vspec.md`
+- `examples/02-states/scenario-samples.vspec.md`
 - `examples/02-states/responsive-profile.vspec.md`
 - `examples/03-actions/event-triggers.vspec.md`
 - `examples/03-actions/form-submit-flow.vspec.md`
@@ -65,7 +65,7 @@ MARKVSPEC_REQUIRE_PDF=1 npm run check:print-regression
   Mermaid source が読める。
 - wireframe の marker badge が正しい layout / element / action target に
   紐づいて表示される。
-- Model Samples は、繰り返し構造を示しつつ、各サンプルデータ行に個別 marker を要求しない。
+- Element の `sample rows:` と scenario samples は、繰り返し構造を示しつつ、各サンプルデータ行に個別 marker を要求しない。
 - partial placeholder と埋め込み partial preview が区別して読める。
 - i18n label reference、URL parameter 付き遷移、`PartialRequest` section が読める。
 - Front Matter metadata が表示される。
@@ -73,7 +73,7 @@ MARKVSPEC_REQUIRE_PDF=1 npm run check:print-regression
 - inline 目次の後と History の前は、章区切りとして改ページされる。
 - 各 state、Layouts、Elements、Actions は必ず新ページ開始にならず、
   wireframe、状態説明、関連表を同じ流れで読める。
-- wireframe 導入部、action detail、process card、model sample block は、
+- wireframe 導入部、action detail、process card、scenario sample block は、
   ブラウザが対応できる範囲で内部改ページされにくい。
 - table は全体を 1 ブロックとして固定せず、ヘッダと行単位で読みやすく印刷される。
 

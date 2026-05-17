@@ -72,10 +72,11 @@
 ### A1:A-Submit Submit
 - Triggered
   - E-Submit.click</code></pre></td></tr>
-          <tr><td><code>Model Samples</code></td><td>Preview/export sample data.</td><td>Prose is preserved at section, state group, or sample set level.</td><td>State/sample groups, not ID entities.</td><td><code>### &lt;state&gt;</code>, <code>#### ${model.path}</code>, tables/lists.</td><td>Model Samples section and model-backed preview values.</td><td><pre><code>## Model Samples
-### loaded
-#### ${model.items}
-| name |</code></pre></td></tr>
+          <tr><td><code>Preview Scenarios</code></td><td>State/view/sample combinations for preview/export.</td><td>Prose is preserved around scenario definitions.</td><td>Scenario groups, not ID entities.</td><td><code>### &lt;scenario&gt;</code>, <code>state</code>, <code>view</code>, <code>samples</code>.</td><td>Scenario wireframes and scenario sample tables.</td><td><pre><code>## Preview Scenarios
+### loaded-admin
+- state: loaded
+- samples:
+  - E-Name: Jane Doe</code></pre></td></tr>
           <tr><td><code>View Context</code></td><td>UI-local context separate from state.</td><td>Prose describes each context definition.</td><td>Definition headings, not ID entities.</td><td>Type, values, and default marker.</td><td>Condition evaluation and State View resolution.</td><td><pre><code>## View Context
 ### selectedTab
 - type: enum

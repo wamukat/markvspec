@@ -34,7 +34,7 @@ example を代表セットとして使う。
 
 - `examples/01-basics/hello-screen.vspec.md`: 最小構成、Front Matter、1画面の基本表示。
 - `examples/04-real-world-screens/login-basic.vspec.md`: form layout、Form Groups、validation feedback scenario、authentication progress。
-- `examples/02-states/model-samples.vspec.md`: list 形式中心の Model Samples と空配列用 table 記法。
+- `examples/02-states/scenario-samples.vspec.md`: Element samples、scenario sample overrides、空 rows。
 - `examples/02-states/responsive-profile.vspec.md`: mobile / desktop のレスポンシブ layout と状態別表示。
 - `examples/03-actions/event-triggers.vspec.md`: click 以外の element event と lifecycle trigger。
 - `examples/03-actions/form-submit-flow.vspec.md`: validation、server call、display effect、navigation を含む action flow。
@@ -43,7 +43,7 @@ example を代表セットとして使う。
 - `examples/03-actions/toast-feedback.vspec.md`: non-modal Toast 表示と background feedback。
 - `examples/04-real-world-screens/notice-detail.vspec.md`: Display Content Spec の文言、データソース、format、value、params。
 - `examples/04-real-world-screens/profile-edit-rich.vspec.md`: 拡張 form、media、list、dialog 系 Element Type。
-- `examples/04-real-world-screens/search-list.vspec.md`: 検索、filter、pagination、Model Samples を含む実務寄り画面。
+- `examples/04-real-world-screens/search-list.vspec.md`: 検索、filter、pagination、table sample rows を含む実務寄り画面。
 - `examples/05-reuse/template-shell.vspec.md`: template shell、slot、再利用構造。
 - `examples/05-reuse/profile-page-with-template.vspec.md`: template 合成、route params、partial refresh。
 - `examples/05-reuse/profile-summary.partial.vspec.md`: partial route、partial-local state。

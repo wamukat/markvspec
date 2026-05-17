@@ -283,7 +283,7 @@ The `examples/` directory is organized as a learning path:
 
 - [examples/01-basics/hello-screen.vspec.md](examples/01-basics/hello-screen.vspec.md): minimum screen.
 - [examples/02-states/async-loading.vspec.md](examples/02-states/async-loading.vspec.md): request send and response states.
-- [examples/02-states/model-samples.vspec.md](examples/02-states/model-samples.vspec.md): list-first Model Samples with supplemental empty table syntax.
+- [examples/02-states/scenario-samples.vspec.md](examples/02-states/scenario-samples.vspec.md): Element samples and Preview Scenario sample overrides.
 - [examples/02-states/responsive-profile.vspec.md](examples/02-states/responsive-profile.vspec.md): mobile and desktop layouts.
 - [examples/03-actions/event-triggers.vspec.md](examples/03-actions/event-triggers.vspec.md): non-click element events and lifecycle triggers.
 - [examples/03-actions/form-submit-flow.vspec.md](examples/03-actions/form-submit-flow.vspec.md): validate, update model, server call, and navigation.

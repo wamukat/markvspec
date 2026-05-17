@@ -154,7 +154,6 @@ partial 由来の内容で置き換えるか」を書きます。partial 側は�
 - `## Elements`
 - `## Form Groups`
 - `## Actions`
-- `## Model Samples`
 - `## View Context`
 - `## View Context Samples`
 - `## Preview Scenarios`
@@ -306,7 +305,6 @@ level-2 セクション名です。
 - `Elements`
 - `Form Groups`
 - `Actions`
-- `Model Samples`
 - `Validations`
 - `Business Rules`
 - `Error Codes`
@@ -1027,7 +1025,7 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 
 - `fixed`: MarkVSpec 文書内に直接書いた固定値、固定文言、固定表示内容。
 - `i18n`: 国際化リソースで管理する表示文言。`source` に i18n key、namespace、bundle 名、翻訳ファイル名は書きません。
-- `data`: 業務データ、画面データ、API 応答、サーバ側モデル、Sample Data Model などから来る生値。
+- `data`: 業務データ、画面データ、API 応答、サーバ側モデルなどから来る生値。
 - `route`: URL path parameter、query string、route parameter などのルーティング由来の値。
 - `element`: `value: E-EmailInput.value` のように別 property で参照した他要素の現在値。双方向 binding ではありません。
 - `asset`: アプリ管理下の画像、アイコン、静的ファイルなど。
@@ -1040,8 +1038,8 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 `source: document` や `source: ${model.users.items}` のような旧来の参照パス指定は不許可です。
 
 `Table` は Markdown table ではなく、ネストした Markdown リストで列とサンプル行を書きます。
-区切り文字を使った文字列操作を避け、設計書として読みやすい形を優先します。モデルに紐づくテーブルは
-具体的な Model Samples path を `rows` に書き、由来分類として `source: data` を書くと、active state のサンプルデータから preview の行が生成されます。
+区切り文字を使った文字列操作を避け、設計書として読みやすい形を優先します。データ由来のテーブルは
+由来分類として `source: data` を書き、preview 用の行は `sample rows:` または Preview Scenario の `rows:` に書きます。
 
 ネストした Element ブロックの開始は `options:`, `Columns:`, `Sample Rows:`, `params:`, `input rule:` のようにコロン付きで書きます。
 
@@ -1049,7 +1047,6 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 ### E-Users Table
 
 - label: Users
-- rows: ${model.users.items}
 - source: data
 - Columns:
   - name: 名前
@@ -1059,23 +1056,20 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
     sortable: true
   - role: 権限
 
-## Model Samples
-
-### idle
-
-#### ${model.users.items}
-
-- name: Alice
-  email: alice@example.com
-  role: Admin
-- name: Bob
-  email: bob@example.com
-  role: Viewer
+- sample rows:
+  - row:
+    - name: Alice
+    - email: alice@example.com
+    - role: Admin
+  - row:
+    - name: Bob
+    - email: bob@example.com
+    - role: Viewer
 ```
 
 `Columns:` では `- key: 表示名` と書くことで、サンプルデータの key と表示ヘッダーを分けられます。
 `sortable: true` は sort 可能な列、`sort: asc` / `sort: desc` は現在の sort 方向を preview に表示します。
-モデルを使わない静的なテーブルでは、従来の `Sample Rows:` ブロックも互換として利用できます。
+従来の `Sample Rows:` ブロックも互換として利用できますが、新しい例では `sample rows:` を使います。
 
 `Dialog` は既定で modal overlay として扱います。Dialog 表示のためだけに
 通常 Layout へ `L-DialogArea` のような専用領域を置くのは canonical ではありません。
@@ -1355,7 +1349,7 @@ execution detail も result classification も持たない、決定的な即時�
     - stop
 ```
 
-主な `Effects` entry は `view:`、`state:`、`navigate:`、`display:` です。Action の `Effects` で `${model.*}` に代入する `model:` mutation は canonical DSL ではありません。`${model.*}` は、Element の `value:` / `src:`、request parameter、Model Samples などの読み取り参照として使い、Action では実装内部の store や server-side model への代入を書かないようにします。`stop` / `continue` は case-level の制御フローなので、`Effects` の外で case の最後に書きます。`display.target` は表示先の既存 `L-*` layout または `E-*` element を指します。また、Input 系 element に付属する field-level error slot として `E-*.error` も指定できます。`display.element` はその表示先に挿入または表示する既存の `E-*` element または `L-*` layout を1つだけ指します。`display.message` は `V-EmailRules.messages` のような validation / business rule の message group を指します。直接の `display.content` と複数形の `display.elements` はサポートしません。例外として、`display.element` が `Dialog` の場合は `target` を省略でき、preview scenario では modal overlay として表示します。`display.element` が `Toast` の場合も `target` を省略でき、non-modal toast region に表示します。
+主な `Effects` entry は `view:`、`state:`、`navigate:`、`display:` です。Action の `Effects` で `${model.*}` に代入する `model:` mutation は canonical DSL ではありません。`${model.*}` は、Element の `value:` / `src:` や request parameter などの読み取り参照として使い、Action では実装内部の store や server-side model への代入を書かないようにします。preview / export 用の表示例は Element の `sample` / `sample rows:` または Preview Scenarios の `samples` に書きます。`stop` / `continue` は case-level の制御フローなので、`Effects` の外で case の最後に書きます。`display.target` は表示先の既存 `L-*` layout または `E-*` element を指します。また、Input 系 element に付属する field-level error slot として `E-*.error` も指定できます。`display.element` はその表示先に挿入または表示する既存の `E-*` element または `L-*` layout を1つだけ指します。`display.message` は `V-EmailRules.messages` のような validation / business rule の message group を指します。直接の `display.content` と複数形の `display.elements` はサポートしません。例外として、`display.element` が `Dialog` の場合は `target` を省略でき、preview scenario では modal overlay として表示します。`display.element` が `Toast` の場合も `target` を省略でき、non-modal toast region に表示します。
 
 ```markdown
 - display:
@@ -1467,11 +1461,11 @@ Thymeleaf や htmx による部分更新は、実装属性ではなく意味と�
 
 これは SPA rerender、MPA の returned HTML、MPA+htmx partial replacement のいずれにも解釈できます。MarkVSpec authoring DSL には `hx-*` 属性や swap mode を出しません。
 
-## モデル参照と Model Samples
+## データ由来とサンプル
 
-`${model.*}` は表示値やリクエスト値の参照元として使えます。Element の `value:` / `src:`、Action の `request.params`、Model Samples は canonical DSL の対象です。
+`source: data` は、値が業務データ、API 応答、サーバ側モデルなどに由来することを示す分類です。データパスではありません。baseline preview の表示値は Element の `sample` / `sample rows:` に書き、state/scenario 固有の表示値は Preview Scenario の `samples` に書きます。
 
-一方で、Action の `Effects` に `${model.*}` への代入を書く model mutation は canonical DSL ではありません。生成される設計書ビューにも、横断的なモデル更新セクションは表示しません。表示値の由来は State Views、表示内容仕様、入力フォーム仕様、Model Samples で確認します。
+Action の `Effects` に `${model.*}` への代入を書く model mutation は canonical DSL ではありません。生成される設計書ビューにも、横断的なモデル更新セクションは表示しません。
 
 `input:` は legacy syntax です。実行に渡す値は `request.params`、`server.params`、または `<custom detail>.params` に書きます。
 
@@ -1746,8 +1740,8 @@ metadata の後に書いた本文は自由 Markdown として生成設計書に�
 ## View Context セクション
 
 `## View Context` は、画面 state ではないが表示を変える UI ローカルな文脈を定義します。
-例として、選択中のタブ、表示モード、ヘルプパネルの開閉があります。永続的な業務データは
-`Model Samples` に置き、View Context は一時的な UI 文脈に限定します。
+例として、選択中のタブ、表示モード、ヘルプパネルの開閉があります。表示データは
+Element samples または Preview Scenario samples に置き、View Context は一時的な UI 文脈に限定します。
 
 ```markdown
 ## View Context
@@ -1868,7 +1862,7 @@ MarkVSpec は内容を検証、集計、実装契約として解釈しません�
 - `examples/01-basics/hello-screen.vspec.md`
 - `examples/04-real-world-screens/login-basic.vspec.md`
 - `examples/02-states/async-loading.vspec.md`
-- `examples/02-states/model-samples.vspec.md`
+- `examples/02-states/scenario-samples.vspec.md`
 - `examples/02-states/responsive-profile.vspec.md`
 - `examples/03-actions/event-triggers.vspec.md`
 - `examples/03-actions/form-submit-flow.vspec.md`

@@ -72,10 +72,11 @@
 ### A1:A-Submit Submit
 - Triggered
   - E-Submit.click</code></pre></td></tr>
-          <tr><td><code>Model Samples</code></td><td>preview/export 用 sample data。</td><td>section、state group、sample set の prose を保持。</td><td>ID entity ではなく state/sample group。</td><td><code>### &lt;state&gt;</code>、<code>#### ${model.path}</code>、table/list。</td><td>Model Samples と model-backed preview values。</td><td><pre><code>## Model Samples
-### loaded
-#### ${model.items}
-| name |</code></pre></td></tr>
+          <tr><td><code>Preview Scenarios</code></td><td>preview/export 用の state/view/sample の組み合わせ。</td><td>scenario 定義の前後に prose を保持。</td><td>ID entity ではなく scenario group。</td><td><code>### &lt;scenario&gt;</code>、<code>state</code>、<code>view</code>、<code>samples</code>。</td><td>scenario wireframe と scenario sample table。</td><td><pre><code>## Preview Scenarios
+### loaded-admin
+- state: loaded
+- samples:
+  - E-Name: Jane Doe</code></pre></td></tr>
           <tr><td><code>View Context</code></td><td>state とは別の UI-local context。</td><td>context definition ごとの prose を保持。</td><td>ID entity ではない definition heading。</td><td>type、values、default marker。</td><td>condition evaluation と State View resolution。</td><td><pre><code>## View Context
 ### selectedTab
 - type: enum

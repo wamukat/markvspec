@@ -4874,8 +4874,8 @@ test("parses every release example without diagnostics", () => {
   assert.deepEqual(exampleFiles, [
     "01-basics/hello-screen.vspec.md",
     "02-states/async-loading.vspec.md",
-    "02-states/model-samples.vspec.md",
     "02-states/responsive-profile.vspec.md",
+    "02-states/scenario-samples.vspec.md",
     "03-actions/event-triggers.vspec.md",
     "03-actions/form-submit-flow.vspec.md",
     "03-actions/parallel-initial-load.vspec.md",
@@ -4900,6 +4900,19 @@ test("parses every release example without diagnostics", () => {
     if (result.screen.type === "template") {
       assert.ok(result.slotDefinitions.length > 0, file);
     }
+  }
+});
+
+test("keeps release examples migrated to scenario sample data", () => {
+  const exampleFiles = listExampleVspecFiles();
+
+  assert.ok(exampleFiles.includes("02-states/scenario-samples.vspec.md"));
+  assert.ok(!exampleFiles.includes("02-states/model-samples.vspec.md"));
+
+  for (const file of exampleFiles) {
+    const source = readFileSync(examplePath(file), "utf8");
+    assert.ok(!source.includes("## Model Samples"), file);
+    assert.ok(!/rows:\s*\$\{model\./.test(source), file);
   }
 });
 

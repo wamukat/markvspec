@@ -5626,18 +5626,16 @@ default-state: loaded
   assert.doesNotMatch(html, /PRT-NOTIC<code/);
 });
 
-test("renders src-only model sample values in display content spec", () => {
-  const source = readFileSync(resolve("../../examples/02-states/model-samples.vspec.md"), "utf8");
+test("renders scenario sample values in display content spec", () => {
+  const source = readFileSync(resolve("../../examples/02-states/scenario-samples.vspec.md"), "utf8");
   const html = renderDesignDocumentHtml(parseMarkVSpec(source), "");
   const loadedSection = stateSection(html, "loaded");
   const displayContent = loadedSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
 
-  assert.match(displayContent, new RegExp(`<td rowspan="2">${detailElementRef("2", "E-MemberName")}</td><td>sample</td><td>Morgan Lee</td><td>-</td><td>${plainCodePattern("fixed")}</td>`));
-  assert.match(displayContent, new RegExp(`<tr><td>src</td><td>${sourceCodePattern("${model.member.name}")}</td><td>-</td><td>${plainCodePattern("fixed")}</td>`));
-  assert.match(displayContent, new RegExp(`<td rowspan="2">${detailElementRef("3", "E-PlanName")}</td><td>sample</td><td>Team Pro</td><td>-</td><td>${plainCodePattern("fixed")}</td>`));
-  assert.match(displayContent, new RegExp(`<td rowspan="2">${detailElementRef("4", "E-SeatCount")}</td><td>sample</td><td>12</td><td>-</td><td>${plainCodePattern("fixed")}</td>`));
-  assert.match(displayContent, new RegExp(`<td rowspan="8">${detailElementRef("6", "E-SubscriptionTable")}</td><td>table rows</td><td>see wireframe</td><td>-</td><td>${plainCodePattern("data")}</td>`));
-  assert.match(displayContent, new RegExp(`<tr><td>rows</td><td>${sourceCodePattern("${model.subscriptions.items}")}</td><td>-</td><td>${plainCodePattern("data")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("2", "E-MemberName")}</td><td>sample</td><td>Morgan Lee</td><td>-</td><td>${plainCodePattern("data")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("3", "E-PlanName")}</td><td>sample</td><td>Team Pro</td><td>-</td><td>${plainCodePattern("data")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("4", "E-SeatCount")}</td><td>sample</td><td>12 seats</td><td>-</td><td>${plainCodePattern("data")}</td>`));
+  assert.match(displayContent, new RegExp(`<td rowspan="7">${detailElementRef("6", "E-SubscriptionTable")}</td><td>table rows</td><td>see wireframe</td><td>-</td><td>${plainCodePattern("data")}</td>`));
   assert.match(displayContent, new RegExp(`<td>column: Product</td><td>Product</td><td>-</td><td>${plainCodePattern("data")}</td>`));
   assert.match(displayContent, new RegExp(`<td>column source: Product</td><td>product</td><td>-</td><td>${plainCodePattern("data")}</td>`));
   assert.match(displayContent, new RegExp(`<td>column: Seats</td><td>Seats</td><td>-</td><td>${plainCodePattern("data")}</td>`));

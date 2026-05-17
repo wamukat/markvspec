@@ -40,15 +40,18 @@ global layout are handled by the host screen.
 ### 1:E-ProfileName Heading
 
 - level: 2
-- value: ${model.member.name}
+- source: data
+- sample: Jane Doe
 
 ### 2:E-ProfileRole Badge
 
-- value: ${model.member.role}
+- source: data
+- sample: Product Owner
 
 ### 3:E-ProfileEmail Text
 
-- value: ${model.member.email}
+- source: data
+- sample: jane@example.com
 
 ### 4:E-ProfileError Banner
 

@@ -13,7 +13,7 @@
 
 - 段階順に読み、最小画面から状態、アクション、実務寄りの一覧、再利用へ進める。
 - 1つのサンプルで学ぶ主題を絞り、複数機能を詰め込みすぎない。
-- `States`、responsive layout、slot、主要 element type、Action の `Triggered` / `Process <marker>: <name>`、process step の `case: <name>`、`Model Samples` を段階的にカバーする。
+- `States`、responsive layout、slot、主要 element type、Action の `Triggered` / `Process <marker>: <name>`、process step の `case: <name>`、scenario samples を段階的にカバーする。
 
 ## marker 方針
 
@@ -36,8 +36,8 @@ rule と validation の見出しは、document symbol と parser test が曖昧�
 | サンプル | 用途 |
 | --- | --- |
 | [Hello Screen](../../../examples/01-basics/hello-screen.vspec.md) | metadata、1 state、1 viewport、layout、element、click action marker の最小例。 |
-| [Async Loading](../../../examples/02-states/async-loading.vspec.md) | request 送信、response handling、empty/error state、Model Samples の例。 |
-| [Model Samples](../../../examples/02-states/model-samples.vspec.md) | list 形式中心の object / collection サンプルと、空配列用 table 記法を学ぶ例。 |
+| [Async Loading](../../../examples/02-states/async-loading.vspec.md) | request 送信、response handling、empty/error state、table sample rows の例。 |
+| [Scenario Samples](../../../examples/02-states/scenario-samples.vspec.md) | Element `sample`、`sample rows:`、Preview Scenario `samples`、空 rows の例。 |
 | [Responsive Profile](../../../examples/02-states/responsive-profile.vspec.md) | mobile / desktop viewport で同じ情報を異なる配置にする例。 |
 | [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | `screen.load`、`.change` の未保存通知、`.blur` validation、`.focus` help、`.submit`、dialog click / `close` と Preview Scenarios の例。 |
 | [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md) | validation receive source、request parameters、server process detail、成功時 navigation の例。 |
@@ -57,7 +57,7 @@ rule と validation の見出しは、document symbol と parser test が曖昧�
 
 1. [Login Basic](../../../examples/04-real-world-screens/login-basic.vspec.md) を開き、mobile / desktop の preview を確認する。
 2. marker 表示、viewport filter、state 切替を確認する。
-3. [Model Samples](../../../examples/02-states/model-samples.vspec.md) で list 形式の object / collection sample 表示を確認する。
+3. [Scenario Samples](../../../examples/02-states/scenario-samples.vspec.md) で scenario sample override の表示を確認する。
 4. [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) で click 以外の event と lifecycle trigger を確認する。
 5. [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md) で Display Content Spec の文言、表示値、データソース、format、value、params を確認する。
 6. [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md) で拡張 Element Type の preview 表示を確認する。

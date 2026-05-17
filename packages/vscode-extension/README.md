@@ -29,7 +29,7 @@ The active `examples/` directory is a learning path:
 - `examples/01-basics/hello-screen.vspec.md` is the smallest useful document.
 - `examples/04-real-world-screens/login-basic.vspec.md` covers a compact authentication flow with validation feedback scenarios.
 - `examples/02-states/async-loading.vspec.md` covers request send and response states.
-- `examples/02-states/model-samples.vspec.md` covers list-first Model Samples and supplemental empty table syntax.
+- `examples/02-states/scenario-samples.vspec.md` covers Element samples and Preview Scenario sample overrides.
 - `examples/02-states/responsive-profile.vspec.md` covers mobile and desktop layouts.
 - `examples/03-actions/event-triggers.vspec.md` covers non-click events and lifecycle triggers.
 - `examples/03-actions/form-submit-flow.vspec.md` covers validation, server call, and navigation.
@@ -38,7 +38,7 @@ The active `examples/` directory is a learning path:
 - `examples/03-actions/parallel-initial-load.vspec.md` covers parallel server calls and `Resolve`.
 - `examples/04-real-world-screens/notice-detail.vspec.md` covers Display Content Spec fields.
 - `examples/04-real-world-screens/profile-edit-rich.vspec.md` covers extended form, media, list, and dialog element types.
-- `examples/04-real-world-screens/search-list.vspec.md` covers search, filters, pagination, and Model Samples.
+- `examples/04-real-world-screens/search-list.vspec.md` covers search, filters, pagination, and table sample rows.
 - `examples/05-reuse/template-shell.vspec.md` covers template slots.
 - `examples/05-reuse/profile-page-with-template.vspec.md` covers template composition, route params, and partial refresh.
 - `examples/05-reuse/profile-summary.partial.vspec.md` covers partial routes and partial-local states.

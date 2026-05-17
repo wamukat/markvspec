@@ -45,12 +45,12 @@ loaded-billing-tab-help-open
 MarkVSpec では、業務・データ・処理状態と、表示を決める一時的な UI 文脈を分けます。
 
 - `## States`: 画面内の業務状態、通信状態、データ取得状態、エラー状態。
-- `## Model Samples`: 画面が扱うデータの状態別サンプル。
+- Element の `sample` / `sample rows:` と Preview Scenarios の `samples`: 画面が扱う表示データのサンプル。
 - `## View Context`: 同じ state / model の中で、表示の開閉、選択、表示モードを決める値。
 
-`View Context` は実装上の境界ではありません。React などで実装するとき、`Model Samples` 由来のデータと `View Context` 由来の値が同じ component state や store に置かれても構いません。
+`View Context` は実装上の境界ではありません。React などで実装するとき、表示データと `View Context` 由来の値が同じ component state や store に置かれても構いません。
 
-MarkVSpec で分ける理由は、仕様上の役割が違うためです。`Model Samples` は「何を表示するか」の材料であり、`View Context` は「どのように見せるか、どの補助 UI を出すか」を決める文脈です。
+MarkVSpec で分ける理由は、仕様上の役割が違うためです。Element / Scenario samples は「何を表示するか」の材料であり、`View Context` は「どのように見せるか、どの補助 UI を出すか」を決める文脈です。
 
 ## 責務の境界
 
@@ -69,21 +69,25 @@ MarkVSpec で分ける理由は、仕様上の役割が違うためです。`Mod
 
 `State Flow` 図には、原則として `States` の state-to-state 遷移だけを表示します。自己ループ、別画面遷移、`View Context` の変更は、状態遷移図を複雑にするため表示しません。
 
-### Model Samples
+### Element / Scenario Samples
 
-`Model Samples` は、state ごとの画面データ例です。
+Element の `sample` / `sample rows:` は baseline の表示データ例です。state ごとの差分が必要な場合は `Preview Scenarios` の `samples` に書きます。
 
 例です。
 
 ```markdown
-## Model Samples
+### E-MemberName Text
 
-### loaded
+- source: data
+- sample: Jane Doe
 
-#### ${model.member}
+## Preview Scenarios
 
-- name: Jane Doe
-  role: Admin
+### loaded-admin
+
+- state: loaded
+- samples:
+  - E-MemberName: Jane Doe
 ```
 
 これは画面が扱うデータの例であり、ヘルプパネルが開いているか、どのタブが選択されているかは表しません。
@@ -129,7 +133,7 @@ view context の既定値は `values` の `*` で示します。`*` がない場
 
 ## View Context Samples
 
-`View Context` も、`Model Samples` と同様に設計書上でサンプル値を登録できるようにします。
+`View Context` も、表示データの sample と同様に設計書上でサンプル値を登録できるようにします。
 
 `## View Context` は view context の schema を定義します。`## View Context Samples` は named value set を定義します。View Context sample 自体は state と直接結びつけません。
 
@@ -154,13 +158,13 @@ view context の既定値は `values` の `*` で示します。`*` がない場
 
 `### <name>` は view context sample の名前です。`default` は標準の view context sample として扱えます。`help-open` や `billing-tab` は、state とは独立した表示文脈の値セットです。
 
-これにより、state 自体は増やさずに、ヘルプ表示、ダイアログ表示、選択中タブなどの見え方を設計書上で名前付きデータとして持てます。`Model Samples` は表示データ、`View Context Samples` は表示条件の値です。
+これにより、state 自体は増やさずに、ヘルプ表示、ダイアログ表示、選択中タブなどの見え方を設計書上で名前付きデータとして持てます。Element / Scenario samples は表示データ、`View Context Samples` は表示条件の値です。
 
 `Preview Scenarios` がない場合は、すべての state を baseline preview / export に表示します。各 state の wireframe は `default` view context sample があればそれを使います。`View Context Samples` がない、または `default` sample がない場合は、`## View Context` の既定値から組み立てた view context を使います。既定値は `*` 付き値を優先し、`*` がなければ `values` の先頭を使います。
 
 ## Preview Scenarios
 
-`State`、`Model Samples`、`View Context Samples` の組み合わせは `Preview Scenarios` として明示できます。
+`State`、scenario samples、`View Context Samples` の組み合わせは `Preview Scenarios` として明示できます。
 
 ```markdown
 ## Preview Scenarios
@@ -168,28 +172,31 @@ view context の既定値は `values` の `*` で示します。`*` がない場
 ### loaded
 
 - state: loaded
-- model: loaded
 - view: default
+- samples:
+  - E-MemberName: Jane Doe
 
 ### loaded-help
 
 - state: loaded
-- model: loaded
 - view: help-open
+- samples:
+  - E-MemberName: Jane Doe
 
 ### loaded-billing-tab
 
 - state: loaded
-- model: loaded
 - view: billing-tab
+- samples:
+  - E-MemberName: Jane Doe
 ```
 
-`Preview Scenarios` は preview / export の追加表示単位です。state 一覧を絞り込むためのものではありません。`View Context Samples` や `Model Samples` に state との関連を持たせず、scenario が `state` / `model` / `view` を束ねます。これにより、状態、表示データ、表示文脈の責務を分離したまま、レビューしたい追加画面状態だけを明示できます。
+`Preview Scenarios` は preview / export の追加表示単位です。state 一覧を絞り込むためのものではありません。`View Context Samples` に state との関連を持たせず、scenario が `state` / `samples` / `view` を束ねます。これにより、状態、表示データ、表示文脈の責務を分離したまま、レビューしたい追加画面状態だけを明示できます。
 
 preview / export は常に `## States` の baseline preview を軸にします。`Preview Scenarios`
 は baseline を置き換える source of truth ではなく、特定の state に model / view /
 display の追加条件を重ねてレビューするための追加表示単位です。同じ state に複数
-scenario を定義することはできます。存在しない state / model sample /
+scenario を定義することはできます。存在しない state / element /
 view context sample の参照は diagnostic error です。全組み合わせの自動生成は行いません。
 
 `Preview Scenarios` が存在しない場合でも、MarkVSpec は全 state の baseline preview を
@@ -278,7 +285,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
       - view: ${view.isHelpPanelOpen} = false
 ```
 
-この整理案では、`state: loaded` は業務・処理 state の変更、`view: ${view.selectedTab} = results` や `view: ${view.isHelpPanelOpen} = false` は表示文脈の変更として扱います。Action から `${model.*}` に代入する model mutation は canonical DSL から外し、表示値の由来は Element の `value:` / `src:` や Model Samples で確認します。
+この整理案では、`state: loaded` は業務・処理 state の変更、`view: ${view.selectedTab} = results` や `view: ${view.isHelpPanelOpen} = false` は表示文脈の変更として扱います。Action から `${model.*}` に代入する model mutation は canonical DSL から外し、表示値の由来は Element の `sample` / `sample rows:` / `value:` / `src:` や Preview Scenarios の `samples` で確認します。
 
 この形で破綻しないための前提は次の通りです。
 
@@ -383,7 +390,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
 ## レビュー観点
 
 - `States` から一時的 UI 表示状態を分離できているか。
-- `Model Samples` と `View Context` の境界が作者に説明できるか。
+- 表示データ samples と `View Context` の境界が作者に説明できるか。
 - React などの実装 state と MarkVSpec の仕様概念を混同させない説明になっているか。
 - state diagram を複雑にしない方針が明確か。
 - 初期実装の範囲が広がりすぎていないか。

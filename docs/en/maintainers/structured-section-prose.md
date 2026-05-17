@@ -28,7 +28,7 @@ The final specification should not silently discard authored prose. At the same 
 - Supplemental prose
   - Paragraphs, Markdown tables, and code blocks.
   - List items and headings are not included because they may be structured DSL.
-  - Markdown tables are structured data when the section grammar requires them, for example Model Samples sample rows.
+  - Markdown tables are structured data when the section grammar requires them, for example Element `sample rows:`.
   - HTML blocks, thematic breaks, and unknown Markdown blocks are not preserved until a display policy exists; they are diagnostic targets.
 - Structured data
   - Headings, lists, tables, and other blocks interpreted by the section grammar.
@@ -160,18 +160,16 @@ Actions formalize the existing behavior.
 - Entity Notes are prose after the action structured list.
 - Entity Notes appear in Action Details, not Action Summary.
 
-### Model Samples
+### Preview Scenarios
 
-Model Samples have lead / notes at multiple levels.
+Preview Scenarios may have lead / notes at the section and scenario levels.
 
-- Structured data starts at the first `### <state>`.
-- Section Lead describes all samples.
+- Structured data starts at the first `### <scenario-name>`.
+- Section Lead describes the scenario set.
 - Section Notes are written under `### Section Notes`.
-- State sample group lead is prose under `### <state>` before the first `#### ${model.path}`.
-- State sample group notes are written under `#### State Notes`.
-- The parser checks `#### State Notes` before normal sample-path parsing.
-- Sample set lead is prose under `#### ${model.path}` before the first table or list.
-- Sample set notes are prose after the sample set table or list.
+- Scenario lead is prose under `### <scenario-name>` before the first scenario property.
+- Scenario notes are prose after the scenario properties.
+- `samples` and `display` child lists remain structured scenario data.
 
 ### Validations
 
@@ -289,7 +287,7 @@ interface MarkVSpecSectionProse {
 ```
 
 Entity types reuse or extend existing `overview?: string[]` / `notes?: string[]`.
-Model Samples need type extensions for prose on state groups and sample sets.
+Preview Scenarios need type extensions for prose on scenario entries.
 History entries keep `bodyLines` as changes and do not add entry overview / notes.
 
 For repeated section instances:
@@ -303,7 +301,7 @@ For repeated section instances:
 
 1. Core parser foundation for section prose.
 2. Unified entity prose for Layout, Slots, Elements, Form Groups, Actions, Validations, Business Rules, and Error Codes.
-3. Model Samples prose for section, state group, and sample set.
+3. Preview Scenarios prose for section and scenario entries.
 4. History / History Fields prose, handled separately because they use the raw line parser.
 5. Preview / generated document display.
 6. Diagnostics for unowned prose, malformed-heading prose, malformed structured data, and unsupported Markdown blocks.

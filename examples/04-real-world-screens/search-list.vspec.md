@@ -12,9 +12,9 @@ status: draft
 # SCR-USERS Search List
 
 This example teaches a compact real-world search list. Read the criteria form,
-table fed by `## Model Samples`, loading/empty/error states, request and response
-cases, pagination actions, and result replacement display effects; detail editing
-is outside this example.
+table `sample rows:`, loading/empty/error states, request and response cases,
+pagination actions, and result replacement display effects; detail editing is
+outside this example.
 
 ## States
 
@@ -95,11 +95,9 @@ is outside this example.
 ### 2:E-KeywordInput Input
 
 - placeholder: Name or email
-- value: ${model.keyword}
 
 ### 3:E-StatusFilter Select
 
-- value: ${model.status}
 - initial value: All
 - options:
   - All
@@ -126,13 +124,21 @@ is outside this example.
 
 ### 7:E-UsersTable Table
 
-- rows: ${model.users.items}
 - source: data
 - Columns:
   - name: Name
     sortable: true
   - email: Email
   - status: Status
+- sample rows:
+  - row:
+    - name: Taylor Stone
+    - email: taylor@example.com
+    - status: Active
+  - row:
+    - name: Riley Chen
+    - email: riley@example.com
+    - status: Invited
 - visible when: idle
 
 ### 8:E-EmptyText Paragraph
@@ -144,7 +150,6 @@ is outside this example.
 
 - label: Previous
 - action: A-PreviousPage
-- disabled when: ${model.page} is first
 
 ### 10:E-PageSummary Text
 
@@ -227,9 +232,9 @@ is outside this example.
     - method: GET
     - path: /users
     - params:
-      - keyword: ${model.keyword}
-      - status: ${model.status}
-      - page: ${model.nextPage}
+      - keyword: E-KeywordInput.value
+      - status: E-StatusFilter.value
+      - page: next page
   - result:
     - next search page request
   - case: sent
@@ -250,9 +255,9 @@ is outside this example.
     - method: GET
     - path: /users
     - params:
-      - keyword: ${model.keyword}
-      - status: ${model.status}
-      - page: ${model.previousPage}
+      - keyword: E-KeywordInput.value
+      - status: E-StatusFilter.value
+      - page: previous page
   - result:
     - previous search page request
   - case: sent
@@ -323,16 +328,3 @@ is outside this example.
       - display:
         - target: L-StatusArea
         - element: E-LoadErrorBanner
-
-## Model Samples
-
-### idle
-
-#### ${model.users.items}
-
-- name: Taylor Stone
-  email: taylor@example.com
-  status: Active
-- name: Riley Chen
-  email: riley@example.com
-  status: Invited

@@ -12,8 +12,8 @@ status: draft
 # SCR-ASYNC-LOADING Async Loading
 
 This example teaches asynchronous state modeling for a list refresh. Read
-`## States`, the split send/receive `## Actions`, response cases, and
-`## Model Samples`; it keeps layout and input controls minimal so loading,
+`## States`, the split send/receive `## Actions`, response cases, and the
+table `sample rows:`; it keeps layout and input controls minimal so loading,
 loaded, empty, and error previews are the focus.
 
 ## States
@@ -76,11 +76,17 @@ loaded, empty, and error previews are the focus.
 
 ### 5:E-ItemsTable Table
 
-- rows: ${model.items.rows}
 - source: data
 - Columns:
   - name: Name
   - status: Status
+- sample rows:
+  - row:
+    - name: Account setup
+    - status: Ready
+  - row:
+    - name: Billing review
+    - status: Waiting
 - visible when: loaded
 
 ### 6:E-EmptyText Paragraph
@@ -139,14 +145,3 @@ loaded, empty, and error previews are the focus.
     - response: HTTP error or timeout
     - Effects
       - state: load-error
-
-## Model Samples
-
-### loaded
-
-#### ${model.items.rows}
-
-| name | status |
-| --- | --- |
-| Account setup | Ready |
-| Billing review | Waiting |

@@ -33,7 +33,7 @@ The regression set is every bundled MarkVSpec document:
 - `examples/01-basics/hello-screen.vspec.md`
 - `examples/04-real-world-screens/login-basic.vspec.md`
 - `examples/02-states/async-loading.vspec.md`
-- `examples/02-states/model-samples.vspec.md`
+- `examples/02-states/scenario-samples.vspec.md`
 - `examples/02-states/responsive-profile.vspec.md`
 - `examples/03-actions/event-triggers.vspec.md`
 - `examples/03-actions/form-submit-flow.vspec.md`
@@ -61,8 +61,8 @@ Check the generated HTML or PDF for these points:
   source when Mermaid cannot run.
 - Wireframes keep marker badges attached to the correct layout, element, and
   action targets.
-- Model Samples show repeated structure without requiring unique markers for
-  every sampled data row.
+- Element `sample rows:` and scenario samples show repeated structure without
+  requiring unique markers for every sampled data row.
 - Partial placeholders and embedded partial previews remain visually distinct.
 - i18n label references, URL parameter transitions, and `PartialRequest`
   sections remain readable.

@@ -15,7 +15,6 @@ The current parser recognizes these sections:
 - `## Elements`
 - `## Form Groups`
 - `## Actions`
-- `## Model Samples`
 - `## View Context`
 - `## View Context Samples`
 - `## Preview Scenarios`
@@ -54,10 +53,9 @@ Unrecognized level-2 sections, including `## Notes` and `## Open Questions`, are
 | `Elements` | Defines UI elements. | Yes: `### [marker:]E-* Type`. | Element properties such as `label`, `src`, `action`, `visible when`. | Wireframe elements, Element Summary, and detail fragments. |
 | `Form Groups` | Defines semantic form units. | Yes: `### F-* Name`. | Field/member references and submit/validation metadata. | Form group summary and validation context. |
 | `Actions` | Defines user/system events and process outcomes. | Yes: `### [marker:]A-* Name`. | `Triggered`, `From`, `Process`, process `case`, `Effects`, `stop`, `continue`. | Action Summary, Action Details, action markers, state flow, and transition diagrams. |
-| `Model Samples` | Defines preview/export data samples. | State/sample groups, not ID entities. | `### <state>`, `#### ${model.path}`, Markdown tables or lists. | Model Samples section and model-backed preview values. |
 | `View Context` | Defines UI-local context separate from state. | Definition headings, not ID entities: `### <view-name>`. | View type, values, and optional default `*`. | State View context resolution and condition evaluation. |
 | `View Context Samples` | Names reusable view context value sets. | Sample headings, not ID entities: `### <sample-name>`. | View values keyed by `${view.*}`. | Preview scenario and baseline view resolution. |
-| `Preview Scenarios` | Adds explicit state/model/view preview combinations. | Scenario headings, not ID entities: `### <scenario-name>`. | State, model, view, before, and case values. | Additional State Views after baseline state previews. |
+| `Preview Scenarios` | Adds explicit state/view/sample preview combinations. | Scenario headings, not ID entities: `### <scenario-name>`. | State, view, before, cases, and `samples`. | Additional State Views after baseline state previews. |
 | `Field Validations` | Defines client-side single-field validation contracts. | Yes: `### [marker:]V-* Name`. | `target`, optional `run`, `constraints`, and messages. | Validation summary and display-message resolution. |
 | `Cross-field Validations` | Defines client-side form or multi-input validation contracts. | Yes: `### [marker:]V-* Name`. | `target`, `inputs`, `check`, optional `run`, and messages. | Validation summary and display-message resolution. |
 | `Validations` | Legacy-compatible validation section. | Yes: `### [marker:]V-* Name`. | Validation properties, rules/constraints, target/scope/run, and messages. | Validation summary and display-message resolution. |
@@ -204,23 +202,24 @@ Validate and send the form.
       - state: loading
 ```
 
-### Model Samples
+### Preview Scenarios
 
-`Model Samples` uses nested sample groups rather than ID-bearing entities.
-`Section Lead` describes all samples. `### <state>` starts a state sample group;
-`#### ${model.path}` starts a sample set. Tables and lists in a sample set are
-`Structured Body`. Group and sample prose is preserved as prose for that level.
+`Preview Scenarios` uses scenario headings rather than ID-bearing entities.
+`Section Lead` describes all scenarios. `### <scenario-name>` starts a scenario
+that can bind `state`, `view`, `before`, display `cases`, and `samples`.
+Scenario `samples` are structured preview overrides keyed by Element ID.
 
 ```markdown
-## Model Samples
+## Preview Scenarios
 
-### loaded
+### loaded-with-results
 
-#### ${model.items}
-
-| name |
-| --- |
-| First item |
+- state: loaded
+- samples:
+  - E-ItemsTable:
+    - rows:
+      - row:
+        - name: First item
 ```
 
 ### View Context

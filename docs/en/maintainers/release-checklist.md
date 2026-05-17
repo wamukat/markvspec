@@ -28,7 +28,7 @@ HTML export, and PDF export:
 
 - `examples/01-basics/hello-screen.vspec.md`: minimum metadata and one-screen basics.
 - `examples/04-real-world-screens/login-basic.vspec.md`: form layout, Form Groups, validation feedback scenarios, and authentication progress.
-- `examples/02-states/model-samples.vspec.md`: list-first Model Samples and supplemental empty table syntax.
+- `examples/02-states/scenario-samples.vspec.md`: Element samples, scenario sample overrides, and explicit empty rows.
 - `examples/02-states/responsive-profile.vspec.md`: mobile / desktop responsive layout and state-specific rendering.
 - `examples/03-actions/event-triggers.vspec.md`: non-click element events and lifecycle triggers.
 - `examples/03-actions/form-submit-flow.vspec.md`: action flow with validation, server call, display effects, and navigation.
@@ -37,7 +37,7 @@ HTML export, and PDF export:
 - `examples/03-actions/toast-feedback.vspec.md`: non-modal Toast display and background feedback.
 - `examples/04-real-world-screens/notice-detail.vspec.md`: Display Content Spec wording, data sources, format, value, and params.
 - `examples/04-real-world-screens/profile-edit-rich.vspec.md`: extended form, media, list, and dialog element types.
-- `examples/04-real-world-screens/search-list.vspec.md`: practical search, filters, pagination, and Model Samples.
+- `examples/04-real-world-screens/search-list.vspec.md`: practical search, filters, pagination, and table sample rows.
 - `examples/05-reuse/template-shell.vspec.md`: template shell, slots, and reusable structure.
 - `examples/05-reuse/profile-page-with-template.vspec.md`: template composition, route params, and partial refresh.
 - `examples/05-reuse/profile-summary.partial.vspec.md`: partial route and partial-local states.

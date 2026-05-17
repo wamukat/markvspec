@@ -19,7 +19,7 @@ small amount of information, but each section must have one primary job.
 | Section | Primary job | Show | Avoid |
 |---|---|---|---|
 | Screen | Entry point for the design document | document ID, title, type, route, owner, status, resolved references | default-state, locale, partial state maps, action results, element details |
-| Wireframe | Visual structure and state-specific appearance | model samples for the current state, layout structure, element placement, markers, system events, partial preview placement, current viewport/state specifications | full element properties, action internals, request details |
+| Wireframe | Visual structure and state-specific appearance | element samples, scenario samples for the current state, layout structure, element placement, markers, system events, partial preview placement, current viewport/state specifications | full element properties, action internals, request details |
 | Layouts | Layout objects visible in the current wireframe context | marker, name, kind, layout properties, item references | element behavior and action details |
 | Element Summary | Element catalog for the current wireframe context | marker, ID, type, triggered actions, description | display text, input constraints, visibility/disabled conditions, action process details |
 | Input Form Spec | What users can enter and which constraints apply | required flag, value initial/source, input details, constraints including readonly, format, visible condition, enabled condition | labels, placeholders, option labels, validation required rules, direct bind column, and other display text |
@@ -60,13 +60,12 @@ Detail sections should answer "exactly what happens?".
 - Partial updates live inside Action Details so readers can inspect targets,
   fragment/content, and resulting states or screens in the same action context
   as request, response, and cases.
-- Model Samples show the actual sample rows used to explain how `${model.value}`
-  references render immediately before each state's Wireframe. They are not an
-  independent section and should not collapse into column names and row counts
-  only.
+- Element samples and Preview Scenario samples show the actual sample values
+  used by wireframes. Scenario overrides appear in a small `Scenario Samples`
+  table under the matching wireframe.
 - Action-side `${model.value}` mutation is not canonical and should not be
   summarized as its own preview section. Display-value references remain visible
-  in State Views, Display Content Spec, Input Form Spec, and Model Samples.
+  in State Views, Display Content Spec, and Input Form Spec.
 
 ## Recommended Output Order
 
@@ -75,7 +74,7 @@ Detail sections should answer "exactly what happens?".
 3. Table of Contents
 4. States
 5. State Flow
-6. Viewport / State Wireframes, with Model Samples immediately before each state's Wireframe
+6. Viewport / State Wireframes, with Scenario Samples shown under scenario wireframes when present
 7. Screen Transitions
 8. State Transitions
 9. Action Details

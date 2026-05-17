@@ -61,11 +61,13 @@ step; it avoids user input so the ordering and final state decision are clear.
 
 ### 2:E-ProfileName Text
 
-- value: ${model.memberProfile.name}
+- source: data
+- sample: Taylor Stone
 
 ### 3:E-PointsBalance Text
 
-- value: ${model.points.balance}
+- source: data
+- sample: 12,400 points
 
 ### 4:E-LoadErrorBanner Banner
 
@@ -120,17 +122,3 @@ step; it avoids user input so the ordering and final state decision are clear.
     - Effects
       - state: initialize-error
     - stop
-
-## Model Samples
-
-### idle
-
-#### ${model.memberProfile}
-
-- name: Taylor Stone
-- loaded: true
-
-#### ${model.points}
-
-- balance: 12,400
-- loaded: true

@@ -166,7 +166,6 @@ Recognized level-2 sections:
 - `## Elements`
 - `## Form Groups`
 - `## Actions`
-- `## Model Samples`
 - `## View Context`
 - `## View Context Samples`
 - `## Preview Scenarios`
@@ -316,7 +315,6 @@ Level-2 section names:
 - `Elements`
 - `Form Groups`
 - `Actions`
-- `Model Samples`
 - `Validations`
 - `Business Rules`
 - `Error Codes`
@@ -801,17 +799,13 @@ for each screen state.
     - idle: loaded
 ```
 
-Use `## Model Samples` to define state-specific preview data. Repeated rows or
-cards are a result of model sample arrays; do not assign separate IDs such as
-`E-Notice1Link` and `E-Notice2Link` to each rendered sample item.
-Use list syntax as the primary authoring style; it is easier to maintain than
-wide Markdown tables when sample fields grow.
-Generated design documents show Model Samples immediately before the matching
-state's Wireframe instead of as an independent section.
-Each sample is headed by its model path. Generic labels such as `Rows: n` and
-`Sample Data` are not shown. A table with headers only represents an explicit
-empty array, while a model path with no fields is reported as having no sample
-fields defined.
+Use Element `sample` and `sample rows:` for baseline preview data. Use
+Preview Scenario `samples` when a state/scenario needs different displayed
+values. Repeated rows or cards come from `sample rows:` / scenario `rows:`; do
+not assign separate IDs such as `E-Notice1Link` and `E-Notice2Link` to each
+rendered sample item.
+Use list syntax as the primary authoring style. Markdown tables are not
+canonical sample data because row and field boundaries are harder to validate.
 
 ```markdown
 ### L-NoticeRows Notice Rows
@@ -835,35 +829,40 @@ fields defined.
 - E-NoticeLink
 - E-NoticePublishedAt
 
-## Model Samples
+- sample rows:
+  - row:
+    - noticeId: N-001
+    - title: Maintenance notice
+    - publishedAt: 2026-05-01
+    - read: false
+
+## Preview Scenarios
 
 ### empty
 
-#### ${model.noticeList.items}
+- state: empty
+- samples:
+  - E-NoticeTable:
+    - rows: []
 
-| noticeId | title | publishedAt | read |
-|---|---|---|---|
+### loaded-with-notices
 
-### loaded
+- state: loaded
+- samples:
+  - E-NoticeTable:
+    - rows:
+      - row:
+        - noticeId: N-001
+        - title: Maintenance notice
+        - publishedAt: 2026-05-01
+        - read: false
 
-#### ${model.noticeList.items}
-
-- noticeId: N-001
-  title: Maintenance notice
-  publishedAt: 2026-05-01
-  read: false
-- noticeId: N-002
-  title: Terms update
-  publishedAt: 2026-04-20
-  read: true
 ```
 
-`### <state>` selects the screen or partial state. `#### <model path>` selects
-the model path. Prefer list syntax for ordinary sample data because it stays
-readable as fields grow. A table with zero data rows remains the explicit empty
-array notation, and a table with multiple rows can be used for compact tabular
-data. For `${model.noticeList.items}`, the row alias is `${model.notice}`, so
-row elements can use `src: ${model.notice.title}`.
+Use `sample rows:` for baseline table rows and `Preview Scenarios` `samples`
+for state-specific overrides. Write table rows with explicit `row:` entries so
+each row has the same grammar in element definitions and scenarios. Use
+`rows: []` when the scenario intentionally renders an empty collection.
 
 Examples:
 
@@ -1107,8 +1106,8 @@ as `fixed`; explicitly writing `source: fixed` is also valid.
 - `i18n`: wording that should be managed by internationalization resources.
   Do not write i18n keys, namespaces, bundle names, or translation file names in
   `source`; use `source: i18n` only to mark that the text is translation-backed.
-- `data`: raw business data, screen data, API response data, server-side model
-  data, or Sample Data Model values.
+- `data`: raw business data, screen data, API response data, or server-side
+  model data. It is an origin category, not a path to sample data.
 - `route`: URL path parameters, query strings, and route parameters.
 - `element`: another element's current value, referenced by a separate property
   such as `value: E-EmailInput.value`. This is not data binding.
@@ -1335,9 +1334,8 @@ source, one default value, and one options list.
 
 `List` uses a compact property for short sequences. `Table` uses nested
 Markdown lists so columns and sample rows remain readable without delimiter
-parsing. For model-backed tables, use `rows` for the concrete Model Samples
-path and `source: data` for the origin category; the table preview will render
-rows from the active state's sample data.
+parsing. For data-backed tables, use `source: data` for the origin category and
+`sample rows:` or Preview Scenario `rows:` for preview rows.
 
 Use colon-suffixed block starters for nested element blocks: `options:`,
 `Columns:`, `Sample Rows:`, `params:`, and `input rule:`.
@@ -1350,7 +1348,6 @@ Use colon-suffixed block starters for nested element blocks: `options:`,
 ### E-Users Table
 
 - label: Users
-- rows: ${model.users.items}
 - source: data
 - Columns:
   - name: Name
@@ -1360,25 +1357,22 @@ Use colon-suffixed block starters for nested element blocks: `options:`,
     sortable: true
   - role: Role
 
-## Model Samples
-
-### idle
-
-#### ${model.users.items}
-
-- name: Alice
-  email: alice@example.com
-  role: Admin
-- name: Bob
-  email: bob@example.com
-  role: Viewer
+- sample rows:
+  - row:
+    - name: Alice
+    - email: alice@example.com
+    - role: Admin
+  - row:
+    - name: Bob
+    - email: bob@example.com
+    - role: Viewer
 ```
 
 In `Columns:`, `- key: Label` separates the sample-data key from the visible
 header. Add `sortable: true` to show a sort affordance, or `sort: asc` /
 `sort: desc` to show the current sort direction. The older `Sample Rows:`
-element block remains supported for static tables that do not use
-`## Model Samples`.
+element block remains supported for older static tables, but new examples should
+use `sample rows:`.
 
 `Dialog`, `Toast`, `Image`, `Icon`, and `Spinner` use small semantic property sets.
 `Dialog` is a modal overlay by default. Do not place a dedicated
@@ -1560,17 +1554,17 @@ Generated design documents should list these as partial update flows so that
 reviewers can see trigger, request, target, mode, fragment/content, and outcome
 without reading framework-specific attributes.
 
-## Model References And Samples
+## Data Sources And Samples
 
-`${model.*}` remains a display-value source. Use it in element `value:`, `src:`,
-`sample:`, option labels, request parameters, and other read positions where the
-screen needs to explain where displayed or submitted data comes from.
+`source: data` marks that a value comes from business data, API responses, or
+server-side data. It is an origin category, not a data path. Use `sample` and
+`sample rows:` for baseline preview values, and Preview Scenario `samples` for
+scenario-specific overrides.
 
 Do not use Action `Effects` to assign into `${model.*}`. Action-side model
 mutation is not canonical because it describes an implementation store or server
 model update rather than screen behavior. The generated design document therefore
-does not include a `Model Updates` section. Review displayed values in State
-Views, Display Content Spec, Input Form Spec, and Model Samples instead.
+does not include a `Model Updates` section.
 
 Element variants describe visual emphasis or component style without naming CSS
 classes directly.
@@ -2030,8 +2024,8 @@ ${state.loading}`. Non-state conditions use namespaced sources such as
 
 Use `## View Context` for UI-local display context that changes the view but is
 not a screen state. Examples include the selected tab, current display mode, or
-whether a help panel is open. Keep durable business data in `Model Samples`; use
-View Context for temporary UI context.
+whether a help panel is open. Keep displayed data in Element samples or Preview
+Scenario samples; use View Context for temporary UI context.
 
 ```markdown
 ## View Context
@@ -2502,7 +2496,7 @@ Warnings:
 ```text
 file              = front_matter document_heading section*
 document_heading  = "# " document_id " " title
-section           = states | layout | slot | slots | elements | form_groups | actions | model_samples | view_context | view_context_samples | preview_scenarios | validations | business_rules | error_codes | history_fields | history | markdown
+section           = states | layout | slot | slots | elements | form_groups | actions | view_context | view_context_samples | preview_scenarios | validations | business_rules | error_codes | history_fields | history | markdown
 states            = "## States" state_bullet*
 layout            = ("## Layout" | "## Layout:" viewport) layout_group*
 slot              = "## Slot:" slot_name (":" viewport)? layout_group*
@@ -2510,7 +2504,6 @@ slots             = "## Slots" slot_definition*
 elements          = "## Elements" element*
 form_groups       = "## Form Groups" form_group*
 actions           = "## Actions" action*
-model_samples     = "## Model Samples" model_sample_set*
 view_context      = "## View Context" view_context_entry*
 view_context_entry = "### " view_name bullet*
 view_context_samples = "## View Context Samples" view_context_sample*

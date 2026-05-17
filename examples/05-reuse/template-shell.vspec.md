@@ -11,8 +11,8 @@ status: draft
 
 This template teaches reusable shell structure. Read the `type: template`
 metadata, navigation frame, top bar, language select, and `content` slot
-placeholder; screen-specific states, model samples, and business actions belong
-to the screens that use the template.
+placeholder; screen-specific states, scenario samples, and business actions
+belong to the screens that use the template.
 
 ## States
 
