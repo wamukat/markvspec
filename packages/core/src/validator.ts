@@ -1667,10 +1667,10 @@ function validateDisplayEffect(
     );
   }
 
-  if (!display.element && !display.message) {
+  if (!display.element && !display.message && !display.partial) {
     diagnostics.push({
       severity: "error",
-      message: `Action ${actionId} ${context} display effect must define element or message. Use element: for authored UI or message: for a V-*.messages/R-*.messages reference.`,
+      message: `Action ${actionId} ${context} display effect must define element, message, or partial. Use element: for authored UI, message: for a V-*.messages/R-*.messages reference, or partial: for a PRT-* partial document.`,
       line: display.location.line
     });
   } else if (display.element && display.message) {
@@ -1711,6 +1711,25 @@ function validateDisplayEffect(
 
   if (display.message) {
     validateDisplayMessage(actionId, context, display, validationsById, rulesById, diagnostics);
+  }
+
+  if (display.partial) {
+    if ((display.propertyLocations["partial"]?.length ?? 0) > 1) {
+      diagnostics.push({
+        severity: "error",
+        message: `Action ${actionId} ${context} display effect must define exactly one partial.`,
+        line: firstPropertyLine(display, "partial") ?? display.location.line
+      });
+    } else if (!partialIdRegex.test(display.partial)) {
+      diagnostics.push({
+        severity: "error",
+        message: `Action ${actionId} ${context} display.partial must use a PRT-* partial ID.`,
+        line: firstPropertyLine(display, "partial") ?? display.location.line
+      });
+    } else {
+      const partialLine = display.propertyLocations["partial"]?.[0] ?? display.location;
+      collectPartialReference(display.partial, partialLine, referencedPartialIds);
+    }
   }
 
   if (display.content) {

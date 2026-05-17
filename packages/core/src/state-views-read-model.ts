@@ -66,13 +66,14 @@ export interface StateScreenReadModel {
 
 export interface StateScreenDisplayExplanation {
   readonly markerId: string;
-  readonly markerSource: "validation" | "business-rule" | "element";
+  readonly markerSource: "validation" | "business-rule" | "element" | "partial";
   readonly sourceId: string;
   readonly sourceName?: string;
   readonly targetRefs: string[];
-  readonly contentKind: "message" | "element";
+  readonly contentKind: "message" | "element" | "partial";
   readonly messageRef?: string;
   readonly elementRef?: string;
+  readonly partialRef?: string;
   readonly textSummary: string[];
   readonly triggeredBy: string[];
   readonly kind: string;
@@ -406,14 +407,14 @@ function displayExplanationsForScenarioCases(
     const step = action?.processSteps.find((candidate) => candidate.marker === caseRef.processMarker);
     const outcome = step?.outcomes.find((candidate) => candidate.result === caseRef.caseName);
     const display = outcome?.display;
-    if (!action || !step || !display || (!display.message && !display.element)) {
+    if (!action || !step || !display || (!display.message && !display.element && !display.partial)) {
       continue;
     }
 
     const targetRef = display.target ?? "(overlay)";
     const triggeredBy = `${action.id}.${step.marker ?? step.name}.${caseRef.caseName}`;
     const messageSourceId = display.message ? displayMessageSourceId(display.message) : undefined;
-    const sourceId = messageSourceId ?? display.element ?? "";
+    const sourceId = messageSourceId ?? display.element ?? display.partial ?? "";
     if (!sourceId) {
       continue;
     }
@@ -423,7 +424,8 @@ function displayExplanationsForScenarioCases(
     const element = sourceId.startsWith("E-") || sourceId.startsWith("L-") ? elementsById.get(sourceId) : undefined;
     const layout = sourceId.startsWith("L-") ? layoutsById.get(sourceId) : undefined;
     const markerId = displayExplanationMarker(sourceId, validation, rule);
-    const key = `${sourceId}:${display.message ? "message" : "element"}`;
+    const contentKind = display.message ? "message" : display.partial ? "partial" : "element";
+    const key = `${sourceId}:${contentKind}`;
     const existing = explanations.get(key);
     const textSummary = display.message
       ? displayMessageTextSummary(display.message, validation, rule)
@@ -432,13 +434,14 @@ function displayExplanationsForScenarioCases(
     const nextTriggeredBy = appendUnique(existing?.triggeredBy ?? [], triggeredBy);
     explanations.set(key, {
       markerId,
-      markerSource: sourceId.startsWith("V-") ? "validation" : sourceId.startsWith("R-") ? "business-rule" : "element",
+      markerSource: sourceId.startsWith("V-") ? "validation" : sourceId.startsWith("R-") ? "business-rule" : sourceId.startsWith("PRT-") ? "partial" : "element",
       sourceId,
       sourceName: validation?.name ?? rule?.name ?? elementDisplayName(element) ?? layoutDisplayName(layout) ?? sourceId,
       targetRefs: nextTargetRefs,
-      contentKind: display.message ? "message" : "element",
+      contentKind,
       messageRef: display.message,
       elementRef: display.element,
+      partialRef: display.partial,
       textSummary: existing?.textSummary.length ? existing.textSummary : textSummary,
       triggeredBy: nextTriggeredBy,
       kind: displayExplanationKind(display, validation, rule)

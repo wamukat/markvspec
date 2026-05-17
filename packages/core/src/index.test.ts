@@ -12730,6 +12730,79 @@ references:
   assert(emptyScenario?.renderedIds.elementIds.has("E-NoResults"));
 });
 
+test("parses display.partial effects for partial host updates", () => {
+  const source = `---
+id: SCR-PARTIAL-DISPLAY
+type: screen
+title: Partial Display
+references:
+  partials:
+    PRT-PROFILE-SUMMARY: ../partials/profile-summary.vspec.md
+---
+
+# SCR-PARTIAL-DISPLAY Partial Display
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- L-ProfileSummaryHost
+
+### L-ProfileSummaryHost Profile summary host
+
+- stack
+
+## Actions
+
+### A-RefreshProfile Refresh profile
+
+- Triggered
+  - screen.load
+- From
+  - idle
+- Process P1: Handle profile summary response
+  - case: success
+    - description: 200 profile summary partial
+    - Effects
+      - display:
+        - target: L-ProfileSummaryHost
+        - partial: PRT-PROFILE-SUMMARY
+
+## Preview Scenarios
+
+### profile-loaded
+
+- state: idle
+- cases:
+  - A-RefreshProfile.P1.success
+`;
+
+  const result = parseMarkVSpec(source);
+
+  assert.deepEqual(result.diagnostics, []);
+  const display = result.actions[0]?.processSteps[0]?.outcomes[0]?.display;
+  assert.equal(display?.target, "L-ProfileSummaryHost");
+  assert.equal(display?.partial, "PRT-PROFILE-SUMMARY");
+  assert.equal(display?.element, undefined);
+  assert.equal(display?.message, undefined);
+
+  const scenario = buildStateScreenReadModels(result, result, "mobile").find((model) => model.title === "profile-loaded");
+  assert.deepEqual(scenario?.displayEffects.map((effect) => [effect.target, effect.partial]), [
+    ["L-ProfileSummaryHost", "PRT-PROFILE-SUMMARY"]
+  ]);
+  assert.equal(scenario?.displayExplanations[0]?.contentKind, "partial");
+  assert.equal(scenario?.displayExplanations[0]?.sourceId, "PRT-PROFILE-SUMMARY");
+  assert.deepEqual(scenario?.displayExplanations[0]?.targetRefs, ["L-ProfileSummaryHost"]);
+});
+
 test("preserves custom process details with nested params", () => {
   const source = `---
 id: SCR-CUSTOM-PROCESS-DETAIL

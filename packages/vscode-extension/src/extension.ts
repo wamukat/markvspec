@@ -5741,6 +5741,7 @@ function renderDisplayEffect(
     target,
     display.element ? `${escapeHtml(label(result, "processElement"))} ${referenceForDetailId(result, display.element)}` : "",
     display.message ? `${escapeHtml(label(result, "processMessage"))} ${renderDisplayMessageReference(result, display.message)}` : "",
+    display.partial ? `${escapeHtml(label(result, "partial"))} ${referenceForDetailId(result, display.partial)}` : "",
     display.content ? `${escapeHtml(label(result, "processContent"))} ${text(display.content)}` : "",
     contentSource ? `${escapeHtml(label(result, "processContent"))} ${contentSource}` : ""
   ].filter(Boolean);

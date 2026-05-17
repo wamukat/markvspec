@@ -227,6 +227,9 @@ function partialIdsReferencedBy(result: MarkVSpecParseResult): Set<string> {
         if (outcome.content && isPartialId(outcome.content)) {
           ids.add(outcome.content);
         }
+        if (outcome.display?.partial && isPartialId(outcome.display.partial)) {
+          ids.add(outcome.display.partial);
+        }
         for (const detail of outcome.display?.contentSource ?? []) {
           if (detail.key === "partial" && isPartialId(detail.value)) {
             ids.add(detail.value);
@@ -237,6 +240,9 @@ function partialIdsReferencedBy(result: MarkVSpecParseResult): Set<string> {
     for (const outcome of action.outcomes) {
       if (outcome.content && isPartialId(outcome.content)) {
         ids.add(outcome.content);
+      }
+      if (outcome.display?.partial && isPartialId(outcome.display.partial)) {
+        ids.add(outcome.display.partial);
       }
       for (const detail of outcome.display?.contentSource ?? []) {
         if (detail.key === "partial" && isPartialId(detail.value)) {
@@ -609,7 +615,7 @@ function partialTargetsFromDisplayEffects(displayEffects: MarkVSpecDisplayEffect
   return displayEffects
     .filter((display): display is MarkVSpecDisplayEffect & { target: string } => Boolean(display.target) && !parseFieldErrorTarget(display.target))
     .map((display) => {
-      const partialId = display.contentSource.find((detail) => detail.key === "partial")?.value;
+      const partialId = display.partial ?? display.contentSource.find((detail) => detail.key === "partial")?.value;
       const partialState = display.contentSource.find((detail) => detail.key === "state")?.value;
       return {
         targetId: display.target,

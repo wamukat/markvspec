@@ -4917,6 +4917,121 @@ references:
   }
 });
 
+test("renders display.partial updates inside the target host", () => {
+  const root = mkdtempSync(join(tmpdir(), "markvspec-display-partial-"));
+  try {
+    const screenPath = join(root, "screens", "home.vspec.md");
+    const partialPath = join(root, "partials", "profile-summary.vspec.md");
+    mkdirSync(join(root, "screens"), { recursive: true });
+    mkdirSync(join(root, "partials"), { recursive: true });
+    writeFileSync(partialPath, `---
+id: PRT-PROFILE-SUMMARY
+type: partial
+title: Profile Summary Partial
+default-state: loaded
+---
+
+# PRT-PROFILE-SUMMARY Profile Summary Partial
+
+## States
+
+- loaded*
+
+## Layout: mobile
+
+### L-ProfileSummary Profile summary
+
+- stack
+
+#### Items
+
+- E-ProfileName
+
+## Elements
+
+### E-ProfileName Text
+
+- value: Taylor Stone
+`);
+    const source = `---
+id: SCR-HOME
+type: screen
+title: Home
+references:
+  partials:
+    PRT-PROFILE-SUMMARY: ../partials/profile-summary.vspec.md
+---
+
+# SCR-HOME Home
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Home Home
+
+- stack
+
+#### Items
+
+- L-ProfileSummaryHost
+
+### L-ProfileSummaryHost Profile summary host
+
+- stack
+
+## Actions
+
+### A-RefreshProfile Refresh profile
+
+- Triggered
+  - screen.load
+- From
+  - idle
+- Process P1: Handle profile summary response
+  - case: success
+    - description: 200 profile summary partial
+    - Effects
+      - display:
+        - target: L-ProfileSummaryHost
+        - partial: PRT-PROFILE-SUMMARY
+
+## Preview Scenarios
+
+### profile-loaded
+
+- state: idle
+- cases:
+  - A-RefreshProfile.P1.success
+`;
+    const document = createTextDocument(source, screenPath) as vscode.TextDocument;
+    const loaded = loadScreenDocumentResult(document);
+    const html = renderPreviewHtml(
+      loaded,
+      {
+        cspSource: "vscode-resource:",
+        asWebviewUri: (uri: unknown) => uri
+      } as never,
+      { layout: true, element: true, action: true },
+      undefined,
+      "screens/home.vspec.md"
+    );
+    const scenarioSection = stateViewTitleSection(html, "idle / profile-loaded");
+    const actionDetailsSection = docSectionByHeading(html, "Action Details");
+
+    assert.deepEqual(loaded.result.diagnostics, []);
+    assert.match(actionDetailsSection, /display[\s\S]*Profile summary host[\s\S]*<code class="mm-document-ref-id">PRT-PROFILE-SUMMARY<\/code>/);
+    assert.match(scenarioSection, /data-mm-id="L-ProfileSummaryHost" data-mm-render-key="layout:mobile:L-ProfileSummaryHost">[\s\S]*?<div class="mm-partial-preview"/);
+    assert.match(scenarioSection, /data-mm-partial-id="PRT-PROFILE-SUMMARY"/);
+    assert.match(scenarioSection, /Taylor Stone/);
+    assert.match(scenarioSection, /Display updates[\s\S]*Profile summary host[\s\S]*Partial[\s\S]*PRT-PROFILE-SUMMARY/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("keeps template markers out of focused composed screen previews", () => {
   const template = parseMarkVSpec(readFileSync(resolve("../../examples/05-reuse/template-shell.vspec.md"), "utf8"));
   const screen = parseMarkVSpec(`---

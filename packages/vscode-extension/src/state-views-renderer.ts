@@ -279,6 +279,9 @@ function renderDisplayUpdateContent(
   explanation: StateScreenReadModel["displayExplanations"][number]
 ): string {
   const reference = renderDisplayUpdateEntityRef(result, context.format, model, explanation.sourceId, explanation.sourceName);
+  if (explanation.contentKind === "partial") {
+    return `${context.format.label("partial")} ${reference}`;
+  }
   return explanation.contentKind === "message"
     ? `${reference}<span class="display-update-suffix">${context.format.text(".messages")}</span>`
     : reference;
@@ -314,6 +317,9 @@ function renderDisplayUpdateEntityRef(
     const marker = stringPropertyValue(rule?.properties["marker"]) || id;
     const name = fallbackName || rule?.name || id;
     return format.renderEntityRef({ id, category: "message", marker, label: name, displaySource: id });
+  }
+  if (id.startsWith("PRT-")) {
+    return `<span class="display-update-ref">${format.text(fallbackName || id)}</span>`;
   }
   return `<span class="display-update-ref">${format.text(fallbackName || id)}</span>`;
 }

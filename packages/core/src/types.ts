@@ -413,6 +413,7 @@ export interface MarkVSpecDisplayEffect {
   target?: string;
   element?: string;
   message?: string;
+  partial?: string;
   content?: string;
   contentSource: MarkVSpecProcessStepDetail[];
   location: SourceLocation;
