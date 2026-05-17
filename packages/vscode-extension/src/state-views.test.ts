@@ -380,6 +380,111 @@ viewport: mobile
   assert.doesNotMatch(scenarioSection, /not placed in current layout[\s\S]*E-EmailInput\.error/);
 });
 
+test("renders preview scenario cross-field display messages with explanations", () => {
+  const source = `---
+id: SCR-CROSS-FIELD-PREVIEW
+type: screen
+title: Cross-field Preview
+viewport: mobile
+---
+# SCR-CROSS-FIELD-PREVIEW Cross-field Preview
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Form Form
+
+- stack
+
+#### Items
+
+- E-EmailInput
+- E-PasswordInput
+- L-MessageArea
+- E-SubmitButton
+
+### L-MessageArea Message area
+
+- stack
+
+## Elements
+
+### E-EmailInput Input
+
+- label: Email
+
+### E-PasswordInput Input
+
+- label: Password
+
+### E-SubmitButton Button
+
+- label: Submit
+
+## Form Groups
+
+### F-LoginForm Login form
+
+- fields:
+  - E-EmailInput
+  - E-PasswordInput
+- submit: A-Submit
+
+## Actions
+
+### A-Submit Submit
+
+- Triggered
+  - E-SubmitButton.click
+- From
+  - idle
+- Process P1: Check validation
+  - receive:
+    - validation: V-LoginFormRequired.result
+  - case: invalid
+    - Effects
+      - display:
+        - target: L-MessageArea
+        - message: V-LoginFormRequired.messages
+
+## Preview Scenarios
+
+### idle-cross-field-error
+
+- state: idle
+- cases:
+  - A-Submit.P1.invalid
+
+## Cross-field Validations
+
+### V2:V-LoginFormRequired Login form required
+
+- target: F-LoginForm
+- inputs:
+  - E-EmailInput
+  - E-PasswordInput
+- check: E-EmailInput.value is present and E-PasswordInput.value is present
+- message: Email and password are required.
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const scenarioSection = stateSectionContaining(html, "idle", "idle-cross-field-error");
+  const wireframe = stateWireframeSection(scenarioSection);
+
+  assert.deepEqual(result.diagnostics, []);
+  assert.match(wireframe, /data-mm-render-key="layout:mobile:L-MessageArea"[\s\S]*<div class="mm-display-message" data-mm-display-source="V-LoginFormRequired"><code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="V-LoginFormRequired">V2<\/code>Email and password are required\.<\/div>/);
+  assert.match(scenarioSection, /Displayed messages/);
+  assert.match(scenarioSection, /<code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="V-LoginFormRequired">V2<\/code> Login form required/);
+  assert.match(scenarioSection, /<dt>Source<\/dt><dd>V-LoginFormRequired<\/dd>/);
+  assert.match(scenarioSection, /<dt>Displayed at<\/dt><dd><ul><li>L-MessageArea<\/li><\/ul><\/dd>/);
+  assert.match(scenarioSection, /<dt>Triggered by<\/dt><dd><ul><li>A-Submit\.P1\.invalid<\/li><\/ul><\/dd>/);
+  assert.match(scenarioSection, /<dt>Kind<\/dt><dd>client cross-field validation error<\/dd>/);
+  assert.match(scenarioSection, /<dt>Message<\/dt><dd><ul><li>Email and password are required\.<\/li><\/ul><\/dd>/);
+});
+
 test("renders business rule display message markers in scenario wireframes and action details", () => {
   const source = `---
 id: SCR-BUSINESS-RULE-DISPLAY

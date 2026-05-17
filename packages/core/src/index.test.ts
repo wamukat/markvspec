@@ -11623,26 +11623,20 @@ title: Field Error Display
         - target: L-Form
         - message: EmailRules.messages
 
-## Validations
+## Field Validations
 
 ### V1:V-EmailRules Email rules
 
 - target: E-EmailInput
-- rules:
+- constraints:
   - required:
-    - E-EmailInput
-- scope: field
-- run: client
-- message: Email is required.
+    - message: Email is required.
 
 ### V2:V-NoMessage No message
 
 - target: E-EmailInput
-- rules:
-  - required:
-    - E-EmailInput
-- scope: field
-- run: client
+- constraints:
+  - required
 
 ## Business Rules
 
