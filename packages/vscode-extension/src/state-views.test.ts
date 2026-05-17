@@ -764,7 +764,7 @@ viewport: mobile
   assert.match(loadedSection, /<div class="action-spec-fragment" data-mm-repeated-empty="true">/);
   assert.match(loadedSection, new RegExp(`<td>${markerBadge("L1", "layout")} ${repeatedBadge()}</td><td>${detailIdRef("L-Page")}</td>`));
   assert.match(loadedSection, new RegExp(`<td>${markerBadge("E-Title", "element")} ${repeatedBadge()}</td><td>${detailIdRef("E-Title")}</td>`));
-  assert.match(loadedSection, new RegExp(`<td><a class="mm-marker-link" href="#action-detail-A-Refresh"><code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1</code></a> ${repeatedBadge()}</td><td>Refresh profile</td>`));
+  assert.match(loadedSection, new RegExp(`<td><a class="mm-marker-link" href="#action-detail-A-Refresh"><code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1</code></a> ${repeatedBadge()} Refresh profile</td>`));
   assert.doesNotMatch(loadedSection, /<p class="spec-empty" data-mm-repeated-empty="true">None\.<\/p>/);
 });
 

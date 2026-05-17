@@ -378,7 +378,7 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(waitAuthSection, new RegExp(`<td>${markerBadge("11", "element")}</td><td>${detailIdRef("E-AuthSpinner")}</td><td>Spinner</td><td>-</td><td>-</td>`));
   assert.match(waitAuthSection, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>/);
   assert.match(waitAuthSection, new RegExp(`<td>${markerBadge("11", "element")}</td><td>${detailIdRef("E-AuthSpinner")}</td><td>label</td><td>Signing in\\.\\.\\.</td><td>-</td><td>-</td><td><ul class="spec-list"><li>visible: authenticating</li></ul></td><td>always</td>`));
-  assert.match(waitAuthSection, new RegExp(`<td>${actionBadge("A2", "A-HandleLoginResponse")}</td><td>Handle login response</td>`));
+  assert.match(waitAuthSection, new RegExp(`<td>${actionBadge("A2", "A-HandleLoginResponse")} Handle login response</td>`));
   const waitAuthWireframe = stateWireframeSection(waitAuthSection);
   assert.match(waitAuthWireframe, />L7<\/code>/);
   assert.match(waitAuthWireframe, />11<\/code>/);
@@ -967,7 +967,7 @@ viewport: mobile
   assert.match(loadedSection, new RegExp(`<td>${markerBadge("E-Submit", "element")} ${repeatedBadge()}</td><td>${detailIdRef("E-Submit")}</td><td>Button</td>`));
   assert.doesNotMatch(loadedSection, new RegExp(`<td>${markerBadge("E-IdleOnly", "element")}</td><td>${detailIdRef("E-IdleOnly")}`));
   assert.match(loadedSection, new RegExp(`<td>${markerBadge("E-LoadedOnly", "element")}</td><td>${detailIdRef("E-LoadedOnly")}</td><td>Text</td>`));
-  assert.match(loadedSection, new RegExp(`<td>${actionBadge("A1", "A-Submit")} ${repeatedBadge()}</td><td>Submit</td>`));
+  assert.match(loadedSection, new RegExp(`<td>${actionBadge("A1", "A-Submit")} ${repeatedBadge()} Submit</td>`));
 });
 
 test("omits legacy state change sections while keeping current changed specs", () => {
@@ -1076,8 +1076,12 @@ locale: en
   const loadedSection = stateSection(html, "loaded");
   const availableActions = loadedSection.match(/<h5 class="state-screen-subheading">Actions<\/h5>[\s\S]*?<\/table>/)?.[0] ?? "";
 
-  assert.match(availableActions, new RegExp(`<td>${actionBadge("A1", "A-Shared")} ${repeatedBadge()}</td><td>Shared action</td>`));
-  assert.match(availableActions, new RegExp(`<td>${actionBadge("A3", "A-New")}</td><td>New action</td>`));
+  assert.match(availableActions, /<th>Action<\/th><th>Trigger<\/th><th>Kind<\/th>/);
+  assert.doesNotMatch(availableActions, /<th>Marker<\/th>/);
+  assert.doesNotMatch(availableActions, /<th>Name<\/th>/);
+  assert.doesNotMatch(availableActions, /<th>Overview<\/th>/);
+  assert.match(availableActions, new RegExp(`<td>${actionBadge("A1", "A-Shared")} ${repeatedBadge()} Shared action</td>`));
+  assert.match(availableActions, new RegExp(`<td>${actionBadge("A3", "A-New")} New action</td>`));
   assert.doesNotMatch(availableActions, /Removed action/);
 });
 
@@ -1132,6 +1136,76 @@ locale: en
   assert.doesNotMatch(html, /mm-diff-badge/);
 });
 
+test("shows State Views action overview only when author overview exists", () => {
+  const source = `---
+id: SCR-ACTION-OVERVIEW-COLUMN
+type: screen
+title: Action Overview Column
+viewport: mobile
+locale: en
+---
+
+# SCR-ACTION-OVERVIEW-COLUMN Action Overview Column
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- E-Primary
+- E-Secondary
+
+## Elements
+
+### E-Primary Button
+
+- label: Primary
+
+### E-Secondary Button
+
+- label: Secondary
+
+## Actions
+
+### A1:A-Primary Primary
+
+Author overview only.
+
+- Triggered
+  - E-Primary.click
+- From
+  - idle
+- Process: Immediate
+  - Effects
+    - state: idle
+
+### A2:A-Secondary Secondary
+
+- Triggered
+  - E-Secondary.click
+- From
+  - idle
+- Process: Immediate
+  - Effects
+    - state: idle
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const idleSection = stateSection(html, "idle");
+  const actionsTable = idleSection.match(/<h5 class="state-screen-subheading">Actions<\/h5>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.match(actionsTable, /<th>Action<\/th><th>Trigger<\/th><th>Kind<\/th><th>Overview<\/th>/);
+  assert.match(actionsTable, /Author overview only\./);
+  assert.doesNotMatch(actionsTable, /set state/);
+});
+
 test("uses explicit From states for State Views action relevance", () => {
   const sourcePath = resolve(extensionRoot, "../../examples/04-real-world-screens/search-list.vspec.md");
   const source = readFileSync(sourcePath, "utf8");
@@ -1140,9 +1214,9 @@ test("uses explicit From states for State Views action relevance", () => {
   const loadingSection = viewportStateSection(html, "loading", "desktop");
   const loadingActions = loadingSection.match(/<h5 class="state-screen-subheading">Actions<\/h5>[\s\S]*?<\/table>/)?.[0] ?? "";
 
-  assert.match(loadingActions, new RegExp(`<td>${actionBadge("A2", "A-HandleSearchUsersResponse")}</td><td>Handle search users response</td>`));
+  assert.match(loadingActions, new RegExp(`<td>${actionBadge("A2", "A-HandleSearchUsersResponse")} Handle search users response</td>`));
   assert.doesNotMatch(loadingActions, /Search users/);
-  assert.doesNotMatch(loadingActions, new RegExp(`<tr><td>${actionBadge("A1", "A-SearchUsers")}</td><td>Search users</td>`));
+  assert.doesNotMatch(loadingActions, new RegExp(`<tr><td>${actionBadge("A1", "A-SearchUsers")} Search users</td>`));
   assert.match(stateWireframeSection(loadingSection), />5<\/code>/);
 });
 
@@ -6210,7 +6284,7 @@ viewport: mobile
   const anchor = "action-detail-A-%E6%97%A5%E6%9C%AC%E8%AA%9E%E6%93%8D%E4%BD%9C";
 
   assert.match(html, new RegExp(`<span class="mm-annotation-row">${markerBadge("E-SubmitButton", "element")}${actionBadge("送信", "A-日本語操作")}</span>`));
-  assert.match(html, new RegExp(`<td>${actionBadge("送信", "A-日本語操作")}</td><td>日本語操作</td>`));
+  assert.match(html, new RegExp(`<td>${actionBadge("送信", "A-日本語操作")} 日本語操作</td>`));
   assert.match(html, new RegExp(`<h3 id="${anchor}">${actionBadge("送信", "A-日本語操作", false)} 日本語操作</h3>`));
 });
 
@@ -6402,14 +6476,17 @@ locale: en
   const idleActionsTable = idleSection.match(/<h5 class="state-screen-subheading">Actions<\/h5>\s*([\s\S]*?<\/table>)/)?.[1] ?? "";
   const errorActionsTable = errorSection.match(/<h5 class="state-screen-subheading">Actions<\/h5>\s*([\s\S]*?<\/table>)/)?.[1] ?? "";
 
-  assert.match(idleSection, /<th>Marker<\/th><th>Name<\/th><th>Trigger<\/th><th>Kind<\/th><th>Overview<\/th>/);
+  assert.match(idleActionsTable, /<th>Action<\/th><th>Trigger<\/th><th>Kind<\/th>/);
+  assert.doesNotMatch(idleActionsTable, /<th>Marker<\/th>/);
+  assert.doesNotMatch(idleActionsTable, /<th>Name<\/th>/);
+  assert.doesNotMatch(idleActionsTable, /<th>Overview<\/th>/);
   assert.doesNotMatch(idleSection, /<th>Result<\/th>/);
-  assert.match(idleActionsTable, new RegExp(`<td>${actionBadge("A-OutcomeOnly", "A-OutcomeOnly")}</td><td>Outcome only</td>`));
+  assert.match(idleActionsTable, new RegExp(`<td>${actionBadge("A-OutcomeOnly", "A-OutcomeOnly")} Outcome only</td>`));
   assert.doesNotMatch(idleActionsTable, /From /);
   assert.doesNotMatch(idleActionsTable, /failure:/);
   assert.doesNotMatch(idleActionsTable, /422 invalid/);
   assert.match(errorSection, /<h5 class="state-screen-subheading">Actions<\/h5>/);
-  assert.match(errorActionsTable, new RegExp(`<td>${actionBadge("A-Submit", "A-Submit")} ${repeatedBadge()}</td><td>Submit</td>`));
+  assert.match(errorActionsTable, new RegExp(`<td>${actionBadge("A-Submit", "A-Submit")} ${repeatedBadge()} Submit</td>`));
   assert.doesNotMatch(errorActionsTable, /<th>Result<\/th>/);
   assert.doesNotMatch(errorActionsTable, /From /);
   assert.match(html, numberedHeadingPattern(2, "Action Details"));

@@ -187,23 +187,40 @@ export function createStateViewSpecTableRenderer(
     stateNames: ReadonlySet<string> = new Set(),
     repeatedActionIds?: ReadonlySet<string>,
     emptyWhenRepeatedHidden = false
-  ): string =>
-    markRepeatedHiddenEmptyHtml(helpers.renderLocalizedTable(
-      [helpers.label("marker"), helpers.label("name"), helpers.label("trigger"), helpers.label("kind"), helpers.label("overview")],
-      actions.map((action) => renderActionRow(action, state, stateNames, Boolean(repeatedActionIds?.has(action.id))))
+  ): string => {
+    const rows = actions.map((action) => {
+      const overview = helpers.renderActionOverview(action);
+      return {
+        action,
+        overview,
+        repeated: Boolean(repeatedActionIds?.has(action.id))
+      };
+    });
+    const showOverview = rows.some((row) => row.overview.trim().length > 0);
+
+    return markRepeatedHiddenEmptyHtml(helpers.renderLocalizedTable(
+      [
+        helpers.label("action"),
+        helpers.label("trigger"),
+        helpers.label("kind"),
+        ...(showOverview ? [helpers.label("overview")] : [])
+      ],
+      rows.map((row) => renderActionRow(row.action, state, stateNames, row.repeated, showOverview, row.overview))
     ), emptyWhenRepeatedHidden);
+  };
 
   const renderActionRow = (
     action: ParsedAction,
     _state: string | undefined,
     _stateNames: ReadonlySet<string>,
-    repeated = false
+    repeated = false,
+    showOverview = false,
+    overview = ""
   ): string[] => [
-    renderRepeatedMarkerCell(action.id, repeated),
-    helpers.text(action.name),
+    [renderRepeatedMarkerCell(action.id, repeated), helpers.text(action.name)].filter(Boolean).join(" "),
     helpers.renderTrigger(action.triggeredBy),
     helpers.text(helpers.actionKind(action)),
-    helpers.renderActionOverview(action)
+    ...(showOverview ? [overview] : [])
   ];
 
   const renderLayoutPropertySummary = (layout: ParsedLayout): string => {
