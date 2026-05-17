@@ -135,12 +135,7 @@ route: /login
 - variant: primary
 - action: A-SubmitLogin
 
-### 4:E-ValidationMessage Text
-
-- value: Enter a valid email address.
-- tone: danger
-
-### 5:E-SendErrorBanner Banner
+### 4:E-SendErrorBanner Banner
 
 - value: Could not send the login request.
 - tone: danger
@@ -167,8 +162,7 @@ route: /login
   - case: invalid
     - Effects
       - display:
-        - target: L-MessageArea
-        - element: E-ValidationMessage
+        - target: E-EmailInput.error
         - message: V-EmailRequired.messages
     - stop
   - case: valid
@@ -189,15 +183,16 @@ route: /login
         - target: L-MessageArea
         - element: E-SendErrorBanner
 
-## Field Validations
+## Validations
 
-### V1:V-EmailRequired Email required
+### V-EmailRequired Email required
 
 - target: E-EmailInput
+- rules:
+  - required:
+    - E-EmailInput
 - run: client
-- constraints:
-  - required
-    - message: Email is required.
+- message: Email is required.
 ```
 
 For more realistic examples, see [Login Basic](examples/04-real-world-screens/login-basic.vspec.md)

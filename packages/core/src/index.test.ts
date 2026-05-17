@@ -11400,6 +11400,146 @@ title: Custom Process Detail
   ]);
 });
 
+test("parses and validates display message field error targets", () => {
+  const source = `---
+id: SCR-FIELD-ERROR-DISPLAY
+type: screen
+title: Field Error Display
+---
+# SCR-FIELD-ERROR-DISPLAY Field Error Display
+
+## States
+
+- idle*
+
+## Layout
+
+### L-Form Form
+
+- stack
+
+#### Items
+
+- E-EmailInput
+- E-SubmitButton
+
+## Elements
+
+### E-EmailInput Input
+
+- label: Email
+
+### E-SubmitButton Button
+
+- label: Submit
+
+### E-Title Heading
+
+- level: 2
+- text: Account
+
+## Actions
+
+### A-Submit Submit
+
+- Triggered
+  - E-SubmitButton.click
+- From
+  - idle
+- Process P1: Check validation
+  - receive:
+    - validation: V-EmailRules.result
+  - case: invalid
+    - Effects
+      - display:
+        - target: E-EmailInput.error
+        - message: V-EmailRules.messages
+  - case: invalid-rich
+    - Effects
+      - display:
+        - target: E-Title.error
+        - element: E-SubmitButton
+        - message: V-Missing.messages
+  - case: invalid-missing-target
+    - Effects
+      - display:
+        - target: E-MissingInput.error
+        - message: V-EmailRules.messages
+  - case: invalid-business-rule
+    - Effects
+      - display:
+        - target: L-Form
+        - message: R-RequiredFields.messages
+  - case: invalid-missing-rule
+    - Effects
+      - display:
+        - target: L-Form
+        - message: R-Missing.messages
+  - case: invalid-validation-without-message
+    - Effects
+      - display:
+        - target: L-Form
+        - message: V-NoMessage.messages
+  - case: invalid-rule-without-message
+    - Effects
+      - display:
+        - target: L-Form
+        - message: R-Empty.messages
+  - case: invalid-unsupported-message
+    - Effects
+      - display:
+        - target: L-Form
+        - message: EmailRules.messages
+
+## Validations
+
+### V-EmailRules Email rules
+
+- target: E-EmailInput
+- rules:
+  - required:
+    - E-EmailInput
+- scope: field
+- run: client
+- message: Email is required.
+
+### V-NoMessage No message
+
+- target: E-EmailInput
+- rules:
+  - required:
+    - E-EmailInput
+- scope: field
+- run: client
+
+## Business Rules
+
+### R-RequiredFields Required fields
+
+- Submit is blocked when required fields are missing.
+
+### R-Empty Empty rule
+`;
+
+  const result = parseMarkVSpec(source);
+  const invalid = result.actions[0]?.processSteps[0]?.outcomes.find((outcome) => outcome.result === "invalid");
+  const rich = result.actions[0]?.processSteps[0]?.outcomes.find((outcome) => outcome.result === "invalid-rich");
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert.equal(invalid?.display?.target, "E-EmailInput.error");
+  assert.equal(invalid?.display?.message, "V-EmailRules.messages");
+  assert.equal(rich?.display?.message, "V-Missing.messages");
+  assert(messages.includes("Action A-Submit process step P1 Check validation case invalid-rich display effect targets E-Title.error, but E-Title is Heading. Field error targets should use input elements."));
+  assert(messages.includes("Action A-Submit process step P1 Check validation case invalid-rich display effect defines both element and message. Use element: for rich UI or message: for simple validation text, but not both."));
+  assert(messages.includes("Action A-Submit process step P1 Check validation case invalid-rich display.message references missing validation V-Missing."));
+  assert(messages.includes("Action A-Submit process step P1 Check validation case invalid-missing-target display effect targets missing field error element E-MissingInput."));
+  assert(!messages.some((message) => message.includes("case invalid-business-rule display.message")));
+  assert(messages.includes("Action A-Submit process step P1 Check validation case invalid-missing-rule display.message references missing business rule R-Missing."));
+  assert(messages.includes("Action A-Submit process step P1 Check validation case invalid-validation-without-message display.message references validation V-NoMessage, but it defines no message."));
+  assert(messages.includes("Action A-Submit process step P1 Check validation case invalid-rule-without-message display.message references business rule R-Empty, but it defines no message text."));
+  assert(messages.includes("Action A-Submit process step P1 Check validation case invalid-unsupported-message display.message EmailRules.messages is not recognized. Use V-*.messages or R-*.messages."));
+});
+
 test("validates architecture-neutral process contracts and preview scenario cases", () => {
   const source = `---
 id: SCR-ACTION-NEUTRAL-DIAGNOSTICS

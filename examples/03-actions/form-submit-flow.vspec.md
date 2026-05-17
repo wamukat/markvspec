@@ -76,12 +76,7 @@ try to cover non-submit element events.
 - variant: primary
 - action: A-SubmitRequest
 
-### 5:E-ValidationMessage Text
-
-- tone: danger
-- value: Email is required.
-
-### 6:E-SubmitError Banner
+### 5:E-SubmitError Banner
 
 - tone: danger
 - sample: Request could not be submitted.
@@ -107,8 +102,8 @@ try to cover non-submit element events.
     - description: required field missing
     - Effects
       - display:
-        - target: L-MessageArea
-        - element: E-ValidationMessage
+        - target: E-EmailInput.error
+        - message: V-SubmitRequest.messages
     - stop
   - case: valid
     - description: all required fields are valid

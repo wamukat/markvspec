@@ -1755,8 +1755,11 @@ Preferred action groups and effects:
 ```
 
 `display.target` points to the existing `L-*` layout or `E-*` element that
-receives the display result. `display.element` is singular and points to one
-existing `E-*` element or `L-*` layout to insert or show in that target.
+receives the display result. It may also point to `E-*.error`, the implicit
+field-level error slot attached to an input element. `display.element` is
+singular and points to one existing `E-*` element or `L-*` layout to insert or
+show in that target. `display.message` points to a validation or business-rule
+message group such as `V-EmailRules.messages`.
 Define reusable UI as an element or layout first; direct `display.content` and
 `display.elements` are not supported. The exceptions are `Dialog` and `Toast`:
 a display effect whose `element` is a `Dialog` may omit `target` and render as a
@@ -1774,6 +1777,21 @@ areas, or slots. A layout may omit `#### Items` when it is an empty display
 container that receives content from a scenario or action display effect.
 `E-*` targets remain valid for replacing or updating an existing element-level
 presentation.
+
+Use `E-*.error` only for input elements. It does not replace the input element;
+it displays simple validation text or authored error UI in that element's
+field-level error slot. Non-input `E-*.error` targets warn. Missing target
+elements error.
+
+```markdown
+- display:
+  - target: E-EmailInput.error
+  - message: V-EmailRules.messages
+```
+
+Use `display.message` for simple `V-*.messages` or `R-*.messages` output, and
+`display.element` for authored rich UI. Defining both in the same display effect
+warns.
 
 ```markdown
 - display:
@@ -2158,7 +2176,8 @@ are consumed and where messages are displayed.
 If `display.message` references a validation that has no messages, the validator
 warns and the preview shows no fallback text. Validation definitions do not use
 `attach`; display targets belong to Action `Effects` and follow the usual
-`display.target` rule for `L-*` and `E-*` targets.
+`display.target` rule for `L-*`, `E-*`, and input field error targets such as
+`E-EmailInput.error`.
 
 ## Business Rules Section
 

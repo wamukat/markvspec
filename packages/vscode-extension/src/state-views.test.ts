@@ -285,6 +285,88 @@ viewport: mobile
   assert.match(statusSection, /data-mm-display-preview="true"/);
 });
 
+test("renders preview scenario field error display messages near inputs", () => {
+  const source = `---
+id: SCR-FIELD-ERROR-PREVIEW
+type: screen
+title: Field Error Preview
+viewport: mobile
+---
+# SCR-FIELD-ERROR-PREVIEW Field Error Preview
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Form Form
+
+- stack
+
+#### Items
+
+- E-EmailInput
+- E-SubmitButton
+
+## Elements
+
+### E-EmailInput Input
+
+- label: Email
+
+### E-SubmitButton Button
+
+- label: Submit
+
+## Actions
+
+### A-Submit Submit
+
+- Triggered
+  - E-SubmitButton.click
+- From
+  - idle
+- Process P1: Check validation
+  - receive:
+    - validation: V-EmailRequired.result
+  - case: invalid
+    - Effects
+      - display:
+        - target: E-EmailInput.error
+        - message: V-EmailRequired.messages
+
+## Preview Scenarios
+
+### idle-validation-error
+
+- state: idle
+- cases:
+  - A-Submit.P1.invalid
+
+## Validations
+
+### V-EmailRequired Email required
+
+- target: E-EmailInput
+- rules:
+  - required:
+    - E-EmailInput
+- scope: field
+- run: client
+- message: Email is required.
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const scenarioSection = stateSectionContaining(html, "idle", "idle-validation-error");
+  const wireframe = stateWireframeSection(scenarioSection);
+
+  assert.deepEqual(result.diagnostics, []);
+  assert.match(wireframe, /data-mm-render-key="element:E-EmailInput"/);
+  assert.match(wireframe, /<div class="mm-field-error" data-mm-field-error-for="E-EmailInput"><div class="mm-field-error-message">Email is required\.<\/div><\/div>/);
+  assert.doesNotMatch(scenarioSection, /not placed in current layout[\s\S]*E-EmailInput\.error/);
+});
+
 test("shows subsequent viewport initial state as current state with repeated rows", () => {
   const source = `---
 id: SCR-RESPONSIVE-DIFF

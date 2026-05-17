@@ -42,6 +42,8 @@ const actionProcessLifecycleTriggerRegex = new RegExp(String.raw`^(${actionIdPat
 const elementIdRegex = new RegExp(String.raw`^${elementIdPattern}$`, "u");
 const formGroupIdRegex = new RegExp(String.raw`^${formGroupIdPattern}$`, "u");
 const validationResultReferenceRegex = new RegExp(String.raw`^(V-${idNamePattern})\.result$`, "u");
+const displayMessageReferenceRegex = new RegExp(String.raw`^((?:V|R)-${idNamePattern})\.messages$`, "u");
+const fieldErrorTargetRegex = new RegExp(String.raw`^(${elementIdPattern})\.error$`, "u");
 const markerRegex = /^[A-Za-z0-9][A-Za-z0-9_-]{0,11}$/u;
 
 export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagnostic[] {
@@ -58,6 +60,8 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   const actionIds = new Set(result.actions.map((action) => action.id));
   const ruleIds = new Set(result.rules.map((rule) => rule.id));
   const validationIds = new Set(result.validations.map((validation) => validation.id));
+  const validationsById = new Map(result.validations.map((validation) => [validation.id, validation]));
+  const rulesById = new Map(result.rules.map((rule) => [rule.id, rule]));
   const errorCodeIds = new Set(result.errorCodes.map((errorCode) => errorCode.id));
   const stateNames = new Set(result.states.map((state) => state.name));
   const viewContextNames = new Set(result.viewContexts.map((context) => context.name));
@@ -565,7 +569,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
       validateUpdateMode(action.id, outcome, diagnostics, `case ${outcome.result}`);
       validateOutcomeErrorCodes(action.id, outcome, errorCodeIds, diagnostics);
       collectPartialReference(outcome.content, firstPropertyLocation(outcome, "content") ?? outcome.location ?? action.location, referencedPartialIds);
-      validateDisplayEffect(action.id, `case ${outcome.result}`, outcome.display, targetLayoutIds, elementIds, elementsById, layoutIdsByViewport, diagnostics, referencedPartialIds);
+      validateDisplayEffect(action.id, `case ${outcome.result}`, outcome.display, targetLayoutIds, elementIds, elementsById, validationsById, rulesById, layoutIdsByViewport, diagnostics, referencedPartialIds);
     }
 
     for (const step of action.processSteps) {
@@ -609,7 +613,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
       validateProcessGranularity(action.id, step, diagnostics);
       validateProcessDataReferences(action.id, step, actionIds, processMarkersByAction, layoutIds, elementIds, diagnostics);
       collectPartialReference(step.content, firstPropertyLocation(step, "content") ?? step.location, referencedPartialIds);
-      validateDisplayEffect(action.id, `process step ${processStepLabel(step)}`, step.display, targetLayoutIds, elementIds, elementsById, layoutIdsByViewport, diagnostics, referencedPartialIds);
+      validateDisplayEffect(action.id, `process step ${processStepLabel(step)}`, step.display, targetLayoutIds, elementIds, elementsById, validationsById, rulesById, layoutIdsByViewport, diagnostics, referencedPartialIds);
 
       for (const outcome of step.outcomes) {
         validateProcessCaseFlowPlacement(action.id, step, outcome, diagnostics);
@@ -680,7 +684,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
         validateUpdateMode(action.id, outcome, diagnostics, `process step ${step.name} case ${outcome.result}`);
         validateOutcomeErrorCodes(action.id, outcome, errorCodeIds, diagnostics);
         collectPartialReference(outcome.content, firstPropertyLocation(outcome, "content") ?? outcome.location ?? step.location, referencedPartialIds);
-      validateDisplayEffect(action.id, `process step ${processStepLabel(step)} case ${outcome.result}`, outcome.display, targetLayoutIds, elementIds, elementsById, layoutIdsByViewport, diagnostics, referencedPartialIds);
+      validateDisplayEffect(action.id, `process step ${processStepLabel(step)} case ${outcome.result}`, outcome.display, targetLayoutIds, elementIds, elementsById, validationsById, rulesById, layoutIdsByViewport, diagnostics, referencedPartialIds);
       }
     }
 
@@ -1449,6 +1453,8 @@ function validateDisplayEffect(
   layoutIds: Set<string>,
   elementIds: Set<string>,
   elementsById: Map<string, MarkVSpecElement>,
+  validationsById: Map<string, MarkVSpecParseResult["validations"][number]>,
+  rulesById: Map<string, MarkVSpecParseResult["rules"][number]>,
   layoutIdsByViewport: Map<string, Set<string>>,
   diagnostics: MarkVSpecDiagnostic[],
   referencedPartialIds: Map<string, SourceLocation>
@@ -1466,6 +1472,22 @@ function validateDisplayEffect(
     });
   } else if (target && isPresentationPanelId(target)) {
     diagnostics.push(presentationPanelTargetDiagnostic(`Action ${actionId} ${context} display effect`, target, firstPropertyLine(display, "target") ?? display.location.line));
+  } else if (target && fieldErrorTargetRegex.test(target)) {
+    const [, elementId] = fieldErrorTargetRegex.exec(target) ?? [];
+    const element = elementId ? elementsById.get(elementId) : undefined;
+    if (!elementId || !element) {
+      diagnostics.push({
+        severity: "error",
+        message: `Action ${actionId} ${context} display effect targets missing field error element ${elementId ?? target}.`,
+        line: firstPropertyLine(display, "target") ?? display.location.line
+      });
+    } else if (!isInputElementType(element.type)) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Action ${actionId} ${context} display effect targets ${target}, but ${elementId} is ${element.type}. Field error targets should use input elements.`,
+        line: firstPropertyLine(display, "target") ?? display.location.line
+      });
+    }
   } else if (target && formGroupIdRegex.test(target)) {
     diagnostics.push(formGroupUpdateTargetDiagnostic(`Action ${actionId} ${context} display effect`, target, firstPropertyLine(display, "target") ?? display.location.line));
   } else if (target && isLocalId(target) && !layoutIds.has(target) && !elementIds.has(target)) {
@@ -1484,31 +1506,39 @@ function validateDisplayEffect(
     );
   }
 
-  if (!display.element) {
+  if (!display.element && !display.message) {
     diagnostics.push({
       severity: "error",
-      message: `Action ${actionId} ${context} display effect must define element. Define an E-* or L-* object and reference it with element:.`,
+      message: `Action ${actionId} ${context} display effect must define element or message. Use element: for authored UI or message: for a V-*.messages/R-*.messages reference.`,
       line: display.location.line
     });
-  } else if ((display.propertyLocations["element"]?.length ?? 0) > 1) {
+  } else if (display.element && display.message) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Action ${actionId} ${context} display effect defines both element and message. Use element: for rich UI or message: for simple validation text, but not both.`,
+      line: firstPropertyLine(display, "message") ?? display.location.line
+    });
+  }
+
+  if (display.element && (display.propertyLocations["element"]?.length ?? 0) > 1) {
     diagnostics.push({
       severity: "error",
       message: `Action ${actionId} ${context} display effect must define exactly one element.`,
       line: firstPropertyLine(display, "element") ?? display.location.line
     });
-  } else if (!isLayoutItemId(display.element) || (!display.element.startsWith("E-") && !display.element.startsWith("L-"))) {
+  } else if (display.element && (!isLayoutItemId(display.element) || (!display.element.startsWith("E-") && !display.element.startsWith("L-")))) {
     diagnostics.push({
       severity: "error",
       message: `Action ${actionId} ${context} display effect element must reference one E-* element or L-* layout.`,
       line: firstPropertyLine(display, "element") ?? display.location.line
     });
-  } else if (!layoutIds.has(display.element) && !elementIds.has(display.element)) {
+  } else if (display.element && !layoutIds.has(display.element) && !elementIds.has(display.element)) {
     diagnostics.push({
       severity: "error",
       message: `Action ${actionId} ${context} display effect references missing element or layout ${display.element}.`,
       line: firstPropertyLine(display, "element") ?? display.location.line
     });
-  } else if (layoutIds.has(display.element)) {
+  } else if (display.element && layoutIds.has(display.element)) {
     checkLayoutTargetViewportCoverage(
       display.element,
       layoutIdsByViewport,
@@ -1516,6 +1546,10 @@ function validateDisplayEffect(
       firstPropertyLine(display, "element") ?? display.location.line,
       `Action ${actionId} ${context} display effect references layout`
     );
+  }
+
+  if (display.message) {
+    validateDisplayMessage(actionId, context, display, validationsById, rulesById, diagnostics);
   }
 
   if (display.content) {
@@ -1544,6 +1578,68 @@ function validateDisplayEffect(
     if (source.key === "partial") {
       collectPartialReference(source.value, source.location, referencedPartialIds);
     }
+  }
+}
+
+function validateDisplayMessage(
+  actionId: string,
+  context: string,
+  display: MarkVSpecActionOutcome["display"],
+  validationsById: Map<string, MarkVSpecParseResult["validations"][number]>,
+  rulesById: Map<string, MarkVSpecParseResult["rules"][number]>,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  if (!display?.message) {
+    return;
+  }
+
+  const line = firstPropertyLine(display, "message") ?? display.location.line;
+  const match = displayMessageReferenceRegex.exec(display.message);
+  if (!match) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Action ${actionId} ${context} display.message ${display.message} is not recognized. Use V-*.messages or R-*.messages.`,
+      line
+    });
+    return;
+  }
+
+  const sourceId = match[1] ?? "";
+  if (sourceId.startsWith("V-")) {
+    const validation = validationsById.get(sourceId);
+    if (!validation) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Action ${actionId} ${context} display.message references missing validation ${sourceId}.`,
+        line
+      });
+      return;
+    }
+    if (validationPropertyValues(validation, "message").length === 0) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Action ${actionId} ${context} display.message references validation ${sourceId}, but it defines no message.`,
+        line
+      });
+    }
+    return;
+  }
+
+  const rule = rulesById.get(sourceId);
+  if (!rule) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Action ${actionId} ${context} display.message references missing business rule ${sourceId}.`,
+      line
+    });
+    return;
+  }
+  if (rule.bullets.length === 0 && (rule.bodyLines?.length ?? 0) === 0) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Action ${actionId} ${context} display.message references business rule ${sourceId}, but it defines no message text.`,
+      line
+    });
   }
 }
 

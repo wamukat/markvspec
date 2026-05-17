@@ -1289,7 +1289,7 @@ execution detail も result classification も持たない、決定的な即時�
     - stop
 ```
 
-主な `Effects` entry は `model:`、`view:`、`state:`、`navigate:`、`display:` です。`stop` / `continue` は case-level の制御フローなので、`Effects` の外で case の最後に書きます。`display.target` は表示先の既存 `L-*` layout または `E-*` element を指し、`display.element` はその表示先に挿入または表示する既存の `E-*` element または `L-*` layout を1つだけ指します。直接の `display.content` と複数形の `display.elements` はサポートしません。例外として、`display.element` が `Dialog` の場合は `target` を省略でき、preview scenario では modal overlay として表示します。`display.element` が `Toast` の場合も `target` を省略でき、non-modal toast region に表示します。
+主な `Effects` entry は `model:`、`view:`、`state:`、`navigate:`、`display:` です。`stop` / `continue` は case-level の制御フローなので、`Effects` の外で case の最後に書きます。`display.target` は表示先の既存 `L-*` layout または `E-*` element を指します。また、Input 系 element に付属する field-level error slot として `E-*.error` も指定できます。`display.element` はその表示先に挿入または表示する既存の `E-*` element または `L-*` layout を1つだけ指します。`display.message` は `V-EmailRules.messages` のような validation / business rule の message group を指します。直接の `display.content` と複数形の `display.elements` はサポートしません。例外として、`display.element` が `Dialog` の場合は `target` を省略でき、preview scenario では modal overlay として表示します。`display.element` が `Toast` の場合も `target` を省略でき、non-modal toast region に表示します。
 
 ```markdown
 - display:
@@ -1298,6 +1298,16 @@ execution detail も result classification も持たない、決定的な即時�
 ```
 
 `display.target` は、存在する `L-*` layout または `E-*` element を指します。`L-*` は message area、result area、help area、slot のような display container を表します。layout は、scenario や action の display effect から内容を受け取る空の display container として使う場合、`#### Items` を省略できます。`E-*` target も、既存 element の表示内容や設定を置き換える用途として有効です。
+
+`E-*.error` は input element にだけ使います。これは input 本体の置換ではなく、その input に付属する field-level error slot への表示です。非入力 element に対する `E-*.error` は warning、存在しない target element は error です。
+
+```markdown
+- display:
+  - target: E-EmailInput.error
+  - message: V-EmailRules.messages
+```
+
+単純な validation message は `display.message` を使い、rich な UI を表示する場合だけ `display.element` を使います。同じ `display` に `element:` と `message:` を同時に書いた場合は warning です。
 
 ```markdown
 - display:
@@ -1512,7 +1522,8 @@ Action が決めます。
 `display.message` が message を持たない validation を参照した場合は warning とし、
 preview は fallback text を表示しません。Validation 定義には `attach` を書かず、
 表示先は Action の `Effects` にある `display.target` で指定します。`display.target`
-は通常の `L-*` / `E-*` target rule に従います。
+は通常の `L-*` / `E-*` target rule と、`E-EmailInput.error` のような input field error
+target rule に従います。
 
 ## Business Rules
 

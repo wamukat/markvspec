@@ -5509,14 +5509,21 @@ function renderDisplayEffect(
   const contentSource = display.contentSource.length > 0
     ? `<ul class="spec-list spec-nested-list">${display.contentSource.map((detail) => `<li>${renderProcessStepDetail(result, detail, detailedReferences)}</li>`).join("")}</ul>`
     : "";
-  const parts = [
+ const parts = [
     target,
     display.element ? `${escapeHtml(label(result, "processElement"))} ${referenceForDetailId(result, display.element)}` : "",
+    display.message ? `${escapeHtml(label(result, "processMessage"))} ${renderDisplayMessageReference(result, display.message)}` : "",
     display.content ? `${escapeHtml(label(result, "processContent"))} ${text(display.content)}` : "",
     contentSource ? `${escapeHtml(label(result, "processContent"))} ${contentSource}` : ""
   ].filter(Boolean);
 
   return renderDetailList(result, parts, []);
+}
+
+function renderDisplayMessageReference(result: ReturnType<typeof parseMarkVSpec>, message: string): string {
+  const match = /^((?:V|R)-[\p{L}\p{N}-]+)\.messages$/u.exec(message);
+  const sourceId = match?.[1];
+  return sourceId ? `${referenceForDetailId(result, sourceId)}<span class="mm-detail-ref-suffix">.messages</span>` : text(message);
 }
 
 function targetlessDisplayTargetLabel(result: ReturnType<typeof parseMarkVSpec>, elementId?: string): string {

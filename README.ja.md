@@ -126,12 +126,7 @@ route: /login
 - variant: primary
 - action: A-SubmitLogin
 
-### 4:E-ValidationMessage Text
-
-- value: 有効なメールアドレスを入力してください。
-- tone: danger
-
-### 5:E-SendErrorBanner Banner
+### 4:E-SendErrorBanner Banner
 
 - value: ログインリクエストを送信できませんでした。
 - tone: danger
@@ -158,8 +153,7 @@ route: /login
   - case: invalid
     - Effects
       - display:
-        - target: L-MessageArea
-        - element: E-ValidationMessage
+        - target: E-EmailInput.error
         - message: V-EmailRequired.messages
     - stop
   - case: valid
@@ -180,15 +174,16 @@ route: /login
         - target: L-MessageArea
         - element: E-SendErrorBanner
 
-## Field Validations
+## Validations
 
-### V1:V-EmailRequired メールアドレス必須
+### V-EmailRequired メールアドレス必須
 
 - target: E-EmailInput
+- rules:
+  - required:
+    - E-EmailInput
 - run: client
-- constraints:
-  - required
-    - message: メールアドレスを入力してください。
+- message: メールアドレスを入力してください。
 ```
 
 より実務寄りの例は [Login Basic](examples/04-real-world-screens/login-basic.vspec.md) と

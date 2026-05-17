@@ -377,6 +377,16 @@ function embedPartialPreviewsForResult(
   let output = html;
   const modalDisplays = displayEffects.filter((display) => !display.target && display.element && elementType(result, display.element) === "Dialog");
   const toastDisplays = displayEffects.filter((display) => !display.target && display.element && elementType(result, display.element) === "Toast");
+  for (const display of displayEffects) {
+    const fieldErrorTarget = parseFieldErrorTarget(display.target);
+    if (!fieldErrorTarget) {
+      continue;
+    }
+    const content = renderFieldErrorDisplayContent(result, display, viewport, screenState, messagesForResult, markerLink);
+    if (content) {
+      output = insertFieldErrorContent(output, fieldErrorTarget.elementId, content);
+    }
+  }
   for (const target of [
     ...partialTargets(result, viewport, { resolveViewportFallback: true }),
     ...partialTargetsFromDisplayEffects(displayEffects)
@@ -588,7 +598,7 @@ function partialTargets(result: MarkVSpecParseResult, viewport?: string, options
 
 function partialTargetsFromDisplayEffects(displayEffects: MarkVSpecDisplayEffect[]): PartialTarget[] {
   return displayEffects
-    .filter((display): display is MarkVSpecDisplayEffect & { target: string } => Boolean(display.target))
+    .filter((display): display is MarkVSpecDisplayEffect & { target: string } => Boolean(display.target) && !parseFieldErrorTarget(display.target))
     .map((display) => {
       const partialId = display.contentSource.find((detail) => detail.key === "partial")?.value;
       const partialState = display.contentSource.find((detail) => detail.key === "state")?.value;
@@ -602,6 +612,78 @@ function partialTargetsFromDisplayEffects(displayEffects: MarkVSpecDisplayEffect
         line: firstPropertyLine(display, "target") ?? display.location.line
       };
     });
+}
+
+function parseFieldErrorTarget(target: string | undefined): { elementId: string } | undefined {
+  const match = /^(E-[\p{L}\p{N}-]+)\.error$/u.exec(target ?? "");
+  return match?.[1] ? { elementId: match[1] } : undefined;
+}
+
+function renderFieldErrorDisplayContent(
+  result: MarkVSpecParseResult,
+  display: MarkVSpecDisplayEffect,
+  viewport: string | undefined,
+  screenState: string | undefined,
+  messagesForResult: (result: MarkVSpecParseResult) => RendererMessages,
+  markerLink: ((id: string, category: "layout" | "element" | "action") => string | undefined) | undefined
+): string {
+  if (display.message) {
+    const messages = messagesForDisplayReference(result, display.message);
+    return messages.length > 0
+      ? `<div class="mm-field-error-message">${messages.map((message) => escapeHtml(message)).join("<br>")}</div>`
+      : "";
+  }
+  if (!display.element) {
+    return "";
+  }
+
+  const renderKey = display.element.startsWith("L-")
+    ? `layout:${viewport ?? ""}:${display.element}`
+    : `element:${display.element}`;
+  const fragment = renderMarkVSpecHtmlFragment(result, renderKey, {
+    includeConditionalContent: false,
+    viewport,
+    state: screenState,
+    messages: messagesForResult(result),
+    markerVisibility: { layout: true, element: true, action: true },
+    markerLink,
+    includeStyles: false
+  });
+  return fragment?.html ?? "";
+}
+
+function messagesForDisplayReference(result: MarkVSpecParseResult, reference: string): string[] {
+  const match = /^((?:V|R)-[\p{L}\p{N}-]+)\.messages$/u.exec(reference);
+  const sourceId = match?.[1];
+  if (!sourceId) {
+    return [];
+  }
+  if (sourceId.startsWith("V-")) {
+    const validation = result.validations.find((candidate) => candidate.id === sourceId);
+    return validationPropertyValues(validation?.properties["message"]);
+  }
+  const rule = result.rules.find((candidate) => candidate.id === sourceId);
+  return rule?.bodyLines?.length ? rule.bodyLines : rule?.bullets.map((bullet) => bullet.text) ?? [];
+}
+
+function validationPropertyValues(value: string | string[] | undefined): string[] {
+  if (Array.isArray(value)) {
+    return value;
+  }
+  return value ? [value] : [];
+}
+
+function insertFieldErrorContent(html: string, elementId: string, content: string): string {
+  const escapedElementId = escapeRegExp(elementId);
+  const pattern = new RegExp(`(<div class="mm-element-wrap[^"]*"[^>]*data-mm-render-key="element:${escapedElementId}"[^>]*>[\\s\\S]*?)(</div>)`, "u");
+  if (!pattern.test(html)) {
+    return html;
+  }
+  return html.replace(pattern, `$1<div class="mm-field-error" data-mm-field-error-for="${escapeHtml(elementId)}">${content}</div>$2`);
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function layoutGroupsForPartialTargets(

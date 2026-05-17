@@ -125,6 +125,7 @@ export type MessageKey =
   | "processDisplay"
   | "processEffect"
   | "processElement"
+  | "processMessage"
   | "processFragment"
   | "processGroup"
   | "processMode"
@@ -337,6 +338,7 @@ const en: Record<MessageKey, string> = {
   processDisplay: "display",
   processEffect: "effect",
   processElement: "element",
+  processMessage: "message",
   processFragment: "fragment",
   processGroup: "group",
   processMode: "mode",
@@ -550,6 +552,7 @@ const ja: Record<MessageKey, string> = {
   processDisplay: "表示",
   processEffect: "効果",
   processElement: "要素",
+  processMessage: "メッセージ",
   processFragment: "フラグメント",
   processGroup: "グループ",
   processMode: "モード",

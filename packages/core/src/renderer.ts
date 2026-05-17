@@ -1375,6 +1375,8 @@ function renderDefaultStyles(): string {
 .mm-field-grid{display:contents}
 .mm-field-label{color:#374151;min-width:0}
 .mm-field-row .mm-field-label{flex:0 1 120px}
+.mm-field-error{color:#b91c1c;font-size:12px;font-weight:600;line-height:1.35;margin-top:4px;max-width:min(320px,100%)}
+.mm-field-error-message{white-space:normal}
 .mm-slot-placeholder{align-items:center;background:#f8fafc;border:1px dashed #94a3b8;border-radius:6px;color:#475569;display:flex;font-size:12px;font-weight:600;justify-content:center;margin:3px 0;min-height:88px;padding:14px;text-align:center;width:100%}
 .mm-element{border:1px solid #d1d5db;border-radius:4px;margin:3px 0;min-height:28px;padding:6px 8px}
 .mm-element-heading,.mm-element-paragraph,.mm-element-text{border:0;padding:0}
