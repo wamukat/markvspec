@@ -28,22 +28,20 @@
 - `submit` は主送信アクションの `A-*` を指定します。
 - FormGroup には Layout との紐づけを書きません。表示・更新対象は `L-*`、検証対象は `F-*` で分けます。
 
-Validation は FormGroup または Element を対象にします。既存の複数 `target: E-*` による複合検証は維持します。
-ただし、複数入力を 1 つのフォームとして検証する場合は `F-*` を推奨します。
+Field Validation は 1 つの Element を対象にします。複数入力を 1 つのフォームとして検証する場合、
+Cross-field Validation は FormGroup を対象にします。
 
 ```markdown
-## Validations
+## Cross-field Validations
 
-### V-LoginForm Login form validation
+### V1:V-LoginForm Login form validation
 
 - target: F-LoginForm
-- rules:
-  - required:
-    - E-EmailInput
-    - E-PasswordInput
-- scope: composite
 - run: client
-- condition: email is empty or password is empty
+- inputs:
+  - E-EmailInput
+  - E-PasswordInput
+- check: E-EmailInput.value is present and E-PasswordInput.value is present
 - message: Email and password are required.
 ```
 
@@ -55,13 +53,12 @@ Validator は次の診断を行います。
 - `fields` に存在しない Element ID がある場合は error。
 - `fields` に入力系ではない Element ID がある場合は warning。
 - `submit` に存在しない Action ID がある場合は error。
-- Validation の `target` は Element ID または FormGroup ID を正とします。複数 Element target は互換として維持します。
+- Field Validation の `target` は Element ID を正とします。
+- Cross-field Validation の `target` は FormGroup ID を正とします。
 - Validation の `trigger` は canonical ではありません。Action は暗黙の `V-*.result` 参照を消費します。
-- Validation の `target` に Layout ID が指定され、かつ `scope: composite` / `scope: cross-field` の場合は
-  warning とし、FormGroup への移行を促します。
+- Cross-field Validation の `target` に Layout ID が指定された場合は warning とし、FormGroup への移行を促します。
 
-Layout target は互換のために即時 error にはしません。ただしサンプルとドキュメントでは使用せず、利用者には
-FormGroup を canonical として案内します。
+新 canonical syntax では Layout target は有効な検証対象ではありません。利用者には FormGroup を canonical として案内します。
 
 `F-*` は Validation target 専用です。Action の update target、partial update target、layout item、DOM 更新先には使いません。
 送信ボタンは `submit` で参照し、`fields` に含める必要はありません。
@@ -71,7 +68,7 @@ FormGroup を canonical として案内します。
 プレビューでは `Form Groups` を状態・ビューポート配下ではなく、画面共通セクションとして 1 回だけ表示します。
 表には FormGroup ID、fields、submit を表示します。
 
-Validation セクションでは `target: F-*` を FormGroup への参照として表示します。
+Cross-field Validations セクションでは `target: F-*` を FormGroup への参照として表示します。
 入力フォーム仕様と Validation の対応が追えることを優先します。
 
 ## 移行対象

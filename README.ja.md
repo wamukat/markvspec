@@ -154,12 +154,13 @@ route: /login
   - idle
 - Process P1: Validate login form
   - receive:
-    - validation: V-LoginForm.result
+    - validation: V-EmailRequired.result
   - case: invalid
     - Effects
       - display:
         - target: L-MessageArea
         - element: E-ValidationMessage
+        - message: V-EmailRequired.messages
     - stop
   - case: valid
     - continue
@@ -179,15 +180,15 @@ route: /login
         - target: L-MessageArea
         - element: E-SendErrorBanner
 
-## Validations
+## Field Validations
 
-### V-LoginForm ログインフォーム検証
+### V1:V-EmailRequired メールアドレス必須
 
-- target: F-LoginForm
-- rules:
-  - required:
-    - E-EmailInput
-- message: メールアドレスを入力してください。
+- target: E-EmailInput
+- run: client
+- constraints:
+  - required
+    - message: メールアドレスを入力してください。
 ```
 
 より実務寄りの例は [Login Basic](examples/04-real-world-screens/login-basic.vspec.md) と

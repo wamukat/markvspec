@@ -158,7 +158,8 @@ partial 由来の内容で置き換えるか」を書きます。partial 側は�
 - `## View Context`
 - `## View Context Samples`
 - `## Preview Scenarios`
-- `## Validations`
+- `## Field Validations`
+- `## Cross-field Validations`
 - `## Business Rules`
 - `## Error Codes`
 - `## History Fields`
@@ -183,8 +184,8 @@ partial 由来の内容で置き換えるか」を書きます。partial 側は�
 
 - `## States` のような構造化セクション見出しの直後、最初の構造化データより前に置いた本文は Section Overview です。
 - 構造化データの後に置いた本文は、section notes として表示します。
-- `Elements`、`Actions`、`Form Groups`、`Validations`、`Business Rules`、`Error Codes` のように
-  `###` entity 見出しを持つセクションで、セクション全体の後置補足を書きたい場合は
+- `Elements`、`Actions`、`Form Groups`、`Field Validations`、`Cross-field Validations`、
+  `Business Rules`、`Error Codes` のように `###` entity 見出しを持つセクションで、セクション全体の後置補足を書きたい場合は
   `### Section Notes` 見出しを使います。
 
 entity ごとの説明です。
@@ -263,7 +264,8 @@ level-2 セクション名です。
 - `Form Groups`
 - `Actions`
 - `Model Samples`
-- `Validations`
+- `Field Validations`
+- `Cross-field Validations`
 - `Business Rules`
 - `Error Codes`
 - `History Fields`
@@ -767,8 +769,8 @@ Element 参照を Element marker と Element ID で識別し、element type や
 `*` は Element 自体に input-level の required metadata がある場合だけ使います。
 たとえば `Input*` は Input Form Spec の `入力必須` 列に出る required flag と
 同じ意味です。これは product validation を定義する canonical syntax では
-ありません。必須入力の validation contract は `## Validations` の `rules:
-required` に書きます。
+ありません。必須入力の validation contract は `## Field Validations` の
+`required` constraint に書きます。
 wireframe preview では native `required` attribute や自動の `*` marker としては
 描画しません。画面上に必須マークを見せたい場合は、label 文字列に自分で書きます。
 
@@ -1337,7 +1339,7 @@ execution detail も result classification も持たない、決定的な即時�
     - stop
 ```
 
-Action レベルの `When` / guard はサポートしません。操作可否は要素の `disabled when` に寄せ、入力検証は `Validations` に書きます。
+Action レベルの `When` / guard はサポートしません。操作可否は要素の `disabled when` に寄せ、入力検証は `Field Validations` または `Cross-field Validations` に書きます。
 
 イベント例は `E-SignInButton.click`、`E-EmailInput.blur`、`A-SubmitLogin.P2.response`、`screen.load`、`partial.render` です。現行リリースの要素イベントは `click`、`change`、`submit`、`focus`、`blur`、`open`、`close` です。Action lifecycle event は `response` です。
 
@@ -1402,50 +1404,54 @@ Thymeleaf や htmx による部分更新は、実装属性ではなく意味と�
       - email: E-EmailInput.value
 ```
 
-## Validations
+## Field Validations
 
-`## Validations` は、単項目と複合の入力検証契約を書きます。`V-*` は何を検証するかの
-contract であり、Action をいつ起動するかは定義しません。要素側の
-`input rule` は type、長さ、範囲、pattern、IME、accept、step などの入力仕様に
-限定し、検証 rule、条件、メッセージ、error code はこの章に置きます。
+`## Field Validations` は、1 つの input element に閉じる検証契約を書きます。
+`V-*` は何を検証するかの contract であり、Action をいつ起動するかは定義しません。
+Element 側の入力 metadata は type、長さ、範囲、pattern、IME、accept、step などの
+入力 UI 仕様に限定し、検証 constraint、message、error code はこの章に置きます。
 
-必須入力はこの章が canonical です。`"Email*"` のような layout label や
-`Input*` のような element heading に required の意図を重ねず、`rules:
-required` として書きます。Element 側にも入力 UI 制約として required metadata
-を持たせる場合、generated design document では Input Form Spec の `入力必須`
-列と Validations に分かれて表示されます。
+必須入力は Validation 側が canonical です。`"Email*"` のような layout label や
+`Input*` のような element heading に required の意図を重ねず、validation constraint
+として `required` を書きます。
 
 ```markdown
-## Validations
+## Field Validations
 
-### V-PasswordConfirmation パスワード確認
+### V1:V-EmailRules Email rules
 
-- target: E-PasswordInput
-- target: E-PasswordConfirmInput
-- rules:
-  - same-as:
-    - E-PasswordInput
-    - E-PasswordConfirmInput
-- scope: composite
+- target: E-EmailInput
 - run: client
-- condition: E-PasswordInput.value equals E-PasswordConfirmInput.value
-- message: パスワードと確認用パスワードが一致していること。
-- error code: ERR-PASSWORD-CONFIRMATION
+- constraints:
+  - required
+    - message: Email is required.
+  - email
+    - message: Enter a valid email address.
+  - length: element
+    - message: Email length must follow the input specification.
 ```
 
-生成される設計書ビューでは、`target`、`rules`、`condition`、`message`、`error code`
-を Validations として表示します。`scope` は `single` / `field` または `composite` /
-`cross-field`、`run` は `client` / `server` / `server-response` を使います。設計書では
-クライアント単項目検証、クライアント複合項目検証、サーバ単項目検証、サーバ複合項目検証
-の4表に分類し、該当データがない表は表示しません。`trigger` は `V-*` の canonical syntax
-では使いません。Action が validation result をいつ消費するかを決めます。
+Validation heading form:
 
-各 Validation は `<validation-id>.result` という暗黙の result reference を公開します。
-1035 では result value は `valid` / `invalid` の 2 つに限定します。
+```text
+### [marker:]<validation-id> [name]
+```
 
-フォーム全体の検証は `## Form Groups` で `F-*` を定義し、Validation の `target`
-に FormGroup ID を指定します。`target: L-*` は表示レイアウトと検証責務が混ざるため、
-複合検証の対象としては使いません。
+preview では `### V1:V-EmailRules` の `V1:` のような heading marker を表示します。
+marker がない場合、validator は warning を出し、validation ID を marker label として
+使います。marker は表示用 label であり、参照 ID ではありません。参照には
+`V-EmailRules.result` のような `V-*` ID を使います。summary key は `target`、`run`、
+`constraints` を使います。`run` は validation 定義単位でのみ指定し、初期対応値は `client` です。
+
+`length: element` は target Element の min/max length 入力 metadata を再利用します。
+`range: element` は target Element の min/max value 入力 metadata を再利用します。
+参照先 Element に必要な入力 metadata がなければ warning とし、preview は fallback
+message を作りません。
+
+## Cross-field Validations
+
+`## Cross-field Validations` は、複数 input または form 全体にまたがる検証契約を
+書きます。scope は section 名から決まるため、`scope:` は書きません。
 
 ```markdown
 ## Form Groups
@@ -1457,19 +1463,56 @@ required` として書きます。Element 側にも入力 UI 制約として req
   - E-PasswordInput
 - submit: A-SubmitLogin
 
-## Validations
+## Cross-field Validations
 
-### V-LoginForm Login form validation
+### V2:V-LoginForm Login form validation
 
 - target: F-LoginForm
-- rules:
-  - required:
-    - E-EmailInput
-    - E-PasswordInput
-- scope: composite
 - run: client
-- message: メールアドレスとパスワードは必須です。
+- inputs:
+  - E-EmailInput
+  - E-PasswordInput
+- check: E-EmailInput.value is present and E-PasswordInput.value is present
+- message: Email and password are required.
 ```
+
+フォーム全体の検証は `## Form Groups` で `F-*` を定義し、validation の `target`
+に FormGroup ID を指定します。`target: L-*` は表示レイアウトと検証責務が混ざるため、
+cross-field validation の対象としては使いません。
+
+summary key は `target`、`run`、`inputs`、`check`、`when`、`message` を使います。
+`check` と `when` は初期 DSL では人間可読 text であり、構造化 expression ではありません。
+`condition:` と `group:` は canonical syntax では使いません。
+
+各 Validation は `<validation-id>.result` と `<validation-id>.messages` という暗黙の
+opaque reference を公開します。初期 Action contract では result value は `valid` /
+`invalid` に限定します。validation result をいつ消費し、message をどこに表示するかは
+Action が決めます。
+
+```markdown
+### A-SubmitLogin Submit login
+
+- Triggered
+  - E-SignInButton.click
+- From
+  - idle
+- Process P1: Check validation
+  - receive:
+    - validation: V-LoginForm.result
+  - case: invalid
+    - Effects
+      - display:
+        - target: L-MessageArea
+        - message: V-LoginForm.messages
+    - stop
+  - case: valid
+    - continue
+```
+
+`display.message` が message を持たない validation を参照した場合は warning とし、
+preview は fallback text を表示しません。Validation 定義には `attach` を書かず、
+表示先は Action の `Effects` にある `display.target` で指定します。`display.target`
+は通常の `L-*` / `E-*` target rule に従います。
 
 ## Business Rules
 
@@ -1672,7 +1715,7 @@ MarkVSpec は内容を検証、集計、実装契約として解釈しません�
 上の `Project Memo` は例示用の自由記述セクション名です。MarkVSpec の標準セクション名ではありません。
 未決事項を自由記述として残すことはできます。ただし、未決事項がある設計書をそのまま
 実装や受け入れ判定の入力にしないでください。実装契約として扱う情報は、
-`Actions`、`Validations`、`Business Rules`、`Error Codes` など、
+`Actions`、`Field Validations`、`Cross-field Validations`、`Business Rules`、`Error Codes` など、
 構造化された該当セクションへ移します。
 
 ## サンプル

@@ -170,7 +170,8 @@ Recognized level-2 sections:
 - `## View Context`
 - `## View Context Samples`
 - `## Preview Scenarios`
-- `## Validations`
+- `## Field Validations`
+- `## Cross-field Validations`
 - `## Business Rules`
 - `## Error Codes`
 - `## History Fields`
@@ -200,8 +201,9 @@ Section-level prose:
   first structured data block, is Section Overview.
 - Prose after structured data is Section Notes.
 - In entity sections such as `Elements`, `Actions`, `Form Groups`,
-  `Validations`, `Business Rules`, and `Error Codes`, use `### Section Notes`
-  when you need notes for the whole section after entities.
+  `Field Validations`, `Cross-field Validations`, `Business Rules`, and
+  `Error Codes`, use `### Section Notes` when you need notes for the whole
+  section after entities.
 
 Entity-level prose:
 
@@ -267,7 +269,8 @@ Level-2 section names:
 - `Form Groups`
 - `Actions`
 - `Model Samples`
-- `Validations`
+- `Field Validations`
+- `Cross-field Validations`
 - `Business Rules`
 - `Error Codes`
 - `History Fields`
@@ -939,8 +942,8 @@ adding the element type or display-content summary.
 Append `*` to the element type only when the element itself has input-level
 required metadata. For example, `Input*` is equivalent to a `required` flag in
 the Input Form Spec `Input Required` column. It is not the canonical way to
-define product validation. Required validation belongs in `## Validations` under
-`rules: required`.
+define product validation. Required validation belongs in
+`## Field Validations` as a `required` constraint.
 Required metadata is not rendered as a native `required` attribute or an
 automatic `*` marker in the wireframe preview. If the screen should visibly show
 a required mark, write it into the authored label text.
@@ -1106,8 +1109,8 @@ as read/unread badges.
 Flags are boolean properties. A `required` flag or `Input*` heading suffix is
 element metadata shown in the Input Form Spec `Input Required` column. Use it
 only for input-level UI requirements, not for product validation contracts.
-Prefer `## Validations` with `rules: required` when the design needs to specify
-validation behavior.
+Prefer `## Field Validations` with a `required` constraint when the design needs
+to specify validation behavior.
 
 ```markdown
 - required
@@ -1187,7 +1190,8 @@ addresses, and descriptive values. Buttons can use visual size presets:
 ```
 
 `validation` and `error text` are legacy descriptive metadata for the generated
-Elements tables. Prefer `## Validations` for validation contracts. They are not
+Elements tables. Prefer `## Field Validations` or `## Cross-field Validations`
+for validation contracts. They are not
 rendered automatically near the form control in the wireframe preview. If
 validation or error copy should appear on screen, model it as a visible element
 such as `Text` or `Banner`, usually with `visible when`.
@@ -1834,7 +1838,8 @@ aggregate decision in a Resolve process with the same `group`.
 ```
 
 Action-level `When` guards are not supported. Keep operation availability close
-to the element (`disabled when`) and keep validation rules under `Validations`.
+to the element (`disabled when`) and keep validation rules under
+`Field Validations` or `Cross-field Validations`.
 Use a process-step `when` only when the condition belongs to a specific step; it
 does not guard the action transition itself.
 
@@ -2041,58 +2046,57 @@ Context fallback follows the same order: `View Context Samples.default`, then
 View Context default values. View Context definitions without a `*` default fall
 back to their first listed value.
 
-## Validations Section
+## Field Validations Section
 
-Use `## Validations` for single-field and composite validation contracts. A
-`V-*` entry defines what is validated; it does not define when an Action runs
-validation. Keep element `input rule` entries limited to input specifications
-such as type, length, range, pattern, IME, accept, and step. Validation rules,
-conditions, messages, and error codes belong in this section.
+Use `## Field Validations` for validation contracts that belong to one input
+element. A `V-*` entry defines what is validated; it does not define when an
+Action runs validation. Keep element input metadata limited to input UI
+specifications such as type, length, range, pattern, IME, accept, and step.
+Validation constraints, messages, and error codes belong in this section.
 
-For required fields, this section is canonical. Write `rules: required` here
-instead of repeating required intent in layout labels such as `"Email*"` or
-element headings such as `Input*`. If an element also carries required metadata
-for an input UI constraint, the generated Input Form Spec shows that element
-metadata in the `Input Required` column, separately from this Validations
-section.
+For required fields, validation is canonical. Write `required` as a validation
+constraint instead of repeating required intent in layout labels such as
+`"Email*"` or element headings such as `Input*`.
 
 ```markdown
-## Validations
+## Field Validations
 
-### V-PasswordConfirmation Password confirmation
+### V1:V-EmailRules Email rules
 
-- target: E-PasswordInput
-- target: E-PasswordConfirmInput
-- rules:
-  - same-as:
-    - E-PasswordInput
-    - E-PasswordConfirmInput
-- scope: composite
+- target: E-EmailInput
 - run: client
-- condition: E-PasswordInput.value equals E-PasswordConfirmInput.value
-- message: Password and confirmation must match.
-- error code: ERR-PASSWORD-CONFIRMATION
+- constraints:
+  - required
+    - message: Email is required.
+  - email
+    - message: Enter a valid email address.
+  - length: element
+    - message: Email length must follow the input specification.
 ```
 
 Validation heading form:
 
 ```text
-### <validation-id> [name]
+### [marker:]<validation-id> [name]
 ```
 
-Supported summary keys are `target`, `rules`, `scope`, `run`, `condition`,
-`message`, and `error code`. `scope` is `single` / `field` or `composite` /
-`cross-field`; `run` is `client`, `server`, or `server-response`. The generated
-design document groups validation contracts into Client Field, Client Cross-field,
-Server Field, and Server Cross-field tables; empty groups are omitted. `trigger`
-is not canonical on `V-*`; Actions decide when validation results are consumed.
+The heading marker, such as `V1:` in `### V1:V-EmailRules`, is expected for
+preview output. If it is missing, the validator should warn and use the
+validation ID as the marker label. The marker is a display label, not the
+reference ID; references use `V-*` IDs such as `V-EmailRules.result`.
+Supported summary keys are `target`, `run`, and `constraints`. `run` is
+validation-level only; the initial supported value is `client`.
 
-Each validation exposes an implicit result reference named `<validation-id>.result`.
-For 1035, its result values are limited to `valid` and `invalid`.
+`length: element` reuses the target Element's min/max length input metadata.
+`range: element` reuses the target Element's min/max value metadata. If the
+referenced Element does not provide the needed input metadata, the validator
+warns. The preview does not invent a fallback message.
 
-For form-level validation, define `F-*` in `## Form Groups` and use the
-FormGroup ID as the Validation `target`. Do not use `target: L-*` for composite
-validation, because that mixes visual layout with validation responsibility.
+## Cross-field Validations Section
+
+Use `## Cross-field Validations` for validation contracts that depend on several
+inputs or a whole form. The section name defines the validation scope; do not
+write `scope:`.
 
 ```markdown
 ## Form Groups
@@ -2104,19 +2108,57 @@ validation, because that mixes visual layout with validation responsibility.
   - E-PasswordInput
 - submit: A-SubmitLogin
 
-## Validations
+## Cross-field Validations
 
-### V-LoginForm Login form validation
+### V2:V-LoginForm Login form validation
 
 - target: F-LoginForm
-- rules:
-  - required:
-    - E-EmailInput
-    - E-PasswordInput
-- scope: composite
 - run: client
+- inputs:
+  - E-EmailInput
+  - E-PasswordInput
+- check: E-EmailInput.value is present and E-PasswordInput.value is present
 - message: Email and password are required.
 ```
+
+For form-level validation, define `F-*` in `## Form Groups` and use the
+FormGroup ID as the validation `target`. Do not use `target: L-*` for
+cross-field validation, because that mixes visual layout with validation
+responsibility.
+
+Supported summary keys are `target`, `run`, `inputs`, `check`, `when`, and
+`message`. `check` and `when` are human-readable text in the initial DSL; they
+are not structured expressions. `condition:` and `group:` are not canonical.
+
+Each validation exposes implicit opaque references named `<validation-id>.result`
+and `<validation-id>.messages`. Result values are limited to `valid` and
+`invalid` in the initial Action contract. Actions decide when validation results
+are consumed and where messages are displayed.
+
+```markdown
+### A-SubmitLogin Submit login
+
+- Triggered
+  - E-SignInButton.click
+- From
+  - idle
+- Process P1: Check validation
+  - receive:
+    - validation: V-LoginForm.result
+  - case: invalid
+    - Effects
+      - display:
+        - target: L-MessageArea
+        - message: V-LoginForm.messages
+    - stop
+  - case: valid
+    - continue
+```
+
+If `display.message` references a validation that has no messages, the validator
+warns and the preview shows no fallback text. Validation definitions do not use
+`attach`; display targets belong to Action `Effects` and follow the usual
+`display.target` rule for `L-*` and `E-*` targets.
 
 ## Business Rules Section
 
@@ -2233,7 +2275,8 @@ contract.
 You can leave unresolved questions in a free-form section, but do not hand a
 spec with unresolved decisions to implementation or acceptance checks as if
 those questions were contract. Move implementation-relevant requirements into
-`Actions`, `Validations`, `Business Rules`, or `Error Codes`.
+`Actions`, `Field Validations`, `Cross-field Validations`, `Business Rules`, or
+`Error Codes`.
 
 ## Conditions
 
@@ -2324,7 +2367,7 @@ Warnings:
 ```text
 file              = front_matter document_heading section*
 document_heading  = "# " document_id " " title
-section           = states | layout | slot | elements | form_groups | actions | model_samples | view_context | view_context_samples | preview_scenarios | validations | business_rules | error_codes | history_fields | history | markdown
+section           = states | layout | slot | elements | form_groups | actions | model_samples | view_context | view_context_samples | preview_scenarios | field_validations | cross_field_validations | business_rules | error_codes | history_fields | history | markdown
 states            = "## States" state_bullet*
 layout            = "## Layout:" viewport layout_group*
 slot              = "## Slot:" slot_name (":" viewport)? layout_group*
@@ -2338,7 +2381,8 @@ view_context_samples = "## View Context Samples" view_context_sample*
 view_context_sample = "### " sample_name key_value*
 preview_scenarios = "## Preview Scenarios" preview_scenario*
 preview_scenario = "### " scenario_name key_value*
-validations       = "## Validations" validation*
+field_validations = "## Field Validations" field_validation*
+cross_field_validations = "## Cross-field Validations" cross_field_validation*
 business_rules    = "## Business Rules" rule*
 error_codes       = "## Error Codes" error_code*
 history_fields    = "## History Fields" history_field*
@@ -2352,8 +2396,26 @@ triggered_group   = "- Triggered" nested_bullet*
 from_group        = "- From" nested_bullet*
 process_group     = "- Process " marker ": " process_name process_detail*
 process_case      = indent "- case:" result_name nested_bullet*
+process_detail    = receive_group | process_case | nested_bullet
+receive_group     = indent "- receive:" receive_item*
+receive_item      = indent indent "- validation: " validation_result_ref
+display_message   = indent indent indent "- message: " validation_messages_ref
 otherwise_group   = "- Otherwise" nested_bullet*
-validation        = "### " validation_id name? bullet*
+field_validation  = "### " marker_prefix? validation_id name? field_validation_property*
+cross_field_validation = "### " marker_prefix? validation_id name? cross_field_validation_property*
+field_validation_property = target_property | run_property | constraints_group
+cross_field_validation_property = target_property | run_property | inputs_group | check_property | when_property | message_property
+target_property   = "- target: " id
+run_property      = "- run: client"
+constraints_group = "- constraints:" constraint_item*
+constraint_item   = indent "- " constraint_name nested_bullet*
+inputs_group      = "- inputs:" input_item*
+input_item        = indent "- " element_id
+check_property    = "- check: " text
+when_property     = "- when: " text
+message_property  = "- message: " text
+validation_result_ref = validation_id ".result"
+validation_messages_ref = validation_id ".messages"
 rule              = "### " marker_prefix? rule_id name? bullet*
 required_suffix   = "*"
 bullet            = "- " text

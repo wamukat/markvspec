@@ -163,12 +163,13 @@ route: /login
   - idle
 - Process P1: Validate login form
   - receive:
-    - validation: V-LoginForm.result
+    - validation: V-EmailRequired.result
   - case: invalid
     - Effects
       - display:
         - target: L-MessageArea
         - element: E-ValidationMessage
+        - message: V-EmailRequired.messages
     - stop
   - case: valid
     - continue
@@ -188,15 +189,15 @@ route: /login
         - target: L-MessageArea
         - element: E-SendErrorBanner
 
-## Validations
+## Field Validations
 
-### V-LoginForm Login form validation
+### V1:V-EmailRequired Email required
 
-- target: F-LoginForm
-- rules:
-  - required:
-    - E-EmailInput
-- message: Email is required.
+- target: E-EmailInput
+- run: client
+- constraints:
+  - required
+    - message: Email is required.
 ```
 
 For more realistic examples, see [Login Basic](examples/04-real-world-screens/login-basic.vspec.md)

@@ -27,21 +27,19 @@ When a Validation targets a layout ID, the visual grouping and validation respon
 - `submit` points to the primary submit `A-*` action.
 - Do not bind a FormGroup to a Layout. Use `L-*` for display and update targets, and `F-*` for validation targets.
 
-Validations should target either a FormGroup or an Element. Multiple `target: E-*` entries remain valid for composite validation, but `F-*` is the preferred target when several inputs are validated as one form.
+Field Validations should target one Element. Cross-field Validations should target a FormGroup when several inputs are validated as one form.
 
 ```markdown
-## Validations
+## Cross-field Validations
 
-### V-LoginForm Login form validation
+### V1:V-LoginForm Login form validation
 
 - target: F-LoginForm
-- rules:
-  - required:
-    - E-EmailInput
-    - E-PasswordInput
-- scope: composite
 - run: client
-- condition: email is empty or password is empty
+- inputs:
+  - E-EmailInput
+  - E-PasswordInput
+- check: E-EmailInput.value is present and E-PasswordInput.value is present
 - message: Email and password are required.
 ```
 
@@ -53,11 +51,12 @@ The validator applies these diagnostics:
 - Error when `fields` references an unknown Element ID.
 - Warning when `fields` references a non-input Element ID.
 - Error when `submit` references an unknown Action ID.
-- Validation `target` should be an Element ID or FormGroup ID. Multiple Element targets remain valid.
+- Field Validation `target` should be an Element ID.
+- Cross-field Validation `target` should be a FormGroup ID.
 - Validation `trigger` is not canonical; Actions consume the implicit `V-*.result` reference.
-- Warning when a Validation targets a Layout ID with `scope: composite` or `scope: cross-field`, because that should be migrated to a FormGroup.
+- Warning when a Cross-field Validation targets a Layout ID, because that should be migrated to a FormGroup.
 
-Layout targets are not immediate errors for compatibility, but examples and documentation should not use them. User-facing docs should present FormGroup as canonical.
+Layout targets are not valid for the redesigned canonical syntax. User-facing docs should present FormGroup as canonical.
 
 `F-*` is only for Validation targets. Do not use it as an Action update target, partial update target, layout item, or DOM replacement target.
 The submit button is referenced through `submit`; it does not need to be listed under `fields`.
@@ -67,7 +66,7 @@ The submit button is referenced through `submit`; it does not need to be listed 
 The preview displays `Form Groups` once as a screen-level common section, not under each state or viewport.
 The table shows FormGroup ID, fields, and submit action.
 
-The Validation section renders `target: F-*` as a reference to the FormGroup.
+The Cross-field Validations section renders `target: F-*` as a reference to the FormGroup.
 The priority is to make the relationship between input-form specs and validation rules easy to follow.
 
 ## Migration Target
