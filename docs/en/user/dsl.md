@@ -87,13 +87,15 @@ Optional fields:
 - `references`: document ID to file path mappings used by a screen. Supported
   groups are `partials`.
 - `route`
-- `owner`
 - `viewport`
 - `locale`: generated design document language. Supported values are `en` and
   `ja`.
-- `status`
 - `tags`
 - `version`
+
+`owner` and `status` are no longer canonical Front Matter fields. If they remain
+in a document, MarkVSpec warns and ignores them instead of showing them in
+preview or export metadata.
 
 The first level-1 heading should repeat the design subject ID and title:
 
@@ -2490,6 +2492,7 @@ Warnings:
 
 - No initial state.
 - Heading document ID differs from Front Matter ID.
+- Removed Front Matter fields such as `owner` or `status` are present.
 - Unknown element type, except explicit `custom:*` element types.
 - Unknown layout kind.
 - ID-like token in a condition does not resolve.

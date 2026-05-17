@@ -3,10 +3,8 @@ id: SCR-ASYNC-LOADING
 type: screen
 title: Async Loading
 route: /async-loading
-owner: docs
 locale: en
 viewport: mobile
-status: draft
 ---
 
 # SCR-ASYNC-LOADING Async Loading

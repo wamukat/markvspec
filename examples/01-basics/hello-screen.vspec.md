@@ -3,10 +3,8 @@ id: SCR-HELLO
 type: screen
 title: Hello Screen
 route: /hello
-owner: docs
 locale: en
 viewport: mobile
-status: draft
 ---
 
 # SCR-HELLO Hello Screen

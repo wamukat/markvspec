@@ -3,10 +3,8 @@ id: SCR-ACCOUNT-SETTINGS
 type: screen
 title: Account Settings
 route: /settings/account
-owner: docs
 locale: en
 viewport: desktop
-status: draft
 ---
 
 # SCR-ACCOUNT-SETTINGS Account Settings

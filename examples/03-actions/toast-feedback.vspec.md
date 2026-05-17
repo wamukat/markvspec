@@ -3,10 +3,8 @@ id: SCR-TOAST-FEEDBACK
 type: screen
 title: Toast Feedback
 route: /settings/toast-feedback
-owner: docs
 locale: en
 viewport: desktop
-status: draft
 ---
 
 # SCR-TOAST-FEEDBACK Toast Feedback

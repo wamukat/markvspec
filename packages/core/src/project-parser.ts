@@ -186,8 +186,6 @@ function assignProjectScreenProperty(
     screen.path = value;
   } else if (key === "title") {
     screen.title = value;
-  } else if (key === "owner") {
-    screen.owner = value;
   } else if (key === "template") {
     screen.template = value;
   } else {
@@ -209,7 +207,6 @@ function parseProjectSummary(
   const project: MarkVSpecProjectSummary = {
     id: frontMatter["id"],
     title: frontMatter["title"],
-    status: frontMatter["status"],
     frontMatter
   };
   const heading = firstHeading(document, 1);
@@ -299,6 +296,14 @@ function validateProjectIndex(
     diagnostics.push({
       severity: "error",
       message: "Front Matter field type must be project.",
+      line: 1
+    });
+  }
+
+  if (project.frontMatter["status"]) {
+    diagnostics.push({
+      severity: "warning",
+      message: "Front Matter field status is no longer canonical and is ignored.",
       line: 1
     });
   }

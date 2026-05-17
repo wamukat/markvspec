@@ -32,9 +32,7 @@ export interface MarkVSpecScreenSummary {
   title?: string;
   description?: string;
   route?: string;
-  owner?: string;
   viewport?: string;
-  status?: string;
   template?: string;
   templateSrc?: string;
   locale?: string;
@@ -53,7 +51,6 @@ export interface MarkVSpecDocumentReferences {
 export interface MarkVSpecProjectSummary {
   id?: string;
   title?: string;
-  status?: string;
   frontMatter: Record<string, string>;
   heading?: string;
   location?: SourceLocation;
@@ -63,7 +60,6 @@ export interface MarkVSpecProjectScreen {
   id?: string;
   path?: string;
   title?: string;
-  owner?: string;
   template?: string;
   location: SourceLocation;
   propertyLocations: Record<string, SourceLocation[]>;

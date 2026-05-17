@@ -2744,12 +2744,10 @@ test("parses a MarkVSpec project index", () => {
 id: PRJ-ADMIN
 type: project
 title: Admin Console
-status: draft
 screens:
   - id: SCR-USERS
     path: examples/04-real-world-screens/search-list.vspec.md
     title: Users
-    owner: admin
   - id: SCR-USER-DETAIL
     path: examples/03-actions/form-submit-flow.vspec.md
 ---
@@ -2764,16 +2762,62 @@ screens:
 
   assert.equal(result.project.id, "PRJ-ADMIN");
   assert.equal(result.project.title, "Admin Console");
-  assert.equal(result.project.status, "draft");
   assert.deepEqual(
-    result.screens.map((screen) => [screen.id, screen.path, screen.title, screen.owner]),
+    result.screens.map((screen) => [screen.id, screen.path, screen.title]),
     [
-      ["SCR-USERS", "examples/04-real-world-screens/search-list.vspec.md", "Users", "admin"],
-      ["SCR-USER-DETAIL", "examples/03-actions/form-submit-flow.vspec.md", undefined, undefined]
+      ["SCR-USERS", "examples/04-real-world-screens/search-list.vspec.md", "Users"],
+      ["SCR-USER-DETAIL", "examples/03-actions/form-submit-flow.vspec.md", undefined]
     ]
   );
   assert.deepEqual(result.notes.map((note) => [note.title, note.line]), [["Notes", lineNumber(source, "## Notes")]]);
   assert.deepEqual(result.diagnostics, []);
+});
+
+test("warns and ignores removed Front Matter owner and status metadata", () => {
+  const source = `---
+id: SCR-REMOVED-META
+type: screen
+title: Removed Metadata
+owner: docs
+status: draft
+---
+
+# SCR-REMOVED-META Removed Metadata
+`;
+  const result = parseMarkVSpec(source);
+
+  assert.deepEqual(
+    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+    [
+      ["warning", "Front Matter field owner is no longer canonical and is ignored.", 1],
+      ["warning", "Front Matter field status is no longer canonical and is ignored.", 1]
+    ]
+  );
+});
+
+test("warns and ignores removed project status and screen owner metadata", () => {
+  const source = `---
+id: PRJ-REMOVED-META
+type: project
+title: Removed Metadata Project
+status: draft
+screens:
+  - id: SCR-USERS
+    path: examples/04-real-world-screens/search-list.vspec.md
+    owner: admin
+---
+
+# PRJ-REMOVED-META Removed Metadata Project
+`;
+  const result = parseMarkVSpecProject(source);
+
+  assert.deepEqual(
+    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+    [
+      ["warning", "Project screen entry uses unsupported field owner.", lineNumber(source, "    owner: admin")],
+      ["warning", "Front Matter field status is no longer canonical and is ignored.", 1]
+    ]
+  );
 });
 
 test("derives project semantics from shared AST utilities", () => {

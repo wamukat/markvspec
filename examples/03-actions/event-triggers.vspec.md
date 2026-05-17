@@ -3,10 +3,8 @@ id: SCR-EVENT-TRIGGERS
 type: screen
 title: Event Triggers
 route: /preferences/events
-owner: docs
 locale: en
 viewport: desktop
-status: draft
 ---
 
 # SCR-EVENT-TRIGGERS Event Triggers

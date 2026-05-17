@@ -2,10 +2,8 @@
 id: PRT-PROFILE-SUMMARY
 type: partial
 title: Profile Summary Partial
-owner: docs
 locale: en
 viewport: desktop
-status: draft
 ---
 
 # PRT-PROFILE-SUMMARY Profile Summary Partial

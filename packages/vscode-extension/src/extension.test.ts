@@ -5848,7 +5848,6 @@ test("renders project preview sections and transition Mermaid", () => {
 id: PRJ-ADMIN
 type: project
 title: Admin Console
-status: draft
 screens:
   - id: SCR-USERS
     path: screens/users.vspec.md
@@ -5946,6 +5945,8 @@ route: /users/:id
   assert.match(documentHtml, /<h2>Project<\/h2>/);
   assert.match(documentHtml, /<td>PRJ-ADMIN<\/td>/);
   assert.match(documentHtml, /<h2>Screens<\/h2>/);
+  assert.doesNotMatch(documentHtml, /<th>Status<\/th>/);
+  assert.doesNotMatch(documentHtml, /<th>Owner<\/th>/);
   assert.match(documentHtml, new RegExp(`<td>${documentRef("SCR-USERS")}</td><td>Users</td><td>/users</td>`));
   assert.match(documentHtml, /<h2>Project Transition Diagram<\/h2>/);
   assert.match(documentHtml, /flowchart LR/);
@@ -5956,7 +5957,6 @@ route: /users/:id
   assert.match(documentHtml, /<p class="spec-empty">None\.<\/p>/);
   assert.match(localizedProjectHtml, /<h2>プロジェクト<\/h2>/);
   assert.match(localizedProjectHtml, /<th>項目<\/th><th>値<\/th>/);
-  assert.match(localizedProjectHtml, /<td>読込済<\/td>/);
   assert.match(localizedProjectHtml, /<h2>診断<\/h2>/);
   assert.match(localizedProjectHtml, /<p class="spec-empty">なし<\/p>/);
   assert.doesNotMatch(localizedProjectHtml, /<th>Field<\/th><th>Value<\/th>/);
@@ -7459,7 +7459,7 @@ test("creates document symbols for MarkVSpec structure", () => {
 
   assert.equal(screen.name, "SCR-LOGIN Login");
   assert.equal(screen.detail, "Screen");
-  assert.equal(screen.selectionRange.start.line, 11);
+  assert.equal(screen.selectionRange.start.line, 9);
   assert.deepEqual(screen.children.map((child) => child.name), [
     "States",
     "Layout: mobile",

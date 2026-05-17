@@ -22,7 +22,7 @@ MarkVSpec のプレビューは、生成された画面設計書です。上か�
 
 | セクション | 主目的 | 表示するもの | 表示しないもの |
 |---|---|---|---|
-| Screen | 設計書の入口 | 文書ID、タイトル、種別、route、owner、status、解決済み参照 | default-state、locale、partial state map、action結果、element詳細 |
+| Screen | 設計書の入口 | 文書ID、タイトル、種別、route、viewport、解決済み参照 | default-state、locale、partial state map、action結果、element詳細 |
 | Wireframe | 画面構造と状態別の見え方 | Element samples、対象stateのscenario samples、Layout構造、Element配置、marker、自動イベント、partial preview配置、viewport/stateごとの現在仕様 | Element全プロパティ、Action内部処理、通信詳細 |
 | Layouts | 現在のワイヤーフレーム文脈で表示されるLayout | marker、名前、種別、layoutプロパティ、item参照 | Elementの振る舞い、Action詳細 |
 | 画面要素サマリー | 現在のワイヤーフレーム文脈の要素カタログ | marker、ID、type、関連Action、説明 | 表示文言、入力制約、visible/disabled条件、Action処理詳細 |

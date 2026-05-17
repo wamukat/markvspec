@@ -2,9 +2,7 @@
 id: TPL-MYPAGE-SHELL
 type: template
 title: Account Shell
-owner: platform
 locale: en
-status: draft
 ---
 
 # TPL-MYPAGE-SHELL Account Shell

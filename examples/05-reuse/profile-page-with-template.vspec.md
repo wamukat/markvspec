@@ -3,10 +3,8 @@ id: SCR-PROFILE-HOME
 type: screen
 title: Profile Home
 route: /members/:memberId
-owner: docs
 locale: en
 viewport: desktop
-status: draft
 template:
   id: TPL-MYPAGE-SHELL
   src: ./template-shell.vspec.md

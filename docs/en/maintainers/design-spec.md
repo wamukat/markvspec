@@ -83,10 +83,8 @@ id: SCR-LOGIN
 type: screen
 title: Login
 route: /login
-owner: auth
 viewport: mobile
 default-state: idle
-status: draft
 ---
 ```
 
@@ -99,12 +97,10 @@ Required fields:
 Useful optional fields:
 
 - `route`
-- `owner`
 - `viewport`
 - `default-state`: state used as the default for standalone wireframe rendering
   and embedded partial previews. Design document state previews use the initial
   state and the `States` order instead.
-- `status`
 - `tags`
 - `version`
 
@@ -610,9 +606,7 @@ id: SCR-LOGIN
 type: screen
 title: Login
 route: /login
-owner: auth
 viewport: mobile
-status: draft
 ---
 
 # SCR-LOGIN Login

@@ -8,7 +8,7 @@ complement the existing per-screen state flow diagrams.
 Project transition diagrams require:
 
 - a project index or workspace discovery set
-- parsed screen Front Matter for screen IDs, titles, routes, and owners
+- parsed screen metadata for screen IDs, titles, and routes
 - parsed Action transitions with `navigate: SCR-*`
 - optional action markers for compact labels
 

@@ -3,10 +3,8 @@ id: SCR-USERS
 type: screen
 title: Search List
 route: /users
-owner: docs
 locale: en
 viewport: desktop
-status: draft
 ---
 
 # SCR-USERS Search List

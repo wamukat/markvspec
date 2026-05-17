@@ -3,10 +3,8 @@ id: SCR-FORM-SUBMIT-FLOW
 type: screen
 title: Form Submit Flow
 route: /form-submit
-owner: docs
 locale: en
 viewport: desktop
-status: draft
 ---
 
 # SCR-FORM-SUBMIT-FLOW Form Submit Flow

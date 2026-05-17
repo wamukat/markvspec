@@ -3,10 +3,8 @@ id: SCR-RESPONSIVE-PROFILE
 type: screen
 title: Responsive Profile
 route: /profile
-owner: docs
 locale: en
 viewport: mobile
-status: draft
 ---
 
 # SCR-RESPONSIVE-PROFILE Responsive Profile

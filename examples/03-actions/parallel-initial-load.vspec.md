@@ -3,10 +3,8 @@ id: SCR-PARALLEL-INITIAL-LOAD
 type: screen
 title: Parallel Initial Load
 route: /dashboard
-owner: docs
 locale: en
 viewport: desktop
-status: draft
 ---
 
 # SCR-PARALLEL-INITIAL-LOAD Parallel Initial Load

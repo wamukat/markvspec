@@ -3,10 +3,8 @@ id: SCR-SINGLE-FIELD-VALIDATION
 type: screen
 title: Single Field Validation
 route: /single-field-validation
-owner: docs
 locale: en
 viewport: desktop
-status: draft
 ---
 
 # SCR-SINGLE-FIELD-VALIDATION Single Field Validation

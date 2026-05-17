@@ -62,10 +62,8 @@ id: SCR-MYPAGE-HOME
 type: screen
 title: マイページ ホーム
 route: /mypage
-owner: end-user
 viewport: mobile
 default-state: idle
-status: draft
 ---
 ```
 

@@ -3,10 +3,8 @@ id: SCR-SCENARIO-SAMPLES
 type: screen
 title: Scenario Samples
 route: /scenario-samples
-owner: docs
 locale: en
 viewport: desktop
-status: draft
 ---
 
 # SCR-SCENARIO-SAMPLES Scenario Samples

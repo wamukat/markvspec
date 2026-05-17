@@ -281,9 +281,7 @@ function parseScreen(
     title: frontMatter["title"],
     description: frontMatter["description"],
     route: frontMatter["route"],
-    owner: frontMatter["owner"],
     viewport: frontMatter["viewport"],
-    status: frontMatter["status"],
     template: template?.id,
     templateSrc: template?.src,
     locale: frontMatter["locale"],
@@ -339,6 +337,16 @@ function parseScreen(
       message: "Front Matter field type must be screen, template, or partial.",
       line: 1
     });
+  }
+
+  for (const key of ["owner", "status"]) {
+    if (frontMatter[key]) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Front Matter field ${key} is no longer canonical and is ignored.`,
+        line: 1
+      });
+    }
   }
 
   return screen;

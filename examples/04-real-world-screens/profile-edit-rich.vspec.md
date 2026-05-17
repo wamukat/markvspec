@@ -3,10 +3,8 @@ id: SCR-PROFILE-EDIT-RICH
 type: screen
 title: Profile Edit Rich
 route: /profile/edit-rich
-owner: docs
 locale: en
 viewport: desktop
-status: draft
 ---
 
 # SCR-PROFILE-EDIT-RICH Profile Edit Rich

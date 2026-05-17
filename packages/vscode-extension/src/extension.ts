@@ -2919,10 +2919,7 @@ export function renderProjectPreviewHtml(
   const mermaidScriptUri = extensionUri ? mermaidScriptWebviewUri(webview, extensionUri) : undefined;
   const title = project.project.project.title ?? project.project.project.id ?? "Untitled MarkVSpec Project";
   const clientMessages = previewClientMessages(messages);
-  const metaItems = [
-    sourceLabel,
-    project.project.project.status
-  ].filter((item): item is string => Boolean(item)).map((item) => `<span class="meta-item">${escapeHtml(item)}</span>`);
+  const metaItems = [sourceLabel].filter((item): item is string => Boolean(item)).map((item) => `<span class="meta-item">${escapeHtml(item)}</span>`);
   const document = renderProjectDesignDocumentHtml(project, messages);
   const cspSource = webview.cspSource;
 
@@ -3474,8 +3471,7 @@ function renderProjectSpec(project: MarkVSpecProjectLoadResult, messages: Render
     <h2>${escapeHtml(pLabel(messages, "project"))}</h2>
     ${renderProjectKeyValueTable(messages, [
       [pLabel(messages, "id"), summary.id],
-      [pLabel(messages, "title"), summary.title],
-      [pLabel(messages, "status"), summary.status]
+      [pLabel(messages, "title"), summary.title]
     ])}
   </section>`;
 }
@@ -3503,14 +3499,12 @@ function renderProjectScreensSpec(project: MarkVSpecProjectLoadResult, messages:
   return `<section class="doc-section">
     <h2>${escapeHtml(pLabel(messages, "screens"))}</h2>
     ${renderProjectTable(messages,
-      [pLabel(messages, "screen"), pLabel(messages, "title"), pLabel(messages, "route"), pLabel(messages, "owner"), pLabel(messages, "path"), pLabel(messages, "status")],
+      [pLabel(messages, "screen"), pLabel(messages, "title"), pLabel(messages, "route"), pLabel(messages, "path")],
       project.screens.map((screen) => [
         screen.index.id ? renderDocumentRefId(screen.index.id) : "",
         text(screen.result?.screen.title ?? screen.index.title),
         text(screen.result?.screen.route),
-        text(screen.result?.screen.owner ?? screen.index.owner),
-        text(screen.resolvedPath ?? screen.index.path),
-        text(screen.result ? pLabel(messages, "loaded") : pLabel(messages, "missing"))
+        text(screen.resolvedPath ?? screen.index.path)
       ])
     )}
   </section>`;
@@ -3971,7 +3965,6 @@ function renderScreenSpec(result: ReturnType<typeof parseMarkVSpec>): string {
   const title = screen.title || screen.heading || screen.id || "";
   const facts = ([
     [label(result, "route"), screen.route ?? ""],
-    [label(result, "owner"), screen.owner ?? ""],
     [label(result, "viewport"), screen.viewport ?? ""]
   ] satisfies Array<[string, string]>).filter(([, value]) => value.trim().length > 0);
   const references = renderScreenReferences(result);
@@ -3982,7 +3975,6 @@ function renderScreenSpec(result: ReturnType<typeof parseMarkVSpec>): string {
     <div class="screen-overview">
       <div class="screen-overview-badges">
         ${renderSemanticChip(screen.type ?? "screen", undefined, "type")}
-        ${screen.status ? renderSemanticChip(screen.status, screen.status) : ""}
       </div>
       <div class="screen-overview-main">
         ${screen.id ? `<div class="screen-id">${code(screen.id)}</div>` : ""}

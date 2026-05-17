@@ -43,9 +43,7 @@ id: SCR-LOGIN
 type: screen
 title: Login
 route: /login
-owner: auth
 viewport: mobile
-status: draft
 ---
 
 # SCR-LOGIN Login
@@ -116,9 +114,7 @@ Front Matter は文書全体の機械向けメタデータです。小さく、�
 - `type`
 - `title`
 - `route`
-- `owner`
 - `viewport`
-- `status`
 - `tags`
 - `version`
 

@@ -57,12 +57,13 @@ Front Matter は YAML です。文書全体のメタデータだけを書きま�
 - `template`: 画面が利用するテンプレート参照。`id` と `src` を持つ map として指定します。
 - `references`: 画面が参照する設計書 ID とファイルパスの対応表。`partials` をサポートします。
 - `route`: 画面の URL パス。動的 segment は `/users/:userId` のように `:param` で書きます。
-- `owner`
 - `viewport`
 - `locale`: 生成される設計書の表示言語。`en` と `ja` をサポートします。
-- `status`
 - `tags`
 - `version`
+
+`owner` と `status` は canonical な Front Matter ではありません。残っている場合は
+警告し、プレビューや export のメタデータ表示では無視します。
 
 画面が利用する template は `template.id` / `template.src` で指定します。Partial は設計書 ID で読みやすく書き、
 プレビューでは実ファイルを読み込みたい場合に `references.partials` を使います。
@@ -322,10 +323,8 @@ Front Matter の主なキーです。
 - `type`
 - `title`
 - `route`
-- `owner`
 - `viewport`
 - `default-state`
-- `status`
 - `template`
 - `locale`
 

@@ -3,10 +3,8 @@ id: SCR-NOTICE-DETAIL
 type: screen
 title: Notice Detail
 route: /notices/:noticeId
-owner: docs
 locale: en
 viewport: desktop
-status: draft
 ---
 
 # SCR-NOTICE-DETAIL Notice Detail

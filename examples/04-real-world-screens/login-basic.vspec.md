@@ -3,10 +3,8 @@ id: SCR-LOGIN
 type: screen
 title: Login
 route: /login
-owner: docs
 locale: en
 viewport: mobile
-status: draft
 ---
 
 # SCR-LOGIN Login

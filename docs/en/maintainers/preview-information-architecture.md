@@ -18,7 +18,7 @@ small amount of information, but each section must have one primary job.
 
 | Section | Primary job | Show | Avoid |
 |---|---|---|---|
-| Screen | Entry point for the design document | document ID, title, type, route, owner, status, resolved references | default-state, locale, partial state maps, action results, element details |
+| Screen | Entry point for the design document | document ID, title, type, route, viewport, resolved references | default-state, locale, partial state maps, action results, element details |
 | Wireframe | Visual structure and state-specific appearance | element samples, scenario samples for the current state, layout structure, element placement, markers, system events, partial preview placement, current viewport/state specifications | full element properties, action internals, request details |
 | Layouts | Layout objects visible in the current wireframe context | marker, name, kind, layout properties, item references | element behavior and action details |
 | Element Summary | Element catalog for the current wireframe context | marker, ID, type, triggered actions, description | display text, input constraints, visibility/disabled conditions, action process details |

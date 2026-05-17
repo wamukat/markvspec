@@ -13,7 +13,7 @@
 プロジェクト遷移図には次が必要です。
 
 - project index または workspace discovery set。
-- screen ID、title、route、owner を含む screen Front Matter。
+- screen ID、title、route を含む screen metadata。
 - `navigate: SCR-*` を持つ Action transition。
 - compact label 用の action marker。
 

@@ -138,9 +138,7 @@ function renderDocumentOverviewSection(result: MarkVSpecParseResult, messages: R
   const facts = [
     [messages.id, screen.id ?? ""],
     [messages.route, screen.route ?? ""],
-    [messages.owner, screen.owner ?? ""],
-    [messages.viewport, screen.viewport ?? ""],
-    [messages.status, screen.status ?? ""]
+    [messages.viewport, screen.viewport ?? ""]
   ].filter(([, value]) => value.trim().length > 0);
   if (!screen.description && facts.length === 0) {
     return "";
