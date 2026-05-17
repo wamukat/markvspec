@@ -3221,6 +3221,10 @@ title: My Page Shell
 - E-Header
 - slot: content
 
+## Slots
+
+### content Main Content
+
 ## Elements
 
 ### E-Header Text
@@ -3303,6 +3307,10 @@ title: My Page Shell
 #### Items
 
 - slot: content
+
+## Slots
+
+### content Main Content
 `;
   const screenSource = `---
 id: SCR-MYPAGE-HOME
@@ -3336,6 +3344,159 @@ template:
   assert.equal(result.screens[0]?.result?.layoutGroups[0]?.id, "L-Shell");
   assert.equal(result.screens[0]?.result?.slotContents[0]?.layoutGroups[0]?.id, "L-Content");
   assert.deepEqual(result.diagnostics, []);
+});
+
+test("validates template slot contracts during project composition", () => {
+  const projectSource = `---
+id: PRJ-SLOT-CONTRACT
+type: project
+title: Slot Contract
+screens:
+  - id: SCR-SLOT-CONTRACT
+    path: screens/home.vspec.md
+---
+
+# PRJ-SLOT-CONTRACT Slot Contract
+`;
+  const templateSource = `---
+id: TPL-SLOT-CONTRACT
+type: template
+title: Slot Contract Shell
+---
+
+# TPL-SLOT-CONTRACT Slot Contract Shell
+
+## Layout: desktop
+
+### L-Shell Shell
+
+- stack
+
+#### Items
+
+- slot: content
+- slot: missingContract
+
+## Layout: mobile
+
+### L-MobileShell Mobile Shell
+
+- stack
+
+#### Items
+
+- slot: content
+- slot: viewportRequired
+
+## Slots
+
+### content Main Content
+
+- required
+
+### requiredWithDefault Required With Default
+
+- required
+- default: E-DefaultMessage
+
+### requiredWithoutDefault Required Without Default
+
+- required
+
+### requiredPropertyWithoutDefault Required Property Without Default
+
+- required: true
+
+### missingDefault Missing Default
+
+- default: E-MissingDefault
+
+### wrongDefaultKind Wrong Default Kind
+
+- default: A-NotAllowed
+
+### screenDefault Screen Default
+
+- default: E-ScreenOnly
+
+### screenLayoutDefault Screen Layout Default
+
+- default: L-ScreenTop
+
+### viewportRequired Viewport Required
+
+- required
+
+### optional Optional
+
+## Elements
+
+### E-DefaultMessage Paragraph
+
+- value: Default content
+`;
+  const screenSource = `---
+id: SCR-SLOT-CONTRACT
+type: screen
+title: Slot Contract Home
+template:
+  id: TPL-SLOT-CONTRACT
+  src: ../templates/shell.vspec.md
+---
+
+# SCR-SLOT-CONTRACT Slot Contract Home
+
+## Layout: desktop
+
+### L-ScreenTop Screen Top
+
+- stack
+
+## Slot: content
+
+### L-Content Content
+
+- stack
+
+## Slot: unknownSlot: mobile
+
+### L-Unknown Unknown
+
+- stack
+
+## Slot: viewportRequired: desktop
+
+### L-DesktopOnly Desktop Only
+
+- stack
+
+## Elements
+
+### E-ScreenOnly Paragraph
+
+- value: Screen-only content
+`;
+  const files = new Map([
+    ["project/templates/shell.vspec.md", templateSource],
+    ["project/screens/home.vspec.md", screenSource]
+  ]);
+  const result = loadMarkVSpecProject(projectSource, {
+    projectPath: "project/vspec.project.md",
+    readFile: (path) => files.get(path)
+  });
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert(messages.some((message) => message.includes("Screen SCR-SLOT-CONTRACT defines slot unknownSlot for viewport mobile, but template TPL-SLOT-CONTRACT does not declare it in ## Slots.")));
+  assert(messages.some((message) => message.includes("Template TPL-SLOT-CONTRACT layout L-Shell renders slot missingContract, but ## Slots does not declare it for screen SCR-SLOT-CONTRACT.")));
+  assert(messages.some((message) => message.includes("Required slot requiredWithoutDefault in template TPL-SLOT-CONTRACT has no content in screen SCR-SLOT-CONTRACT and no valid default.")));
+  assert(messages.some((message) => message.includes("Required slot requiredPropertyWithoutDefault in template TPL-SLOT-CONTRACT has no content in screen SCR-SLOT-CONTRACT and no valid default.")));
+  assert(messages.some((message) => message.includes("Required slot viewportRequired for viewport mobile in template TPL-SLOT-CONTRACT has no content in screen SCR-SLOT-CONTRACT and no valid default.")));
+  assert(messages.some((message) => message.includes("Slot missingDefault in template TPL-SLOT-CONTRACT references missing default E-MissingDefault for screen SCR-SLOT-CONTRACT.")));
+  assert(messages.some((message) => message.includes("Slot wrongDefaultKind in template TPL-SLOT-CONTRACT uses invalid default A-NotAllowed for screen SCR-SLOT-CONTRACT.")));
+  assert(messages.some((message) => message.includes("Slot screenDefault in template TPL-SLOT-CONTRACT uses default E-ScreenOnly, but that ID belongs to screen SCR-SLOT-CONTRACT.")));
+  assert(messages.some((message) => message.includes("Slot screenLayoutDefault in template TPL-SLOT-CONTRACT uses default L-ScreenTop, but that ID belongs to screen SCR-SLOT-CONTRACT.")));
+  assert(!messages.some((message) => message.includes("requiredWithDefault") && message.includes("no content")));
+  assert(!messages.some((message) => message.includes("optional") && message.includes("no content")));
 });
 
 test("rejects project references outside the workspace boundary", () => {
@@ -3527,6 +3688,10 @@ references:
 #### Items
 
 - slot: content
+
+## Slots
+
+### content Main Content
 `;
   const goodPartialSource = `---
 id: PRT-GOOD

@@ -1,4 +1,5 @@
 import { parseMarkVSpec } from "./index.js";
+import { elementIdPattern, layoutIdPattern } from "./ids.js";
 import { parseMarkVSpecProject } from "./project-parser.js";
 import type {
   MarkVSpecAction,
@@ -26,6 +27,7 @@ export interface MarkVSpecProjectLoaderOptions {
 }
 
 const PARTIAL_REFERENCE_MAX_DEPTH = 10;
+const slotDefaultIdRegex = new RegExp(String.raw`^(?:${elementIdPattern}|${layoutIdPattern})$`, "u");
 
 export function loadMarkVSpecProject(
   projectSource: string,
@@ -573,6 +575,7 @@ export function composeMarkVSpecTemplate(template: MarkVSpecParseResult, screen:
   addCrossDocumentDuplicateDiagnostics(template.validations, screen.validations, "validation", diagnostics);
   addCrossDocumentDuplicateDiagnostics(template.rules, screen.rules, "rule", diagnostics);
   addCrossDocumentDuplicateDiagnostics(template.errorCodes, screen.errorCodes, "error code", diagnostics);
+  validateTemplateSlotContract(template, screen, diagnostics);
   const states = screen.states.length > 0 ? screen.states : template.states;
 
   return {
@@ -604,6 +607,143 @@ export function composeMarkVSpecTemplate(template: MarkVSpecParseResult, screen:
     notes: [...template.notes, ...screen.notes],
     diagnostics
   };
+}
+
+function validateTemplateSlotContract(
+  template: MarkVSpecParseResult,
+  screen: MarkVSpecParseResult,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  const templateId = template.screen.id ?? "template";
+  const screenId = screen.screen.id ?? "screen";
+  const slotDefinitionsByName = new Map(template.slotDefinitions.map((slot) => [slot.name, slot]));
+  const templateElementIds = new Set(template.elements.map((element) => element.id));
+  const templateLayoutIds = new Set(template.layoutGroups.map((layout) => layout.id));
+  const screenElementIds = new Set(screen.elements.map((element) => element.id));
+  const screenLayoutIds = new Set([
+    ...screen.layoutGroups.map((layout) => layout.id),
+    ...screen.slotContents.flatMap((slot) => slot.layoutGroups.map((layout) => layout.id))
+  ]);
+  const screenSlotsByName = new Map<string, MarkVSpecParseResult["slotContents"]>();
+  const renderedSlotViewportsByName = new Map<string, Set<string>>();
+
+  for (const slotContent of screen.slotContents) {
+    const slotContents = screenSlotsByName.get(slotContent.name) ?? [];
+    slotContents.push(slotContent);
+    screenSlotsByName.set(slotContent.name, slotContents);
+    if (!slotDefinitionsByName.has(slotContent.name)) {
+      diagnostics.push({
+        severity: "error",
+        message: `Screen ${screenId} defines slot ${slotContent.name}${slotContent.viewport ? ` for viewport ${slotContent.viewport}` : ""}, but template ${templateId} does not declare it in ## Slots. Add ### ${slotContent.name} under the template ## Slots, or rename/remove the screen slot section.`,
+        line: slotContent.location.line
+      });
+    }
+  }
+
+  for (const layout of template.layoutGroups) {
+    for (const item of layout.items) {
+      if (item.type !== "slot") {
+        continue;
+      }
+      const viewports = renderedSlotViewportsByName.get(item.name) ?? new Set<string>();
+      viewports.add(layout.viewport || "");
+      renderedSlotViewportsByName.set(item.name, viewports);
+      if (slotDefinitionsByName.has(item.name)) {
+        continue;
+      }
+      diagnostics.push({
+        severity: "error",
+        message: `Template ${templateId} layout ${layout.id} renders slot ${item.name}, but ## Slots does not declare it for screen ${screenId}. Add a slot contract or remove the slot item.`,
+        line: item.location.line
+      });
+    }
+  }
+
+  for (const slotDefinition of template.slotDefinitions) {
+    const defaultId = typeof slotDefinition.properties["default"] === "string"
+      ? slotDefinition.properties["default"].trim()
+      : "";
+    const defaultValid = defaultId ? validateTemplateSlotDefault(templateId, screenId, slotDefinition, defaultId, templateElementIds, templateLayoutIds, screenElementIds, screenLayoutIds, diagnostics) : false;
+    if (!isRequiredSlot(slotDefinition) || defaultValid) {
+      continue;
+    }
+    const renderedViewports = [...(renderedSlotViewportsByName.get(slotDefinition.name) ?? new Set<string>())];
+    if (renderedViewports.length === 0) {
+      const hasScreenContent = (screenSlotsByName.get(slotDefinition.name) ?? []).length > 0;
+      if (!hasScreenContent) {
+        diagnostics.push({
+          severity: "error",
+          message: `Required slot ${slotDefinition.name} in template ${templateId} has no content in screen ${screenId} and no valid default. Add ## Slot: ${slotDefinition.name} to the screen or default: <E-*|L-*> to the template slot contract.`,
+          line: slotDefinition.location.line
+        });
+      }
+      continue;
+    }
+    for (const viewport of renderedViewports) {
+      if (hasScreenSlotContentForViewport(screenSlotsByName.get(slotDefinition.name) ?? [], viewport)) {
+        continue;
+      }
+      diagnostics.push({
+        severity: "error",
+        message: `Required slot ${slotDefinition.name}${viewport ? ` for viewport ${viewport}` : ""} in template ${templateId} has no content in screen ${screenId} and no valid default. Add ## Slot: ${slotDefinition.name}${viewport ? `: ${viewport}` : ""} to the screen or default: <E-*|L-*> to the template slot contract.`,
+        line: slotDefinition.location.line
+      });
+    }
+  }
+}
+
+function validateTemplateSlotDefault(
+  templateId: string,
+  screenId: string,
+  slotDefinition: MarkVSpecParseResult["slotDefinitions"][number],
+  defaultId: string,
+  templateElementIds: Set<string>,
+  templateLayoutIds: Set<string>,
+  screenElementIds: Set<string>,
+  screenLayoutIds: Set<string>,
+  diagnostics: MarkVSpecDiagnostic[]
+): boolean {
+  const line = firstPropertyLine(slotDefinition, "default") ?? slotDefinition.location.line;
+  if (!slotDefaultIdRegex.test(defaultId)) {
+    diagnostics.push({
+      severity: "error",
+      message: `Slot ${slotDefinition.name} in template ${templateId} uses invalid default ${defaultId} for screen ${screenId}. Defaults must reference an E-* element or L-* layout in the template document.`,
+      line
+    });
+    return false;
+  }
+
+  if (screenElementIds.has(defaultId) || screenLayoutIds.has(defaultId)) {
+    diagnostics.push({
+      severity: "error",
+      message: `Slot ${slotDefinition.name} in template ${templateId} uses default ${defaultId}, but that ID belongs to screen ${screenId}. Defaults must reference template-owned E-* or L-* content.`,
+      line
+    });
+    return false;
+  }
+
+  if (!templateElementIds.has(defaultId) && !templateLayoutIds.has(defaultId)) {
+    diagnostics.push({
+      severity: "error",
+      message: `Slot ${slotDefinition.name} in template ${templateId} references missing default ${defaultId} for screen ${screenId}. Define that E-* element or L-* layout in the template, or remove the default.`,
+      line
+    });
+    return false;
+  }
+
+  return true;
+}
+
+function isRequiredSlot(slotDefinition: MarkVSpecParseResult["slotDefinitions"][number]): boolean {
+  const value = slotDefinition.properties["required"];
+  return value === true || (typeof value === "string" && value.toLowerCase() === "true");
+}
+
+function hasScreenSlotContentForViewport(
+  slotContents: MarkVSpecParseResult["slotContents"],
+  viewport: string
+): boolean {
+  return slotContents.some((slotContent) => !slotContent.viewport || slotContent.viewport === viewport);
 }
 
 function composeSectionProse(template: MarkVSpecParseResult, screen: MarkVSpecParseResult): MarkVSpecParseResult["sectionProse"] {
@@ -926,6 +1066,10 @@ function extractRoutePlaceholders(route: string): Set<string> {
 
 function firstScreenPropertyLine(screen: MarkVSpecProjectScreen, key: string): number {
   return screen.propertyLocations[key]?.[0]?.line ?? screen.location.line;
+}
+
+function firstPropertyLine(owner: { propertyLocations: Record<string, SourceLocation[]> }, key: string): number | undefined {
+  return owner.propertyLocations[key]?.[0]?.line;
 }
 
 export function isProjectReferenceAllowed(

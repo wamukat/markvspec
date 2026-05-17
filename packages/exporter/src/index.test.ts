@@ -554,6 +554,10 @@ title: Shell
 #### Items
 
 - slot: content
+
+## Slots
+
+### content Main Content
 `;
 }
 

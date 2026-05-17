@@ -4987,7 +4987,7 @@ title: Shell
 
 ## Slots
 
-- content
+### content Main Content
 `);
     writeFileSync(partialPath, `---
 id: PRT-PROFILE
