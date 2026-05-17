@@ -336,7 +336,7 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(html, /Enter both email and password\./);
   assert.match(html, new RegExp(`email: ${detailElementRef("3", "E-EmailInput")}\\.value`));
   assert.match(html, new RegExp(`rememberMe: ${detailElementRef("6", "E-RememberMe")}\\.value`));
-  assert.match(html, new RegExp(`<td>${markerBadge("L2", "layout")}</td><td>${detailIdRef("L-LoginForm")}</td><td>stack</td><td><ul class="spec-list"><li>disabled: authenticating</li></ul></td>`));
+  assert.match(html, new RegExp(`<td>${markerBadge("L2", "layout")}</td><td>${detailIdRef("L-LoginForm")}</td><td>stack</td><td><ul class="spec-list"><li>gap: md</li></ul></td><td><ul class="spec-list"><li>disabled: authenticating</li></ul></td>`));
   assert.doesNotMatch(html, new RegExp(`<li>${detailIdRef("P-EmailField")}</li>`));
   assert.match(html, /element[\s\S]*E-ValidationMessage/);
   assert.match(html, new RegExp(`set state ${docLabel("idle", "state")}[\\s\\S]*element[\\s\\S]*E-AuthErrorBanner`));
@@ -1083,6 +1083,68 @@ locale: en
   assert.match(availableActions, new RegExp(`<td>${actionBadge("A1", "A-Shared")} ${repeatedBadge()} Shared action</td>`));
   assert.match(availableActions, new RegExp(`<td>${actionBadge("A3", "A-New")} New action</td>`));
   assert.doesNotMatch(availableActions, /Removed action/);
+});
+
+test("splits State Views layout properties into settings conditions items and notes", () => {
+  const source = `---
+id: SCR-LAYOUT-SPEC-COLUMNS
+type: screen
+title: Layout Spec Columns
+viewport: mobile
+locale: en
+---
+
+# SCR-LAYOUT-SPEC-COLUMNS Layout Spec Columns
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L1:L-Page Page
+
+- row
+- align: center
+- justify: between
+- overlay: modal
+- gap: sm
+- visible when: idle
+- hidden when: archived
+- disabled when: saving
+- selected when: current
+- active when: editing
+
+Layout note.
+
+#### Items
+
+- "Email": E-Email
+- L-Child
+- slot: content
+
+### L2:L-Child Child
+
+- stack
+
+## Elements
+
+### E-Email Input
+
+- label: Email
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const idleSection = stateSection(html, "idle");
+  const layouts = idleSection.match(/<h5 class="state-screen-subheading">Layouts<\/h5>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.match(layouts, /<th>Marker<\/th><th>ID<\/th><th>Kind<\/th><th>Settings<\/th><th>Conditions<\/th><th>Items<\/th><th>Notes<\/th>/);
+  assert.doesNotMatch(layouts, /<th>Properties<\/th>/);
+  assert.match(layouts, /<td><ul class="spec-list"><li>align: center<\/li><li>justify: between<\/li><li>overlay: modal<\/li><li>gap: sm<\/li><\/ul><\/td>/);
+  assert.match(layouts, /<td><ul class="spec-list"><li>visible: idle<\/li><li>hidden: archived<\/li><li>disabled: saving<\/li><li>selected: current<\/li><li>active: editing<\/li><\/ul><\/td>/);
+  assert.match(layouts, new RegExp(`<td><ul class="spec-list"><li>Email: ${detailIdRef("E-Email")}</li><li>${detailIdRef("L-Child")}</li><li>slot: content</li></ul></td>`));
+  assert.match(layouts, /<td><div class="entity-notes"><p class="note-paragraph">Layout note\.<\/p><\/div><\/td>/);
+  assert.match(layouts, new RegExp(`<td>${markerBadge("L2", "layout")}</td><td>${detailIdRef("L-Child")}</td><td>stack</td><td>-</td><td>-</td><td>-</td><td>-</td>`));
 });
 
 test("does not reintroduce legacy diff badge class names", () => {
@@ -5991,7 +6053,7 @@ viewport: mobile
   assert.match(actionDetail, /<dt>Overview<\/dt><dd><div class="entity-overview"><p class="note-paragraph">次ページへ移動するための一覧取得を開始する。<\/p><\/div><\/dd>/);
   assert.match(actionDetail, /<dt>Notes<\/dt><dd><div class="entity-notes"><p class="note-paragraph">備考をこういうところに書きたいよね。<\/p><\/div><\/dd>/);
   assert.match(idleSection, /<td><div class="entity-overview"><p class="note-paragraph">次ページへ移動するための一覧取得を開始する。<\/p><\/div><\/td>/);
-  assert.match(html, /Notes: <div class="entity-notes"><p class="note-paragraph">このレイアウトは初期リリースでは固定配置にする。<\/p><\/div>/);
+  assert.match(html, /<td><div class="entity-notes"><p class="note-paragraph">このレイアウトは初期リリースでは固定配置にする。<\/p><\/div><\/td>/);
   assert.match(html, /<td><div class="entity-notes"><p class="note-paragraph">このボタンは二重クリック対策を実装側で行う。<\/p><\/div><\/td>/);
 });
 

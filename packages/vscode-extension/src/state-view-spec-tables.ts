@@ -167,8 +167,10 @@ export function createStateViewSpecTableRenderer(
       renderLayoutMarkerCell(layout.id, Boolean(repeatedLayoutIds?.has(layout.id)), unplacedLayoutIds.has(layout.id)),
       helpers.renderDetailRefId(layout.id),
       helpers.text(layout.kind || ""),
-      renderLayoutPropertySummary(layout),
-      renderLayoutItemSummary(layout)
+      renderLayoutSettingsSummary(layout),
+      renderLayoutConditionsSummary(layout),
+      renderLayoutItemSummary(layout),
+      renderLayoutNotesSummary(layout)
     ]);
 
     if (rows.length === 0) {
@@ -176,7 +178,7 @@ export function createStateViewSpecTableRenderer(
     }
 
     return markRepeatedHiddenEmptyHtml(
-      helpers.renderLocalizedTable([helpers.label("marker"), helpers.label("id"), helpers.label("kind"), helpers.label("properties"), helpers.label("items")], rows),
+      helpers.renderLocalizedTable([helpers.label("marker"), helpers.label("id"), helpers.label("kind"), helpers.label("settings"), helpers.label("conditions"), helpers.label("items"), helpers.label("notes")], rows),
       model.repeatedContent.layoutSpecEmptyWhenRepeatedHidden
     );
   };
@@ -223,25 +225,25 @@ export function createStateViewSpecTableRenderer(
     ...(showOverview ? [overview] : [])
   ];
 
-  const renderLayoutPropertySummary = (layout: ParsedLayout): string => {
-    const properties = [
+  const renderLayoutSettingsSummary = (layout: ParsedLayout): string => {
+    const settings = [
       ["align", layout.properties["align"]],
       ["justify", layout.properties["justify"]],
       ["overlay", layout.properties["overlay"]],
+      ["gap", layout.properties["gap"]]
+    ].filter(([, value]) => value) as Array<[string, string | true]>;
+    return renderSpecList(settings.map(([key, value]) => `${helpers.text(key)}: ${helpers.text(value === true ? helpers.label("requiredYes") : value)}`));
+  };
+
+  const renderLayoutConditionsSummary = (layout: ParsedLayout): string => {
+    const conditions = [
       [helpers.conditionLabel("visible"), layoutPropertyList(layout, "visible when").join(", ")],
       [helpers.conditionLabel("hidden"), layoutPropertyList(layout, "hidden when").join(", ")],
       [helpers.conditionLabel("disabled"), layoutPropertyList(layout, "disabled when").join(", ")],
       [helpers.conditionLabel("selected"), layoutPropertyList(layout, "selected when").join(", ")],
       [helpers.conditionLabel("active"), layoutPropertyList(layout, "active when").join(", ")]
     ].filter(([, value]) => value);
-    const notes = helpers.renderEntityNotes(layout.notes ?? []);
-    const items = [
-      ...properties.map(([key, value]) => `<li>${helpers.text(key)}: ${helpers.text(value)}</li>`),
-      notes ? `<li>${helpers.label("notes")}: ${notes}</li>` : ""
-    ].filter(Boolean);
-    return items.length > 0
-      ? `<ul class="spec-list">${items.join("")}</ul>`
-      : "";
+    return renderSpecList(conditions.map(([key, value]) => `${helpers.text(key)}: ${helpers.text(value)}`));
   };
 
   const renderLayoutItemSummary = (layout: ParsedLayout): string => {
@@ -260,9 +262,11 @@ export function createStateViewSpecTableRenderer(
       }
       return [];
     });
-    return items.length > 0
-      ? `<ul class="spec-list">${items.map((item) => `<li>${item}</li>`).join("")}</ul>`
-      : "";
+    return renderSpecList(items);
+  };
+
+  const renderLayoutNotesSummary = (layout: ParsedLayout): string => {
+    return helpers.renderEntityNotes(layout.notes ?? []);
   };
 
   return {
@@ -287,6 +291,12 @@ function markRepeatedHiddenEmptyHtml(html: string, emptyWhenRepeatedHidden: bool
   return html
     .replace(`<div class="spec-table-wrap"`, `<div class="spec-table-wrap" data-mm-repeated-empty="true"`)
     .replace(`<p class="spec-empty"`, `<p class="spec-empty" data-mm-repeated-empty="true"`);
+}
+
+function renderSpecList(items: string[]): string {
+  return items.length > 0
+    ? `<ul class="spec-list">${items.map((item) => `<li>${item}</li>`).join("")}</ul>`
+    : "";
 }
 
 function layoutPropertyList(layout: ParsedLayout, key: string): string[] {

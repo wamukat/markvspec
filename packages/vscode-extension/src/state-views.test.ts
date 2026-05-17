@@ -1472,7 +1472,7 @@ title: Markerless
   assert.match(html, new RegExp(`<td>${markerBadge("E-SubmitButton", "element")}</td><td>${detailIdRef("E-SubmitButton")}</td><td>Button</td><td><ul class="spec-list"><li>${markerBadge("A-Submit", "action")}</li></ul></td><td>-</td>`));
   assert.match(html, new RegExp(`<td>${markerBadge("E-SubmitButton", "element")}</td><td>${detailIdRef("E-SubmitButton")}</td><td>label</td><td>Submit &amp; Continue</td><td>-</td><td>-</td><td>always</td><td><ul class="spec-list"><li>enabled: not ${markerBadge("E-メールアドレス入力", "element")} is empty</li></ul></td>`));
   assert.doesNotMatch(html, /<h2>Visibility \/ Availability<\/h2>/);
-  assert.match(html, new RegExp(`<td>${markerBadge("L-Form", "layout")}</td><td>${detailIdRef("L-Form")}</td><td>stack</td><td><ul class="spec-list"><li>visible: user\\.role is admin, user\\.can access login</li></ul></td><td><ul class="spec-list"><li>Email: ${detailIdRef("E-メールアドレス入力")}</li><li>${detailIdRef("E-SubmitButton")}</li></ul></td>`));
+  assert.match(html, new RegExp(`<td>${markerBadge("L-Form", "layout")}</td><td>${detailIdRef("L-Form")}</td><td>stack</td><td>-</td><td><ul class="spec-list"><li>visible: user\\.role is admin, user\\.can access login</li></ul></td><td><ul class="spec-list"><li>Email: ${detailIdRef("E-メールアドレス入力")}</li><li>${detailIdRef("E-SubmitButton")}</li></ul></td><td>-</td>`));
   assert.match(html, /email: <span class="mm-detail-ref-id">E-メールアドレス入力<\/span>\.value/);
   assert.match(html, /<dt>Trigger<\/dt><dd><span class="mm-detail-ref-id">E-SubmitButton<\/span>\.click<\/dd>/);
   assert.match(html, /S0 --&gt; S1: Submit/);

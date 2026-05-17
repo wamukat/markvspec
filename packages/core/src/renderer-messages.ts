@@ -173,6 +173,7 @@ export type MessageKey =
   | "rule"
   | "rules"
   | "ruleText"
+  | "settings"
   | "screen"
   | "screens"
   | "screenTransitions"
@@ -398,6 +399,7 @@ const en: Record<MessageKey, string> = {
   rule: "Rule",
   rules: "Rules",
   ruleText: "Rule Text",
+  settings: "Settings",
   screen: "Screen",
   screens: "Screens",
   screenTransitions: "Screen Transitions",
@@ -624,6 +626,7 @@ const ja: Record<MessageKey, string> = {
   rule: "ルール",
   rules: "ルール",
   ruleText: "ルール内容",
+  settings: "設定",
   screen: "画面",
   screens: "画面",
   screenTransitions: "画面遷移",
