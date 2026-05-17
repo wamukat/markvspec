@@ -1,6 +1,7 @@
 import type { MarkVSpecDiagnostic, MarkVSpecDiagnosticSeverity } from "./types.js";
 
 export type MarkVSpecDiagnosticCode =
+  | "element.unsupportedLegacyBind"
   | "action.process.multipleExecutionDetails"
   | "action.process.mixesExecutionDetailAndImmediateEffects"
   | "action.process.mixesResultClassificationAndImmediateEffects"
@@ -13,6 +14,8 @@ type DiagnosticLocale = "en" | "ja";
 
 const diagnosticMessageTemplates: Record<DiagnosticLocale, Record<MarkVSpecDiagnosticCode, DiagnosticTemplate>> = {
   en: {
+    "element.unsupportedLegacyBind": (params) =>
+      `Element ${param(params, "elementId")} uses unsupported legacy bind property. Use value/source for value origin, initial value for initial display, and E-*.value in request params instead.`,
     "action.process.multipleExecutionDetails": (params) =>
       `Action ${param(params, "actionId")} process step ${param(params, "stepLabel")} contains multiple execution detail blocks (${param(params, "details")}). Split them into separate Process steps.`,
     "action.process.mixesExecutionDetailAndImmediateEffects": (params) =>
@@ -25,6 +28,8 @@ const diagnosticMessageTemplates: Record<DiagnosticLocale, Record<MarkVSpecDiagn
       `Action ${param(params, "actionId")} process step ${param(params, "stepLabel")} case ${param(params, "result")} uses response without receiving a response. Use description for validation, branching, sent, send-failed, or other non-response case explanations.`
   },
   ja: {
+    "element.unsupportedLegacyBind": (params) =>
+      `Element ${param(params, "elementId")} はサポート対象外の旧 bind property を使用しています。入力値の由来は value/source、初期表示は initial value、送信値参照は E-*.value を使ってください。`,
     "action.process.multipleExecutionDetails": (params) =>
       `Action ${param(params, "actionId")} の Process step ${param(params, "stepLabel")} に複数の実行 detail (${param(params, "details")}) があります。別々の Process step に分けてください。`,
     "action.process.mixesExecutionDetailAndImmediateEffects": (params) =>

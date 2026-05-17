@@ -1,4 +1,5 @@
 import { elementIdPattern, opaqueExpressionBody } from "./ids.js";
+import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
 import { isMarkVSpecSourceType } from "./source-types.js";
 import type {
   MarkVSpecDiagnostic,
@@ -152,6 +153,16 @@ function checkUnsupportedElementProperties(element: MarkVSpecElement, diagnostic
     }
 
     if (key.startsWith("route param ")) {
+      continue;
+    }
+
+    if (key === "bind") {
+      diagnostics.push(createMarkVSpecDiagnostic(
+        "warning",
+        "element.unsupportedLegacyBind",
+        { elementId: element.id },
+        firstPropertyLine(element, key) ?? element.location.line
+      ));
       continue;
     }
 

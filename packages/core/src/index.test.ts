@@ -9639,11 +9639,15 @@ title: Unsupported Bind
 - bind: \${model.email}
 `;
   const result = parseMarkVSpec(source);
-  const diagnostic = result.diagnostics.find((item) => item.message === "Element E-EmailInput of type Input uses unsupported property bind.");
+  const diagnostic = result.diagnostics.find((item) => item.code === "element.unsupportedLegacyBind");
+  const messages = result.diagnostics.map((item) => item.message);
 
   assert(diagnostic);
   assert.equal(diagnostic.severity, "warning");
+  assert.equal(diagnostic.message, "Element E-EmailInput uses unsupported legacy bind property. Use value/source for value origin, initial value for initial display, and E-*.value in request params instead.");
+  assert.equal(renderDiagnosticMessageForLocale(diagnostic, "ja"), "Element E-EmailInput はサポート対象外の旧 bind property を使用しています。入力値の由来は value/source、初期表示は initial value、送信値参照は E-*.value を使ってください。");
   assert.equal(diagnostic.line, lineNumber(source, "- bind: ${model.email}"));
+  assert(!messages.includes("Element E-EmailInput of type Input uses unsupported property bind."));
 });
 
 test("allows label src opaque references on element labels", () => {
@@ -11639,7 +11643,8 @@ viewport: mobile
       "action.process.caseResponseWithoutReceive",
       "action.process.mixesExecutionDetailAndImmediateEffects",
       "action.process.mixesResultClassificationAndImmediateEffects",
-      "action.process.multipleExecutionDetails"
+      "action.process.multipleExecutionDetails",
+      "element.unsupportedLegacyBind"
     ].sort()
   );
 });
