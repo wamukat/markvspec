@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Validation Preview Prototype</title>
+  <style>
+    :root {
+      color: #111827;
+      background: #f3f4f6;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #f3f4f6; }
+    .capture {
+      display: grid;
+      grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+      gap: 20px;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .panel {
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+      min-width: 0;
+      overflow: hidden;
+    }
+    .panel-header {
+      align-items: center;
+      background: #111827;
+      color: #f9fafb;
+      display: flex;
+      font-size: 14px;
+      font-weight: 700;
+      height: 42px;
+      justify-content: space-between;
+      letter-spacing: 0;
+      padding: 0 16px;
+    }
+    .panel-header span:last-child {
+      color: #9ca3af;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    pre {
+      background: #0f172a;
+      color: #e5e7eb;
+      font: 12px/1.45 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      height: calc(100vh - 90px);
+      margin: 0;
+      overflow: auto;
+      padding: 16px 18px;
+      white-space: pre-wrap;
+    }
+    .preview-host {
+      height: calc(100vh - 90px);
+      overflow: auto;
+      padding: 20px 24px 28px;
+      scrollbar-color: #9ca3af #f3f4f6;
+      scrollbar-width: thin;
+    }
+    .preview-host h4 {
+      font-size: 15px;
+      margin: 0 0 8px;
+    }
+    .preview-host h5 {
+      color: #374151;
+      font-size: 13px;
+      margin: 0 0 12px;
+    }
+    .wireframe-section {
+      overflow: visible;
+    }
+
+    /* Copied shape from generated MarkVSpec wireframe output. */
+    .mm-wireframe {
+      box-sizing: border-box;
+      color: #1f2937;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.4;
+      margin: 0 auto;
+      max-width: 760px;
+      padding: 24px;
+      transform: scale(0.96);
+      transform-origin: top center;
+    }
+    .mm-wireframe * { box-sizing: border-box; }
+    .mm-layout {
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      margin: var(--mm-layout-margin-block, 10px) 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      padding: var(--mm-layout-padding, 14px);
+      position: relative;
+    }
+    .mm-layout-depth-1 { border-color: #cbd5e1; border-style: dashed; }
+    .mm-layout-depth-2 { border-color: #d7dde7; border-style: dotted; }
+    .mm-layout-stack { display: flex; flex-direction: column; }
+    .mm-align-center { align-items: center; }
+    .mm-gap-md { gap: var(--mm-gap-md, 12px); }
+    .mm-field { gap: 8px; width: 100%; }
+    .mm-field-stack { align-items: flex-start; display: flex; flex-direction: column; }
+    .mm-field-label { color: #374151; min-width: 0; }
+    .mm-element {
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      margin: 3px 0;
+      min-height: 28px;
+      padding: 6px 8px;
+    }
+    .mm-element-heading,
+    .mm-element-paragraph,
+    .mm-element-text { border: 0; padding: 0; }
+    .mm-element-input {
+      background: white;
+      min-width: 0;
+      width: min(220px, 100%);
+    }
+    .mm-element-button {
+      align-items: center;
+      background: #f3f4f6;
+      border-color: #9ca3af;
+      box-shadow: inset 0 -1px 0 rgba(17, 24, 39, 0.18);
+      color: #111827;
+      display: inline-flex;
+      font-weight: 600;
+      justify-content: center;
+      line-height: 1.2;
+      min-height: 34px;
+      padding: 8px 14px;
+      text-align: center;
+    }
+    .mm-variant-primary { background: #2563eb; border-color: #1d4ed8; color: #fff; }
+    .mm-layout > .mm-marker-layout { left: -1px; position: absolute; top: -9px; z-index: 2; }
+    .mm-element-wrap {
+      display: block;
+      max-width: 100%;
+      min-width: 0;
+      position: relative;
+      width: max-content;
+    }
+    .mm-layout-stack > .mm-element-wrap { align-self: stretch; width: auto; }
+    .mm-annotation-row {
+      align-items: center;
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 2px;
+      left: 0;
+      line-height: 1;
+      max-width: calc(100% + 12px);
+      pointer-events: none;
+      position: absolute;
+      top: 0;
+      transform: translate(-35%, -35%);
+      width: max-content;
+      z-index: 3;
+    }
+    .mm-element-wrap-annotated.mm-element-wrap-heading,
+    .mm-field-stack > .mm-element-wrap-annotated { padding-top: 18px; }
+    .mm-element-wrap-annotated.mm-element-wrap-heading > .mm-annotation-row,
+    .mm-field-stack > .mm-element-wrap-annotated > .mm-annotation-row {
+      left: 0;
+      right: auto;
+      top: 0;
+      transform: none;
+    }
+    .mm-id {
+      align-items: center;
+      align-self: flex-start;
+      border: 1px solid transparent;
+      display: inline-flex;
+      flex: 0 0 auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 9px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      justify-content: center;
+      letter-spacing: 0;
+      line-height: 1;
+      margin-right: 6px;
+      min-height: 16px;
+      min-width: 16px;
+      padding: 1px 4px;
+      width: max-content;
+    }
+    .mm-marker-layout {
+      background: #ecfeff;
+      border-color: #67e8f9;
+      border-left: 3px solid #0891b2;
+      border-radius: 4px;
+      color: #155e75;
+    }
+    .mm-marker-element {
+      background: rgba(255, 255, 255, 0.72);
+      border-color: #f59e0b;
+      border-radius: 999px;
+      color: #92400e;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+    }
+    .mm-marker-action {
+      background: rgba(255, 255, 255, 0.78);
+      border-color: #22c55e;
+      border-radius: 4px;
+      color: #166534;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+    }
+
+    /* Prototype-only additions. These are the intended implementation inputs. */
+    .mm-marker-validation {
+      background: rgba(255, 237, 213, 0.86);
+      border-color: #fb923c;
+      border-radius: 999px;
+      color: #9a3412;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+    }
+    .mm-marker-business-rule {
+      background: rgba(237, 233, 254, 0.9);
+      border-color: #a78bfa;
+      border-radius: 999px;
+      color: #5b21b6;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+    }
+    .mm-display-message {
+      align-items: flex-start;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 4px;
+      color: #9a3412;
+      display: flex;
+      gap: 6px;
+      margin: 4px 0;
+      padding: 6px 8px;
+    }
+    .mm-display-message-business {
+      background: #f5f3ff;
+      border-color: #ddd6fe;
+      color: #5b21b6;
+    }
+    .mm-field-error-slot {
+      align-items: flex-start;
+      color: #b42318;
+      display: flex;
+      gap: 6px;
+      min-height: 18px;
+      padding-top: 3px;
+      width: 100%;
+    }
+    .mm-field-error-slot .mm-display-message {
+      margin: 0;
+      width: min(260px, 100%);
+    }
+    .mm-message-explanations {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .mm-message-explanation {
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+    .mm-message-explanation h6 {
+      align-items: center;
+      display: flex;
+      font-size: 13px;
+      gap: 6px;
+      margin: 0 0 8px;
+    }
+    .mm-message-explanation dl {
+      display: grid;
+      gap: 4px 10px;
+      grid-template-columns: 96px minmax(0, 1fr);
+      margin: 0;
+    }
+    .mm-message-explanation dt {
+      color: #475569;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .mm-message-explanation dd {
+      color: #334155;
+      font-size: 12px;
+      margin: 0;
+    }
+    .mm-message-explanation code {
+      font-size: 11px;
+    }
+    .spec-preview-group {
+      display: grid;
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .spec-preview-group h5 {
+      margin: 0;
+    }
+    .spec-table-wrap {
+      overflow: auto;
+    }
+    .spec-table {
+      border-collapse: collapse;
+      font-size: 12px;
+      width: 100%;
+    }
+    .spec-table th,
+    .spec-table td {
+      border: 1px solid #d1d5db;
+      padding: 7px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .spec-table th {
+      background: #f8fafc;
+      color: #334155;
+      font-weight: 700;
+    }
+    .spec-table code {
+      font-size: 11px;
+    }
+    @media (max-width: 980px) {
+      .capture { grid-template-columns: 1fr; padding: 14px; }
+      pre, .preview-host { height: auto; max-height: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="capture">
+    <section class="panel">
+      <div class="panel-header"><span>Markdown source</span><span>prototype source sketch</span></div>
+      <pre>## Field Validations
+
+### V1:V-EmailRules Email rules
+
+- target: E-EmailInput
+- run: client
+- constraints:
+  - required
+    - message: Email is required.
+  - email
+    - message: Enter a valid email address.
+
+## Form Groups
+
+### F-LoginForm Login form
+
+- fields:
+  - E-PasswordInput
+  - E-PasswordConfirmInput
+
+## Cross-field Validations
+
+### V-PasswordPair Password pair
+
+- target: F-LoginForm
+- run: client
+- inputs:
+  - E-PasswordInput
+  - E-PasswordConfirmInput
+- check: E-PasswordInput.value equals E-PasswordConfirmInput.value
+- message: Password confirmation must match.
+
+## Business Rules
+
+### R1:R-EmailMustBeUnique Email must be unique
+
+- messages:
+  - This email address is already registered.
+
+## Actions
+
+### A1:A-SubmitSubscription Submit subscription
+
+- Process P1: Check validation
+  - receive:
+    - validation: V-EmailRules.result
+  - case: invalid
+    - Effects
+      - display:
+        - target: E-EmailInput.error
+        - message: V-EmailRules.messages
+      - display:
+        - target: L-MessageArea
+        - message: V-EmailRules.messages
+    - stop
+
+- Process P2: Submit subscription
+  - server:
+    - SubscriptionService.create()
+  - case: business-rule-violation
+    - business rule: R-EmailMustBeUnique
+    - Effects
+      - display:
+        - target: E-EmailInput.error
+        - message: R-EmailMustBeUnique.messages
+      - display:
+        - target: L-MessageArea
+        - message: R-EmailMustBeUnique.messages
+    - stop</pre>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header"><span>Generated preview</span><span>existing wireframe + proposed annotations</span></div>
+      <div class="preview-host">
+        <section class="wireframe-print-section">
+          <h4 class="state-screen-heading">State: idle-validation-error</h4>
+          <h5 class="state-screen-subheading">Wireframe</h5>
+          <section class="wireframe-section">
+            <div class="mm-wireframe" data-screen="SCR-LOGIN" data-mm-render-key="screen:SCR-LOGIN">
+              <section class="mm-layout mm-layout-stack mm-align-center mm-gap-md" data-mm-id="L-Page" data-mm-render-key="layout:mobile:L-Page">
+                <code class="mm-id mm-marker mm-marker-layout" data-mm-marker-category="layout">L1</code>
+
+                <div class="mm-element-wrap mm-element-wrap-heading mm-element-wrap-annotated" data-mm-render-key="element:E-PageTitle">
+                  <h1 class="mm-element mm-element-heading" data-mm-id="E-PageTitle">Login</h1>
+                  <span class="mm-annotation-row"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">1</code></span>
+                </div>
+
+                <div class="mm-element-wrap mm-element-wrap-paragraph mm-element-wrap-annotated" data-mm-render-key="element:E-LeadText">
+                  <p class="mm-element mm-element-paragraph" data-mm-id="E-LeadText">Sign in to continue.</p>
+                  <span class="mm-annotation-row"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">2</code></span>
+                </div>
+
+                <section class="mm-layout mm-layout-stack mm-layout-depth-1" style="--mm-layout-margin-block:6px;--mm-layout-padding:12px;--mm-gap-md:9px" data-mm-id="L-MessageArea" data-mm-render-key="layout:mobile:L-MessageArea">
+                  <code class="mm-id mm-marker mm-marker-layout" data-mm-marker-category="layout">L3</code>
+                  <div class="mm-display-message">
+                    <code class="mm-id mm-marker mm-marker-validation" data-mm-marker-category="validation">V1</code>
+                    <span>Email validation messages are displayed here.</span>
+                  </div>
+                  <div class="mm-display-message mm-display-message-business">
+                    <code class="mm-id mm-marker mm-marker-business-rule" data-mm-marker-category="business-rule">R1</code>
+                    <span>Business rule violation messages are displayed here.</span>
+                  </div>
+                </section>
+
+                <section class="mm-layout mm-layout-stack mm-gap-md mm-layout-depth-1" style="--mm-layout-margin-block:6px;--mm-layout-padding:12px;--mm-gap-md:9px" data-mm-id="L-LoginForm" data-mm-render-key="layout:mobile:L-LoginForm">
+                  <code class="mm-id mm-marker mm-marker-layout" data-mm-marker-category="layout">L2</code>
+
+                  <div class="mm-field mm-field-stack">
+                    <label class="mm-field-label">Email*</label>
+                    <div class="mm-element-wrap mm-element-wrap-input mm-element-wrap-annotated" data-mm-render-key="element:E-EmailInput">
+                      <input class="mm-element mm-element-input" data-mm-id="E-EmailInput" type="text" placeholder="user@example.com" value="member@example.com">
+                      <span class="mm-annotation-row"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">3</code></span>
+                    </div>
+                    <div class="mm-field-error-slot" data-mm-target-slot="E-EmailInput.error">
+                      <div class="mm-display-message">
+                        <code class="mm-id mm-marker mm-marker-validation" data-mm-marker-category="validation">V1</code>
+                        <span>Field validation message slot</span>
+                      </div>
+                    </div>
+                    <div class="mm-field-error-slot" data-mm-target-slot="E-EmailInput.error">
+                      <div class="mm-display-message mm-display-message-business">
+                        <code class="mm-id mm-marker mm-marker-business-rule" data-mm-marker-category="business-rule">R1</code>
+                        <span>Business rule message slot</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mm-field mm-field-stack">
+                    <label class="mm-field-label">Password*</label>
+                    <div class="mm-element-wrap mm-element-wrap-input mm-element-wrap-annotated" data-mm-render-key="element:E-PasswordInput">
+                      <input class="mm-element mm-element-input" data-mm-id="E-PasswordInput" type="password" placeholder="" value="">
+                      <span class="mm-annotation-row"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">5</code></span>
+                    </div>
+                  </div>
+
+                  <div class="mm-element-wrap mm-element-wrap-button mm-element-wrap-annotated" data-mm-render-key="element:E-SignInButton">
+                    <button class="mm-element mm-element-button mm-variant-primary" data-mm-id="E-SignInButton">Sign in</button>
+                    <span class="mm-annotation-row">
+                      <code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">7</code>
+                      <code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1</code>
+                    </span>
+                  </div>
+                </section>
+              </section>
+            </div>
+          </section>
+
+          <section class="mm-message-explanations" aria-label="Wireframe message explanations">
+            <article class="mm-message-explanation">
+              <h6><code class="mm-id mm-marker mm-marker-validation">V1</code> Email rules</h6>
+              <dl>
+                <dt>Source</dt><dd><code>V-EmailRules</code></dd>
+                <dt>Message ref</dt><dd><code>V-EmailRules.messages</code></dd>
+                <dt>Displayed at</dt><dd><code>E-EmailInput.error</code>, <code>L-MessageArea</code></dd>
+                <dt>Triggered by</dt><dd><code>A-SubmitSubscription.P1.invalid</code></dd>
+                <dt>Rules</dt><dd><code>required</code>, <code>email</code></dd>
+              </dl>
+            </article>
+
+            <article class="mm-message-explanation">
+              <h6><code class="mm-id mm-marker mm-marker-business-rule">R1</code> Email must be unique</h6>
+              <dl>
+                <dt>Source</dt><dd><code>R-EmailMustBeUnique</code></dd>
+                <dt>Message ref</dt><dd><code>R-EmailMustBeUnique.messages</code></dd>
+                <dt>Displayed at</dt><dd><code>E-EmailInput.error</code>, <code>L-MessageArea</code></dd>
+                <dt>Triggered by</dt><dd><code>A-SubmitSubscription.P2.business-rule-violation</code></dd>
+                <dt>Kind</dt><dd>Business Rule violation</dd>
+              </dl>
+            </article>
+          </section>
+
+          <section class="spec-preview-group" aria-label="Validation and business rule lists">
+            <h5>Field Validations</h5>
+            <div class="spec-table-wrap">
+              <table class="spec-table">
+                <thead>
+                  <tr><th>Marker</th><th>ID</th><th>Target</th><th>Run</th><th>Rules</th><th>Messages</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code class="mm-id mm-marker mm-marker-validation">V1</code></td>
+                    <td><code>V-EmailRules</code></td>
+                    <td><code>E-EmailInput</code></td>
+                    <td>client</td>
+                    <td><code>required</code>, <code>email</code></td>
+                    <td>Email is required. / Enter a valid email address.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h5>Cross-field Validations</h5>
+            <div class="spec-table-wrap">
+              <table class="spec-table">
+                <thead>
+                  <tr><th>Marker</th><th>ID</th><th>Target</th><th>Inputs</th><th>Run</th><th>Check</th><th>Message</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code class="mm-id mm-marker mm-marker-validation">V-PasswordPair</code></td>
+                    <td><code>V-PasswordPair</code></td>
+                    <td><code>F-LoginForm</code></td>
+                    <td><code>E-PasswordInput</code>, <code>E-PasswordConfirmInput</code></td>
+                    <td>client</td>
+                    <td><code>E-PasswordInput.value equals E-PasswordConfirmInput.value</code></td>
+                    <td>Password confirmation must match.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h5>Business Rules</h5>
+            <div class="spec-table-wrap">
+              <table class="spec-table">
+                <thead>
+                  <tr><th>Marker</th><th>ID</th><th>Kind</th><th>Messages</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code class="mm-id mm-marker mm-marker-business-rule">R1</code></td>
+                    <td><code>R-EmailMustBeUnique</code></td>
+                    <td>Business Rule violation</td>
+                    <td>This email address is already registered.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
