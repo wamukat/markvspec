@@ -107,6 +107,8 @@ The first level-1 heading should repeat the design subject ID and title:
 Use `template.id` / `template.src` for the single template a screen uses. Use
 `references.partials` when the readable design document should name partials by
 design ID while the preview still needs concrete file paths.
+`references.partials` is only the document ID to file path map; it does not say
+where a partial is displayed.
 
 ```yaml
 ---
@@ -157,6 +159,9 @@ MarkVSpec uses these design document units:
 When a screen calls a partial, the screen should describe which action replaces
 which target area with partial-derived content. The partial should describe the
 returned HTML itself.
+The Action `request:` block describes only the communication contract. A Layout
+`partial:` block declares the partial host contract. A `display.partial` effect
+declares that a referenced `PRT-*` document's content is displayed in that host.
 
 ## Sections
 
@@ -832,8 +837,11 @@ loading mask. Combine overlays with `visible when` so the overlay is tied to a
 screen state.
 
 To embed a partial preview from a screen, put `partial` on the replacement
-target layout. Use `states` when the partial should render a different state
-for each screen state.
+target layout. This marks the `L-*` layout as a partial host. Initial MarkVSpec
+supports one partial ID per host: one host maps to one `PRT-*` document. Use
+`states` when the partial should render a different state for each screen state.
+The left side is the screen state; the right side is the partial document's
+render state.
 
 ```markdown
 ### L-MemberProfilePartial Member Profile Partial
@@ -1883,12 +1891,15 @@ receives the display result. It may also point to `E-*.error`, the implicit
 field-level error slot attached to an input element. `display.element` is
 singular and points to one existing `E-*` element or `L-*` layout to insert or
 show in that target. `display.message` points to a validation or business-rule
-message group such as `V-EmailRules.messages`.
+message group such as `V-EmailRules.messages`. `display.partial` points to a
+referenced `PRT-*` document whose content is displayed in an existing `L-*`
+partial host.
 Define reusable UI as an element or layout first; direct `display.content` and
 `display.elements` are not supported. The exceptions are `Dialog` and `Toast`:
 a display effect whose `element` is a `Dialog` may omit `target` and render as a
 modal overlay, while a display effect whose `element` is a `Toast` may omit
 `target` and render in the non-modal toast region.
+Use only one payload key per display effect: `element`, `message`, or `partial`.
 
 ```markdown
 - display:
@@ -2066,6 +2077,42 @@ For a reusable multi-element result, define a layout and reference it from
 This is intentionally compatible with SPA rerendering, MPA returned HTML, and
 MPA+htmx partial replacement. MarkVSpec does not expose htmx attributes or swap
 modes in the authoring DSL.
+
+When the update displays content from a `type: partial` document, target an
+existing `L-*` partial host and use `partial:` inside the display effect:
+
+```markdown
+### L-ProfileSummaryHost Profile summary host
+
+- stack
+- partial:
+  - id: PRT-PROFILE-SUMMARY
+  - states:
+    - idle: loaded
+    - loading: loading
+    - load-error: load-error
+```
+
+```markdown
+- Process P1: Handle profile summary response
+  - receive:
+    - response: A-RefreshProfile.P1.response
+  - case: success
+    - description: 200 profile summary partial
+    - Effects
+      - state: idle
+      - display:
+        - target: L-ProfileSummaryHost
+        - partial: PRT-PROFILE-SUMMARY
+    - stop
+```
+
+`request:` remains the endpoint and parameter contract only. Do not put
+`partial:` directly under an Action Process. Process-level `partial:` is
+unsupported authoring syntax and is not treated as an alias for
+`display.partial`. Canonical examples keep request-sent cases to effects such as
+`state: loading`; returned partial content is modeled on the response success
+case.
 
 `input:` is legacy syntax. Put execution values under `request.params`,
 `server.params`, or `<custom detail>.params` instead:

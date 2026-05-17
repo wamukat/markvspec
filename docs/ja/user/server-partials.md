@@ -9,8 +9,9 @@ MarkVSpec では、Thymeleaf や htmx 風の部分更新を、まず design inte
 表現します。実装詳細は補足できますが、意味の説明を置き換えないようにします。
 
 部分更新が独立して設計・レビューされる規模になった場合は、`type: partial`
-の文書として切り出します。screen 文書は partial を呼び出して DOM を置き換える
-契約を持ち、partial 文書はサーバから返る HTML の構造とサーバ側処理を持ちます。
+の文書として切り出します。screen 文書は request と、partial host に
+partial 由来の内容を表示する display effect を持ちます。partial 文書は
+サーバから返る HTML の構造とサーバ側処理を持ちます。
 
 partial 文書は再利用可能な HTML fragment です。partial 自身も
 `references.partials` を持ち、child partial を合成できます。プレビューは nested
@@ -18,17 +19,21 @@ partial を再帰的に解決します。循環参照は無効で、preview の�
 nesting は最大 10 階層までです。
 
 partial 文書は、自分自身を再取得して置き換える self refresh action も表現できます。
-ただし `display:` の payload は、作成済みの `E-*` element または `L-*` layout を
-単数の `element:` で参照します。直接の `display.content` や
-`display.content.partial` は authoring syntax としては扱いません。
+ただし `request:` は method、path、parameter だけを表す通信契約です。partial を
+表示する意味は持ちません。表示更新は `Effects` 配下の `display:` に書きます。
+作成済みの `E-*` / `L-*` を表示する場合は単数の `element:` を使い、参照済み
+`PRT-*` 文書由来の content を表示する場合は `partial:` を使います。直接の
+`display.content` や `display.content.partial` は authoring syntax としては扱いません。
 
 ## 原則
 
 次の層で書き分けます。
 
-1. `element`: 更新後に表示される作成済み element / layout。
-2. `target`: どの layout / element が変わるか。
-3. `request`: method / path などの実装契約ヒント。
+1. `request`: どの endpoint を呼び、どの parameter を送るか。
+2. Layout の `partial`: どの `L-*` layout が partial host か。
+3. `display.partial`: どの参照済み `PRT-*` content を host に入れるか。
+4. `display.element`: partial 文書ではなく、作成済み element / layout として表示する content。
+5. `target`: どの layout / element が変わるか。
 
 `hx-post` や `hx-target` のような htmx 属性そのものは、主 DSL としては書きません。
 それらは Action と display details から導出される実装選択です。
@@ -68,7 +73,10 @@ screen 側の Action では、リクエストと画面上の置き換え結果�
 構造化された `Effects` には入れず、実装メモや framework 側の設計に寄せます。
 
 screen 側で partial のプレビューを埋め込む場合は、置き換え先 layout に partial ID と
-画面状態ごとの partial 状態を指定します。これにより、同じ partial でも
+画面状態ごとの partial 状態を指定します。これは、その `L-*` layout が partial host
+であることを表す contract です。初期仕様では 1 host は 1 つの partial ID だけを持ち、
+1 host = 1 `PRT-*` 文書として扱います。`states` の左側は screen state、右側は
+partial 文書内で使う render state です。これにより、同じ partial でも
 `initializing` では `loading`、`idle` では `loaded` のように表示を切り替えられます。
 
 ```markdown
@@ -82,6 +90,10 @@ screen 側で partial のプレビューを埋め込む場合は、置き換え�
     - initializing: loading
     - idle: loaded
 ```
+
+`references.partials` は、partial 文書 ID とファイルパスの対応表です。
+Layout の `partial.id` と Action の `display.partial` は、どちらもこの対応表に
+ある ID を参照します。
 
 partial 側は `partial.render` を契機にして、返却 HTML を組み立てる処理を書きます。
 
@@ -186,6 +198,29 @@ response は、`A-SubmitLogin.P1.response` のような response handler Action 
         - element: E-AuthErrorBanner
 ```
 
+response によって partial host を返却 partial content で置き換える場合は、
+response 側の case に `display.partial` を書きます。
+
+```markdown
+- Process P1: Profile summary response を処理
+  - receive:
+    - response: A-RefreshProfile.P1.response
+  - case: success
+    - description: 200 profile summary partial
+    - Effects
+      - state: idle
+      - display:
+        - target: L-ProfileSummaryHost
+        - partial: PRT-PROFILE-SUMMARY
+    - stop
+```
+
+`display.target` は既存の `L-*` partial host を指します。`display.partial` は、
+その host に表示される `PRT-*` 文書由来の content を指します。同じ display effect
+で `display.partial` と `display.element` / `display.message` を併用しません。
+canonical では、request 送信直後の `case: sent` は `state: loading` などに留め、
+partial content の表示は response success 側で表現します。
+
 現在画面の状態が変わる場合は `state`、別画面へ移る場合は `navigate` を使います。
 メッセージ表示だけの失敗は baseline state に戻し、`display` で banner を表示できます。
 partial update はどの case にも付けられますが、実際に画面を更新する result にだけ
@@ -193,6 +228,8 @@ scope します。
 
 ## 曖昧さを避けるルール
 
+- Action Process 直下の `partial:` は unsupported authoring syntax です。
+  `display.partial` の互換 alias としては扱いません。
 - framework 固有の fragment 名が必要な場合は実装メモに寄せ、`display.element`
   は review 可能な作成済み UI を指すようにする。
 - `target` がない `Dialog` は modal overlay、`Toast` は toast region として表示する。

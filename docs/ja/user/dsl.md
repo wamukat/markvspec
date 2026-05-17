@@ -67,6 +67,8 @@ Front Matter は YAML です。文書全体のメタデータだけを書きま�
 
 画面が利用する template は `template.id` / `template.src` で指定します。Partial は設計書 ID で読みやすく書き、
 プレビューでは実ファイルを読み込みたい場合に `references.partials` を使います。
+`references.partials` は partial 文書 ID とファイルパスの対応表であり、partial を
+どこに表示するかは表しません。
 
 ```yaml
 ---
@@ -143,6 +145,9 @@ MarkVSpec の設計書単位です。
 screen から partial を呼ぶ場合、screen 側は「どのアクションで、どの領域を、どの
 partial 由来の内容で置き換えるか」を書きます。partial 側は「返却される HTML
 そのものの仕様」を書きます。
+Action の `request:` は通信契約だけを表します。Layout の `partial:` は partial host
+contract を表します。`display.partial` は、参照済み `PRT-*` 文書由来の content を
+その host に表示することを表します。
 
 ## セクション
 
@@ -763,8 +768,11 @@ action update の target には使えません。表示制御や仕様上の意�
 待機中にフォーム全体を操作不可にする場合は、対象レイアウトに `disabled when` を書きます。
 
 screen 側で partial のプレビューを埋め込む場合は、置き換え先 layout に
-ネストした `partial` ブロックを書きます。画面状態ごとに partial の表示状態を
-変えたい場合は `states` に対応を書きます。
+ネストした `partial` ブロックを書きます。これは、その `L-*` layout が partial host
+であることを表します。初期仕様では 1 host は 1 つの partial ID だけを持ち、
+1 host = 1 `PRT-*` 文書として扱います。画面状態ごとに partial の表示状態を
+変えたい場合は `states` に対応を書きます。左側は screen state、右側は
+partial 文書内で使う render state です。
 
 ```markdown
 ### L-MemberProfilePartial Member Profile Partial
@@ -1418,7 +1426,7 @@ execution detail も result classification も持たない、決定的な即時�
     - stop
 ```
 
-主な `Effects` entry は `view:`、`state:`、`navigate:`、`display:` です。Action の `Effects` で `${model.*}` に代入する `model:` mutation は canonical DSL ではありません。`${model.*}` は、Element の `value:` / `src:` や request parameter などの読み取り参照として使い、Action では実装内部の store や server-side model への代入を書かないようにします。preview / export 用の表示例は Element の `sample` / `sample rows:` または Preview Scenarios の `samples` に書きます。`stop` / `continue` は case-level の制御フローなので、`Effects` の外で case の最後に書きます。`display.target` は表示先の既存 `L-*` layout または `E-*` element を指します。また、Input 系 element に付属する field-level error slot として `E-*.error` も指定できます。`display.element` はその表示先に挿入または表示する既存の `E-*` element または `L-*` layout を1つだけ指します。`display.message` は `V-EmailRules.messages` のような validation / business rule の message group を指します。直接の `display.content` と複数形の `display.elements` はサポートしません。例外として、`display.element` が `Dialog` の場合は `target` を省略でき、preview scenario では modal overlay として表示します。`display.element` が `Toast` の場合も `target` を省略でき、non-modal toast region に表示します。
+主な `Effects` entry は `view:`、`state:`、`navigate:`、`display:` です。Action の `Effects` で `${model.*}` に代入する `model:` mutation は canonical DSL ではありません。`${model.*}` は、Element の `value:` / `src:` や request parameter などの読み取り参照として使い、Action では実装内部の store や server-side model への代入を書かないようにします。preview / export 用の表示例は Element の `sample` / `sample rows:` または Preview Scenarios の `samples` に書きます。`stop` / `continue` は case-level の制御フローなので、`Effects` の外で case の最後に書きます。`display.target` は表示先の既存 `L-*` layout または `E-*` element を指します。また、Input 系 element に付属する field-level error slot として `E-*.error` も指定できます。`display.element` はその表示先に挿入または表示する既存の `E-*` element または `L-*` layout を1つだけ指します。`display.message` は `V-EmailRules.messages` のような validation / business rule の message group を指します。`display.partial` は、既存の `L-*` partial host に表示する参照済み `PRT-*` 文書を指します。直接の `display.content` と複数形の `display.elements` はサポートしません。例外として、`display.element` が `Dialog` の場合は `target` を省略でき、preview scenario では modal overlay として表示します。`display.element` が `Toast` の場合も `target` を省略でき、non-modal toast region に表示します。同じ display effect では、`element`、`message`、`partial` のいずれか 1 つだけを使います。
 
 ```markdown
 - display:
@@ -1529,6 +1537,41 @@ Thymeleaf や htmx による部分更新は、実装属性ではなく意味と�
 ```
 
 これは SPA rerender、MPA の returned HTML、MPA+htmx partial replacement のいずれにも解釈できます。MarkVSpec authoring DSL には `hx-*` 属性や swap mode を出しません。
+
+`type: partial` 文書から返る content を表示する更新は、既存の `L-*` partial host を
+target にし、display effect の中に `partial:` を書きます。
+
+```markdown
+### L-ProfileSummaryHost Profile summary host
+
+- stack
+- partial:
+  - id: PRT-PROFILE-SUMMARY
+  - states:
+    - idle: loaded
+    - loading: loading
+    - load-error: load-error
+```
+
+```markdown
+- Process P1: Profile summary response を処理
+  - receive:
+    - response: A-RefreshProfile.P1.response
+  - case: success
+    - description: 200 profile summary partial
+    - Effects
+      - state: idle
+      - display:
+        - target: L-ProfileSummaryHost
+        - partial: PRT-PROFILE-SUMMARY
+    - stop
+```
+
+`request:` は endpoint と parameter の通信契約だけを表します。Action Process 直下に
+`partial:` を置きません。Process 直下の `partial:` は unsupported authoring syntax
+であり、`display.partial` の互換 alias としては扱いません。canonical では、request
+送信直後の `case: sent` は `state: loading` などに留め、返却 partial content の
+表示は response success 側で表現します。
 
 ## データ由来とサンプル
 
