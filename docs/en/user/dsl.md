@@ -618,8 +618,18 @@ consistent across those sections.
 ## Templates And Slots
 
 Templates describe reusable page shells as standalone design documents. A
-template may be previewed and printed by itself; unresolved slots render as
-placeholder areas.
+document with `type: template` owns the shared shell layout, shell elements,
+shell actions, and the `## Slots` contract that screens can fill. A template
+may be previewed and printed by itself; in that standalone preview the template
+is the main subject and unresolved slots render as placeholder areas.
+
+Screens remain the page-specific design documents. A document with
+`type: screen` can reference one template in Front Matter with `template.id` and
+`template.src`, then provide only the screen-specific slot content with
+`## Slot: <name>` or `## Slot: <name>: <viewport>`. A partial remains a
+server-rendered reusable fragment; templates provide page shells, screens
+provide page content and behavior, and partials provide reusable fragment
+content.
 
 ```markdown
 ---
@@ -657,6 +667,13 @@ title: My Page Shell
 
 - purpose: Page-specific main content.
 - required
+- default: E-EmptySlotMessage
+
+## Elements
+
+### E-EmptySlotMessage Paragraph
+
+- text: No content has been assigned to this slot.
 ```
 
 A screen can reference a template file in Front Matter and define the slot
@@ -701,13 +718,38 @@ the slot content into the shell. The generated design document keeps the screen'
 slot content as the main specification focus; template-owned elements and
 actions are treated as shared shell context. Slot definitions and slot content
 tables are not rendered as reader-facing preview sections; readers see the
-composed result in the wireframe.
+composed result in the wireframe. In screen preview, the template shell is shown
+as wireframe context, but template markers, template details, and template spec
+tables are not promoted as the primary screen subject.
 
-When a template layout renders `slot: content`, MarkVSpec first looks for slot
-content with the same slot name and the active layout viewport. If no
-viewport-specific content exists, it falls back to the viewport-neutral
-`## Slot: content` definition. Defining the same slot name and viewport more than
-once reports a diagnostic.
+Template composition uses the viewport set from the template's own
+`## Layout:<viewport>` sections. Screen slot content can provide
+viewport-specific alternatives for those template viewports, but it does not
+create additional composition viewports by itself.
+
+When a template layout renders `slot: content`, MarkVSpec resolves the slot in
+this order:
+
+1. `## Slot: content: <viewport>` for the currently rendered template viewport.
+2. The viewport-neutral `## Slot: content`.
+3. A valid `default: <ID>` from the template-side `## Slots` contract.
+
+`## Slots` is the template-side slot contract. Each slot entry may declare
+metadata such as `required`, `purpose`, and `default: <ID>`. `default: <ID>`
+references fallback content owned by the template document, and the ID must
+refer to an `E-*` element or `L-*` layout defined in that same template. A
+`required` slot with a valid default does not report missing screen-provided
+content. A `required` slot without screen-provided content and without a valid
+default is a diagnostic target. MarkVSpec does not invent fallback content when
+the default ID is missing or invalid.
+
+Defining the same slot name and viewport more than once reports a diagnostic.
+When a screen references a template, top-level `## Layout` and
+`## Layout:<viewport>` sections in that screen are noncanonical and should be
+reported as warnings. They are not rendered as another shell or separate frame
+in the composed screen preview; the rendered result is the template shell plus
+resolved slot content.
+
 Template layout IDs and screen slot-content layout IDs are scoped separately
 during template composition, so matching layout IDs across that boundary are not
 reported as duplicates. Element, action, validation, rule, and error-code IDs

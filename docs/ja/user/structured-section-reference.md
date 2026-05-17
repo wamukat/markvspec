@@ -48,7 +48,7 @@ level-2 section です。
 | `States` | 表示 state を定義する。 | なし。 | top-level state list。`*` は initial state。 | state list、state flow、baseline State Views。 |
 | `Layout` / `Layout: <viewport>` | viewport ごとの wireframe layout group を定義する。 | あり: `### [marker:]L-* Name` と presentation `P-*`。 | layout kind/properties と `#### Items`。 | wireframe と State View の Layouts fragment。 |
 | `Slot: <name>` | template slot に差し込む screen 側 content を定義する。 | あり: Layout と同じ。 | layout kind/properties と `#### Items`。 | template slot に合成された wireframe。 |
-| `Slots` | template slot contract を定義する。 | あり: `### <slot-name>`。 | slot metadata。 | template slot summary。 |
+| `Slots` | template が所有する slot contract を定義する。 | あり: `### <slot-name>`。 | `required`、`purpose`、`default: <ID>` などの slot metadata。 | template slot summary。 |
 | `Elements` | UI element を定義する。 | あり: `### [marker:]E-* Type`。 | `label`、`src`、`action`、`visible when` などの element properties。 | wireframe elements、Element Summary、detail fragments。 |
 | `Form Groups` | form の意味単位を定義する。 | あり: `### F-* Name`。 | field/member references と submit/validation metadata。 | form group summary と validation context。 |
 | `Actions` | user/system event と process outcome を定義する。 | あり: `### [marker:]A-* Name`。 | `Triggered`、`From`、`Process`、process `case`、`Effects`、`stop`、`continue`。 | Action Summary、Action Details、action markers、state flow、transition diagrams。 |
@@ -121,10 +121,12 @@ layout group の説明です。`Structured Body` は layout kind/properties と
 
 ### Slots
 
-`Slots` は template slot contract を定義します。`Section Lead` は slot set 全体の説明です。
+`Slots` は template が所有する slot contract を定義します。`Section Lead` は slot set 全体の説明です。
 `### <slot-name>` heading は `Entity Block` です。`Entity Lead` は slot の目的、
-`Structured Body` は slot metadata、`Entity Notes` は slot 固有の補足です。
-slot 全体の後置補足は `### Section Notes` に書きます。
+`Structured Body` は `required` や `default: <ID>` などの slot metadata、
+`Entity Notes` は slot 固有の補足です。`default: <ID>` は同じ template 内の
+`E-*` 要素または `L-*` Layout を参照します。slot 全体の後置補足は
+`### Section Notes` に書きます。
 
 ```markdown
 ## Slots

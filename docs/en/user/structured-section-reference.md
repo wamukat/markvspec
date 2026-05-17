@@ -49,7 +49,7 @@ Unrecognized level-2 sections, including `## Notes` and `## Open Questions`, are
 | `States` | Defines display states. | No. | Top-level state list; `*` marks initial state. | State list, state flow, and baseline State Views. |
 | `Layout` / `Layout: <viewport>` | Defines wireframe layout groups for a viewport. | Yes: `### [marker:]L-* Name` and presentation `P-*`. | Layout kind/properties and `#### Items`. | Wireframe and State View Layouts fragment. |
 | `Slot: <name>` | Defines screen-provided content for a template slot. | Yes: same as Layout. | Layout kind/properties and `#### Items`. | Composed wireframe at the template slot. |
-| `Slots` | Defines template slot contracts. | Yes: `### <slot-name>`. | Slot metadata such as required/fallback notes. | Template slot summary. |
+| `Slots` | Defines template-owned slot contracts. | Yes: `### <slot-name>`. | Slot metadata such as `required`, `purpose`, and `default: <ID>`. | Template slot summary. |
 | `Elements` | Defines UI elements. | Yes: `### [marker:]E-* Type`. | Element properties such as `label`, `src`, `action`, `visible when`. | Wireframe elements, Element Summary, and detail fragments. |
 | `Form Groups` | Defines semantic form units. | Yes: `### F-* Name`. | Field/member references and submit/validation metadata. | Form group summary and validation context. |
 | `Actions` | Defines user/system events and process outcomes. | Yes: `### [marker:]A-* Name`. | `Triggered`, `From`, `Process`, process `case`, `Effects`, `stop`, `continue`. | Action Summary, Action Details, action markers, state flow, and transition diagrams. |
@@ -125,10 +125,12 @@ the wireframe itself remains driven by `Structured Body`.
 
 ### Slots
 
-`Slots` defines template slot contracts. Use `Section Lead` for the contract set.
+`Slots` defines template-owned slot contracts. Use `Section Lead` for the contract set.
 Each `### <slot-name>` heading is an `Entity Block`. `Entity Lead` describes the
-slot purpose; `Structured Body` contains slot metadata; `Entity Notes` add slot
-specific caveats. Use `### Section Notes` for notes about all slots.
+slot purpose; `Structured Body` contains slot metadata such as `required` and
+`default: <ID>`; `Entity Notes` add slot specific caveats. `default: <ID>` must
+refer to an `E-*` element or `L-*` layout in the same template. Use
+`### Section Notes` for notes about all slots.
 
 ```markdown
 ## Slots

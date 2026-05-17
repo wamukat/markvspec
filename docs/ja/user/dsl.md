@@ -580,8 +580,18 @@ Layout はビューポート単位で書きます。`## Layout: mobile` や
 
 ## Template と Slot
 
-Template は、共通のページ枠を表す独立した設計書です。Template 単体でも
-プレビュー／印刷でき、未解決の slot はプレースホルダーとして表示します。
+Template は、共通のページ枠を表す独立した設計書です。`type: template`
+の文書は、共通 shell の Layout、shell 要素、shell Action、screen が埋める
+`## Slots` contract を所有します。Template 単体でもプレビュー／印刷でき、
+その単体プレビューでは template 自身を主対象として扱い、未解決の slot は
+プレースホルダーとして表示します。
+
+Screen は画面固有の設計書です。`type: screen` の文書は Front Matter の
+`template.id` と `template.src` で 1 つの template を参照し、
+`## Slot: <name>` または `## Slot: <name>: <viewport>` に screen 固有の
+slot content だけを書きます。Partial は server-rendered fragment を再利用する
+文書です。Template はページ枠、screen はページ固有の content と behavior、
+partial は再利用 fragment を担当します。
 
 ```markdown
 ---
@@ -619,6 +629,13 @@ title: マイページ共通レイアウト
 
 - purpose: Page-specific main content.
 - required
+- default: E-EmptySlotMessage
+
+## Elements
+
+### E-EmptySlotMessage Paragraph
+
+- text: No content has been assigned to this slot.
 ```
 
 画面側は Front Matter で `template` ファイルを指定し、`## Slot: <name>` に
@@ -662,12 +679,37 @@ template:
 shell に合成します。生成される設計書では、画面側の slot content を主な仕様対象とし、
 template 側の要素やアクションは共通 shell の文脈として扱います。Slot 定義や
 slot content の一覧表は読者向けプレビュー章としては表示せず、合成結果を
-ワイヤーフレーム上で確認します。
+ワイヤーフレーム上で確認します。Screen preview では template shell を
+wireframe context として表示しますが、template marker、template details、
+template spec table は screen の主対象としては前面に出しません。
 
-template layout が `slot: content` を描画するとき、MarkVSpec は同じ slot 名かつ
-描画中の layout viewport と一致する slot content を優先します。viewport 指定の
-slot content がなければ、viewport 未指定の `## Slot: content` に fallback します。
+Template 合成で使う viewport は、template 自身の `## Layout:<viewport>` から
+決まります。Screen slot content は、それらの template viewport に対する
+viewport 別差し替えを提供できますが、それだけで合成対象 viewport を増やすことは
+ありません。
+
+template layout が `slot: content` を描画するとき、MarkVSpec は次の順で slot を
+解決します。
+
+1. 現在描画している template viewport に一致する `## Slot: content: <viewport>`。
+2. viewport 未指定の `## Slot: content`。
+3. template 側 `## Slots` contract の有効な `default: <ID>`。
+
+`## Slots` は template 側の slot contract です。各 slot entry には `required`、
+`purpose`、`default: <ID>` などの metadata を書けます。`default: <ID>` は
+template 文書が所有する fallback content を参照し、その ID は同じ template 内で
+定義された `E-*` 要素または `L-*` Layout でなければなりません。有効な default を
+持つ `required` slot は、screen 側 content がなくても missing content 診断を出しません。
+screen 側 content がなく、有効な default もない `required` slot は診断対象です。
+default ID が存在しない、または無効な場合、MarkVSpec は fallback content を
+捏造しません。
+
 同じ slot 名と viewport の slot content を複数定義すると診断が出ます。
+Template を参照する screen に top-level の `## Layout` または `## Layout:<viewport>`
+を書くことは非 canonical であり、warning 対象です。それらは合成 screen preview では
+別の shell や別 frame として描画しません。描画結果は template shell と解決済み
+slot content です。
+
 template layout ID と screen slot content の layout ID は、template 合成時には別スコープとして扱います。
 この境界をまたいで同じ layout ID があっても重複診断にはしません。Element、Action、Validation、
 Business Rule、Error Code の ID は合成後の画面で同じ名前空間として扱います。
