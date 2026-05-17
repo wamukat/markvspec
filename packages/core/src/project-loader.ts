@@ -617,6 +617,7 @@ function validateTemplateSlotContract(
   const templateId = template.screen.id ?? "template";
   const screenId = screen.screen.id ?? "screen";
   const slotDefinitionsByName = new Map(template.slotDefinitions.map((slot) => [slot.name, slot]));
+  const templateViewports = new Set(template.layoutGroups.map((layout) => layout.viewport).filter((viewport) => viewport));
   const templateElementIds = new Set(template.elements.map((element) => element.id));
   const templateLayoutIds = new Set(template.layoutGroups.map((layout) => layout.id));
   const screenElementIds = new Set(screen.elements.map((element) => element.id));
@@ -635,6 +636,13 @@ function validateTemplateSlotContract(
       diagnostics.push({
         severity: "error",
         message: `Screen ${screenId} defines slot ${slotContent.name}${slotContent.viewport ? ` for viewport ${slotContent.viewport}` : ""}, but template ${templateId} does not declare it in ## Slots. Add ### ${slotContent.name} under the template ## Slots, or rename/remove the screen slot section.`,
+        line: slotContent.location.line
+      });
+    }
+    if (slotContent.viewport && templateViewports.size > 0 && !templateViewports.has(slotContent.viewport)) {
+      diagnostics.push({
+        severity: "error",
+        message: `Screen ${screenId} defines slot ${slotContent.name} for viewport ${slotContent.viewport}, but template ${templateId} has no Layout:${slotContent.viewport}. Add ## Layout:${slotContent.viewport} to the template, or rename/remove the screen slot viewport.`,
         line: slotContent.location.line
       });
     }

@@ -3458,6 +3458,12 @@ template:
 
 - stack
 
+## Slot: content: print
+
+### L-PrintContent Print Content
+
+- stack
+
 ## Slot: unknownSlot: mobile
 
 ### L-Unknown Unknown
@@ -3487,6 +3493,7 @@ template:
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
   assert(messages.some((message) => message.includes("Screen SCR-SLOT-CONTRACT defines slot unknownSlot for viewport mobile, but template TPL-SLOT-CONTRACT does not declare it in ## Slots.")));
+  assert(messages.some((message) => message.includes("Screen SCR-SLOT-CONTRACT defines slot content for viewport print, but template TPL-SLOT-CONTRACT has no Layout:print.")));
   assert(messages.some((message) => message.includes("Template TPL-SLOT-CONTRACT layout L-Shell renders slot missingContract, but ## Slots does not declare it for screen SCR-SLOT-CONTRACT.")));
   assert(messages.some((message) => message.includes("Required slot requiredWithoutDefault in template TPL-SLOT-CONTRACT has no content in screen SCR-SLOT-CONTRACT and no valid default.")));
   assert(messages.some((message) => message.includes("Required slot requiredPropertyWithoutDefault in template TPL-SLOT-CONTRACT has no content in screen SCR-SLOT-CONTRACT and no valid default.")));
@@ -4723,6 +4730,7 @@ title: Responsive Shell
 #### Items
 
 - slot: content
+- slot: aside
 
 ## Layout: desktop
 
@@ -4733,6 +4741,7 @@ title: Responsive Shell
 #### Items
 
 - slot: content
+- slot: aside
 
 ## Layout: tablet
 
@@ -4796,6 +4805,26 @@ template:
 
 - E-TabletSidebar
 
+## Slot: aside
+
+### L-CommonAside Common Aside
+
+- stack
+
+#### Items
+
+- E-CommonAside
+
+## Slot: aside: desktop
+
+### L-DesktopAside Desktop Aside
+
+- stack
+
+#### Items
+
+- E-DesktopAside
+
 ## Slot: content: mobile
 
 ### L-MobileContent Mobile Content
@@ -4839,6 +4868,14 @@ template:
 
 - value: Tablet sidebar
 
+### E-CommonAside Text
+
+- value: Common aside
+
+### E-DesktopAside Text
+
+- value: Desktop aside
+
 ## Model Samples
 
 ### idle
@@ -4857,13 +4894,19 @@ template:
   const desktopHtml = renderMarkVSpecHtml(composed, { includeStyles: false, viewport: "desktop" });
   const tabletHtml = renderMarkVSpecHtml(composed, { includeStyles: false, viewport: "tablet" });
 
-  assert.equal(screen.slotContents.find((slot) => slot.viewport === "mobile")?.layoutGroups[0]?.id, "L-MobileContent");
-  assert.equal(screen.slotContents.find((slot) => slot.viewport === "desktop")?.layoutGroups[0]?.id, "L-DesktopContent");
+  assert.equal(screen.slotContents.find((slot) => slot.name === "content" && slot.viewport === "mobile")?.layoutGroups[0]?.id, "L-MobileContent");
+  assert.equal(screen.slotContents.find((slot) => slot.name === "content" && slot.viewport === "desktop")?.layoutGroups[0]?.id, "L-DesktopContent");
   assert.match(mobileHtml, /data-mm-id="L-MobileContent"/);
   assert.match(mobileHtml, /Mobile content/);
+  assert.match(mobileHtml, /data-mm-id="L-CommonAside"/);
+  assert.match(mobileHtml, /Common aside/);
+  assert.doesNotMatch(mobileHtml, /Desktop aside/);
   assert.doesNotMatch(mobileHtml, /Desktop content/);
   assert.match(desktopHtml, /data-mm-id="L-DesktopContent"/);
   assert.match(desktopHtml, /Desktop content/);
+  assert.match(desktopHtml, /data-mm-id="L-DesktopAside"/);
+  assert.match(desktopHtml, /Desktop aside/);
+  assert.doesNotMatch(desktopHtml, /Common aside/);
   assert.doesNotMatch(desktopHtml, /Mobile content/);
   assert.match(tabletHtml, /data-mm-id="L-CommonContent"/);
   assert.match(tabletHtml, /Common content \{card\.title\}/);
