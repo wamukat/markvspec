@@ -6,6 +6,13 @@ import {
   wireframePrintSectionCss
 } from "@markvspec/document-renderer";
 
+function previewScrollbarCss(): string {
+  return `*{scrollbar-color:#9ca3af #f3f4f6;scrollbar-width:thin}
+*::-webkit-scrollbar{height:10px;width:10px}
+*::-webkit-scrollbar-track{background:#f3f4f6}
+*::-webkit-scrollbar-thumb{background:#9ca3af;border:2px solid #f3f4f6;border-radius:999px}`;
+}
+
 export function renderScreenPreviewStyles(): string {
   return `:root{--markvspec-sticky-offset:72px;--markvspec-heading-state-views:18px;--markvspec-heading-viewport:15px;--markvspec-heading-state:14px;--markvspec-heading-detail:12px;--markvspec-heading-badge:11px}
 body{background:#ffffff;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0}
@@ -43,10 +50,7 @@ body{background:#ffffff;color:#111827;font-family:system-ui,-apple-system,BlinkM
 .toc-toggle-bars::before{left:0;position:absolute;top:-5px}
 .toc-toggle-bars::after{left:0;position:absolute;top:5px}
 body.toc-collapsed .toc,body.toc-collapsed .toc-inline{display:none!important}
-.spec-table-wrap::-webkit-scrollbar,.wireframe-section::-webkit-scrollbar{height:10px;width:10px}
-.spec-table-wrap::-webkit-scrollbar-track,.wireframe-section::-webkit-scrollbar-track{background:#f3f4f6}
-.spec-table-wrap::-webkit-scrollbar-thumb,.wireframe-section::-webkit-scrollbar-thumb{background:#9ca3af;border:2px solid #f3f4f6;border-radius:999px}
-.spec-table-wrap,.wireframe-section{scrollbar-color:#9ca3af #f3f4f6;scrollbar-width:thin}
+${previewScrollbarCss()}
 .doc-section{break-inside:avoid;margin:0 0 28px;page-break-inside:avoid;scroll-margin-top:var(--markvspec-sticky-offset)}
 .document h2[id],.document h3[id],.document h4[id]{scroll-margin-top:var(--markvspec-sticky-offset)}
 .state-screen-section + .state-screen-section{border-top:2px solid #e5e7eb;padding-top:18px}
@@ -314,10 +318,7 @@ body{background:#ffffff;color:#111827;font-family:system-ui,-apple-system,BlinkM
 .toc-toggle-bars::before{left:0;position:absolute;top:-5px}
 .toc-toggle-bars::after{left:0;position:absolute;top:5px}
 body.toc-collapsed .toc{display:none!important}
-.spec-table-wrap::-webkit-scrollbar,.wireframe-section::-webkit-scrollbar{height:10px;width:10px}
-.spec-table-wrap::-webkit-scrollbar-track,.wireframe-section::-webkit-scrollbar-track{background:#f3f4f6}
-.spec-table-wrap::-webkit-scrollbar-thumb,.wireframe-section::-webkit-scrollbar-thumb{background:#9ca3af;border:2px solid #f3f4f6;border-radius:999px}
-.spec-table-wrap,.wireframe-section{scrollbar-color:#9ca3af #f3f4f6;scrollbar-width:thin}
+${previewScrollbarCss()}
 .doc-section{break-inside:avoid;margin:0 0 28px;page-break-inside:avoid;scroll-margin-top:var(--markvspec-sticky-offset)}
 .document h2[id],.document h3[id],.document h4[id]{scroll-margin-top:var(--markvspec-sticky-offset)}
 .state-viewport-section{margin:18px 0 24px;scroll-margin-top:var(--markvspec-sticky-offset)}

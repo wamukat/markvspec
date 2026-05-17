@@ -1503,9 +1503,9 @@ test("does not render viewport filter controls in the preview shell", () => {
   assert.match(html, /\.screen-id code,\.mm-document-ref-id\{align-items:center;background:#fff;border:1px solid #111827;border-left:3px solid #111827;border-radius:4px;color:#111827;display:inline-flex;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size:11px;font-variant-numeric:tabular-nums;font-weight:700;justify-content:center;letter-spacing:0;line-height:1\.2;min-height:18px;padding:1px 6px;vertical-align:baseline;white-space:nowrap;width:max-content\}/);
   assert.doesNotMatch(html, /\.spec-table code\.mm-marker-element\{/);
   assert.doesNotMatch(html, /\.spec-table code\.mm-marker-action\{/);
-  assert.match(html, /\.spec-table-wrap::-webkit-scrollbar,\.wireframe-section::-webkit-scrollbar\{height:10px;width:10px\}/);
-  assert.match(html, /\.spec-table-wrap::-webkit-scrollbar-thumb,\.wireframe-section::-webkit-scrollbar-thumb\{background:#9ca3af;border:2px solid #f3f4f6;border-radius:999px\}/);
-  assert.match(html, /\.spec-table-wrap,\.wireframe-section\{scrollbar-color:#9ca3af #f3f4f6;scrollbar-width:thin\}/);
+  assert.match(html, /\*\{scrollbar-color:#9ca3af #f3f4f6;scrollbar-width:thin\}/);
+  assert.match(html, /\*::-webkit-scrollbar\{height:10px;width:10px\}/);
+  assert.match(html, /\*::-webkit-scrollbar-thumb\{background:#9ca3af;border:2px solid #f3f4f6;border-radius:999px\}/);
   assert.match(html, /@media \(min-width:760px\)\{\s*\.content\{padding-right:252px\}\s*body\.toc-collapsed \.content\{padding-right:0\}\s*\.toc\{display:block\}/);
   assert.match(html, /\.toc-inline\{display:none\}/);
   assert.match(html, /\.state-screen-section \+ \.state-screen-section\{border-top:2px solid #e5e7eb;padding-top:18px\}/);
@@ -5375,7 +5375,9 @@ route: /users/:id
   assert.match(previewHtml, /body\.toc-collapsed \.toc\{display:none!important\}/);
   assert.match(previewHtml, /\.segmented button\[aria-pressed="true"\]\{background:#e0f2fe;border-color:#38bdf8;color:#075985;font-weight:700\}/);
   assert.doesNotMatch(previewHtml, /background:#1f2937|background:#111827|background:#000/);
-  assert.match(previewHtml, /\.spec-table-wrap,\.wireframe-section\{scrollbar-color:#9ca3af #f3f4f6;scrollbar-width:thin\}/);
+  assert.match(previewHtml, /\*\{scrollbar-color:#9ca3af #f3f4f6;scrollbar-width:thin\}/);
+  assert.match(previewHtml, /\*::-webkit-scrollbar\{height:10px;width:10px\}/);
+  assert.match(previewHtml, /\*::-webkit-scrollbar-thumb\{background:#9ca3af;border:2px solid #f3f4f6;border-radius:999px\}/);
   assert.match(previewHtml, /@media \(min-width:760px\)\{\s*\.content\{padding-right:252px\}\s*body\.toc-collapsed \.content\{padding-right:0\}\s*\.toc\{display:block\}/);
   assert.match(previewHtml, /@media \(max-width:640px\)\{/);
   assert.match(previewHtml, /@page\{margin:14mm;size:A4 landscape\}/);

@@ -145,6 +145,8 @@ Use Kanbalone for project task tracking.
 - Lanes: `todo`, `doing`, `done`
 - Use the `kanbalone-api` skill and HTTP API only.
 - Installed skill path: `~/.codex/skills/kanbalone-api`
+- Write MarkVSpec Kanbalone ticket titles, bodies, and comments in Japanese by
+  default.
 
 The requested GitHub skill source was:
 
