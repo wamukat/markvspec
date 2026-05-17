@@ -676,13 +676,18 @@ function displayMessageMarker(result: MarkVSpecParseResult, reference: string): 
   }
   const marker = sourceId.startsWith("V-")
     ? validationMarker(result, sourceId)
-    : sourceId;
+    : businessRuleMarker(result, sourceId);
   return `<code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="${escapeHtml(sourceId)}">${escapeHtml(marker)}</code>`;
 }
 
 function validationMarker(result: MarkVSpecParseResult, validationId: string): string {
   const marker = result.validations.find((validation) => validation.id === validationId)?.properties["marker"];
   return typeof marker === "string" && marker ? marker : validationId;
+}
+
+function businessRuleMarker(result: MarkVSpecParseResult, ruleId: string): string {
+  const marker = result.rules.find((rule) => rule.id === ruleId)?.properties["marker"];
+  return typeof marker === "string" && marker ? marker : ruleId;
 }
 
 function messagesForDisplayReference(result: MarkVSpecParseResult, reference: string): string[] {
@@ -695,7 +700,7 @@ function messagesForDisplayReference(result: MarkVSpecParseResult, reference: st
     return validationPropertyValues(validation?.properties["message"]);
   }
   const rule = result.rules.find((candidate) => candidate.id === sourceId);
-  return rule?.bodyLines?.length ? rule.bodyLines : rule?.bullets.map((bullet) => bullet.text) ?? [];
+  return validationPropertyValues(rule?.properties["messages"] ?? rule?.properties["message"]);
 }
 
 function displayMessageSourceId(reference: string): string | undefined {

@@ -2192,23 +2192,65 @@ marker label.
 
 ## Business Rules Section
 
-Business rules are level-3 headings under `## Business Rules`.
+Business rules describe domain constraints, including constraints that can only
+be detected after a server request. Keep client-side and screen-local input
+checks in `V-*` validations. Use `R-*` for business rule violations, and use
+`ERR-*` only when the UI spec needs to document a concrete API error code.
 
 ```markdown
 ## Business Rules
 
-### R-RequiredFields
+### R1:R-EmailMustBeUnique Email must be unique
 
-- The submit button must stay disabled until required fields are valid.
+- description: Subscription email must not already be registered.
+- messages:
+  - This email address is already registered.
 ```
 
 Rule heading form:
 
 ```text
-### <rule-id> [name]
+### [marker:]<rule-id> [name]
 ```
 
-Rule bullets can be free text in this release.
+`messages:` defines the message group exposed as `<rule-id>.messages`. When an
+Action displays `R-*.messages`, preview output uses the `R-*` heading marker in
+the same way as validation message markers. If the marker is missing, the
+validator warns and the preview uses the rule ID as the fallback marker label.
+
+Business rule violations are received in a process `case:` branch, usually on a
+`request:` or `server:` process. The canonical case name is
+`business-rule-violation`; avoid `validation-error` for server-detected domain
+failures because that name collides with `V-*` validation.
+
+```markdown
+- Process P2: Submit subscription
+  - server:
+    - SubscriptionService.create()
+    - params:
+      - email: E-EmailInput.value
+      - plan: E-PlanSelect.value
+  - result:
+    - subscription creation request
+  - case: business-rule-violation
+    - description: email is already registered
+    - business rule: R-EmailMustBeUnique
+    - error code: ERR-EMAIL-ALREADY-REGISTERED
+    - Effects
+      - display:
+        - target: E-EmailInput.error
+        - message: R-EmailMustBeUnique.messages
+    - stop
+```
+
+Place `business rule:` under the `case:` branch. Do not put it under `receive:`
+or `result:`. Display the message through normal `display.target` rules; both
+`E-*.error` field slots and `L-*` summary areas are valid targets. If
+`R-*.messages` references a rule without `messages:` or `message`, the validator
+warns and the preview shows no fallback text.
+
+Error codes are optional supporting references for API traceability. The screen
+meaning remains the `business rule:` reference.
 
 ## Error Codes Section
 

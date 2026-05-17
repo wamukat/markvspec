@@ -345,6 +345,7 @@ export interface MarkVSpecActionOutcome {
   display?: MarkVSpecDisplayEffect;
   sideEffects: string[];
   errorCodes: string[];
+  businessRules: string[];
   routeParams: MarkVSpecRouteParam[];
   propertyLocations: Record<string, SourceLocation[]>;
 }
@@ -444,6 +445,8 @@ export interface MarkVSpecRule {
     text: string;
     location: SourceLocation;
   }>;
+  properties: Record<string, string | string[]>;
+  propertyLocations: Record<string, SourceLocation[]>;
   location: SourceLocation;
 }
 

@@ -529,6 +529,8 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
     }
 
     for (const outcome of action.outcomes) {
+      validateBusinessRuleOutcomeCaseName(action.id, undefined, outcome, diagnostics);
+
       if (!hasActionOutcomeDetails(outcome) && !outcome.to && !transitionResults.has(outcome.result) && !responseResults.has(outcome.result)) {
         diagnostics.push({
           severity: "warning",
@@ -568,6 +570,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
       validateOutcomeTransitionTarget(outcome, stateNames, diagnostics);
       validateUpdateMode(action.id, outcome, diagnostics, `case ${outcome.result}`);
       validateOutcomeErrorCodes(action.id, outcome, errorCodeIds, diagnostics);
+      validateOutcomeBusinessRules(action.id, outcome, ruleIds, diagnostics);
       collectPartialReference(outcome.content, firstPropertyLocation(outcome, "content") ?? outcome.location ?? action.location, referencedPartialIds);
       validateDisplayEffect(action.id, `case ${outcome.result}`, outcome.display, targetLayoutIds, elementIds, elementsById, validationsById, rulesById, layoutIdsByViewport, diagnostics, referencedPartialIds);
     }
@@ -611,11 +614,13 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
       validateUpdateMode(action.id, step, diagnostics, `process step ${step.name}`);
       validateProcessStepReferences(action.id, step, validationIds, errorCodeIds, diagnostics);
       validateProcessGranularity(action.id, step, diagnostics);
+      validateProcessBusinessRulePlacement(action.id, step, diagnostics);
       validateProcessDataReferences(action.id, step, actionIds, processMarkersByAction, layoutIds, elementIds, diagnostics);
       collectPartialReference(step.content, firstPropertyLocation(step, "content") ?? step.location, referencedPartialIds);
       validateDisplayEffect(action.id, `process step ${processStepLabel(step)}`, step.display, targetLayoutIds, elementIds, elementsById, validationsById, rulesById, layoutIdsByViewport, diagnostics, referencedPartialIds);
 
       for (const outcome of step.outcomes) {
+        validateBusinessRuleOutcomeCaseName(action.id, step, outcome, diagnostics);
         validateProcessCaseFlowPlacement(action.id, step, outcome, diagnostics);
         validateSuspiciousProcessCaseResponse(action.id, step, outcome, diagnostics);
 
@@ -683,8 +688,9 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
         validateOutcomeTransitionTarget(outcome, stateNames, diagnostics);
         validateUpdateMode(action.id, outcome, diagnostics, `process step ${step.name} case ${outcome.result}`);
         validateOutcomeErrorCodes(action.id, outcome, errorCodeIds, diagnostics);
+        validateOutcomeBusinessRules(action.id, outcome, ruleIds, diagnostics);
         collectPartialReference(outcome.content, firstPropertyLocation(outcome, "content") ?? outcome.location ?? step.location, referencedPartialIds);
-      validateDisplayEffect(action.id, `process step ${processStepLabel(step)} case ${outcome.result}`, outcome.display, targetLayoutIds, elementIds, elementsById, validationsById, rulesById, layoutIdsByViewport, diagnostics, referencedPartialIds);
+        validateDisplayEffect(action.id, `process step ${processStepLabel(step)} case ${outcome.result}`, outcome.display, targetLayoutIds, elementIds, elementsById, validationsById, rulesById, layoutIdsByViewport, diagnostics, referencedPartialIds);
       }
     }
 
@@ -1200,6 +1206,50 @@ function validateProcessGranularity(actionId: string, step: MarkVSpecProcessStep
   }
 }
 
+function validateProcessBusinessRulePlacement(actionId: string, step: MarkVSpecProcessStep, diagnostics: MarkVSpecDiagnostic[]): void {
+  for (const detail of step.receives) {
+    if (isBusinessRuleDetailKey(detail.key)) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Action ${actionId} process step ${processStepLabel(step)} receive entry ${detail.key}: ${detail.value} is not allowed. Put business rule: under case: business-rule-violation.`,
+        line: detail.location.line
+      });
+    }
+  }
+
+  for (const detail of step.results) {
+    if (isBusinessRuleDetailKey(detail.key)) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Action ${actionId} process step ${processStepLabel(step)} result entry ${detail.key}: ${detail.value} is not allowed. Put business rule: under case: business-rule-violation.`,
+        line: detail.location.line
+      });
+    }
+  }
+}
+
+function validateBusinessRuleOutcomeCaseName(
+  actionId: string,
+  step: MarkVSpecProcessStep | undefined,
+  outcome: MarkVSpecActionOutcome,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  if (outcome.businessRules.length === 0 || outcome.result === "business-rule-violation") {
+    return;
+  }
+
+  const context = step ? `process step ${processStepLabel(step)} case ${outcome.result}` : `case ${outcome.result}`;
+  diagnostics.push({
+    severity: "warning",
+    message: `Action ${actionId} ${context} declares business rule ${outcome.businessRules.join(", ")}. Use case: business-rule-violation for business rule violations.`,
+    line: firstPropertyLine(outcome, "business rule") ?? firstPropertyLine(outcome, "business rules") ?? outcome.location?.line ?? step?.location.line
+  });
+}
+
+function isBusinessRuleDetailKey(key: string): boolean {
+  return key === "business rule" || key === "business rules";
+}
+
 function validateProcessCaseFlowPlacement(
   actionId: string,
   step: MarkVSpecProcessStep,
@@ -1641,10 +1691,17 @@ function validateDisplayMessage(
     });
     return;
   }
-  if (rule.bullets.length === 0 && (rule.bodyLines?.length ?? 0) === 0) {
+  if (validationPropertyValues(rule, "messages").length === 0 && validationPropertyValues(rule, "message").length === 0) {
     diagnostics.push({
       severity: "warning",
       message: `Action ${actionId} ${context} display.message references business rule ${sourceId}, but it defines no message text.`,
+      line
+    });
+  }
+  if (validationPropertyValues(rule, "marker").length === 0) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Action ${actionId} ${context} display.message references business rule ${sourceId}, but it defines no marker. Preview will use the business rule ID as the display marker.`,
       line
     });
   }
@@ -1791,6 +1848,23 @@ function validateOutcomeErrorCodes(
         severity: "error",
         message: `Action ${actionId} case ${outcome.result} references missing error code ${errorCode}.`,
         line: outcome.propertyLocations["error code"]?.[index]?.line ?? outcome.propertyLocations["error codes"]?.[index]?.line ?? outcome.location?.line
+      });
+    }
+  });
+}
+
+function validateOutcomeBusinessRules(
+  actionId: string,
+  outcome: MarkVSpecActionOutcome,
+  ruleIds: Set<string>,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  outcome.businessRules.forEach((ruleId, index) => {
+    if (!ruleIds.has(ruleId)) {
+      diagnostics.push({
+        severity: "error",
+        message: `Action ${actionId} case ${outcome.result} references missing business rule ${ruleId}.`,
+        line: outcome.propertyLocations["business rule"]?.[index]?.line ?? outcome.propertyLocations["business rules"]?.[index]?.line ?? outcome.location?.line
       });
     }
   });
@@ -2532,7 +2606,7 @@ function firstPropertyLocation(
 }
 
 function firstOutcomeLine(outcome: MarkVSpecActionOutcome): number | undefined {
-  return ["description", "response", "request", "target", "mode", "fragment", "content", "side effect", "from", "state", "navigate", "error code", "error codes", "flow"]
+  return ["description", "response", "request", "target", "mode", "fragment", "content", "side effect", "from", "state", "navigate", "business rule", "business rules", "error code", "error codes", "flow"]
     .map((key) => firstPropertyLine(outcome, key))
     .find((line): line is number => typeof line === "number") ?? outcome.routeParams[0]?.location.line;
 }
@@ -2549,7 +2623,7 @@ function hasActionOutcomeDetails(outcome: MarkVSpecActionOutcome): boolean {
       outcome.content ??
       outcome.display ??
       outcome.flow
-  ) || outcome.sideEffects.length > 0 || outcome.errorCodes.length > 0 || outcome.routeParams.length > 0;
+  ) || outcome.sideEffects.length > 0 || outcome.businessRules.length > 0 || outcome.errorCodes.length > 0 || outcome.routeParams.length > 0;
 }
 
 function hasOutcomeDetailsThatRequireTransition(outcome: MarkVSpecActionOutcome): boolean {

@@ -412,7 +412,7 @@ function displayExplanationsForScenarioCases(
     const validation = sourceId.startsWith("V-") ? validationsById.get(sourceId) : undefined;
     const rule = sourceId.startsWith("R-") ? rulesById.get(sourceId) : undefined;
     const element = sourceId.startsWith("E-") || sourceId.startsWith("L-") ? elementsById.get(sourceId) : undefined;
-    const markerId = displayExplanationMarker(sourceId, validation);
+    const markerId = displayExplanationMarker(sourceId, validation, rule);
     const key = `${sourceId}:${display.message ? "message" : "element"}`;
     const existing = explanations.get(key);
     const textSummary = display.message
@@ -442,8 +442,8 @@ function displayMessageSourceId(message: string): string | undefined {
   return /^((?:V|R)-[\p{L}\p{N}-]+)\.messages$/u.exec(message)?.[1];
 }
 
-function displayExplanationMarker(sourceId: string, validation: ParsedValidation | undefined): string {
-  const marker = validation?.properties["marker"];
+function displayExplanationMarker(sourceId: string, validation: ParsedValidation | undefined, rule: ParsedRule | undefined): string {
+  const marker = validation?.properties["marker"] ?? rule?.properties["marker"];
   return typeof marker === "string" && marker ? marker : sourceId;
 }
 
@@ -459,7 +459,7 @@ function displayMessageTextSummary(
     return validationPropertyValues(validation?.properties["message"]);
   }
   if (message.startsWith("R-")) {
-    return rule?.bodyLines?.length ? rule.bodyLines : rule?.bullets.map((bullet) => bullet.text) ?? [];
+    return validationPropertyValues(rule?.properties["messages"] ?? rule?.properties["message"]);
   }
   return [];
 }

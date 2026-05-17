@@ -1537,15 +1537,62 @@ validator は warning を出し、preview は validation ID を fallback marker 
 
 ## Business Rules
 
-業務ルールは複数の要素や状態にまたがる振る舞いを書きます。
+Business Rules は業務制約を書きます。サーバ要求の結果として初めて判明する業務エラーも
+`Validation` には混ぜず、Business Rule violation として扱います。画面内で判定できる
+client-side / screen-local な入力検証は `V-*`、業務制約は `R-*`、API が返す具体的な
+エラーコードは必要な場合だけ `ERR-*` に置きます。
 
 ```markdown
 ## Business Rules
 
-### R-RequiredFields
+### R1:R-EmailMustBeUnique Email must be unique
 
-- The submit button must stay disabled until required fields are valid.
+- description: Subscription email must not already be registered.
+- messages:
+  - This email address is already registered.
 ```
+
+Rule heading form:
+
+```text
+### [marker:]<rule-id> [name]
+```
+
+`messages:` は `<rule-id>.messages` として参照できる message group です。
+Action が `R-*.messages` を表示するとき、preview は `V-*` message と同じく
+`R-*` heading marker を表示します。marker がなければ validator は warning を出し、
+preview は rule ID を fallback marker label として使います。
+
+Business Rule violation は、通常 `request:` または `server:` process の `case:` で受けます。
+canonical case name は `business-rule-violation` です。サーバ応答で判明する業務エラーに
+`validation-error` を使うと `V-*` Validation と混ざるため避けます。
+
+```markdown
+- Process P2: Submit subscription
+  - server:
+    - SubscriptionService.create()
+    - params:
+      - email: E-EmailInput.value
+      - plan: E-PlanSelect.value
+  - result:
+    - subscription creation request
+  - case: business-rule-violation
+    - description: email is already registered
+    - business rule: R-EmailMustBeUnique
+    - error code: ERR-EMAIL-ALREADY-REGISTERED
+    - Effects
+      - display:
+        - target: E-EmailInput.error
+        - message: R-EmailMustBeUnique.messages
+    - stop
+```
+
+`business rule:` は `case:` 配下に置き、`receive:` や `result:` には混ぜません。
+表示先は通常の `display.target` rule に従い、`E-*.error` field slot と `L-*`
+summary area のどちらにも表示できます。`R-*.messages` の参照先に `messages:` または
+`message` がなければ warning とし、preview fallback text は表示しません。
+
+`ERR-*` は API 対応確認用の補助情報です。画面表示の意味は `business rule:` を正にします。
 
 ## Error Codes
 

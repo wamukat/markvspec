@@ -901,6 +901,12 @@ function applyStructuredEffectToOutcome(
     return;
   }
 
+  if (key === "business rule" || key === "business rules") {
+    outcome.businessRules.push(...splitReferenceList(value));
+    addPropertyLocation(outcome.propertyLocations, key, bullet.location);
+    return;
+  }
+
   if (key === "state" || key === "navigate") {
     outcome.to = value;
     addPropertyLocation(outcome.propertyLocations, key, bullet.location);
@@ -1122,6 +1128,7 @@ function getActionOutcome(action: MarkVSpecAction, result: string, location?: So
     flowDirectives: [],
     sideEffects: [],
     errorCodes: [],
+    businessRules: [],
     routeParams: [],
     propertyLocations: {}
   };
@@ -1142,6 +1149,7 @@ function getProcessStepOutcome(step: MarkVSpecProcessStep, result: string, locat
     flowDirectives: [],
     sideEffects: [],
     errorCodes: [],
+    businessRules: [],
     routeParams: [],
     propertyLocations: {}
   };

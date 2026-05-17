@@ -4744,6 +4744,7 @@ function renderRulesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
   const sectionProse = sectionProseForKind(result, "BusinessRules");
   const showOverview = result.rules.some((rule) => (rule.overview?.length ?? 0) > 0);
   const showNotes = result.rules.some((rule) => (rule.notes?.length ?? 0) > 0);
+  const showMessages = result.rules.some((rule) => businessRulePropertyValues(rule, "messages").length > 0 || businessRulePropertyValues(rule, "message").length > 0);
   return `<section class="doc-section">
     <h2>${label(result, "businessRules")}</h2>
     ${renderSectionOverview(sectionProse)}
@@ -4753,6 +4754,7 @@ function renderRulesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
         label(result, "name"),
         ...(showOverview ? [label(result, "overview")] : []),
         label(result, "ruleText"),
+        ...(showMessages ? [label(result, "message")] : []),
         ...(showNotes ? [label(result, "notes")] : [])
       ],
       result.rules.map((rule) => [
@@ -4760,6 +4762,7 @@ function renderRulesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
         text(rule.name),
         ...(showOverview ? [renderEntityOverview(rule.overview)] : []),
         renderRuleText(rule),
+        ...(showMessages ? [renderBusinessRuleProperty(result, rule, "messages") || renderBusinessRuleProperty(result, rule, "message")] : []),
         ...(showNotes ? [renderEntityNotes(rule.notes)] : [])
       ])
     )}
@@ -4768,6 +4771,11 @@ function renderRulesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
 }
 
 function renderRuleText(rule: ReturnType<typeof parseMarkVSpec>["rules"][number]): string {
+  const descriptions = businessRulePropertyValues(rule, "description");
+  if (descriptions.length > 0) {
+    return renderMarkdownSectionContent(descriptions.length === 1 ? [descriptions[0] ?? ""] : descriptions.map((description) => `- ${description}`));
+  }
+
   const bodyLines = trimNoteLines(rule.bodyLines ?? []);
   if (bodyLines.length > 0) {
     return renderMarkdownSectionContent(bodyLines);
@@ -4776,6 +4784,28 @@ function renderRuleText(rule: ReturnType<typeof parseMarkVSpec>["rules"][number]
   return rule.bullets.length > 0
     ? renderMarkdownSectionContent(rule.bullets.map((bullet) => `- ${bullet.text}`))
     : "";
+}
+
+function renderBusinessRuleProperty(
+  result: ReturnType<typeof parseMarkVSpec>,
+  rule: ReturnType<typeof parseMarkVSpec>["rules"][number],
+  key: string
+): string {
+  const values = businessRulePropertyValues(rule, key);
+  if (values.length === 0) {
+    return "";
+  }
+  return values.length === 1
+    ? renderParamSource(result, values[0] ?? "")
+    : `<ul class="spec-list">${values.map((item) => `<li>${renderParamSource(result, item)}</li>`).join("")}</ul>`;
+}
+
+function businessRulePropertyValues(
+  rule: ReturnType<typeof parseMarkVSpec>["rules"][number],
+  key: string
+): string[] {
+  const value = rule.properties[key];
+  return Array.isArray(value) ? value : value ? [value] : [];
 }
 
 function renderErrorCodesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
@@ -5367,6 +5397,8 @@ function renderProcessStepCases(
       outcome.description ? `${escapeHtml(label(result, "processDescription"))}: ${text(outcome.description)}` : "",
       outcome.response ? `${escapeHtml(label(result, "processResponse"))} ${text(outcome.response.definition)}` : "",
       outcome.request ? `${escapeHtml(label(result, "processRequest"))} ${renderActionRequest(outcome)}` : "",
+      outcome.businessRules.length ? `${escapeHtml(label(result, "businessRule"))} ${renderDetailReferences(result, outcome.businessRules)}` : "",
+      outcome.errorCodes.length ? `${escapeHtml(label(result, "errorCodes"))} ${renderDetailReferences(result, outcome.errorCodes)}` : "",
       outcome.routeParams.length ? `${label(result, "routeParameters")} ${renderRouteParams(result, outcome.routeParams, true)}` : "",
       renderOutcomeTransition(result, outcome),
       outcome.flow === "stop" ? escapeHtml(label(result, "processStop")) : "",
@@ -5427,6 +5459,8 @@ function renderActionCaseRows(
         outcome.description ? `${escapeHtml(label(result, "processDescription"))}: ${text(outcome.description)}` : "",
         response ? `${escapeHtml(label(result, "processResponse"))} ${text(response.definition)}` : "",
         outcome?.request ? `${escapeHtml(label(result, "processRequest"))} ${renderActionRequest(outcome)}` : "",
+        outcome?.businessRules.length ? `${escapeHtml(label(result, "businessRule"))} ${renderDetailReferences(result, outcome.businessRules)}` : "",
+        outcome?.errorCodes.length ? `${escapeHtml(label(result, "errorCodes"))} ${renderDetailReferences(result, outcome.errorCodes)}` : "",
         outcome?.routeParams.length ? `${label(result, "routeParameters")} ${renderRouteParams(result, outcome.routeParams, true)}` : "",
         outcome.to ? `${escapeHtml(label(result, "processEffect"))} ${renderTransitionEffect(result, outcome.to)}` : "",
         outcome.display ? `${escapeHtml(label(result, "processDisplay"))} ${renderDisplayEffect(result, outcome.display, true)}` : "",
@@ -5434,6 +5468,12 @@ function renderActionCaseRows(
       ].filter(Boolean);
       return [`${label(result, "case")} ${outcome.result}`, details.length > 0 ? `<ul>${details.map((detail) => `<li>${detail}</li>`).join("")}</ul>` : ""];
     });
+}
+
+function renderDetailReferences(result: ReturnType<typeof parseMarkVSpec>, ids: string[]): string {
+  return ids.length === 1
+    ? referenceForDetailId(result, ids[0] ?? "")
+    : `<ul class="spec-list spec-nested-list">${ids.map((id) => `<li>${referenceForDetailId(result, id)}</li>`).join("")}</ul>`;
 }
 
 function renderActionOverview(
@@ -5532,13 +5572,18 @@ function renderDisplayMessageReference(result: ReturnType<typeof parseMarkVSpec>
 function displayMessageMarkerBadge(result: ReturnType<typeof parseMarkVSpec>, sourceId: string): string {
   const marker = sourceId.startsWith("V-")
     ? validationMarker(result, sourceId)
-    : sourceId;
+    : businessRuleMarker(result, sourceId);
   return `<code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="${escapeHtml(sourceId)}">${escapeHtml(marker)}</code>`;
 }
 
 function validationMarker(result: ReturnType<typeof parseMarkVSpec>, validationId: string): string {
   const marker = result.validations.find((validation) => validation.id === validationId)?.properties["marker"];
   return typeof marker === "string" && marker ? marker : validationId;
+}
+
+function businessRuleMarker(result: ReturnType<typeof parseMarkVSpec>, ruleId: string): string {
+  const marker = result.rules.find((rule) => rule.id === ruleId)?.properties["marker"];
+  return typeof marker === "string" && marker ? marker : ruleId;
 }
 
 function targetlessDisplayTargetLabel(result: ReturnType<typeof parseMarkVSpec>, elementId?: string): string {

@@ -383,6 +383,94 @@ viewport: mobile
   assert.doesNotMatch(scenarioSection, /not placed in current layout[\s\S]*E-EmailInput\.error/);
 });
 
+test("renders business rule display message markers in scenario wireframes and action details", () => {
+  const source = `---
+id: SCR-BUSINESS-RULE-DISPLAY
+type: screen
+title: Business Rule Display
+viewport: mobile
+---
+# SCR-BUSINESS-RULE-DISPLAY Business Rule Display
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Form Form
+
+- stack
+
+#### Items
+
+- E-EmailInput
+- E-SubmitButton
+
+## Elements
+
+### E-EmailInput Input
+
+- label: Email
+
+### E-SubmitButton Button
+
+- label: Submit
+- action: A-Submit
+
+## Actions
+
+### A-Submit Submit
+
+- Triggered
+  - E-SubmitButton.click
+- From
+  - idle
+- Process P1: Submit subscription
+  - server:
+    - SubscriptionService.create()
+  - result:
+    - subscription creation request
+  - case: business-rule-violation
+    - description: 409 duplicate email
+    - business rule: R-EmailMustBeUnique
+    - Effects
+      - display:
+        - target: E-EmailInput.error
+        - message: R-EmailMustBeUnique.messages
+
+## Preview Scenarios
+
+### idle-duplicate-email
+
+- state: idle
+- cases:
+  - A-Submit.P1.business-rule-violation
+
+## Business Rules
+
+### R1:R-EmailMustBeUnique Email must be unique
+
+- description: Subscription email must not already be registered.
+- messages:
+  - This email address is already registered.
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const scenarioSection = stateSectionContaining(html, "idle", "idle-duplicate-email");
+  const wireframe = stateWireframeSection(scenarioSection);
+
+  assert.deepEqual(result.diagnostics, []);
+  assert.match(wireframe, /<div class="mm-field-error" data-mm-field-error-for="E-EmailInput"><div class="mm-field-error-message" data-mm-display-source="R-EmailMustBeUnique"><code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="R-EmailMustBeUnique">R1<\/code>This email address is already registered\.<\/div><\/div>/);
+  assert.match(scenarioSection, /<code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="R-EmailMustBeUnique">R1<\/code> Email must be unique/);
+  assert.match(scenarioSection, /<dt>Source<\/dt><dd>R-EmailMustBeUnique<\/dd>/);
+  assert.match(scenarioSection, /<dt>Displayed at<\/dt><dd><ul><li>E-EmailInput\.error<\/li><\/ul><\/dd>/);
+  assert.match(scenarioSection, /<dt>Triggered by<\/dt><dd><ul><li>A-Submit\.P1\.business-rule-violation<\/li><\/ul><\/dd>/);
+  assert.match(scenarioSection, /<dt>Kind<\/dt><dd>business rule message<\/dd>/);
+  assert.match(html, /<li>Business Rule <span class="mm-detail-ref-id">R-EmailMustBeUnique<\/span><\/li>/);
+  assert.match(html, /message <code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="R-EmailMustBeUnique">R1<\/code> <span class="mm-detail-ref-id">R-EmailMustBeUnique<\/span><span class="mm-detail-ref-suffix">\.messages<\/span>/);
+});
+
 test("shows subsequent viewport initial state as current state with repeated rows", () => {
   const source = `---
 id: SCR-RESPONSIVE-DIFF

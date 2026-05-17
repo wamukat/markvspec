@@ -3032,6 +3032,8 @@ function parseRulesSection(section: SectionAst): Pick<SectionSemanticResult, "ru
         name: match?.[3],
         bodyLines: [],
         bullets: [],
+        properties: match[1] ? { marker: match[1] } : {},
+        propertyLocations: match[1] ? { marker: [locationFromBlock(block)] } : {},
         location: locationFromBlock(block)
       };
       rules.push(current);
@@ -3057,6 +3059,8 @@ function parseRulesSection(section: SectionAst): Pick<SectionSemanticResult, "ru
         name: section.title,
         bodyLines: [],
         bullets: [],
+        properties: {},
+        propertyLocations: {},
         location: locationFromBlock(freeformBullets[0])
       };
       if (!rules.includes(freeformRule)) {
@@ -3074,13 +3078,7 @@ function parseRulesSection(section: SectionAst): Pick<SectionSemanticResult, "ru
     if (current) {
       if (block.type === "list") {
         currentHasStructuredContent = true;
-        appendRuleBodyLines(current, block);
-      }
-      for (const bullet of listItems([block]).filter((item) => item.depth === 0)) {
-        current.bullets.push({
-          text: bullet.text,
-          location: locationFromBlock(bullet)
-        });
+        applyRuleListBlock(current, block);
       }
     }
   }
@@ -3088,6 +3086,50 @@ function parseRulesSection(section: SectionAst): Pick<SectionSemanticResult, "ru
     rules,
     sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["rules:list", ...rules.map((rule) => ruleRenderKey(rule.id))])
   };
+}
+
+function applyRuleListBlock(rule: MarkVSpecRule, block: BlockAst): void {
+  if (block.type !== "list") {
+    return;
+  }
+  appendRuleBodyLines(rule, block);
+
+  for (const item of block.children.filter((child): child is Extract<BlockAst, { type: "listItem" }> => child.type === "listItem")) {
+    applyRuleBullet(rule, item.text, locationFromBlock(item));
+    const [key, value] = splitKeyValue(item.text);
+    if (value === undefined || key.trim() !== "messages" || value.trim() !== "") {
+      continue;
+    }
+    for (const child of listItems(item.children)) {
+      addRuleProperty(rule, "messages", child.text, locationFromBlock(child));
+    }
+  }
+}
+
+function applyRuleBullet(rule: MarkVSpecRule, text: string, location: SourceLocation): void {
+  rule.bullets.push({ text, location });
+  const [key, value] = splitKeyValue(text);
+  if (value === undefined) {
+    return;
+  }
+  const normalizedKey = key.trim();
+  const normalizedValue = value.trim();
+  if (normalizedKey === "messages" && normalizedValue === "") {
+    return;
+  }
+  addRuleProperty(rule, normalizedKey, normalizedValue, location);
+}
+
+function addRuleProperty(rule: MarkVSpecRule, key: string, value: string, location: SourceLocation): void {
+  const current = rule.properties[key];
+  if (current === undefined) {
+    rule.properties[key] = value;
+  } else if (Array.isArray(current)) {
+    current.push(value);
+  } else {
+    rule.properties[key] = [current, value];
+  }
+  addPropertyLocation(rule.propertyLocations, key, location);
 }
 
 function appendRuleBodyLines(rule: MarkVSpecRule, block: BlockAst): void {

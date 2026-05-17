@@ -146,6 +146,15 @@ try to cover non-submit element events.
       - display:
         - target: L-MessageArea
         - element: E-SubmitError
+  - case: business-rule-violation
+    - response: 409 duplicate email
+    - business rule: R-EmailMustBeUnique
+    - error code: ERR-EMAIL-ALREADY-REGISTERED
+    - Effects
+      - state: idle
+      - display:
+        - target: E-EmailInput.error
+        - message: R-EmailMustBeUnique.messages
 
 ## Preview Scenarios
 
@@ -167,6 +176,12 @@ try to cover non-submit element events.
 - cases:
   - A-HandleSubmitResponse.P1.failure
 
+### idle-duplicate-email
+
+- state: idle
+- cases:
+  - A-HandleSubmitResponse.P1.business-rule-violation
+
 ## Validations
 
 ### V1:V-SubmitRequest Required subscription email
@@ -178,3 +193,20 @@ try to cover non-submit element events.
 - scope: field
 - run: client
 - message: Email is required before submitting the subscription request.
+
+## Business Rules
+
+### R1:R-EmailMustBeUnique Email must be unique
+
+- description: Subscription email must not already be registered.
+- messages:
+  - This email address is already registered.
+
+## Error Codes
+
+### ERR-EMAIL-ALREADY-REGISTERED Email already registered
+
+- business rule: R-EmailMustBeUnique
+- target: E-EmailInput.error
+- message: This email address is already registered.
+- display: inline

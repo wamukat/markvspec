@@ -432,6 +432,8 @@ Custom detail.
       bullets: [
         { text: "Authenticated users can edit.", location: { line: lineNumber(source, "- Authenticated users can edit.") } }
       ],
+      properties: { marker: "spec" },
+      propertyLocations: { marker: [{ line: lineNumber(source, "### spec:R-AUTH") }] },
       location: { line: lineNumber(source, "### spec:R-AUTH") }
     }
   ]);
@@ -5795,9 +5797,11 @@ title: Input Contract
 
 ## Business Rules
 
-### R-EMAIL Email rule
+### R1:R-EMAIL Email rule
 
-- Email must use a valid mailbox format.
+- description: Email must use a valid mailbox format.
+- messages:
+  - Email format is invalid.
 
 ## Error Codes
 
@@ -5816,6 +5820,11 @@ title: Input Contract
     ["max length", "255"]
   ]);
   assert.equal(result.validations[0]?.properties["error code"], "ERR-EMAIL-FORMAT");
+  assert.deepEqual(result.rules[0]?.properties, {
+    marker: "R1",
+    description: "Email must use a valid mailbox format.",
+    messages: "Email format is invalid."
+  });
   assert.equal(result.errorCodes[0]?.id, "ERR-EMAIL-FORMAT");
   assert.equal(result.errorCodes[0]?.properties["business rule"], "R-EMAIL");
   assert.equal(result.actions[0]?.processSteps[0]?.details[0]?.value, "V-メール形式.result");
@@ -11514,11 +11523,13 @@ title: Field Error Display
 
 ## Business Rules
 
-### R-RequiredFields Required fields
+### R1:R-RequiredFields Required fields
 
-- Submit is blocked when required fields are missing.
+- description: Submit is blocked when required fields are missing.
+- messages:
+  - Submit is blocked until required fields are valid.
 
-### R-Empty Empty rule
+### R2:R-Empty Empty rule
 `;
 
   const result = parseMarkVSpec(source);
@@ -11606,6 +11617,128 @@ title: Unmarked Display Message
   assert(messages.includes("Action A-Submit process step P1 Check validation case invalid display.message references validation V-Unmarked, but it defines no marker. Preview will use the validation ID as the display marker."));
   assert.equal(scenario?.displayExplanations[0]?.markerId, "V-Unmarked");
   assert.equal(scenario?.displayExplanations[0]?.sourceId, "V-Unmarked");
+});
+
+test("falls back to business rule IDs for unmarked display messages", () => {
+  const source = `---
+id: SCR-UNMARKED-RULE-MESSAGE
+type: screen
+title: Unmarked Rule Message
+---
+# SCR-UNMARKED-RULE-MESSAGE Unmarked Rule Message
+
+## States
+
+- idle*
+
+## Layout
+
+### L-Message Message
+
+- stack
+
+## Elements
+
+### E-Button Button
+
+- label: Submit
+
+## Actions
+
+### A-Submit Submit
+
+- Triggered
+  - E-Button.click
+- From
+  - idle
+- Process P1: Submit request
+  - server:
+    - SubscriptionService.create()
+  - result:
+    - subscription creation request
+  - case: business-rule-violation
+    - business rule: R-Unmarked
+    - Effects
+      - display:
+        - target: L-Message
+        - message: R-Unmarked.messages
+
+## Preview Scenarios
+
+### duplicate
+
+- state: idle
+- cases:
+  - A-Submit.P1.business-rule-violation
+
+## Business Rules
+
+### R-Unmarked Unmarked business rule
+
+- messages:
+  - Business rule message.
+`;
+
+  const result = parseMarkVSpec(source);
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+  const models = buildStateScreenReadModels(result, result, undefined);
+  const scenario = models.find((model) => model.title === "duplicate");
+
+  assert(messages.includes("Action A-Submit process step P1 Submit request case business-rule-violation display.message references business rule R-Unmarked, but it defines no marker. Preview will use the business rule ID as the display marker."));
+  assert.equal(result.actions[0]?.processSteps[0]?.outcomes[0]?.businessRules[0], "R-Unmarked");
+  assert.equal(scenario?.displayExplanations[0]?.markerId, "R-Unmarked");
+  assert.equal(scenario?.displayExplanations[0]?.sourceId, "R-Unmarked");
+});
+
+test("diagnoses misplaced business rule declarations in process details and noncanonical cases", () => {
+  const source = `---
+id: SCR-BUSINESS-RULE-PLACEMENT
+type: screen
+title: Business Rule Placement
+---
+# SCR-BUSINESS-RULE-PLACEMENT Business Rule Placement
+
+## States
+
+- idle*
+
+## Elements
+
+### E-SubmitButton Button
+
+- label: Submit
+- action: A-Submit
+
+## Actions
+
+### A-Submit Submit
+
+- Triggered
+  - E-SubmitButton.click
+- From
+  - idle
+- Process P1: Submit request
+  - receive:
+    - business rule: R-EmailMustBeUnique
+  - result:
+    - business rule: R-EmailMustBeUnique
+  - case: duplicate-email
+    - business rule: R-EmailMustBeUnique
+
+## Business Rules
+
+### R1:R-EmailMustBeUnique Email must be unique
+
+- messages:
+  - This email address is already registered.
+`;
+
+  const result = parseMarkVSpec(source);
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert(messages.includes("Action A-Submit process step P1 Submit request receive entry business rule: R-EmailMustBeUnique is not allowed. Put business rule: under case: business-rule-violation."));
+  assert(messages.includes("Action A-Submit process step P1 Submit request result entry business rule: R-EmailMustBeUnique is not allowed. Put business rule: under case: business-rule-violation."));
+  assert(messages.includes("Action A-Submit process step P1 Submit request case duplicate-email declares business rule R-EmailMustBeUnique. Use case: business-rule-violation for business rule violations."));
 });
 
 test("validates architecture-neutral process contracts and preview scenario cases", () => {
