@@ -52,6 +52,8 @@ export type {
   MarkVSpecResponse,
   MarkVSpecRouteParam,
   MarkVSpecRule,
+  MarkVSpecSampleRow,
+  MarkVSpecSampleRows,
   MarkVSpecScreenSummary,
   MarkVSpecSectionProse,
   MarkVSpecSlotContent,
@@ -65,6 +67,7 @@ export type {
   MarkVSpecViewContextDefinition,
   MarkVSpecViewContextSample,
   MarkVSpecPreviewScenario,
+  MarkVSpecPreviewScenarioSample,
   SourceLocation
 } from "./types.js";
 export type {

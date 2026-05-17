@@ -86,7 +86,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   checkDuplicates(result.viewContexts.map((context) => ({ id: context.name, location: context.location })), "view context", diagnostics);
   checkDuplicates(result.viewContextSamples.map((sample) => ({ id: sample.name, location: sample.location })), "view context sample", diagnostics);
   checkDuplicates(result.previewScenarios.map((scenario) => ({ id: scenario.name, location: scenario.location })), "preview scenario", diagnostics);
-  validateViewContexts(result, viewContextNames, viewContextSampleNames, stateNames, modelSampleGroupNames, diagnostics);
+  validateViewContexts(result, viewContextNames, viewContextSampleNames, stateNames, modelSampleGroupNames, elementsById, diagnostics);
   checkDuplicateLayoutMarkers(result.layoutGroups.filter((group) => !isPresentationPanelId(group.id)), diagnostics);
   checkConsistentLayoutMarkers(result.layoutGroups.filter((group) => !isPresentationPanelId(group.id)), diagnostics);
   checkMarkers(
@@ -2268,6 +2268,7 @@ function validateViewContexts(
   viewContextSampleNames: Set<string>,
   stateNames: Set<string>,
   modelSampleGroupNames: Set<string>,
+  elementsById: Map<string, MarkVSpecElement>,
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
   const viewContextByName = new Map(result.viewContexts.map((context) => [context.name, context]));
@@ -2344,11 +2345,82 @@ function validateViewContexts(
       }
 
       validatePreviewScenarioCases(scenario, result, diagnostics);
+      validatePreviewScenarioSamples(scenario, elementsById, diagnostics);
     }
   }
 
+  validateDataSourceSampleRows(result, diagnostics);
   validateConditionNamespaces(result, viewContextNames, stateNames, diagnostics);
   validateViewContextActionEffects(result, viewContextByName, diagnostics);
+}
+
+function validatePreviewScenarioSamples(
+  scenario: MarkVSpecParseResult["previewScenarios"][number],
+  elementsById: Map<string, MarkVSpecElement>,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  for (const sample of scenario.samples) {
+    const element = elementsById.get(sample.elementId);
+    if (!element) {
+      diagnostics.push({
+        severity: "error",
+        message: `Preview Scenario ${scenario.name} samples references missing element ${sample.elementId}.`,
+        line: sample.location.line
+      });
+      continue;
+    }
+    if (sample.rows && element.type !== "Table" && element.type !== "List") {
+      diagnostics.push({
+        severity: "warning",
+        message: `Preview Scenario ${scenario.name} rows sample target ${sample.elementId} must be a Table or List element.`,
+        line: sample.rows.location.line
+      });
+    }
+    if (sample.value !== undefined && (element.type === "Table" || element.type === "List")) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Preview Scenario ${scenario.name} scalar sample target ${sample.elementId} should not be a Table or List element. Use rows instead.`,
+        line: sample.location.line
+      });
+    }
+  }
+}
+
+function validateDataSourceSampleRows(
+  result: MarkVSpecParseResult,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  const scenarioRowElementIds = new Set(
+    result.previewScenarios.flatMap((scenario) => scenario.samples.filter((sample) => sample.rows).map((sample) => sample.elementId))
+  );
+  for (const element of result.elements) {
+    if (element.type !== "Table" && element.type !== "List") {
+      continue;
+    }
+    if (element.properties["source"] !== "data") {
+      continue;
+    }
+    if (hasLegacyRowsModelSample(element, result)) {
+      continue;
+    }
+    if (element.sampleRows || scenarioRowElementIds.has(element.id)) {
+      continue;
+    }
+    diagnostics.push({
+      severity: "warning",
+      message: `Element ${element.id} source data should define sample rows or Preview Scenario rows.`,
+      line: firstPropertyLine(element, "source") ?? element.location.line
+    });
+  }
+}
+
+function hasLegacyRowsModelSample(element: MarkVSpecElement, result: MarkVSpecParseResult): boolean {
+  const rows = stringProperty(element, "rows");
+  if (!rows) {
+    return false;
+  }
+  const sourceKey = sourcePathKey(rows);
+  return result.modelSamples.some((sample) => sourceKey === sourcePathKey(sample.path));
 }
 
 function validateConditionNamespaces(

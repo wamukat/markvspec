@@ -10979,6 +10979,170 @@ title: View Context
   assert(!result.diagnostics.some((diagnostic) => diagnostic.severity === "error"));
 });
 
+test("parses Preview Scenario samples and Element sample rows", () => {
+  const source = `---
+id: SCR-SCENARIO-SAMPLES
+type: screen
+title: Scenario Samples
+---
+# SCR-SCENARIO-SAMPLES Scenario Samples
+
+## States
+
+- idle*
+- loaded
+
+## Elements
+
+### E-Title Text
+
+- source: data
+- sample: Fallback title
+
+### E-Users Table
+
+- source: data
+- Columns:
+  - name: Name
+  - role: Role
+- sample rows:
+  - row:
+    - name: Alice
+    - role: Admin
+  - row:
+    - name: Bob
+    - role: Viewer
+
+### E-EmptyUsers Table
+
+- source: data
+- Columns:
+  - name: Name
+- sample rows: []
+
+## Preview Scenarios
+
+### loaded-users
+
+- state: loaded
+- samples:
+  - E-Title: Scenario title
+  - E-Users:
+    - rows:
+      - row:
+        - name: Carol
+        - role: Owner
+      - row:
+        - name: Dan
+        - role: Reviewer
+
+### loaded-empty
+
+- state: loaded
+- samples:
+  - E-Users:
+    - rows: []
+`;
+
+  const result = parseMarkVSpec(source);
+  const users = result.elements.find((element) => element.id === "E-Users");
+  const emptyUsers = result.elements.find((element) => element.id === "E-EmptyUsers");
+
+  assert.deepEqual(users?.sampleRows?.rows.map((row) => row.fields), [
+    { name: "Alice", role: "Admin" },
+    { name: "Bob", role: "Viewer" }
+  ]);
+  assert.equal(emptyUsers?.sampleRows?.explicitEmpty, true);
+  assert.deepEqual(result.previewScenarios.map((scenario) => [scenario.name, scenario.samples.length]), [
+    ["loaded-users", 2],
+    ["loaded-empty", 1]
+  ]);
+  assert.deepEqual(result.previewScenarios[0]?.samples[0], {
+    elementId: "E-Title",
+    value: "Scenario title",
+    location: result.previewScenarios[0]?.samples[0]?.location
+  });
+  assert.deepEqual(result.previewScenarios[0]?.samples[1]?.rows?.rows.map((row) => row.fields), [
+    { name: "Carol", role: "Owner" },
+    { name: "Dan", role: "Reviewer" }
+  ]);
+  assert.equal(result.previewScenarios[1]?.samples[0]?.rows?.explicitEmpty, true);
+  assert(!result.diagnostics.some((diagnostic) => diagnostic.severity === "error"));
+});
+
+test("validates Preview Scenario sample targets and data source sample rows", () => {
+  const source = `---
+id: SCR-BAD-SCENARIO-SAMPLES
+type: screen
+title: Bad Scenario Samples
+---
+# SCR-BAD-SCENARIO-SAMPLES Bad Scenario Samples
+
+## States
+
+- idle*
+
+## Elements
+
+### E-Title Text
+
+- source: data
+- sample: Title
+
+### E-Users Table
+
+- source: data
+- Columns:
+  - name: Name
+
+### E-StaticUsers Table
+
+- source: data
+- Columns:
+  - name: Name
+- sample rows: []
+
+### E-LegacyUsers Table
+
+- source: data
+- rows: ${"${model.users.items}"}
+- Columns:
+  - name: Name
+
+## Preview Scenarios
+
+### idle
+
+- state: idle
+- samples:
+  - E-Missing: Ghost
+  - E-StaticUsers:
+    - rows: []
+  - E-Users: Scalar table sample
+  - E-Title:
+    - rows:
+      - row:
+        - value: Bad text rows
+
+## Model Samples
+
+### idle
+
+#### ${"${model.users.items}"}
+
+- name: Alice
+`;
+
+  const messages = parseMarkVSpec(source).diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert(messages.includes("Preview Scenario idle samples references missing element E-Missing."));
+  assert(messages.includes("Element E-Users source data should define sample rows or Preview Scenario rows."));
+  assert(!messages.includes("Element E-StaticUsers source data should define sample rows or Preview Scenario rows."));
+  assert(!messages.includes("Element E-LegacyUsers source data should define sample rows or Preview Scenario rows."));
+  assert(messages.includes("Preview Scenario idle scalar sample target E-Users should not be a Table or List element. Use rows instead."));
+  assert(messages.includes("Preview Scenario idle rows sample target E-Title must be a Table or List element."));
+});
+
 test("validates view context values and preview scenario coverage", () => {
   const source = `---
 id: SCR-BAD-VIEW-CONTEXT

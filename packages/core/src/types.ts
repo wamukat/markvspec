@@ -162,6 +162,7 @@ export interface MarkVSpecElement {
   selectOptions: MarkVSpecSelectOption[];
   tableColumns: MarkVSpecTableColumn[];
   tableRows: MarkVSpecTableRow[];
+  sampleRows?: MarkVSpecSampleRows;
   visibleWhen: string[];
   hiddenWhen: string[];
   disabledWhen: string[];
@@ -242,6 +243,19 @@ export interface MarkVSpecTableCell {
   raw: string;
 }
 
+export interface MarkVSpecSampleRows {
+  rows: MarkVSpecSampleRow[];
+  explicitEmpty: boolean;
+  location: SourceLocation;
+}
+
+export interface MarkVSpecSampleRow {
+  fields: Record<string, string>;
+  fieldLocations: Record<string, SourceLocation[]>;
+  location: SourceLocation;
+  raw: string;
+}
+
 export interface MarkVSpecModelSampleSet {
   state: string;
   path: string;
@@ -301,11 +315,19 @@ export interface MarkVSpecPreviewScenario {
   model?: string;
   view?: string;
   before?: string;
+  samples: MarkVSpecPreviewScenarioSample[];
   cases: MarkVSpecPreviewScenarioCase[];
   properties: Record<string, string>;
   propertyLocations: Record<string, SourceLocation[]>;
   overview?: string[];
   notes?: string[];
+  location: SourceLocation;
+}
+
+export interface MarkVSpecPreviewScenarioSample {
+  elementId: string;
+  value?: string;
+  rows?: MarkVSpecSampleRows;
   location: SourceLocation;
 }
 

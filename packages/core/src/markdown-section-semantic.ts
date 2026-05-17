@@ -15,6 +15,7 @@ import type {
   MarkVSpecNoteSection,
   MarkVSpecPreviewScenario,
   MarkVSpecRule,
+  MarkVSpecSampleRow,
   MarkVSpecSectionProse,
   MarkVSpecSlotContent,
   MarkVSpecSlotDefinition,
@@ -665,6 +666,7 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
   let currentElementNestedProperty: string | undefined;
   let currentTableColumn: MarkVSpecElement["tableColumns"][number] | undefined;
   let currentTableRow: MarkVSpecElement["tableRows"][number] | undefined;
+  let currentSampleRow: MarkVSpecSampleRow | undefined;
   let currentElementHasStructuredContent = false;
   let hasSeenEntity = false;
   let inSectionNotes = false;
@@ -701,6 +703,7 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
         currentElementNestedProperty = undefined;
         currentTableColumn = undefined;
         currentTableRow = undefined;
+        currentSampleRow = undefined;
         currentElementHasStructuredContent = false;
         continue;
       }
@@ -735,6 +738,7 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
       currentElementNestedProperty = undefined;
       currentTableColumn = undefined;
       currentTableRow = undefined;
+      currentSampleRow = undefined;
       currentElementHasStructuredContent = false;
       continue;
     }
@@ -761,13 +765,18 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
       if (bullet.indent === 0) {
         currentTableColumn = undefined;
         currentTableRow = undefined;
+        currentSampleRow = undefined;
       }
-      currentElementNestedProperty = applyElementSemanticBullet(currentElement, bullet, currentElementNestedProperty, currentTableColumn, currentTableRow, diagnostics, dependencies);
+      const bulletResult = applyElementSemanticBullet(currentElement, bullet, currentElementNestedProperty, currentTableColumn, currentTableRow, currentSampleRow, diagnostics, dependencies);
+      currentElementNestedProperty = bulletResult.nestedProperty;
       if (currentElementNestedProperty === "Columns" && bullet.indent > 0 && !isTableColumnMetadataBullet(bullet)) {
         currentTableColumn = currentElement.tableColumns[currentElement.tableColumns.length - 1];
       }
       if (currentElementNestedProperty === "Sample Rows" && bullet.indent > 0 && bullet.text === "Row") {
         currentTableRow = currentElement.tableRows[currentElement.tableRows.length - 1];
+      }
+      if (bulletResult.sampleRow) {
+        currentSampleRow = bulletResult.sampleRow;
       }
     }
   }
@@ -790,23 +799,24 @@ function applyElementSemanticBullet(
   nestedProperty: string | undefined,
   tableColumn: MarkVSpecElement["tableColumns"][number] | undefined,
   tableRow: MarkVSpecElement["tableRows"][number] | undefined,
+  sampleRow: MarkVSpecSampleRow | undefined,
   diagnostics: MarkVSpecDiagnostic[],
   dependencies: SemanticDependency[]
-): string | undefined {
+): { nestedProperty: string | undefined; sampleRow?: MarkVSpecSampleRow } {
   if (bullet.indent > 0) {
     if (optionElementTypes.has(element.type) && nestedProperty === "options") {
       element.selectOptions.push(parseElementOption(bullet));
-      return nestedProperty;
+      return { nestedProperty };
     }
 
     if (element.type === "Table" && nestedProperty === "Columns" && tableColumn && isTableColumnMetadataBullet(bullet)) {
       applyTableColumnMetadata(tableColumn, bullet);
-      return nestedProperty;
+      return { nestedProperty };
     }
 
     if (element.type === "Table" && nestedProperty === "Columns") {
       element.tableColumns.push(parseTableColumn(bullet));
-      return nestedProperty;
+      return { nestedProperty };
     }
 
     if (element.type === "Table" && nestedProperty === "Sample Rows") {
@@ -816,24 +826,29 @@ function applyElementSemanticBullet(
           location: bullet.location,
           raw: bullet.text
         });
-        return nestedProperty;
+        return { nestedProperty };
       }
 
       if (tableRow) {
         tableRow.cells.push(parseTableCell(bullet));
-        return nestedProperty;
+        return { nestedProperty };
       }
+    }
+
+    if (nestedProperty === "sample rows") {
+      const parsedRow = applySampleRowsBullet(element, bullet, sampleRow, diagnostics);
+      return { nestedProperty, ...(parsedRow ? { sampleRow: parsedRow } : {}) };
     }
 
     if (nestedProperty === "params") {
       applyElementRouteParamBullet(element, bullet);
       addElementRouteParamDependency(element, bullet, dependencies);
-      return nestedProperty;
+      return { nestedProperty };
     }
 
     if (nestedProperty === "input rule") {
       element.inputRules.push(parseElementInputRule(bullet));
-      return nestedProperty;
+      return { nestedProperty };
     }
 
     diagnostics.push({
@@ -841,30 +856,41 @@ function applyElementSemanticBullet(
       message: `Element ${element.id} has indented property entry: ${bullet.text}. Use an unindented list item.`,
       line: bullet.location.line
     });
-    return nestedProperty;
+    return { nestedProperty };
   }
 
   const [propertyKey, propertyValue] = splitKeyValue(bullet.text);
   const nextNestedProperty = propertyKey.trim();
   const isEmptyNestedValue = propertyValue !== undefined && propertyValue.trim() === "";
   if (isEmptyNestedValue && nextNestedProperty === "params") {
-    return nextNestedProperty;
+    return { nestedProperty: nextNestedProperty };
   }
   if (nextNestedProperty === "input rule" && isEmptyNestedValue) {
     element.properties["input rule"] = true;
     addPropertyLocation(element.propertyLocations, "input rule", bullet.location);
-    return nextNestedProperty;
+    return { nestedProperty: nextNestedProperty };
+  }
+  if (nextNestedProperty === "sample rows") {
+    const value = propertyValue?.trim();
+    element.properties["sample rows"] = value === "[]" ? "[]" : true;
+    addPropertyLocation(element.propertyLocations, "sample rows", bullet.location);
+    element.sampleRows = {
+      rows: [],
+      explicitEmpty: value === "[]",
+      location: bullet.location
+    };
+    return isEmptyNestedValue ? { nestedProperty: nextNestedProperty } : { nestedProperty: undefined };
   }
   if (element.type === "Table" && isEmptyNestedValue && isTableNestedProperty(nextNestedProperty)) {
-    return nextNestedProperty;
+    return { nestedProperty: nextNestedProperty };
   }
   if (optionElementTypes.has(element.type) && isEmptyNestedValue && nextNestedProperty === "options") {
-    return nextNestedProperty;
+    return { nestedProperty: nextNestedProperty };
   }
 
   applyElementBullet(element, bullet, diagnostics);
   addElementBulletDependencies(element, bullet, dependencies);
-  return undefined;
+  return { nestedProperty: undefined };
 }
 
 function parseActionsSection(section: SectionAst): ActionSectionSemanticResult {
@@ -1582,6 +1608,7 @@ function parsePreviewScenariosSection(section: SectionAst): Pick<SectionSemantic
       hasSeenEntity = true;
       current = {
         name: block.text.trim(),
+        samples: [],
         cases: [],
         properties: {},
         propertyLocations: {},
@@ -1606,11 +1633,17 @@ function parsePreviewScenariosSection(section: SectionAst): Pick<SectionSemantic
     }
     currentHasStructuredContent = true;
     let activeKey: string | undefined;
+    let activeSample: MarkVSpecPreviewScenario["samples"][number] | undefined;
+    let activeSampleRow: MarkVSpecSampleRow | undefined;
     for (const item of listItems([block])) {
       const bullet = parsedBulletFromListItem(item);
       const [keyPart, valuePart] = splitKeyValue(bullet.text);
       const key = keyPart.trim();
       const value = valuePart?.trim();
+      if (bullet.indent === 0) {
+        activeSample = undefined;
+        activeSampleRow = undefined;
+      }
       if (item.depth > 0) {
         if (activeKey === "cases") {
           const caseRef = parsePreviewScenarioCaseReference(bullet.text, bullet.location);
@@ -1624,11 +1657,20 @@ function parsePreviewScenariosSection(section: SectionAst): Pick<SectionSemantic
             });
           }
         }
+        if (activeKey === "samples") {
+          const sampleResult = applyPreviewScenarioSampleBullet(current, bullet, activeSample, activeSampleRow, diagnostics);
+          if (sampleResult.sample) {
+            activeSample = sampleResult.sample;
+          }
+          if (sampleResult.row) {
+            activeSampleRow = sampleResult.row;
+          }
+        }
         continue;
       }
 
       activeKey = key;
-      if (key === "cases" && value === undefined) {
+      if ((key === "cases" || key === "samples") && value === undefined) {
         continue;
       }
       if (value === undefined) {
@@ -1673,6 +1715,85 @@ function parsePreviewScenarioCaseReference(text: string, location: SourceLocatio
     location
   };
 }
+
+function applyPreviewScenarioSampleBullet(
+  scenario: MarkVSpecPreviewScenario,
+  bullet: ParsedBullet,
+  activeSample: MarkVSpecPreviewScenario["samples"][number] | undefined,
+  activeRow: MarkVSpecSampleRow | undefined,
+  diagnostics: MarkVSpecDiagnostic[]
+): { sample?: MarkVSpecPreviewScenario["samples"][number]; row?: MarkVSpecSampleRow } {
+  const [keyPart, valuePart] = splitKeyValue(bullet.text);
+  const key = keyPart.trim();
+  const value = valuePart?.trim();
+
+  if (bullet.indent === 1) {
+    if (!elementIdRegexForSamples.test(key)) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Preview Scenario ${scenario.name} has malformed sample target: ${bullet.text}. Use E-ElementId or E-ElementId: value.`,
+        line: bullet.location.line
+      });
+      return {};
+    }
+    const sample: MarkVSpecPreviewScenario["samples"][number] = {
+      elementId: key,
+      ...(value !== undefined && value !== "" ? { value } : {}),
+      location: bullet.location
+    };
+    scenario.samples.push(sample);
+    return { sample };
+  }
+
+  if (bullet.indent === 2 && activeSample) {
+    if (key === "rows" && value === "[]") {
+      activeSample.rows = {
+        rows: [],
+        explicitEmpty: true,
+        location: bullet.location
+      };
+      return { sample: activeSample };
+    }
+    if (key === "rows" && (value === undefined || value === "")) {
+      activeSample.rows = {
+        rows: [],
+        explicitEmpty: false,
+        location: bullet.location
+      };
+      return { sample: activeSample };
+    }
+  }
+
+  if (bullet.indent === 3 && activeSample?.rows) {
+    if (key === "row" && (value === undefined || value === "")) {
+      const row: MarkVSpecSampleRow = {
+        fields: {},
+        fieldLocations: {},
+        location: bullet.location,
+        raw: bullet.text
+      };
+      activeSample.rows.rows.push(row);
+      activeSample.rows.explicitEmpty = false;
+      return { sample: activeSample, row };
+    }
+  }
+
+  if (bullet.indent > 3 && activeSample && activeRow) {
+    activeRow.fields[key] = value ?? "";
+    addPropertyLocation(activeRow.fieldLocations, key, bullet.location);
+    activeRow.raw = `${activeRow.raw}\n${bullet.text}`;
+    return { sample: activeSample, row: activeRow };
+  }
+
+  diagnostics.push({
+    severity: "warning",
+    message: `Preview Scenario ${scenario.name} sample entry must use scalar E-* values or rows with row: field entries.`,
+    line: bullet.location.line
+  });
+  return { sample: activeSample, row: activeRow };
+}
+
+const elementIdRegexForSamples = new RegExp(String.raw`^${elementIdPattern}$`, "u");
 
 function parseValidationsSection(section: SectionAst): Pick<SectionSemanticResult, "validations" | "sectionProse" | "dependencies"> {
   const validations: MarkVSpecValidationRule[] = [];
@@ -2712,6 +2833,49 @@ function parseElementOption(bullet: ParsedBullet): MarkVSpecElement["selectOptio
     location: bullet.location,
     raw: bullet.text
   };
+}
+
+function applySampleRowsBullet(
+  element: MarkVSpecElement,
+  bullet: ParsedBullet,
+  currentRow: MarkVSpecSampleRow | undefined,
+  diagnostics: MarkVSpecDiagnostic[]
+): MarkVSpecSampleRow | undefined {
+  const [key, value] = splitKeyValue(bullet.text);
+  const normalizedKey = key.trim();
+  const normalizedValue = value?.trim();
+  const sampleRows = element.sampleRows ?? {
+    rows: [],
+    explicitEmpty: false,
+    location: bullet.location
+  };
+  element.sampleRows = sampleRows;
+
+  if (bullet.indent === 1 && normalizedKey === "row" && (normalizedValue === undefined || normalizedValue === "")) {
+    const row: MarkVSpecSampleRow = {
+      fields: {},
+      fieldLocations: {},
+      location: bullet.location,
+      raw: bullet.text
+    };
+    sampleRows.rows.push(row);
+    sampleRows.explicitEmpty = false;
+    return row;
+  }
+
+  if (bullet.indent > 1 && currentRow) {
+    currentRow.fields[normalizedKey] = normalizedValue ?? "";
+    addPropertyLocation(currentRow.fieldLocations, normalizedKey, bullet.location);
+    currentRow.raw = `${currentRow.raw}\n${bullet.text}`;
+    return currentRow;
+  }
+
+  diagnostics.push({
+    severity: "warning",
+    message: `Element ${element.id} sample rows entry must use row: with indented field entries.`,
+    line: bullet.location.line
+  });
+  return currentRow;
 }
 
 function parseElementInputRule(bullet: ParsedBullet): MarkVSpecElement["inputRules"][number] {
