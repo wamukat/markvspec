@@ -11,15 +11,14 @@ status: draft
 
 # SCR-RESPONSIVE-PROFILE Responsive Profile
 
-This example teaches viewport-specific layout over shared elements and states.
-Read the mobile and desktop `## Layout` variants, shared `## Elements`, and
-state-aware actions; it avoids server calls so the responsive structure is the
-main thing to compare.
+This example teaches viewport-specific layout over shared elements. Read the
+mobile and desktop `## Layout` variants and the shared `## Elements`; it keeps
+state and actions minimal so the responsive structure is the main thing to
+compare.
 
 ## States
 
 - idle*
-- editing
 
 ## Layout: mobile
 
@@ -34,7 +33,6 @@ main thing to compare.
 - E-RoleBadge
 - E-Email
 - E-EditButton
-- E-SaveButton
 
 ## Layout: desktop
 
@@ -68,7 +66,6 @@ main thing to compare.
 #### Items
 
 - E-EditButton
-- E-SaveButton
 
 ## Elements
 
@@ -89,32 +86,3 @@ main thing to compare.
 ### 4:E-EditButton Button
 
 - label: Edit
-- action: A-StartEdit
-- visible when: idle
-
-### 5:E-SaveButton Button
-
-- label: Save
-- variant: primary
-- action: A-SaveProfile
-- visible when: editing
-
-## Actions
-
-### A1:A-StartEdit Start edit
-
-- Triggered
-  - E-EditButton.click
-- From
-  - idle
-- Process P1: Transition
-  - state: editing
-
-### A2:A-SaveProfile Save profile
-
-- Triggered
-  - E-SaveButton.click
-- From
-  - editing
-- Process P1: Transition
-  - state: idle
