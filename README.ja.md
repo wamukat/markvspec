@@ -176,7 +176,7 @@ route: /login
 
 ## Validations
 
-### V-EmailRequired メールアドレス必須
+### V1:V-EmailRequired メールアドレス必須
 
 - target: E-EmailInput
 - rules:

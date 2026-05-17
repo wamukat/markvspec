@@ -1689,20 +1689,21 @@ function parseValidationsSection(section: SectionAst): Pick<SectionSemanticResul
     }
     if (block.type === "heading" && block.depth === 3) {
       hasSeenEntity = true;
-      const match = /^V-[\p{L}\p{N}-]+(?:\s+(.+?))?\s*$/u.exec(block.text);
+      const match = /^(?:(?<marker>[\p{L}\p{N}-]+):)?(?<id>V-[\p{L}\p{N}-]+)(?:\s+(?<name>.+?))?\s*$/u.exec(block.text);
       if (!match) {
         current = undefined;
         currentHasStructuredContent = false;
         continue;
       }
-      const id = block.text.split(/\s+/u)[0] ?? block.text;
+      const id = match.groups?.id ?? block.text.split(/\s+/u)[0] ?? block.text;
+      const marker = match.groups?.marker;
       current = {
         id,
-        name: match?.[1],
+        name: match.groups?.name,
         bullets: [],
         rules: [],
-        properties: {},
-        propertyLocations: {},
+        properties: marker ? { marker } : {},
+        propertyLocations: marker ? { marker: [locationFromBlock(block)] } : {},
         location: locationFromBlock(block)
       };
       validations.push(current);
@@ -2258,7 +2259,7 @@ function isRecognizedStructuredHeading(section: SectionAst, block: BlockAst): bo
     return block.depth === 3 && new RegExp(String.raw`^${formGroupIdPattern}(?:\s+.+?)?\s*$`, "u").test(block.text);
   }
   if (section.kind === "Validations") {
-    return block.depth === 3 && /^V-[\p{L}\p{N}-]+(?:\s+.+?)?\s*$/u.test(block.text);
+    return block.depth === 3 && /^(?:[\p{L}\p{N}-]+:)?V-[\p{L}\p{N}-]+(?:\s+.+?)?\s*$/u.test(block.text);
   }
   if (section.kind === "ErrorCodes") {
     return block.depth === 3 && /^ERR-[\p{L}\p{N}-]+(?:\s+.+?)?\s*$/u.test(block.text);

@@ -387,6 +387,15 @@ function embedPartialPreviewsForResult(
       output = insertFieldErrorContent(output, fieldErrorTarget.elementId, content);
     }
   }
+  for (const display of displayEffects) {
+    if (!display.message || !display.target || parseFieldErrorTarget(display.target)) {
+      continue;
+    }
+    const content = renderDisplayMessageContent(result, display.message);
+    if (content) {
+      output = replaceTargetContents(output, display.target, content, undefined, undefined);
+    }
+  }
   for (const target of [
     ...partialTargets(result, viewport, { resolveViewportFallback: true }),
     ...partialTargetsFromDisplayEffects(displayEffects)
@@ -628,10 +637,7 @@ function renderFieldErrorDisplayContent(
   markerLink: ((id: string, category: "layout" | "element" | "action") => string | undefined) | undefined
 ): string {
   if (display.message) {
-    const messages = messagesForDisplayReference(result, display.message);
-    return messages.length > 0
-      ? `<div class="mm-field-error-message">${messages.map((message) => escapeHtml(message)).join("<br>")}</div>`
-      : "";
+    return renderDisplayMessageContent(result, display.message, "mm-field-error-message");
   }
   if (!display.element) {
     return "";
@@ -652,9 +658,35 @@ function renderFieldErrorDisplayContent(
   return fragment?.html ?? "";
 }
 
+function renderDisplayMessageContent(result: MarkVSpecParseResult, reference: string, className = "mm-display-message"): string {
+  const messages = messagesForDisplayReference(result, reference);
+  if (messages.length === 0) {
+    return "";
+  }
+  const marker = displayMessageMarker(result, reference);
+  const sourceId = displayMessageSourceId(reference);
+  const sourceAttr = sourceId ? ` data-mm-display-source="${escapeHtml(sourceId)}"` : "";
+  return `<div class="${className}"${sourceAttr}>${marker}${messages.map((message) => escapeHtml(message)).join("<br>")}</div>`;
+}
+
+function displayMessageMarker(result: MarkVSpecParseResult, reference: string): string {
+  const sourceId = displayMessageSourceId(reference);
+  if (!sourceId) {
+    return "";
+  }
+  const marker = sourceId.startsWith("V-")
+    ? validationMarker(result, sourceId)
+    : sourceId;
+  return `<code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="${escapeHtml(sourceId)}">${escapeHtml(marker)}</code>`;
+}
+
+function validationMarker(result: MarkVSpecParseResult, validationId: string): string {
+  const marker = result.validations.find((validation) => validation.id === validationId)?.properties["marker"];
+  return typeof marker === "string" && marker ? marker : validationId;
+}
+
 function messagesForDisplayReference(result: MarkVSpecParseResult, reference: string): string[] {
-  const match = /^((?:V|R)-[\p{L}\p{N}-]+)\.messages$/u.exec(reference);
-  const sourceId = match?.[1];
+  const sourceId = displayMessageSourceId(reference);
   if (!sourceId) {
     return [];
   }
@@ -664,6 +696,10 @@ function messagesForDisplayReference(result: MarkVSpecParseResult, reference: st
   }
   const rule = result.rules.find((candidate) => candidate.id === sourceId);
   return rule?.bodyLines?.length ? rule.bodyLines : rule?.bullets.map((bullet) => bullet.text) ?? [];
+}
+
+function displayMessageSourceId(reference: string): string | undefined {
+  return /^((?:V|R)-[\p{L}\p{N}-]+)\.messages$/u.exec(reference)?.[1];
 }
 
 function validationPropertyValues(value: string | string[] | undefined): string[] {

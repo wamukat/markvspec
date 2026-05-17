@@ -169,7 +169,7 @@ try to cover non-submit element events.
 
 ## Validations
 
-### V-SubmitRequest Required subscription email
+### V1:V-SubmitRequest Required subscription email
 
 - target: E-EmailInput
 - rules:

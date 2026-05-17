@@ -54,12 +54,27 @@ export interface StateScreenReadModel {
   readonly viewValues: Record<string, boolean | number | string>;
   readonly renderedIds: RenderedIds;
   readonly displayEffects: ParsedDisplayEffect[];
+  readonly displayExplanations: StateScreenDisplayExplanation[];
   readonly actionIds: Set<string>;
   readonly stateNames: Set<string>;
   readonly repeatedLayoutIds?: Set<string>;
   readonly repeatedElementIds?: Set<string>;
   readonly repeatedActionIds?: Set<string>;
   readonly repeatedContent: StateScreenRepeatedContent;
+}
+
+export interface StateScreenDisplayExplanation {
+  readonly markerId: string;
+  readonly markerSource: "validation" | "business-rule" | "element";
+  readonly sourceId: string;
+  readonly sourceName?: string;
+  readonly targetRefs: string[];
+  readonly contentKind: "message" | "element";
+  readonly messageRef?: string;
+  readonly elementRef?: string;
+  readonly textSummary: string[];
+  readonly triggeredBy: string[];
+  readonly kind: string;
 }
 
 export interface StateViewportReadModel {
@@ -149,6 +164,7 @@ export function buildStateScreenReadModels(
       viewValues: displayViewValues,
       renderedIds: ids,
       displayEffects: [],
+      displayExplanations: [],
       actionIds,
       stateNames: new Set(),
       repeatedContent: repeatedContentState(result, {
@@ -164,6 +180,7 @@ export function buildStateScreenReadModels(
         viewValues: displayViewValues,
         renderedIds: ids,
         displayEffects: [],
+        displayExplanations: [],
         actionIds,
         stateNames: new Set(),
         repeatedContent: emptyRepeatedContent()
@@ -172,7 +189,7 @@ export function buildStateScreenReadModels(
   }
 
   const stateNames = new Set(result.states.map((state) => state.name));
-  const stateRenderings = new Map<string, { ids: RenderedIds; actionIds: Set<string>; modelValues: Record<string, boolean>; viewValues: Record<string, boolean | number | string>; displayEffects: ParsedDisplayEffect[] }>();
+  const stateRenderings = new Map<string, { ids: RenderedIds; actionIds: Set<string>; modelValues: Record<string, boolean>; viewValues: Record<string, boolean | number | string>; displayEffects: ParsedDisplayEffect[]; displayExplanations: StateScreenDisplayExplanation[] }>();
   if (displayStateName) {
     const displayIds = stateScreenRenderedIdsFromReadModel(wireframeResult, viewport, displayStateName, displayModelValues, displayViewValues);
     stateRenderings.set(displayStateName, {
@@ -180,7 +197,8 @@ export function buildStateScreenReadModels(
       actionIds: relevantActionIdsForState(wireframeResult, displayStateName, displayIds.elementIds),
       modelValues: displayModelValues,
       viewValues: displayViewValues,
-      displayEffects: []
+      displayEffects: [],
+      displayExplanations: []
     });
   }
   const renderState = (stateName: string) => {
@@ -192,7 +210,7 @@ export function buildStateScreenReadModels(
     const stateViewValues = viewValuesForScenario(wireframeResult, undefined);
     const ids = stateScreenRenderedIdsFromReadModel(wireframeResult, viewport, stateName, stateModelValues, stateViewValues);
     const actionIds = relevantActionIdsForState(wireframeResult, stateName, ids.elementIds);
-    const rendered = { ids, actionIds, modelValues: stateModelValues, viewValues: stateViewValues, displayEffects: [] };
+    const rendered = { ids, actionIds, modelValues: stateModelValues, viewValues: stateViewValues, displayEffects: [], displayExplanations: [] };
     stateRenderings.set(stateName, rendered);
     return rendered;
   };
@@ -208,13 +226,15 @@ export function buildStateScreenReadModels(
     const viewValues = viewValuesForScenario(scenarioResult, viewName);
     const ids = stateScreenRenderedIdsFromReadModel(scenarioResult, scenarioViewport, stateName, modelValues, viewValues);
     const displayEffects = displayEffectsForScenarioCases(scenarioResult, cases);
+    const displayExplanations = displayExplanationsForScenarioCases(scenarioResult, cases);
     addDisplayEffectTargetsToRenderedIds(ids, displayEffects, scenarioResult, viewport);
     return {
       ids,
       actionIds: relevantActionIdsForState(scenarioResult, stateName, ids.elementIds),
       modelValues,
       viewValues,
-      displayEffects
+      displayEffects,
+      displayExplanations
     };
   };
 
@@ -245,6 +265,7 @@ export function buildStateScreenReadModels(
         viewValues: current.viewValues,
         renderedIds: current.ids,
         displayEffects: current.displayEffects,
+        displayExplanations: current.displayExplanations,
         actionIds: current.actionIds,
         stateNames,
         repeatedContent: repeatedContentState(result, {
@@ -260,6 +281,7 @@ export function buildStateScreenReadModels(
           viewValues: current.viewValues,
           renderedIds: current.ids,
           displayEffects: current.displayEffects,
+          displayExplanations: current.displayExplanations,
           actionIds: current.actionIds,
           stateNames,
           repeatedContent: emptyRepeatedContent()
@@ -359,6 +381,126 @@ function displayEffectsForScenarioCases(
     const outcome = step?.outcomes.find((candidate) => candidate.result === caseRef.caseName);
     return outcome?.display ? [outcome.display] : [];
   });
+}
+
+function displayExplanationsForScenarioCases(
+  result: MarkVSpecParseResult,
+  cases: MarkVSpecParseResult["previewScenarios"][number]["cases"]
+): StateScreenDisplayExplanation[] {
+  const explanations = new Map<string, StateScreenDisplayExplanation>();
+  const validationsById = new Map(result.validations.map((validation) => [validation.id, validation]));
+  const rulesById = new Map(result.rules.map((rule) => [rule.id, rule]));
+  const elementsById = new Map(result.elements.map((element) => [element.id, element]));
+
+  for (const caseRef of cases) {
+    const action = result.actions.find((candidate) => candidate.id === caseRef.actionId);
+    const step = action?.processSteps.find((candidate) => candidate.marker === caseRef.processMarker);
+    const outcome = step?.outcomes.find((candidate) => candidate.result === caseRef.caseName);
+    const display = outcome?.display;
+    if (!action || !step || !display || (!display.message && !display.element)) {
+      continue;
+    }
+
+    const targetRef = display.target ?? "(overlay)";
+    const triggeredBy = `${action.id}.${step.marker ?? step.name}.${caseRef.caseName}`;
+    const messageSourceId = display.message ? displayMessageSourceId(display.message) : undefined;
+    const sourceId = messageSourceId ?? display.element ?? "";
+    if (!sourceId) {
+      continue;
+    }
+
+    const validation = sourceId.startsWith("V-") ? validationsById.get(sourceId) : undefined;
+    const rule = sourceId.startsWith("R-") ? rulesById.get(sourceId) : undefined;
+    const element = sourceId.startsWith("E-") || sourceId.startsWith("L-") ? elementsById.get(sourceId) : undefined;
+    const markerId = displayExplanationMarker(sourceId, validation);
+    const key = `${sourceId}:${display.message ? "message" : "element"}`;
+    const existing = explanations.get(key);
+    const textSummary = display.message
+      ? displayMessageTextSummary(display.message, validation, rule)
+      : [];
+    const nextTargetRefs = appendUnique(existing?.targetRefs ?? [], targetRef);
+    const nextTriggeredBy = appendUnique(existing?.triggeredBy ?? [], triggeredBy);
+    explanations.set(key, {
+      markerId,
+      markerSource: sourceId.startsWith("V-") ? "validation" : sourceId.startsWith("R-") ? "business-rule" : "element",
+      sourceId,
+      sourceName: validation?.name ?? rule?.name ?? elementDisplayName(element) ?? sourceId,
+      targetRefs: nextTargetRefs,
+      contentKind: display.message ? "message" : "element",
+      messageRef: display.message,
+      elementRef: display.element,
+      textSummary: existing?.textSummary.length ? existing.textSummary : textSummary,
+      triggeredBy: nextTriggeredBy,
+      kind: displayExplanationKind(display, validation, rule)
+    });
+  }
+
+  return [...explanations.values()];
+}
+
+function displayMessageSourceId(message: string): string | undefined {
+  return /^((?:V|R)-[\p{L}\p{N}-]+)\.messages$/u.exec(message)?.[1];
+}
+
+function displayExplanationMarker(sourceId: string, validation: ParsedValidation | undefined): string {
+  const marker = validation?.properties["marker"];
+  return typeof marker === "string" && marker ? marker : sourceId;
+}
+
+type ParsedValidation = MarkVSpecParseResult["validations"][number];
+type ParsedRule = MarkVSpecParseResult["rules"][number];
+
+function displayMessageTextSummary(
+  message: string,
+  validation: ParsedValidation | undefined,
+  rule: ParsedRule | undefined
+): string[] {
+  if (message.startsWith("V-")) {
+    return validationPropertyValues(validation?.properties["message"]);
+  }
+  if (message.startsWith("R-")) {
+    return rule?.bodyLines?.length ? rule.bodyLines : rule?.bullets.map((bullet) => bullet.text) ?? [];
+  }
+  return [];
+}
+
+function elementDisplayName(element: ParsedElement | undefined): string | undefined {
+  const label = element?.properties["label"];
+  return typeof label === "string" && label
+    ? label
+    : element?.id;
+}
+
+function validationPropertyValues(value: string | string[] | undefined): string[] {
+  if (Array.isArray(value)) {
+    return value;
+  }
+  return value ? [value] : [];
+}
+
+function displayExplanationKind(
+  display: ParsedDisplayEffect,
+  validation: ParsedValidation | undefined,
+  rule: ParsedRule | undefined
+): string {
+  if (validation) {
+    const run = firstValidationProperty(validation, "run") || "client";
+    const scope = firstValidationProperty(validation, "scope") || (firstValidationProperty(validation, "target")?.startsWith("F-") ? "cross-field" : "field");
+    return `${run} ${scope} validation error`;
+  }
+  if (rule) {
+    return "business rule message";
+  }
+  return display.target?.endsWith(".error") ? "field error display" : "display update";
+}
+
+function firstValidationProperty(validation: ParsedValidation, key: string): string | undefined {
+  const value = validation.properties[key];
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function appendUnique(values: string[], value: string): string[] {
+  return values.includes(value) ? values : [...values, value];
 }
 
 function addDisplayEffectTargetsToRenderedIds(

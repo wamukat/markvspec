@@ -1793,6 +1793,13 @@ Use `display.message` for simple `V-*.messages` or `R-*.messages` output, and
 `display.element` for authored rich UI. Defining both in the same display effect
 warns.
 
+In preview output, `display.message` is marked with the source validation or
+business-rule marker, not with a target-specific display marker. If the same
+`V-*` message is displayed in several targets, the same marker appears in each
+displayed message. The State View wireframe explanation groups displayed
+messages by source and lists where they are displayed and which scenario cases
+trigger them. Constraint details stay in the `V-*` definition.
+
 ```markdown
 - display:
   - element: E-ConfirmDialog
@@ -2178,6 +2185,10 @@ warns and the preview shows no fallback text. Validation definitions do not use
 `attach`; display targets belong to Action `Effects` and follow the usual
 `display.target` rule for `L-*`, `E-*`, and input field error targets such as
 `E-EmailInput.error`.
+
+If `display.message` references a `V-*` validation that has no heading marker,
+the validator warns and the preview uses the validation ID as the fallback
+marker label.
 
 ## Business Rules Section
 

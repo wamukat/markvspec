@@ -1377,6 +1377,7 @@ function renderDefaultStyles(): string {
 .mm-field-row .mm-field-label{flex:0 1 120px}
 .mm-field-error{color:#b91c1c;font-size:12px;font-weight:600;line-height:1.35;margin-top:4px;max-width:min(320px,100%)}
 .mm-field-error-message{white-space:normal}
+.mm-display-message{color:#b91c1c;font-size:12px;font-weight:600;line-height:1.35}
 .mm-slot-placeholder{align-items:center;background:#f8fafc;border:1px dashed #94a3b8;border-radius:6px;color:#475569;display:flex;font-size:12px;font-weight:600;justify-content:center;margin:3px 0;min-height:88px;padding:14px;text-align:center;width:100%}
 .mm-element{border:1px solid #d1d5db;border-radius:4px;margin:3px 0;min-height:28px;padding:6px 8px}
 .mm-element-heading,.mm-element-paragraph,.mm-element-text{border:0;padding:0}
@@ -1456,6 +1457,7 @@ function renderDefaultStyles(): string {
 .mm-marker-layout{background:#ecfeff;border-color:#67e8f9;border-left:3px solid #0891b2;border-radius:4px;color:#155e75}
 .mm-marker-element{background:rgba(255,255,255,.72);border-color:#f59e0b;border-radius:999px;color:#92400e;box-shadow:0 1px 2px rgba(15,23,42,.12)}
 .mm-marker-action{background:rgba(255,255,255,.78);border-color:#22c55e;border-radius:4px;color:#166534;box-shadow:0 1px 2px rgba(15,23,42,.12)}
+.mm-marker-message{background:#fef2f2;border-color:#fca5a5;border-radius:4px;color:#991b1b;box-shadow:0 1px 2px rgba(15,23,42,.12);margin-right:4px}
 .mm-render-warning{background:#fef3c7;border:1px dashed #f59e0b;border-radius:4px;color:#92400e;padding:6px 8px}
 </style>`;
 }

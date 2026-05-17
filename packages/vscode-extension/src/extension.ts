@@ -5523,7 +5523,22 @@ function renderDisplayEffect(
 function renderDisplayMessageReference(result: ReturnType<typeof parseMarkVSpec>, message: string): string {
   const match = /^((?:V|R)-[\p{L}\p{N}-]+)\.messages$/u.exec(message);
   const sourceId = match?.[1];
-  return sourceId ? `${referenceForDetailId(result, sourceId)}<span class="mm-detail-ref-suffix">.messages</span>` : text(message);
+  if (!sourceId) {
+    return text(message);
+  }
+  return `${displayMessageMarkerBadge(result, sourceId)} ${referenceForDetailId(result, sourceId)}<span class="mm-detail-ref-suffix">.messages</span>`;
+}
+
+function displayMessageMarkerBadge(result: ReturnType<typeof parseMarkVSpec>, sourceId: string): string {
+  const marker = sourceId.startsWith("V-")
+    ? validationMarker(result, sourceId)
+    : sourceId;
+  return `<code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="${escapeHtml(sourceId)}">${escapeHtml(marker)}</code>`;
+}
+
+function validationMarker(result: ReturnType<typeof parseMarkVSpec>, validationId: string): string {
+  const marker = result.validations.find((validation) => validation.id === validationId)?.properties["marker"];
+  return typeof marker === "string" && marker ? marker : validationId;
 }
 
 function targetlessDisplayTargetLabel(result: ReturnType<typeof parseMarkVSpec>, elementId?: string): string {

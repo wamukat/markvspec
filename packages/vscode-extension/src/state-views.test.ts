@@ -307,7 +307,12 @@ viewport: mobile
 #### Items
 
 - E-EmailInput
+- L-MessageArea
 - E-SubmitButton
+
+### L-MessageArea Message area
+
+- stack
 
 ## Elements
 
@@ -335,6 +340,11 @@ viewport: mobile
       - display:
         - target: E-EmailInput.error
         - message: V-EmailRequired.messages
+  - case: invalid-summary
+    - Effects
+      - display:
+        - target: L-MessageArea
+        - message: V-EmailRequired.messages
 
 ## Preview Scenarios
 
@@ -343,10 +353,11 @@ viewport: mobile
 - state: idle
 - cases:
   - A-Submit.P1.invalid
+  - A-Submit.P1.invalid-summary
 
 ## Validations
 
-### V-EmailRequired Email required
+### V1:V-EmailRequired Email required
 
 - target: E-EmailInput
 - rules:
@@ -363,7 +374,12 @@ viewport: mobile
 
   assert.deepEqual(result.diagnostics, []);
   assert.match(wireframe, /data-mm-render-key="element:E-EmailInput"/);
-  assert.match(wireframe, /<div class="mm-field-error" data-mm-field-error-for="E-EmailInput"><div class="mm-field-error-message">Email is required\.<\/div><\/div>/);
+  assert.match(wireframe, /<div class="mm-field-error" data-mm-field-error-for="E-EmailInput"><div class="mm-field-error-message" data-mm-display-source="V-EmailRequired"><code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="V-EmailRequired">V1<\/code>Email is required\.<\/div><\/div>/);
+  assert.match(wireframe, /data-mm-render-key="layout:mobile:L-MessageArea"[\s\S]*<div class="mm-display-message" data-mm-display-source="V-EmailRequired"><code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="V-EmailRequired">V1<\/code>Email is required\.<\/div>/);
+  assert.match(scenarioSection, /Displayed messages/);
+  assert.match(scenarioSection, /<code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="V-EmailRequired">V1<\/code> Email required/);
+  assert.match(scenarioSection, /<dt>Displayed at<\/dt><dd><ul><li>E-EmailInput\.error<\/li><li>L-MessageArea<\/li><\/ul><\/dd>/);
+  assert.match(scenarioSection, /<dt>Triggered by<\/dt><dd><ul><li>A-Submit\.P1\.invalid<\/li><li>A-Submit\.P1\.invalid-summary<\/li><\/ul><\/dd>/);
   assert.doesNotMatch(scenarioSection, /not placed in current layout[\s\S]*E-EmailInput\.error/);
 });
 

@@ -51,6 +51,8 @@ export type MessageKey =
   | "displayLocation"
   | "displaySource"
   | "displayValue"
+  | "displayedAt"
+  | "displayedMessages"
   | "emptyArray"
   | "element"
   | "elementSummary"
@@ -203,6 +205,7 @@ export type MessageKey =
   | "toggleMarker"
   | "tone"
   | "trigger"
+  | "triggeredBy"
   | "transitions"
   | "triggeredActions"
   | "type"
@@ -264,6 +267,8 @@ const en: Record<MessageKey, string> = {
   displayLocation: "Display Location",
   displaySource: "Source",
   displayValue: "Display Content",
+  displayedAt: "Displayed at",
+  displayedMessages: "Displayed messages",
   emptyArray: "Empty array",
   element: "Element",
   elementSummary: "Element Summary",
@@ -416,6 +421,7 @@ const en: Record<MessageKey, string> = {
   toggleMarker: "Toggle markers",
   tone: "Tone",
   trigger: "Trigger",
+  triggeredBy: "Triggered by",
   transitions: "Transitions",
   triggeredActions: "Triggered Actions",
   type: "Type",
@@ -478,6 +484,8 @@ const ja: Record<MessageKey, string> = {
   displayLocation: "表示箇所",
   displaySource: "取得元",
   displayValue: "表示内容",
+  displayedAt: "表示先",
+  displayedMessages: "表示メッセージ",
   emptyArray: "空配列",
   element: "画面要素",
   elementSummary: "画面要素サマリー",
@@ -630,6 +638,7 @@ const ja: Record<MessageKey, string> = {
   toggleMarker: "マーカーを切り替え",
   tone: "意味",
   trigger: "トリガー",
+  triggeredBy: "発生元",
   transitions: "遷移",
   triggeredActions: "関連アクション",
   type: "種別",

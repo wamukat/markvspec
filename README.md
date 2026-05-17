@@ -185,7 +185,7 @@ route: /login
 
 ## Validations
 
-### V-EmailRequired Email required
+### V1:V-EmailRequired Email required
 
 - target: E-EmailInput
 - rules:

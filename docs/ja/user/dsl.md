@@ -1309,6 +1309,12 @@ execution detail も result classification も持たない、決定的な即時�
 
 単純な validation message は `display.message` を使い、rich な UI を表示する場合だけ `display.element` を使います。同じ `display` に `element:` と `message:` を同時に書いた場合は warning です。
 
+preview では、`display.message` に表示先ごとの独自 marker は付けず、参照元 validation
+または business rule の marker を表示します。同じ `V-*` message を複数の target に
+表示する場合も、各表示位置に同じ marker を出します。State View の wireframe 説明では、
+displayed message を source 単位でまとめ、表示先と発生元 scenario case を列挙します。
+constraint の詳細は `V-*` 定義側に残します。
+
 ```markdown
 - display:
   - element: E-ConfirmDialog
@@ -1524,6 +1530,10 @@ preview は fallback text を表示しません。Validation 定義には `attac
 表示先は Action の `Effects` にある `display.target` で指定します。`display.target`
 は通常の `L-*` / `E-*` target rule と、`E-EmailInput.error` のような input field error
 target rule に従います。
+
+`display.message` が heading marker を持たない `V-*` validation を参照した場合、
+validator は warning を出し、preview は validation ID を fallback marker label として
+使います。
 
 ## Business Rules
 

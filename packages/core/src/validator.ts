@@ -1615,6 +1615,13 @@ function validateDisplayMessage(
       });
       return;
     }
+    if (validationPropertyValues(validation, "marker").length === 0) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Action ${actionId} ${context} display.message references validation ${sourceId}, but it defines no marker. Preview will use the validation ID as the display marker.`,
+        line
+      });
+    }
     if (validationPropertyValues(validation, "message").length === 0) {
       diagnostics.push({
         severity: "warning",

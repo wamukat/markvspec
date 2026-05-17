@@ -11493,7 +11493,7 @@ title: Field Error Display
 
 ## Validations
 
-### V-EmailRules Email rules
+### V1:V-EmailRules Email rules
 
 - target: E-EmailInput
 - rules:
@@ -11503,7 +11503,7 @@ title: Field Error Display
 - run: client
 - message: Email is required.
 
-### V-NoMessage No message
+### V2:V-NoMessage No message
 
 - target: E-EmailInput
 - rules:
@@ -11538,6 +11538,74 @@ title: Field Error Display
   assert(messages.includes("Action A-Submit process step P1 Check validation case invalid-validation-without-message display.message references validation V-NoMessage, but it defines no message."));
   assert(messages.includes("Action A-Submit process step P1 Check validation case invalid-rule-without-message display.message references business rule R-Empty, but it defines no message text."));
   assert(messages.includes("Action A-Submit process step P1 Check validation case invalid-unsupported-message display.message EmailRules.messages is not recognized. Use V-*.messages or R-*.messages."));
+});
+
+test("falls back to validation IDs for unmarked display messages", () => {
+  const source = `---
+id: SCR-UNMARKED-DISPLAY-MESSAGE
+type: screen
+title: Unmarked Display Message
+---
+# SCR-UNMARKED-DISPLAY-MESSAGE Unmarked Display Message
+
+## States
+
+- idle*
+
+## Layout
+
+### L-Message Message
+
+- stack
+
+## Elements
+
+### E-Button Button
+
+- label: Submit
+
+## Actions
+
+### A-Submit Submit
+
+- Triggered
+  - E-Button.click
+- From
+  - idle
+- Process P1: Check validation
+  - receive:
+    - validation: V-Unmarked.result
+  - case: invalid
+    - Effects
+      - display:
+        - target: L-Message
+        - message: V-Unmarked.messages
+
+## Preview Scenarios
+
+### invalid
+
+- state: idle
+- cases:
+  - A-Submit.P1.invalid
+
+## Validations
+
+### V-Unmarked Unmarked validation
+
+- target: E-Button
+- run: client
+- message: Missing marker message.
+`;
+
+  const result = parseMarkVSpec(source);
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+  const models = buildStateScreenReadModels(result, result, undefined);
+  const scenario = models.find((model) => model.title === "invalid");
+
+  assert(messages.includes("Action A-Submit process step P1 Check validation case invalid display.message references validation V-Unmarked, but it defines no marker. Preview will use the validation ID as the display marker."));
+  assert.equal(scenario?.displayExplanations[0]?.markerId, "V-Unmarked");
+  assert.equal(scenario?.displayExplanations[0]?.sourceId, "V-Unmarked");
 });
 
 test("validates architecture-neutral process contracts and preview scenario cases", () => {

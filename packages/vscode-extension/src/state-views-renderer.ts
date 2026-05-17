@@ -133,6 +133,7 @@ function renderStateScreenSpec(
       ${specFragments.renderModelSamplesForState(model.stateName)}
       ${renderStateScreenSubheading(context, format.label("wireframe"))}
       <section class="wireframe-section">${annotatedWireframeHtml}</section>
+      ${renderDisplayExplanationsBox(context, model)}
       ${renderSystemEventsBox(result, context, model.renderedIds.elementIds, model.stateName, model.initial, model.focus, model.repeatedActionIds, model.repeatedContent.systemEventsEmptyWhenRepeatedHidden)}
     </section>
     ${repeatedLayoutOnlyMessage}
@@ -144,6 +145,46 @@ function renderStateScreenSpec(
 
 function renderStateScreenSubheading(context: StateViewsRenderContext, heading: string): string {
   return `<h5 class="state-screen-subheading">${context.format.escapeHtml(heading)}</h5>`;
+}
+
+function renderDisplayExplanationsBox(
+  context: StateViewsRenderContext,
+  model: StateScreenReadModel
+): string {
+  if (model.displayExplanations.length === 0) {
+    return "";
+  }
+  const { format } = context;
+  const items = model.displayExplanations.map((explanation) => {
+    const source = `${renderDisplayExplanationMarker(format, explanation)} ${format.text(explanation.sourceName || explanation.sourceId)}`;
+    const targetList = explanation.targetRefs.map((target) => `<li>${format.text(target)}</li>`).join("");
+    const triggerList = explanation.triggeredBy.map((trigger) => `<li>${format.text(trigger)}</li>`).join("");
+    const summary = explanation.textSummary.length > 0
+      ? `<dt>${format.label("message")}</dt><dd><ul>${explanation.textSummary.map((line) => `<li>${format.text(line)}</li>`).join("")}</ul></dd>`
+      : "";
+    return `<div class="display-explanation-item">
+      <h6>${source}</h6>
+      <dl>
+        <dt>${format.label("displaySource")}</dt><dd>${format.text(explanation.sourceId)}</dd>
+        <dt>${format.label("displayedAt")}</dt><dd><ul>${targetList}</ul></dd>
+        <dt>${format.label("triggeredBy")}</dt><dd><ul>${triggerList}</ul></dd>
+        <dt>${format.label("kind")}</dt><dd>${format.text(explanation.kind)}</dd>
+        ${summary}
+      </dl>
+    </div>`;
+  }).join("");
+  return `<aside class="display-explanations-box">
+    <h6 class="state-screen-detail-heading">${format.label("displayedMessages")}</h6>
+    ${items}
+  </aside>`;
+}
+
+function renderDisplayExplanationMarker(
+  format: StateViewsFormatters,
+  explanation: StateScreenReadModel["displayExplanations"][number]
+): string {
+  const markerCategory = explanation.markerSource === "element" ? "element" : "message";
+  return `<code class="mm-id mm-marker mm-marker-${markerCategory}" data-mm-marker-category="${markerCategory}" data-mm-display-source="${format.escapeHtml(explanation.sourceId)}">${format.escapeHtml(explanation.markerId)}</code>`;
 }
 
 function repeatedHiddenEmptyAttr(emptyWhenRepeatedHidden: boolean): string {
