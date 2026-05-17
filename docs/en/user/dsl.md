@@ -1045,7 +1045,31 @@ Visibility and availability conditions are authored as readable condition text:
 - visible when: loading
 - hidden when: user.role is guest
 - disabled when: E-EmailInput is empty
+- disabled when: E-PasswordInput is empty
 ```
+
+When the same condition key appears multiple times on the same object, the lines
+are combined as OR. In the example above, the element is disabled when either
+the email input is empty or the password input is empty.
+
+`and` and `or` inside a single condition line are part of that human-readable
+condition text. They are not parsed as structured logical expressions in the
+initial DSL. If the intended meaning is OR, author it as multiple lines with the
+same key. If the intended meaning is an indivisible condition such as "email is
+present and valid", keep it in one readable line.
+
+Condition joining and readable condition text apply to Element conditions
+(`visible when`, `hidden when`, `disabled when`), Layout conditions
+(`visible when`, `hidden when`, `disabled when`, `enabled when`,
+`selected when`, `active when`), Process step conditions (`when`,
+`skip when`), Validation constraint `when`, and legacy `condition`.
+
+Preview evaluation is intentionally limited. Tools may evaluate state names such
+as `loading`, `state is loading`, and supported opaque expressions such as
+`${view.isHelpPanelOpen}`, `not ${view.isHelpPanelOpen}`, and
+`${view.selectedTab} = results`. Other conditions, including field emptiness,
+roles, authorization text, and single-line conditions containing `and` or `or`,
+should be surfaced as design information without inventing runtime values.
 
 `visible when`, `hidden when`, and `disabled when` are supported on Elements and
 may also be surfaced for Layout groups in generated design documents. Role and
@@ -2212,7 +2236,9 @@ responsibility.
 
 Supported summary keys are `target`, `run`, `inputs`, `check`, `when`, and
 `message`. `check` and `when` are human-readable text in the initial DSL; they
-are not structured expressions. `condition:` and `group:` are not canonical.
+are not structured expressions. `and` or `or` inside `check` is descriptive
+text, and `when` follows the general condition joining rules above.
+`condition:` and `group:` are not canonical.
 In the generated preview, cross-field validation tables use `ID`, `Name`,
 `Target`, `Inputs`, `Check`, `When`, `Message`, and `Error Code`. `check`
 describes the validation content; `when` describes applicability.

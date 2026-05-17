@@ -349,5 +349,5 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
 - target: F-PreferencesForm
 - inputs:
   - E-EmailInput
-- check: E-EmailInput.value is present and valid email
+- check: notification email is present and uses a valid email format
 - message: Notification email is required and must be an email address.

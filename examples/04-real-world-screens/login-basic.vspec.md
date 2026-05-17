@@ -293,7 +293,7 @@ success or failure is handled by `A-HandleLoginResponse`.
 - inputs:
   - E-EmailInput
   - E-PasswordInput
-- check: E-EmailInput.value and E-PasswordInput.value are present
+- check: email and password are both present
 - message: Email and password are required.
 
 ## Business Rules

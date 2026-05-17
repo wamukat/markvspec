@@ -1393,15 +1393,26 @@ function isStateScreenLayoutVisible(
   stateNames: Set<string>,
   options: StateScreenConditionOptions
 ): boolean {
-  const visibleWhen = group.properties["visible when"];
-  if (visibleWhen && !isStateScreenShownForCondition(visibleWhen, activeState, stateNames, options)) {
+  const visibleWhen = layoutPropertyValues(group, "visible when");
+  if (visibleWhen.length > 0 && !visibleWhen.some((condition) => isStateScreenShownForCondition(condition, activeState, stateNames, options))) {
     return false;
   }
-  const hiddenWhen = group.properties["hidden when"];
-  if (hiddenWhen && isStateScreenActiveCondition(hiddenWhen, activeState, stateNames, options)) {
+  const hiddenWhen = layoutPropertyValues(group, "hidden when");
+  if (hiddenWhen.some((condition) => isStateScreenActiveCondition(condition, activeState, stateNames, options))) {
     return false;
   }
   return true;
+}
+
+function layoutPropertyValues(group: ParsedLayout, key: string): string[] {
+  const values = group.items
+    .filter((item) => item.type === "property" && item.scope === "metadata" && item.key === key)
+    .map((item) => item.type === "property" ? item.value : "");
+  if (values.length > 0) {
+    return values;
+  }
+  const value = group.properties[key];
+  return typeof value === "string" ? [value] : [];
 }
 
 function isStateScreenShownForCondition(

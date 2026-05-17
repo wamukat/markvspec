@@ -5,6 +5,7 @@ export const STATE_VIEW_AFFECTING_LAYOUT_PROPERTY_KEYS = [
   "active when",
   "align",
   "disabled when",
+  "enabled when",
   "gap",
   "hidden when",
   "justify",
@@ -37,7 +38,7 @@ export function stateViewLayoutSignature(
     kind: layout.kind,
     notes: layout.notes ?? [],
     partial: stateViewLayoutPartialSignature(layout.partial),
-    properties: stateViewLayoutPropertiesSignature(layout.properties),
+    properties: stateViewLayoutPropertiesSignature(layout),
     items: layout.items.flatMap((item): object[] => {
       if (item.type === "contains") {
         return [{ type: item.type, targetId: item.targetId }];
@@ -67,10 +68,19 @@ function stateViewLayoutPartialSignature(partial: MarkVSpecLayoutGroup["partial"
   };
 }
 
-function stateViewLayoutPropertiesSignature(properties: Record<string, string | true>): Record<string, string | true> {
-  return Object.fromEntries(
-    Object.entries(properties)
-      .filter(([key]) => stateViewAffectingLayoutPropertyKeys.has(key))
-      .sort(([left], [right]) => left.localeCompare(right))
-  );
+function stateViewLayoutPropertiesSignature(layout: MarkVSpecLayoutGroup): Record<string, string | string[]> {
+  const entries = Object.entries(layout.properties)
+    .filter(([key]) => stateViewAffectingLayoutPropertyKeys.has(key))
+    .map(([key, value]): [string, string | string[]] => [key, value]);
+
+  for (const key of stateViewAffectingLayoutPropertyKeys) {
+    const values = layout.items
+      .filter((item) => item.type === "property" && item.scope === "metadata" && item.key === key)
+      .map((item) => item.type === "property" ? item.value : "");
+    if (values.length > 1) {
+      entries.push([key, values]);
+    }
+  }
+
+  return Object.fromEntries(entries.sort(([left], [right]) => left.localeCompare(right)));
 }

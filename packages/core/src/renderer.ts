@@ -261,7 +261,7 @@ function rootLayoutGroups(
 }
 
 function isRootLayoutAlternative(group: MarkVSpecLayoutGroup): boolean {
-  return Boolean(group.properties["visible when"] || group.properties["hidden when"]);
+  return layoutPropertyValues(group, "visible when").length > 0 || layoutPropertyValues(group, "hidden when").length > 0;
 }
 
 function renderLayoutGroup(
@@ -915,13 +915,13 @@ function isElementVisible(element: MarkVSpecElement, activeState: string | undef
 }
 
 function isLayoutVisible(group: MarkVSpecLayoutGroup, activeState: string | undefined, stateNames: Set<string>, options: MarkVSpecRenderOptions): boolean {
-  const visibleWhen = group.properties["visible when"];
-  if (visibleWhen && !isShownForCondition(visibleWhen, activeState, stateNames, options)) {
+  const visibleWhen = layoutPropertyValues(group, "visible when");
+  if (visibleWhen.length > 0 && !visibleWhen.some((condition) => isShownForCondition(condition, activeState, stateNames, options))) {
     return false;
   }
 
-  const hiddenWhen = group.properties["hidden when"];
-  if (hiddenWhen && isActiveCondition(hiddenWhen, activeState, stateNames, options)) {
+  const hiddenWhen = layoutPropertyValues(group, "hidden when");
+  if (hiddenWhen.some((condition) => isActiveCondition(condition, activeState, stateNames, options))) {
     return false;
   }
 
@@ -933,18 +933,32 @@ function isElementDisabled(element: MarkVSpecElement, activeState: string | unde
 }
 
 function isLayoutDisabled(group: MarkVSpecLayoutGroup, activeState: string | undefined, stateNames: Set<string>, options: MarkVSpecRenderOptions): boolean {
-  const disabledWhen = group.properties["disabled when"];
-  return Boolean(disabledWhen && isActiveCondition(disabledWhen, activeState, stateNames, options));
+  const disabledWhen = layoutPropertyValues(group, "disabled when");
+  if (disabledWhen.some((condition) => isActiveCondition(condition, activeState, stateNames, options))) {
+    return true;
+  }
+  const enabledWhen = layoutPropertyValues(group, "enabled when");
+  const evaluableEnabledWhen = enabledWhen.filter((condition) => isPreviewEvaluableCondition(condition, stateNames));
+  return evaluableEnabledWhen.length > 0 && !evaluableEnabledWhen.some((condition) => isActiveCondition(condition, activeState, stateNames, options));
 }
 
 function isLayoutSelected(group: MarkVSpecLayoutGroup, activeState: string | undefined, stateNames: Set<string>, options: MarkVSpecRenderOptions): boolean {
-  const selectedWhen = group.properties["selected when"];
-  return Boolean(selectedWhen && isActiveCondition(selectedWhen, activeState, stateNames, options));
+  return layoutPropertyValues(group, "selected when").some((condition) => isActiveCondition(condition, activeState, stateNames, options));
 }
 
 function isLayoutActive(group: MarkVSpecLayoutGroup, activeState: string | undefined, stateNames: Set<string>, options: MarkVSpecRenderOptions): boolean {
-  const activeWhen = group.properties["active when"];
-  return Boolean(activeWhen && isActiveCondition(activeWhen, activeState, stateNames, options));
+  return layoutPropertyValues(group, "active when").some((condition) => isActiveCondition(condition, activeState, stateNames, options));
+}
+
+function layoutPropertyValues(group: MarkVSpecLayoutGroup, key: string): string[] {
+  const values = group.items
+    .filter((item) => item.type === "property" && item.scope === "metadata" && item.key === key)
+    .map((item) => item.type === "property" ? item.value : "");
+  if (values.length > 0) {
+    return values;
+  }
+  const value = group.properties[key];
+  return value ? [value] : [];
 }
 
 function isShownForCondition(condition: string | undefined, activeState: string | undefined, stateNames: Set<string>, options: MarkVSpecRenderOptions): boolean {
@@ -991,6 +1005,10 @@ function isActiveStateCondition(condition: string | undefined, activeState: stri
 function isStateScopedCondition(condition: string, stateNames: Set<string>): boolean {
   const normalized = condition.trim();
   return normalized.startsWith("state is ") || stateNames.has(normalized);
+}
+
+function isPreviewEvaluableCondition(condition: string, stateNames: Set<string>): boolean {
+  return isNamespacedCondition(condition) || isStateScopedCondition(condition, stateNames);
 }
 
 function isNamespacedCondition(condition: string): boolean {

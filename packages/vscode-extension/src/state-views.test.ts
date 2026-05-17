@@ -1459,6 +1459,7 @@ test("limits State Views layout signatures to state-view-affecting properties an
     "active when",
     "align",
     "disabled when",
+    "enabled when",
     "gap",
     "hidden when",
     "justify",

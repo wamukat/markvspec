@@ -240,6 +240,7 @@ export function createStateViewSpecTableRenderer(
       [helpers.conditionLabel("visible"), layoutPropertyList(layout, "visible when").join(", ")],
       [helpers.conditionLabel("hidden"), layoutPropertyList(layout, "hidden when").join(", ")],
       [helpers.conditionLabel("disabled"), layoutPropertyList(layout, "disabled when").join(", ")],
+      [helpers.conditionLabel("enabled"), layoutPropertyList(layout, "enabled when").join(", ")],
       [helpers.conditionLabel("selected"), layoutPropertyList(layout, "selected when").join(", ")],
       [helpers.conditionLabel("active"), layoutPropertyList(layout, "active when").join(", ")]
     ].filter(([, value]) => value);

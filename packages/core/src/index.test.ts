@@ -689,6 +689,7 @@ test("limits State Views layout signatures to state-view-affecting properties in
     "active when",
     "align",
     "disabled when",
+    "enabled when",
     "gap",
     "hidden when",
     "justify",
@@ -10629,6 +10630,7 @@ title: Layout Hidden
 
 - idle*
 - blocked
+- review
 
 ## Layout: mobile
 
@@ -10640,11 +10642,14 @@ title: Layout Hidden
 
 - L-BlockedOnly
 - L-HiddenWhenBlocked
+- L-StateEnabled
+- L-HumanEnabled
 
 ### L-BlockedOnly Blocked Only
 
 - stack
 - visible when: blocked
+- visible when: review
 
 #### Items
 
@@ -10654,10 +10659,29 @@ title: Layout Hidden
 
 - stack
 - hidden when: blocked
+- hidden when: review
 
 #### Items
 
 - E-IdleText
+
+### L-StateEnabled State Enabled
+
+- stack
+- enabled when: idle
+
+#### Items
+
+- E-StateSubmitButton
+
+### L-HumanEnabled Human Enabled
+
+- stack
+- enabled when: user can edit
+
+#### Items
+
+- E-HumanSubmitButton
 
 ## Elements
 
@@ -10668,15 +10692,32 @@ title: Layout Hidden
 ### E-IdleText Text
 
 - value: Idle content
+
+### E-StateSubmitButton Button
+
+- label: Submit
+
+### E-HumanSubmitButton Button
+
+- label: Human Submit
 `;
   const result = parseMarkVSpec(source);
   const blockedHtml = renderMarkVSpecHtml(result, { state: "blocked" });
+  const reviewHtml = renderMarkVSpecHtml(result, { state: "review" });
   const idleHtml = renderMarkVSpecHtml(result, { state: "idle" });
 
   assert.match(blockedHtml, /Blocked content/);
   assert.doesNotMatch(blockedHtml, /Idle content/);
+  assert.match(blockedHtml, /<button[^>]*disabled[^>]*>Submit<\/button>/);
+  assert.doesNotMatch(blockedHtml, /<button[^>]*disabled[^>]*>Human Submit<\/button>/);
+  assert.match(reviewHtml, /Blocked content/);
+  assert.doesNotMatch(reviewHtml, /Idle content/);
+  assert.match(reviewHtml, /<button[^>]*disabled[^>]*>Submit<\/button>/);
+  assert.doesNotMatch(reviewHtml, /<button[^>]*disabled[^>]*>Human Submit<\/button>/);
   assert.match(idleHtml, /Idle content/);
   assert.doesNotMatch(idleHtml, /Blocked content/);
+  assert.doesNotMatch(idleHtml, /<button[^>]*disabled[^>]*>Submit<\/button>/);
+  assert.doesNotMatch(idleHtml, /<button[^>]*disabled[^>]*>Human Submit<\/button>/);
 });
 
 test("renders overlay layouts and disabled controls for active states", () => {

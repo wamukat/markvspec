@@ -2494,13 +2494,21 @@ function validateConditionNamespaces(
     }
   }
   for (const layout of [...result.layoutGroups, ...result.slotContents.flatMap((slot) => slot.layoutGroups)]) {
-    for (const key of ["visible when", "hidden when", "disabled when", "selected when", "active when"]) {
-      const value = layout.properties[key];
-      if (typeof value === "string") {
-        check(value, firstPropertyLine(layout, key) ?? layout.location.line);
-      }
+    for (const key of ["visible when", "hidden when", "disabled when", "enabled when", "selected when", "active when"]) {
+      layoutPropertyValues(layout, key).forEach((value, index) => check(value, layout.propertyLocations[key]?.[index]?.line ?? layout.location.line));
     }
   }
+}
+
+function layoutPropertyValues(group: MarkVSpecLayoutGroup, key: string): string[] {
+  const values = group.items
+    .filter((item) => item.type === "property" && item.scope === "metadata" && item.key === key)
+    .map((item) => item.type === "property" ? item.value : "");
+  if (values.length > 0) {
+    return values;
+  }
+  const value = group.properties[key];
+  return typeof value === "string" ? [value] : [];
 }
 
 function validateViewContextActionEffects(

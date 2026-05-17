@@ -862,6 +862,7 @@ wireframe preview では native `required` attribute や自動の `*` marker と
 - visible when: loading
 - hidden when: idle
 - disabled when: E-EmailInput is empty
+- disabled when: E-PasswordInput is empty
 - variant: primary
 - tone: danger
 - validation: メールアドレス形式であること。
@@ -876,6 +877,25 @@ wireframe preview では native `required` attribute や自動の `*` marker と
 - level: 1
 - label: ログイン
 ```
+
+同じオブジェクトに同じ condition key を複数行書いた場合、その行は OR として結合します。
+上の例では、email input または password input のどちらかが空なら要素は disabled です。
+
+1 行の condition 内にある `and` / `or` は、人間が読むための条件文の一部です。
+初期 DSL では構造化された論理式として parse / evaluate しません。OR の意図を明確にしたい場合は、
+同じ key を複数行に分けます。`email is present and valid` のように 1 つの不可分な条件として読ませたい場合は、
+1 行の読みやすい文として書きます。
+
+この condition の結合規則と可読 text の扱いは、Element の `visible when` / `hidden when` /
+`disabled when`、Layout の `visible when` / `hidden when` / `disabled when` /
+`enabled when` / `selected when` / `active when`、Process step の `when` /
+`skip when`、Validation constraint の `when`、legacy `condition` に適用します。
+
+preview が評価できる条件は意図的に限定します。`loading` のような state 名、`state is loading`、
+`${view.isHelpPanelOpen}`、`not ${view.isHelpPanelOpen}`、
+`${view.selectedTab} = results` のような対応済み opaque expression は評価してよい対象です。
+field の空判定、role、authorization text、`and` / `or` を含む 1 行 condition などは、
+runtime 値を捏造せず、設計情報として表示します。
 
 `visible when` / `hidden when` / `disabled when` には画面内状態だけでなく
 `${model.memberProfile.loaded}` のような不透明な式も書けます。API 取得後に Loading 表示から実値表示へ
@@ -1570,6 +1590,7 @@ cross-field validation の対象としては使いません。
 
 summary key は `target`、`run`、`inputs`、`check`、`when`、`message` を使います。
 `check` と `when` は初期 DSL では人間可読 text であり、構造化 expression ではありません。
+`check` 内の `and` / `or` は説明文であり、`when` は上記の condition 結合規則に従います。
 `condition:` と `group:` は canonical syntax では使いません。
 生成 preview の cross-field validation 表は `ID`、`名前`、`対象`、`入力`、`チェック`、
 `条件`、`メッセージ`、`エラーコード` を表示します。`check` は検証内容、`when` は

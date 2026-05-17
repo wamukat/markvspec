@@ -155,7 +155,7 @@ referenced from the same flow.
 - inputs:
   - E-DisplayNameInput
   - E-EmailInput
-- check: E-DisplayNameInput.value and E-EmailInput.value are present
+- check: display name and notification email are both present
 - error code: ERR-ACCOUNT-REQUIRED
 - message: Display name and notification email are required.
 
