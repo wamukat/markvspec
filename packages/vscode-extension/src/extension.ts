@@ -4491,31 +4491,80 @@ function renderScreenTransitionsSpec(result: ReturnType<typeof parseMarkVSpec>):
   const rows = result.actions.flatMap((action) => action.transitions
     .filter((transition) => isTerminalTransitionTarget(transition.to))
     .map((transition) => [
-      referenceForId(result, action.id, "action"),
-      text(action.name),
       renderTrigger(result, action.triggeredBy),
+      renderScreenTransitionAction(result, action, transition.result),
       renderStateLabel(transition.from),
-      renderResultLabel(transition.result),
-      text(screenTransitionTargetKind(transition.to)),
-      renderNavigationTarget(transition.to)
+      renderScreenTransitionTarget(result, transition.to),
+      renderScreenTransitionParams(result, action, transition)
     ]));
 
   return `<section class="doc-section">
     <h2>${label(result, "screenTransitions")}</h2>
-    ${renderLocalizedTable(result, [label(result, "action"), label(result, "name"), label(result, "trigger"), label(result, "from"), label(result, "result"), label(result, "targetType"), label(result, "target")], rows)}
+    ${renderLocalizedTable(result, [label(result, "trigger"), label(result, "action"), label(result, "from"), label(result, "to"), label(result, "params")], rows)}
   </section>`;
 }
 
-function screenTransitionTargetKind(target: string): string {
+function renderScreenTransitionAction(
+  result: ReturnType<typeof parseMarkVSpec>,
+  action: ReturnType<typeof parseMarkVSpec>["actions"][number],
+  resultName: string | undefined
+): string {
+  const actionRef = [referenceForId(result, action.id, "action"), renderDetailRefId(action.id), text(action.name)].filter(Boolean).join(" ");
+  if (!resultName) {
+    return actionRef;
+  }
+  return `${actionRef}<ul class="spec-list"><li>${label(result, "case")}: ${renderResultLabel(resultName)}</li></ul>`;
+}
+
+function renderScreenTransitionTarget(result: ReturnType<typeof parseMarkVSpec>, target: string): string {
+  const kind = screenTransitionTargetKind(result, target);
+  return `${text(kind)} ${renderNavigationTarget(target)}`;
+}
+
+function screenTransitionTargetKind(result: ReturnType<typeof parseMarkVSpec>, target: string): string {
   if (target.startsWith("SCR-")) {
-    return "screen";
+    return label(result, "screen").toLowerCase();
   }
 
   if (target.startsWith("/")) {
-    return "route";
+    return label(result, "route").toLowerCase();
   }
 
-  return "url";
+  return label(result, "url");
+}
+
+function renderScreenTransitionParams(
+  result: ReturnType<typeof parseMarkVSpec>,
+  action: ReturnType<typeof parseMarkVSpec>["actions"][number],
+  transition: ReturnType<typeof parseMarkVSpec>["actions"][number]["transitions"][number]
+): string {
+  const outcome = transition.result ? findActionOutcomeForTransition(action, transition) : undefined;
+  return renderRouteParams(result, outcome?.routeParams ?? action.routeParams, true);
+}
+
+function findActionOutcomeForTransition(
+  action: ReturnType<typeof parseMarkVSpec>["actions"][number],
+  transition: ReturnType<typeof parseMarkVSpec>["actions"][number]["transitions"][number]
+): ReturnType<typeof parseMarkVSpec>["actions"][number]["outcomes"][number] | ReturnType<typeof parseMarkVSpec>["actions"][number]["processSteps"][number]["outcomes"][number] | undefined {
+  return [
+    ...action.outcomes,
+    ...action.processSteps.flatMap((step) => step.outcomes)
+  ].find((outcome) => isOutcomeForTransition(outcome, transition));
+}
+
+function isOutcomeForTransition(
+  outcome: ReturnType<typeof parseMarkVSpec>["actions"][number]["outcomes"][number] | ReturnType<typeof parseMarkVSpec>["actions"][number]["processSteps"][number]["outcomes"][number],
+  transition: ReturnType<typeof parseMarkVSpec>["actions"][number]["transitions"][number]
+): boolean {
+  if (outcome.result !== transition.result || outcome.to !== transition.to) {
+    return false;
+  }
+
+  const transitionLines = [
+    ...(outcome.propertyLocations.state ?? []),
+    ...(outcome.propertyLocations.navigate ?? [])
+  ].map((location) => location.line);
+  return transitionLines.length === 0 || transitionLines.includes(transition.location.line);
 }
 
 function renderMermaidStateDiagram(result: ReturnType<typeof parseMarkVSpec>): string {

@@ -367,8 +367,8 @@ test("renders generated design document sections without launching VS Code", () 
   assert.doesNotMatch(html, /Handle login response \/ success \/ navigate/);
   assert.match(html, /Handle login response \/ failure/);
   assert.match(html, new RegExp(`${actionBadge("A1", "A-SubmitLogin")}[\\s\\S]*Submit login[\\s\\S]*${docLabel("idle", "state")}[\\s\\S]*${docLabel("sent", "result")}[\\s\\S]*${docLabel("authenticating", "state")}`));
-  assert.match(html, new RegExp(`<td>${actionBadge("A2", "A-HandleLoginResponse")}</td><td>Handle login response</td><td>${docLabel("A-SubmitLogin.P2.response", "trigger")}</td><td>${docLabel("authenticating", "state")}</td><td>${docLabel("success", "result")}</td><td>screen</td><td>${documentRef("SCR-HOME")}</td>`));
-  assert.match(html, new RegExp(`<td>${actionBadge("A3", "A-ForgotPassword")}</td><td>Open password reset</td><td>${markerBadge("8", "element")}\\.click</td><td>${docLabel("idle", "state")}</td><td>-</td><td>screen</td><td>${documentRef("SCR-PASSWORD-RESET")}</td>`));
+  assert.match(html, new RegExp(`<td>${docLabel("A-SubmitLogin.P2.response", "trigger")}</td><td>${actionBadge("A2", "A-HandleLoginResponse")} ${detailIdRef("A-HandleLoginResponse")} Handle login response<ul class="spec-list"><li>Case: ${docLabel("success", "result")}</li></ul></td><td>${docLabel("authenticating", "state")}</td><td>screen ${documentRef("SCR-HOME")}</td><td>-</td>`));
+  assert.match(html, new RegExp(`<td>${markerBadge("8", "element")}\\.click</td><td>${actionBadge("A3", "A-ForgotPassword")} ${detailIdRef("A-ForgotPassword")} Open password reset</td><td>${docLabel("idle", "state")}</td><td>screen ${documentRef("SCR-PASSWORD-RESET")}</td><td>-</td>`));
   assert.match(html, /data-state-view-title="authenticating" data-state="authenticating" data-viewport="mobile"/);
   const waitAuthSection = viewportStateSection(html, "authenticating", "mobile");
   assert.match(waitAuthSection, /<h6 class="state-screen-detail-heading">Element Summary<\/h6>/);
@@ -3632,6 +3632,105 @@ title: Transition Matrix
   assert.doesNotMatch(section, /E-SubmitButton\.click \/ /);
   assert.doesNotMatch(section, /SCR-DONE/);
   assert.doesNotMatch(html, /<h2>Action Transitions<\/h2>/);
+});
+
+test("renders screen transitions as a compact navigation index", () => {
+  const source = `---
+id: SCR-SCREEN-TRANSITIONS
+type: screen
+title: Screen Transitions
+---
+
+# SCR-SCREEN-TRANSITIONS Screen Transitions
+
+## States
+
+- idle*
+- submitting
+
+## Elements
+
+### 1:E-ForgotPasswordLink Link
+
+- sample: Forgot password
+
+### 2:E-SubmitButton Button
+
+- label: Submit
+
+## Actions
+
+### A1:A-ForgotPassword Open password reset
+
+- Triggered
+  - E-ForgotPasswordLink.click
+- From
+  - idle
+- Process: Immediate
+  - Effects
+    - navigate: SCR-PASSWORD-RESET
+
+### A2:A-Submit Submit login
+
+- Triggered
+  - E-SubmitButton.click
+- From
+  - idle
+- Process P1: Immediate
+  - Effects
+    - state: submitting
+
+### A3:A-SubmitResponse Handle response
+
+- Triggered
+  - A-Submit.P1.response
+- From
+  - submitting
+- Process P1: Immediate
+  - case: success
+    - state: submitting
+- Process P2: Immediate
+  - case: success
+    - response: 200
+    - navigate: SCR-HOME
+    - params:
+      - userId: \${model.auth.userId}
+  - case: failure
+    - response: 401
+    - state: idle
+
+### A4:A-OpenDocs Open docs
+
+- Triggered
+  - E-ForgotPasswordLink.click
+- From
+  - idle
+- Process: Immediate
+  - Effects
+    - navigate: https://example.com/help
+
+### A5:A-OpenSettings Open settings
+
+- Triggered
+  - E-SubmitButton.click
+- From
+  - idle
+- Process: Immediate
+  - Effects
+    - navigate: /settings
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const section = docSectionByHeading(html, "Screen Transitions", "State Transitions");
+
+  assert.match(section, /<th>Trigger<\/th><th>Action<\/th><th>From<\/th><th>To<\/th><th>Params<\/th>/);
+  assert.doesNotMatch(section, /<th>Name<\/th>|<th>Result<\/th>|<th>Case<\/th>|<th>Target Type<\/th>|<th>Target<\/th>/);
+  assert.match(section, new RegExp(`<td>${markerBadge("1", "element")}\\.click</td><td>${actionBadge("A1", "A-ForgotPassword")} ${detailIdRef("A-ForgotPassword")} Open password reset</td><td>${docLabel("idle", "state")}</td><td>screen ${documentRef("SCR-PASSWORD-RESET")}</td><td>-</td>`));
+  assert.match(section, new RegExp(`<td>${docLabel("A-Submit.P1.response", "trigger")}</td><td>${actionBadge("A3", "A-SubmitResponse")} ${detailIdRef("A-SubmitResponse")} Handle response<ul class="spec-list"><li>Case: ${docLabel("success", "result")}</li></ul></td><td>${docLabel("submitting", "state")}</td><td>screen ${documentRef("SCR-HOME")}</td><td><ul><li>userId: ${sourceCodePattern("${model.auth.userId}")}</li></ul></td>`));
+  assert.match(section, new RegExp(`<td>${markerBadge("1", "element")}\\.click</td><td>${actionBadge("A4", "A-OpenDocs")} ${detailIdRef("A-OpenDocs")} Open docs</td><td>${docLabel("idle", "state")}</td><td>URL https://example\\.com/help</td><td>-</td>`));
+  assert.match(section, new RegExp(`<td>${markerBadge("2", "element")}\\.click</td><td>${actionBadge("A5", "A-OpenSettings")} ${detailIdRef("A-OpenSettings")} Open settings</td><td>${docLabel("idle", "state")}</td><td>route /settings</td><td>-</td>`));
+  assert.doesNotMatch(section, new RegExp(`${actionBadge("A2", "A-Submit")} ${detailIdRef("A-Submit")} Submit login`));
+  assert.doesNotMatch(section, /failure/);
 });
 
 test("aggregates duplicate state-flow edges in Mermaid source", () => {

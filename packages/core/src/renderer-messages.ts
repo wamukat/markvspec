@@ -152,6 +152,7 @@ export type MessageKey =
   | "properties"
   | "purpose"
   | "parameters"
+  | "params"
   | "required"
   | "requiredNo"
   | "requiredYes"
@@ -212,6 +213,7 @@ export type MessageKey =
   | "triggeredActions"
   | "type"
   | "update"
+  | "url"
   | "validation"
   | "validationRules"
   | "value"
@@ -370,6 +372,7 @@ const en: Record<MessageKey, string> = {
   projectTransitions: "Project Transitions",
   purpose: "Purpose",
   parameters: "Parameters",
+  params: "Params",
   required: "Required",
   requiredNo: "no",
   requiredYes: "yes",
@@ -430,6 +433,7 @@ const en: Record<MessageKey, string> = {
   triggeredActions: "Triggered Actions",
   type: "Type",
   update: "Update",
+  url: "URL",
   validation: "Validation",
   validationRules: "Validations",
   value: "Value",
@@ -589,6 +593,7 @@ const ja: Record<MessageKey, string> = {
   projectTransitions: "プロジェクト遷移",
   purpose: "目的",
   parameters: "パラメータ",
+  params: "パラメータ",
   required: "必須",
   requiredNo: "いいえ",
   requiredYes: "はい",
@@ -649,6 +654,7 @@ const ja: Record<MessageKey, string> = {
   triggeredActions: "関連アクション",
   type: "種別",
   update: "更新",
+  url: "URL",
   validation: "検証",
   validationRules: "Validations",
   value: "値",
