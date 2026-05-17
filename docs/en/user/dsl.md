@@ -1085,8 +1085,9 @@ Display text separates static UI wording from dynamic data examples:
 
 - `label`: static wording shown to users, such as headings, buttons, links, and
   form labels.
-- `label src`: the source of `label`, usually an opaque expression such as
-  `${i18n.login.heading}`.
+- `label src`: an optional opaque source for `label`. Do not use it for
+  implementation i18n keys; prefer `source: i18n` when the label is
+  translation-backed.
 - `sample`: the representative display value shown in the wireframe for dynamic
   data.
 - `src`: the data source represented by `sample`, written as an
@@ -1128,7 +1129,7 @@ outside the app. `source: document` and old reference-path usage such as
 ### E-PageTitle Heading
 
 - label: My Page
-- label src: ${i18n.mypage.title}
+- source: i18n
 
 ### E-NoticeTitle Link
 
@@ -1294,9 +1295,9 @@ source, write it after `:`.
 - value: ${model.role}
 - initial value: "Administrator"
 - options:
-  - Viewer: ${i18n.roles.viewer}
-  - Administrator: ${i18n.roles.administrator}
-  - Owner: ${i18n.roles.owner}
+  - Viewer
+  - Administrator
+  - Owner
 ```
 
 `Checkbox` can also use `initial value` when the initial checked state comes
@@ -1318,14 +1319,14 @@ selection in `initial value`.
 ### E-ReadStatusFilter RadioGroup
 
 - label: Read status
-- label src: ${i18n.search.read-status}
+- source: i18n
 - name: readStatus
 - value: ${model.noticeSearch.readStatus}
 - initial value: "All"
 - options:
-  - All: ${i18n.search.all}
-  - Unread only: ${i18n.search.unread-only}
-  - Read only: ${i18n.search.read-only}
+  - All
+  - Unread only
+  - Read only
 ```
 
 Use `RadioGroup` instead of individual radio inputs. The standalone `Radio`
@@ -1619,7 +1620,7 @@ Examples:
 - marker: 1
 - level: 1
 - label: Welcome back
-- label src: ${i18n.login.heading}
+- source: i18n
 
 ### E-LeadText Paragraph
 

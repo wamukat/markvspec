@@ -45,7 +45,7 @@ MarkVSpec のプレビューは、生成された画面設計書です。上か�
 
 - 画面要素サマリーは「何があるか」に絞り、表示内容や入力仕様を持ち込まない。
 - 入力フォーム仕様は、ユーザーが入力できる値、入力要素側の必須、初期値/取得元、入力詳細、入力制約、表示形式、条件/有効条件を扱う。readonly は制約として表示し、独立した bind 列は持たない。入力要素側の必須情報は必須列に集約し、仕様セルには表示しない。product validation の required rule は Validations に置く。
-- 表示内容仕様は、`label src`、`placeholder src`、`sample`、`src`、`value`、`format`、`option label` を表示箇所ごとに扱い、表示文言を持つ非入力要素の表示/有効条件もここで確認できるようにする。
+- 表示内容仕様は、`label`、`placeholder`、`source`、`sample`、`src`、`value`、`format`、`option label` を表示箇所ごとに扱い、表示文言を持つ非入力要素の表示/有効条件もここで確認できるようにする。
 - Validations は client/server と単項目/複合項目で表を分け、1つの表に責務を混在させない。
 - Action Summary は 1 Action 1 行を維持し、著者が Action 見出し直下に書いた概要だけを表示する。処理内容から overview を自動生成しない。
 - Action Details は、著者が書いた概要、種別、trigger、from、process、request、

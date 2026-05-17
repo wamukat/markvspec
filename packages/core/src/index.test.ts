@@ -7605,8 +7605,8 @@ title: Choices
 - value: \${model.plan}
 - initial value: "Pro"
 - options:
-  - Basic: \${i18n.plan.basic}
-  - Pro: \${i18n.plan.pro}
+  - Basic: \${copy.plan.basic}
+  - Pro: \${copy.plan.pro}
   - Pro, Annual
 `;
   const result = parseMarkVSpec(source);
@@ -7624,7 +7624,7 @@ title: Choices
   assert.equal(radioGroup?.properties["value"], "\${model.plan}");
   assert.equal(radioGroup?.properties["initial value"], "Pro");
   assert.deepEqual(radioGroup?.selectOptions.map((option) => option.label), ["Basic", "Pro", "Pro, Annual"]);
-  assert.deepEqual(radioGroup?.selectOptions.map((option) => option.source), ["\${i18n.plan.basic}", "\${i18n.plan.pro}", undefined]);
+  assert.deepEqual(radioGroup?.selectOptions.map((option) => option.source), ["\${copy.plan.basic}", "\${copy.plan.pro}", undefined]);
   assert.match(html, /<fieldset class="mm-element mm-element-radiogroup" data-mm-id="E-PlanGroup"><legend>Plan<\/legend><label class="mm-choice-group-option"><input type="radio" name="planGroup">Basic<\/label><label class="mm-choice-group-option"><input type="radio" name="planGroup" checked>Pro<\/label><label class="mm-choice-group-option"><input type="radio" name="planGroup">Pro, Annual<\/label><\/fieldset>/);
   assert.doesNotMatch(html, /mm-element-radio"/);
 });
@@ -9703,7 +9703,7 @@ title: Unsupported Bind
   assert.equal(diagnostic.line, lineNumber(source, "- bind: ${model.email}"));
 });
 
-test("allows label src i18n references on element labels", () => {
+test("allows label src opaque references on element labels", () => {
   const source = `---
 id: SCR-I18N-LABEL
 type: screen
@@ -9721,11 +9721,11 @@ title: I18n Label
 ### E-Title Heading
 
 - label: マイページ
-- label src: \${i18n.mypage.title}
+- label src: \${copy.mypage.title}
 `;
   const result = parseMarkVSpec(source);
 
-  assert.equal(result.elements[0]?.properties["label src"], "\${i18n.mypage.title}");
+  assert.equal(result.elements[0]?.properties["label src"], "\${copy.mypage.title}");
   assert.equal(result.diagnostics.find((diagnostic) => diagnostic.message.includes("label src")), undefined);
 });
 

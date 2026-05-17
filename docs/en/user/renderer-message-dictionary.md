@@ -3,8 +3,8 @@
 ## Purpose
 
 The renderer message dictionary lets a project override fixed MarkVSpec UI text in preview, HTML export, PDF export, and generated design documents.
-It is separate from business-screen labels such as `label src: ${i18n.label}`.
-Business label expressions describe labels and sample values inside the authored screen; renderer messages describe MarkVSpec-generated headings, table names, column names, condition labels, empty states, and other chrome.
+It is separate from business-screen labels and messages authored in a `.vspec.md` file.
+Business screen specs may mark text with `source: i18n` when the wording is translation-backed, but they should not contain implementation message keys; renderer messages describe MarkVSpec-generated headings, table names, column names, condition labels, empty states, and other chrome.
 
 ## Quick Start
 
@@ -43,7 +43,7 @@ Included:
 Excluded:
 
 - Business-screen button labels, field labels, and message text.
-- Business dictionaries referenced by `label src: ${i18n.label}`.
+- Business-screen i18n dictionaries or implementation message keys.
 - DSL keywords themselves.
 - VS Code command names, notifications, and editor-only errors.
 

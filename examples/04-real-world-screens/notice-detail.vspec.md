@@ -94,7 +94,6 @@ is easy to inspect.
 
 - level: 1
 - label: Notice detail
-- label src: ${i18n.noticeDetail.heading}
 
 ### 2:E-NoticeTitle Heading
 
@@ -139,9 +138,7 @@ is easy to inspect.
 ### 8:E-KeywordInput Input
 
 - label: Keyword
-- label src: ${i18n.noticeList.keywordLabel}
 - placeholder: Search related notices
-- placeholder src: ${i18n.noticeList.keywordPlaceholder}
 - value: ${model.search.keyword}
 - initial value: maintenance
 - width: medium
@@ -149,7 +146,6 @@ is easy to inspect.
 ### 9:E-ReadStatusSelect Select
 
 - label: Read status
-- label src: ${i18n.noticeList.readStatusLabel}
 - value: ${model.search.readStatus}
 - initial value: Unread
 - width: medium
@@ -161,7 +157,6 @@ is easy to inspect.
 ### 10:E-RelatedInvoiceLink Link
 
 - label: View related invoice
-- label src: ${i18n.noticeDetail.relatedInvoiceLink}
 - sample: INV-2026-0421
 - src: ${model.notice.invoiceNo}
 - href: SCR-INVOICE-DETAIL
@@ -171,7 +166,6 @@ is easy to inspect.
 ### 11:E-BackToListLink Link
 
 - label: Back to notices
-- label src: ${i18n.noticeDetail.backToListLink}
 - href: SCR-NOTICE-LIST
 - params:
   - keyword: ${model.search.keyword}

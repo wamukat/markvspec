@@ -10,7 +10,7 @@
 
 MarkVSpec レンダラーメッセージ辞書は、MarkVSpec が生成する preview / HTML / PDF / design document の固定表示文言をプロジェクトごとに上書きするための辞書です。
 
-これは業務画面内の `label src: ${i18n.label}` とは別物です。`${i18n.label}` のような式は画面に表示される業務ラベルやサンプル値を扱います。一方でレンダラーメッセージ辞書は、MarkVSpec 自体が出力する見出し、表名、列名、条件ラベル、空表示、印刷補足などを扱います。
+これは業務画面内のラベルやメッセージ本文とは別物です。業務画面仕様では、翻訳管理対象の文言であることを `source: i18n` で示せますが、実装上の message key は MarkVSpec 文書には書きません。一方でレンダラーメッセージ辞書は、MarkVSpec 自体が出力する見出し、表名、列名、条件ラベル、空表示、印刷補足などを扱います。
 
 ## まず差し替える
 
@@ -51,7 +51,7 @@ npx @markvspec/cli@latest export pdf examples/04-real-world-screens/login-basic.
 対象外:
 
 - 業務画面上のボタン名、項目名、メッセージ本文
-- `label src: ${i18n.label}` で参照する業務辞書
+- 業務画面用の i18n 辞書や実装上の message key
 - DSL キーワードそのもの
 - VS Code コマンド名、通知文、エラー文など editor UI 専用の文言
 

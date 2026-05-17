@@ -862,7 +862,7 @@ wireframe preview では native `required` attribute や自動の `*` marker と
 
 ```markdown
 - label: ログイン
-- label src: ${i18n.login.signIn}
+- source: i18n
 - sample: ログイン
 - type: password
 - visible when: loading
@@ -904,9 +904,9 @@ wireframe preview では native `required` attribute や自動の `*` marker と
 表示値まわりの責務は次のように分けます。
 
 - `label`: 見出し、ボタン、リンク、フォーム項目名など、ユーザーに見せる静的な文言。
-- `label src`: `label` の取得元。主に `${i18n.login.heading}` のような不透明な式。
+- `label src`: `label` の任意の不透明な取得元。実装上の i18n key には使いません。翻訳管理対象であることは `source: i18n` で示します。
 - `placeholder`: 入力欄などに表示する補助文言。
-- `placeholder src`: `placeholder` の取得元。主に `${i18n.login.email}` のような不透明な式。
+- `placeholder src`: `placeholder` の任意の不透明な取得元。実装上の i18n key には使いません。
 - `sample`: 動的データが実際に表示される時の代表表示例。
 - `src`: `sample` の取得元。`${model.notice.title}` や `${route.noticeId}` のような不透明な式。
 - `value`: 送信値、選択肢値、hidden value などの機械的な値。単なる表示サンプルには使いません。
@@ -993,14 +993,14 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 ### 4:E-ReadStatusFilter RadioGroup
 
 - label: 既読状態
-- label src: ${i18n.search.read-status}
+- source: i18n
 - name: readStatus
 - value: ${model.noticeSearch.readStatus}
 - initial value: "すべて"
 - options:
-  - すべて: ${i18n.search.all}
-  - 未読のみ: ${i18n.search.unread-only}
-  - 既読のみ: ${i18n.search.read-only}
+  - すべて
+  - 未読のみ
+  - 既読のみ
 ```
 
 単体の `Radio` 要素は廃止しました。排他的な選択肢は常に `RadioGroup` で表し、
@@ -1016,9 +1016,9 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 - value: ${model.role}
 - initial value: "Administrator"
 - options:
-  - 閲覧者: ${i18n.roles.viewer}
-  - 管理者: ${i18n.roles.administrator}
-  - オーナー: ${i18n.roles.owner}
+  - 閲覧者
+  - 管理者
+  - オーナー
 ```
 
 `source` は値や文言の由来分類です。参照パスや i18n key は書きません。

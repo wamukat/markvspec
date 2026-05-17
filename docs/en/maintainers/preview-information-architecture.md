@@ -45,8 +45,8 @@ Detail sections should answer "exactly what happens?".
   initial/source, input details, constraints, format, and visible/enabled
   conditions. Required metadata stays in the Required column rather than the
   Spec cell. Product validation required rules stay in Validations.
-- Display Content Spec owns wording and rendered values such as `label src`,
-  `placeholder src`, `sample`, `src`, `value`, `format`, and option labels by
+- Display Content Spec owns wording and rendered values such as `label`,
+  `placeholder`, `source`, `sample`, `src`, `value`, `format`, and option labels by
   display location. It also keeps display and enabled conditions visible for
   non-input elements that have display content.
 - Validations group behavior contracts by client/server execution and

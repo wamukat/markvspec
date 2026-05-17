@@ -4337,7 +4337,6 @@ viewport: mobile
 ### 1:E-Create Button
 
 - label: 新規作成
-- label src: \${i18n.action.create}
 - sample: 作成する
 - src: \${model.action.createLabel}
 - value: create
@@ -4380,8 +4379,7 @@ viewport: mobile
   assert.match(elementSummary, new RegExp(`<td>${detailElementRef("1", "E-Create")}</td><td>Button</td><td><ul class="spec-list"><li>${refActionChip("A1", "A-Create", "新規作成")}</li></ul></td><td>-</td>`));
   assert.match(displayContent, /<th>番号\/ID<\/th><th>表示箇所<\/th><th>表示内容<\/th><th>表示形式<\/th><th>取得元<\/th><th>表示条件<\/th><th>有効条件<\/th>/);
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-Title", "E-Title")}</td><td>value</td><td>prefix ${sourceCodePattern("${model.action.title}")} &amp; ${sourceCodePattern("${model.action.kind}")} &lt;x&gt;</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>常に</td><td>常に</td>`));
-  assert.match(displayContent, new RegExp(`<td rowspan="5">${detailElementRef("1", "E-Create")}</td><td>label</td><td>新規作成</td><td>-</td><td>${plainCodePattern("fixed")}</td><td><ul class="spec-list"><li>表示: empty</li><li>非表示: ${sourceCodePattern("${model.notice.read}")}</li></ul></td><td><ul class="spec-list"><li>有効: not ${sourceCodePattern("${model.saving}")}</li></ul></td>`));
-  assert.match(displayContent, new RegExp(`<tr><td>label src</td><td>${sourceCodePattern("${i18n.action.create}")}</td><td>-</td><td>${plainCodePattern("fixed")}</td><td><ul class="spec-list"><li>表示: empty</li><li>非表示: ${sourceCodePattern("${model.notice.read}")}</li></ul></td>`));
+  assert.match(displayContent, new RegExp(`<td rowspan="4">${detailElementRef("1", "E-Create")}</td><td>label</td><td>新規作成</td><td>-</td><td>${plainCodePattern("fixed")}</td><td><ul class="spec-list"><li>表示: empty</li><li>非表示: ${sourceCodePattern("${model.notice.read}")}</li></ul></td><td><ul class="spec-list"><li>有効: not ${sourceCodePattern("${model.saving}")}</li></ul></td>`));
   assert.match(displayContent, new RegExp(`<tr><td>sample</td><td>作成する</td><td>button label</td><td>${plainCodePattern("fixed")}</td><td><ul class="spec-list"><li>表示: empty</li><li>非表示: ${sourceCodePattern("${model.notice.read}")}</li></ul></td>`));
   assert.match(displayContent, new RegExp(`<tr><td>src</td><td>${sourceCodePattern("${model.action.createLabel}")}</td><td>button label</td><td>${plainCodePattern("fixed")}</td><td><ul class="spec-list"><li>表示: empty</li><li>非表示: ${sourceCodePattern("${model.notice.read}")}</li></ul></td>`));
   assert.match(displayContent, new RegExp(`<tr><td>value</td><td>create</td><td>button label</td><td>${plainCodePattern("fixed")}</td><td><ul class="spec-list"><li>表示: empty</li><li>非表示: ${sourceCodePattern("${model.notice.read}")}</li></ul></td>`));
@@ -6972,8 +6970,8 @@ viewport: mobile
 - value: \${model.role}
 - initial value: "Viewer"
 - options:
-  - Viewer: \${i18n.roles.viewer}
-  - Administrator: \${i18n.roles.administrator}
+  - Viewer: \${copy.roles.viewer}
+  - Administrator: \${copy.roles.administrator}
 
 ### E-StartDate DatePicker
 
@@ -7032,7 +7030,7 @@ viewport: mobile
 ### E-Title Heading
 
 - label: Login
-- label src: \${i18n.login.title}
+- label src: \${copy.login.title}
 - level: 1
 
 ### E-CustomWidget Widget
@@ -7046,7 +7044,7 @@ viewport: mobile
   assert.match(html, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>/);
   assert.match(elementSummary, new RegExp(`<td>${detailElementRef("E-状態バッジ", "E-状態バッジ")}</td><td>Badge</td>`));
   assert.doesNotMatch(elementSummary, /<span class="mm-chip mm-chip-type">Badge<\/span>/);
-  assert.match(html, new RegExp(`<td>${detailElementRef("E-ロール選択", "E-ロール選択")}</td><td>Select</td><td>no</td><td>${specSectionPattern("initial", ["Viewer"])}${specSectionPattern("Source", [sourceCodePattern("${model.role}")])}</td><td>${specSectionPattern("Input", [`Options: Viewer \\(${sourceCodePattern("${i18n.roles.viewer}")}\\), Administrator \\(${sourceCodePattern("${i18n.roles.administrator}")}\\)`])}</td><td>always</td><td>always</td>`));
+  assert.match(html, new RegExp(`<td>${detailElementRef("E-ロール選択", "E-ロール選択")}</td><td>Select</td><td>no</td><td>${specSectionPattern("initial", ["Viewer"])}${specSectionPattern("Source", [sourceCodePattern("${model.role}")])}</td><td>${specSectionPattern("Input", [`Options: Viewer \\(${sourceCodePattern("${copy.roles.viewer}")}\\), Administrator \\(${sourceCodePattern("${copy.roles.administrator}")}\\)`])}</td><td>always</td><td>always</td>`));
   assert.match(html, new RegExp(`<td>${detailElementRef("E-StartDate", "E-StartDate")}</td><td>DatePicker</td><td>no</td><td>${specSectionPattern("Source", [sourceCodePattern("${model.startDate}")])}</td><td>${specSectionPattern("Constraints", ["min: 2020-01-01", "max: 2030-12-31"])}</td><td>always</td><td><ul class="spec-list"><li>enabled: not ${sourceCodePattern("${model.readonly}")}</li></ul></td>`));
   assert.match(html, new RegExp(`<td>${detailElementRef("E-EndDate", "E-EndDate")}</td><td>DateInput</td><td>yes</td><td>${specSectionPattern("initial", ["2026-05-02"])}${specSectionPattern("Source", [sourceCodePattern("${model.endDate}")])}</td><td>${specSectionPattern("Constraints", ["min: 2020-01-01", "max: 2030-12-31"])}</td><td>always</td><td>always</td>`));
   assert.match(html, new RegExp(`<td>${detailElementRef("E-StartTime", "E-StartTime")}</td><td>TimeInput</td><td>no</td><td>${specSectionPattern("initial", ["09:30"])}${specSectionPattern("Source", [sourceCodePattern("${model.startTime}")])}</td><td>${specSectionPattern("Constraints", ["min: 09:00", "max: 18:00"])}</td>`));
@@ -7058,13 +7056,13 @@ viewport: mobile
   assert.match(displayContent, /<th>Marker\/ID<\/th><th>Location<\/th><th>Content<\/th><th>Format<\/th><th>Source<\/th><th>Condition<\/th><th>Enabled When<\/th>/);
   assert.doesNotMatch(displayContent, /<th>Display Location<\/th>|<th>Display Content<\/th>|<th>Display Condition<\/th>/);
   assert.match(displayContent, new RegExp(`<td rowspan="4">${detailElementRef("E-ロール選択", "E-ロール選択")}</td><td>option label</td><td>Viewer</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td>`));
-  assert.match(displayContent, new RegExp(`<tr><td>option source</td><td>${sourceCodePattern("${i18n.roles.viewer}")}</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td><td>always</td></tr>`));
+  assert.match(displayContent, new RegExp(`<tr><td>option source</td><td>${sourceCodePattern("${copy.roles.viewer}")}</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td><td>always</td></tr>`));
   assert.match(displayContent, new RegExp(`<tr><td>option label</td><td>Administrator</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td><td>always</td></tr>`));
-  assert.match(displayContent, new RegExp(`<tr><td>option source</td><td>${sourceCodePattern("${i18n.roles.administrator}")}</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td><td>always</td></tr>`));
+  assert.match(displayContent, new RegExp(`<tr><td>option source</td><td>${sourceCodePattern("${copy.roles.administrator}")}</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td><td>always</td></tr>`));
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-エラーバナー", "E-エラーバナー")}</td><td>sample</td><td>Invalid login</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td>`));
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-状態バッジ", "E-状態バッジ")}</td><td>sample</td><td>${semanticChip("Active", "success")}</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td>`));
   assert.match(displayContent, new RegExp(`<td rowspan="2">${detailElementRef("E-Title", "E-Title")}</td><td>label</td><td>Login</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td>`));
-  assert.match(displayContent, new RegExp(`<tr><td>label src</td><td>${sourceCodePattern("${i18n.login.title}")}</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td>`));
+  assert.match(displayContent, new RegExp(`<tr><td>label src</td><td>${sourceCodePattern("${copy.login.title}")}</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>always</td>`));
   assert.doesNotMatch(html, /<div class="element-detail-group"><h4>Status Display<\/h4>/);
   assert.doesNotMatch(html, /<div class="element-detail-group"><h4>Content<\/h4>/);
   assert.doesNotMatch(displayContent, /<th>Level<\/th>/);
