@@ -182,6 +182,9 @@ partial 由来の内容で置き換えるか」を書きます。partial 側は�
 Preview、parser、docs、ticket で MarkVSpec 文書内の位置を議論するときは、
 次の用語を使います。英語名を canonical とし、日本語文書でも同じ英語名を使います。
 
+各領域を視覚的に確認する annotated skeleton は
+[文書構造](document-structure.html) を参照してください。
+
 - `Document Header`: YAML Front Matter と最初の level-1 見出しです。文書全体の
   メタデータと設計対象名を書く入口です。
 - `Document Lead`: level-1 見出しの直下から最初の level-2 セクションまでの

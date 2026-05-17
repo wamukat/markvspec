@@ -198,6 +198,9 @@ Use the following terms when discussing MarkVSpec document placement in Preview,
 parser behavior, documentation, and tickets. These names are canonical in both
 English and Japanese documentation.
 
+For a visual annotated skeleton of these regions, see
+[Document Structure](document-structure.html).
+
 - `Document Header`: YAML Front Matter and the first level-1 heading. It is the
   document-level entry point for metadata and the design subject title.
 - `Document Lead`: Markdown body directly below the level-1 heading and before
