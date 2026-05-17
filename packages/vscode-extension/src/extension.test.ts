@@ -331,8 +331,8 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(html, /<section class="doc-section state-flow-section" data-section-number="2">/);
   assert.match(html, /<h6 class="state-screen-detail-heading">Element Summary<\/h6>/);
   assert.match(html, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>/);
-  assert.match(html, new RegExp(`<td>${markerBadge("3", "element")}</td><td>${detailIdRef("E-EmailInput")}</td><td>Input</td><td></td><td>${sourceCodePattern("${model.email}")}</td><td></td><td></td><td></td><td></td><td></td>`));
-  assert.match(html, new RegExp(`<td>${markerBadge("6", "element")}</td><td>${detailIdRef("E-RememberMe")}</td><td>Checkbox</td><td></td><td>${sourceCodePattern("${model.rememberMe}")}</td><td></td><td></td><td></td><td></td><td></td>`));
+  assert.match(html, new RegExp(`<td>${markerBadge("3", "element")}</td><td>${detailIdRef("E-EmailInput")}</td><td>Input</td><td>no</td><td>${sourceCodePattern("${model.email}")}</td><td>-</td><td>always</td><td>always</td><td>no</td><td>-</td>`));
+  assert.match(html, new RegExp(`<td>${markerBadge("6", "element")}</td><td>${detailIdRef("E-RememberMe")}</td><td>Checkbox</td><td>no</td><td>${sourceCodePattern("${model.rememberMe}")}</td><td>-</td><td>always</td><td>always</td><td>no</td><td>-</td>`));
   assert.match(html, /Enter both email and password\./);
   assert.match(html, new RegExp(`email: ${detailElementRef("3", "E-EmailInput")}\\.value`));
   assert.match(html, new RegExp(`rememberMe: ${detailElementRef("6", "E-RememberMe")}\\.value`));
@@ -373,9 +373,9 @@ test("renders generated design document sections without launching VS Code", () 
   const waitAuthSection = viewportStateSection(html, "authenticating", "mobile");
   assert.match(waitAuthSection, /<h6 class="state-screen-detail-heading">Element Summary<\/h6>/);
   assert.match(waitAuthSection, /<th>Marker<\/th><th>ID<\/th><th>Type<\/th><th>Triggered Actions<\/th><th>Description<\/th>/);
-  assert.match(waitAuthSection, new RegExp(`<td>${markerBadge("11", "element")}</td><td>${detailIdRef("E-AuthSpinner")}</td><td>Spinner</td><td></td><td></td>`));
+  assert.match(waitAuthSection, new RegExp(`<td>${markerBadge("11", "element")}</td><td>${detailIdRef("E-AuthSpinner")}</td><td>Spinner</td><td>-</td><td>-</td>`));
   assert.match(waitAuthSection, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>/);
-  assert.match(waitAuthSection, new RegExp(`<td>${markerBadge("11", "element")}</td><td>${detailIdRef("E-AuthSpinner")}</td><td>label</td><td>Signing in\\.\\.\\.</td><td></td><td></td><td><ul class="spec-list"><li>visible: authenticating</li></ul></td><td></td>`));
+  assert.match(waitAuthSection, new RegExp(`<td>${markerBadge("11", "element")}</td><td>${detailIdRef("E-AuthSpinner")}</td><td>label</td><td>Signing in\\.\\.\\.</td><td>-</td><td>-</td><td><ul class="spec-list"><li>visible: authenticating</li></ul></td><td>always</td>`));
   assert.match(waitAuthSection, new RegExp(`<td>${actionBadge("A2", "A-HandleLoginResponse")}</td><td>Handle login response</td>`));
   const waitAuthWireframe = stateWireframeSection(waitAuthSection);
   assert.match(waitAuthWireframe, />L7<\/code>/);
@@ -3627,8 +3627,8 @@ title: Transition Matrix
 
   assert.match(stateFlowSection, /<div class="state-flow-diagram">\s*<a class="state-flow-table-link" href="#state-transition-table" aria-label="See State Transitions for details\." title="See State Transitions for details\."><span class="state-flow-table-link-icon" aria-hidden="true"><\/span><span class="state-flow-table-link-label">See State Transitions for details\.<\/span><\/a>\s*<pre class="mermaid-source" data-mermaid-source>[\s\S]*<div class="mermaid-placeholder" data-mermaid-placeholder>Rendering Mermaid diagram\.\.\.<\/div>/);
   assert.match(section, new RegExp(`<th>From</th><th>${docLabel("idle", "state")}</th><th>${docLabel("submitting", "state")}</th><th>${docLabel("error", "state")}</th>`));
-  assert.match(section, new RegExp(`<tr><td>${docLabel("idle", "state")}</td><td></td><td>${actionBadge("A1", "A-Submit")} Submit</td><td></td></tr>`));
-  assert.match(section, new RegExp(`<tr><td>${docLabel("submitting", "state")}</td><td></td><td></td><td>${actionBadge("A2", "A-SubmitResponse")}\\.failure Submit response</td></tr>`));
+  assert.match(section, new RegExp(`<tr><td>${docLabel("idle", "state")}</td><td>-</td><td>${actionBadge("A1", "A-Submit")} Submit</td><td>-</td></tr>`));
+  assert.match(section, new RegExp(`<tr><td>${docLabel("submitting", "state")}</td><td>-</td><td>-</td><td>${actionBadge("A2", "A-SubmitResponse")}\\.failure Submit response</td></tr>`));
   assert.doesNotMatch(section, /E-SubmitButton\.click \/ /);
   assert.doesNotMatch(section, /SCR-DONE/);
   assert.doesNotMatch(html, /<h2>Action Transitions<\/h2>/);
@@ -3749,8 +3749,8 @@ test("keeps validation required distinct from input required in single-field val
 
   assert.match(formControls, /<th>Input Required<\/th>/);
   assert.doesNotMatch(formControls, /<th>Required<\/th>/);
-  assert.match(formControls, new RegExp(`<td>${markerBadge("3", "element")}</td><td>${detailIdRef("E-UsernameInput")}</td><td>Input</td><td></td>`));
-  assert.match(formControls, new RegExp(`<td>${markerBadge("4", "element")}</td><td>${detailIdRef("E-EmailInput")}</td><td>Input</td><td></td>`));
+  assert.match(formControls, new RegExp(`<td>${markerBadge("3", "element")}</td><td>${detailIdRef("E-UsernameInput")}</td><td>Input</td><td>no</td>`));
+  assert.match(formControls, new RegExp(`<td>${markerBadge("4", "element")}</td><td>${detailIdRef("E-EmailInput")}</td><td>Input</td><td>no</td>`));
   assert.match(clientFieldValidations, new RegExp(`<td><span class="mm-detail-ref-id">V-UsernameRules<\\/span><\\/td><td>Username rules<\\/td><td>${markerBadge("3", "element")}<\\/td>`));
   assert.match(clientFieldValidations, new RegExp(`<li>required: ${markerBadge("3", "element")}<\\/li><li>min-length: ${markerBadge("3", "element")}<\\/li><li>max-length: ${markerBadge("3", "element")}<\\/li><li>pattern: ${markerBadge("3", "element")}<\\/li>`));
   assert.match(clientFieldValidations, new RegExp(`<td><span class="mm-detail-ref-id">V-EmailRules<\\/span><\\/td><td>Email rules<\\/td><td>${markerBadge("4", "element")}<\\/td>`));
@@ -3853,7 +3853,7 @@ viewport: mobile
 
   assert.match(formControls, new RegExp(`<td>${markerBadge("E-Name", "element")}</td><td>${detailIdRef("E-Name")}</td><td>Input</td><td>はい</td><td>${sourceCodePattern("${model.name}")}</td><td>max: 100</td>`));
   assert.match(formControls, new RegExp(`<td>${markerBadge("E-Email", "element")}</td><td>${detailIdRef("E-Email")}</td><td>Input</td><td>はい</td><td>${sourceCodePattern("${model.email}")}</td><td>pattern: email</td>`));
-  assert.match(formControls, new RegExp(`<td>${markerBadge("E-Optional", "element")}</td><td>${detailIdRef("E-Optional")}</td><td>Input</td><td></td><td>${sourceCodePattern("${model.optionalCode}")}</td><td>min: 2</td>`));
+  assert.match(formControls, new RegExp(`<td>${markerBadge("E-Optional", "element")}</td><td>${detailIdRef("E-Optional")}</td><td>Input</td><td>いいえ</td><td>${sourceCodePattern("${model.optionalCode}")}</td><td>min: 2</td>`));
   assert.doesNotMatch(formControls, /<th>入力仕様<\/th>[\s\S]*required/);
   assert.match(editingFormControls, new RegExp(`<td>${markerBadge("E-Code", "element")}</td><td>${detailIdRef("E-Code")}</td><td>Input</td><td>条件: ${sourceCodePattern("${model.inviteRequired}")}</td><td>${sourceCodePattern("${model.code}")}</td><td>pattern: [\\s\\S]*</td>`));
   assert.doesNotMatch(editingFormControls, /<th>入力仕様<\/th>[\s\S]*required/);
@@ -3946,12 +3946,12 @@ viewport: mobile
   const desktopDisplayContent = desktopSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">表示内容仕様<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
 
   assert.match(elementSummary, /<th>番号<\/th><th>ID<\/th><th>種別<\/th><th>関連アクション<\/th><th>説明<\/th>/);
-  assert.match(elementSummary, new RegExp(`<td>${markerBadge("1", "element")}</td><td>${detailIdRef("E-Create")}</td><td>Button</td><td><ul class="spec-list"><li>${actionBadge("A1", "A-Create")}</li></ul></td><td></td>`));
+  assert.match(elementSummary, new RegExp(`<td>${markerBadge("1", "element")}</td><td>${detailIdRef("E-Create")}</td><td>Button</td><td><ul class="spec-list"><li>${actionBadge("A1", "A-Create")}</li></ul></td><td>-</td>`));
   assert.match(displayContent, /<th>番号<\/th><th>ID<\/th><th>表示箇所<\/th><th>表示内容<\/th><th>取得元<\/th><th>表示形式<\/th><th>表示条件<\/th><th>有効条件<\/th>/);
-  assert.match(displayContent, new RegExp(`<td>${markerBadge("E-Title", "element")}</td><td>${detailIdRef("E-Title")}</td><td>value</td><td>prefix ${sourceCodePattern("${model.action.title}")} &amp; ${sourceCodePattern("${model.action.kind}")} &lt;x&gt;</td><td></td><td></td><td></td><td></td>`));
-  assert.match(displayContent, new RegExp(`<td rowspan="3">${markerBadge("1", "element")}</td><td rowspan="3">${detailIdRef("E-Create")}</td><td>label</td><td>新規作成</td><td>${sourceCodePattern("${i18n.action.create}")}</td><td></td><td><ul class="spec-list"><li>表示: empty</li><li>非表示: ${sourceCodePattern("${model.notice.read}")}</li></ul></td><td><ul class="spec-list"><li>有効: not ${sourceCodePattern("${model.saving}")}</li></ul></td>`));
+  assert.match(displayContent, new RegExp(`<td>${markerBadge("E-Title", "element")}</td><td>${detailIdRef("E-Title")}</td><td>value</td><td>prefix ${sourceCodePattern("${model.action.title}")} &amp; ${sourceCodePattern("${model.action.kind}")} &lt;x&gt;</td><td>-</td><td>-</td><td>常に</td><td>常に</td>`));
+  assert.match(displayContent, new RegExp(`<td rowspan="3">${markerBadge("1", "element")}</td><td rowspan="3">${detailIdRef("E-Create")}</td><td>label</td><td>新規作成</td><td>${sourceCodePattern("${i18n.action.create}")}</td><td>-</td><td><ul class="spec-list"><li>表示: empty</li><li>非表示: ${sourceCodePattern("${model.notice.read}")}</li></ul></td><td><ul class="spec-list"><li>有効: not ${sourceCodePattern("${model.saving}")}</li></ul></td>`));
   assert.match(displayContent, new RegExp(`<tr><td>sample</td><td>作成する</td><td>${sourceCodePattern("${model.action.createLabel}")}</td><td>button label</td><td><ul class="spec-list"><li>表示: empty</li><li>非表示: ${sourceCodePattern("${model.notice.read}")}</li></ul></td>`));
-  assert.match(displayContent, new RegExp(`<tr><td>value</td><td>create</td><td></td><td>button label</td><td><ul class="spec-list"><li>表示: empty</li><li>非表示: ${sourceCodePattern("${model.notice.read}")}</li></ul></td>`));
+  assert.match(displayContent, new RegExp(`<tr><td>value</td><td>create</td><td>-</td><td>button label</td><td><ul class="spec-list"><li>表示: empty</li><li>非表示: ${sourceCodePattern("${model.notice.read}")}</li></ul></td>`));
   assert.doesNotMatch(html, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">操作要素<\/h6>/);
   for (const oldHeader of ["表示名", "表示名参照元", "サンプル", "値", "無効条件"]) {
     assert.doesNotMatch(desktopSection, new RegExp(`<th>${oldHeader}</th>`));
@@ -6474,21 +6474,21 @@ viewport: mobile
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
 
   assert.match(html, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>/);
-  assert.match(html, new RegExp(`<td>${markerBadge("E-ロール選択", "element")}</td><td>${detailIdRef("E-ロール選択")}</td><td>Select</td><td></td><td><ul class="spec-list"><li>Viewer</li><li>${sourceCodePattern("${model.role}")}</li></ul></td><td></td><td></td><td></td><td></td><td></td>`));
-  assert.match(html, new RegExp(`<td>${markerBadge("E-StartDate", "element")}</td><td>${detailIdRef("E-StartDate")}</td><td>DatePicker</td><td></td><td>${sourceCodePattern("${model.startDate}")}</td><td><ul class="spec-list"><li>min: 2020-01-01</li><li>max: 2030-12-31</li></ul></td><td></td><td><ul class="spec-list"><li>enabled: not ${sourceCodePattern("${model.readonly}")}</li></ul></td><td></td><td></td>`));
-  assert.match(html, new RegExp(`<td>${markerBadge("E-EndDate", "element")}</td><td>${detailIdRef("E-EndDate")}</td><td>DateInput</td><td>yes</td><td>2026-05-02</td><td><ul class="spec-list"><li>min: 2020-01-01</li><li>max: 2030-12-31</li></ul></td><td></td><td></td><td></td><td>${sourceCodePattern("${model.endDate}")}</td>`));
-  assert.match(html, new RegExp(`<td>${markerBadge("E-StartTime", "element")}</td><td>${detailIdRef("E-StartTime")}</td><td>TimeInput</td><td></td><td><ul class="spec-list"><li>09:30</li><li>${sourceCodePattern("${model.startTime}")}</li></ul></td><td><ul class="spec-list"><li>min: 09:00</li><li>max: 18:00</li></ul></td>`));
+  assert.match(html, new RegExp(`<td>${markerBadge("E-ロール選択", "element")}</td><td>${detailIdRef("E-ロール選択")}</td><td>Select</td><td>no</td><td><ul class="spec-list"><li>Viewer</li><li>${sourceCodePattern("${model.role}")}</li></ul></td><td>-</td><td>always</td><td>always</td><td>no</td><td>-</td>`));
+  assert.match(html, new RegExp(`<td>${markerBadge("E-StartDate", "element")}</td><td>${detailIdRef("E-StartDate")}</td><td>DatePicker</td><td>no</td><td>${sourceCodePattern("${model.startDate}")}</td><td><ul class="spec-list"><li>min: 2020-01-01</li><li>max: 2030-12-31</li></ul></td><td>always</td><td><ul class="spec-list"><li>enabled: not ${sourceCodePattern("${model.readonly}")}</li></ul></td><td>no</td><td>-</td>`));
+  assert.match(html, new RegExp(`<td>${markerBadge("E-EndDate", "element")}</td><td>${detailIdRef("E-EndDate")}</td><td>DateInput</td><td>yes</td><td>2026-05-02</td><td><ul class="spec-list"><li>min: 2020-01-01</li><li>max: 2030-12-31</li></ul></td><td>always</td><td>always</td><td>no</td><td>${sourceCodePattern("${model.endDate}")}</td>`));
+  assert.match(html, new RegExp(`<td>${markerBadge("E-StartTime", "element")}</td><td>${detailIdRef("E-StartTime")}</td><td>TimeInput</td><td>no</td><td><ul class="spec-list"><li>09:30</li><li>${sourceCodePattern("${model.startTime}")}</li></ul></td><td><ul class="spec-list"><li>min: 09:00</li><li>max: 18:00</li></ul></td>`));
   assert.match(html, new RegExp(`<td>${markerBadge("E-Headcount", "element")}</td><td>${detailIdRef("E-Headcount")}</td><td>NumberInput</td><td>yes</td><td><ul class="spec-list"><li>2</li><li>${sourceCodePattern("${model.headcount}")}</li></ul></td><td><ul class="spec-list"><li>min: 1</li><li>max: 20</li><li>step: 1</li></ul></td>`));
-  assert.match(html, new RegExp(`<td>${markerBadge("E-Notes", "element")}</td><td>${detailIdRef("E-Notes")}</td><td>Textarea</td><td></td><td>${sourceCodePattern("${model.notes}")}</td>`));
-  assert.match(html, new RegExp(`<td>${markerBadge("E-アバターアップロード", "element")}</td><td>${detailIdRef("E-アバターアップロード")}</td><td>FileUpload</td><td></td><td></td><td>accept: image/png,image/jpeg</td><td></td><td></td><td></td><td></td>`));
-  assert.match(html, new RegExp(`<td>${markerBadge("E-証憑ファイル", "element")}</td><td>${detailIdRef("E-証憑ファイル")}</td><td>FileInput</td><td></td><td></td><td><ul class="spec-list"><li>accept: application/pdf</li><li>multiple</li></ul></td><td></td><td></td><td></td><td></td>`));
+  assert.match(html, new RegExp(`<td>${markerBadge("E-Notes", "element")}</td><td>${detailIdRef("E-Notes")}</td><td>Textarea</td><td>no</td><td>${sourceCodePattern("${model.notes}")}</td>`));
+  assert.match(html, new RegExp(`<td>${markerBadge("E-アバターアップロード", "element")}</td><td>${detailIdRef("E-アバターアップロード")}</td><td>FileUpload</td><td>no</td><td>-</td><td>accept: image/png,image/jpeg</td><td>always</td><td>always</td><td>no</td><td>-</td>`));
+  assert.match(html, new RegExp(`<td>${markerBadge("E-証憑ファイル", "element")}</td><td>${detailIdRef("E-証憑ファイル")}</td><td>FileInput</td><td>no</td><td>-</td><td><ul class="spec-list"><li>accept: application/pdf</li><li>multiple</li></ul></td><td>always</td><td>always</td><td>no</td><td>-</td>`));
   const displayContent = html.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
   assert.match(displayContent, /<th>Marker<\/th><th>ID<\/th><th>Display Location<\/th><th>Display Content<\/th><th>Source<\/th><th>Format<\/th><th>Display Condition<\/th><th>Enabled When<\/th>/);
-  assert.match(displayContent, new RegExp(`<td rowspan="2">${markerBadge("E-ロール選択", "element")}</td><td rowspan="2">${detailIdRef("E-ロール選択")}</td><td>option label</td><td>Viewer</td><td></td><td></td><td></td>`));
-  assert.match(displayContent, /<tr><td>option label<\/td><td>Administrator<\/td><td><\/td><td><\/td><td><\/td><td><\/td><\/tr>/);
-  assert.match(displayContent, new RegExp(`<td>${markerBadge("E-エラーバナー", "element")}</td><td>${detailIdRef("E-エラーバナー")}</td><td>sample</td><td>Invalid login</td><td></td><td></td><td></td>`));
-  assert.match(displayContent, new RegExp(`<td>${markerBadge("E-状態バッジ", "element")}</td><td>${detailIdRef("E-状態バッジ")}</td><td>sample</td><td>${semanticChip("Active", "success")}</td><td></td><td></td><td></td>`));
-  assert.match(displayContent, new RegExp(`<td>${markerBadge("E-Title", "element")}</td><td>${detailIdRef("E-Title")}</td><td>label</td><td>Login</td><td>${sourceCodePattern("${i18n.login.title}")}</td><td></td><td></td>`));
+  assert.match(displayContent, new RegExp(`<td rowspan="2">${markerBadge("E-ロール選択", "element")}</td><td rowspan="2">${detailIdRef("E-ロール選択")}</td><td>option label</td><td>Viewer</td><td>-</td><td>-</td><td>always</td>`));
+  assert.match(displayContent, /<tr><td>option label<\/td><td>Administrator<\/td><td>-<\/td><td>-<\/td><td>always<\/td><td>always<\/td><\/tr>/);
+  assert.match(displayContent, new RegExp(`<td>${markerBadge("E-エラーバナー", "element")}</td><td>${detailIdRef("E-エラーバナー")}</td><td>sample</td><td>Invalid login</td><td>-</td><td>-</td><td>always</td>`));
+  assert.match(displayContent, new RegExp(`<td>${markerBadge("E-状態バッジ", "element")}</td><td>${detailIdRef("E-状態バッジ")}</td><td>sample</td><td>${semanticChip("Active", "success")}</td><td>-</td><td>-</td><td>always</td>`));
+  assert.match(displayContent, new RegExp(`<td>${markerBadge("E-Title", "element")}</td><td>${detailIdRef("E-Title")}</td><td>label</td><td>Login</td><td>${sourceCodePattern("${i18n.login.title}")}</td><td>-</td><td>always</td>`));
   assert.doesNotMatch(html, /<div class="element-detail-group"><h4>Status Display<\/h4>/);
   assert.doesNotMatch(html, /<div class="element-detail-group"><h4>Content<\/h4>/);
   assert.doesNotMatch(displayContent, /<th>Level<\/th>/);
@@ -6677,7 +6677,7 @@ History section notes.
   assert.match(html, /<h2>History<\/h2>/);
   assert.match(html, /<div class="entity-overview"><p class="note-paragraph">History section overview\.<\/p><\/div>[\s\S]*<table/);
   assert.match(html, /<th>Version<\/th><th>Date<\/th><th>Author<\/th><th>Reviewer<\/th><th>Reason<\/th><th>Ticket<\/th><th>Changes<\/th>/);
-  assert.match(html, /<td>ver 1\.0<\/td><td>2026-05-13<\/td><td>Alice<\/td><td><\/td><td><\/td><td>MM-1<\/td>/);
+  assert.match(html, /<td>ver 1\.0<\/td><td>2026-05-13<\/td><td>Alice<\/td><td>-<\/td><td>-<\/td><td>MM-1<\/td>/);
   assert.match(html, /<p class="note-paragraph">Initial release\.<\/p>/);
   assert.match(html, /<li>Added the login form\.<\/li>/);
   assert.match(html, /<\/table>[\s\S]*<div class="entity-notes"><p class="note-paragraph">History section notes\.<\/p><\/div>/);

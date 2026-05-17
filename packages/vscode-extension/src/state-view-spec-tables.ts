@@ -133,7 +133,7 @@ export function createStateViewSpecTableRenderer(
         helpers.renderInputSpec(element),
         helpers.renderContentElementState(element),
         helpers.renderEnabledConditionList(element),
-        element.properties["readonly"] === true || stringProperty(element.properties["readonly"]) ? helpers.text(helpers.label("requiredYes")) : "",
+        element.properties["readonly"] === true || stringProperty(element.properties["readonly"]) ? helpers.text(helpers.label("requiredYes")) : helpers.text(helpers.label("requiredNo")),
         helpers.renderFormControlBind(element)
       ])
     ), emptyWhenRepeatedHidden);

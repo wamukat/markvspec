@@ -14,6 +14,7 @@ export type MessageKey =
   | "actions"
   | "all"
   | "any"
+  | "always"
   | "availability"
   | "basicInfo"
   | "bind"
@@ -152,6 +153,7 @@ export type MessageKey =
   | "purpose"
   | "parameters"
   | "required"
+  | "requiredNo"
   | "requiredYes"
   | "request"
   | "references"
@@ -230,6 +232,7 @@ const en: Record<MessageKey, string> = {
   actions: "Actions",
   all: "All",
   any: "Any",
+  always: "always",
   availability: "Availability",
   basicInfo: "Basic Info",
   bind: "Bind",
@@ -368,6 +371,7 @@ const en: Record<MessageKey, string> = {
   purpose: "Purpose",
   parameters: "Parameters",
   required: "Required",
+  requiredNo: "no",
   requiredYes: "yes",
   request: "Request",
   references: "References",
@@ -447,6 +451,7 @@ const ja: Record<MessageKey, string> = {
   actions: "アクション",
   all: "すべて",
   any: "いずれか",
+  always: "常に",
   availability: "有効条件",
   basicInfo: "基本情報",
   bind: "bind",
@@ -585,6 +590,7 @@ const ja: Record<MessageKey, string> = {
   purpose: "目的",
   parameters: "パラメータ",
   required: "必須",
+  requiredNo: "いいえ",
   requiredYes: "はい",
   request: "リクエスト",
   references: "参照設計書",

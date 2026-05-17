@@ -267,7 +267,7 @@ function renderModelSampleTable(sample: MarkVSpecParseResult["modelSamples"][num
     return `${headerOnlyTable}<p class="spec-empty">${escapeHtml(messages.emptyArray)}</p>`;
   }
 
-  return `<div class="spec-table-wrap"><table class="spec-table"><thead><tr>${sample.columns.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr></thead><tbody>${sample.rows.map((row) => `<tr>${sample.columns.map((header) => `<td>${escapeHtml(row.values[header] ?? "")}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  return renderTable(sample.columns, sample.rows.map((row) => sample.columns.map((header) => escapeHtml(row.values[header] ?? ""))));
 }
 
 function renderHistorySection(result: MarkVSpecParseResult, messages: RendererMessages): string {
@@ -290,7 +290,7 @@ export function renderTable(headers: string[], rows: Array<Array<string | undefi
     return `<p class="spec-empty">${escapeHtml(emptyLabel)}</p>`;
   }
 
-  return `<div class="spec-table-wrap"><table class="spec-table"><thead><tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${cell ?? ""}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  return `<div class="spec-table-wrap"><table class="spec-table"><thead><tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${renderTableCellHtml(cell)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
 
 export function renderTableWithCells(headers: string[], rows: TableCell[][], emptyLabel = "None."): string {
@@ -307,9 +307,13 @@ function renderTableCell(cell: TableCell): string {
   }
   if (typeof cell === "object") {
     const rowspan = cell.rowspan && cell.rowspan > 1 ? ` rowspan="${cell.rowspan}"` : "";
-    return `<td${rowspan}>${cell.html ?? ""}</td>`;
+    return `<td${rowspan}>${renderTableCellHtml(cell.html)}</td>`;
   }
-  return `<td>${cell ?? ""}</td>`;
+  return `<td>${renderTableCellHtml(cell)}</td>`;
+}
+
+function renderTableCellHtml(cell: string | undefined): string {
+  return cell === undefined || cell.trim().length === 0 ? "-" : cell;
 }
 
 export function consecutiveRowspans<T>(rows: T[], keyFor: (row: T, index: number) => string): number[] {

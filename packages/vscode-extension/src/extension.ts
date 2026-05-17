@@ -4090,7 +4090,7 @@ function renderEnabledConditionList(
   element: ParsedElement
 ): string {
   if (element.disabledWhen.length === 0) {
-    return "";
+    return text(label(result, "always"));
   }
   return `<ul class="spec-list">${element.disabledWhen.map((condition) => `<li>${escapeHtml(conditionLabel(result, "enabled"))}: ${label(result, "conditionNot")} ${renderCondition(result, condition)}</li>`).join("")}</ul>`;
 }
@@ -4445,7 +4445,7 @@ function renderTransitionMatrixTable(
     `<th>${label(result, "from")}</th>`,
     ...stateNames.map((state) => `<th>${renderStateLabel(state)}</th>`)
   ].join("");
-  return `<div class="spec-table-wrap"><table class="spec-table"><thead><tr>${headers}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${cell ?? ""}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  return `<div class="spec-table-wrap"><table class="spec-table"><thead><tr>${headers}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${cell && cell.trim().length > 0 ? cell : "-"}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
 
 function orderedTransitionStateNames(result: ReturnType<typeof parseMarkVSpec>): string[] {
@@ -4608,7 +4608,7 @@ function renderStatesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
     ${renderSectionOverview(sectionProse)}
     ${renderLocalizedTable(result,
       [label(result, "state"), label(result, "initial"), label(result, "description")],
-      result.states.map((state) => [renderStateLabel(state.name), state.initial ? text(label(result, "requiredYes")) : "", text(state.message)])
+      result.states.map((state) => [renderStateLabel(state.name), state.initial ? text(label(result, "requiredYes")) : text(label(result, "requiredNo")), text(state.message)])
     )}
     ${renderSectionNotes(sectionProse)}
   </section>`;
@@ -5861,15 +5861,16 @@ function renderRequiredSpec(
   result: ReturnType<typeof parseMarkVSpec>,
   element: ReturnType<typeof parseMarkVSpec>["elements"][number]
 ): string {
+  const requiredWhenRows = element.inputRules.flatMap((rule) => {
+    if (!isRequiredWhenInputRule(rule)) {
+      return [];
+    }
+    const condition = requiredWhenValue(rule);
+    return condition ? [`${label(result, "conditionWhenShort")}: ${renderParamSource(result, condition)}`] : [];
+  });
   const rows = [
-    isRequiredProperty(element.properties["required"]) || element.inputRules.some(isRequiredBooleanInputRule) ? text(label(result, "requiredYes")) : "",
-    ...element.inputRules.flatMap((rule) => {
-      if (!isRequiredWhenInputRule(rule)) {
-        return [];
-      }
-      const condition = requiredWhenValue(rule);
-      return condition ? [`${label(result, "conditionWhenShort")}: ${renderParamSource(result, condition)}`] : [];
-    })
+    isRequiredProperty(element.properties["required"]) || element.inputRules.some(isRequiredBooleanInputRule) ? text(label(result, "requiredYes")) : requiredWhenRows.length === 0 ? text(label(result, "requiredNo")) : "",
+    ...requiredWhenRows
   ].filter(Boolean);
 
   return rows.length === 1 ? rows[0] ?? "" : rows.length > 1 ? `<ul class="spec-list">${rows.map((row) => `<li>${row}</li>`).join("")}</ul>` : "";
@@ -5955,7 +5956,7 @@ function renderContentElementState(
   return renderConditionList(result, [
     ["visible", element.visibleWhen],
     ["hidden", element.hiddenWhen]
-  ]);
+  ]) || text(label(result, "always"));
 }
 
 function renderActionableElementState(

@@ -6,6 +6,7 @@ import {
   printScrollbarSuppressCss,
   printWireframeViewportCss,
   renderDesignDocumentSections,
+  renderTable,
   renderStaticDesignDocumentHtml,
   standardPrintPolicyCss,
   viewportCanvasWidth,
@@ -41,6 +42,12 @@ test("renders shared wireframe print selectors for compact and static HTML CSS",
   assert.match(printScrollbarSuppressCss(), /html::-webkit-scrollbar,body::-webkit-scrollbar,main::-webkit-scrollbar,\.content::-webkit-scrollbar,\.preview::-webkit-scrollbar,\.document::-webkit-scrollbar,\.spec-table-wrap::-webkit-scrollbar,\.wireframe-section::-webkit-scrollbar,\.mermaid-render::-webkit-scrollbar,\.mermaid-source::-webkit-scrollbar,\.note-content::-webkit-scrollbar,\.entity-notes pre::-webkit-scrollbar,\.entity-overview pre::-webkit-scrollbar\{display:none!important;height:0!important;width:0!important\}/);
   assert.match(printScrollbarSuppressCss({ spaced: true }), /html,\n\s+body,\n\s+main,\n\s+\.content,\n\s+\.preview,\n\s+\.document,\n\s+\.spec-table-wrap,/);
   assert.match(printScrollbarSuppressCss({ spaced: true }), /::-webkit-scrollbar \{ display: none !important; height: 0 !important; width: 0 !important; \}/);
+});
+
+test("renders unspecified table cells as dashes while preserving concrete falsy text", () => {
+  const html = renderTable(["Unset", "Blank", "Whitespace", "False", "Zero"], [[undefined, "", "   ", "false", "0"]]);
+
+  assert.match(html, /<td>-<\/td><td>-<\/td><td>-<\/td><td>false<\/td><td>0<\/td>/);
 });
 
 test("renders empty state placeholders in static state previews", () => {
@@ -147,7 +154,7 @@ Initial \`static\` release.
   assert.match(html, /<td>ID<\/td><td>SCR-STATIC<\/td>/);
   assert.match(html, /<section class="doc-section history-section"><h2>History<\/h2>/);
   assert.match(html, /<th>Version<\/th><th>Date<\/th><th>Author<\/th><th>Reviewer<\/th><th>Reason<\/th><th>Ticket<\/th><th>Changes<\/th>/);
-  assert.match(html, /<td>ver 1\.0<\/td><td>2026-05-13<\/td><td>Alice<\/td><td><\/td><td><\/td><td>MM-1<\/td>/);
+  assert.match(html, /<td>ver 1\.0<\/td><td>2026-05-13<\/td><td>Alice<\/td><td>-<\/td><td>-<\/td><td>MM-1<\/td>/);
   assert.match(html, /Initial <span class="mm-inline-token">static<\/span> release\./);
   assert.match(html, /<li>Added export history\.<\/li>/);
   assert.match(html, /<section class="doc-section state-views-section">\s*<h2>State Views<\/h2>/);
@@ -235,4 +242,33 @@ title: Messages
   assert.match(html, /<p class="spec-empty">Empty sample<\/p>/);
   assert.match(html, /<h5 class="state-screen-subheading">Canvas<\/h5>/);
   assert.doesNotMatch(html, /<h2>Samples<\/h2>|Rows:|Sample Data|Count: 0/);
+});
+
+test("renders missing static model sample values as dashes", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-STATIC-SAMPLES
+type: screen
+title: Static Samples
+---
+
+# SCR-STATIC-SAMPLES Static Samples
+
+## States
+
+- loaded*
+
+## Model Samples
+
+### loaded
+
+#### model.members
+
+| name | role |
+|---|---|
+| Jane | |
+`);
+  const html = renderStaticDesignDocumentHtml(result);
+
+  assert.match(html, /<th>name<\/th><th>role<\/th>/);
+  assert.match(html, /<td>Jane<\/td><td>-<\/td>/);
 });
