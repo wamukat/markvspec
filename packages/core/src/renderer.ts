@@ -1400,7 +1400,7 @@ function renderDefaultStyles(): string {
 .mm-marker-link{display:inline-flex;pointer-events:auto;text-decoration:none}
 .mm-marker-link .mm-id{pointer-events:none}
 .mm-element-wrap-button .mm-annotation-row,.mm-element-wrap-link .mm-annotation-row,.mm-element-wrap-text .mm-annotation-row,.mm-element-wrap-badge .mm-annotation-row{left:auto;right:0;top:50%;transform:translate(calc(100% + 4px),-50%)}
-.mm-layout-row > .mm-element-wrap-annotated > .mm-annotation-row,.mm-layout-grid > .mm-element-wrap-annotated > .mm-annotation-row,.mm-layout-inline > .mm-element-wrap-annotated > .mm-annotation-row,.mm-field-row > .mm-element-wrap-annotated > .mm-annotation-row{left:50%;right:auto;top:0;transform:translate(-50%,-55%)}
+.mm-layout-row > .mm-element-wrap-annotated > .mm-annotation-row,.mm-layout-grid > .mm-element-wrap-annotated > .mm-annotation-row,.mm-layout-inline > .mm-element-wrap-annotated > .mm-annotation-row,.mm-field-row > .mm-element-wrap-annotated > .mm-annotation-row,.mm-dialog-actions > .mm-element-wrap-annotated > .mm-annotation-row{left:50%;right:auto;top:0;transform:translate(-50%,-55%)}
 .mm-element-list{padding-left:24px}
 .mm-element-table{border-collapse:collapse;width:100%}
 .mm-element-wrap-table .mm-element-table{table-layout:fixed;width:100%}

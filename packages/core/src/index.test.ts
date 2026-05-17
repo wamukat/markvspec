@@ -7373,7 +7373,7 @@ title: Fallback
   assert.match(html, /\.mm-annotation-row \.mm-id\{margin-right:0;pointer-events:none\}/);
   assert.match(html, /\.mm-marker-link \.mm-id\{pointer-events:none\}/);
   assert.match(html, /\.mm-element-wrap-button \.mm-annotation-row,\.mm-element-wrap-link \.mm-annotation-row,\.mm-element-wrap-text \.mm-annotation-row,\.mm-element-wrap-badge \.mm-annotation-row\{left:auto;right:0;top:50%;transform:translate\(calc\(100% \+ 4px\),-50%\)\}/);
-  assert.match(html, /\.mm-layout-row > \.mm-element-wrap-annotated > \.mm-annotation-row,\.mm-layout-grid > \.mm-element-wrap-annotated > \.mm-annotation-row,\.mm-layout-inline > \.mm-element-wrap-annotated > \.mm-annotation-row,\.mm-field-row > \.mm-element-wrap-annotated > \.mm-annotation-row\{left:50%;right:auto;top:0;transform:translate\(-50%,-55%\)\}/);
+  assert.match(html, /\.mm-layout-row > \.mm-element-wrap-annotated > \.mm-annotation-row,\.mm-layout-grid > \.mm-element-wrap-annotated > \.mm-annotation-row,\.mm-layout-inline > \.mm-element-wrap-annotated > \.mm-annotation-row,\.mm-field-row > \.mm-element-wrap-annotated > \.mm-annotation-row,\.mm-dialog-actions > \.mm-element-wrap-annotated > \.mm-annotation-row\{left:50%;right:auto;top:0;transform:translate\(-50%,-55%\)\}/);
   assert.doesNotMatch(html, /padding-top:18px/);
   assert.doesNotMatch(html, /\.mm-element-wrap-annotated[^}]+\{[^}]*padding-top/);
   assert.doesNotMatch(html, /\.mm-element-wrap\{[^}]*display:inline-flex/);
@@ -7906,6 +7906,7 @@ title: Media
   assert.equal(result.diagnostics.length, 0);
   assert.match(html, /<section class="mm-element mm-element-dialog" data-mm-id="E-ConfirmDialog" role="dialog" aria-modal="true" aria-label="Delete item">/);
   assert.match(html, /<div class="mm-dialog-actions">[\s\S]*<button class="mm-element mm-element-button mm-variant-primary mm-tone-danger" data-mm-id="E-ConfirmDeleteButton">Delete<\/button>/);
+  assert.match(html, /<div class="mm-dialog-actions">[\s\S]*<div class="mm-element-wrap mm-element-wrap-button mm-element-wrap-annotated" data-mm-render-key="element:E-CancelDeleteButton">[\s\S]*<span class="mm-annotation-row">[\s\S]*mm-marker-action[\s\S]*A-CancelDelete[\s\S]*<\/span><\/div>[\s\S]*<div class="mm-element-wrap mm-element-wrap-button mm-element-wrap-annotated" data-mm-render-key="element:E-ConfirmDeleteButton">[\s\S]*<span class="mm-annotation-row">[\s\S]*mm-marker-action[\s\S]*A-ConfirmDelete[\s\S]*<\/span><\/div>/);
   assert.match(html, /<div class="mm-dialog-body">This action cannot be undone\.<\/div>/);
   assert.match(html, /<div class="mm-element mm-element-toast mm-tone-success" data-mm-id="E-SavedToast" role="status" data-mm-toast-placement="top-right" data-mm-toast-duration="short"><span class="mm-toast-message">Settings saved\.<\/span><\/div>/);
   assert.match(html, /<figure class="mm-element mm-element-image" data-mm-id="E-ProfileImage">/);
