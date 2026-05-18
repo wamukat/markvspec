@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from "node:fs";
-import { dirname } from "node:path";
+import { basename, dirname } from "node:path";
 import { mkdirSync } from "node:fs";
 
 function argValue(name) {
@@ -64,6 +64,7 @@ const markdown = readFileSync(sourcePath, "utf8");
 const generatedHtml = readFileSync(htmlPath, "utf8");
 const wireframeSection = extractFirstWireframeSection(generatedHtml);
 const source = escapeHtml(sourceExcerpt(markdown));
+const sourceFileName = escapeHtml(basename(sourcePath));
 
 const page = `<!doctype html>
 <html lang="en">
@@ -148,7 +149,7 @@ const page = `<!doctype html>
 <body>
   <main class="capture">
     <section class="panel">
-      <div class="panel-header"><span>Markdown source</span><span>login-basic.vspec.md</span></div>
+      <div class="panel-header"><span>Markdown source</span><span>${sourceFileName}</span></div>
       <pre>${source}</pre>
     </section>
     <section class="panel">
