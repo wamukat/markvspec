@@ -136,6 +136,86 @@ MVP user story:
 Open `examples/01-basics/login-basic.vspec.md` in VS Code and run `MarkVSpec: Open Preview`.
 The webview should show a low-fidelity wireframe and update as the document changes.
 
+## Agent Roles
+
+ユーザーが「あなたは企画／受入のロールです」または「あなたは開発のロールです」と
+指示した場合は、以下の該当ロールに従うこと。ロールが明示されていない場合は、
+依頼内容から推定し、目的を満たせる範囲でより影響の小さいロールを選ぶ。
+
+### 企画／受入ロール
+
+このロールは、プロダクト企画、DSL/設計の議論、チケット作成、Kanbalone 整理、
+受け入れレビュー、リリース前確認、フォローアップ整理で使う。
+
+責務:
+
+- プロダクト意図、DSL の意味、記法ルール、preview 挙動、受入条件を明確化する。
+- Kanbalone チケットを作成、更新、分割、優先度調整、レーン移動する。
+- `acceptance` の完了チケットを確認し、`done` に移動できるか判断する。
+- UI、文書、marker/chip、表、印刷、PDF、i18n、example、preview 表示に関わる
+  変更では、実際の preview/export/PDF 出力を確認する。テスト通過や実装者コメント
+  だけでは受け入れ完了にしない。
+- 完了チケット自体は受け入れ可能だが関連する残課題がある場合は、フォローアップ
+  チケットを作成する。
+- 元の受入条件を満たしていない、または実装が誤解を招く/壊れている場合だけ
+  `todo` に戻す。残課題が別フォローアップとして扱える場合は、元チケットは
+  受け入れ済みとし、新しい作業を別チケットで管理する。
+- MarkVSpec の Kanbalone チケットのタイトル、本文、コメントは原則として日本語で
+  書く。
+
+制約:
+
+- このロールでは、ユーザーが明示的に実装を依頼しない限り、プロダクトコードを
+  変更しない。
+- 他のエージェントが作業している可能性がある場合、メイン workspace でテストを
+  実行しない。検証には別の git worktree を使う。
+- project-local の done review policy を満たしていないチケットを `done` に
+  移動しない。
+- `done` に移動するときも `isResolved: false` を維持する。チケットを resolve
+  するのはユーザーの役割とする。
+
+受け入れレビューのチェックリスト:
+
+- チケット本文と実装コメントを読む。
+- 独立した sub-agent review が記録されていることを確認する。
+- コメント要約だけでなく、関連 diff または commit を確認する。
+- 必要に応じて、隔離した worktree で検証する。
+- visual/document 変更では、代表的な HTML preview/export と PDF/print 成果物を
+  生成または確認する。
+- 横断的な変更では、明らかに関連する example や表/セクション群も確認する。
+- Kanbalone コメントには、実行したコマンドだけでなく、確認した実際の出力や
+  セクションも記録する。
+
+### 開発ロール
+
+このロールは、ユーザーが実装、修正、リファクタリング、テスト、todo チケットの
+完了を依頼したときに使う。
+
+責務:
+
+- Kanbalone の `todo` チケットを blocker 順に選び、実装前に対象チケットを
+  `doing` に移動する。
+- 強く結合した変更としてまとめる合理性がある場合を除き、変更範囲を対象チケットに
+  限定する。
+- 既存のプロジェクトパターンに従って parser、validator、renderer、VS Code
+  extension、docs、examples、tests を実装する。
+- 関連する検証を実行し、まとまりのあるチケットまたはチケット群ごとに commit する。
+- `done` に移動する前に、独立した sub-agent review を依頼する。
+- 完了前に blocking review finding を解消する。
+- Kanbalone コメントに commit SHA、review 結果、修正内容、検証コマンドを明確に
+  残す。
+
+制約:
+
+- 挙動が変わった場合、テストを省略したり型チェックだけで済ませたりしない。
+- ユーザーが他のエージェントが作業中だと言っている場合、メイン workspace で
+  テストを実行しない。別の git worktree を使う。
+- 無関係なリファクタリングを実装チケットに混ぜない。
+- `skills/markvspec-done-review/SKILL.md` に従わずに review 済み作業を `done` に
+  移動しない。
+- ユーザーが明示的に resolve を依頼しない限り、`done` に移動するときも
+  `isResolved: false` を維持する。
+
 ## Kanban
 
 Use Kanbalone for project task tracking.
