@@ -464,7 +464,7 @@ function renderStaticLayoutReference(
   if (!unplaced) {
     return ref;
   }
-  return `${ref} <span class="mm-chip mm-unplaced-badge">${escapeHtml(messages.notPlacedInCurrentLayout)}</span>`;
+  return `${ref} <span class="mm-chip mm-unplaced-badge">${renderPreviewIcon("eye-off")}${escapeHtml(messages.notPlacedInCurrentLayout)}</span>`;
 }
 
 function renderStaticLayoutSettingItems(result: MarkVSpecParseResult, layout: StaticParsedLayout, messages: RendererMessages): string {
@@ -880,7 +880,7 @@ function renderSampleRowsReference(
 ): string {
   const marker = rawStringProperty(element.properties["marker"]) || sampleRowsRef.elementId;
   const href = sampleRowsRef.anchorId ? ` href="#${escapeHtml(sampleRowsRef.anchorId)}"` : "";
-  return `<a class="mm-ref-chip mm-ref-chip-element"${href} data-mm-ref-id="${escapeHtml(sampleRowsRef.elementId)}"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">${escapeHtml(marker)}</code> <span class="mm-detail-ref-id">${escapeHtml(sampleRowsRef.elementId)}</span></a>`;
+  return `<a class="mm-ref-chip mm-ref-chip-element"${href} data-mm-ref-id="${escapeHtml(sampleRowsRef.elementId)}">${renderPreviewIcon("table")}<code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">${escapeHtml(marker)}</code> <span class="mm-detail-ref-id">${escapeHtml(sampleRowsRef.elementId)}</span></a>`;
 }
 
 function renderSourceSummary(value: string | true | undefined): string {
@@ -889,9 +889,35 @@ function renderSourceSummary(value: string | true | undefined): string {
     return "";
   }
   if (isMarkVSpecSourceType(source)) {
-    return `<span class="mm-chip mm-source-chip mm-source-chip-${escapeHtml(source)}">${escapeHtml(source)}</span>`;
+    return `<span class="mm-chip mm-source-chip mm-source-chip-${escapeHtml(source)}">${renderSourceKindIcon(source)}${escapeHtml(source)}</span>`;
   }
   return hasOpaqueExpression(source) ? renderExpressionTokens(source) : code(source);
+}
+
+type PreviewIconName = "database" | "eye-off" | "languages" | "route" | "table";
+
+function renderPreviewIcon(name: PreviewIconName): string {
+  const paths: Record<PreviewIconName, string> = {
+    database: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/>',
+    "eye-off": '<path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61C3.88 8.46 2 12 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><path d="m2 2 20 20"/><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>',
+    languages: '<path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>',
+    route: '<circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M6 16V8a3 3 0 0 1 3-3h6"/><path d="M18 8v8a3 3 0 0 1-3 3H9"/>',
+    table: '<path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/>'
+  };
+  return `<svg class="mm-icon mm-icon-${name}" aria-hidden="true" viewBox="0 0 24 24">${paths[name]}</svg>`;
+}
+
+function renderSourceKindIcon(source: string): string {
+  if (source === "data") {
+    return renderPreviewIcon("database");
+  }
+  if (source === "route") {
+    return renderPreviewIcon("route");
+  }
+  if (source === "i18n") {
+    return renderPreviewIcon("languages");
+  }
+  return "";
 }
 
 function renderElementConditionSummary(

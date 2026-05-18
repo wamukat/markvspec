@@ -82,6 +82,7 @@ locale: ja
     const result = renderStandaloneHtmlForFile(sourcePath);
 
     assert.match(result.html, /Action A-Save に trigger がありません/);
+    assert.match(result.html, /<span class="mm-diagnostic-severity mm-diagnostic-severity-warning"><svg class="mm-icon mm-icon-triangle-alert" aria-hidden="true" viewBox="0 0 24 24">[\s\S]*?<\/svg>warning<\/span>/);
     assert.doesNotMatch(result.html, /Action A-Save has no trigger/);
   } finally {
     rmSync(dir, { recursive: true, force: true });

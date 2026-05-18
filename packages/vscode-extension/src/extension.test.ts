@@ -141,7 +141,7 @@ function repeatedBadge(label = "Repeated"): string {
 }
 
 function unplacedBadge(label = "not placed in current layout"): string {
-  return `<span class="mm-chip mm-unplaced-badge" title="${escapeRegExp(label)}"><span class="mm-unplaced-icon" aria-hidden="true"></span>${escapeRegExp(label)}</span>`;
+  return `<span class="mm-chip mm-unplaced-badge" title="${escapeRegExp(label)}"><svg class="mm-icon mm-icon-eye-off" aria-hidden="true" viewBox="0 0 24 24">[\\s\\S]*?</svg>${escapeRegExp(label)}</span>`;
 }
 
 function docLabel(value: string, kind: "state" | "trigger" | "result", extraClass = ""): string {
@@ -162,7 +162,7 @@ function plainCodePattern(value: string): string {
 }
 
 function sourceTypeChipPattern(value: string): string {
-  return `<span class="mm-chip mm-source-chip mm-source-chip-${escapeRegExp(value)}">${escapeRegExp(value)}</span>`;
+  return `<span class="mm-chip mm-source-chip mm-source-chip-${escapeRegExp(value)}">(?:<svg class="mm-icon mm-icon-[^"]+" aria-hidden="true" viewBox="0 0 24 24">[\\s\\S]*?</svg>)?${escapeRegExp(value)}</span>`;
 }
 
 function defaultAlwaysPattern(value = "always"): string {
@@ -544,6 +544,7 @@ locale: ja
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
 
   assert.match(html, new RegExp(escapeRegExp(localizedMessage)));
+  assert.match(html, /<span class="mm-diagnostic-severity mm-diagnostic-severity-warning"><svg class="mm-icon mm-icon-triangle-alert" aria-hidden="true" viewBox="0 0 24 24">[\s\S]*?<\/svg>warning<\/span>/);
   assert.doesNotMatch(html, /mixes result classification with direct immediate effects/);
   assert.equal(localizedMessage, "Action A-Invalid の Process step P1 Validate and update で、result 分類と直接の immediate effect が混在しています。分類された result には case Effects を使ってください。");
 });
@@ -6219,11 +6220,15 @@ test("renders the source-kind metadata example with property-level source chips"
   for (const kind of ["fixed", "i18n", "data", "route", "element", "asset", "external", "computed"]) {
     assert.match(displayContent, new RegExp(sourceTypeChipPattern(kind)), kind);
   }
+  assert.match(displayContent, /mm-source-chip-i18n"><svg class="mm-icon mm-icon-languages"/);
+  assert.match(displayContent, /mm-source-chip-data"><svg class="mm-icon mm-icon-database"/);
+  assert.match(displayContent, /mm-source-chip-route"><svg class="mm-icon mm-icon-route"/);
   assert.match(displayContent, /asset catalog: member-avatar/);
   assert.match(displayContent, /external status page URL/);
   assert.match(displayContent, /currency USD/);
   assert.match(displayContent, /date yyyy\/MM\/dd/);
   assert.match(displayContent, new RegExp(`<td rowspan="3">${detailElementRef("9", "E-LineItems")}</td><td>table rows</td><td>Sample rows: <a class="mm-ref-chip mm-ref-chip-element" href="#sample-rows-desktop-loaded-E-LineItems"[^>]*data-mm-ref-id="E-LineItems"[\\s\\S]*?</a></td><td>-</td><td>${sourceTypeChipPattern("data")}</td>`));
+  assert.match(displayContent, /Sample rows: <a class="mm-ref-chip mm-ref-chip-element" href="#sample-rows-desktop-loaded-E-LineItems"[^>]*><svg class="mm-icon mm-icon-table"/);
   assert.match(displayContent, new RegExp(`<tr><td>columns</td><td>${specSectionPattern("Columns", ["Item \\(field: item\\)", "Amount \\(field: amount\\)"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
   assert.match(displayContent, new RegExp(`<tr><td>label</td><td>Line items</td><td>-</td><td>${sourceTypeChipPattern("i18n")}</td>`));
   assert.match(loadedSection, /<section class="scenario-sample-rows-block" id="sample-rows-desktop-loaded-E-LineItems">/);

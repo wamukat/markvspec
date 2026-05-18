@@ -542,7 +542,7 @@ title: Scenario Samples
   assert.match(loadedScenario, /<th>Product<\/th><th>Seats<\/th><th>renewal<\/th>/);
   assert.match(loadedScenario, /<td>Workspace<\/td><td>8<\/td><td>2026-06-30<\/td>/);
   assert.match(loadedScenario, /<td>Analytics<\/td><td>4<\/td><td>2026-07-15<\/td>/);
-  assert.match(loadedScenario, /<td>table rows<\/td><td>Sample rows: <a class="mm-ref-chip mm-ref-chip-element" href="#sample-rows-desktop-loaded.20.2F.20loaded-renewal-risk-E-SubscriptionTable"[^>]*data-mm-ref-id="E-SubscriptionTable"[\s\S]*?<\/a><\/td><td>-<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">data<\/span><\/td>/);
+  assert.match(loadedScenario, /<td>table rows<\/td><td>Sample rows: <a class="mm-ref-chip mm-ref-chip-element" href="#sample-rows-desktop-loaded.20.2F.20loaded-renewal-risk-E-SubscriptionTable"[^>]*data-mm-ref-id="E-SubscriptionTable"[\s\S]*?mm-icon-table[\s\S]*?<\/a><\/td><td>-<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">[\s\S]*?data<\/span><\/td>/);
   assert.doesNotMatch(loadedScenario, /<td>table rows<\/td><td>see wireframe<\/td>/);
   assert(loadedScenario.indexOf('<section class="scenario-sample-rows-block"') > loadedScenario.indexOf("</table></div>"));
   assert.match(emptyScenario, /0 seats/);
@@ -830,10 +830,10 @@ title: Static Input Source
   const html = renderStaticDesignDocumentHtml(result);
 
   assert.match(html, /<th>Marker\/ID<\/th><th>Type<\/th><th>Required<\/th><th>Value<\/th><th>Source<\/th><th>Spec<\/th><th>Condition<\/th>/);
-  assert.match(html, /<td><a class="mm-ref-chip mm-ref-chip-element" href="#state-views" data-mm-ref-id="E-EmailInput"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">E-EmailInput<\/code><\/a><\/td><td>Input<\/td><td>no<\/td><td>morgan@example\.com<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">data<\/span><\/td><td><div class="spec-section"><strong>Input<\/strong><ul class="spec-list"><li>type: email<\/li><\/ul><\/div><\/td><td><span class="spec-default-always">always<\/span><\/td>/);
-  assert.match(html, /<td><a class="mm-ref-chip mm-ref-chip-element" href="#state-views" data-mm-ref-id="E-RoleSelect"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">E-RoleSelect<\/code><\/a><\/td><td>Select<\/td><td>no<\/td><td>member<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">data<\/span><br><span class="mm-inline-token">\$\{data.member.role\}<\/span><\/td>/);
-  assert.match(html, /<td>taylor@example.com<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">data<\/span><\/td>/);
-  assert.match(html, /<td>administrator<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">data<\/span><br><span class="mm-inline-token">\$\{data.member.role\}<\/span><\/td>/);
+  assert.match(html, /<td><a class="mm-ref-chip mm-ref-chip-element" href="#state-views" data-mm-ref-id="E-EmailInput"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">E-EmailInput<\/code><\/a><\/td><td>Input<\/td><td>no<\/td><td>morgan@example\.com<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">[\s\S]*?data<\/span><\/td><td><div class="spec-section"><strong>Input<\/strong><ul class="spec-list"><li>type: email<\/li><\/ul><\/div><\/td><td><span class="spec-default-always">always<\/span><\/td>/);
+  assert.match(html, /<td><a class="mm-ref-chip mm-ref-chip-element" href="#state-views" data-mm-ref-id="E-RoleSelect"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">E-RoleSelect<\/code><\/a><\/td><td>Select<\/td><td>no<\/td><td>member<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">[\s\S]*?data<\/span><br><span class="mm-inline-token">\$\{data.member.role\}<\/span><\/td>/);
+  assert.match(html, /<td>taylor@example.com<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">[\s\S]*?data<\/span><\/td>/);
+  assert.match(html, /<td>administrator<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">[\s\S]*?data<\/span><br><span class="mm-inline-token">\$\{data.member.role\}<\/span><\/td>/);
 });
 
 test("combines static input and display conditions into one condition column", () => {

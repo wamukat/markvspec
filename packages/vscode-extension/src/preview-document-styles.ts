@@ -176,6 +176,7 @@ ${baseWireframeViewportCss()}
 .spec-nested-list{margin-top:3px}
 .spec-list-label{color:#374151;font-weight:600}
 .mm-chip{align-items:center;border:1px solid #d1d5db;border-radius:999px;display:inline-flex;font-size:11px;font-weight:650;line-height:1.2;max-width:100%;padding:2px 7px;vertical-align:middle;white-space:normal}
+.mm-icon{display:inline-block;flex:0 0 auto;height:13px;margin-right:4px;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:2;fill:none;width:13px}
 .mm-chip-type{background:#f9fafb;color:#374151}
 .mm-chip-tone-neutral{background:#f9fafb;border-color:#d1d5db;color:#374151}
 .mm-chip-tone-info{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
@@ -183,6 +184,7 @@ ${baseWireframeViewportCss()}
 .mm-chip-tone-warning{background:#fffbeb;border-color:#fcd34d;color:#b45309}
 .mm-chip-tone-danger{background:#fef2f2;border-color:#fca5a5;color:#b91c1c}
 .mm-source-chip{border-radius:7px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace}
+.mm-source-chip .mm-icon{height:12px;width:12px}
 .mm-source-chip-fixed{background:#f8fafc;border-color:#cbd5e1;color:#475569}
 .mm-source-chip-i18n{background:#eef2ff;border-color:#a5b4fc;color:#3730a3}
 .mm-source-chip-data{background:#eff6ff;border-color:#60a5fa;color:#1d4ed8}
@@ -193,8 +195,10 @@ ${baseWireframeViewportCss()}
 .mm-source-chip-computed{background:#f5f3ff;border-color:#c4b5fd;color:#6d28d9}
 .mm-repeated-badge{background:#f8fafc;border-color:#cbd5e1;color:#64748b;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace}
 .mm-unplaced-badge{background:#fff7ed;border-color:#fdba74;color:#9a3412;gap:4px}
-.mm-unplaced-icon{border:1.5px solid currentColor;border-radius:999px;box-sizing:border-box;display:inline-block;height:8px;position:relative;width:12px}
-.mm-unplaced-icon::after{background:currentColor;content:"";height:1.5px;left:-2px;position:absolute;top:3px;transform:rotate(-35deg);width:16px}
+.mm-diagnostic-severity{align-items:center;display:inline-flex;font-weight:650;gap:2px}
+.mm-diagnostic-severity-error{color:#b91c1c}
+.mm-diagnostic-severity-warning{color:#b45309}
+.mm-diagnostic-severity-info{color:#1d4ed8}
 .spec-table tr:has(.mm-repeated-badge){background:#f8fafc;color:#64748b}
 .spec-table tr:has(.mm-unplaced-badge){background:#fff7ed}
 body.hide-repeated-content .spec-table tr:has(.mm-repeated-badge){display:none}

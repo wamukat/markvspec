@@ -3545,7 +3545,7 @@ function renderProjectDiagnosticsSpec(project: MarkVSpecProjectLoadResult, messa
     ${renderProjectTable(messages,
       [pLabel(messages, "severity"), pLabel(messages, "line"), pLabel(messages, "message")],
       project.diagnostics.map((diagnostic) => [
-        diagnostic.severity,
+        renderDiagnosticSeverity(diagnostic.severity),
         diagnostic.line ? String(diagnostic.line) : "",
         text(renderDiagnosticMessageForLocale(diagnostic, project.project.project.frontMatter["locale"]))
       ])
@@ -3783,6 +3783,7 @@ function stateViewsRenderContext(result: ReturnType<typeof parseMarkVSpec>): Sta
       marker: firstStringProperty(layout.properties["marker"]) || layout.id,
       label: layout.name || layout.id
     }),
+    renderIcon: renderPreviewIcon,
     renderEntityNotes,
     renderElementTypeSummary,
     renderElementActionReferences: (element) => renderElementActionReferences(result, element),
@@ -4159,13 +4160,14 @@ function renderDisplayContentValue(element: ParsedElement, value: string, sectio
 }
 
 function renderSampleRowsRef(element: ParsedElement, sampleRowsRef: DisplayContentSpecSampleRowsRef): string {
-  return renderEntityRefChip({
+  const ref = renderEntityRefChip({
     id: sampleRowsRef.elementId,
     category: "element",
     marker: rawStringProperty(element.properties["marker"]) || sampleRowsRef.elementId,
     label: element.id,
     href: sampleRowsRef.anchorId ? `#${sampleRowsRef.anchorId}` : undefined
   });
+  return ref.replace(">", `>${renderPreviewIcon("table")}`);
 }
 
 function renderActionableElementsTable(
@@ -5135,12 +5137,25 @@ function renderDiagnosticsSpec(result: ReturnType<typeof parseMarkVSpec>): strin
     ${renderLocalizedTable(result,
       [label(result, "severity"), label(result, "line"), label(result, "message")],
       result.diagnostics.map((diagnostic) => [
-        diagnostic.severity,
+        renderDiagnosticSeverity(diagnostic.severity),
         diagnostic.line ? String(diagnostic.line) : "",
         text(renderDiagnosticMessageForLocale(diagnostic, result.screen.locale))
       ])
     )}
   </section>`;
+}
+
+function renderDiagnosticSeverity(severity: string): string {
+  if (severity === "error") {
+    return `<span class="mm-diagnostic-severity mm-diagnostic-severity-error">${renderPreviewIcon("circle-x")}${text(severity)}</span>`;
+  }
+  if (severity === "warning") {
+    return `<span class="mm-diagnostic-severity mm-diagnostic-severity-warning">${renderPreviewIcon("triangle-alert")}${text(severity)}</span>`;
+  }
+  if (severity === "info") {
+    return `<span class="mm-diagnostic-severity mm-diagnostic-severity-info">${renderPreviewIcon("info")}${text(severity)}</span>`;
+  }
+  return text(severity);
 }
 
 function renderConditionList(result: ReturnType<typeof parseMarkVSpec>, groups: Array<[string, string[]]>): string {
@@ -6323,10 +6338,39 @@ function renderSourceSummary(value: string | true | undefined): string {
   }
 
   if (isMarkVSpecSourceType(source)) {
-    return `<span class="mm-chip mm-source-chip mm-source-chip-${source}">${text(source)}</span>`;
+    return `<span class="mm-chip mm-source-chip mm-source-chip-${source}">${renderSourceKindIcon(source)}${text(source)}</span>`;
   }
 
   return hasOpaqueExpression(source) ? renderExpressionTokens(source) : code(source);
+}
+
+type PreviewIconName = "circle-x" | "database" | "eye-off" | "info" | "languages" | "route" | "table" | "triangle-alert";
+
+function renderPreviewIcon(name: PreviewIconName): string {
+  const paths: Record<PreviewIconName, string> = {
+    "circle-x": '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>',
+    database: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/>',
+    "eye-off": '<path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61C3.88 8.46 2 12 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><path d="m2 2 20 20"/><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>',
+    info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+    languages: '<path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>',
+    route: '<circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M6 16V8a3 3 0 0 1 3-3h6"/><path d="M18 8v8a3 3 0 0 1-3 3H9"/>',
+    table: '<path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/>',
+    "triangle-alert": '<path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>'
+  };
+  return `<svg class="mm-icon mm-icon-${name}" aria-hidden="true" viewBox="0 0 24 24">${paths[name]}</svg>`;
+}
+
+function renderSourceKindIcon(source: string): string {
+  if (source === "data") {
+    return renderPreviewIcon("database");
+  }
+  if (source === "route") {
+    return renderPreviewIcon("route");
+  }
+  if (source === "i18n") {
+    return renderPreviewIcon("languages");
+  }
+  return "";
 }
 
 function renderValidationList(element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {

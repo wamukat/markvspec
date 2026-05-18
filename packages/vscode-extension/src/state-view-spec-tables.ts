@@ -27,6 +27,7 @@ export interface StateViewSpecTableHelpers {
   renderDetailRefId(id: string): string;
   renderEntityRef(id: string, linkAction?: boolean): string;
   renderLayoutRef(layout: ParsedLayout): string;
+  renderIcon(name: "eye-off"): string;
   renderEntityNotes(notes: string[]): string;
   renderElementTypeSummary(element: ParsedElement): string;
   renderElementActionReferences(element: ParsedElement): string;
@@ -75,7 +76,7 @@ export function createStateViewSpecTableRenderer(
 ): StateViewSpecTableRenderer {
   const markerIdHeader = () => `${helpers.label("marker")}/${helpers.label("id")}`;
   const renderRepeatedLabel = () => `<span class="mm-chip mm-repeated-badge">${helpers.text(helpers.label("repeated"))}</span>`;
-  const renderUnplacedLabel = () => `<span class="mm-chip mm-unplaced-badge" title="${helpers.text(helpers.label("notPlacedInCurrentLayout"))}"><span class="mm-unplaced-icon" aria-hidden="true"></span>${helpers.text(helpers.label("notPlacedInCurrentLayout"))}</span>`;
+  const renderUnplacedLabel = () => `<span class="mm-chip mm-unplaced-badge" title="${helpers.text(helpers.label("notPlacedInCurrentLayout"))}">${helpers.renderIcon("eye-off")}${helpers.text(helpers.label("notPlacedInCurrentLayout"))}</span>`;
   const renderRepeatedMarkerCell = (id: string, repeated: boolean): string => {
     const marker = helpers.markerBadgeForId(id);
     return repeated ? `${marker} ${renderRepeatedLabel()}` : marker;

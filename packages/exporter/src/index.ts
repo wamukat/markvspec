@@ -783,7 +783,9 @@ function standaloneHtml(
       ${baseWireframeViewportCss({ spaced: true })}
       .mm-inline-token { color: #0f766e; font-family: inherit; font-weight: 650; padding: 0 1px; }
       .mm-chip { align-items: center; border: 1px solid #d1d5db; border-radius: 999px; display: inline-flex; font-size: 11px; font-weight: 650; line-height: 1.2; max-width: 100%; padding: 2px 7px; vertical-align: middle; white-space: normal; }
+      .mm-icon { display: inline-block; flex: 0 0 auto; height: 13px; margin-right: 4px; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2; fill: none; width: 13px; }
       .mm-source-chip { border-radius: 7px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+      .mm-source-chip .mm-icon { height: 12px; width: 12px; }
       .mm-source-chip-fixed { background: #f8fafc; border-color: #cbd5e1; color: #475569; }
       .mm-source-chip-i18n { background: #eef2ff; border-color: #a5b4fc; color: #3730a3; }
       .mm-source-chip-data { background: #eff6ff; border-color: #60a5fa; color: #1d4ed8; }
@@ -814,6 +816,10 @@ function standaloneHtml(
       .mm-export-diagnostics { margin-top: 24px; padding: 16px; border: 1px solid #d1d5db; background: #fff; }
       .mm-export-diagnostics table { width: 100%; border-collapse: collapse; }
       .mm-export-diagnostics th, .mm-export-diagnostics td { border-bottom: 1px solid #e5e7eb; padding: 8px; text-align: left; }
+      .mm-diagnostic-severity { align-items: center; display: inline-flex; font-weight: 650; gap: 2px; }
+      .mm-diagnostic-severity-error { color: #b91c1c; }
+      .mm-diagnostic-severity-warning { color: #b45309; }
+      .mm-diagnostic-severity-info { color: #1d4ed8; }
       @media print {
         @page { margin: 14mm; size: A4 landscape; }
         :root { --markvspec-heading-state-views: 15pt; --markvspec-heading-viewport: 12.5pt; --markvspec-heading-state: 11.5pt; --markvspec-heading-detail: 10pt; --markvspec-heading-badge: 8.5pt; }
@@ -865,8 +871,32 @@ function renderDiagnostics(diagnostics: readonly MarkVSpecDiagnostic[], messages
     return "";
   }
 
-  const rows = diagnostics.map((diagnostic) => `<tr><td>${escapeHtml(diagnostic.severity)}</td><td>${diagnostic.line ?? ""}</td><td>${escapeHtml(renderDiagnosticMessageForLocale(diagnostic, locale))}</td></tr>`).join("");
+  const rows = diagnostics.map((diagnostic) => `<tr><td>${renderDiagnosticSeverity(diagnostic.severity)}</td><td>${diagnostic.line ?? ""}</td><td>${escapeHtml(renderDiagnosticMessageForLocale(diagnostic, locale))}</td></tr>`).join("");
   return `<section class="mm-export-diagnostics"><h2>${escapeHtml(messages.diagnostics)}</h2><table><thead><tr><th>${escapeHtml(messages.severity)}</th><th>${escapeHtml(messages.line)}</th><th>${escapeHtml(messages.message)}</th></tr></thead><tbody>${rows}</tbody></table></section>`;
+}
+
+type ExportIconName = "circle-x" | "info" | "triangle-alert";
+
+function renderExportIcon(name: ExportIconName): string {
+  const paths: Record<ExportIconName, string> = {
+    "circle-x": '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>',
+    info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+    "triangle-alert": '<path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>'
+  };
+  return `<svg class="mm-icon mm-icon-${name}" aria-hidden="true" viewBox="0 0 24 24">${paths[name]}</svg>`;
+}
+
+function renderDiagnosticSeverity(severity: string): string {
+  if (severity === "error") {
+    return `<span class="mm-diagnostic-severity mm-diagnostic-severity-error">${renderExportIcon("circle-x")}${escapeHtml(severity)}</span>`;
+  }
+  if (severity === "warning") {
+    return `<span class="mm-diagnostic-severity mm-diagnostic-severity-warning">${renderExportIcon("triangle-alert")}${escapeHtml(severity)}</span>`;
+  }
+  if (severity === "info") {
+    return `<span class="mm-diagnostic-severity mm-diagnostic-severity-info">${renderExportIcon("info")}${escapeHtml(severity)}</span>`;
+  }
+  return escapeHtml(severity);
 }
 
 function resolveExportRendererMessages(options: {
