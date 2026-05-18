@@ -21,6 +21,7 @@ without falling back to ambiguous prose.
 | Dialog / overlay | Supported | `Dialog` with targetless `display.element` | Dialogs are modal overlays by default. Define cancel/confirm buttons with `actions:` and show the dialog from a Preview Scenario or action case without a layout target. |
 | Popover / Tooltip | Supported | `Popover`, `Tooltip` | Anchored non-modal help. `anchor` must reference `E-*`; `placement`, `text`, and visibility conditions are shown in preview and generated specs. Runtime hover/focus behavior and interactive popover content are outside the initial contract. |
 | Accordion / Disclosure | Supported | `Accordion`, `Disclosure` | Local expanded/collapsed sections. `open` is element-local initial display state; panels reference `L-*` layout groups and optional actions remain traceable. |
+| Action menu | Supported | `ActionMenu` | Action-only menu for row actions and three-dot menus. Each item requires `action: A-*`; optional `tone` and `disabled when` stay visible in specs. Generic `Menu`, selection menus, and nested menus are not part of this contract. |
 | Toast notification | Supported | `Toast` with targetless `display.element` | Toasts are non-modal overlays. Use `message`, `tone`, `placement`, and `duration`; multiple displayed toasts stack in a toast region. |
 | Spinner / loading mask | Supported | `Spinner` with state-visible overlay layout | Used for wait states and partial loading states. |
 | Divider | Supported | `Divider` | Separates groups inside forms or detail screens. |
@@ -61,7 +62,7 @@ review from generic Layout and Element combinations.
 
 | Candidate | Classification | Decision | Reason |
 | --- | --- | --- | --- |
-| Menu / DropdownMenu / ActionMenu | Add candidate | Define canonical semantics | Menu item actions and open/closed overlay state are hard to see from a row of Buttons. |
+| Menu / DropdownMenu | Add candidate | Define canonical semantics later | Generic navigation and selection menus still need semantics beyond the action-only `ActionMenu`. |
 | ProgressBar | Add candidate | Define canonical semantics | Determinate progress has value/max/tone semantics that Spinner cannot express. |
 | Stepper | Add candidate | Define canonical semantics | Multi-step flows need current/completed/error step summaries. |
 | Breadcrumb | Add candidate | Define canonical semantics | Hierarchical navigation needs current item and destination summaries. |
@@ -157,6 +158,28 @@ content are intentionally out of scope.
 `Accordion` and `Disclosure` are implemented. Preview renders headers and open
 panel references. Display Content Spec aggregates panel/action links so local
 expansion behavior stays separate from screen state.
+
+### ActionMenu
+
+```markdown
+### E-RowActions ActionMenu
+
+- label: More actions
+- placement: bottom-end
+- open: false
+- items:
+  - Edit
+    - action: A-EditRow
+  - Disable
+    - action: A-DisableRow
+    - tone: danger
+    - disabled when: selected-row-locked
+```
+
+`ActionMenu` is implemented for action-only menus. Preview renders the trigger
+and, when `open: true`, an anchored item list. Display Content Spec aggregates
+item labels, action links, tones, and disabled conditions. Generic `Menu`,
+selection menus, and nested menus remain outside this element contract.
 
 ### ProgressBar
 

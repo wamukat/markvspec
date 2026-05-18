@@ -334,6 +334,21 @@ function applyCanonicalActionTriggers(result: MarkVSpecParseResult): void {
         event: actionEvent
       };
     }
+    for (const actionMenuItem of element.actionMenuItems) {
+      if (!actionMenuItem.action) {
+        continue;
+      }
+      const action = actionsById.get(actionMenuItem.action);
+      if (!action || action.triggeredBy) {
+        continue;
+      }
+      action.triggeredBy = `${element.id}.${actionEvent}`;
+      action.triggeredByLocation = actionMenuItem.propertyLocations.action[0] ?? actionMenuItem.location;
+      action.trigger = {
+        elementId: element.id,
+        event: actionEvent
+      };
+    }
   }
 
   for (const event of result.events) {

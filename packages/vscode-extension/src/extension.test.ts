@@ -6280,6 +6280,25 @@ test("renders Accordion and Disclosure element summary, wireframe, and display c
   assert.match(displayContent, new RegExp(`<td>disclosure</td><td>${specSectionPattern("Disclosure", ["label: Shipping details", "open: true", "panel: L-ShippingDetailsPanel", "action: A-ToggleShippingDetails"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
 });
 
+test("renders ActionMenu element summary, wireframe, and display content spec", () => {
+  const source = readFileSync(resolve("../../examples/04-real-world-screens/action-menu.vspec.md"), "utf8");
+  const result = parseMarkVSpec(source);
+  assert.deepEqual(result.diagnostics, []);
+  const html = renderDesignDocumentHtml(result, "");
+  const idleSection = stateSection(html, "idle");
+  const elementSummary = idleSection.match(/<h6 class="state-screen-detail-heading">Element Summary<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+  const displayContent = idleSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.match(idleSection, /<div class="mm-element mm-element-actionmenu mm-action-menu-open" data-mm-id="E-RowActions" data-mm-placement="bottom-end">/);
+  assert.match(idleSection, /<div class="mm-action-menu-item" data-mm-action-menu-action="A-EditAccount">/);
+  assert.match(idleSection, /<div class="mm-action-menu-item mm-action-menu-item-disabled mm-action-menu-item-danger" data-mm-action-menu-action="A-DisableAccount">/);
+  assert.match(elementSummary, /<td>ActionMenu<\/td>/);
+  assert.match(elementSummary, /open: true/);
+  assert.match(elementSummary, new RegExp(refActionChip("A-EditAccount", "A-EditAccount", "Edit account")));
+  assert.match(elementSummary, new RegExp(refActionChip("A-DisableAccount", "A-DisableAccount", "Disable account")));
+  assert.match(displayContent, new RegExp(`<td>action menu</td><td>${specSectionPattern("Action Menu", ["Edit \\(action: A-EditAccount\\)", "Disable \\(action: A-DisableAccount; tone: danger; disabled when: selected-row-locked\\)"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
+});
+
 test("splits input form values and source metadata into separate columns", () => {
   const result = parseMarkVSpec(`---
 id: SCR-INPUT-SOURCE

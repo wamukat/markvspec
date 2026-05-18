@@ -5462,6 +5462,7 @@ test("parses every release example without diagnostics", () => {
     "03-actions/single-field-validation.vspec.md",
     "03-actions/toast-feedback.vspec.md",
     "04-real-world-screens/accordion-disclosure.vspec.md",
+    "04-real-world-screens/action-menu.vspec.md",
     "04-real-world-screens/anchored-help.vspec.md",
     "04-real-world-screens/login-basic.vspec.md",
     "04-real-world-screens/notice-detail.vspec.md",
@@ -7534,6 +7535,14 @@ title: Action Events
 - panel: L-BillingPanel
 - action: A-ToggleShippingDetails
 
+### E-RowActions ActionMenu
+
+- label: More actions
+- open: true
+- items:
+  - Edit
+    - action: A-EditRow
+
 ## Actions
 
 ### A-MarkChanged Mark changed
@@ -7595,6 +7604,12 @@ title: Action Events
 - Process P1: Immediate
   - Effects
     - state: idle
+
+### A-EditRow Edit row
+
+- Process P1: Immediate
+  - Effects
+    - state: idle
 `;
   const result = parseMarkVSpec(source);
   const triggers = new Map(result.actions.map((action) => [action.id, action.triggeredBy]));
@@ -7610,6 +7625,7 @@ title: Action Events
   assert.equal(triggers.get("A-SelectKeyboardProfileTab"), "E-KeyboardTabs.change");
   assert.equal(triggers.get("A-ToggleProfileFilters"), "E-AdvancedFilters.click");
   assert.equal(triggers.get("A-ToggleShippingDetails"), "E-ShippingDetails.click");
+  assert.equal(triggers.get("A-EditRow"), "E-RowActions.click");
 });
 
 test("validates built-in Events dispatches", () => {
@@ -8816,6 +8832,68 @@ title: Accordion Diagnostics
   assert(messages.includes("Element E-ShippingDetails Disclosure open must be true or false."));
   assert(messages.includes("Element E-ShippingDetails references missing panel L-MissingShippingPanel."));
   assert(messages.includes("Element E-NoPanel Disclosure requires panel: L-*."));
+});
+
+test("parses validates renders and summarizes ActionMenu elements", () => {
+  const source = readFileSync(examplePath("04-real-world-screens/action-menu.vspec.md"), "utf8");
+  const result = parseMarkVSpec(source);
+  const rows = buildDisplayContentSpecRows(result.elements);
+  const actionMenu = result.elements.find((element) => element.id === "E-RowActions");
+  const actionMenuRow = rows.find((row) => row.element.id === "E-RowActions" && row.location === "action menu");
+  const html = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true });
+  const triggers = new Map(result.actions.map((action) => [action.id, action.triggeredBy]));
+
+  assert.deepEqual(result.diagnostics, []);
+  assert.equal(actionMenu?.type, "ActionMenu");
+  assert.deepEqual(actionMenu?.actionMenuItems.map((item) => [item.label, item.action, item.tone, item.disabledWhen]), [
+    ["Edit", "A-EditAccount", undefined, []],
+    ["Disable", "A-DisableAccount", "danger", ["selected-row-locked"]]
+  ]);
+  assert.deepEqual([actionMenuRow?.value, actionMenuRow?.contentSections], [
+    "Edit, Disable",
+    [{ title: "Action Menu", rows: ["Edit (action: A-EditAccount)", "Disable (action: A-DisableAccount; tone: danger; disabled when: selected-row-locked)"] }]
+  ]);
+  assert.equal(triggers.get("A-EditAccount"), "E-RowActions.click");
+  assert.equal(triggers.get("A-DisableAccount"), "E-RowActions.click");
+  assert.match(html, /<div class="mm-element mm-element-actionmenu mm-action-menu-open" data-mm-id="E-RowActions" data-mm-placement="bottom-end">/);
+  assert.match(html, /<button class="mm-action-menu-trigger" type="button">More actions \.\.\.<\/button>/);
+  assert.match(html, /<div class="mm-action-menu-item" data-mm-action-menu-action="A-EditAccount">/);
+  assert.match(html, /<div class="mm-action-menu-item mm-action-menu-item-disabled mm-action-menu-item-danger" data-mm-action-menu-action="A-DisableAccount">/);
+});
+
+test("diagnoses invalid ActionMenu items", () => {
+  const source = `---
+id: SCR-ACTION-MENU-DIAGNOSTICS
+type: screen
+title: Action Menu Diagnostics
+---
+
+# SCR-ACTION-MENU-DIAGNOSTICS Action Menu Diagnostics
+
+## States
+
+- idle*
+
+## Elements
+
+### E-RowActions ActionMenu
+
+- label: More actions
+- open: maybe
+- items:
+  - Edit
+    - action: E-NotAction
+  - Disable
+    - action: A-MissingAction
+  - Archive
+`;
+  const result = parseMarkVSpec(source);
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert(messages.includes("Element E-RowActions ActionMenu open must be true or false."));
+  assert(messages.includes("Element E-RowActions action menu item Edit action must reference an A-* action."));
+  assert(messages.includes("Element E-RowActions action menu item Disable references missing action A-MissingAction."));
+  assert(messages.includes("Element E-RowActions action menu item Archive requires action: A-*."));
 });
 
 test("warns for unsupported compact Select options property", () => {

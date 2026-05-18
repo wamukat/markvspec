@@ -58,6 +58,7 @@ export function buildDisplayContentSpecRows(elements: ParsedElement[], context: 
     pushSelectOptionsRow(rows, element, sourceType);
     pushTabsRow(rows, element, sourceType);
     pushAccordionDisclosureRows(rows, element, sourceType);
+    pushActionMenuRows(rows, element, sourceType);
     pushAnchoredOverlayRow(rows, element, sourceType);
     return rows;
   });
@@ -345,6 +346,34 @@ function formatPanelItemContentRow(item: ParsedElement["accordionItems"][number]
   const details = [
     item.panel ? `panel: ${item.panel}` : "",
     item.action ? `action: ${item.action}` : ""
+  ].filter(Boolean);
+  return details.length > 0 ? `${item.label} (${details.join("; ")})` : item.label;
+}
+
+function pushActionMenuRows(
+  rows: DisplayContentSpecRow[],
+  element: ParsedElement,
+  source: MarkVSpecSourceType
+): void {
+  if (element.type !== "ActionMenu" || element.actionMenuItems.length === 0) {
+    return;
+  }
+  rows.push({
+    element,
+    location: "action menu",
+    value: element.actionMenuItems.map((item) => item.label).join(", "),
+    contentSections: [
+      { title: "Action Menu", rows: element.actionMenuItems.map(formatActionMenuItemContentRow) }
+    ],
+    source
+  });
+}
+
+function formatActionMenuItemContentRow(item: ParsedElement["actionMenuItems"][number]): string {
+  const details = [
+    item.action ? `action: ${item.action}` : "",
+    item.tone ? `tone: ${item.tone}` : "",
+    ...item.disabledWhen.map((condition) => `disabled when: ${condition}`)
   ].filter(Boolean);
   return details.length > 0 ? `${item.label} (${details.join("; ")})` : item.label;
 }

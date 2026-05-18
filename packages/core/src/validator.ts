@@ -356,6 +356,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
     validateTabsElement(element, targetLayoutIds, actionIds, diagnostics);
     validateAnchoredOverlayElement(element, elementIds, diagnostics);
     validateAccordionDisclosureElement(element, targetLayoutIds, actionIds, diagnostics);
+    validateActionMenuElement(element, actionIds, diagnostics);
 
     for (const param of element.routeParams) {
       const sourceId = requestParamSourceId(param.source);
@@ -3216,6 +3217,53 @@ function validateAccordionDisclosureElement(
       message: `Element ${element.id} references missing panel ${panel}.`,
       line: firstPropertyLine(element, "panel") ?? element.location.line
     });
+  }
+}
+
+function validateActionMenuElement(
+  element: MarkVSpecElement,
+  actionIds: Set<string>,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  if (element.type !== "ActionMenu") {
+    return;
+  }
+
+  const open = stringProperty(element, "open").trim();
+  if (open && !["true", "false"].includes(open.toLowerCase())) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Element ${element.id} ActionMenu open must be true or false.`,
+      line: firstPropertyLine(element, "open") ?? element.location.line
+    });
+  }
+
+  for (const item of element.actionMenuItems) {
+    if (!item.action) {
+      diagnostics.push({
+        severity: "error",
+        message: `Element ${element.id} action menu item ${item.label} requires action: A-*.`,
+        line: item.location.line
+      });
+      continue;
+    }
+
+    if (!new RegExp(String.raw`^${actionIdPattern}$`, "u").test(item.action)) {
+      diagnostics.push({
+        severity: "error",
+        message: `Element ${element.id} action menu item ${item.label} action must reference an A-* action.`,
+        line: item.propertyLocations.action[0]?.line ?? item.location.line
+      });
+      continue;
+    }
+
+    if (!actionIds.has(item.action)) {
+      diagnostics.push({
+        severity: "error",
+        message: `Element ${element.id} action menu item ${item.label} references missing action ${item.action}.`,
+        line: item.propertyLocations.action[0]?.line ?? item.location.line
+      });
+    }
   }
 }
 

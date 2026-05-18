@@ -158,6 +158,7 @@ export interface MarkVSpecElement {
   selectOptions: MarkVSpecSelectOption[];
   tabs: MarkVSpecTabItem[];
   accordionItems: MarkVSpecAccordionItem[];
+  actionMenuItems: MarkVSpecActionMenuItem[];
   tableColumns: MarkVSpecTableColumn[];
   tableRows: MarkVSpecTableRow[];
   sampleRows?: MarkVSpecSampleRows;
@@ -225,6 +226,16 @@ export interface MarkVSpecAccordionItem {
   panel?: string;
   action?: string;
   propertyLocations: Record<"panel" | "action", SourceLocation[]>;
+  location: SourceLocation;
+  raw: string;
+}
+
+export interface MarkVSpecActionMenuItem {
+  label: string;
+  action?: string;
+  tone?: string;
+  disabledWhen: string[];
+  propertyLocations: Record<"action" | "tone" | "disabled when", SourceLocation[]>;
   location: SourceLocation;
   raw: string;
 }

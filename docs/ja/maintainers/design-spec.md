@@ -153,6 +153,7 @@ Mermaid の SVG が利用できる場合はその SVG を印刷します。
 - `Tabs`
 - `Accordion`
 - `Disclosure`
+- `ActionMenu`
 - `Checkbox`
 - `RadioGroup`
 - `List`

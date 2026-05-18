@@ -479,6 +479,7 @@ Element types:
 - `Tabs`
 - `Accordion`
 - `Disclosure`
+- `ActionMenu`
 - `Checkbox`
 - `CheckboxGroup`
 - `Switch`
@@ -1184,6 +1185,7 @@ Supported element types:
 - `Tabs`
 - `Accordion`
 - `Disclosure`
+- `ActionMenu`
 - `Checkbox`
 - `CheckboxGroup`
 - `Switch`
@@ -1612,6 +1614,32 @@ links the toggle behavior.
 
 Generated specs aggregate panel references and action links so reviewers can
 trace expansion behavior without inventing extra screen states.
+
+`ActionMenu` represents an action-only menu such as a row action menu or
+three-dot menu. It intentionally does not introduce a generic `Menu`,
+selection menu, or nested menu contract.
+
+`open` is the element's initial overlay display state, not a screen state, View
+Context value, or model value. Each item requires `action: A-*`. `tone` and
+`disabled when` are optional item-level metadata.
+
+```markdown
+### E-RowActions ActionMenu
+
+- label: More actions
+- placement: bottom-end
+- open: false
+- items:
+  - Edit
+    - action: A-EditRow
+  - Disable
+    - action: A-DisableRow
+    - tone: danger
+    - disabled when: selected-row-locked
+```
+
+Generated specs keep item actions linked from Element Summary and Display
+Content Spec so reviewers can trace each menu item to its action.
 
 `Popover` and `Tooltip` represent anchored, non-modal help. `anchor` is required
 and must reference an existing `E-*` element. `placement` is optional and is

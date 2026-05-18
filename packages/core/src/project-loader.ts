@@ -827,6 +827,11 @@ function cloneTemplateElements(elements: MarkVSpecParseResult["elements"]): Mark
       ...item,
       propertyLocations: clonePropertyLocations(item.propertyLocations)
     })),
+    actionMenuItems: element.actionMenuItems.map((item) => ({
+      ...item,
+      disabledWhen: item.disabledWhen.slice(),
+      propertyLocations: clonePropertyLocations(item.propertyLocations)
+    })),
     tableColumns: element.tableColumns.map((column) => ({ ...column })),
     tableRows: element.tableRows.map((row) => ({
       ...row,

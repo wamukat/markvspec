@@ -468,6 +468,9 @@ function unsafeElementPartialReasons(previous: MarkVSpecElement, current: MarkVS
   if (JSON.stringify(previous.accordionItems) !== JSON.stringify(current.accordionItems)) {
     reasons.push("Element accordion items changed.");
   }
+  if (JSON.stringify(previous.actionMenuItems) !== JSON.stringify(current.actionMenuItems)) {
+    reasons.push("Element action menu items changed.");
+  }
   if (JSON.stringify(previous.tableColumns) !== JSON.stringify(current.tableColumns) || JSON.stringify(previous.tableRows) !== JSON.stringify(current.tableRows)) {
     reasons.push("Element table structure changed.");
   }
@@ -571,6 +574,7 @@ function elementPartialFingerprint(element: MarkVSpecElement): string {
     selectOptions: element.selectOptions,
     tabs: element.tabs,
     accordionItems: element.accordionItems,
+    actionMenuItems: element.actionMenuItems,
     tableColumns: element.tableColumns,
     tableRows: element.tableRows,
     visibleWhen: element.visibleWhen,

@@ -20,6 +20,7 @@ the DSL, preview, State Views, Action Details, and export output.
 - `04-real-world-screens/tabs-settings.vspec.md`: focused Tabs element example covering active tab, panel references, item actions, and generated spec aggregation.
 - `04-real-world-screens/anchored-help.vspec.md`: focused Popover and Tooltip example covering anchors, placement, visibility, and generated overlay specs.
 - `04-real-world-screens/accordion-disclosure.vspec.md`: focused Accordion and Disclosure example covering local open state, panel references, item actions, and generated spec aggregation.
+- `04-real-world-screens/action-menu.vspec.md`: focused ActionMenu example covering action-only menu items, open overlay, danger tone, disabled conditions, and generated spec aggregation.
 - `04-real-world-screens/login-basic.vspec.md`: compact authentication flow covering responsive layout, required validation, request parameters, response cases, disabled controls, and navigation.
 - `05-reuse/template-shell.vspec.md`: template document unit, reusable navigation shell, language select, and `content` slot placeholder.
 - `05-reuse/basic-slot-page.vspec.md`: smallest screen that fills a template `content` slot without partial or action noise.

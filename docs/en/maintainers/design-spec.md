@@ -215,6 +215,7 @@ Release element types:
 - `Tabs`
 - `Accordion`
 - `Disclosure`
+- `ActionMenu`
 - `Checkbox`
 - `RadioGroup`
 - `List`

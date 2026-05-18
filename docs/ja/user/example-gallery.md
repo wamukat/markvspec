@@ -56,6 +56,7 @@ F-* / V-* を参照 chip として読みやすく見せたい場合は、安定 
 | [Tabs Settings](../../../examples/04-real-world-screens/tabs-settings.vspec.md) | Tabs Element の focused example。active tab、panel 参照、item action、Display Content Spec 集約を確認する例。 |
 | [Anchored Help](../../../examples/04-real-world-screens/anchored-help.vspec.md) | Popover / Tooltip Element の focused example。anchor、placement、visibility、Display Content Spec の overlay row を確認する例。 |
 | [Accordion Disclosure](../../../examples/04-real-world-screens/accordion-disclosure.vspec.md) | Accordion / Disclosure Element の focused example。local open state、panel 参照、item action、Display Content Spec 集約を確認する例。 |
+| [Action Menu](../../../examples/04-real-world-screens/action-menu.vspec.md) | ActionMenu Element の focused example。action item、open overlay、danger tone、disabled condition、Display Content Spec 集約を確認する例。 |
 | [Login Basic](../../../examples/04-real-world-screens/login-basic.vspec.md) | responsive layout、required validation、message display scenario、request parameters、response cases、disabled control、navigation を含む実践的な login flow。 |
 | [Template Shell](../../../examples/05-reuse/template-shell.vspec.md) | template document と slot の基本例。 |
 | [Basic Slot Page](../../../examples/05-reuse/basic-slot-page.vspec.md) | template の `content` slot を埋める最小 screen の例。 |
@@ -79,6 +80,7 @@ F-* / V-* を参照 chip として読みやすく見せたい場合は、安定 
 9. [Tabs Settings](../../../examples/04-real-world-screens/tabs-settings.vspec.md) で active tab、panel 参照、tab action の追跡性を確認する。
 10. [Anchored Help](../../../examples/04-real-world-screens/anchored-help.vspec.md) で Popover / Tooltip の anchor、placement、text を確認する。
 11. [Accordion Disclosure](../../../examples/04-real-world-screens/accordion-disclosure.vspec.md) で Accordion / Disclosure の open state、panel 参照、action の追跡性を確認する。
-12. [Basic Slot Page](../../../examples/05-reuse/basic-slot-page.vspec.md)、[Responsive Slot Page](../../../examples/05-reuse/responsive-slot-page.vspec.md)、[Default Slot Page](../../../examples/05-reuse/default-slot-page.vspec.md) で template slot content、viewport 固有 slot override、default fallback を確認する。
-13. [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md) で template 合成、partial host、`display.partial` を確認する。
-14. [History And Errors](../../../examples/06-structured-sections/history-and-errors.vspec.md) で構造化された履歴とエラーコードを確認する。
+12. [Action Menu](../../../examples/04-real-world-screens/action-menu.vspec.md) で menu item action、danger tone、disabled condition の追跡性を確認する。
+13. [Basic Slot Page](../../../examples/05-reuse/basic-slot-page.vspec.md)、[Responsive Slot Page](../../../examples/05-reuse/responsive-slot-page.vspec.md)、[Default Slot Page](../../../examples/05-reuse/default-slot-page.vspec.md) で template slot content、viewport 固有 slot override、default fallback を確認する。
+14. [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md) で template 合成、partial host、`display.partial` を確認する。
+15. [History And Errors](../../../examples/06-structured-sections/history-and-errors.vspec.md) で構造化された履歴とエラーコードを確認する。

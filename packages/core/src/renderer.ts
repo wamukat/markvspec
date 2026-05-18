@@ -760,6 +760,25 @@ function renderElement(
     return renderAnnotatedElement(markers, element.type, `<div class="${classes} ${open ? "mm-disclosure-open" : "mm-disclosure-closed"}" data-mm-id="${escapeHtml(element.id)}"${panelAttr}><div class="mm-accordion-header">${open ? "v" : ">"} ${escapeHtml(displayLabel || element.id)}</div>${panelNote}</div>`);
   }
 
+  if (element.type === "ActionMenu") {
+    const open = isTruthyInitialValue(stringProperty(element, "open"));
+    const placement = stringProperty(element, "placement");
+    const placementAttr = placement ? ` data-mm-placement="${escapeHtml(placement)}"` : "";
+    const items = open
+      ? `<div class="mm-action-menu-panel">${element.actionMenuItems.map((item) => {
+        const action = item.action ? ` data-mm-action-menu-action="${escapeHtml(item.action)}"` : "";
+        const disabled = item.disabledWhen.length > 0 ? " mm-action-menu-item-disabled" : "";
+        const tone = item.tone ? ` mm-action-menu-item-${sanitizeClassToken(item.tone)}` : "";
+        const meta = [
+          item.action ? `action: ${escapeHtml(item.action)}` : "",
+          item.disabledWhen.length > 0 ? `disabled when: ${escapeHtml(item.disabledWhen.join(", "))}` : ""
+        ].filter(Boolean).join(" / ");
+        return `<div class="mm-action-menu-item${disabled}${tone}"${action}><span>${escapeHtml(item.label)}</span>${meta ? `<span class="mm-action-menu-meta">${meta}</span>` : ""}</div>`;
+      }).join("")}</div>`
+      : "";
+    return renderAnnotatedElement(markers, element.type, `<div class="${classes} ${open ? "mm-action-menu-open" : "mm-action-menu-closed"}" data-mm-id="${escapeHtml(element.id)}"${placementAttr}><button class="mm-action-menu-trigger" type="button">${escapeHtml(displayLabel || element.id)} ...</button>${items}</div>`);
+  }
+
   if (element.type === "Button") {
     return renderAnnotatedElement(markers, element.type, `<button class="${classes}" data-mm-id="${escapeHtml(element.id)}"${disabledAttribute}>${escapeHtml(displayLabel || element.id)}</button>`);
   }
@@ -1630,6 +1649,13 @@ function renderDefaultStyles(): string {
 .mm-accordion-header{color:#111827;font-size:13px;font-weight:650;padding:8px 10px}
 .mm-accordion-item-open .mm-accordion-header,.mm-disclosure-open .mm-accordion-header{background:#f8fafc}
 .mm-accordion-panel-note{background:#fff;border-top:1px dashed #cbd5e1;color:#475569;font-size:12px;padding:8px 10px}
+.mm-element-actionmenu{background:#fff;display:inline-flex;flex-direction:column;gap:6px;min-width:180px}
+.mm-action-menu-trigger{align-self:flex-start;background:#fff;border:1px solid #94a3b8;border-radius:6px;color:#111827;font-size:13px;font-weight:650;padding:7px 10px}
+.mm-action-menu-panel{background:#fff;border:1px solid #94a3b8;border-radius:6px;box-shadow:0 4px 12px rgba(15,23,42,.12);display:flex;flex-direction:column;min-width:180px;padding:4px}
+.mm-action-menu-item{align-items:flex-start;border-radius:4px;color:#111827;display:flex;flex-direction:column;font-size:13px;gap:2px;padding:7px 8px}
+.mm-action-menu-item-danger{color:#b91c1c;font-weight:650}
+.mm-action-menu-item-disabled{color:#94a3b8}
+.mm-action-menu-meta{color:#64748b;font-size:11px}
 .mm-element-popover,.mm-element-tooltip{background:#fff;display:inline-flex;flex-direction:column;gap:4px;max-width:min(320px,100%)}
 .mm-overlay-meta{color:#64748b;font-size:11px;font-weight:700;line-height:1.2}
 .mm-popover-panel{background:#fff;border:1px solid #94a3b8;border-radius:6px;box-shadow:0 4px 12px rgba(15,23,42,.12);font-size:13px;padding:10px 12px}
@@ -1713,4 +1739,8 @@ function escapeHtml(value: string): string {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll("\"", "&quot;");
+}
+
+function sanitizeClassToken(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || "custom";
 }

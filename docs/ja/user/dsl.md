@@ -461,6 +461,7 @@ Element type です。
 - `Tabs`
 - `Accordion`
 - `Disclosure`
+- `ActionMenu`
 - `Checkbox`
 - `CheckboxGroup`
 - `Switch`
@@ -988,6 +989,7 @@ wireframe preview では native `required` attribute や自動の `*` marker と
 - `Tabs`
 - `Accordion`
 - `Disclosure`
+- `ActionMenu`
 - `Checkbox`
 - `CheckboxGroup`
 - `Switch`
@@ -1264,6 +1266,31 @@ model value ではありません。
 
 生成仕様では panel 参照と action link を集約し、展開動作を余計な screen state
 なしで追跡できるようにします。
+
+`ActionMenu` は、行アクションメニューや三点メニューのような action 専用 menu を
+表します。汎用 `Menu`、selection menu、nested menu の契約はこの要素では導入しません。
+
+`open` は Element の初期 overlay 表示状態であり、screen state、View Context、
+model value ではありません。各 item は `action: A-*` を必須とし、`tone` と
+`disabled when` を任意で持てます。
+
+```markdown
+### E-RowActions ActionMenu
+
+- label: More actions
+- placement: bottom-end
+- open: false
+- items:
+  - Edit
+    - action: A-EditRow
+  - Disable
+    - action: A-DisableRow
+    - tone: danger
+    - disabled when: selected-row-locked
+```
+
+生成仕様では Element Summary と Display Content Spec から item action を辿れるようにし、
+menu item ごとの動作を確認できます。
 
 `Popover` と `Tooltip` は、特定の Element に紐づく non-modal な補助表示です。
 `anchor` は必須で、既存の `E-*` Element を参照します。`placement` は任意で、

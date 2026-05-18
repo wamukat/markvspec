@@ -4208,7 +4208,7 @@ function isFeedbackElement(type: string): boolean {
 }
 
 function isContentElement(type: string): boolean {
-  return ["Heading", "Paragraph", "Text", "Image", "Icon", "List", "Table", "Accordion", "Disclosure"].includes(type);
+  return ["Heading", "Paragraph", "Text", "Image", "Icon", "List", "Table", "Accordion", "Disclosure", "ActionMenu"].includes(type);
 }
 
 function renderActionPartialUpdates(
@@ -5965,6 +5965,7 @@ function renderElementDescription(element: ReturnType<typeof parseMarkVSpec>["el
     || (element.type === "Tabs" && stringProperty(element.properties["active"]) ? `active tab: ${stringProperty(element.properties["active"])}` : "")
     || (element.type === "Accordion" && stringProperty(element.properties["open"]) ? `open item: ${stringProperty(element.properties["open"])}` : "")
     || (element.type === "Disclosure" && stringProperty(element.properties["open"]) ? `open: ${stringProperty(element.properties["open"])}` : "")
+    || (element.type === "ActionMenu" && stringProperty(element.properties["open"]) ? `open: ${stringProperty(element.properties["open"])}` : "")
     || ((element.type === "Popover" || element.type === "Tooltip") && stringProperty(element.properties["anchor"]) ? `anchor: ${stringProperty(element.properties["anchor"])}` : "")
     || "";
   const notes = renderEntityNotes(element.notes);
@@ -6136,6 +6137,7 @@ function renderElementDisplayValue(
     format ? `${label(result, "format")}: ${text(format)}` : "",
     element.type === "Accordion" ? renderAccordionSummary(result, element) : "",
     element.type === "Disclosure" ? renderDisclosureSummary(result, element) : "",
+    element.type === "ActionMenu" ? renderActionMenuSummary(result, element) : "",
     element.type === "Popover" || element.type === "Tooltip" ? renderAnchoredOverlaySummary(result, element) : ""
   ].filter(Boolean);
 
@@ -6216,6 +6218,25 @@ function renderDisclosureSummary(
     rawStringProperty(element.properties["action"]) ? `action: ${referenceForId(result, rawStringProperty(element.properties["action"]), "action")}` : ""
   ].filter(Boolean);
   return rows.length > 0 ? renderSpecSections([{ title: "Disclosure", rows }]) : "";
+}
+
+function renderActionMenuSummary(
+  result: ReturnType<typeof parseMarkVSpec>,
+  element: ReturnType<typeof parseMarkVSpec>["elements"][number]
+): string {
+  const rows = [
+    rawStringProperty(element.properties["open"]) ? `open: ${text(rawStringProperty(element.properties["open"]))}` : "",
+    rawStringProperty(element.properties["placement"]) ? `placement: ${text(rawStringProperty(element.properties["placement"]))}` : "",
+    ...element.actionMenuItems.map((item) => {
+      const details = [
+        item.action ? `action: ${referenceForId(result, item.action, "action")}` : "",
+        item.tone ? `tone: ${text(item.tone)}` : "",
+        ...item.disabledWhen.map((condition) => `disabled when: ${renderCondition(result, condition)}`)
+      ].filter(Boolean);
+      return details.length > 0 ? `${text(item.label)} (${details.join("; ")})` : text(item.label);
+    })
+  ].filter(Boolean);
+  return rows.length > 0 ? renderSpecSections([{ title: "Action Menu", rows }]) : "";
 }
 
 function renderContentElementState(
@@ -6344,6 +6365,7 @@ function renderElementActionReferences(
     rawStringProperty(element.properties["action"]),
     ...element.tabs.map((item) => item.action),
     ...element.accordionItems.map((item) => item.action),
+    ...element.actionMenuItems.map((item) => item.action),
     ...result.actions
       .filter((action) => action.trigger?.elementId === element.id)
       .map((action) => action.id)
@@ -6365,6 +6387,8 @@ function renderContentElementNotes(element: ReturnType<typeof parseMarkVSpec>["e
     element.type === "Accordion" && element.accordionItems.length > 0 ? `items: ${element.accordionItems.map((item) => item.label).join(", ")}` : "",
     element.type === "Disclosure" && stringProperty(element.properties["open"]) ? `open: ${stringProperty(element.properties["open"])}` : "",
     element.type === "Disclosure" && stringProperty(element.properties["panel"]) ? `panel: ${stringProperty(element.properties["panel"])}` : "",
+    element.type === "ActionMenu" && stringProperty(element.properties["open"]) ? `open: ${stringProperty(element.properties["open"])}` : "",
+    element.type === "ActionMenu" && element.actionMenuItems.length > 0 ? `items: ${element.actionMenuItems.map((item) => item.label).join(", ")}` : "",
     element.tableColumns.length > 0 ? `columns: ${element.tableColumns.map((column) => column.label).join(", ")}` : "",
     element.tableRows.length > 0 ? `sample rows: ${element.tableRows.length}` : ""
   ].filter(Boolean);
