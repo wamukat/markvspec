@@ -9,6 +9,7 @@ import {
   type StateScreenReadModel
 } from "@markvspec/core";
 import { viewportPrintStyle } from "@markvspec/document-renderer";
+import type { EntityReference } from "./entity-reference-presenter.js";
 import type { StateViewSpecTableRenderer } from "./state-view-spec-tables.js";
 
 export interface StateViewsFormatters {
@@ -25,14 +26,7 @@ export interface StateViewsProseProvider {
   sectionProseForKind(kind: string): MarkVSpecParseResult["sectionProse"];
 }
 
-export interface StateViewEntityRef {
-  readonly id: string;
-  readonly category: "action" | "layout" | "element" | "message";
-  readonly marker?: string;
-  readonly label?: string;
-  readonly href?: string;
-  readonly displaySource?: string;
-}
+export type StateViewEntityRef = EntityReference;
 
 export interface StateViewsSpecFragmentRenderers {
   renderLayoutSpecFragment(heading: string, content: string, headingLevel: 3 | 5, emptyWhenRepeatedHidden: boolean): string;
