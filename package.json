@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces",
+    "build:pages": "node scripts/build-github-pages.mjs",
     "audit:examples": "npm run build -w packages/vscode-extension && node --loader ./packages/vscode-extension/test-vscode-loader.mjs --test packages/vscode-extension/dist/example-audit.test.js",
     "check:readme-release": "node scripts/check-readme-release-state.mjs",
     "check:print-regression": "bash scripts/markvspec-print-regression.sh",

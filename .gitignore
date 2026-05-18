@@ -6,5 +6,6 @@ coverage/
 .vscode-test/
 .markvspec-regression/
 .work/
+_site/
 *.tsbuildinfo
 .DS_Store
