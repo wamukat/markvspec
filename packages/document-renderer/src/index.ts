@@ -1,4 +1,4 @@
-import { buildViewportStateScreenReadModels, effectiveHistoryFields, isMarkVSpecSourceType, latestHistoryBasicInfo, messagesForLocale, renderMarkVSpecHtml, resolveMarkVSpecEntityReference, stateScreenElementGroups, stateScreenElementsForModel, tableColumnSampleKeys } from "@markvspec/core";
+import { buildViewportStateScreenReadModels, effectiveHistoryFields, isMarkVSpecSourceType, latestHistoryBasicInfo, messagesForLocale, renderMarkVSpecHtml, resolveMarkVSpecEntityReference, stateScreenElementGroups, stateScreenElementsForModel, stateScreenLayoutsForModel, stateScreenUnplacedLayoutIdsForModel, tableColumnSampleKeys } from "@markvspec/core";
 import type { DisplayContentSpecRow, MarkVSpecParseResult, RendererMessages, StateScreenReadModel } from "@markvspec/core";
 
 export type MarkVSpecDocumentViewport = "mobile" | "tablet" | "desktop" | string;
@@ -332,6 +332,7 @@ function renderStateScreenSection(
     ${renderScenarioSamplesBox(result, model, messages)}
     ${renderDisplayContentSpecBox(result, model, messages)}
   </section>
+  ${renderStaticLayoutsSpecBox(result, model, messages)}
 </section>`;
 }
 
@@ -342,6 +343,127 @@ function sampleOverridesFromScenarioSamples(
     return undefined;
   }
   return Object.fromEntries(samples.map((sample) => [sample.elementId, sample]));
+}
+
+function renderStaticLayoutsSpecBox(
+  result: MarkVSpecParseResult,
+  model: StateScreenReadModel,
+  messages: RendererMessages
+): string {
+  const layouts = stateScreenLayoutsForModel(result, model);
+  if (layouts.length === 0) {
+    return "";
+  }
+  const unplacedLayoutIds = stateScreenUnplacedLayoutIdsForModel(result, model);
+  const rows = layouts.map((layout) => [
+    renderStaticLayoutReference(result, layout, unplacedLayoutIds.has(layout.id), messages),
+    escapeHtml(layout.kind || ""),
+    renderStaticLayoutSettingItems(result, layout, messages),
+    renderStaticLayoutConditions(layout, messages),
+    renderStaticLayoutNotes(result, layout)
+  ]);
+
+  return `<section class="layout-spec-fragment">
+    <h5 class="state-screen-subheading">${escapeHtml(messages.layouts)}</h5>
+    ${renderTable([`${messages.marker}/${messages.id}`, messages.kind, messages.settingItems, messages.condition, messages.notes], rows, messages.none)}
+  </section>`;
+}
+
+type StaticParsedLayout = MarkVSpecParseResult["layoutGroups"][number];
+
+function renderStaticLayoutReference(
+  result: MarkVSpecParseResult,
+  layout: StaticParsedLayout,
+  unplaced: boolean,
+  messages: RendererMessages
+): string {
+  const reference = resolveMarkVSpecEntityReference(result, layout.id);
+  const ref = reference ? renderStaticEntityReference(reference) : code(layout.id);
+  if (!unplaced) {
+    return ref;
+  }
+  return `${ref} <span class="mm-chip mm-unplaced-badge">${escapeHtml(messages.notPlacedInCurrentLayout)}</span>`;
+}
+
+function renderStaticLayoutSettingItems(result: MarkVSpecParseResult, layout: StaticParsedLayout, messages: RendererMessages): string {
+  return renderStaticSpecSections([
+    [messages.setting, staticLayoutSettingItems(layout, messages)],
+    [messages.items, staticLayoutItemRows(result, layout)]
+  ]);
+}
+
+function staticLayoutSettingItems(layout: StaticParsedLayout, messages: RendererMessages): string[] {
+  const entries = [
+    ["align", layout.properties["align"]],
+    ["justify", layout.properties["justify"]],
+    ["overlay", layout.properties["overlay"]],
+    ["gap", layout.properties["gap"]]
+  ].filter(([, value]) => value) as Array<[string, string | true]>;
+  return entries.map(([key, value]) => `${escapeHtml(key)}: ${escapeHtml(value === true ? messages.requiredYes : value)}`);
+}
+
+function staticLayoutItemRows(result: MarkVSpecParseResult, layout: StaticParsedLayout): string[] {
+  return layout.items.flatMap((item) => {
+    if (item.type === "contains") {
+      if (isStaticPresentationPanelId(item.targetId)) {
+        return [];
+      }
+      return [renderStaticEntityReferenceById(result, item.targetId)];
+    }
+    if (item.type === "field") {
+      return [`${escapeHtml(item.label)}: ${renderStaticEntityReferenceById(result, item.elementId)}`];
+    }
+    if (item.type === "slot") {
+      return [`slot: ${escapeHtml(item.name)}`];
+    }
+    return [];
+  });
+}
+
+function renderStaticEntityReferenceById(result: MarkVSpecParseResult, id: string): string {
+  const reference = resolveMarkVSpecEntityReference(result, id);
+  return reference ? renderStaticEntityReference(reference) : code(id);
+}
+
+function renderStaticLayoutConditions(layout: StaticParsedLayout, messages: RendererMessages): string {
+  const conditions = [
+    [messages.conditionVisibleShort, staticLayoutPropertyList(layout, "visible when").join(", ")],
+    [messages.conditionHiddenShort, staticLayoutPropertyList(layout, "hidden when").join(", ")],
+    [messages.conditionDisabledShort, staticLayoutPropertyList(layout, "disabled when").join(", ")],
+    [messages.conditionEnabledShort, staticLayoutPropertyList(layout, "enabled when").join(", ")],
+    ["selected", staticLayoutPropertyList(layout, "selected when").join(", ")],
+    ["active", staticLayoutPropertyList(layout, "active when").join(", ")]
+  ].filter(([, value]) => value);
+  return conditions.length > 0
+    ? renderStaticSpecList(conditions.map(([key, value]) => `${escapeHtml(key)}: ${escapeHtml(value)}`))
+    : `<span class="spec-default-always">${escapeHtml(messages.always)}</span>`;
+}
+
+function renderStaticLayoutNotes(result: MarkVSpecParseResult, layout: StaticParsedLayout): string {
+  return layout.notes && layout.notes.length > 0 ? renderMarkdownLines(layout.notes, result) : "";
+}
+
+function renderStaticSpecSections(sections: Array<[string, string[]]>): string {
+  return sections
+    .filter(([, items]) => items.length > 0)
+    .map(([title, items]) => `<div class="spec-section"><strong>${escapeHtml(title)}</strong>${renderStaticSpecList(items)}</div>`)
+    .join("");
+}
+
+function renderStaticSpecList(items: string[]): string {
+  return items.length > 0
+    ? `<ul class="spec-list">${items.map((item) => `<li>${item}</li>`).join("")}</ul>`
+    : "";
+}
+
+function staticLayoutPropertyList(layout: StaticParsedLayout, key: string): string[] {
+  return layout.items
+    .filter((item) => item.type === "property" && item.scope === "metadata" && item.key === key)
+    .map((item) => item.type === "property" ? item.value : "");
+}
+
+function isStaticPresentationPanelId(id: string): boolean {
+  return /^P-[\p{L}\p{N}-]+$/u.test(id);
 }
 
 function renderScenarioSamplesBox(

@@ -1616,7 +1616,7 @@ title: Markerless
   assert.match(html, new RegExp(`<td>${detailElementRef("E-SubmitButton", "E-SubmitButton")}</td><td>Button</td><td><ul class="spec-list"><li>${refActionChip("A-Submit", "A-Submit", "Submit")}</li></ul></td><td>-</td>`));
   assert.match(html, new RegExp(`<td>${detailElementRef("E-SubmitButton", "E-SubmitButton")}</td><td>label</td><td>Submit &amp; Continue</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${defaultAlwaysPattern()}</td><td>${specSectionPattern("Enabled", [`not ${markerBadge("E-メールアドレス入力", "element")} is empty`])}</td>`));
   assert.doesNotMatch(html, /<h2>Visibility \/ Availability<\/h2>/);
-  assert.match(html, new RegExp(`<td>${detailLayoutRefById("L-Form", "L-Form")}</td><td>stack</td><td>-</td><td><ul class="spec-list"><li>visible: user\\.role is admin, user\\.can access login</li></ul></td><td><ul class="spec-list"><li>Email: ${detailIdRef("E-メールアドレス入力")}</li><li>${detailIdRef("E-SubmitButton")}</li></ul></td><td>-</td>`));
+  assert.match(html, new RegExp(`<td>${detailLayoutRefById("L-Form", "L-Form")}</td><td>stack</td><td>${specSectionPattern("Items", [`Email: ${detailIdRef("E-メールアドレス入力")}`, detailIdRef("E-SubmitButton")])}</td><td><ul class="spec-list"><li>visible: user\\.role is admin, user\\.can access login</li></ul></td><td>-</td>`));
   assert.match(html, new RegExp(`email: ${detailElementRef("E-メールアドレス入力", "E-メールアドレス入力")}\\.value`));
   assert.match(html, new RegExp(`<dt>Trigger</dt><dd>${detailElementRef("E-SubmitButton", "E-SubmitButton")}\\.click</dd>`));
   assert.match(html, /S0 --&gt; S1: Submit/);

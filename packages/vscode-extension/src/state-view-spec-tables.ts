@@ -171,9 +171,8 @@ export function createStateViewSpecTableRenderer(
     const rows = layouts.map((layout) => [
       renderLayoutEntityRefCell(layout, Boolean(repeatedLayoutIds?.has(layout.id)), unplacedLayoutIds.has(layout.id)),
       helpers.text(layout.kind || ""),
-      renderLayoutSettingsSummary(layout),
+      renderLayoutSettingItemsSummary(layout),
       renderLayoutConditionsSummary(layout),
-      renderLayoutItemSummary(layout),
       renderLayoutNotesSummary(layout)
     ]);
 
@@ -182,7 +181,7 @@ export function createStateViewSpecTableRenderer(
     }
 
     return markRepeatedHiddenEmptyHtml(
-      helpers.renderLocalizedTable([markerIdHeader(), helpers.label("kind"), helpers.label("settings"), helpers.label("conditions"), helpers.label("items"), helpers.label("notes")], rows),
+      helpers.renderLocalizedTable([markerIdHeader(), helpers.label("kind"), helpers.label("settingItems"), helpers.label("condition"), helpers.label("notes")], rows),
       model.repeatedContent.layoutSpecEmptyWhenRepeatedHidden
     );
   };
@@ -227,15 +226,21 @@ export function createStateViewSpecTableRenderer(
     ...(showOverview ? [overview] : [])
   ];
 
-  const renderLayoutSettingsSummary = (layout: ParsedLayout): string => {
-    const settings = [
+  const renderLayoutSettingItemsSummary = (layout: ParsedLayout): string =>
+    renderSpecSections([
+      [helpers.label("setting"), layoutSettingSummaryItems(layout)],
+      [helpers.label("items"), layoutItemSummaryItems(layout)]
+    ]);
+
+  const layoutSettingSummaryItems = (layout: ParsedLayout): string[] =>
+    [
       ["align", layout.properties["align"]],
       ["justify", layout.properties["justify"]],
       ["overlay", layout.properties["overlay"]],
       ["gap", layout.properties["gap"]]
-    ].filter(([, value]) => value) as Array<[string, string | true]>;
-    return renderSpecList(settings.map(([key, value]) => `${helpers.text(key)}: ${helpers.text(value === true ? helpers.label("requiredYes") : value)}`));
-  };
+    ]
+      .filter(([, value]) => value)
+      .map(([key, value]) => `${helpers.text(key)}: ${helpers.text(value)}`);
 
   const renderLayoutConditionsSummary = (layout: ParsedLayout): string => {
     const conditions = [
@@ -251,8 +256,8 @@ export function createStateViewSpecTableRenderer(
       : renderDefaultAlways();
   };
 
-  const renderLayoutItemSummary = (layout: ParsedLayout): string => {
-    const items = layout.items.flatMap((item) => {
+  const layoutItemSummaryItems = (layout: ParsedLayout): string[] =>
+    layout.items.flatMap((item) => {
       if (item.type === "contains") {
         if (isPresentationPanelId(item.targetId)) {
           return [];
@@ -267,8 +272,6 @@ export function createStateViewSpecTableRenderer(
       }
       return [];
     });
-    return renderSpecList(items);
-  };
 
   const renderLayoutNotesSummary = (layout: ParsedLayout): string => {
     return helpers.renderEntityNotes(layout.notes ?? []);
@@ -302,6 +305,13 @@ function renderSpecList(items: string[]): string {
   return items.length > 0
     ? `<ul class="spec-list">${items.map((item) => `<li>${item}</li>`).join("")}</ul>`
     : "";
+}
+
+function renderSpecSections(sections: Array<[string, string[]]>): string {
+  return sections
+    .filter(([, items]) => items.length > 0)
+    .map(([title, items]) => `<div class="spec-section"><strong>${title}</strong>${renderSpecList(items)}</div>`)
+    .join("");
 }
 
 function layoutPropertyList(layout: ParsedLayout, key: string): string[] {

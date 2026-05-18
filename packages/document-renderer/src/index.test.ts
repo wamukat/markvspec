@@ -185,6 +185,112 @@ Initial \`static\` release.
   assert.match(html, /<h5 class="state-screen-subheading">Wireframe<\/h5>/);
 });
 
+test("renders static Layouts table with combined Setting/Items column", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-STATIC-LAYOUT-COLUMNS
+type: screen
+title: Static Layout Columns
+locale: en
+---
+
+# SCR-STATIC-LAYOUT-COLUMNS Static Layout Columns
+
+## States
+
+- idle*
+
+## Layout: desktop
+
+### L1:L-Page Page
+
+- row
+- align: center
+- gap: md
+- visible when: idle
+
+Layout note.
+
+#### Items
+
+- "Title": E-Title
+- L-Child
+- slot: content
+
+### L2:L-SettingsOnly Settings Only
+
+- stack
+- gap: sm
+
+### L3:L-ItemsOnly Items Only
+
+- stack
+
+#### Items
+
+- E-Title
+
+### L4:L-Empty Empty
+
+- stack
+
+## Elements
+
+### E-Title Text
+
+- value: Title
+`);
+  const html = renderStaticDesignDocumentHtml(result);
+  const layouts = html.match(/<h5 class="state-screen-subheading">Layouts<\/h5>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.match(layouts, /<th>Marker\/ID<\/th><th>Kind<\/th><th>Setting\/Items<\/th><th>Condition<\/th><th>Notes<\/th>/);
+  assert.doesNotMatch(layouts, /<th>Settings<\/th>|<th>Conditions<\/th>|<th>Items<\/th>/);
+  assert.match(layouts, /<strong>Setting<\/strong><ul class="spec-list"><li>align: center<\/li><li>gap: md<\/li><\/ul>/);
+  assert.match(layouts, /<strong>Items<\/strong><ul class="spec-list"><li>Title: <a class="mm-ref-chip mm-ref-chip-element"[^>]*data-mm-ref-id="E-Title"[\s\S]*<\/a><\/li><li><code>L-Child<\/code><\/li><li>slot: content<\/li><\/ul>/);
+  assert.match(layouts, /<td><span class="spec-default-always">always<\/span><\/td>/);
+  assert.match(layouts, /<td><p>Layout note\.<\/p><\/td>/);
+  assert.match(layouts, /<strong>Setting<\/strong><ul class="spec-list"><li>gap: sm<\/li><\/ul>/);
+  assert.match(layouts, /<strong>Items<\/strong><ul class="spec-list"><li><a class="mm-ref-chip mm-ref-chip-element"[^>]*data-mm-ref-id="E-Title"/);
+  assert.match(layouts, /data-mm-ref-id="L-Empty"[\s\S]*<td>stack<\/td><td>-<\/td><td><span class="spec-default-always">always<\/span><\/td><td>-<\/td>/);
+});
+
+test("localizes static Layouts table columns and empty conditions", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-STATIC-LAYOUT-JA
+type: screen
+title: Static Layout JA
+locale: ja
+---
+
+# SCR-STATIC-LAYOUT-JA Static Layout JA
+
+## States
+
+- idle*
+
+## Layout: desktop
+
+### L1:L-Page Page
+
+- stack
+
+#### Items
+
+- E-Title
+
+## Elements
+
+### E-Title Text
+
+- value: Title
+`);
+  const html = renderStaticDesignDocumentHtml(result);
+  const layouts = html.match(/<h5 class="state-screen-subheading">レイアウト<\/h5>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.match(layouts, /<th>番号\/ID<\/th><th>種別<\/th><th>設定\/項目<\/th><th>条件<\/th><th>備考<\/th>/);
+  assert.match(layouts, /<strong>項目<\/strong>/);
+  assert.match(layouts, /<span class="spec-default-always">常に<\/span>/);
+});
+
 test("renders MarkVSpec entity references in static markdown prose", () => {
   const result = parseMarkVSpec(`---
 id: SCR-STATIC-ENTITY-REFS

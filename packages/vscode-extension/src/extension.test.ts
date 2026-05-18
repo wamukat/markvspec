@@ -378,7 +378,7 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(html, /Enter both email and password\./);
   assert.match(html, new RegExp(`email: ${detailElementRef("3", "E-EmailInput")}\\.value`));
   assert.match(html, new RegExp(`rememberMe: ${detailElementRef("6", "E-RememberMe")}\\.value`));
-  assert.match(html, new RegExp(`<td>${detailLayoutRefById("L2", "L-LoginForm")}</td><td>stack</td><td><ul class="spec-list"><li>gap: md</li></ul></td><td><ul class="spec-list"><li>disabled: authenticating</li></ul></td>`));
+  assert.match(html, new RegExp(`<td>${detailLayoutRefById("L2", "L-LoginForm")}</td><td>stack</td><td>${specSectionPattern("Setting", ["gap: md"])}[\\s\\S]*?</td><td><ul class="spec-list"><li>disabled: authenticating</li></ul></td>`));
   assert.doesNotMatch(html, new RegExp(`<li>${detailIdRef("P-EmailField")}</li>`));
   assert.match(html, /element[\s\S]*E-ValidationMessage/);
   assert.match(html, new RegExp(`set state ${docLabel("idle", "state")}[\\s\\S]*element[\\s\\S]*E-AuthErrorBanner`));
@@ -1201,13 +1201,14 @@ Layout note.
   const idleSection = stateSection(html, "idle");
   const layouts = idleSection.match(/<h5 class="state-screen-subheading">Layouts<\/h5>[\s\S]*?<\/table>/)?.[0] ?? "";
 
-  assert.match(layouts, /<th>Marker\/ID<\/th><th>Kind<\/th><th>Settings<\/th><th>Conditions<\/th><th>Items<\/th><th>Notes<\/th>/);
+  assert.match(layouts, /<th>Marker\/ID<\/th><th>Kind<\/th><th>Setting\/Items<\/th><th>Condition<\/th><th>Notes<\/th>/);
+  assert.doesNotMatch(layouts, /<th>Settings<\/th>|<th>Conditions<\/th>|<th>Items<\/th>/);
   assert.doesNotMatch(layouts, /<th>Properties<\/th>/);
-  assert.match(layouts, /<td><ul class="spec-list"><li>align: center<\/li><li>justify: between<\/li><li>overlay: modal<\/li><li>gap: sm<\/li><\/ul><\/td>/);
+  assert.match(layouts, /<td><div class="spec-section"><strong>Setting<\/strong><ul class="spec-list"><li>align: center<\/li><li>justify: between<\/li><li>overlay: modal<\/li><li>gap: sm<\/li><\/ul><\/div><div class="spec-section"><strong>Items<\/strong>/);
   assert.match(layouts, /<td><ul class="spec-list"><li>visible: idle<\/li><li>hidden: archived<\/li><li>disabled: saving<\/li><li>selected: current<\/li><li>active: editing<\/li><\/ul><\/td>/);
-  assert.match(layouts, new RegExp(`<td><ul class="spec-list"><li>Email: ${detailIdRef("E-Email")}</li><li>${detailIdRef("L-Child")}</li><li>slot: content</li></ul></td>`));
+  assert.match(layouts, new RegExp(`<strong>Items</strong><ul class="spec-list"><li>Email: ${detailIdRef("E-Email")}</li><li>${detailIdRef("L-Child")}</li><li>slot: content</li></ul>`));
   assert.match(layouts, /<td><div class="entity-notes"><p class="note-paragraph">Layout note\.<\/p><\/div><\/td>/);
-  assert.match(layouts, new RegExp(`<td>${detailLayoutRefById("L2", "L-Child")}</td><td>stack</td><td>-</td><td>${defaultAlwaysPattern()}</td><td>-</td><td>-</td>`));
+  assert.match(layouts, new RegExp(`<td>${detailLayoutRefById("L2", "L-Child")}</td><td>stack</td><td>-</td><td>${defaultAlwaysPattern()}</td><td>-</td>`));
 });
 
 test("localizes unspecified State Views layout conditions as always", () => {
@@ -1245,8 +1246,8 @@ locale: ja
   const idleSection = stateSection(html, "idle");
   const layouts = idleSection.match(/<h5 class="state-screen-subheading">レイアウト<\/h5>[\s\S]*?<\/table>/)?.[0] ?? "";
 
-  assert.match(layouts, /<th>番号\/ID<\/th><th>種別<\/th><th>設定<\/th><th>条件<\/th><th>項目<\/th><th>備考<\/th>/);
-  assert.match(layouts, new RegExp(`<td>${detailLayoutRefById("L1", "L-Page")}</td><td>stack</td><td>-</td><td>${defaultAlwaysPattern("常に")}</td><td><ul class="spec-list"><li>${detailIdRef("E-Title")}</li></ul></td><td>-</td>`));
+  assert.match(layouts, /<th>番号\/ID<\/th><th>種別<\/th><th>設定\/項目<\/th><th>条件<\/th><th>備考<\/th>/);
+  assert.match(layouts, new RegExp(`<td>${detailLayoutRefById("L1", "L-Page")}</td><td>stack</td><td><div class="spec-section"><strong>項目</strong><ul class="spec-list"><li>${detailIdRef("E-Title")}</li></ul></div></td><td>${defaultAlwaysPattern("常に")}</td><td>-</td>`));
 });
 
 test("renders State Views layout Marker/ID chips from the current viewport layout row", () => {
