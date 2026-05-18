@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.4.0 - 2026-05-18
+
+### Added
+
+- Architecture-neutral Action DSL with explicit process steps, process cases,
+  parallel process groups, Resolve steps, and view/context effects.
+- View Context, Preview Scenarios, and Scenario Samples for state-driven
+  previews without relying on legacy model samples.
+- Partial update authoring through `display.partial`, template slot contracts,
+  slot defaults, and richer template/partial examples.
+- Validation display modeling for field errors, business rule display messages,
+  split validation sections, and validation preview tables.
+- Example preview audit, VSIX smoke coverage, print regression checks, and
+  release-quality documentation.
+
+### Changed
+
+- Reworked shipped examples and user documentation around focused learning
+  paths, source samples, scenario samples, templates, partials, and structured
+  sections.
+- Improved generated design documents with compact display content tables,
+  marker/ID reference chips, clearer state/action transition summaries, and
+  localized labels.
+- Refreshed README paths, release screenshot generation, and release checklist
+  artifacts for the 0.4.0 package.
+
+### Removed
+
+- Removed legacy canonical model sample authoring, direct model update preview
+  semantics, legacy `bind` support, and old Front Matter `owner` / `status` /
+  `viewport` metadata from the release path.
+
+### Fixed
+
+- Fixed marker layout, printed spec table columns, scenario/static export
+  rendering, partial preview dependency handling, and VSIX smoke default paths.
+
 ## 0.2.0 - 2026-05-14
 
 Initial MarkVSpec release for the VS Code Marketplace.

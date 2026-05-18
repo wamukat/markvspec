@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.4.0 - 2026-05-18
+
+### Added
+
+- Architecture-neutral Action DSL rendering and diagnostics, including process
+  cases, direct process effects, parallel process groups, Resolve steps, and
+  view/context effects.
+- View Context, Preview Scenarios, Scenario Samples, display effects, field
+  error messages, business rule messages, dialog overlays, and toast overlays in
+  the generated preview.
+- Template and partial composition support for slot contracts, slot defaults,
+  nested partials, and `display.partial` updates.
+- Example preview audit coverage and packaged VSIX smoke verification.
+
+### Changed
+
+- Reworked the shipped example set around focused learning paths and moved the
+  login sample to the real-world screens examples.
+- Improved State Views, display content tables, validation tables, marker/ID
+  reference chips, localized labels, and print/export layout.
+- Updated snippets and documentation away from legacy model authoring toward
+  data/source samples and preview scenarios.
+
+### Removed
+
+- Removed legacy canonical model sample rendering paths, direct model update
+  preview semantics, legacy `bind` support, and removed Front Matter metadata
+  from the release authoring path.
+
+### Fixed
+
+- Fixed partial dependency detection, viewport fallback handling, marker
+  placement, printed table ID columns, README screenshot generation, and VSIX
+  smoke default paths.
+
 ## 0.3.0 - 2026-05-15
 
 ### Changed
