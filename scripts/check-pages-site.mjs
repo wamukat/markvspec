@@ -14,6 +14,8 @@ const requiredFiles = [
   "docs/en/user/document-structure.html",
   "docs/ja/user/structured-section-reference.html",
   "docs/en/user/structured-section-reference.html",
+  "docs/ja/user/ui-coverage.html",
+  "docs/en/user/ui-coverage.html",
   "docs/assets/readme-hello-screen-preview.png"
 ];
 
@@ -33,11 +35,20 @@ if (rootHtml.includes("Generated static HTML previews for the shipped MarkVSpec 
 expectContains(rootHtml, 'href="examples/"', "_site/index.html should link to /examples/.");
 expectContains(rootHtml, 'href="docs/ja/user/authoring-guide.html"', "_site/index.html should link to the Japanese authoring guide.");
 expectContains(rootHtml, 'href="docs/en/user/authoring-guide.html"', "_site/index.html should link to the English authoring guide.");
+expectContains(rootHtml, 'href="docs/ja/user/ui-coverage.html"', "_site/index.html should link to the Japanese UI coverage page.");
+expectContains(rootHtml, 'href="docs/en/user/ui-coverage.html"', "_site/index.html should link to the English UI coverage page.");
 
 const examplesHtml = readSiteFile("examples/index.html");
 expectContains(examplesHtml, "MarkVSpec Examples", "_site/examples/index.html should be the examples index.");
 expectContains(examplesHtml, "hello-screen.html", "_site/examples/index.html should link to Hello Screen.");
 expectContains(examplesHtml, "examples/01-basics/hello-screen.vspec.md", "_site/examples/index.html should show the source path.");
+
+for (const coveragePath of ["docs/ja/user/ui-coverage.html", "docs/en/user/ui-coverage.html"]) {
+  const coverageHtml = readSiteFile(coveragePath);
+  for (const term of ["Tabs", "Popover", "Tooltip", "Accordion", "Disclosure", "ActionMenu"]) {
+    expectContains(coverageHtml, term, `${coveragePath} should mention ${term}.`);
+  }
+}
 
 const generatedExamples = readdirSync(join(siteDir, "examples")).filter((entry) => entry.endsWith(".html") && entry !== "index.html");
 if (generatedExamples.length === 0) {

@@ -1,34 +1,40 @@
 # UI Component and Screen Pattern Coverage
 
-This page tracks what MarkVSpec can express for practical screen specifications.
-It is intentionally not a design-system catalog. The goal is to know whether a
-business screen can be written, previewed, printed, and handed to implementation
-without falling back to ambiguous prose.
+## Position
+
+This page is a user-facing inventory of the UI components and screen patterns
+that MarkVSpec can express in the current release. It is not a design-system
+catalog. Use it to decide whether a business screen can be authored, previewed,
+printed, and handed to implementation without falling back to ambiguous prose.
+
+For exact syntax, use the [DSL Reference](dsl.md). For complete source files,
+use the [Example Gallery](example-gallery.md).
 
 ## Component Coverage
 
 | Component | Status | MarkVSpec expression | Notes |
 | --- | --- | --- | --- |
-| Heading / paragraph / text | Supported | `Heading`, `Paragraph`, `Text` | Static text and sampled model-bound text are separated by `label`, `sample`, `src`, and `format`. |
+| Heading / paragraph / text | Supported | `Heading`, `Paragraph`, `Text` | Static wording and sampled data-backed text are separated by `label`, `sample`, `src`, and `format`. |
 | Form text input | Supported | `Input` | `value`, `initial value`, `placeholder`, input rules, and validation contracts are supported. Use `## Validations` for required checks. |
-| Date / time / number input | Supported | `DateInput`, `TimeInput`, `NumberInput`, `DatePicker` | Use `value: ${data.value}` with `initial value`, plus optional `min`, `max`, and `step` where applicable. |
+| Date / time / number input | Supported | `DateInput`, `TimeInput`, `NumberInput`, `DatePicker` | Use `value` as an opaque source, `initial value`, and optional `min`, `max`, and `step` where applicable. |
 | File input | Supported | `FileInput`, `FileUpload` | Use `accept`, `multiple`, `label`, and `sample` for constraints and helper text. |
 | Button / link | Supported | `Button`, `Link` | `variant`, `tone`, `action`, `href`, and route params are supported. |
 | Select / checkbox / radio group | Supported | `Select`, `MultiSelect`, `Checkbox`, `CheckboxGroup`, `Switch`, `RadioGroup` | Choice options use nested Markdown list items. Use `RadioGroup` for mutually exclusive value ranges, `CheckboxGroup` or `MultiSelect` for multiple values, and `Switch` for boolean settings. |
-| Tabs | Supported | `Tabs` | `active` marks the local initial tab. Each item may reference a `panel: L-*` and an `action: A-*`; generated specs aggregate item labels and keep action links traceable. |
+| Tabs | Supported | `Tabs` | Local tab selection. `active` marks the initial tab. Each item may reference `panel: L-*` and `action: A-*`; generated specs aggregate item labels and keep action links traceable. |
 | Banner / badge | Supported | `Banner`, `Badge` | Use `tone` for semantic intent such as danger or success. |
 | List / table | Supported | `List`, `Table` | Table columns and sample rows use nested Markdown lists. |
 | Dialog / overlay | Supported | `Dialog` with targetless `display.element` | Dialogs are modal overlays by default. Define cancel/confirm buttons with `actions:` and show the dialog from a Preview Scenario or action case without a layout target. |
-| Popover / Tooltip | Supported | `Popover`, `Tooltip` | Anchored non-modal help. `anchor` must reference `E-*`; `placement`, `text`, and visibility conditions are shown in preview and generated specs. Runtime hover/focus behavior and interactive popover content are outside the initial contract. |
+| Popover / Tooltip | Supported | `Popover`, `Tooltip` | Anchored non-modal help. `anchor` must reference `E-*`; `placement`, `text`, and visibility conditions are shown in preview and generated specs. Runtime hover/focus behavior and interactive popover content are outside the current contract. |
 | Accordion / Disclosure | Supported | `Accordion`, `Disclosure` | Local expanded/collapsed sections. `open` is element-local initial display state; panels reference `L-*` layout groups and optional actions remain traceable. |
 | Action menu | Supported | `ActionMenu` | Action-only menu for row actions and three-dot menus. Each item requires `action: A-*`; optional `tone` and `disabled when` stay visible in specs. Generic `Menu`, selection menus, and nested menus are not part of this contract. |
 | Toast notification | Supported | `Toast` with targetless `display.element` | Toasts are non-modal overlays. Use `message`, `tone`, `placement`, and `duration`; multiple displayed toasts stack in a toast region. |
 | Spinner / loading mask | Supported | `Spinner` with state-visible overlay layout | Used for wait states and partial loading states. |
 | Divider | Supported | `Divider` | Separates groups inside forms or detail screens. |
-| Empty state | Supported | `Paragraph` with `visible when: empty` | Empty states are prose content tied to an empty state rather than a dedicated element type. |
+| Empty state | Supported | `Paragraph` with `visible when` | Empty states are prose content tied to an empty state rather than a dedicated element type. |
 | Breadcrumb | Alternative | `Link` elements in a row layout | Dedicated breadcrumb semantics are not yet defined. |
 | Pagination | Alternative | Row layout with paging buttons and page text | Dedicated pagination element is not yet canonical. |
 | Stepper | Planned | Not yet canonical | Needs current/completed/error step semantics. |
+| ProgressBar | Planned | Not yet canonical | Determinate progress needs value/max/tone semantics that Spinner cannot express. |
 | Skeleton | Alternative | `Spinner`, `Text`, or placeholder layouts | Dedicated skeleton semantics are not yet defined. |
 
 ## Screen Pattern Coverage
@@ -51,7 +57,9 @@ without falling back to ambiguous prose.
 1. Add canonical Breadcrumb semantics when route hierarchy and current-page
    handling become important.
 2. Add Pagination only if the row-layout alternative becomes too repetitive.
-3. Add Stepper for multi-step applications after state-flow notation settles.
+3. Add ProgressBar when determinate progress appears in real examples.
+4. Add Stepper for multi-step applications after state-flow and View Context
+   notation settle.
 
 ## Candidate Classification
 
@@ -75,12 +83,12 @@ review from generic Layout and Element combinations.
 | Avatar | Layout/content pattern | Keep as Image + Text | The image and label are independently reviewable. |
 | Chart / Map / RichTextEditor / Calendar / TreeView | Custom/domain-specific | Use `custom:*` until a concrete need repeats | These depend heavily on domain and product interaction details. |
 
-## Element Syntax Notes
-
-These notes collect implemented element syntax and candidate sketches that need
-more design work. Implemented elements are marked in the surrounding text.
+## Implemented Element Syntax
 
 ### Tabs
+
+Use `Tabs` when the screen has a local tab strip and each tab controls a panel
+or action.
 
 ```markdown
 ### E-SettingsTabs Tabs
@@ -95,28 +103,17 @@ more design work. Implemented elements are marked in the surrounding text.
     - action: A-SelectBillingTab
 ```
 
-`Tabs` is implemented. The preview renders a tab strip, marks the active item,
-and exposes the active panel reference. Generated specs aggregate tab items and
-link item actions from Element Summary.
+Preview renders a tab strip, marks the active item, and exposes the active panel
+reference. Generated specs aggregate tab items and link item actions from
+Element Summary.
 
-### Menu / DropdownMenu / ActionMenu
-
-Candidate sketch:
-
-```markdown
-### E-RowActions ActionMenu
-
-- label: More actions
-- open when: ${view.openActionMenuRowId} == ${data.row.id}
-- items:
-  - Edit: A-EditRow
-  - Disable: A-DisableRow
-```
-
-Preview policy: render the trigger and list item actions. When the menu is open
-in a Preview Scenario, show it as an anchored overlay.
+Example: [Tabs Settings](../../../examples/04-real-world-screens/tabs-settings.vspec.md).
+Generated HTML: [tabs-settings.html](https://wamukat.github.io/markvspec/examples/tabs-settings.html).
 
 ### Popover / Tooltip
+
+Use `Popover` or `Tooltip` for anchored, non-modal help. The anchor must be an
+existing `E-*` element.
 
 ```markdown
 ### E-PasswordHelp Popover
@@ -127,12 +124,17 @@ in a Preview Scenario, show it as an anchored overlay.
 - text: Password must be at least 12 characters.
 ```
 
-`Popover` and `Tooltip` are implemented. Preview renders them as anchored
-non-modal help and exposes anchor, placement, visibility, and text in Display
-Content Spec. Tooltip hover/focus runtime behavior and interactive Popover
-content are intentionally out of scope.
+Preview renders anchored help and exposes anchor, placement, visibility, and
+text in Display Content Spec. Tooltip hover/focus runtime behavior and
+interactive Popover content are intentionally out of scope.
+
+Example: [Anchored Help](../../../examples/04-real-world-screens/anchored-help.vspec.md).
+Generated HTML: [anchored-help.html](https://wamukat.github.io/markvspec/examples/anchored-help.html).
 
 ### Accordion / Disclosure
+
+Use `Accordion` when one element owns multiple expandable sections. Use
+`Disclosure` when one trigger controls one panel.
 
 ```markdown
 ### E-AdvancedFilters Accordion
@@ -155,11 +157,18 @@ content are intentionally out of scope.
 - action: A-ToggleShippingDetails
 ```
 
-`Accordion` and `Disclosure` are implemented. Preview renders headers and open
-panel references. Display Content Spec aggregates panel/action links so local
-expansion behavior stays separate from screen state.
+Preview renders headers and open panel references. Display Content Spec
+aggregates panel/action links so local expansion behavior stays separate from
+screen state.
+
+Example: [Accordion Disclosure](../../../examples/04-real-world-screens/accordion-disclosure.vspec.md).
+Generated HTML: [accordion-disclosure.html](https://wamukat.github.io/markvspec/examples/accordion-disclosure.html).
 
 ### ActionMenu
+
+Use `ActionMenu` for action-only menus such as row actions and three-dot menus.
+Do not use it for selection menus, nested navigation menus, or generic
+dropdowns.
 
 ```markdown
 ### E-RowActions ActionMenu
@@ -176,74 +185,36 @@ expansion behavior stays separate from screen state.
     - disabled when: selected-row-locked
 ```
 
-`ActionMenu` is implemented for action-only menus. Preview renders the trigger
-and, when `open: true`, an anchored item list. Display Content Spec aggregates
-item labels, action links, tones, and disabled conditions. Generic `Menu`,
-selection menus, and nested menus remain outside this element contract.
+Preview renders the trigger and, when `open: true`, an anchored item list.
+Display Content Spec aggregates item labels, action links, tones, and disabled
+conditions.
 
-### ProgressBar
+Example: [Action Menu](../../../examples/04-real-world-screens/action-menu.vspec.md).
+Generated HTML: [action-menu.html](https://wamukat.github.io/markvspec/examples/action-menu.html).
 
-```markdown
-### E-UploadProgress ProgressBar
+## Candidate Notes
 
-- value: ${data.upload.percent}
-- max: 100
-- tone: info
-```
+Candidate components in this section are not canonical syntax. Keep them as
+ordinary layouts, text, buttons, links, and visibility conditions until a
+dedicated ticket defines parser, validator, preview, generated document, and
+example behavior.
 
-Preview policy: render a low-fidelity bar and show value/max/source in Display
-Content Spec.
+- `Menu` / `DropdownMenu`: use ordinary `Button` / `Link` elements or
+  `ActionMenu` only when every item is an action.
+- `ProgressBar`: use `Spinner` or text status until determinate progress is
+  implemented.
+- `Stepper`: describe the current step with supported headings, text, and
+  action buttons until step semantics are implemented.
+- `Breadcrumb`: use row layout with `Link` elements.
+- `Pagination`: use row layout with previous/next buttons and page text.
 
-### Stepper
+## Example Guidance
 
-```markdown
-### E-ApplicationSteps Stepper
-
-- value: ${view.currentStep}
-- items:
-  - Profile: profile
-  - Confirm: confirm
-  - Complete: complete
-```
-
-Preview policy: render current/completed/pending/error states from View Context
-or model values and summarize each step.
-
-### Breadcrumb
-
-```markdown
-### E-AccountBreadcrumb Breadcrumb
-
-- items:
-  - Accounts: SCR-ACCOUNT-LIST
-  - Account detail
-```
-
-Preview policy: render a compact path and expose navigable items separately from
-the current item.
-
-### Pagination
-
-```markdown
-### E-SearchPagination Pagination
-
-- page: ${data.search.page}
-- total pages: ${data.search.totalPages}
-- page size: ${data.search.pageSize}
-- previous action: A-PreviousPage
-- next action: A-NextPage
-```
-
-Preview policy: render previous/next controls, current page, total pages, and
-page-size information. Keep page-changing actions visible in Action Summary.
-
-## Example Plan
-
-- Add a search-list Pagination example only after the row-layout alternative
-  becomes too noisy in generated Input/Display/Action specs.
-- Add a broader overlay example that compares Dialog, Toast, Popover, and
-  Tooltip after more overlay usage repeats.
-- Add Stepper examples together with View Context samples because step position
-  may need non-state UI mode values.
-- Keep Skeleton, Card, Toolbar, SearchBox, EmptyState, and Avatar as examples of
-  Layout/content patterns rather than canonical Element additions for now.
+- Focused examples for Tabs, Popover / Tooltip, Accordion / Disclosure, and
+  ActionMenu are listed in the [Example Gallery](example-gallery.md).
+- Pagination should stay in examples as a row-layout pattern until the
+  alternative becomes too noisy in generated specs.
+- A broader overlay example that compares Dialog, Toast, Popover, and Tooltip
+  can be added later if overlay usage repeats.
+- Skeleton, Card, Toolbar, SearchBox, EmptyState, and Avatar should stay as
+  Layout/content patterns rather than canonical Elements for now.
