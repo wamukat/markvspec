@@ -11,7 +11,7 @@ without falling back to ambiguous prose.
 | --- | --- | --- | --- |
 | Heading / paragraph / text | Supported | `Heading`, `Paragraph`, `Text` | Static text and sampled model-bound text are separated by `label`, `sample`, `src`, and `format`. |
 | Form text input | Supported | `Input` | `value`, `initial value`, `placeholder`, input rules, and validation contracts are supported. Use `## Validations` for required checks. |
-| Date / time / number input | Supported | `DateInput`, `TimeInput`, `NumberInput`, `DatePicker` | Use `value: ${model.value}` with `initial value`, plus optional `min`, `max`, and `step` where applicable. |
+| Date / time / number input | Supported | `DateInput`, `TimeInput`, `NumberInput`, `DatePicker` | Use `value: ${data.value}` with `initial value`, plus optional `min`, `max`, and `step` where applicable. |
 | File input | Supported | `FileInput`, `FileUpload` | Use `accept`, `multiple`, `label`, and `sample` for constraints and helper text. |
 | Button / link | Supported | `Button`, `Link` | `variant`, `tone`, `action`, `href`, and route params are supported. |
 | Select / checkbox / radio group | Supported | `Select`, `MultiSelect`, `Checkbox`, `CheckboxGroup`, `Switch`, `RadioGroup` | Choice options use nested Markdown list items. Use `RadioGroup` for mutually exclusive value ranges, `CheckboxGroup` or `MultiSelect` for multiple values, and `Switch` for boolean settings. |
@@ -107,7 +107,7 @@ each item controls in Element Summary or a dedicated behavior row.
 ### E-RowActions ActionMenu
 
 - label: More actions
-- open when: ${view.openActionMenuRowId} == ${model.row.id}
+- open when: ${view.openActionMenuRowId} == ${data.row.id}
 - items:
   - Edit: A-EditRow
   - Disable: A-DisableRow
@@ -149,7 +149,7 @@ Summarize expanded/collapsed state separately from screen state.
 ```markdown
 ### E-UploadProgress ProgressBar
 
-- value: ${model.upload.percent}
+- value: ${data.upload.percent}
 - max: 100
 - tone: info
 ```
@@ -190,9 +190,9 @@ the current item.
 ```markdown
 ### E-SearchPagination Pagination
 
-- page: ${model.search.page}
-- total pages: ${model.search.totalPages}
-- page size: ${model.search.pageSize}
+- page: ${data.search.page}
+- total pages: ${data.search.totalPages}
+- page size: ${data.search.pageSize}
 - previous action: A-PreviousPage
 - next action: A-NextPage
 ```

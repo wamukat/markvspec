@@ -116,7 +116,7 @@ diagnostic warning の対象です。
 ```markdown
 - navigate: SCR-USER-DETAIL
 - params:
-  - userId: ${model.user.userId}
+  - userId: ${data.user.userId}
 ```
 
 partial ホストのネストした `partial` ブロックは、まず `references.partials`
@@ -168,7 +168,7 @@ MarkVSpec は Markdown 全体を DSL として読むわけではありません�
 | --- | --- | --- |
 | 予約語 | `## Actions`、`Process`、`request:`、`Effects` | 見出し、グループ名、property 名、型名として書くと DSL の意味を持つ語。 |
 | 参照 ID | `E-EmailInput`、`L-MessageArea`、`A-Submit.P2.response` | 同じ文書または参照済み文書内の設計対象を指す安定 ID。 |
-| 不透明式 | `${model.notice.title}`、`${view.selectedTab}`、`${route.userId}` | MarkVSpec が式評価しすぎず、参照元として保持する値。対応済みの view/state 条件だけ preview が限定評価する。 |
+| 不透明式 | `${data.notice.title}`、`${view.selectedTab}`、`${route.userId}` | MarkVSpec が式評価しすぎず、参照元として保持する値。対応済みの view/state 条件だけ preview が限定評価する。 |
 | 任意文字列 | Action 名、case description、message text、service call text | 人間が読む説明。固定 enum ではない。 |
 | 補足 Markdown | Lead、Notes、Free-form Section の本文 | 生成設計書には残すが、構造化 DSL には変換しない。 |
 
@@ -185,7 +185,7 @@ MarkVSpec は Markdown 全体を DSL として読むわけではありません�
 | Request params | `request.params` に `name: E-*.value` などを書く | 実装済み | `input:` は legacy。 |
 | Server params | `server.params` に service call へ渡す値を書く | 実装済み | service call text は任意文字列。 |
 | Result cases | Process 直下の `case: <name>` | 実装済み | 旧 `Cases` block は canonical ではない。 |
-| Effects | `case:` 配下または即時 Process 直下の `state` / `navigate` / `view` / `display` | 実装済み | Action 直下 `Effects` と `${model.*}` 代入は canonical ではない。 |
+| Effects | `case:` 配下または即時 Process 直下の `state` / `navigate` / `view` / `display` | 実装済み | Action 直下 `Effects` と `${data.*}` 代入は canonical ではない。 |
 | Flow control | case の末尾に `stop` / `continue` | 実装済み | 省略時は `continue` として扱う。 |
 | Display | `display.target` + `element` / `message` / `partial` | 実装済み | `display.content`、`display.elements` は unsupported。 |
 | View Context | `## View Context`、`${view.<name>}`、`view:` effect | 実装済み | 型は `boolean` と `enum`。 |
@@ -584,7 +584,7 @@ Mermaid label、document symbol、plain text review comment で読みやすい�
 ```markdown
 ### 2:E-EmailInput Input
 
-- value: ${model.email}
+- value: ${data.email}
 - initial value: "test@example.com"
 ```
 
@@ -623,7 +623,7 @@ Mermaid label、document symbol、plain text review comment で読みやすい�
   - <description>
 ```
 
-`state` は画面内状態です。フォーム値のような画面データは `${model.email}` のような不透明な式として扱います。
+`state` は画面内状態です。フォーム値のような画面データは `${data.email}` のような不透明な式として扱います。
 初期状態は状態名末尾の `*` で示します。説明は状態の下にネストしたリストとして書きます。
 state 配下のネストした箇条書きは自由記述の説明です。プレビューの基準状態は定義しません。
 
@@ -1057,7 +1057,7 @@ field の空判定、role、authorization text、`and` / `or` を含む 1 行 co
 runtime 値を捏造せず、設計情報として表示します。
 
 `visible when` / `hidden when` / `disabled when` には画面内状態だけでなく
-`${model.memberProfile.loaded}` のような不透明な式も書けます。API 取得後に Loading 表示から実値表示へ
+`${data.memberProfile.loaded}` のような不透明な式も書けます。API 取得後に Loading 表示から実値表示へ
 切り替えるような場合は、画面状態ではなくデータ条件で表します。
 
 ```markdown
@@ -1065,14 +1065,14 @@ runtime 値を捏造せず、設計情報として表示します。
 
 - source: data
 - sample: こんにちは「山田 太郎さん」
-- src: ${model.memberProfile.displayName}
+- src: ${data.memberProfile.displayName}
 - format: こんにちは「{displayName}さん」
-- visible when: ${model.memberProfile.loaded}
+- visible when: ${data.memberProfile.loaded}
 
 ### E-GreetingLoading Text
 
 - text: 読み込み中...
-- visible when: not ${model.memberProfile.loaded}
+- visible when: not ${data.memberProfile.loaded}
 ```
 
 表示値まわりの責務は次のように分けます。
@@ -1084,7 +1084,7 @@ runtime 値を捏造せず、設計情報として表示します。
 - `text`: `Paragraph`、`Text`、`Banner`、`Badge` などの固定本文・固定表示文言。
 - `hint`: `FileUpload` / `FileInput` の固定補足文。
 - `sample`: `source: data` の Element で、動的データが実際に表示される時の preview 代表値。固定文言には使いません。
-- `src`: `sample` の取得元。`${model.notice.title}` や `${route.noticeId}` のような不透明な式。
+- `src`: `sample` の取得元。`${data.notice.title}` や `${route.noticeId}` のような不透明な式。
 - `value`: 送信値、選択肢値、hidden value などの機械的な値。単なる表示サンプルには使いません。
 
 `format` は `src` の値を `sample` の形へ整形する規則です。wireframe preview は
@@ -1132,18 +1132,18 @@ partial update target には `L-*` の Layout ID を使います。複数項目�
 
 ## データ式と初期値
 
-入力値は `${model.email}` のような不透明な式として表します。
+入力値は `${data.email}` のような不透明な式として表します。
 
 ```markdown
 ### 3:E-EmailInput Input
 
-- value: ${model.email}
+- value: ${data.email}
 - initial value: "test@example.com"
 ```
 
 これは次を意味します。
 
-- 画面データ: `${model.email}`
+- 画面データ: `${data.email}`
 - 初期表示値: `test@example.com`
 
 独立した `bind` property はサポート対象外です。入力値の由来は `value` や
@@ -1154,7 +1154,7 @@ model 値として書き分けます。
 初期値が不要な場合は次のように書けます。
 
 ```markdown
-- value: ${model.email}
+- value: ${data.email}
 ```
 
 `Checkbox` でも同じ `initial value` property を使えます。
@@ -1163,7 +1163,7 @@ model 値として書き分けます。
 ### 10:E-RememberMe Checkbox
 
 - label: Remember me
-- value: ${model.rememberMe}
+- value: ${data.rememberMe}
 - initial value: ${cookie.remember.present}
 ```
 
@@ -1178,7 +1178,7 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 - label: 既読状態
 - source: i18n
 - name: readStatus
-- value: ${model.noticeSearch.readStatus}
+- value: ${data.noticeSearch.readStatus}
 - initial value: "すべて"
 - options:
   - すべて
@@ -1196,7 +1196,7 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 ```markdown
 ### E-RoleSelect Select
 
-- value: ${model.role}
+- value: ${data.role}
 - initial value: "Administrator"
 - options:
   - 閲覧者
@@ -1220,7 +1220,7 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 データソースから来る生値は `data`、加工・結合・計算した表示値は `computed` とします。
 他要素の値をそのまま表示する場合は `element`、加工する場合は `computed` とします。
 アプリ管理下のリソースは `asset`、アプリ管理外のリソースは `external` とします。
-`source: document` や `source: ${model.users.items}` のような旧来の参照パス指定は不許可です。
+`source: document` や `source: ${data.users.items}` のような旧来の参照パス指定は不許可です。
 
 `source:` と sample の責務は分けます。
 
@@ -1242,7 +1242,7 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 
 - source: data
 - sample: 緊急メンテナンスのお知らせ
-- src: ${model.notice.title}
+- src: ${data.notice.title}
 
 ### E-NoticeId Text
 
@@ -1437,28 +1437,28 @@ UI 部品を、フレームワーク固有の widget 名に寄せずに表現す
 
 ### E-StartDate DatePicker
 
-- value: ${model.startDate}
+- value: ${data.startDate}
 - initial value: 2026-05-01
 - min: 2020-01-01
 - max: 2030-12-31
 
 ### E-RequestedDate DateInput
 
-- value: ${model.requestedDate}
+- value: ${data.requestedDate}
 - initial value: 2026-06-01
 - min: 2026-05-13
 - max: 2026-12-31
 
 ### E-StartTime TimeInput
 
-- value: ${model.startTime}
+- value: ${data.startTime}
 - initial value: 09:30
 - min: 09:00
 - max: 18:00
 
 ### E-Headcount NumberInput
 
-- value: ${model.headcount}
+- value: ${data.headcount}
 - initial value: 2
 - min: 1
 - max: 20
@@ -1492,7 +1492,7 @@ Process は、1つの意味のある処理単位として扱います。1つの 
 
 Process が request、server call、project-specific execution detail へ渡す値は、`request.params`、`server.params`、または `<custom detail>.params` を一次情報として書きます。`receive:` は外部 event、validation result、または前段 Process の結果を受け取って分類する場合に使います。Validation contract は `V-LoginForm.result` のような opaque source として受け取ります。
 
-Process が編集可能な画面要素に現在表示されている値を読む場合は、`${model.email}` ではなく `E-EmailInput.value` のような element value source を優先します。`${model.*}` を execution params で使うのは、現在ページ番号や計算済みの次ページ番号のように、要素値ではなく派生済みまたは保持済みの model state を意図的に読む場合に限ります。
+Process が編集可能な画面要素に現在表示されている値を読む場合は、`${data.email}` ではなく `E-EmailInput.value` のような element value source を優先します。`${data.*}` を execution params で使うのは、現在ページ番号や計算済みの次ページ番号のように、要素値ではなく派生済みまたは保持済みの model state を意図的に読む場合に限ります。
 
 実行 Process は、`request/server/custom detail -> result -> case` の順に書きます。外部データを受け取る Process は `receive -> case` として書きます。`prepare:` は現時点の DSL には導入しません。将来、送信前の意味的な導出を表す必要が出た場合でも、params と同じ値を重複して書く場所にはしません。
 
@@ -1570,7 +1570,7 @@ execution detail も result classification も持たない、決定的な即時�
     - stop
 ```
 
-主な `Effects` entry は `view:`、`state:`、`navigate:`、`display:` です。Action の `Effects` で `${model.*}` に代入する `model:` mutation は canonical DSL ではありません。`${model.*}` は、Element の `value:` / `src:` や request parameter などの読み取り参照として使い、Action では実装内部の store や server-side model への代入を書かないようにします。preview / export 用の表示例は Element の `sample` / `sample rows:` または Preview Scenarios の `samples` に書きます。`stop` / `continue` は case-level の制御フローなので、`Effects` の外で case の最後に書きます。`display.target` は表示先の既存 `L-*` layout または `E-*` element を指します。また、Input 系 element に付属する field-level error slot として `E-*.error` も指定できます。`display.element` はその表示先に挿入または表示する既存の `E-*` element または `L-*` layout を1つだけ指します。`display.message` は `V-EmailRules.messages` のような validation / business rule の message group を指します。`display.partial` は、既存の `L-*` partial host に表示する参照済み `PRT-*` 文書を指します。直接の `display.content` と複数形の `display.elements` はサポートしません。例外として、`display.element` が `Dialog` の場合は `target` を省略でき、preview scenario では modal overlay として表示します。`display.element` が `Toast` の場合も `target` を省略でき、non-modal toast region に表示します。同じ display effect では、`element`、`message`、`partial` のいずれか 1 つだけを使います。
+主な `Effects` entry は `view:`、`state:`、`navigate:`、`display:` です。Action の `Effects` で `${data.*}` に代入する `model:` mutation は canonical DSL ではありません。`${data.*}` は、Element の `value:` / `src:` や request parameter などの読み取り参照として使い、Action では実装内部の store や server-side model への代入を書かないようにします。preview / export 用の表示例は Element の `sample` / `sample rows:` または Preview Scenarios の `samples` に書きます。`stop` / `continue` は case-level の制御フローなので、`Effects` の外で case の最後に書きます。`display.target` は表示先の既存 `L-*` layout または `E-*` element を指します。また、Input 系 element に付属する field-level error slot として `E-*.error` も指定できます。`display.element` はその表示先に挿入または表示する既存の `E-*` element または `L-*` layout を1つだけ指します。`display.message` は `V-EmailRules.messages` のような validation / business rule の message group を指します。`display.partial` は、既存の `L-*` partial host に表示する参照済み `PRT-*` 文書を指します。直接の `display.content` と複数形の `display.elements` はサポートしません。例外として、`display.element` が `Dialog` の場合は `target` を省略でき、preview scenario では modal overlay として表示します。`display.element` が `Toast` の場合も `target` を省略でき、non-modal toast region に表示します。同じ display effect では、`element`、`message`、`partial` のいずれか 1 つだけを使います。
 
 ```markdown
 - display:
@@ -1746,7 +1746,7 @@ htmx partial replacement に写像する場合も、MarkVSpec では `hx-*` 属�
 
 `source: data` は、値が業務データ、API 応答、サーバ側モデルなどに由来することを示す分類です。データパスではありません。baseline preview の表示値は Element の `sample` / `sample rows:` に書き、state/scenario 固有の表示値は Preview Scenario の `samples` に書きます。
 
-Action の `Effects` に `${model.*}` への代入を書く model mutation は canonical DSL ではありません。生成される設計書ビューにも、横断的なモデル更新セクションは表示しません。
+Action の `Effects` に `${data.*}` への代入を書く model mutation は canonical DSL ではありません。生成される設計書ビューにも、横断的なモデル更新セクションは表示しません。
 
 `input:` は legacy syntax です。実行に渡す値は `request.params`、`server.params`、または `<custom detail>.params` に書きます。
 
@@ -2119,7 +2119,7 @@ sample の優先順位は次の通りです。
 
 - source: data
 - sample: Baseline title
-- src: ${model.notice.title}
+- src: ${data.notice.title}
 
 ### E-Users Table
 

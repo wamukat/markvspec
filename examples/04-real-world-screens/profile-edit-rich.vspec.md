@@ -114,7 +114,7 @@ the primary purpose.
 ### 6:E-BioTextarea Textarea
 
 - label: Bio
-- value: ${model.bio}
+- value: ${data.bio}
 - initial value: Product designer focused on member self-service.
 - placeholder: Write a short profile.
 - rows: 4
@@ -137,7 +137,7 @@ the primary purpose.
 ### 9:E-StartDate DatePicker
 
 - label: Availability start
-- value: ${model.availabilityStart}
+- value: ${data.availabilityStart}
 - initial value: 2026-06-01
 - min: 2026-05-01
 - max: 2027-12-31
@@ -146,7 +146,7 @@ the primary purpose.
 ### 10:E-RequestedDate DateInput
 
 - label: Requested review date
-- value: ${model.reviewDate}
+- value: ${data.reviewDate}
 - initial value: 2026-06-15
 - min: 2026-05-15
 - max: 2026-12-31
@@ -155,7 +155,7 @@ the primary purpose.
 ### 11:E-ReminderTime TimeInput
 
 - label: Reminder time
-- value: ${model.reminderTime}
+- value: ${data.reminderTime}
 - initial value: 09:30
 - min: 09:00
 - max: 18:00
@@ -164,7 +164,7 @@ the primary purpose.
 ### 12:E-Headcount NumberInput
 
 - label: Team size
-- value: ${model.teamSize}
+- value: ${data.teamSize}
 - initial value: 4
 - min: 1
 - max: 20
@@ -174,7 +174,7 @@ the primary purpose.
 ### 13:E-InterestsSelect MultiSelect
 
 - label: Interests
-- value: ${model.interests}
+- value: ${data.interests}
 - initial value: Accessibility, Analytics
 - width: long
 - options:
@@ -197,7 +197,7 @@ the primary purpose.
 
 - label: Profile visibility
 - name: profileVisibility
-- value: ${model.visibility}
+- value: ${data.visibility}
 - initial value: Team
 - options:
   - Private

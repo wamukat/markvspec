@@ -183,7 +183,7 @@ This document uses these categories when describing syntax:
 | --- | --- | --- |
 | Reserved keyword | `## Actions`, `Process`, `request:`, `Effects` | A word with DSL meaning when used as a heading, group name, property name, or type name. |
 | Reference ID | `E-EmailInput`, `L-MessageArea`, `A-Submit.P2.response` | Stable reference to a design object in this document or a referenced document. |
-| Opaque expression | `${model.notice.title}`, `${view.selectedTab}`, `${route.userId}` | Value source preserved by MarkVSpec. Preview only evaluates the supported view/state condition subset. |
+| Opaque expression | `${data.notice.title}`, `${view.selectedTab}`, `${route.userId}` | Value source preserved by MarkVSpec. Preview only evaluates the supported view/state condition subset. |
 | Arbitrary string | Action names, case descriptions, message text, service call text | Human-readable text, not a fixed enum. |
 | Supplemental Markdown | Lead, Notes, and Free-form Section body | Rendered in generated documents but not converted into structured DSL. |
 
@@ -200,7 +200,7 @@ This document uses these categories when describing syntax:
 | Request params | `request.params` with sources such as `E-*.value` | Implemented | `input:` is legacy. |
 | Server params | `server.params` for values passed to service calls | Implemented | Service call text is an arbitrary string. |
 | Result cases | `case: <name>` directly under the Process | Implemented | Old `Cases` blocks are not canonical. |
-| Effects | `state` / `navigate` / `view` / `display` under `case:` or an immediate Process | Implemented | Action-level `Effects` and `${model.*}` assignment are not canonical. |
+| Effects | `state` / `navigate` / `view` / `display` under `case:` or an immediate Process | Implemented | Action-level `Effects` and `${data.*}` assignment are not canonical. |
 | Flow control | `stop` / `continue` at the end of a case | Implemented | Omitted flow is treated as `continue`. |
 | Display | `display.target` plus exactly one of `element`, `message`, or `partial` | Implemented | `display.content` and `display.elements` are unsupported. |
 | View Context | `## View Context`, `${view.<name>}`, and `view:` effects | Implemented | Supported types are `boolean` and `enum`. |
@@ -591,7 +591,7 @@ comments stay easy to read.
 ```markdown
 ### 2:E-EmailInput Input
 
-- value: ${model.email}
+- value: ${data.email}
 - initial value: "test@example.com"
 ```
 
@@ -1261,7 +1261,7 @@ conditions such as `user.role is admin` or `can update account`. Tools should
 surface these conditions in the generated design document instead of translating
 them into framework-specific code.
 
-Use opaque expressions such as `${model.memberProfile.loaded}` when a visual
+Use opaque expressions such as `${data.memberProfile.loaded}` when a visual
 switch depends on loaded data rather than a screen state. For example, a screen
 can show a loading placeholder until a server call has populated application
 data.
@@ -1271,13 +1271,13 @@ data.
 
 - source: data
 - sample: Hello, Taylor
-- src: ${model.memberProfile.displayName}
-- visible when: ${model.memberProfile.loaded}
+- src: ${data.memberProfile.displayName}
+- visible when: ${data.memberProfile.loaded}
 
 ### E-GreetingLoading Text
 
 - text: Loading...
-- visible when: not ${model.memberProfile.loaded}
+- visible when: not ${data.memberProfile.loaded}
 ```
 
 Display text separates static UI wording from dynamic data examples:
@@ -1293,7 +1293,7 @@ Display text separates static UI wording from dynamic data examples:
 - `sample`: the representative preview value for `source: data` elements. Do
   not use it for fixed wording.
 - `src`: the data source represented by `sample`, written as an
-  opaque expression such as `${model.notice.title}` or `${route.noticeId}`.
+  opaque expression such as `${data.notice.title}` or `${route.noticeId}`.
 - `value`: a mechanical value, such as a submitted form value, selected option
   value, or hidden value. Do not use it as a plain display sample.
 - `source`: the origin category for the element's displayed value or wording.
@@ -1325,7 +1325,7 @@ display value is derived from those values. Use `element` only when another
 element's value is displayed as-is; use `computed` when that value is transformed.
 Use `asset` for app-managed resources and `external` for resources managed
 outside the app. `source: document` and old reference-path usage such as
-`source: ${model.users.items}` are invalid.
+`source: ${data.users.items}` are invalid.
 
 Keep `source:` and samples separate:
 
@@ -1358,16 +1358,16 @@ Minimal examples:
 
 - source: data
 - sample: Maintenance notice
-- src: ${model.notice.title}
+- src: ${data.notice.title}
 - href: SCR-NOTICE-DETAIL
 - params:
-  - noticeId: ${model.notice.noticeId}
+  - noticeId: ${data.notice.noticeId}
 
 ### E-NoticePublishedAt Text
 
 - source: data
 - sample: 2026/05/01
-- src: ${model.notice.publishedAt}
+- src: ${data.notice.publishedAt}
 - format: date yyyy/MM/dd
 
 ### E-NoticeId Text
@@ -1406,7 +1406,7 @@ Use the same nested `params` block for action-driven screen navigation.
   - Effects
     - navigate: SCR-NOTICE-DETAIL
     - params:
-      - noticeId: ${model.notice.noticeId}
+      - noticeId: ${data.notice.noticeId}
 ```
 
 Exception: `Image` uses `src` for the image asset source. For display elements
@@ -1468,7 +1468,7 @@ Input values may define an opaque data expression and an initial fallback value:
 ```markdown
 ### 3:E-EmailInput Input
 
-- value: ${model.email}
+- value: ${data.email}
 - initial value: "test@example.com"
 ```
 
@@ -1520,7 +1520,7 @@ such as `Text` or `Banner`, usually with `visible when`.
 ```markdown
 ### 3:E-EmailInput Input
 
-- value: ${model.email}
+- value: ${data.email}
 - initial value: "test@example.com"
 - validation: Must be a valid email address.
 - error text: Enter a valid email address.
@@ -1534,7 +1534,7 @@ source, write it after `:`.
 ```markdown
 ### E-RoleSelect Select
 
-- value: ${model.role}
+- value: ${data.role}
 - initial value: "Administrator"
 - options:
   - Viewer
@@ -1549,7 +1549,7 @@ from model or cookie data.
 ### E-RememberMe Checkbox
 
 - label: Remember me
-- value: ${model.rememberMe}
+- value: ${data.rememberMe}
 - initial value: ${cookie.remember.present}
 ```
 
@@ -1563,7 +1563,7 @@ selection in `initial value`.
 - label: Read status
 - source: i18n
 - name: readStatus
-- value: ${model.noticeSearch.readStatus}
+- value: ${data.noticeSearch.readStatus}
 - initial value: "All"
 - options:
   - All
@@ -1737,28 +1737,28 @@ screen details without introducing framework-specific widgets.
 
 ### E-StartDate DatePicker
 
-- value: ${model.startDate}
+- value: ${data.startDate}
 - initial value: 2026-05-01
 - min: 2020-01-01
 - max: 2030-12-31
 
 ### E-RequestedDate DateInput
 
-- value: ${model.requestedDate}
+- value: ${data.requestedDate}
 - initial value: 2026-06-01
 - min: 2026-05-13
 - max: 2026-12-31
 
 ### E-StartTime TimeInput
 
-- value: ${model.startTime}
+- value: ${data.startTime}
 - initial value: 09:30
 - min: 09:00
 - max: 18:00
 
 ### E-Headcount NumberInput
 
-- value: ${model.headcount}
+- value: ${data.headcount}
 - initial value: 2
 - min: 1
 - max: 20
@@ -1814,7 +1814,7 @@ server-side data. It is an origin category, not a data path. Use `sample` and
 `sample rows:` for baseline preview values, and Preview Scenario `samples` for
 scenario-specific overrides.
 
-Do not use Action `Effects` to assign into `${model.*}`. Action-side model
+Do not use Action `Effects` to assign into `${data.*}`. Action-side model
 mutation is not canonical because it describes an implementation store or server
 model update rather than screen behavior. The generated design document therefore
 does not include a `Model Updates` section.
@@ -1928,7 +1928,7 @@ validation result, or prior process result. Validation contracts are received as
 opaque sources such as `V-LoginForm.result`.
 
 Prefer element value sources such as `E-EmailInput.value` when a process reads a
-value currently shown in an editable screen element. Use `${model.*}` in
+value currently shown in an editable screen element. Use `${data.*}` in
 execution params only when the process intentionally reads derived or stored
 model state that is not directly represented by an element value, such as the
 current page number or a calculated next page.
@@ -2344,7 +2344,7 @@ are rendered below it with their own wireframes, followed by current element and
 action specifications for that state. State-specific rendering uses the
 `States` section and visibility conditions such as `visible when:
 ${state.loading}`. Non-state conditions use namespaced sources such as
-`${view.isHelpPanelOpen}` or `${model.profile.loaded}`.
+`${view.isHelpPanelOpen}` or `${data.profile.loaded}`.
 
 ## View Context Section
 
@@ -2458,7 +2458,7 @@ Sample precedence:
 
 - source: data
 - sample: Baseline title
-- src: ${model.notice.title}
+- src: ${data.notice.title}
 
 ### E-Users Table
 

@@ -95,14 +95,14 @@ route: /login
 
 ### 3:E-EmailInput Input
 
-- value: ${model.email}
+- value: ${data.email}
 - input rule:
   - type: email
 
 ### 4:E-PasswordInput Input
 
 - type: password
-- value: ${model.password}
+- value: ${data.password}
 - validation: Must not be empty.
 
 ### 5:E-SignInButton Button

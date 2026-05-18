@@ -63,7 +63,7 @@ Detail sections should answer "exactly what happens?".
 - Element samples and Preview Scenario samples show the actual sample values
   used by wireframes. Scenario overrides appear in a small `Scenario Samples`
   table under the matching wireframe.
-- Action-side `${model.value}` mutation is not canonical and should not be
+- Action-side `${data.value}` mutation is not canonical and should not be
   summarized as its own preview section. Display-value references remain visible
   in State Views, Display Content Spec, and Input Form Spec.
 

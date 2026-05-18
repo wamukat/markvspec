@@ -97,14 +97,14 @@ is easy to inspect.
 - level: 2
 - source: data
 - sample: Emergency maintenance on May 20
-- src: ${model.notice.title}
+- src: ${data.notice.title}
 
 ### 3:E-PriorityBadge Badge
 
 - label: Priority
 - source: data
 - sample: Important
-- src: ${model.notice.priority}
+- src: ${data.notice.priority}
 - format: priority code to localized label
 
 ### 4:E-PublishedAt Text
@@ -112,7 +112,7 @@ is easy to inspect.
 - label: Published
 - source: data
 - sample: 2026/05/01
-- src: ${model.notice.publishedAt}
+- src: ${data.notice.publishedAt}
 - format: date yyyy/MM/dd
 
 ### 5:E-RefundAmount Text
@@ -120,7 +120,7 @@ is easy to inspect.
 - label: Refund amount
 - source: data
 - sample: USD 12.50
-- src: ${model.notice.refundAmount}
+- src: ${data.notice.refundAmount}
 - format: currency USD
 
 ### 6:E-ContactEmail Link
@@ -128,28 +128,28 @@ is easy to inspect.
 - label: Contact
 - source: data
 - sample: support@example.com
-- src: ${model.notice.contact.email}
+- src: ${data.notice.contact.email}
 - href: mailto:support@example.com
 
 ### 7:E-NoticeBody Paragraph
 
 - source: data
 - sample: Service will be unavailable from 01:00 to 03:00 UTC while maintenance is performed.
-- src: ${model.notice.body}
+- src: ${data.notice.body}
 - format: markdown excerpt
 
 ### 8:E-KeywordInput Input
 
 - label: Keyword
 - placeholder: Search related notices
-- value: ${model.search.keyword}
+- value: ${data.search.keyword}
 - initial value: maintenance
 - width: medium
 
 ### 9:E-ReadStatusSelect Select
 
 - label: Read status
-- value: ${model.search.readStatus}
+- value: ${data.search.readStatus}
 - initial value: Unread
 - width: medium
 - options:
@@ -162,18 +162,18 @@ is easy to inspect.
 - label: View related invoice
 - source: data
 - sample: INV-2026-0421
-- src: ${model.notice.invoiceNo}
+- src: ${data.notice.invoiceNo}
 - href: SCR-INVOICE-DETAIL
 - params:
-  - invoiceId: ${model.notice.invoiceId}
+  - invoiceId: ${data.notice.invoiceId}
 
 ### 11:E-BackToListLink Link
 
 - label: Back to notices
 - href: SCR-NOTICE-LIST
 - params:
-  - keyword: ${model.search.keyword}
-  - readStatus: ${model.search.readStatus}
+  - keyword: ${data.search.keyword}
+  - readStatus: ${data.search.readStatus}
 
 ## Business Rules
 

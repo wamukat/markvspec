@@ -54,13 +54,13 @@ to the main screen examples.
 
 ### 2:E-DisplayNameInput Input
 
-- value: ${model.displayName}
+- initial value: Taylor Stone
 - placeholder: Taylor Stone
 - width: medium
 
 ### 3:E-EmailInput Input
 
-- value: ${model.email}
+- initial value: taylor@example.com
 - placeholder: taylor@example.com
 - width: long
 

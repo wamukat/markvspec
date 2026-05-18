@@ -245,7 +245,7 @@ validation. The element heading stays focused on the control type:
 ```markdown
 ### 3:E-EmailInput Input
 
-- value: ${model.email}
+- value: ${data.email}
 - initial value: "test@example.com"
 ```
 
@@ -347,7 +347,7 @@ validator should warn.
 
 Actions describe user or system behavior. An action is primarily a trigger plus
 process steps and effects. Use `state` for screen-local state,
-opaque expressions such as `${model.value}` for screen data, and `navigate` for screen transitions.
+opaque expressions such as `${data.value}` for screen data, and `navigate` for screen transitions.
 
 ```markdown
 ### A1:A-SubmitLogin Submit login
@@ -481,7 +481,7 @@ tables instead.
 
 Generated design documents should not include a Model Updates section. Action
 effects describe screen-visible outcomes such as state changes, navigation, and
-display changes; they do not canonically assign into `${model.value}`. Display
+display changes; they do not canonically assign into `${data.value}`. Display
 values should be reviewed through State Views, Display Content Spec, Input Form
 Spec, Element samples, and Preview Scenario samples.
 
@@ -693,7 +693,7 @@ route: /login
 
 ### 3:E-EmailInput Input
 
-- value: ${model.email}
+- value: ${data.email}
 - input rule:
   - type: email
 
@@ -707,7 +707,7 @@ route: /login
 ### 4:E-PasswordInput Input
 
 - type: password
-- value: ${model.password}
+- value: ${data.password}
 
 ### E-SignInButton Button
 

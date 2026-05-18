@@ -130,7 +130,7 @@ profile fields and reusable templates are left to later examples.
 ### 3:E-EmailInput Input
 
 - label: Email
-- value: ${model.email}
+- value: ${data.email}
 - placeholder: user@example.com
 
 ### 4:E-ValidationMessage Text
@@ -142,12 +142,12 @@ profile fields and reusable templates are left to later examples.
 
 - label: Password
 - type: password
-- value: ${model.password}
+- value: ${data.password}
 
 ### 6:E-RememberMe Checkbox
 
 - label: Remember this device
-- value: ${model.rememberMe}
+- value: ${data.rememberMe}
 
 ### 7:E-SignInButton Button
 

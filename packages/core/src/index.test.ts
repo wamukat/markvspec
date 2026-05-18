@@ -5365,16 +5365,16 @@ test("parses the login screen example", () => {
   const emailInput = result.elements.find((element) => element.id === "E-EmailInput");
   assert.equal(emailInput?.type, "Input");
   assert.equal(emailInput?.properties["marker"], "3");
-  assert.equal(emailInput?.properties["value"], "\${model.email}");
+  assert.equal(emailInput?.properties["value"], "\${data.email}");
   assert.equal(emailInput?.properties["required"], undefined);
 
   const passwordInput = result.elements.find((element) => element.id === "E-PasswordInput");
-  assert.equal(passwordInput?.properties["value"], "\${model.password}");
+  assert.equal(passwordInput?.properties["value"], "\${data.password}");
 
   const rememberMe = result.elements.find((element) => element.id === "E-RememberMe");
   assert.equal(rememberMe?.type, "Checkbox");
   assert.equal(rememberMe?.properties["marker"], "6");
-  assert.equal(rememberMe?.properties["value"], "\${model.rememberMe}");
+  assert.equal(rememberMe?.properties["value"], "\${data.rememberMe}");
 
   const button = result.elements.find((element) => element.id === "E-SignInButton");
   assert.equal(button?.properties["variant"], "primary");

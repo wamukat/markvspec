@@ -16,7 +16,7 @@
 | --- | --- | --- | --- |
 | 見出し / 段落 / テキスト | 対応済み | `Heading`, `Paragraph`, `Text` | 静的文言と model 由来のサンプル値は `label`, `sample`, `src`, `format` で分けます。 |
 | テキスト入力 | 対応済み | `Input` | `value`, `initial value`, `placeholder`, input rule、validation contract を書けます。必須判定は `## Validations` に書きます。 |
-| 日付 / 時刻 / 数値入力 | 対応済み | `DateInput`, `TimeInput`, `NumberInput`, `DatePicker` | `value: ${model.value}` と `initial value`、必要に応じて `min`, `max`, `step` を書きます。 |
+| 日付 / 時刻 / 数値入力 | 対応済み | `DateInput`, `TimeInput`, `NumberInput`, `DatePicker` | `value: ${data.value}` と `initial value`、必要に応じて `min`, `max`, `step` を書きます。 |
 | ファイル入力 | 対応済み | `FileInput`, `FileUpload` | `accept`, `multiple`, `label`, `sample` で制約や補助文を表現します。 |
 | ボタン / リンク | 対応済み | `Button`, `Link` | `variant`, `tone`, `action`, `href`, route params を書けます。 |
 | Select / Checkbox / RadioGroup | 対応済み | `Select`, `MultiSelect`, `Checkbox`, `CheckboxGroup`, `Switch`, `RadioGroup` | 選択肢は Markdown のネストリストで書きます。排他的な値域は `RadioGroup`、複数値は `CheckboxGroup` または `MultiSelect`、boolean 設定は `Switch` で表します。 |
@@ -109,7 +109,7 @@ Element Summary または専用の behavior 行で確認できるようにする
 ### E-RowActions ActionMenu
 
 - label: More actions
-- open when: ${view.openActionMenuRowId} == ${model.row.id}
+- open when: ${view.openActionMenuRowId} == ${data.row.id}
 - items:
   - Edit: A-EditRow
   - Disable: A-DisableRow
@@ -151,7 +151,7 @@ Preview 方針: active な View Context に応じて header と expanded panel �
 ```markdown
 ### E-UploadProgress ProgressBar
 
-- value: ${model.upload.percent}
+- value: ${data.upload.percent}
 - max: 100
 - tone: info
 ```
@@ -190,9 +190,9 @@ Preview 方針: compact path を表示し、遷移できる item と current ite
 ```markdown
 ### E-SearchPagination Pagination
 
-- page: ${model.search.page}
-- total pages: ${model.search.totalPages}
-- page size: ${model.search.pageSize}
+- page: ${data.search.page}
+- total pages: ${data.search.totalPages}
+- page size: ${data.search.pageSize}
 - previous action: A-PreviousPage
 - next action: A-NextPage
 ```

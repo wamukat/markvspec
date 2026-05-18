@@ -369,8 +369,8 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(html, /<section class="doc-section state-flow-section" data-section-number="2">/);
   assert.match(html, /<h6 class="state-screen-detail-heading">Element Summary<\/h6>/);
   assert.match(html, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>/);
-  assert.match(html, new RegExp(`<td>${detailElementRef("3", "E-EmailInput")}</td><td>Input</td><td>no</td><td>${specSectionPattern("Source", [sourceCodePattern("${model.email}")])}</td><td>-</td><td>${defaultAlwaysPattern()}</td><td>${defaultAlwaysPattern()}</td>`));
-  assert.match(html, new RegExp(`<td>${detailElementRef("6", "E-RememberMe")}</td><td>Checkbox</td><td>no</td><td>${specSectionPattern("Source", [sourceCodePattern("${model.rememberMe}")])}</td><td>-</td><td>${defaultAlwaysPattern()}</td><td>${defaultAlwaysPattern()}</td>`));
+  assert.match(html, new RegExp(`<td>${detailElementRef("3", "E-EmailInput")}</td><td>Input</td><td>no</td><td>${specSectionPattern("Source", [sourceCodePattern("${data.email}")])}</td><td>-</td><td>${defaultAlwaysPattern()}</td><td>${defaultAlwaysPattern()}</td>`));
+  assert.match(html, new RegExp(`<td>${detailElementRef("6", "E-RememberMe")}</td><td>Checkbox</td><td>no</td><td>${specSectionPattern("Source", [sourceCodePattern("${data.rememberMe}")])}</td><td>-</td><td>${defaultAlwaysPattern()}</td><td>${defaultAlwaysPattern()}</td>`));
   assert.match(html, /Enter both email and password\./);
   assert.match(html, new RegExp(`email: ${detailElementRef("3", "E-EmailInput")}\\.value`));
   assert.match(html, new RegExp(`rememberMe: ${detailElementRef("6", "E-RememberMe")}\\.value`));

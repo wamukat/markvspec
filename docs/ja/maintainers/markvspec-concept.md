@@ -77,7 +77,7 @@ route: /login
 
 ### 3:E-EmailInput Input
 
-- value: ${model.email}
+- value: ${data.email}
 - input rule:
   - type: email
 

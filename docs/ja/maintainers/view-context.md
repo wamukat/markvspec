@@ -205,7 +205,7 @@ view context sample の参照は diagnostic error です。全組み合わせの
 
 ## Elements からの参照
 
-要素やレイアウトは、`visible when` などの条件から state、model、view context を参照できます。条件式では値の出所を明示するため、`${state...}`、`${model...}`、`${view...}` の名前空間付き参照を使います。
+要素やレイアウトは、`visible when` などの条件から state、model、view context を参照できます。条件式では値の出所を明示するため、`${state...}`、`${data...}`、`${view...}` の名前空間付き参照を使います。
 
 ```markdown
 ### E-HelpPanel Panel
@@ -254,7 +254,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
 - Process P3: Send search request
   - GET /search
     - keyword: E-KeywordInput.value
-    - page: ${model.searchRequest.page}
+    - page: ${data.searchRequest.page}
   - case: sent
     - Effects
       - state: loading
@@ -285,7 +285,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
       - view: ${view.isHelpPanelOpen} = false
 ```
 
-この整理案では、`state: loaded` は業務・処理 state の変更、`view: ${view.selectedTab} = results` や `view: ${view.isHelpPanelOpen} = false` は表示文脈の変更として扱います。Action から `${model.*}` に代入する model mutation は canonical DSL から外し、表示値の由来は Element の `sample` / `sample rows:` / `value:` / `src:` や Preview Scenarios の `samples` で確認します。
+この整理案では、`state: loaded` は業務・処理 state の変更、`view: ${view.selectedTab} = results` や `view: ${view.isHelpPanelOpen} = false` は表示文脈の変更として扱います。Action から `${data.*}` に代入する model mutation は canonical DSL から外し、表示値の由来は Element の `sample` / `sample rows:` / `value:` / `src:` や Preview Scenarios の `samples` で確認します。
 
 この形で破綻しないための前提は次の通りです。
 
@@ -360,7 +360,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
 `View Context` を導入する場合、少なくとも次の warning / error が必要です。
 
 - view context 定義の `values` が空である。
-- 条件式が存在しない `${state...}` / `${view...}` / `${model...}` path を参照している。
+- 条件式が存在しない `${state...}` / `${view...}` / `${data...}` path を参照している。
 - `view: ${view.selectedTab} = billing` が存在しない enum value を代入している。
 - boolean view context に `open` などの enum 風の値を代入している。
 - view context 定義の `values` に `*` が複数ある。
@@ -369,7 +369,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
 
 - セクション名は `## View Context` とする。
 - View Context の型は初期実装では `boolean` と `enum` だけにする。
-- 条件式の値参照は `${state...}` / `${view...}` / `${model...}` の名前空間を使う。state 条件は `${state.loaded}` のように書く。
+- 条件式の値参照は `${state...}` / `${view...}` / `${data...}` の名前空間を使う。state 条件は `${state.loaded}` のように書く。
 - View Context の既定値は `values` の `*` で示せる。`*` がない場合は `values` の先頭に fallback する。複数 `*` は diagnostic error とする。
 - `## View Context Samples` は state と直接結びつけない named value set とする。
 - `## Preview Scenarios` がない場合は、全 state の baseline scenario を自動生成する。

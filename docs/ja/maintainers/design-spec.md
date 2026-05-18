@@ -185,11 +185,11 @@ Element heading は control type に集中させます。
 ```markdown
 ### 3:E-EmailInput Input
 
-- value: ${model.email}
+- value: ${data.email}
 - initial value: "test@example.com"
 ```
 
-`value` は画面データ `${model.email}` を表し、`initial value` は初期表示値 `test@example.com` を表します。
+`value` は画面データ `${data.email}` を表し、`initial value` は初期表示値 `test@example.com` を表します。
 `Checkbox` でも同じ `initial value` property を初期チェック状態として使えます。
 
 ## variant と tone
@@ -225,7 +225,7 @@ MarkVSpec はデザインシステム DSL ではありません。サイズ、�
 MarkVSpec では言葉を分けます。
 
 - `state`: 画面内状態。例: `idle`, `wait-auth`, `auth-error`。
-- `model`: 画面データ。例: `${model.email}`。
+- `model`: 画面データ。例: `${data.email}`。
 
 ```markdown
 ## States

@@ -1266,7 +1266,7 @@
                 <div class="badge-row-items">
                   <code>idle</code>
                   <code>state.saved</code>
-                  <code>${model.user.name}</code>
+                  <code>${data.user.name}</code>
                 </div>
               </div>
               <div class="badge-row">
@@ -1303,14 +1303,14 @@
                     <tr><th>Marker</th><th>ID</th><th>Type</th><th>Required</th><th>Value</th><th>Spec</th><th>Condition</th></tr>
                   </thead>
                   <tbody>
-                    <tr><td><code class="mm-id mm-marker-element">E1</code></td><td><code>E-Name</code></td><td>Input</td><td>はい</td><td>${model.name}</td><td>Constraints: max: 100</td><td>${model.userLoaded}</td></tr>
+                    <tr><td><code class="mm-id mm-marker-element">E1</code></td><td><code>E-Name</code></td><td>Input</td><td>はい</td><td>${data.name}</td><td>Constraints: max: 100</td><td>${data.userLoaded}</td></tr>
                     <tr><td><code class="mm-id mm-marker-element">E2</code></td><td><code>E-Role</code></td><td>Select</td><td></td><td></td><td>Input: options admin, member</td><td></td></tr>
                   </tbody>
                 </table>
               </div>
               <p class="spec-empty">なし</p>
               <ul class="spec-list">
-                <li><span class="spec-list-label">Side effects</span> ${model.user.updated} = true</li>
+                <li><span class="spec-list-label">Side effects</span> ${data.user.updated} = true</li>
                 <li>${route.id} を保持する</li>
               </ul>
             </div>
