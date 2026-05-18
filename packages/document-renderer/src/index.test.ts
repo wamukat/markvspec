@@ -763,6 +763,59 @@ title: Static Input Source
   assert.match(html, /<td>administrator<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">data<\/span><br><span class="mm-inline-token">\$\{data.member.role\}<\/span><\/td>/);
 });
 
+test("combines static input and display conditions into one condition column", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-STATIC-CONDITION-COLUMNS
+type: screen
+title: Static Condition Columns
+---
+
+# SCR-STATIC-CONDITION-COLUMNS Static Condition Columns
+
+## States
+
+- idle*
+
+## Layout
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- E-NameInput
+- E-SaveButton
+
+## Elements
+
+### E-NameInput Input
+
+- value: ${"${model.name}"}
+- visible when: idle
+- disabled when: ${"${model.saving}"}
+
+### E-SaveButton Button
+
+- label: Save
+- visible when: idle
+- disabled when: ${"${model.saving}"}
+`);
+  const html = renderStaticDesignDocumentHtml(result);
+  const loadedSection = stateViewSection(html, "idle");
+  const inputForm = loadedSection.match(/<div class="element-detail-group">\s*<h6 class="state-screen-detail-heading">Input Form Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+  const displayContent = loadedSection.match(/<div class="element-detail-group">\s*<h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.match(inputForm, /<th>Marker\/ID<\/th><th>Type<\/th><th>Required<\/th><th>Value<\/th><th>Source<\/th><th>Spec<\/th><th>Condition<\/th>/);
+  assert.doesNotMatch(inputForm, /<th>Enabled When<\/th>/);
+  assert.match(inputForm, /<strong>Visible<\/strong><ul class="spec-list"><li>visible: idle<\/li><\/ul>/);
+  assert.match(inputForm, /<strong>Enabled<\/strong><ul class="spec-list"><li>not <span class="mm-inline-token">\$\{model\.saving\}<\/span><\/li><\/ul>/);
+  assert.match(displayContent, /<th>Marker\/ID<\/th><th>Location<\/th><th>Content<\/th><th>Format<\/th><th>Source<\/th><th>Condition<\/th>/);
+  assert.doesNotMatch(displayContent, /<th>Enabled When<\/th>/);
+  assert.match(displayContent, /<strong>Visible<\/strong><ul class="spec-list"><li>visible: idle<\/li><\/ul>/);
+  assert.match(displayContent, /<strong>Enabled<\/strong><ul class="spec-list"><li>not <span class="mm-inline-token">\$\{model\.saving\}<\/span><\/li><\/ul>/);
+});
+
 test("renders wide scenario rows as independent readable blocks", () => {
   const columns = Array.from({ length: 10 }, (_, index) => {
     const number = index + 1;
