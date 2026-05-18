@@ -86,6 +86,7 @@ For `F-*` and `V-*` examples that should appear as reference chips, prefer a
 | [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md) | Display Content Spec field coverage. | `label`, `placeholder`, `sample`, `src`, `format`, machine `value`, and navigation `params`. |
 | [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md) | Element type coverage screen using a realistic profile/settings form. | `Textarea`, `MultiSelect`, `CheckboxGroup`, `Switch`, `RadioGroup`, `List`, `Dialog`, `Image`, `Icon`, `Divider`, file inputs, date/time inputs, and number input. |
 | [Search List](../../../examples/04-real-world-screens/search-list.vspec.md) | Search screen with filters and pagination. | Desktop toolbar, Select options, Table sample rows, empty state, fetch-error state, and display element replacement. |
+| [Tabs Settings](../../../examples/04-real-world-screens/tabs-settings.vspec.md) | Focused Tabs element example. | Active tab, tab panel references, item actions, and Display Content Spec aggregation. |
 | [Login Basic](../../../examples/04-real-world-screens/login-basic.vspec.md) | Compact authentication flow with mobile and desktop layouts. | Required inputs, validation/auth/request messages as display scenarios, spinner overlay, disabled controls, request parameters, response cases, screen navigation, and Business Rules. |
 | [Template Shell](../../../examples/05-reuse/template-shell.vspec.md) | Shared template shell. | Template document unit, navigation frame, top bar, language Select, and `content` slot placeholder. |
 | [Basic Slot Page](../../../examples/05-reuse/basic-slot-page.vspec.md) | Smallest screen using a template slot. | Front Matter `template` and viewport-neutral `## Slot: content` without partial or action noise. |
@@ -116,7 +117,9 @@ For `F-*` and `V-*` examples that should appear as reference chips, prefer a
    and confirm Display Content Spec separates wording, samples, data sources, formats, values, and params.
 10. Open [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md)
    and confirm the extended element type controls render without diagnostics.
-11. Open [Basic Slot Page](../../../examples/05-reuse/basic-slot-page.vspec.md),
+11. Open [Tabs Settings](../../../examples/04-real-world-screens/tabs-settings.vspec.md)
+   and confirm the active tab, panel references, and tab actions are traceable.
+12. Open [Basic Slot Page](../../../examples/05-reuse/basic-slot-page.vspec.md),
    [Responsive Slot Page](../../../examples/05-reuse/responsive-slot-page.vspec.md),
    and [Default Slot Page](../../../examples/05-reuse/default-slot-page.vspec.md)
    to confirm template slot content, viewport-specific slot override, and

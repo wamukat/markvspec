@@ -290,20 +290,35 @@ function applyCanonicalActionTriggers(result: MarkVSpecParseResult): void {
 
   for (const element of result.elements) {
     const actionId = element.properties["action"];
-    if (typeof actionId !== "string") {
-      continue;
+    if (typeof actionId === "string") {
+      const action = actionsById.get(actionId);
+      if (action && !action.triggeredBy) {
+        const actionEvent = elementActionEvent(element);
+        action.triggeredBy = `${element.id}.${actionEvent}`;
+        action.triggeredByLocation = element.propertyLocations["action"]?.[0] ?? element.location;
+        action.trigger = {
+          elementId: element.id,
+          event: actionEvent
+        };
+      }
     }
-    const action = actionsById.get(actionId);
-    if (!action || action.triggeredBy) {
-      continue;
-    }
+
     const actionEvent = elementActionEvent(element);
-    action.triggeredBy = `${element.id}.${actionEvent}`;
-    action.triggeredByLocation = element.propertyLocations["action"]?.[0] ?? element.location;
-    action.trigger = {
-      elementId: element.id,
-      event: actionEvent
-    };
+    for (const tabItem of element.tabs) {
+      if (!tabItem.action) {
+        continue;
+      }
+      const action = actionsById.get(tabItem.action);
+      if (!action || action.triggeredBy) {
+        continue;
+      }
+      action.triggeredBy = `${element.id}.${actionEvent}`;
+      action.triggeredByLocation = tabItem.propertyLocations.action[0] ?? tabItem.location;
+      action.trigger = {
+        elementId: element.id,
+        event: actionEvent
+      };
+    }
   }
 
   for (const event of result.events) {

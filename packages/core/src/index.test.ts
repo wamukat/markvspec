@@ -6,6 +6,7 @@ import test from "node:test";
 import { parseMarkdownDocument } from "./markdown-document.js";
 import { collectSectionAst } from "./markdown-section-ast.js";
 import { parseActionSectionSemantics, parseElementSectionSemantics, parseLayoutSectionSemantics, parseSmallSectionSemantics } from "./markdown-section-semantic.js";
+import { buildDisplayContentSpecRows } from "./display-content-spec.js";
 import { sourcePathKey } from "./model-paths.js";
 import { parseProjectDocumentSemantics } from "./project-parser.js";
 import type { MarkVSpecDiagnostic } from "./types.js";
@@ -5464,6 +5465,7 @@ test("parses every release example without diagnostics", () => {
     "04-real-world-screens/notice-detail.vspec.md",
     "04-real-world-screens/profile-edit-rich.vspec.md",
     "04-real-world-screens/search-list.vspec.md",
+    "04-real-world-screens/tabs-settings.vspec.md",
     "05-reuse/basic-slot-page.vspec.md",
     "05-reuse/default-slot-page.vspec.md",
     "05-reuse/profile-page-with-template.vspec.md",
@@ -7453,6 +7455,16 @@ title: Action Events
 
 - idle*
 
+## Layout: desktop
+
+### L-ProfilePanel Profile panel
+
+- stack
+
+### L-BillingPanel Billing panel
+
+- stack
+
 ## Elements
 
 ### E-SearchInput Input
@@ -7485,6 +7497,26 @@ title: Action Events
 
 - action: A-CloseDialog
 
+### E-SettingsTabs Tabs
+
+- active: Profile
+- items:
+  - Profile
+    - panel: L-ProfilePanel
+    - action: A-SelectProfileTab
+  - Billing
+    - panel: L-BillingPanel
+    - action: A-SelectBillingTab
+
+### E-KeyboardTabs Tabs
+
+- active: Profile
+- action event: change
+- items:
+  - Profile
+    - panel: L-ProfilePanel
+    - action: A-SelectKeyboardProfileTab
+
 ## Actions
 
 ### A-MarkChanged Mark changed
@@ -7516,6 +7548,24 @@ title: Action Events
 - Process P1: Immediate
   - Effects
     - state: idle
+
+### A-SelectProfileTab Select profile tab
+
+- Process P1: Immediate
+  - Effects
+    - state: idle
+
+### A-SelectBillingTab Select billing tab
+
+- Process P1: Immediate
+  - Effects
+    - state: idle
+
+### A-SelectKeyboardProfileTab Select keyboard profile tab
+
+- Process P1: Immediate
+  - Effects
+    - state: idle
 `;
   const result = parseMarkVSpec(source);
   const triggers = new Map(result.actions.map((action) => [action.id, action.triggeredBy]));
@@ -7526,6 +7576,9 @@ title: Action Events
   assert.equal(triggers.get("A-SubmitPreferences"), "E-PreferencesForm.submit");
   assert.equal(triggers.get("A-ShowHelp"), "E-HelpIcon.focus");
   assert.equal(triggers.get("A-CloseDialog"), "E-ConfirmDialog.close");
+  assert.equal(triggers.get("A-SelectProfileTab"), "E-SettingsTabs.click");
+  assert.equal(triggers.get("A-SelectBillingTab"), "E-SettingsTabs.click");
+  assert.equal(triggers.get("A-SelectKeyboardProfileTab"), "E-KeyboardTabs.change");
 });
 
 test("validates built-in Events dispatches", () => {
@@ -8422,6 +8475,134 @@ title: Select
   assert.match(html, /<option value="Viewer">Viewer<\/option>/);
   assert.match(html, /<option value="Administrator" selected>Administrator<\/option>/);
   assert.match(html, /<code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">1<\/code>/);
+});
+
+test("parses validates renders and summarizes Tabs elements", () => {
+  const source = `---
+id: SCR-TABS
+type: screen
+title: Tabs
+---
+
+# SCR-TABS Tabs
+
+## States
+
+- idle*
+
+## Layout: desktop
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- E-SettingsTabs
+- L-ProfilePanel
+- L-BillingPanel
+
+### L-ProfilePanel Profile panel
+
+- stack
+
+#### Items
+
+- E-ProfileText
+
+### L-BillingPanel Billing panel
+
+- stack
+
+#### Items
+
+- E-BillingText
+
+## Elements
+
+### 12:E-SettingsTabs Tabs
+
+- active: Profile
+- items:
+  - Profile
+    - panel: L-ProfilePanel
+    - action: A-SelectProfileTab
+  - Billing
+    - panel: L-BillingPanel
+    - action: A-SelectBillingTab
+
+### E-ProfileText Text
+
+- value: Profile details
+
+### E-BillingText Text
+
+- value: Billing details
+
+## Actions
+
+### A-SelectProfileTab Select profile tab
+
+- From
+  - idle
+
+### A-SelectBillingTab Select billing tab
+
+- From
+  - idle
+`;
+  const result = parseMarkVSpec(source);
+  const tabs = result.elements.find((element) => element.id === "E-SettingsTabs");
+  const rows = buildDisplayContentSpecRows(result.elements);
+  const tabsRow = rows.find((row) => row.element.id === "E-SettingsTabs" && row.location === "tabs");
+  const html = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true });
+
+  assert.deepEqual(result.diagnostics, []);
+  assert.equal(tabs?.type, "Tabs");
+  assert.equal(tabs?.properties["active"], "Profile");
+  assert.deepEqual(tabs?.tabs.map((item) => [item.label, item.panel, item.action]), [
+    ["Profile", "L-ProfilePanel", "A-SelectProfileTab"],
+    ["Billing", "L-BillingPanel", "A-SelectBillingTab"]
+  ]);
+  assert.deepEqual([tabsRow?.value, tabsRow?.contentSections], [
+    "Profile, Billing",
+    [{ title: "Tabs", rows: ["Profile (panel: L-ProfilePanel; action: A-SelectProfileTab)", "Billing (panel: L-BillingPanel; action: A-SelectBillingTab)"] }]
+  ]);
+  assert.match(html, /<div class="mm-element mm-element-tabs" data-mm-id="E-SettingsTabs">/);
+  assert.match(html, /<span class="mm-tab-item mm-tab-item-active" aria-selected="true" data-mm-tab-panel="L-ProfilePanel" data-mm-tab-action="A-SelectProfileTab">Profile<\/span>/);
+  assert.match(html, /<span class="mm-tab-item" data-mm-tab-panel="L-BillingPanel" data-mm-tab-action="A-SelectBillingTab">Billing<\/span>/);
+  assert.match(html, /<div class="mm-tabs-panel-note">panel: L-ProfilePanel<\/div>/);
+});
+
+test("warns for invalid Tabs active panel and action references", () => {
+  const source = `---
+id: SCR-TABS-DIAGNOSTICS
+type: screen
+title: Tabs Diagnostics
+---
+
+# SCR-TABS-DIAGNOSTICS Tabs Diagnostics
+
+## States
+
+- idle*
+
+## Elements
+
+### E-SettingsTabs Tabs
+
+- active: Security
+- items:
+  - Profile
+    - panel: L-MissingPanel
+    - action: A-MissingAction
+`;
+  const result = parseMarkVSpec(source);
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert(messages.includes('Element E-SettingsTabs active tab "Security" does not match any items.'));
+  assert(messages.includes("Element E-SettingsTabs tab item Profile references missing panel L-MissingPanel."));
+  assert(messages.includes("Element E-SettingsTabs tab item Profile references missing action A-MissingAction."));
 });
 
 test("warns for unsupported compact Select options property", () => {

@@ -150,6 +150,7 @@ Mermaid の SVG が利用できる場合はその SVG を印刷します。
 - `Button`
 - `Link`
 - `Select`
+- `Tabs`
 - `Checkbox`
 - `RadioGroup`
 - `List`

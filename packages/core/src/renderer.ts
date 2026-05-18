@@ -720,6 +720,24 @@ function renderElement(
     return renderAnnotatedElement(markers, element.type, `<fieldset class="${classes}" data-mm-id="${escapeHtml(element.id)}"${ariaDisabled}>${legend}${optionHtml}</fieldset>`);
   }
 
+  if (element.type === "Tabs") {
+    const active = stringProperty(element, "active");
+    const items = element.tabs.length > 0 ? element.tabs : [{ label: active || displayLabel || "Tab", propertyLocations: { panel: [], action: [] }, location: element.location, raw: active || displayLabel || "Tab" }];
+    const activeLabel = active || items[0]?.label || "";
+    const tabs = items
+      .map((item) => {
+        const selected = item.label === activeLabel;
+        const classes = ["mm-tab-item", selected ? "mm-tab-item-active" : ""].filter(Boolean).join(" ");
+        const panel = item.panel ? ` data-mm-tab-panel="${escapeHtml(item.panel)}"` : "";
+        const action = item.action ? ` data-mm-tab-action="${escapeHtml(item.action)}"` : "";
+        return `<span class="${classes}"${selected ? " aria-selected=\"true\"" : ""}${panel}${action}>${escapeHtml(item.label)}</span>`;
+      })
+      .join("");
+    const panel = items.find((item) => item.label === activeLabel)?.panel;
+    const panelNote = panel ? `<div class="mm-tabs-panel-note">panel: ${escapeHtml(panel)}</div>` : "";
+    return renderAnnotatedElement(markers, element.type, `<div class="${classes}" data-mm-id="${escapeHtml(element.id)}"><div class="mm-tab-strip">${tabs}</div>${panelNote}</div>`);
+  }
+
   if (element.type === "Button") {
     return renderAnnotatedElement(markers, element.type, `<button class="${classes}" data-mm-id="${escapeHtml(element.id)}"${disabledAttribute}>${escapeHtml(displayLabel || element.id)}</button>`);
   }
@@ -1569,6 +1587,11 @@ function renderDefaultStyles(): string {
 .mm-element-radiogroup,.mm-element-checkboxgroup{background:#fff;display:inline-flex;flex-wrap:wrap;gap:8px}
 .mm-element-radiogroup legend,.mm-element-checkboxgroup legend{color:#374151;font-size:12px;font-weight:600;padding:0 4px}
 .mm-choice-group-option{align-items:center;display:inline-flex;gap:6px}
+.mm-element-tabs{background:#fff;display:block;min-width:220px;padding:0}
+.mm-tab-strip{border-bottom:1px solid #cbd5e1;display:flex;flex-wrap:wrap;gap:4px}
+.mm-tab-item{border:1px solid transparent;border-bottom:0;border-radius:5px 5px 0 0;color:#475569;display:inline-flex;font-size:12px;font-weight:600;margin-bottom:-1px;padding:7px 11px}
+.mm-tab-item-active{background:#fff;border-color:#94a3b8;color:#111827;box-shadow:inset 0 2px 0 #2563eb}
+.mm-tabs-panel-note{background:#f8fafc;border:1px dashed #cbd5e1;border-top:0;color:#475569;font-size:12px;padding:8px 10px}
 .mm-switch-track{align-items:center;background:#d1d5db;border-radius:999px;display:inline-flex;height:18px;padding:2px;width:34px}
 .mm-switch-thumb{background:#fff;border-radius:50%;box-shadow:0 1px 2px rgba(15,23,42,.28);display:block;height:14px;width:14px}
 .mm-element-switch input:checked + .mm-switch-track{background:#2563eb}.mm-element-switch input:checked + .mm-switch-track .mm-switch-thumb{transform:translateX(16px)}

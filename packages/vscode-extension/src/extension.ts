@@ -5962,6 +5962,7 @@ function renderElementDescription(element: ReturnType<typeof parseMarkVSpec>["el
   const description = stringProperty(element.properties["description"])
     || stringProperty(element.properties["purpose"])
     || firstEntityProseParagraph(element.overview)
+    || (element.type === "Tabs" && stringProperty(element.properties["active"]) ? `active tab: ${stringProperty(element.properties["active"])}` : "")
     || "";
   const notes = renderEntityNotes(element.notes);
   return [description ? text(description) : "", notes].filter(Boolean).join("<br>");
@@ -6248,7 +6249,8 @@ function renderElementContentSummary(element: ReturnType<typeof parseMarkVSpec>[
     || stringProperty(element.properties["text"])
     || stringProperty(element.properties["alt"])
     || stringProperty(element.properties["name"])
-    || stringProperty(element.properties["title"]);
+    || stringProperty(element.properties["title"])
+    || stringProperty(element.properties["active"]);
 }
 
 function renderSourceSummary(value: string | true | undefined): string {
@@ -6276,6 +6278,7 @@ function renderElementActionReferences(
 ): string {
   const actionIds = [
     rawStringProperty(element.properties["action"]),
+    ...element.tabs.map((item) => item.action),
     ...result.actions
       .filter((action) => action.trigger?.elementId === element.id)
       .map((action) => action.id)
@@ -6292,6 +6295,7 @@ function renderContentElementNotes(element: ReturnType<typeof parseMarkVSpec>["e
     stringProperty(element.properties["src"]) ? `src: ${stringProperty(element.properties["src"])}` : "",
     stringProperty(element.properties["format"]) ? `format: ${stringProperty(element.properties["format"])}` : "",
     stringProperty(element.properties["items"]) ? `items: ${stringProperty(element.properties["items"])}` : "",
+    element.type === "Tabs" && stringProperty(element.properties["active"]) ? `active tab: ${stringProperty(element.properties["active"])}` : "",
     element.tableColumns.length > 0 ? `columns: ${element.tableColumns.map((column) => column.label).join(", ")}` : "",
     element.tableRows.length > 0 ? `sample rows: ${element.tableRows.length}` : ""
   ].filter(Boolean);

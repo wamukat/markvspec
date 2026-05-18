@@ -212,6 +212,7 @@ Release element types:
 - `Button`
 - `Link`
 - `Select`
+- `Tabs`
 - `Checkbox`
 - `RadioGroup`
 - `List`

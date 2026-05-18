@@ -476,6 +476,7 @@ Element types:
 - `Link`
 - `Select`
 - `MultiSelect`
+- `Tabs`
 - `Checkbox`
 - `CheckboxGroup`
 - `Switch`
@@ -1176,6 +1177,7 @@ Supported element types:
 - `Link`
 - `Select`
 - `MultiSelect`
+- `Tabs`
 - `Checkbox`
 - `CheckboxGroup`
 - `Switch`
@@ -1544,6 +1546,29 @@ source, write it after `:`.
   - Administrator
   - Owner
 ```
+
+`Tabs` represents a tab strip with one local active item and explicit tab panel
+references. `active` is the initial display state for the element. It is not a
+screen state, View Context value, or model value. Each item label is written
+under `items:`. `panel` must reference an existing `L-*` layout group, and
+`action` may reference an `A-*` action for the tab selection behavior.
+
+```markdown
+### E-SettingsTabs Tabs
+
+- active: Profile
+- items:
+  - Profile
+    - panel: L-ProfilePanel
+    - action: A-SelectProfileTab
+  - Billing
+    - panel: L-BillingPanel
+    - action: A-SelectBillingTab
+```
+
+The generated preview marks the active tab and shows the active panel reference.
+Display Content Spec aggregates tab items into one row, and Element Summary
+links the item actions so reviewers can trace tab behavior.
 
 `Checkbox` can also use `initial value` when the initial checked state comes
 from model or cookie data.

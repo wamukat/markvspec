@@ -353,6 +353,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
     }
     validateDialogActions(element, elementsById, actionIds, diagnostics);
     validateSelectInitialValue(element, diagnostics);
+    validateTabsElement(element, targetLayoutIds, actionIds, diagnostics);
 
     for (const param of element.routeParams) {
       const sourceId = requestParamSourceId(param.source);
@@ -3071,6 +3072,43 @@ function validateSelectInitialValue(element: MarkVSpecElement, diagnostics: Mark
       message: `Element ${element.id} initial value "${value}" does not match any options.`,
       line: firstPropertyLine(element, "initial value") ?? element.location.line
     });
+  }
+}
+
+function validateTabsElement(
+  element: MarkVSpecElement,
+  layoutIds: Set<string>,
+  actionIds: Set<string>,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  if (element.type !== "Tabs") {
+    return;
+  }
+
+  const active = stringProperty(element, "active").trim();
+  if (active && !element.tabs.some((item) => item.label === active)) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Element ${element.id} active tab "${active}" does not match any items.`,
+      line: firstPropertyLine(element, "active") ?? element.location.line
+    });
+  }
+
+  for (const item of element.tabs) {
+    if (item.panel && !layoutIds.has(item.panel)) {
+      diagnostics.push({
+        severity: "error",
+        message: `Element ${element.id} tab item ${item.label} references missing panel ${item.panel}.`,
+        line: item.propertyLocations.panel[0]?.line ?? item.location.line
+      });
+    }
+    if (item.action && !actionIds.has(item.action)) {
+      diagnostics.push({
+        severity: "error",
+        message: `Element ${element.id} tab item ${item.label} references missing action ${item.action}.`,
+        line: item.propertyLocations.action[0]?.line ?? item.location.line
+      });
+    }
   }
 }
 

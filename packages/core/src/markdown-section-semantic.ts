@@ -144,6 +144,7 @@ export interface ActionSemanticResult {
 }
 
 const optionElementTypes = new Set(["Select", "MultiSelect", "RadioGroup", "CheckboxGroup"]);
+const tabItemPropertyKeys = new Set(["panel", "action"]);
 
 export function parseSmallSectionSemantics(document: MarkdownDocument): SmallSectionSemanticResult {
   const sections = collectSectionAst(document);
@@ -680,6 +681,7 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
   let currentTableRow: MarkVSpecElement["tableRows"][number] | undefined;
   let currentSampleRow: MarkVSpecSampleRow | undefined;
   let currentSelectOption: MarkVSpecElement["selectOptions"][number] | undefined;
+  let currentTabItem: MarkVSpecElement["tabs"][number] | undefined;
   let currentElementHasStructuredContent = false;
   let hasSeenEntity = false;
   let inSectionNotes = false;
@@ -718,6 +720,7 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
         currentTableRow = undefined;
         currentSampleRow = undefined;
         currentSelectOption = undefined;
+        currentTabItem = undefined;
         currentElementHasStructuredContent = false;
         continue;
       }
@@ -738,6 +741,7 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
         },
         routeParams: [],
         selectOptions: [],
+        tabs: [],
         tableColumns: [],
         tableRows: [],
         visibleWhen: [],
@@ -754,6 +758,7 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
       currentTableColumn = undefined;
       currentTableRow = undefined;
       currentSampleRow = undefined;
+      currentTabItem = undefined;
       currentElementHasStructuredContent = false;
       continue;
     }
@@ -781,8 +786,9 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
         currentTableColumn = undefined;
         currentTableRow = undefined;
         currentSampleRow = undefined;
+        currentTabItem = undefined;
       }
-      const bulletResult = applyElementSemanticBullet(currentElement, bullet, currentElementNestedProperty, currentTableColumn, currentTableRow, currentSampleRow, diagnostics, dependencies);
+      const bulletResult = applyElementSemanticBullet(currentElement, bullet, currentElementNestedProperty, currentTableColumn, currentTableRow, currentSampleRow, currentTabItem, diagnostics, dependencies);
       currentElementNestedProperty = bulletResult.nestedProperty;
       if (currentElementNestedProperty === "Columns" && bullet.indent > 0 && !isTableColumnMetadataBullet(bullet)) {
         currentTableColumn = currentElement.tableColumns[currentElement.tableColumns.length - 1];
@@ -800,6 +806,11 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
       }
       if (currentElementNestedProperty === "options" && currentSelectOption && bullet.indent > 1) {
         applyDisplayValueMetadata(currentSelectOption, "option", bullet, diagnostics, currentElement.id);
+      }
+      if (bulletResult.tabItem) {
+        currentTabItem = bulletResult.tabItem;
+      } else if (currentElementNestedProperty !== "items" || bullet.indent <= 1) {
+        currentTabItem = currentElementNestedProperty === "items" ? currentTabItem : undefined;
       }
     }
   }
@@ -823,10 +834,24 @@ function applyElementSemanticBullet(
   tableColumn: MarkVSpecElement["tableColumns"][number] | undefined,
   tableRow: MarkVSpecElement["tableRows"][number] | undefined,
   sampleRow: MarkVSpecSampleRow | undefined,
+  tabItem: MarkVSpecElement["tabs"][number] | undefined,
   diagnostics: MarkVSpecDiagnostic[],
   dependencies: SemanticDependency[]
-): { nestedProperty: string | undefined; sampleRow?: MarkVSpecSampleRow; selectOption?: MarkVSpecElement["selectOptions"][number] } {
+): { nestedProperty: string | undefined; sampleRow?: MarkVSpecSampleRow; selectOption?: MarkVSpecElement["selectOptions"][number]; tabItem?: MarkVSpecElement["tabs"][number] } {
   if (bullet.indent > 0) {
+    if (element.type === "Tabs" && nestedProperty === "items") {
+      if (bullet.indent === 1) {
+        const item = parseTabItem(bullet);
+        element.tabs.push(item);
+        return { nestedProperty, tabItem: item };
+      }
+      if (bullet.indent === 2 && tabItem) {
+        applyTabItemProperty(tabItem, bullet, diagnostics, element.id);
+        addTabItemDependency(element, bullet, dependencies);
+      }
+      return { nestedProperty };
+    }
+
     if (optionElementTypes.has(element.type) && nestedProperty === "options") {
       if (bullet.indent > 1) {
         return { nestedProperty };
@@ -926,6 +951,11 @@ function applyElementSemanticBullet(
     return { nestedProperty: nextNestedProperty };
   }
   if (optionElementTypes.has(element.type) && isEmptyNestedValue && nextNestedProperty === "options") {
+    return { nestedProperty: nextNestedProperty };
+  }
+  if (element.type === "Tabs" && isEmptyNestedValue && nextNestedProperty === "items") {
+    element.properties["items"] = true;
+    addPropertyLocation(element.propertyLocations, "items", bullet.location);
     return { nestedProperty: nextNestedProperty };
   }
 
@@ -2720,6 +2750,44 @@ function parseElementOption(bullet: ParsedBullet): MarkVSpecElement["selectOptio
   };
 }
 
+function parseTabItem(bullet: ParsedBullet): MarkVSpecElement["tabs"][number] {
+  return {
+    label: bullet.text.trim(),
+    propertyLocations: { panel: [], action: [] },
+    location: bullet.location,
+    raw: bullet.text
+  };
+}
+
+function applyTabItemProperty(
+  item: MarkVSpecElement["tabs"][number],
+  bullet: ParsedBullet,
+  diagnostics: MarkVSpecDiagnostic[],
+  elementId: string
+): void {
+  const [key, value] = splitKeyValue(bullet.text);
+  const normalizedKey = key.trim();
+  if (!tabItemPropertyKeys.has(normalizedKey)) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Element ${elementId} tab item ${item.label} has unsupported property ${normalizedKey}. Use panel or action.`,
+      line: bullet.location.line
+    });
+    return;
+  }
+  const normalizedValue = value?.trim() ?? "";
+  if (!normalizedValue) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Element ${elementId} tab item ${item.label} property ${normalizedKey} must have a value.`,
+      line: bullet.location.line
+    });
+    return;
+  }
+  item[normalizedKey as "panel" | "action"] = normalizedValue;
+  item.propertyLocations[normalizedKey as "panel" | "action"].push(bullet.location);
+}
+
 const displayValueProperties = new Set([
   "value",
   "label",
@@ -2958,6 +3026,20 @@ function addElementRouteParamDependency(element: MarkVSpecElement, bullet: Parse
   dependencies.push({
     source: { type: "entity", id: element.id },
     target: { type: "entity", id: source },
+    direction: "source-invalidates-target",
+    kind: "references"
+  });
+}
+
+function addTabItemDependency(element: MarkVSpecElement, bullet: ParsedBullet, dependencies: SemanticDependency[]): void {
+  const [key, value] = splitKeyValue(bullet.text);
+  const target = value?.trim();
+  if (!target || !tabItemPropertyKeys.has(key.trim())) {
+    return;
+  }
+  dependencies.push({
+    source: { type: "entity", id: element.id },
+    target: { type: "entity", id: target },
     direction: "source-invalidates-target",
     kind: "references"
   });

@@ -6220,6 +6220,23 @@ test("aggregates rich profile selection options in display content spec", () => 
   assert.doesNotMatch(displayContent, /option label/);
 });
 
+test("renders Tabs element summary, wireframe, and display content spec", () => {
+  const source = readFileSync(resolve("../../examples/04-real-world-screens/tabs-settings.vspec.md"), "utf8");
+  const result = parseMarkVSpec(source);
+  assert.deepEqual(result.diagnostics, []);
+  const html = renderDesignDocumentHtml(result, "");
+  const idleSection = stateSection(html, "idle");
+  const elementSummary = idleSection.match(/<h6 class="state-screen-detail-heading">Element Summary<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+  const displayContent = idleSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.match(idleSection, /<div class="mm-element mm-element-tabs" data-mm-id="E-SettingsTabs">/);
+  assert.match(idleSection, /<span class="mm-tab-item mm-tab-item-active" aria-selected="true" data-mm-tab-panel="L-ProfilePanel" data-mm-tab-action="A-SelectProfileTab">Profile<\/span>/);
+  assert.match(idleSection, /<span class="mm-tab-item" data-mm-tab-panel="L-BillingPanel" data-mm-tab-action="A-SelectBillingTab">Billing<\/span>/);
+  assert.match(idleSection, /<div class="mm-tabs-panel-note">panel: L-ProfilePanel<\/div>/);
+  assert.match(elementSummary, new RegExp(`<td>${detailElementRef("2", "E-SettingsTabs")}</td><td>Tabs</td><td><ul class="spec-list"><li>${refActionChip("A-SelectProfileTab", "A-SelectProfileTab", "Select profile tab")}</li><li>${refActionChip("A-SelectBillingTab", "A-SelectBillingTab", "Select billing tab")}</li></ul></td><td>active tab: Profile</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("2", "E-SettingsTabs")}</td><td>tabs</td><td>${specSectionPattern("Tabs", ["Profile \\(panel: L-ProfilePanel; action: A-SelectProfileTab\\)", "Billing \\(panel: L-BillingPanel; action: A-SelectBillingTab\\)"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
+});
+
 test("splits input form values and source metadata into separate columns", () => {
   const result = parseMarkVSpec(`---
 id: SCR-INPUT-SOURCE

@@ -156,6 +156,7 @@ export interface MarkVSpecElement {
   propertyLocations: Record<string, SourceLocation[]>;
   routeParams: MarkVSpecRouteParam[];
   selectOptions: MarkVSpecSelectOption[];
+  tabs: MarkVSpecTabItem[];
   tableColumns: MarkVSpecTableColumn[];
   tableRows: MarkVSpecTableRow[];
   sampleRows?: MarkVSpecSampleRows;
@@ -205,6 +206,15 @@ export interface MarkVSpecSelectOption {
   label: string;
   source?: string;
   metadata?: MarkVSpecDisplayValueMetadata;
+  location: SourceLocation;
+  raw: string;
+}
+
+export interface MarkVSpecTabItem {
+  label: string;
+  panel?: string;
+  action?: string;
+  propertyLocations: Record<"panel" | "action", SourceLocation[]>;
   location: SourceLocation;
   raw: string;
 }

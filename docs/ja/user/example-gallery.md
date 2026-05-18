@@ -53,6 +53,7 @@ F-* / V-* を参照 chip として読みやすく見せたい場合は、安定 
 | [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md) | Display Content Spec の `label`、`sample`、`src`、`format`、`value`、`params` を確認する例。 |
 | [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md) | 拡張 form、media、list、dialog 系 Element Type をまとめて確認する例。 |
 | [Search List](../../../examples/04-real-world-screens/search-list.vspec.md) | filter、Table、paging、empty/error state、result replacement の例。 |
+| [Tabs Settings](../../../examples/04-real-world-screens/tabs-settings.vspec.md) | Tabs Element の focused example。active tab、panel 参照、item action、Display Content Spec 集約を確認する例。 |
 | [Login Basic](../../../examples/04-real-world-screens/login-basic.vspec.md) | responsive layout、required validation、message display scenario、request parameters、response cases、disabled control、navigation を含む実践的な login flow。 |
 | [Template Shell](../../../examples/05-reuse/template-shell.vspec.md) | template document と slot の基本例。 |
 | [Basic Slot Page](../../../examples/05-reuse/basic-slot-page.vspec.md) | template の `content` slot を埋める最小 screen の例。 |
@@ -73,6 +74,7 @@ F-* / V-* を参照 chip として読みやすく見せたい場合は、安定 
 6. [Display Effects](../../../examples/03-actions/display-effects.vspec.md) で display target の違いを Preview Scenarios ごとに確認する。
 7. [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md) で Display Content Spec の文言、表示値、データソース、format、value、params を確認する。
 8. [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md) で拡張 Element Type の preview 表示を確認する。
-9. [Basic Slot Page](../../../examples/05-reuse/basic-slot-page.vspec.md)、[Responsive Slot Page](../../../examples/05-reuse/responsive-slot-page.vspec.md)、[Default Slot Page](../../../examples/05-reuse/default-slot-page.vspec.md) で template slot content、viewport 固有 slot override、default fallback を確認する。
-10. [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md) で template 合成、partial host、`display.partial` を確認する。
-11. [History And Errors](../../../examples/06-structured-sections/history-and-errors.vspec.md) で構造化された履歴とエラーコードを確認する。
+9. [Tabs Settings](../../../examples/04-real-world-screens/tabs-settings.vspec.md) で active tab、panel 参照、tab action の追跡性を確認する。
+10. [Basic Slot Page](../../../examples/05-reuse/basic-slot-page.vspec.md)、[Responsive Slot Page](../../../examples/05-reuse/responsive-slot-page.vspec.md)、[Default Slot Page](../../../examples/05-reuse/default-slot-page.vspec.md) で template slot content、viewport 固有 slot override、default fallback を確認する。
+11. [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md) で template 合成、partial host、`display.partial` を確認する。
+12. [History And Errors](../../../examples/06-structured-sections/history-and-errors.vspec.md) で構造化された履歴とエラーコードを確認する。

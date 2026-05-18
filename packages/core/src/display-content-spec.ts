@@ -56,6 +56,7 @@ export function buildDisplayContentSpecRows(elements: ParsedElement[], context: 
     pushDisplayPropertyRow(rows, element, "name", properties["name"], sourceType);
     pushListItemsRow(rows, element, sourceType, context);
     pushSelectOptionsRow(rows, element, sourceType);
+    pushTabsRow(rows, element, sourceType);
     return rows;
   });
 }
@@ -263,6 +264,33 @@ function pushListItemsRow(
     ],
     source: source === "data" ? undefined : source
   });
+}
+
+function pushTabsRow(
+  rows: DisplayContentSpecRow[],
+  element: ParsedElement,
+  source: MarkVSpecSourceType
+): void {
+  if (element.type !== "Tabs" || element.tabs.length === 0) {
+    return;
+  }
+  rows.push({
+    element,
+    location: "tabs",
+    value: element.tabs.map((item) => item.label).join(", "),
+    contentSections: [
+      { title: "Tabs", rows: element.tabs.map(formatTabItemContentRow) }
+    ],
+    source
+  });
+}
+
+function formatTabItemContentRow(item: ParsedElement["tabs"][number]): string {
+  const details = [
+    item.panel ? `panel: ${item.panel}` : "",
+    item.action ? `action: ${item.action}` : ""
+  ].filter(Boolean);
+  return details.length > 0 ? `${item.label} (${details.join("; ")})` : item.label;
 }
 
 function sampleRowsReferenceRow(

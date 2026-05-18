@@ -15,6 +15,7 @@ without falling back to ambiguous prose.
 | File input | Supported | `FileInput`, `FileUpload` | Use `accept`, `multiple`, `label`, and `sample` for constraints and helper text. |
 | Button / link | Supported | `Button`, `Link` | `variant`, `tone`, `action`, `href`, and route params are supported. |
 | Select / checkbox / radio group | Supported | `Select`, `MultiSelect`, `Checkbox`, `CheckboxGroup`, `Switch`, `RadioGroup` | Choice options use nested Markdown list items. Use `RadioGroup` for mutually exclusive value ranges, `CheckboxGroup` or `MultiSelect` for multiple values, and `Switch` for boolean settings. |
+| Tabs | Supported | `Tabs` | `active` marks the local initial tab. Each item may reference a `panel: L-*` and an `action: A-*`; generated specs aggregate item labels and keep action links traceable. |
 | Banner / badge | Supported | `Banner`, `Badge` | Use `tone` for semantic intent such as danger or success. |
 | List / table | Supported | `List`, `Table` | Table columns and sample rows use nested Markdown lists. |
 | Dialog / overlay | Supported | `Dialog` with targetless `display.element` | Dialogs are modal overlays by default. Define cancel/confirm buttons with `actions:` and show the dialog from a Preview Scenario or action case without a layout target. |
@@ -23,7 +24,6 @@ without falling back to ambiguous prose.
 | Divider | Supported | `Divider` | Separates groups inside forms or detail screens. |
 | Empty state | Supported | `Paragraph` with `visible when: empty` | Empty states are prose content tied to an empty state rather than a dedicated element type. |
 | Breadcrumb | Alternative | `Link` elements in a row layout | Dedicated breadcrumb semantics are not yet defined. |
-| Tabs | Alternative | `Button` or `Link` elements in a row layout | Dedicated selected-tab semantics are not yet defined. |
 | Accordion | Planned | Not yet canonical | Needs expanded/collapsed state semantics. |
 | Pagination | Alternative | Row layout with paging buttons and page text | Dedicated pagination element is not yet canonical. |
 | Stepper | Planned | Not yet canonical | Needs current/completed/error step semantics. |
@@ -48,10 +48,9 @@ without falling back to ambiguous prose.
 
 1. Add canonical Breadcrumb semantics when route hierarchy and current-page
    handling become important.
-2. Add Tabs when tab content and selected-tab behavior need generated summaries.
-3. Add Accordion when expanded/collapsed state needs to be validated.
-4. Add Pagination only if the row-layout alternative becomes too repetitive.
-5. Add Stepper for multi-step applications after state-flow notation settles.
+2. Add Accordion when expanded/collapsed state needs to be validated.
+3. Add Pagination only if the row-layout alternative becomes too repetitive.
+4. Add Stepper for multi-step applications after state-flow notation settles.
 
 ## Candidate Classification
 
@@ -62,7 +61,6 @@ review from generic Layout and Element combinations.
 
 | Candidate | Classification | Decision | Reason |
 | --- | --- | --- | --- |
-| Tabs | Add candidate | Define canonical semantics | Selected tab and tab panel visibility should connect to View Context and Preview Scenarios. |
 | Menu / DropdownMenu / ActionMenu | Add candidate | Define canonical semantics | Menu item actions and open/closed overlay state are hard to see from a row of Buttons. |
 | Popover / Tooltip | Add candidate | Define anchored overlay semantics | These are lighter than Dialog and need an anchor plus visibility rule. |
 | Accordion / Disclosure | Add candidate | Define canonical semantics | Expanded/collapsed sections are common and should be reviewable without inventing state names. |
@@ -78,30 +76,33 @@ review from generic Layout and Element combinations.
 | Avatar | Layout/content pattern | Keep as Image + Text | The image and label are independently reviewable. |
 | Chart / Map / RichTextEditor / Calendar / TreeView | Custom/domain-specific | Use `custom:*` until a concrete need repeats | These depend heavily on domain and product interaction details. |
 
-## Candidate Syntax Sketches
+## Element Syntax Notes
 
-These sketches are not implemented syntax. They document the minimum shape a
-future canonical element would need before implementation work starts.
+These notes collect implemented element syntax and candidate sketches that need
+more design work. Implemented elements are marked in the surrounding text.
 
 ### Tabs
 
 ```markdown
 ### E-SettingsTabs Tabs
 
-- value: ${view.selectedSettingsTab}
+- active: Profile
 - items:
-  - Profile: profile
+  - Profile
     - panel: L-ProfilePanel
     - action: A-SelectProfileTab
-  - Billing: billing
+  - Billing
     - panel: L-BillingPanel
     - action: A-SelectBillingTab
 ```
 
-Preview policy: render a tab strip, mark the selected item, and show which panel
-each item controls in Element Summary or a dedicated behavior row.
+`Tabs` is implemented. The preview renders a tab strip, marks the active item,
+and exposes the active panel reference. Generated specs aggregate tab items and
+link item actions from Element Summary.
 
 ### Menu / DropdownMenu / ActionMenu
+
+Candidate sketch:
 
 ```markdown
 ### E-RowActions ActionMenu
@@ -202,7 +203,6 @@ page-size information. Keep page-changing actions visible in Action Summary.
 
 ## Example Plan
 
-- Add a focused Tabs example when View Context examples are expanded.
 - Add a search-list Pagination example only after the row-layout alternative
   becomes too noisy in generated Input/Display/Action specs.
 - Add an overlay example that compares Dialog, Toast, Popover, and Tooltip after

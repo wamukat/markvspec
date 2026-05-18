@@ -458,6 +458,7 @@ Element type です。
 - `Link`
 - `Select`
 - `MultiSelect`
+- `Tabs`
 - `Checkbox`
 - `CheckboxGroup`
 - `Switch`
@@ -980,6 +981,7 @@ wireframe preview では native `required` attribute や自動の `*` marker と
 - `Link`
 - `Select`
 - `MultiSelect`
+- `Tabs`
 - `Checkbox`
 - `CheckboxGroup`
 - `Switch`
@@ -1198,6 +1200,28 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
   - 管理者
   - オーナー
 ```
+
+`Tabs` は tab strip と、初期表示で選択中の item、各 item が制御する panel を
+表す Element です。`active` はその要素内の初期表示状態であり、screen state、
+View Context、model value ではありません。各 item label は `items:` の下に書きます。
+`panel` は既存の `L-*` layout group を参照し、`action` には tab 選択時の `A-*`
+action を任意で指定できます。
+
+```markdown
+### E-SettingsTabs Tabs
+
+- active: Profile
+- items:
+  - Profile
+    - panel: L-ProfilePanel
+    - action: A-SelectProfileTab
+  - Billing
+    - panel: L-BillingPanel
+    - action: A-SelectBillingTab
+```
+
+生成 preview は active tab を示し、active panel の参照を表示します。Display Content
+Spec では tab item を 1 行に集約し、Element Summary では item action を辿れるようにします。
 
 scalar な表示値では、property の値そのものが baseline preview sample です。
 表示値ごとの由来や詳細参照先が必要な場合は、その property 配下に
