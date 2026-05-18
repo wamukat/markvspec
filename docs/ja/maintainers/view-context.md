@@ -232,8 +232,6 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
 ```markdown
 ### A-SubmitSearch Submit search
 
-- Triggered
-  - E-SearchButton.click
 - From
   - idle
   - loaded
@@ -267,11 +265,11 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
 
 ### A-ApplySearchResult Apply search result
 
-- Triggered
-  - A-SubmitSearch.P3.response
 - From
   - fetching
 - Process P1: Receive search response
+  - receive:
+    - response: A-SubmitSearch.P3.response
   - case: success
     - description: 200 search result
     - Effects
@@ -299,10 +297,14 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
 並列 process と resolve は次のように表します。並列に参加する process は同じ `group` を持ち、各 case は結果を分類して `continue` します。最終的な `state` / `navigate` は `Process Pn: Resolve ...` に寄せます。
 
 ```markdown
+## Events
+
+- page.load: A-InitialLoad
+
+## Actions
+
 ### A-InitialLoad Initial dashboard load
 
-- Triggered
-  - screen.load
 - From
   - fetching
 - Process P1: Load member profile

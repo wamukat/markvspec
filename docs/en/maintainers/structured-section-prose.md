@@ -155,7 +155,7 @@ Actions formalize the existing behavior.
 - Structured data starts at the first `### A-*`.
 - Section Lead describes the action list.
 - Section Notes are written under `### Section Notes`.
-- Entity Lead is prose under the action heading before the first structured list such as `Triggered`, `From`, `Process`, `Cases`, or `Effects`.
+- Entity Lead is prose under the action heading before the first structured list such as `From`, `Process`, process `case`, or `Effects`.
 - Entity Lead appears in Action Summary and Action Details.
 - Entity Notes are prose after the action structured list.
 - Entity Notes appear in Action Details, not Action Summary.

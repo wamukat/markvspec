@@ -121,8 +121,6 @@ route: /login
 
 ### A1:A-SubmitLogin Submit login
 
-- Triggered
-  - E-SignInButton.click
 - From
   - idle
 - Process P1: Send login request
@@ -291,12 +289,15 @@ Action ID format:
 
 Action fields:
 
-- `Triggered`
 - `From`
 - `Process`
 - `Effects`
-- `Cases`
+- process `case`
 - side effects when needed
+
+Action callers are declared outside the action. User operations come from
+Element `action:` / `action event:`, lifecycle events come from `## Events`, and
+process responses come from `receive:`.
 
 ### Rule
 
@@ -315,7 +316,7 @@ Prefer Markdown that people can write quickly:
 - Headings define major objects: `# SCR-LOGIN Login`,
   `### 7:E-SignInButton Button`, or `### A1:A-SubmitLogin Submit login`.
 - Bullets define properties and rules: `- label: Sign in`.
-- Nested bullets define action groups such as `Triggered`, `Process`, `Effects`, and `Cases`.
+- Nested bullets define action groups and process details such as `From`, `Process`, `Effects`, and process `case`.
 
 Short heading markers such as `7` or `A1` are preview display aids. References
 still use stable IDs such as `E-SignInButton` and `A-SubmitLogin`.

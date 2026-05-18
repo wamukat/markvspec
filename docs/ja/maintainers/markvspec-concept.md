@@ -81,12 +81,15 @@ route: /login
 - input rule:
   - type: email
 
+### 5:E-SignInButton Button
+
+- label: ログイン
+- action: A-SubmitLogin
+
 ## Actions
 
 ### A1:A-SubmitLogin ログイン送信
 
-- Triggered
-  - E-SignInButton.click
 - From
   - idle
 - Process P1: Send login request
@@ -221,10 +224,14 @@ ID 例です。
 
 主な action field です。
 
-- `Triggered`
 - `From`
 - `Process`
 - `Effects`
+- process `case`
+
+Action の呼び出し元は Action の外側で定義します。ユーザー操作は Element の
+`action:` / `action event:`、ライフサイクルイベントは `## Events`、process
+response は `receive:` で接続します。
 
 ### Rule
 
@@ -242,7 +249,7 @@ ID 例です。
 - Front Matter は文書全体の機械向けメタデータ。
 - 見出しは major object。例: `# SCR-LOGIN Login`, `### 7:E-SignInButton Button`, `### A1:A-SubmitLogin Submit login`。
 - 箇条書きは property や rule。例: `- label: ログイン`。
-- ネストした箇条書きは `Triggered`, `Process`, `Effects` のような action group と、process step 直下の `cases:` などの詳細。
+- ネストした箇条書きは `From`, `Process`, `Effects` のような action group と、process step 直下の `case:` などの詳細。
 
 `7` や `A1` のような短い heading marker は preview 表示用です。参照には `E-SignInButton` や `A-SubmitLogin` のような安定 ID を使います。
 

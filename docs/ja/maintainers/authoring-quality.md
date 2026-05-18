@@ -29,7 +29,7 @@ lint は、パース、プレビュー、ナビゲーション、設計レビュ
 - `#### Items` の外にある layout item 参照。
 - 存在しない layout、element、action、rule、state への参照。
 - 未対応の element type、layout kind、action event、element property。
-- `Triggered` block がないなど、読み取れない Action 構造。
+- `From` / `Process` 構造や caller 接続が欠けているなど、読み取れない Action 構造。
 - Layout や partial update action で使っている partial ID が
   `references.partials` に定義されていない。
 - 参照先 template/partial ファイルが存在しない、ID が一致しない、または document type が

@@ -345,15 +345,14 @@ validator should warn.
 
 ## Actions
 
-Actions describe user or system behavior. An action is primarily a trigger plus
-process steps and effects. Use `state` for screen-local state,
+Actions describe guarded process steps and effects. Callers are declared outside
+the action: user operations use Element `action:` and `action event:`, lifecycle
+events use `## Events`, and process responses use `receive:`. Use `state` for screen-local state,
 opaque expressions such as `${data.value}` for screen data, and `navigate` for screen transitions.
 
 ```markdown
 ### A1:A-SubmitLogin Submit login
 
-- Triggered
-  - E-SignInButton.click
 - From
   - idle
   - auth-error
@@ -376,11 +375,11 @@ opaque expressions such as `${data.value}` for screen data, and `navigate` for s
 
 ### A2:A-AuthResponse Handle auth response
 
-- Triggered
-  - A-SubmitLogin.P2.response
 - From
   - wait-auth
 - Process P1: Receive auth response
+  - receive:
+    - response: A-SubmitLogin.P2.response
   - case: success
     - response: 2xx authenticated user
     - Effects
@@ -395,8 +394,6 @@ opaque expressions such as `${data.value}` for screen data, and `navigate` for s
 
 ### A4:A-ValidateEmail Validate email
 
-- Triggered
-  - E-EmailInput.blur
 - Process P1: Validate email field
   - case: empty
     - description: empty email in idle state
@@ -550,12 +547,14 @@ route: /mypage/partials/notices
 - E-NoticeHeading
 - E-NoticeList
 
+## Events
+
+- partial.render: A-BuildNoticeList
+
 ## Actions
 
 ### A-BuildNoticeList Build notice list
 
-- Triggered
-  - partial.render
 - From
   - fetching
 - Process P1: Find latest notices
@@ -696,6 +695,8 @@ route: /login
 - value: ${data.email}
 - input rule:
   - type: email
+- action: A-ValidateEmail
+- action event: blur
 
 ### E-EmailRequiredText Text
 
@@ -735,8 +736,6 @@ route: /login
 
 ### A1:A-SubmitLogin Submit login
 
-- Triggered
-  - E-SignInButton.click
 - From
   - idle
   - auth-error
@@ -759,11 +758,11 @@ route: /login
 
 ### A2:A-AuthResponse Handle auth response
 
-- Triggered
-  - A-SubmitLogin.P2.response
 - From
   - wait-auth
 - Process P1: Receive auth response
+  - receive:
+    - response: A-SubmitLogin.P2.response
   - case: success
     - response: 2xx authenticated user
     - Effects
@@ -778,8 +777,6 @@ route: /login
 
 ### A4:A-ValidateEmail Validate email
 
-- Triggered
-  - E-EmailInput.blur
 - Process P1: Validate email field
   - case: empty
     - description: empty email in idle state

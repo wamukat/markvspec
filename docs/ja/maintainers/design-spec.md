@@ -242,15 +242,13 @@ MarkVSpec では言葉を分けます。
 
 ## アクション
 
-アクションは、ユーザー操作やシステムイベントをトリガーとして、処理、効果、結果を記述します。
+アクションは、処理、効果、結果を記述します。呼び出し元は Action の外側で定義し、ユーザー操作は Element の `action:` / `action event:`、ライフサイクルイベントは `## Events`、process response は `receive:` で接続します。
 Action レベルの guard / `When` は使わず、操作可否は要素の `disabled when`、入力検証は
 `Validations` と process-scoped `receive: V-....result` に分離します。
 
 ```markdown
 ### A1:A-SubmitLogin ログイン送信
 
-- Triggered
-  - E-SignInButton.click
 - From
   - idle
   - auth-error
@@ -287,17 +285,17 @@ Action レベルの guard / `When` は使わず、操作可否は要素の `disa
 処理ステップには `when` や `skip when` を置けます。これにより、同じアクションでも状態や条件に応じた前処理を表現できます。
 
 HTTP request のクリック Action では、送信できたかどうかを request step の
-`cases:` に書きます。レスポンス完了後の画面遷移や partial update は、
-`A-SubmitLogin.P3.response` を trigger にする別 Action に分けます。
+`case:` に書きます。レスポンス完了後の画面遷移や partial update は、
+`receive: A-SubmitLogin.P3.response` を持つ別 Action に分けます。
 
 ```markdown
 ### A2:A-HandleLoginResponse ログイン応答処理
 
-- Triggered
-  - A-SubmitLogin.P3.response
 - From
   - wait-auth
 - Process P1: Receive auth response
+  - receive:
+    - response: A-SubmitLogin.P3.response
   - case: success
     - response: 2xx authenticated user
     - Effects
@@ -318,7 +316,7 @@ HTTP request のクリック Action では、送信できたかどうかを requ
 MarkVSpec は htmx 属性そのものを書く場所ではありません。部分更新は意味として表します。
 
 - screen 側の `Process` / `HttpRequest`: HTTP method、path、パラメータ、送信結果。
-- response handler Action の `cases:` / `update`: レスポンス結果ごとの部分更新。
+- response handler Action の `case:` / `update`: レスポンス結果ごとの部分更新。
 - `target`: 更新対象の layout または element。
 - `content`: 差し替える内容の意味。
 - `mode`: 必要な場合の差し替え方法。
@@ -363,12 +361,14 @@ route: /mypage/partials/notices
 - E-NoticeHeading
 - E-NoticeList
 
+## Events
+
+- partial.render: A-BuildNoticeList
+
 ## Actions
 
 ### A-BuildNoticeList Build notice list
 
-- Triggered
-  - partial.render
 - From
   - fetching
 - Process P1: Find latest notices

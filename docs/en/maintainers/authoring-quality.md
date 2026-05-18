@@ -28,8 +28,8 @@ design review:
 - Missing referenced layouts, elements, actions, rules, or states.
 - Unsupported element types, layout kinds, action events, and element
   properties.
-- Action blocks that cannot be interpreted, including missing `Triggered`
-  blocks.
+- Action blocks that cannot be interpreted, including missing `From` / `Process`
+  structure or missing caller connections.
 - Partial references used by layouts or partial update actions but missing from
   `references.partials`.
 - Referenced template/partial files that are missing, point to the wrong
