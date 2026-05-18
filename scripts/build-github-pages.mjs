@@ -1,10 +1,11 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { basename, join, relative } from "node:path";
+import { copyFileSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { basename, dirname, join, relative } from "node:path";
 
 const root = process.cwd();
 const siteDir = join(root, "_site");
 const examplesDir = join(root, "examples");
+const docsDir = join(root, "docs");
 const examplesOutDir = join(siteDir, "examples");
 
 function collectVspecFiles(dir) {
@@ -15,6 +16,20 @@ function collectVspecFiles(dir) {
     if (entry.isDirectory()) {
       files.push(...collectVspecFiles(fullPath));
     } else if (entry.isFile() && entry.name.endsWith(".vspec.md")) {
+      files.push(fullPath);
+    }
+  }
+  return files.sort((a, b) => a.localeCompare(b));
+}
+
+function collectFiles(dir, predicate) {
+  const entries = readdirSync(dir, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const fullPath = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...collectFiles(fullPath, predicate));
+    } else if (entry.isFile() && predicate(fullPath)) {
       files.push(fullPath);
     }
   }
@@ -130,6 +145,22 @@ ${links}
 `;
 }
 
+function copyPageAssets() {
+  const docsFiles = collectFiles(docsDir, (filePath) => {
+    return filePath.endsWith(".html")
+      || filePath.endsWith(".png")
+      || filePath.endsWith(".svg")
+      || filePath.endsWith(".css")
+      || filePath.endsWith(".js");
+  });
+
+  for (const filePath of docsFiles) {
+    const targetPath = join(siteDir, relative(root, filePath));
+    mkdirSync(dirname(targetPath), { recursive: true });
+    copyFileSync(filePath, targetPath);
+  }
+}
+
 rmSync(siteDir, { recursive: true, force: true });
 mkdirSync(examplesOutDir, { recursive: true });
 
@@ -137,4 +168,5 @@ const files = collectVspecFiles(examplesDir);
 execFileSync("node", ["packages/cli/dist/index.js", "export", "html", "examples/**/*.vspec.md", "--out", examplesOutDir], {
   stdio: "inherit"
 });
+copyPageAssets();
 writeFileSync(join(siteDir, "index.html"), renderIndex(files));

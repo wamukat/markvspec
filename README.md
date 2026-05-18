@@ -232,7 +232,7 @@ release metadata.
 | Goal | Start here |
 | --- | --- |
 | Fastest local preview | [Install from Marketplace](#1-install-from-marketplace), [Create `login.vspec.md`](#2-create-loginvspecmd), then [Open the Preview](#3-open-the-preview) |
-| Understand the source / preview / generated document model | [HTML Authoring Guide](docs/en/user/authoring-guide.html) |
+| Understand the source / preview / generated document model | [HTML Authoring Guide](https://wamukat.github.io/markvspec/docs/en/user/authoring-guide.html) |
 | Try real files after the guide | [Example Gallery](docs/en/user/example-gallery.md) |
 | Look up exact syntax while writing | [Reference documents](#reference-documents) |
 | Install the VS Code extension | [Install from Marketplace](#1-install-from-marketplace) |
@@ -241,7 +241,7 @@ release metadata.
 
 Recommended reading order for new users:
 
-1. [HTML Authoring Guide](docs/en/user/authoring-guide.html): start with the visual HTML explanation of how MarkVSpec source becomes preview and generated-document structure.
+1. [HTML Authoring Guide](https://wamukat.github.io/markvspec/docs/en/user/authoring-guide.html): start with the visual HTML explanation of how MarkVSpec source becomes preview and generated-document structure.
 2. [Example Gallery](docs/en/user/example-gallery.md): open real `.vspec.md` files and preview them locally.
 3. [Reference documents](#reference-documents): look up exact DSL, structured section, partial, and export rules only when needed.
 
@@ -292,26 +292,26 @@ IDs, not markers.
 The `examples/` directory is organized as a learning path:
 
 Generated HTML previews are available on
-[GitHub Pages](https://wamukat.github.io/markvspec/). Use the source links below
-when you want to inspect or edit the `.vspec.md` files.
+[GitHub Pages](https://wamukat.github.io/markvspec/). Open the preview links
+below to view the generated HTML output in a browser.
 
-- [examples/01-basics/hello-screen.vspec.md](examples/01-basics/hello-screen.vspec.md): minimum screen.
-- [examples/02-states/async-loading.vspec.md](examples/02-states/async-loading.vspec.md): request send and response states.
-- [examples/02-states/scenario-samples.vspec.md](examples/02-states/scenario-samples.vspec.md): Preview Scenario data variations over baseline Element samples.
-- [examples/02-states/responsive-profile.vspec.md](examples/02-states/responsive-profile.vspec.md): mobile and desktop layouts.
-- [examples/03-actions/event-triggers.vspec.md](examples/03-actions/event-triggers.vspec.md): non-click element events and lifecycle triggers.
-- [examples/03-actions/form-submit-flow.vspec.md](examples/03-actions/form-submit-flow.vspec.md): validate, update model, server call, and navigation.
-- [examples/03-actions/single-field-validation.vspec.md](examples/03-actions/single-field-validation.vspec.md): focused single-field validation contracts.
-- [examples/03-actions/toast-feedback.vspec.md](examples/03-actions/toast-feedback.vspec.md): non-modal toast feedback and targetless toast display.
-- [examples/03-actions/parallel-initial-load.vspec.md](examples/03-actions/parallel-initial-load.vspec.md): parallel server calls and `Resolve`.
-- [examples/04-real-world-screens/notice-detail.vspec.md](examples/04-real-world-screens/notice-detail.vspec.md): Display Content Spec fields for wording, data sources, formatting, values, and params.
-- [examples/04-real-world-screens/profile-edit-rich.vspec.md](examples/04-real-world-screens/profile-edit-rich.vspec.md): extended form, media, list, and dialog element types.
-- [examples/04-real-world-screens/search-list.vspec.md](examples/04-real-world-screens/search-list.vspec.md): search, filters, pagination, empty result, and result replacement.
-- [examples/04-real-world-screens/login-basic.vspec.md](examples/04-real-world-screens/login-basic.vspec.md): form layout, validation feedback scenarios, and authentication progress.
-- [examples/05-reuse/template-shell.vspec.md](examples/05-reuse/template-shell.vspec.md): template shell and slot basics.
-- [examples/05-reuse/profile-page-with-template.vspec.md](examples/05-reuse/profile-page-with-template.vspec.md): template composition, route params, partial host metadata, and `display.partial` refresh.
-- [examples/05-reuse/profile-summary.partial.vspec.md](examples/05-reuse/profile-summary.partial.vspec.md): partial route and partial-local states.
-- [examples/06-structured-sections/history-and-errors.vspec.md](examples/06-structured-sections/history-and-errors.vspec.md): Error Codes, History Fields, and History.
+- [Hello Screen](https://wamukat.github.io/markvspec/examples/hello-screen.html): minimum screen. ([source](examples/01-basics/hello-screen.vspec.md))
+- [Async Loading](https://wamukat.github.io/markvspec/examples/async-loading.html): request send and response states. ([source](examples/02-states/async-loading.vspec.md))
+- [Scenario Samples](https://wamukat.github.io/markvspec/examples/scenario-samples.html): Preview Scenario data variations over baseline Element samples. ([source](examples/02-states/scenario-samples.vspec.md))
+- [Responsive Profile](https://wamukat.github.io/markvspec/examples/responsive-profile.html): mobile and desktop layouts. ([source](examples/02-states/responsive-profile.vspec.md))
+- [Event Triggers](https://wamukat.github.io/markvspec/examples/event-triggers.html): non-click element events and lifecycle triggers. ([source](examples/03-actions/event-triggers.vspec.md))
+- [Form Submit Flow](https://wamukat.github.io/markvspec/examples/form-submit-flow.html): validate, update model, server call, and navigation. ([source](examples/03-actions/form-submit-flow.vspec.md))
+- [Single-field Validation](https://wamukat.github.io/markvspec/examples/single-field-validation.html): focused single-field validation contracts. ([source](examples/03-actions/single-field-validation.vspec.md))
+- [Toast Feedback](https://wamukat.github.io/markvspec/examples/toast-feedback.html): non-modal toast feedback and targetless toast display. ([source](examples/03-actions/toast-feedback.vspec.md))
+- [Parallel Initial Load](https://wamukat.github.io/markvspec/examples/parallel-initial-load.html): parallel server calls and `Resolve`. ([source](examples/03-actions/parallel-initial-load.vspec.md))
+- [Notice Detail](https://wamukat.github.io/markvspec/examples/notice-detail.html): Display Content Spec fields for wording, data sources, formatting, values, and params. ([source](examples/04-real-world-screens/notice-detail.vspec.md))
+- [Profile Edit Rich](https://wamukat.github.io/markvspec/examples/profile-edit-rich.html): extended form, media, list, and dialog element types. ([source](examples/04-real-world-screens/profile-edit-rich.vspec.md))
+- [Search List](https://wamukat.github.io/markvspec/examples/search-list.html): search, filters, pagination, empty result, and result replacement. ([source](examples/04-real-world-screens/search-list.vspec.md))
+- [Login Basic](https://wamukat.github.io/markvspec/examples/login-basic.html): form layout, validation feedback scenarios, and authentication progress. ([source](examples/04-real-world-screens/login-basic.vspec.md))
+- [Template Shell](https://wamukat.github.io/markvspec/examples/template-shell.html): template shell and slot basics. ([source](examples/05-reuse/template-shell.vspec.md))
+- [Profile Page With Template](https://wamukat.github.io/markvspec/examples/profile-page-with-template.html): template composition, route params, partial host metadata, and `display.partial` refresh. ([source](examples/05-reuse/profile-page-with-template.vspec.md))
+- [Profile Summary Partial](https://wamukat.github.io/markvspec/examples/profile-summary.partial.html): partial route and partial-local states. ([source](examples/05-reuse/profile-summary.partial.vspec.md))
+- [History And Errors](https://wamukat.github.io/markvspec/examples/history-and-errors.html): Error Codes, History Fields, and History. ([source](examples/06-structured-sections/history-and-errors.vspec.md))
 
 For full coverage and a smoke path, see
 [English example gallery](docs/en/user/example-gallery.md).
@@ -345,7 +345,7 @@ Use these after the authoring guide or while editing a concrete file:
 | Goal | Document |
 | --- | --- |
 | Browse all English documentation | [English documentation index](docs/en/README.md) |
-| Start from the HTML authoring path | [HTML Authoring Guide](docs/en/user/authoring-guide.html) |
+| Start from the HTML authoring path | [HTML Authoring Guide](https://wamukat.github.io/markvspec/docs/en/user/authoring-guide.html) |
 | Browse practical examples | [Example gallery](docs/en/user/example-gallery.md) |
 | Read the full syntax | [DSL reference](docs/en/user/dsl.md) |
 | Understand PDF constraints | [PDF export approach](docs/en/user/pdf-export.md) |

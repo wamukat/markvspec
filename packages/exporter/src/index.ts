@@ -523,24 +523,56 @@ function standaloneHtml(
       h1 { font-size: 28px; margin: 0 0 24px; }
       h2 { font-size: var(--markvspec-heading-state-views); margin: 28px 0 12px; }
       .mm-export-section { margin-top: 28px; }
+      .doc-section { break-inside: avoid; margin: 0 0 28px; page-break-inside: avoid; }
+      .doc-section h2 { align-items: center; border-bottom: 1px solid #d1d5db; display: flex; flex-wrap: wrap; font-size: var(--markvspec-heading-state-views); gap: 8px; margin: 0 0 12px; padding-bottom: 6px; }
+      .doc-section h3 { font-size: var(--markvspec-heading-viewport); margin: 22px 0 8px; }
+      .doc-section h5 { font-size: var(--markvspec-heading-detail); margin: 16px 0 8px; }
+      .doc-section h6 { font-size: 12px; margin: 14px 0 8px; }
       .state-screen-section { margin: 28px 0; }
       .state-viewport-section { margin: 18px 0 24px; }
-      .state-viewport-section > h3 { font-size: var(--markvspec-heading-viewport); margin: 22px 0 8px; }
-      .state-screen-heading { font-size: var(--markvspec-heading-state); margin: 0 0 12px; }
+      .state-viewport-section > h3 { align-items: center; display: flex; flex-wrap: wrap; font-size: var(--markvspec-heading-viewport); gap: 8px; margin: 22px 0 8px; }
+      .state-screen-heading { align-items: center; display: flex; flex-wrap: wrap; font-size: var(--markvspec-heading-state); gap: 8px; margin: 0 0 12px; }
       .state-screen-subheading { color: #334155; font-size: var(--markvspec-heading-detail); font-weight: 700; margin: 0 0 12px; }
       .state-screen-detail-heading { color: #475569; font-size: 12px; font-weight: 700; margin: 0 0 8px; }
       .state-screen-section h2, .state-screen-section h3, .state-screen-section h4, .state-screen-section h5, .state-screen-section h6 { margin: 0 0 12px; }
+      .screen-description { color: #374151; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+      .screen-description .note-paragraph { margin: 0; }
+      .screen-description .note-paragraph + .note-paragraph { margin-top: 6px; }
       .state-badge { background: #dbeafe; border: 1px solid #60a5fa; border-radius: 999px; color: #1e3a8a; font-size: var(--markvspec-heading-badge); font-weight: 600; padding: 1px 6px; }
       .spec-empty { color: #6b7280; font-size: 12px; font-weight: 400; }
       .spec-table-wrap { max-width: 100%; overflow: auto; }
       .spec-table { border-collapse: collapse; font-size: 12px; width: 100%; }
       .spec-table th, .spec-table td { border: 1px solid #d1d5db; padding: 6px 8px; text-align: left; vertical-align: top; }
       .spec-table th { background: #f9fafb; font-weight: 600; white-space: nowrap; }
+      .spec-table tbody tr:nth-child(even) { background: #fcfcfd; }
+      .spec-table code:not(.mm-id):not(.mm-doc-label):not(.mm-document-ref-id) { background: #f3f4f6; border-radius: 3px; padding: 1px 3px; }
       .wireframe-section { max-width: 100%; overflow-x: auto; overflow-y: visible; padding-bottom: 4px; scrollbar-color: #9ca3af #f3f4f6; scrollbar-width: thin; }
       .wireframe-section::-webkit-scrollbar { height: 10px; width: 10px; }
       .wireframe-section::-webkit-scrollbar-track { background: #f3f4f6; }
       .wireframe-section::-webkit-scrollbar-thumb { background: #9ca3af; border: 2px solid #f3f4f6; border-radius: 999px; }
+      .wireframe-section .mm-wireframe { max-width: none; padding: 0; position: relative; }
       ${baseWireframeViewportCss({ spaced: true })}
+      .mm-inline-token { color: #0f766e; font-family: inherit; font-weight: 650; padding: 0 1px; }
+      .mm-chip { align-items: center; border: 1px solid #d1d5db; border-radius: 999px; display: inline-flex; font-size: 11px; font-weight: 650; line-height: 1.2; max-width: 100%; padding: 2px 7px; vertical-align: middle; white-space: normal; }
+      .mm-ref-chip { align-items: center; background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; color: #1f2937; display: inline-flex; font-size: 12px; font-weight: 600; gap: 5px; line-height: 1.35; max-width: 100%; padding: 2px 6px; text-decoration: none; vertical-align: baseline; }
+      .mm-id { align-items: center; align-self: flex-start; border: 1px solid transparent; display: inline-flex; flex: 0 0 auto; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 9px; font-variant-numeric: tabular-nums; font-weight: 700; justify-content: center; letter-spacing: 0; line-height: 1; margin-right: 6px; min-height: 16px; min-width: 16px; padding: 1px 4px; width: max-content; }
+      .mm-marker-layout { background: #ecfeff; border-color: #67e8f9; border-left: 3px solid #0891b2; border-radius: 4px; color: #155e75; }
+      .mm-marker-form-group { background: #f0fdf4; border-color: #86efac; border-left: 3px solid #16a34a; border-radius: 4px; color: #166534; }
+      .mm-marker-element { background: rgba(255,255,255,.72); border-color: #f59e0b; border-radius: 999px; color: #92400e; box-shadow: 0 1px 2px rgba(15,23,42,.12); }
+      .mm-marker-action { background: rgba(255,255,255,.78); border-color: #22c55e; border-radius: 4px; color: #166534; box-shadow: 0 1px 2px rgba(15,23,42,.12); }
+      .mm-marker-link { display: inline-flex; pointer-events: auto; text-decoration: none; }
+      .action-detail-list { display: grid; gap: 12px; }
+      .action-detail { border: 1px solid #d1d5db; border-radius: 6px; padding: 12px; }
+      .action-detail h3 { font-size: 14px; margin: 0 0 8px; }
+      .action-detail dl { display: grid; grid-template-columns: 120px minmax(0,1fr); gap: 6px 10px; margin: 0; }
+      .action-detail dt { color: #4b5563; font-size: 12px; font-weight: 600; }
+      .action-detail dd { font-size: 12px; margin: 0; }
+      .action-detail ul { margin: 0; padding-left: 16px; }
+      .process-flow { display: grid; gap: 8px; }
+      .process-card { background: #fff; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; padding: 8px; }
+      .process-card-header { align-items: center; display: flex; flex-wrap: wrap; gap: 6px; justify-content: space-between; margin-bottom: 6px; }
+      .process-card-title { align-items: center; display: inline-flex; flex-wrap: wrap; font-weight: 650; gap: 5px; min-width: 0; }
+      .process-card-meta { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 999px; color: #475569; font-size: 11px; font-weight: 600; line-height: 1.2; padding: 2px 7px; }
       .mm-export-diagnostics { margin-top: 24px; padding: 16px; border: 1px solid #d1d5db; background: #fff; }
       .mm-export-diagnostics table { width: 100%; border-collapse: collapse; }
       .mm-export-diagnostics th, .mm-export-diagnostics td { border-bottom: 1px solid #e5e7eb; padding: 8px; text-align: left; }

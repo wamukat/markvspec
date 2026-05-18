@@ -221,7 +221,7 @@ route: /login
 | 目的 | 最初に読む場所 |
 | --- | --- |
 | 最短で1画面をプレビューする | [Marketplace から入れる](#1-marketplace-から入れる)、[`login.vspec.md` を作る](#2-loginvspecmd-を作る)、[プレビューを開く](#3-プレビューを開く) |
-| source / preview / 生成設計書の関係を理解する | [HTML Authoring Guide](docs/ja/user/authoring-guide.html) |
+| source / preview / 生成設計書の関係を理解する | [HTML Authoring Guide](https://wamukat.github.io/markvspec/docs/ja/user/authoring-guide.html) |
 | Guide の後に実ファイルを試す | [サンプルギャラリー](docs/ja/user/example-gallery.md) |
 | 書きながら記法を引く | [Reference documents](#reference-documents) |
 | VS Code 拡張を入れる | [Marketplace から入れる](#1-marketplace-から入れる) |
@@ -230,7 +230,7 @@ route: /login
 
 初めて読む場合のおすすめ順です。
 
-1. [HTML Authoring Guide](docs/ja/user/authoring-guide.html): MarkVSpec source が preview と生成設計書にどうつながるかを HTML の視覚的説明で見る。
+1. [HTML Authoring Guide](https://wamukat.github.io/markvspec/docs/ja/user/authoring-guide.html): MarkVSpec source が preview と生成設計書にどうつながるかを HTML の視覚的説明で見る。
 2. [サンプルギャラリー](docs/ja/user/example-gallery.md): 実際の `.vspec.md` を開いて preview する。
 3. [Reference documents](#reference-documents): DSL、構造化セクション、partial、export の詳細を必要なときに引く。
 
@@ -281,26 +281,26 @@ marker です。参照には marker ではなく ID を使います。
 構文、レイアウト、状態、アクション、再利用の基本を確認できます。
 
 生成済み HTML preview は
-[GitHub Pages](https://wamukat.github.io/markvspec/) で確認できます。下のリンクは
-source の `.vspec.md` を確認・編集したい場合に使います。
+[GitHub Pages](https://wamukat.github.io/markvspec/) で確認できます。下の preview
+リンクを開くと、生成済み HTML をブラウザで確認できます。
 
-- [examples/01-basics/hello-screen.vspec.md](examples/01-basics/hello-screen.vspec.md): 最小の画面。
-- [examples/02-states/async-loading.vspec.md](examples/02-states/async-loading.vspec.md): request send と response states。
-- [examples/02-states/scenario-samples.vspec.md](examples/02-states/scenario-samples.vspec.md): baseline Element samples に対する Preview Scenario data variation。
-- [examples/02-states/responsive-profile.vspec.md](examples/02-states/responsive-profile.vspec.md): mobile / desktop layout。
-- [examples/03-actions/event-triggers.vspec.md](examples/03-actions/event-triggers.vspec.md): click 以外の element event と lifecycle trigger。
-- [examples/03-actions/form-submit-flow.vspec.md](examples/03-actions/form-submit-flow.vspec.md): validate、model update、server call、navigation。
-- [examples/03-actions/single-field-validation.vspec.md](examples/03-actions/single-field-validation.vspec.md): 単項目 validation contract。
-- [examples/03-actions/toast-feedback.vspec.md](examples/03-actions/toast-feedback.vspec.md): non-modal toast feedback と target なしの toast display。
-- [examples/03-actions/parallel-initial-load.vspec.md](examples/03-actions/parallel-initial-load.vspec.md): parallel server call と `Resolve`。
-- [examples/04-real-world-screens/notice-detail.vspec.md](examples/04-real-world-screens/notice-detail.vspec.md): Display Content Spec の文言、データソース、format、value、params。
-- [examples/04-real-world-screens/profile-edit-rich.vspec.md](examples/04-real-world-screens/profile-edit-rich.vspec.md): 拡張 form、media、list、dialog 系 Element Type。
-- [examples/04-real-world-screens/search-list.vspec.md](examples/04-real-world-screens/search-list.vspec.md): search、filter、pagination、empty result、result replacement。
-- [examples/04-real-world-screens/login-basic.vspec.md](examples/04-real-world-screens/login-basic.vspec.md): form layout、validation feedback scenario、authentication progress。
-- [examples/05-reuse/template-shell.vspec.md](examples/05-reuse/template-shell.vspec.md): template shell と slot の基本。
-- [examples/05-reuse/profile-page-with-template.vspec.md](examples/05-reuse/profile-page-with-template.vspec.md): template 合成、route params、partial host metadata、`display.partial` refresh。
-- [examples/05-reuse/profile-summary.partial.vspec.md](examples/05-reuse/profile-summary.partial.vspec.md): partial route と partial-local state。
-- [examples/06-structured-sections/history-and-errors.vspec.md](examples/06-structured-sections/history-and-errors.vspec.md): Error Codes、History Fields、History。
+- [Hello Screen](https://wamukat.github.io/markvspec/examples/hello-screen.html): 最小の画面。([source](examples/01-basics/hello-screen.vspec.md))
+- [Async Loading](https://wamukat.github.io/markvspec/examples/async-loading.html): request send と response states。([source](examples/02-states/async-loading.vspec.md))
+- [Scenario Samples](https://wamukat.github.io/markvspec/examples/scenario-samples.html): baseline Element samples に対する Preview Scenario data variation。([source](examples/02-states/scenario-samples.vspec.md))
+- [Responsive Profile](https://wamukat.github.io/markvspec/examples/responsive-profile.html): mobile / desktop layout。([source](examples/02-states/responsive-profile.vspec.md))
+- [Event Triggers](https://wamukat.github.io/markvspec/examples/event-triggers.html): click 以外の element event と lifecycle trigger。([source](examples/03-actions/event-triggers.vspec.md))
+- [Form Submit Flow](https://wamukat.github.io/markvspec/examples/form-submit-flow.html): validate、model update、server call、navigation。([source](examples/03-actions/form-submit-flow.vspec.md))
+- [Single-field Validation](https://wamukat.github.io/markvspec/examples/single-field-validation.html): 単項目 validation contract。([source](examples/03-actions/single-field-validation.vspec.md))
+- [Toast Feedback](https://wamukat.github.io/markvspec/examples/toast-feedback.html): non-modal toast feedback と target なしの toast display。([source](examples/03-actions/toast-feedback.vspec.md))
+- [Parallel Initial Load](https://wamukat.github.io/markvspec/examples/parallel-initial-load.html): parallel server call と `Resolve`。([source](examples/03-actions/parallel-initial-load.vspec.md))
+- [Notice Detail](https://wamukat.github.io/markvspec/examples/notice-detail.html): Display Content Spec の文言、データソース、format、value、params。([source](examples/04-real-world-screens/notice-detail.vspec.md))
+- [Profile Edit Rich](https://wamukat.github.io/markvspec/examples/profile-edit-rich.html): 拡張 form、media、list、dialog 系 Element Type。([source](examples/04-real-world-screens/profile-edit-rich.vspec.md))
+- [Search List](https://wamukat.github.io/markvspec/examples/search-list.html): search、filter、pagination、empty result、result replacement。([source](examples/04-real-world-screens/search-list.vspec.md))
+- [Login Basic](https://wamukat.github.io/markvspec/examples/login-basic.html): form layout、validation feedback scenario、authentication progress。([source](examples/04-real-world-screens/login-basic.vspec.md))
+- [Template Shell](https://wamukat.github.io/markvspec/examples/template-shell.html): template shell と slot の基本。([source](examples/05-reuse/template-shell.vspec.md))
+- [Profile Page With Template](https://wamukat.github.io/markvspec/examples/profile-page-with-template.html): template 合成、route params、partial host metadata、`display.partial` refresh。([source](examples/05-reuse/profile-page-with-template.vspec.md))
+- [Profile Summary Partial](https://wamukat.github.io/markvspec/examples/profile-summary.partial.html): partial route と partial-local state。([source](examples/05-reuse/profile-summary.partial.vspec.md))
+- [History And Errors](https://wamukat.github.io/markvspec/examples/history-and-errors.html): Error Codes、History Fields、History。([source](examples/06-structured-sections/history-and-errors.vspec.md))
 
 詳しくは [日本語 サンプルギャラリー](docs/ja/user/example-gallery.md) を参照してください。
 
@@ -333,7 +333,7 @@ HTML Authoring Guide や実ファイルを見た後、具体的に書くとき�
 | 目的 | ドキュメント |
 | --- | --- |
 | 日本語ドキュメント全体から探す | [日本語ドキュメント索引](docs/ja/README.md) |
-| HTML authoring の導線から始める | [HTML Authoring Guide](docs/ja/user/authoring-guide.html) |
+| HTML authoring の導線から始める | [HTML Authoring Guide](https://wamukat.github.io/markvspec/docs/ja/user/authoring-guide.html) |
 | 実例から探す | [サンプルギャラリー](docs/ja/user/example-gallery.md) |
 | 記法全体を確認する | [DSL リファレンス](docs/ja/user/dsl.md) |
 | PDF 出力の制約を見る | [PDF 出力と共有](docs/ja/user/pdf-export.md) |

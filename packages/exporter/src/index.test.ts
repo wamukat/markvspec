@@ -170,8 +170,10 @@ test("exports standalone HTML files", () => {
     assert.match(html, /<h4 class="state-screen-heading">State: idle initial<\/h4>/);
     assert.match(html, /<h5 class="state-screen-subheading">Wireframe<\/h5>/);
     assert.match(html, /:root \{ --markvspec-heading-state-views: 20px; --markvspec-heading-viewport: 17px; --markvspec-heading-state: 15px; --markvspec-heading-detail: 13px; --markvspec-heading-badge: 11px; \}/);
-    assert.match(html, /\.state-viewport-section > h3 \{ font-size: var\(--markvspec-heading-viewport\); margin: 22px 0 8px; \}/);
-    assert.match(html, /\.state-screen-heading \{ font-size: var\(--markvspec-heading-state\); margin: 0 0 12px; \}/);
+    assert.match(html, /\.doc-section h2 \{ align-items: center; border-bottom: 1px solid #d1d5db; display: flex;/);
+    assert.match(html, /\.state-viewport-section > h3 \{ align-items: center; display: flex; flex-wrap: wrap; font-size: var\(--markvspec-heading-viewport\); gap: 8px; margin: 22px 0 8px; \}/);
+    assert.match(html, /\.state-screen-heading \{ align-items: center; display: flex; flex-wrap: wrap; font-size: var\(--markvspec-heading-state\); gap: 8px; margin: 0 0 12px; \}/);
+    assert.match(html, /\.mm-inline-token \{ color: #0f766e; font-family: inherit; font-weight: 650; padding: 0 1px; \}/);
     assert.match(html, /@media print \{[\s\S]*:root \{ --markvspec-heading-state-views: 15pt; --markvspec-heading-viewport: 12\.5pt; --markvspec-heading-state: 11\.5pt; --markvspec-heading-detail: 10pt; --markvspec-heading-badge: 8\.5pt; \}/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
