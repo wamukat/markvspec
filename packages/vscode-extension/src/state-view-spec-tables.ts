@@ -90,6 +90,8 @@ export function createStateViewSpecTableRenderer(
     const withRepeated = repeated ? `${ref} ${renderRepeatedLabel()}` : ref;
     return unplaced ? `${withRepeated} ${renderUnplacedLabel()}` : withRepeated;
   };
+  const renderDefaultAlways = (): string =>
+    `<span class="spec-default-always">${helpers.text(helpers.label("always"))}</span>`;
 
   const renderElementDetailGroup = (title: string, content: string, emptyWhenRepeatedHidden = false): string =>
     `<div class="element-detail-group"${repeatedHiddenEmptyAttr(emptyWhenRepeatedHidden)}><h4>${helpers.text(title)}</h4>${markRepeatedHiddenEmptyHtml(content, emptyWhenRepeatedHidden)}</div>`;
@@ -244,7 +246,9 @@ export function createStateViewSpecTableRenderer(
       [helpers.conditionLabel("selected"), layoutPropertyList(layout, "selected when").join(", ")],
       [helpers.conditionLabel("active"), layoutPropertyList(layout, "active when").join(", ")]
     ].filter(([, value]) => value);
-    return renderSpecList(conditions.map(([key, value]) => `${helpers.text(key)}: ${helpers.text(value)}`));
+    return conditions.length > 0
+      ? renderSpecList(conditions.map(([key, value]) => `${helpers.text(key)}: ${helpers.text(value)}`))
+      : renderDefaultAlways();
   };
 
   const renderLayoutItemSummary = (layout: ParsedLayout): string => {

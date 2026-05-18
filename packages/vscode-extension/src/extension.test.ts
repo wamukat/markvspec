@@ -1207,7 +1207,46 @@ Layout note.
   assert.match(layouts, /<td><ul class="spec-list"><li>visible: idle<\/li><li>hidden: archived<\/li><li>disabled: saving<\/li><li>selected: current<\/li><li>active: editing<\/li><\/ul><\/td>/);
   assert.match(layouts, new RegExp(`<td><ul class="spec-list"><li>Email: ${detailIdRef("E-Email")}</li><li>${detailIdRef("L-Child")}</li><li>slot: content</li></ul></td>`));
   assert.match(layouts, /<td><div class="entity-notes"><p class="note-paragraph">Layout note\.<\/p><\/div><\/td>/);
-  assert.match(layouts, new RegExp(`<td>${detailLayoutRefById("L2", "L-Child")}</td><td>stack</td><td>-</td><td>-</td><td>-</td><td>-</td>`));
+  assert.match(layouts, new RegExp(`<td>${detailLayoutRefById("L2", "L-Child")}</td><td>stack</td><td>-</td><td>${defaultAlwaysPattern()}</td><td>-</td><td>-</td>`));
+});
+
+test("localizes unspecified State Views layout conditions as always", () => {
+  const source = `---
+id: SCR-JA-LAYOUT-CONDITIONS
+type: screen
+title: レイアウト条件
+locale: ja
+---
+
+# SCR-JA-LAYOUT-CONDITIONS レイアウト条件
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L1:L-Page Page
+
+- stack
+
+#### Items
+
+- E-Title
+
+## Elements
+
+### E-Title Text
+
+- value: Title
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const idleSection = stateSection(html, "idle");
+  const layouts = idleSection.match(/<h5 class="state-screen-subheading">レイアウト<\/h5>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.match(layouts, /<th>番号\/ID<\/th><th>種別<\/th><th>設定<\/th><th>条件<\/th><th>項目<\/th><th>備考<\/th>/);
+  assert.match(layouts, new RegExp(`<td>${detailLayoutRefById("L1", "L-Page")}</td><td>stack</td><td>-</td><td>${defaultAlwaysPattern("常に")}</td><td><ul class="spec-list"><li>${detailIdRef("E-Title")}</li></ul></td><td>-</td>`));
 });
 
 test("renders State Views layout Marker/ID chips from the current viewport layout row", () => {
