@@ -27,6 +27,9 @@ VS Code preview, exported to HTML, and exported to PDF.
 
 ![Hello Screen Markdown source next to the generated MarkVSpec static HTML preview](docs/assets/readme-hello-screen-preview.png)
 
+Open the generated static HTML examples on GitHub Pages:
+[MarkVSpec Examples](https://wamukat.github.io/markvspec/).
+
 ## Why It Helps
 
 - Keeps Markdown as the source of truth for screen specifications.
@@ -287,6 +290,10 @@ IDs, not markers.
 ## Examples
 
 The `examples/` directory is organized as a learning path:
+
+Generated HTML previews are available on
+[GitHub Pages](https://wamukat.github.io/markvspec/). Use the source links below
+when you want to inspect or edit the `.vspec.md` files.
 
 - [examples/01-basics/hello-screen.vspec.md](examples/01-basics/hello-screen.vspec.md): minimum screen.
 - [examples/02-states/async-loading.vspec.md](examples/02-states/async-loading.vspec.md): request send and response states.

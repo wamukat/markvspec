@@ -24,6 +24,9 @@ source と、そこから生成した static HTML preview のワイヤーフレ�
 
 ![Hello Screen の Markdown source と MarkVSpec static HTML preview](docs/assets/readme-hello-screen-preview.png)
 
+生成済み static HTML のサンプルは GitHub Pages で開けます:
+[MarkVSpec Examples](https://wamukat.github.io/markvspec/)。
+
 ## 何が嬉しいか
 
 - 画面仕様を Markdown として Git 管理できる。
@@ -276,6 +279,10 @@ marker です。参照には marker ではなく ID を使います。
 
 `examples/` は学習順に整理しています。現在のサンプル本文は英語ですが、
 構文、レイアウト、状態、アクション、再利用の基本を確認できます。
+
+生成済み HTML preview は
+[GitHub Pages](https://wamukat.github.io/markvspec/) で確認できます。下のリンクは
+source の `.vspec.md` を確認・編集したい場合に使います。
 
 - [examples/01-basics/hello-screen.vspec.md](examples/01-basics/hello-screen.vspec.md): 最小の画面。
 - [examples/02-states/async-loading.vspec.md](examples/02-states/async-loading.vspec.md): request send と response states。
