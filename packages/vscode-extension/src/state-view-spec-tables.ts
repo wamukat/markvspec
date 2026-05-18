@@ -34,10 +34,8 @@ export interface StateViewSpecTableHelpers {
   renderRequiredSpec(element: ParsedElement): string;
   renderFormControlInitialValueSource(element: ParsedElement): string;
   renderInputSpec(element: ParsedElement): string;
+  renderElementConditionSummary(element: ParsedElement): string;
   renderContentElementState(element: ParsedElement): string;
-  renderEnabledConditionList(element: ParsedElement): string;
-  renderDisplayContentElementState(element: ParsedElement): string;
-  renderDisplayContentEnabledConditionList(element: ParsedElement): string;
   renderDisplayContentValue(element: ParsedElement, value: string, sections?: DisplayContentSpecRow["contentSections"]): string;
   renderSourceSummary(value: string | true | undefined): string;
   renderElementLabelSummary(properties: Record<string, string | true>): string;
@@ -132,22 +130,21 @@ export function createStateViewSpecTableRenderer(
 
   const renderFormControlElementsTable = (elements: ParsedElement[], repeatedElementIds: ReadonlySet<string> | undefined, emptyWhenRepeatedHidden: boolean): string =>
     markRepeatedHiddenEmptyHtml(helpers.renderLocalizedTable(
-      [markerIdHeader(), helpers.label("type"), helpers.label("inputRequired"), helpers.label("initialValueSource"), helpers.label("inputSpec"), helpers.label("visibleWhen"), helpers.label("enabledWhen")],
+      [markerIdHeader(), helpers.label("type"), helpers.label("inputRequired"), helpers.label("initialValueSource"), helpers.label("inputSpec"), helpers.label("condition")],
       elements.map((element) => [
         renderRepeatedEntityRefCell(element.id, Boolean(repeatedElementIds?.has(element.id))),
         helpers.text(element.type),
         helpers.renderRequiredSpec(element),
         helpers.renderFormControlInitialValueSource(element),
         helpers.renderInputSpec(element),
-        helpers.renderContentElementState(element),
-        helpers.renderEnabledConditionList(element)
+        helpers.renderElementConditionSummary(element)
       ])
     ), emptyWhenRepeatedHidden);
 
   const renderDisplayContentSpecTable = (rows: DisplayContentSpecRow[], repeatedElementIds: ReadonlySet<string> | undefined, emptyWhenRepeatedHidden: boolean): string => {
     const spans = consecutiveRowspans(rows, (row, index) => repeatedElementIds?.has(row.element.id) ? `${row.element.id}\u0000${index}` : row.element.id);
     return markRepeatedHiddenEmptyHtml(helpers.renderLocalizedTableWithCells(
-      [markerIdHeader(), helpers.label("displayLocation"), helpers.label("displayValue"), helpers.label("format"), helpers.label("displaySource"), helpers.label("displayCondition"), helpers.label("enabledWhen")],
+      [markerIdHeader(), helpers.label("displayLocation"), helpers.label("displayValue"), helpers.label("format"), helpers.label("displaySource"), helpers.label("condition")],
       rows.map((row, index) => [
         ...rowspanPrefixCells(spans[index] ?? 0, [
           renderRepeatedEntityRefCell(row.element.id, Boolean(repeatedElementIds?.has(row.element.id)))
@@ -156,8 +153,7 @@ export function createStateViewSpecTableRenderer(
         helpers.renderDisplayContentValue(row.element, row.value, row.contentSections),
         row.format ? helpers.text(row.format) : "",
         helpers.renderSourceSummary(row.source),
-        helpers.renderDisplayContentElementState(row.element),
-        helpers.renderDisplayContentEnabledConditionList(row.element)
+        helpers.renderElementConditionSummary(row.element)
       ])
     ), emptyWhenRepeatedHidden);
   };

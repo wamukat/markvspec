@@ -270,7 +270,8 @@ test("exports source-kind metadata example in standalone HTML", () => {
     assert.match(loadedSection, /Taylor Stone/);
     assert.match(loadedSection, /taylor@example\.com/);
     assert.match(loadedSection, /<h6 class="state-screen-detail-heading">Display Content Spec<\/h6>/);
-    assert.match(loadedSection, /<th>Marker\/ID<\/th><th>Location<\/th><th>Content<\/th><th>Format<\/th><th>Source<\/th><th>Condition<\/th><th>Enabled When<\/th>/);
+    assert.match(loadedSection, /<th>Marker\/ID<\/th><th>Location<\/th><th>Content<\/th><th>Format<\/th><th>Source<\/th><th>Condition<\/th>/);
+    assert.doesNotMatch(loadedSection, /<th>Enabled When<\/th>/);
     for (const kind of ["fixed", "i18n", "data", "route", "element", "asset", "external", "computed"]) {
       assert.match(loadedSection, new RegExp(`mm-source-chip-${kind}`), kind);
     }

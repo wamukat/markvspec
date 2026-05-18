@@ -606,7 +606,7 @@ function renderDisplayContentSpecTable(
   const spans = consecutiveRowspans(rows, (row) => row.element.id);
   const markerIdHeader = `${messages.marker}/${messages.id}`;
   return renderTableWithCells(
-    [markerIdHeader, messages.displayLocation, messages.displayValue, messages.format, messages.displaySource, messages.displayCondition, messages.enabledWhen],
+    [markerIdHeader, messages.displayLocation, messages.displayValue, messages.format, messages.displaySource, messages.condition],
     rows.map((row, index) => [
       ...rowspanPrefixCells(spans[index] ?? 0, [
         renderScenarioSampleElementRef(result, row.element.id)
@@ -615,8 +615,7 @@ function renderDisplayContentSpecTable(
       renderDisplayContentValue(row.element, row.value, row.contentSections),
       row.format ? escapeHtml(row.format) : "",
       renderSourceSummary(row.source),
-      renderDisplayCondition(row.element, messages),
-      renderEnabledCondition(row.element, messages)
+      renderElementConditionSummary(row.element, messages)
     ])
   );
 }
@@ -652,32 +651,30 @@ function renderSourceSummary(value: string | true | undefined): string {
   return hasOpaqueExpression(source) ? renderExpressionTokens(source) : code(source);
 }
 
-function renderDisplayCondition(
+function renderElementConditionSummary(
   element: MarkVSpecParseResult["elements"][number],
   messages: RendererMessages
 ): string {
-  const rows = [
+  const visibleRows = [
     ...element.visibleWhen.map((condition) => `${messages.conditionVisibleShort}: ${renderCondition(condition)}`),
     ...element.hiddenWhen.map((condition) => `${messages.conditionHiddenShort}: ${renderCondition(condition)}`)
   ];
-  return rows.length > 0 ? renderSpecSections([{ title: messages.condition, rows }]) : renderDefaultAlways(messages);
-}
-
-function renderEnabledCondition(
-  element: MarkVSpecParseResult["elements"][number],
-  messages: RendererMessages
-): string {
-  if (element.disabledWhen.length === 0) {
-    return renderDefaultAlways(messages);
-  }
+  const enabledRows = element.disabledWhen.map((condition) => `${messages.conditionNot} ${renderCondition(condition)}`);
   return renderSpecSections([{
-    title: messages.conditionEnabledShort,
-    rows: element.disabledWhen.map((condition) => `${messages.conditionNot} ${renderCondition(condition)}`)
-  }]);
+    title: specSectionTitle(messages.conditionVisibleShort),
+    rows: visibleRows
+  }, {
+    title: specSectionTitle(messages.conditionEnabledShort),
+    rows: enabledRows
+  }]) || renderDefaultAlways(messages);
 }
 
 function renderDefaultAlways(messages: RendererMessages): string {
   return `<span class="spec-default-always">${escapeHtml(messages.always)}</span>`;
+}
+
+function specSectionTitle(value: string): string {
+  return /^[a-z]/u.test(value) ? `${value.charAt(0).toUpperCase()}${value.slice(1)}` : value;
 }
 
 function renderSpecSections(sections: Array<{ title: string; rows: string[] }>): string {

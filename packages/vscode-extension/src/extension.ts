@@ -3787,10 +3787,8 @@ function stateViewsRenderContext(result: ReturnType<typeof parseMarkVSpec>): Sta
     renderRequiredSpec: (element) => renderRequiredSpec(result, element),
     renderFormControlInitialValueSource: (element) => renderFormControlInitialValueSource(result, element),
     renderInputSpec: (element) => renderInputSpec(result, element),
+    renderElementConditionSummary: (element) => renderElementConditionSummary(result, element),
     renderContentElementState: (element) => renderContentElementState(result, element),
-    renderEnabledConditionList: (element) => renderEnabledConditionList(result, element),
-    renderDisplayContentElementState: (element) => renderDisplayContentElementState(result, element),
-    renderDisplayContentEnabledConditionList: (element) => renderDisplayContentEnabledConditionList(result, element),
     renderDisplayContentValue,
     renderSourceSummary,
     renderElementLabelSummary,
@@ -4129,16 +4127,6 @@ function renderDefinitionList(rows: Array<[string, string]>): string {
 
 function referenceHref(path: string): string {
   return pathToFileURL(path).href;
-}
-
-function renderEnabledConditionList(
-  result: ReturnType<typeof parseMarkVSpec>,
-  element: ParsedElement
-): string {
-  if (element.disabledWhen.length === 0) {
-    return renderDefaultAlways(result);
-  }
-  return `<ul class="spec-list">${element.disabledWhen.map((condition) => `<li>${escapeHtml(conditionLabel(result, "enabled"))}: ${label(result, "conditionNot")} ${renderCondition(result, condition)}</li>`).join("")}</ul>`;
 }
 
 function renderDefaultAlways(result: ReturnType<typeof parseMarkVSpec>): string {
@@ -5141,20 +5129,6 @@ function renderDiagnosticsSpec(result: ReturnType<typeof parseMarkVSpec>): strin
 function renderConditionList(result: ReturnType<typeof parseMarkVSpec>, groups: Array<[string, string[]]>): string {
   const items = groups.flatMap(([label, conditions]) => conditions.map((condition) => `<li>${escapeHtml(conditionLabel(result, label))}: ${renderCondition(result, condition)}</li>`));
   return items.length > 0 ? `<ul class="spec-list">${items.join("")}</ul>` : "";
-}
-
-function renderConditionSpecSections(result: ReturnType<typeof parseMarkVSpec>, groups: Array<[string, string[]]>): string {
-  return renderSpecSections(groups.map(([key, conditions]) => ({
-    title: specSectionTitle(conditionLabel(result, key)),
-    rows: conditions.map((condition) => renderCondition(result, condition))
-  })));
-}
-
-function renderEnabledConditionSpecSections(result: ReturnType<typeof parseMarkVSpec>, conditions: string[]): string {
-  return renderSpecSections([{
-    title: specSectionTitle(conditionLabel(result, "enabled")),
-    rows: conditions.map((condition) => `${text(label(result, "conditionNot"))} ${renderCondition(result, condition)}`)
-  }]);
 }
 
 function specSectionTitle(value: string): string {
@@ -6170,23 +6144,19 @@ function renderContentElementState(
   ]) || renderDefaultAlways(result);
 }
 
-function renderDisplayContentElementState(
+function renderElementConditionSummary(
   result: ReturnType<typeof parseMarkVSpec>,
   element: ReturnType<typeof parseMarkVSpec>["elements"][number]
 ): string {
-  return renderConditionSpecSections(result, [
-    ["visible", element.visibleWhen],
-    ["hidden", element.hiddenWhen]
+  const visibleRows = [
+    ...element.visibleWhen.map((condition) => `${escapeHtml(conditionLabel(result, "visible"))}: ${renderCondition(result, condition)}`),
+    ...element.hiddenWhen.map((condition) => `${escapeHtml(conditionLabel(result, "hidden"))}: ${renderCondition(result, condition)}`)
+  ];
+  const enabledRows = element.disabledWhen.map((condition) => `${text(label(result, "conditionNot"))} ${renderCondition(result, condition)}`);
+  return renderSpecSections([
+    { title: specSectionTitle(conditionLabel(result, "visible")), rows: visibleRows },
+    { title: specSectionTitle(conditionLabel(result, "enabled")), rows: enabledRows }
   ]) || renderDefaultAlways(result);
-}
-
-function renderDisplayContentEnabledConditionList(
-  result: ReturnType<typeof parseMarkVSpec>,
-  element: ReturnType<typeof parseMarkVSpec>["elements"][number]
-): string {
-  return element.disabledWhen.length === 0
-    ? renderDefaultAlways(result)
-    : renderEnabledConditionSpecSections(result, element.disabledWhen);
 }
 
 function renderActionableElementState(

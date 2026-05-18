@@ -1610,11 +1610,11 @@ title: Markerless
 
   assert.match(html, /<h6 class="state-screen-detail-heading">Element Summary<\/h6>/);
   assert.match(html, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>/);
-  assert.match(html, new RegExp(`<td>${detailElementRef("E-メールアドレス入力", "E-メールアドレス入力")}</td><td>Input</td><td>yes</td><td>${specSectionPattern("initial", ["a@example\\.com"])}${specSectionPattern("Source", [sourceCodePattern("${model.email}")])}</td><td>-</td><td>${defaultAlwaysPattern()}</td><td>${defaultAlwaysPattern()}</td>`));
+  assert.match(html, new RegExp(`<td>${detailElementRef("E-メールアドレス入力", "E-メールアドレス入力")}</td><td>Input</td><td>yes</td><td>${specSectionPattern("initial", ["a@example\\.com"])}${specSectionPattern("Source", [sourceCodePattern("${model.email}")])}</td><td>-</td><td>${defaultAlwaysPattern()}</td>`));
   assert.match(html, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>/);
   assert.doesNotMatch(html, /<div class="element-detail-group"><h4>Actionable<\/h4>/);
   assert.match(html, new RegExp(`<td>${detailElementRef("E-SubmitButton", "E-SubmitButton")}</td><td>Button</td><td><ul class="spec-list"><li>${refActionChip("A-Submit", "A-Submit", "Submit")}</li></ul></td><td>-</td>`));
-  assert.match(html, new RegExp(`<td>${detailElementRef("E-SubmitButton", "E-SubmitButton")}</td><td>label</td><td>Submit &amp; Continue</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${defaultAlwaysPattern()}</td><td>${specSectionPattern("Enabled", [`not ${markerBadge("E-メールアドレス入力", "element")} is empty`])}</td>`));
+  assert.match(html, new RegExp(`<td>${detailElementRef("E-SubmitButton", "E-SubmitButton")}</td><td>label</td><td>Submit &amp; Continue</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${specSectionPattern("Enabled", [`not ${markerBadge("E-メールアドレス入力", "element")} is empty`])}</td>`));
   assert.doesNotMatch(html, /<h2>Visibility \/ Availability<\/h2>/);
   assert.match(html, new RegExp(`<td>${detailLayoutRefById("L-Form", "L-Form")}</td><td>stack</td><td>${specSectionPattern("Items", [`Email: ${detailIdRef("E-メールアドレス入力")}`, detailIdRef("E-SubmitButton")])}</td><td><ul class="spec-list"><li>visible: user\\.role is admin, user\\.can access login</li></ul></td><td>-</td>`));
   assert.match(html, new RegExp(`email: ${detailElementRef("E-メールアドレス入力", "E-メールアドレス入力")}\\.value`));

@@ -671,7 +671,8 @@ title: Static Display Metadata
   const loadedSection = stateViewSection(html, "loaded");
   const displayContent = loadedSection.match(/<div class="element-detail-group">\s*<h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
 
-  assert.match(displayContent, /<th>Marker\/ID<\/th><th>Location<\/th><th>Content<\/th><th>Format<\/th><th>Source<\/th><th>Condition<\/th><th>Enabled When<\/th>/);
+  assert.match(displayContent, /<th>Marker\/ID<\/th><th>Location<\/th><th>Content<\/th><th>Format<\/th><th>Source<\/th><th>Condition<\/th>/);
+  assert.doesNotMatch(displayContent, /<th>Enabled When<\/th>/);
   for (const kind of ["i18n", "data", "asset", "external", "computed"]) {
     assert.match(displayContent, new RegExp(`mm-source-chip-${kind}`), kind);
   }

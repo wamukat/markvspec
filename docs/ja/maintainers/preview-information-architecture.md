@@ -26,8 +26,8 @@ MarkVSpec のプレビューは、生成された画面設計書です。上か�
 | Wireframe | 画面構造と状態別の見え方 | Element samples、対象stateのscenario samples、Layout構造、Element配置、marker、自動イベント、partial preview配置、viewport/stateごとの現在仕様 | Element全プロパティ、Action内部処理、通信詳細 |
 | Layouts | 現在のワイヤーフレーム文脈で表示されるLayout | marker、名前、種別、layoutプロパティ、item参照 | Elementの振る舞い、Action詳細 |
 | 画面要素サマリー | 現在のワイヤーフレーム文脈の要素カタログ | marker、ID、type、関連Action、説明 | 表示文言、入力制約、visible/disabled条件、Action処理詳細 |
-| 入力フォーム仕様 | ユーザーが入力できる値と制約 | 入力要素側の必須、値の初期値/取得元、入力詳細、readonly を含む制約、表示形式、条件、有効条件 | label、placeholder、option label、validation required rule、独立した bind 列など |
-| 表示内容仕様 | 要素に表示される文言・値と取得元 | label、placeholder、help、sample、option label、src/i18n/model参照、format、表示条件、有効条件 | 入力制約、Action内部処理、validation条件 |
+| 入力フォーム仕様 | ユーザーが入力できる値と制約 | 入力要素側の必須、値の初期値/取得元、入力詳細、readonly を含む制約、表示形式、表示/有効をまとめた Condition 列 | label、placeholder、option label、validation required rule、独立した bind 列など |
+| 表示内容仕様 | 要素に表示される文言・値と取得元 | label、placeholder、help、sample、option label、src/i18n/model参照、format、表示/有効をまとめた Condition 列 | 入力制約、Action内部処理、validation条件 |
 | Action Summary | 操作一覧の俯瞰 | marker、name、trigger、kind、著者が書いた overview | case別request params、response body、update target詳細、Action の availability、自動要約 |
 | Action Details | 振る舞い仕様の本体 | 著者が書いた概要、種別、trigger、from、process、request、params、response、cases、partial updates、update、transition、route params、notes | 画面レイアウト詳細、Action レベルの guard、自動要約 |
 | State Flow | 状態遷移の全体像 | Mermaid state diagram、状態遷移表へのリンク | request parameter、UI要素プロパティ |
@@ -43,8 +43,8 @@ MarkVSpec のプレビューは、生成された画面設計書です。上か�
 詳細セクションは「正確に何が起きるか」を示します。
 
 - 画面要素サマリーは「何があるか」に絞り、表示内容や入力仕様を持ち込まない。
-- 入力フォーム仕様は、ユーザーが入力できる値、入力要素側の必須、初期値/取得元、入力詳細、入力制約、表示形式、条件/有効条件を扱う。readonly は制約として表示し、独立した bind 列は持たない。入力要素側の必須情報は必須列に集約し、仕様セルには表示しない。product validation の required rule は Validations に置く。
-- 表示内容仕様は、`label`、`placeholder`、`source`、`sample`、`src`、`value`、`format`、`option label` を表示箇所ごとに扱い、表示文言を持つ非入力要素の表示/有効条件もここで確認できるようにする。
+- 入力フォーム仕様は、ユーザーが入力できる値、入力要素側の必須、初期値/取得元、入力詳細、入力制約、表示形式、表示/有効をまとめた単一 Condition 列を扱う。readonly は制約として表示し、独立した bind 列は持たない。入力要素側の必須情報は必須列に集約し、仕様セルには表示しない。product validation の required rule は Validations に置く。
+- 表示内容仕様は、`label`、`placeholder`、`source`、`sample`、`src`、`value`、`format`、`option label` を表示箇所ごとに扱い、表示文言を持つ非入力要素の表示/有効条件も単一 Condition 列で確認できるようにする。
 - Validations は client/server と単項目/複合項目で表を分け、1つの表に責務を混在させない。
 - Action Summary は 1 Action 1 行を維持し、著者が Action 見出し直下に書いた概要だけを表示する。処理内容から overview を自動生成しない。
 - Action Details は、著者が書いた概要、種別、trigger、from、process、request、
