@@ -87,7 +87,8 @@ Optional fields:
 - `references`: document ID to file path mappings used by a screen. Supported
   groups are `partials`.
 - `route`
-- `viewport`
+- `default-state`: display state opened first in preview/export. The screen
+  model's initial state is still the `*` state in `## States`.
 - `locale`: generated design document language. Supported values are `en` and
   `ja`.
 - `tags`
@@ -162,6 +163,63 @@ returned HTML itself.
 The Action `request:` block describes only the communication contract. A Layout
 `partial:` block declares the partial host contract. A `display.partial` effect
 declares that a referenced `PRT-*` document's content is displayed in that host.
+
+## Authoring Model
+
+MarkVSpec does not interpret all Markdown as DSL. Tools separate
+machine-readable areas from Markdown that is preserved for readers.
+
+| Area | Authoring shape | Interpretation | Status |
+| --- | --- | --- | --- |
+| Document Header | YAML Front Matter and `# <ID> <Title>` | Document ID, type, title, references, and other document metadata. | Implemented |
+| Recognized Section | `## States`, `## Actions`, and similar sections | Interpreted according to each section's structure. | Implemented |
+| Entity Block | `### A1:A-Submit Submit` and similar headings | Definition unit for one ID-bearing design object. | Implemented |
+| Structured Body | Bullets, nested lists, and supported tables under an entity | MarkVSpec DSL read by parser, validator, and preview. | Implemented |
+| Supplemental Markdown | Lead / Notes / Free-form Section content | Preserved as ordinary Markdown and not interpreted as DSL semantics. | Implemented |
+
+This document uses these categories when describing syntax:
+
+| Category | Examples | Meaning |
+| --- | --- | --- |
+| Reserved keyword | `## Actions`, `Process`, `request:`, `Effects` | A word with DSL meaning when used as a heading, group name, property name, or type name. |
+| Reference ID | `E-EmailInput`, `L-MessageArea`, `A-Submit.P2.response` | Stable reference to a design object in this document or a referenced document. |
+| Opaque expression | `${model.notice.title}`, `${view.selectedTab}`, `${route.userId}` | Value source preserved by MarkVSpec. Preview only evaluates the supported view/state condition subset. |
+| Arbitrary string | Action names, case descriptions, message text, service call text | Human-readable text, not a fixed enum. |
+| Supplemental Markdown | Lead, Notes, and Free-form Section body | Rendered in generated documents but not converted into structured DSL. |
+
+### Current Canonical Syntax
+
+| Subject | Canonical syntax | Status | Details |
+| --- | --- | --- | --- |
+| Screen state | Top-level list in `## States`; initial state marked with `*` | Implemented | [States](#states-section) |
+| Layout | `## Layout: <viewport>`, `### [marker:]L-* Name`, `#### Items` | Implemented | [Layout](#layout-section) |
+| Element | `### [marker:]E-* Type` with element property bullets | Implemented | [Elements](#elements-section) |
+| Form Group | `### [marker:]F-* Name`, `fields`, and `submit` | Implemented | [Form Groups](#form-groups) |
+| Action | `Triggered` / `From` / `Process <marker>: <name>` | Implemented | [Actions](#actions-section) |
+| Process detail | `request:` / `server:` / `receive:` / project-specific detail | Implemented | Use at most one execution detail per Process. |
+| Request params | `request.params` with sources such as `E-*.value` | Implemented | `input:` is legacy. |
+| Server params | `server.params` for values passed to service calls | Implemented | Service call text is an arbitrary string. |
+| Result cases | `case: <name>` directly under the Process | Implemented | Old `Cases` blocks are not canonical. |
+| Effects | `state` / `navigate` / `view` / `display` under `case:` or an immediate Process | Implemented | Action-level `Effects` and `${model.*}` assignment are not canonical. |
+| Flow control | `stop` / `continue` at the end of a case | Implemented | Omitted flow is treated as `continue`. |
+| Display | `display.target` plus exactly one of `element`, `message`, or `partial` | Implemented | `display.content` and `display.elements` are unsupported. |
+| View Context | `## View Context`, `${view.<name>}`, and `view:` effects | Implemented | Supported types are `boolean` and `enum`. |
+| source / samples | `source: data`, `sample`, `sample rows:`, scenario `samples` | Implemented | Detailed docs are planned in #1180. |
+| Preview Scenarios | `state` / `view` / `cases` / `samples` in `## Preview Scenarios` | Implemented | Detailed docs are planned in #1180. |
+| Validation | `## Field Validations` / `## Cross-field Validations` | Implemented | `## Validations` is legacy-compatible. |
+| Business Rules | `## Business Rules`, `### [marker:]R-* Name` | Implemented | Server-side domain constraints stay separate from validation. |
+| Template / Slot | `type: template`, `## Slots`, and screen-side `## Slot:<name>` | Implemented | Detailed docs are planned in #1181. |
+| Partial | `type: partial`, Layout `partial:` hosts, and `display.partial` | Implemented | Detailed docs are planned in #1181. |
+
+Primary legacy or unsupported forms:
+
+- `owner`, `status`, and `viewport` Front Matter: warn and are not canonical metadata.
+- Bare `## Layout`: not release syntax. Use `## Layout: <viewport>`.
+- Action-level `Effects`: not canonical. Put effects directly under an immediate Process or under `case:`.
+- Action-level `Cases` / legacy `cases:` blocks: not canonical. Use process-local `case:`.
+- `input:`: legacy syntax. Use `request.params`, `server.params`, or `<custom detail>.params`.
+- `update:`: not canonical. Use `display:` for visible changes, `state:` for screen state, and `navigate:` for screen transitions.
+- `display.content` / `display.elements`: unsupported. Define reusable UI first as `E-*` or `L-*`.
 
 ## Sections
 
@@ -336,19 +394,34 @@ Level-2 section names:
 
 - `States`
 - `Layout`
+- `Slot`
+- `Slots`
 - `Elements`
 - `Form Groups`
 - `Actions`
+- `View Context`
+- `View Context Samples`
+- `Preview Scenarios`
+- `Field Validations`
+- `Cross-field Validations`
 - `Validations`
 - `Business Rules`
 - `Error Codes`
 - `History Fields`
 - `History`
 
-Template and slot section names:
+Primary Front Matter keys:
 
-- `Slot`
-- `Slots`
+- `id`
+- `type`
+- `title`
+- `route`
+- `default-state`
+- `template`
+- `references`
+- `locale`
+- `tags`
+- `version`
 
 Action group names:
 
@@ -356,8 +429,9 @@ Action group names:
 - `From`
 - `Process`
 - `Effects`
-- `Otherwise`
-- `Cases`
+- `case`
+- `stop`
+- `continue`
 
 Primary action process detail, result, and display words:
 
@@ -438,8 +512,14 @@ Common property names:
 - `marker`
 - `label`
 - `label src`
+- `placeholder`
+- `placeholder src`
 - `sample`
+- `sample rows`
+- `source`
 - `src`
+- `text`
+- `hint`
 - `value`
 - `variant`
 - `tone`
@@ -453,6 +533,8 @@ Layout property names:
 - `align`
 - `justify`
 - `overlay`
+- `partial`
+- `states`
 
 `variant` and `tone` values:
 
@@ -1630,13 +1712,19 @@ screen does, not the exact htmx attributes.
 
 - Triggered
   - E-EmailInput.blur
-- Process P1: Immediate
-  - case: empty
-    - from: idle
+- From
+  - idle
+- Process P1: Check email field
+  - receive:
+    - validation: V-EmailRequired.result
+  - case: invalid
     - Effects
       - display:
         - target: L-EmailValidation
         - element: E-EmailRequiredMessage
+    - stop
+  - case: valid
+    - continue
 ```
 
 Mapping to htmx/Thymeleaf is implementation-facing:
@@ -2623,7 +2711,7 @@ Warnings:
 
 - No initial state.
 - Heading document ID differs from Front Matter ID.
-- Removed Front Matter fields such as `owner` or `status` are present.
+- Removed Front Matter fields such as `owner`, `status`, or `viewport` are present.
 - Unknown element type, except explicit `custom:*` element types.
 - Unknown layout kind.
 - ID-like token in a condition does not resolve.
@@ -2634,9 +2722,9 @@ Warnings:
 ```text
 file              = front_matter document_heading section*
 document_heading  = "# " document_id " " title
-section           = states | layout | slot | slots | elements | form_groups | actions | view_context | view_context_samples | preview_scenarios | validations | business_rules | error_codes | history_fields | history | markdown
+section           = states | layout | slot | slots | elements | form_groups | actions | view_context | view_context_samples | preview_scenarios | field_validations | cross_field_validations | validations | business_rules | error_codes | history_fields | history | markdown
 states            = "## States" state_bullet*
-layout            = ("## Layout" | "## Layout:" viewport) layout_group*
+layout            = "## Layout:" viewport layout_group*
 slot              = "## Slot:" slot_name (":" viewport)? layout_group*
 slots             = "## Slots" slot_definition*
 elements          = "## Elements" element*
@@ -2660,16 +2748,15 @@ layout_group      = "### " marker_prefix? layout_id " " name bullet*
 element           = "### " marker_prefix? element_id " " element_type required_suffix? bullet*
 form_group        = "### " marker_prefix? form_group_id " " name bullet*
 action            = "### " marker_prefix? action_id " " action_name action_group*
-action_group      = triggered_group | from_group | process_group | otherwise_group
+action_group      = triggered_group | from_group | process_group
 triggered_group   = "- Triggered" nested_bullet*
 from_group        = "- From" nested_bullet*
 process_group     = "- Process " marker ": " process_name process_detail*
 process_case      = indent "- case:" result_name nested_bullet*
 process_detail    = receive_group | process_case | nested_bullet
 receive_group     = indent "- receive:" receive_item*
-receive_item      = indent indent "- validation: " validation_result_ref
+receive_item      = indent indent "- validation: " validation_result_ref | indent indent "- response: " action_process_response_ref | indent indent "- " name ": " opaque_source
 display_message   = indent indent indent "- message: " validation_messages_ref
-otherwise_group   = "- Otherwise" nested_bullet*
 field_validation  = "### " marker_prefix? validation_id name? field_validation_property*
 cross_field_validation = "### " marker_prefix? validation_id name? cross_field_validation_property*
 field_validation_property = target_property | run_property | constraints_group

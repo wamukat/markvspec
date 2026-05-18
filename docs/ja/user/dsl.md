@@ -57,7 +57,7 @@ Front Matter は YAML です。文書全体のメタデータだけを書きま�
 - `template`: 画面が利用するテンプレート参照。`id` と `src` を持つ map として指定します。
 - `references`: 画面が参照する設計書 ID とファイルパスの対応表。`partials` をサポートします。
 - `route`: 画面の URL パス。動的 segment は `/users/:userId` のように `:param` で書きます。
-- `viewport`
+- `default-state`: preview / export で最初に開く表示 state。state model の初期状態は `## States` の `*` が正です。
 - `locale`: 生成される設計書の表示言語。`en` と `ja` をサポートします。
 - `tags`
 - `version`
@@ -148,6 +148,63 @@ partial 由来の内容で置き換えるか」を書きます。partial 側は�
 Action の `request:` は通信契約だけを表します。Layout の `partial:` は partial host
 contract を表します。`display.partial` は、参照済み `PRT-*` 文書由来の content を
 その host に表示することを表します。
+
+## 記法モデル
+
+MarkVSpec は Markdown 全体を DSL として読むわけではありません。ツールが意味解釈する
+領域と、人間向けに保持する Markdown を分けて扱います。
+
+| 領域 | 書き方 | 解釈 | 状態 |
+| --- | --- | --- | --- |
+| Document Header | YAML Front Matter と `# <ID> <Title>` | 文書 ID、種別、タイトル、参照先などの文書 metadata。 | 実装済み |
+| Recognized Section | `## States`、`## Actions` など | section ごとに決まった構造として解釈する。 | 実装済み |
+| Entity Block | `### A1:A-Submit Submit` など | ID を持つ設計対象の定義単位。 | 実装済み |
+| Structured Body | entity 配下の bullet、nested list、サポート対象の table | parser / validator / preview が読む MarkVSpec DSL。 | 実装済み |
+| Supplemental Markdown | Lead / Notes / Free-form Section | 通常 Markdown として保持し、DSL semantics としては解釈しない。 | 実装済み |
+
+この文書では、各構文を次の分類で説明します。
+
+| 分類 | 例 | 意味 |
+| --- | --- | --- |
+| 予約語 | `## Actions`、`Process`、`request:`、`Effects` | 見出し、グループ名、property 名、型名として書くと DSL の意味を持つ語。 |
+| 参照 ID | `E-EmailInput`、`L-MessageArea`、`A-Submit.P2.response` | 同じ文書または参照済み文書内の設計対象を指す安定 ID。 |
+| 不透明式 | `${model.notice.title}`、`${view.selectedTab}`、`${route.userId}` | MarkVSpec が式評価しすぎず、参照元として保持する値。対応済みの view/state 条件だけ preview が限定評価する。 |
+| 任意文字列 | Action 名、case description、message text、service call text | 人間が読む説明。固定 enum ではない。 |
+| 補足 Markdown | Lead、Notes、Free-form Section の本文 | 生成設計書には残すが、構造化 DSL には変換しない。 |
+
+### 現行 canonical syntax
+
+| 対象 | canonical syntax | 状態 | 詳細 |
+| --- | --- | --- | --- |
+| 画面状態 | `## States` の top-level list、初期 state は `*` | 実装済み | [States](#states) |
+| Layout | `## Layout: <viewport>`、`### [marker:]L-* Name`、`#### Items` | 実装済み | [Layout](#layout) |
+| Element | `### [marker:]E-* Type` と element property bullets | 実装済み | [Elements](#elements) |
+| Form Group | `### [marker:]F-* Name`、`fields`、`submit` | 実装済み | [Form Groups](#form-groups) |
+| Action | `Triggered` / `From` / `Process <marker>: <name>` | 実装済み | [Actions](#actions) |
+| Process detail | `request:` / `server:` / `receive:` / project-specific detail | 実装済み | 1 Process につき execution detail は最大 1 つ。 |
+| Request params | `request.params` に `name: E-*.value` などを書く | 実装済み | `input:` は legacy。 |
+| Server params | `server.params` に service call へ渡す値を書く | 実装済み | service call text は任意文字列。 |
+| Result cases | Process 直下の `case: <name>` | 実装済み | 旧 `Cases` block は canonical ではない。 |
+| Effects | `case:` 配下または即時 Process 直下の `state` / `navigate` / `view` / `display` | 実装済み | Action 直下 `Effects` と `${model.*}` 代入は canonical ではない。 |
+| Flow control | case の末尾に `stop` / `continue` | 実装済み | 省略時は `continue` として扱う。 |
+| Display | `display.target` + `element` / `message` / `partial` | 実装済み | `display.content`、`display.elements` は unsupported。 |
+| View Context | `## View Context`、`${view.<name>}`、`view:` effect | 実装済み | 型は `boolean` と `enum`。 |
+| source / samples | `source: data`、`sample`、`sample rows:`、scenario `samples` | 実装済み | 詳細は #1180 で拡充予定。 |
+| Preview Scenarios | `## Preview Scenarios` の `state` / `view` / `cases` / `samples` | 実装済み | 詳細は #1180 で拡充予定。 |
+| Validation | `## Field Validations` / `## Cross-field Validations` | 実装済み | `## Validations` は legacy-compatible。 |
+| Business Rules | `## Business Rules`、`### [marker:]R-* Name` | 実装済み | サーバ由来の業務制約は validation と分ける。 |
+| Template / Slot | `type: template`、`## Slots`、screen 側 `## Slot:<name>` | 実装済み | 詳細は #1181 で拡充予定。 |
+| Partial | `type: partial`、Layout `partial:` host、`display.partial` | 実装済み | 詳細は #1181 で拡充予定。 |
+
+legacy / unsupported として扱う主な構文です。
+
+- `owner`、`status`、`viewport` Front Matter: warning し、canonical metadata としては使いません。
+- bare `## Layout`: release syntax ではありません。`## Layout: <viewport>` を使います。
+- Action 直下 `Effects`: canonical ではありません。効果は Process 直下または `case:` 配下に置きます。
+- Action 直下 `Cases` / legacy `cases:` block: canonical ではありません。Process 直下の `case:` を使います。
+- `input:`: legacy syntax です。`request.params` / `server.params` / `<custom detail>.params` を使います。
+- `update:`: canonical syntax ではありません。表示変更は `display:`、画面状態は `state:`、遷移は `navigate:` に分けます。
+- `display.content` / `display.elements`: unsupported です。表示する UI は先に `E-*` または `L-*` として定義します。
 
 ## セクション
 
@@ -324,19 +381,21 @@ level-2 セクション名です。
 
 - `States`
 - `Layout`
+- `Slot`
+- `Slots`
 - `Elements`
 - `Form Groups`
 - `Actions`
+- `View Context`
+- `View Context Samples`
+- `Preview Scenarios`
+- `Field Validations`
+- `Cross-field Validations`
 - `Validations`
 - `Business Rules`
 - `Error Codes`
 - `History Fields`
 - `History`
-
-Template / Slot のセクション名です。
-
-- `Slot`
-- `Slots`
 
 Front Matter の主なキーです。
 
@@ -344,10 +403,12 @@ Front Matter の主なキーです。
 - `type`
 - `title`
 - `route`
-- `viewport`
 - `default-state`
 - `template`
+- `references`
 - `locale`
+- `tags`
+- `version`
 
 Action のグループ名です。
 
@@ -355,6 +416,9 @@ Action のグループ名です。
 - `From`
 - `Process`
 - `Effects`
+- `case`
+- `stop`
+- `continue`
 
 Action の処理詳細、結果、表示更新で使う主な語です。
 
@@ -422,8 +486,14 @@ Element property の主なキーです。
 
 - `marker`
 - `sample`
+- `sample rows`
+- `source`
 - `label`
 - `label src`
+- `placeholder`
+- `placeholder src`
+- `text`
+- `hint`
 - `value`
 - `src`
 - `format`
@@ -463,7 +533,6 @@ Element のリストグループ名です。
 - `justify`
 - `overlay`
 - `partial`
-- `id`
 - `states`
 
 `variant` と `tone` の値です。

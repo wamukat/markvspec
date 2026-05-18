@@ -83,9 +83,11 @@ updates; the reusable shell itself is defined in the template example.
   - idle
   - load-error
 - Process P1: Refresh partial content
-  - request: GET /members/${route.memberId}/profile-summary
-  - params:
-    - memberId: ${route.memberId}
+  - request:
+    - method: GET
+    - path: /members/:memberId/profile-summary
+    - params:
+      - memberId: ${route.memberId}
   - case: sent
     - description: request accepted
     - Effects
