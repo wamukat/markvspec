@@ -1,8 +1,9 @@
 import { execFileSync } from "node:child_process";
 import { copyFileSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { basename, dirname, join, relative } from "node:path";
+import { basename, dirname, join, relative, resolve } from "node:path";
 
 const root = process.cwd();
+const githubBlobBaseUrl = "https://github.com/wamukat/markvspec/blob/main/";
 const siteDir = join(root, "_site");
 const examplesDir = join(root, "examples");
 const docsDir = join(root, "docs");
@@ -60,6 +61,10 @@ function escapeHtml(value) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+}
+
+function toPosixPath(filePath) {
+  return filePath.split(/[\\/]/u).join("/");
 }
 
 function renderIndex(files) {
@@ -157,8 +162,30 @@ function copyPageAssets() {
   for (const filePath of docsFiles) {
     const targetPath = join(siteDir, relative(root, filePath));
     mkdirSync(dirname(targetPath), { recursive: true });
-    copyFileSync(filePath, targetPath);
+    if (filePath.endsWith(".html")) {
+      writeFileSync(targetPath, rewriteHtmlMarkdownLinks(filePath, readFileSync(filePath, "utf8")), "utf8");
+    } else {
+      copyFileSync(filePath, targetPath);
+    }
   }
+}
+
+function rewriteHtmlMarkdownLinks(htmlPath, html) {
+  return html.replace(/\bhref="([^"]+\.md(?:#[^"]*)?)"/gu, (match, href) => {
+    if (/^[a-z][a-z0-9+.-]*:/iu.test(href) || href.startsWith("#")) {
+      return match;
+    }
+
+    const [pathPart, hashPart = ""] = href.split("#", 2);
+    const absoluteTarget = resolve(dirname(htmlPath), pathPart);
+    const relativeTarget = toPosixPath(relative(root, absoluteTarget));
+    if (relativeTarget.startsWith("../")) {
+      return match;
+    }
+
+    const hash = hashPart ? `#${hashPart}` : "";
+    return `href="${githubBlobBaseUrl}${relativeTarget}${hash}"`;
+  });
 }
 
 rmSync(siteDir, { recursive: true, force: true });
