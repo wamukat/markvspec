@@ -180,6 +180,15 @@ ${baseWireframeViewportCss()}
 .mm-chip-tone-success{background:#f0fdf4;border-color:#86efac;color:#15803d}
 .mm-chip-tone-warning{background:#fffbeb;border-color:#fcd34d;color:#b45309}
 .mm-chip-tone-danger{background:#fef2f2;border-color:#fca5a5;color:#b91c1c}
+.mm-source-chip{border-radius:7px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace}
+.mm-source-chip-fixed{background:#f8fafc;border-color:#cbd5e1;color:#475569}
+.mm-source-chip-i18n{background:#eef2ff;border-color:#a5b4fc;color:#3730a3}
+.mm-source-chip-data{background:#eff6ff;border-color:#60a5fa;color:#1d4ed8}
+.mm-source-chip-route{background:#f0fdfa;border-color:#5eead4;color:#0f766e}
+.mm-source-chip-element{background:#fffbeb;border-color:#fcd34d;color:#b45309}
+.mm-source-chip-asset{background:#ecfeff;border-color:#67e8f9;color:#155e75}
+.mm-source-chip-external{background:#fff7ed;border-color:#fdba74;color:#c2410c}
+.mm-source-chip-computed{background:#f5f3ff;border-color:#c4b5fd;color:#6d28d9}
 .mm-repeated-badge{background:#f8fafc;border-color:#cbd5e1;color:#64748b;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace}
 .mm-unplaced-badge{background:#fff7ed;border-color:#fdba74;color:#9a3412;gap:4px}
 .mm-unplaced-icon{border:1.5px solid currentColor;border-radius:999px;box-sizing:border-box;display:inline-block;height:8px;position:relative;width:12px}

@@ -1,4 +1,5 @@
 import { sourceTypeForElement, type MarkVSpecSourceType } from "./source-types.js";
+import { tableColumnSampleKeys } from "./table-columns.js";
 import type { MarkVSpecParseResult } from "./types.js";
 
 type ParsedElement = MarkVSpecParseResult["elements"][number];
@@ -7,8 +8,14 @@ export type DisplayContentSpecRow = {
   element: ParsedElement;
   location: string;
   value: string;
+  contentSections?: DisplayContentSpecSection[];
   source?: string | true;
   format?: string;
+};
+
+export type DisplayContentSpecSection = {
+  title: string;
+  rows: string[];
 };
 
 export function buildDisplayContentSpecRows(elements: ParsedElement[]): DisplayContentSpecRow[] {
@@ -21,10 +28,7 @@ export function buildDisplayContentSpecRows(elements: ParsedElement[]): DisplayC
     if (element.type === "Table") {
       pushDisplayPropertyRow(rows, element, "table rows", "see wireframe", sourceType);
       pushDisplayPropertyRow(rows, element, "rows", properties["rows"], sourceType);
-      for (const column of element.tableColumns) {
-        pushDisplayPropertyRow(rows, element, `column: ${column.label}`, column.label, sourceType);
-        pushDisplayPropertyRow(rows, element, `column source: ${column.label}`, column.source, sourceType);
-      }
+      pushTableColumnRows(rows, element, sourceType);
     }
     pushDisplayPropertyRow(rows, element, "label", properties["label"], sourceType);
     pushDisplayPropertyRow(rows, element, "label src", properties["label src"], sourceType);
@@ -44,16 +48,8 @@ export function buildDisplayContentSpecRows(elements: ParsedElement[]): DisplayC
     pushDisplayPropertyRow(rows, element, "title", properties["title"], sourceType);
     pushDisplayPropertyRow(rows, element, "alt", properties["alt"], sourceType);
     pushDisplayPropertyRow(rows, element, "name", properties["name"], sourceType);
-    pushDisplayPropertyRow(rows, element, "items", properties["items"], sourceType);
-    for (const option of element.selectOptions) {
-      rows.push({
-        element,
-        location: "option label",
-        value: option.label,
-        source: sourceType
-      });
-      pushDisplayPropertyRow(rows, element, "option source", option.source, sourceType);
-    }
+    pushListItemsRow(rows, element, sourceType);
+    pushSelectOptionsRow(rows, element, sourceType);
     return rows;
   });
 }
@@ -77,6 +73,87 @@ function pushDisplayPropertyRow(
   rows.push({ element, location, value: stringValue, source, format });
 }
 
+function pushTableColumnRows(
+  rows: DisplayContentSpecRow[],
+  element: ParsedElement,
+  source: MarkVSpecSourceType
+): void {
+  const knownKeys = new Set<string>();
+  for (const column of element.tableColumns) {
+    const field = tableColumnField(column);
+    for (const key of tableColumnSampleKeys(column)) {
+      knownKeys.add(key);
+    }
+    rows.push({
+      element,
+      location: "column",
+      value: column.label,
+      contentSections: [
+        { title: "Label", rows: [column.label] },
+        ...(field ? [{ title: "Field", rows: [field] }] : [])
+      ],
+      source,
+      format: tableColumnMetadataValue(column, "format")
+    });
+  }
+
+  for (const key of sampleRowFieldKeys(element)) {
+    if (knownKeys.has(key)) {
+      continue;
+    }
+    knownKeys.add(key);
+    rows.push({
+      element,
+      location: "column",
+      value: key,
+      contentSections: [
+        { title: "Field", rows: [key] }
+      ],
+      source
+    });
+  }
+}
+
+function pushSelectOptionsRow(
+  rows: DisplayContentSpecRow[],
+  element: ParsedElement,
+  source: MarkVSpecSourceType
+): void {
+  if (element.selectOptions.length === 0) {
+    return;
+  }
+  const optionRows = element.selectOptions.map((option) => option.source ? `${option.label} (${option.source})` : option.label);
+  rows.push({
+    element,
+    location: "options",
+    value: optionRows.join(", "),
+    contentSections: [
+      { title: "Options", rows: optionRows }
+    ],
+    source
+  });
+}
+
+function pushListItemsRow(
+  rows: DisplayContentSpecRow[],
+  element: ParsedElement,
+  source: MarkVSpecSourceType
+): void {
+  const items = splitListValue(rawStringProperty(element.properties["items"]));
+  if (items.length === 0) {
+    return;
+  }
+  rows.push({
+    element,
+    location: "items",
+    value: items.join(", "),
+    contentSections: [
+      { title: "Items", rows: items }
+    ],
+    source
+  });
+}
+
 function displayValueProperty(element: ParsedElement): string | undefined {
   const value = rawStringProperty(element.properties["value"]);
   if (!value || isFormControlElement(element.type)) {
@@ -87,4 +164,26 @@ function displayValueProperty(element: ParsedElement): string | undefined {
 
 function rawStringProperty(value: string | true | undefined): string {
   return typeof value === "string" ? value : "";
+}
+
+function tableColumnField(column: ParsedElement["tableColumns"][number]): string {
+  return column.key ?? column.source ?? column.label ?? "";
+}
+
+function tableColumnMetadataValue(column: ParsedElement["tableColumns"][number], key: string): string | undefined {
+  return column.metadata?.find((metadata) => metadata.key === key)?.value;
+}
+
+function sampleRowFieldKeys(element: ParsedElement): string[] {
+  const keys = new Set<string>();
+  for (const row of element.sampleRows?.rows ?? []) {
+    for (const key of Object.keys(row.fields)) {
+      keys.add(key);
+    }
+  }
+  return [...keys];
+}
+
+function splitListValue(value: string): string[] {
+  return value.split(",").map((item) => item.trim()).filter(Boolean);
 }

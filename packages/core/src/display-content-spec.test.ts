@@ -24,9 +24,11 @@ title: Display Content
   - row:
     - name: Taylor Stone
     - role: Administrator
+    - email: taylor@example.com
 - Columns:
-  - Name: name
-  - Role: role
+  - name: Name
+  - role: Role
+  - Email: \${model.users.email}
 
 ### E-StatusList List
 
@@ -50,13 +52,33 @@ title: Display Content
 
   const rows = buildDisplayContentSpecRows(result.elements);
   const rowKeys = rows.map((row) => `${row.element.id}:${row.location}:${row.value}:${row.source ?? ""}`);
+  const userColumnRows = rows.filter((row) => row.element.id === "E-Users" && row.location === "column");
+  const roleOptionsRow = rows.find((row) => row.element.id === "E-RoleSelect" && row.location === "options");
+  const statusItemsRow = rows.find((row) => row.element.id === "E-StatusList" && row.location === "items");
 
   assert(rowKeys.includes("E-Users:table rows:see wireframe:data"));
-  assert(rowKeys.includes("E-Users:column: name:name:data"));
-  assert(rowKeys.includes("E-Users:column source: name:Name:data"));
+  assert.deepEqual(userColumnRows.map((row) => row.contentSections), [
+    [
+      { title: "Label", rows: ["Name"] },
+      { title: "Field", rows: ["name"] }
+    ],
+    [
+      { title: "Label", rows: ["Role"] },
+      { title: "Field", rows: ["role"] }
+    ],
+    [
+      { title: "Label", rows: ["Email"] },
+      { title: "Field", rows: ["${model.users.email}"] }
+    ]
+  ]);
+  assert(!rowKeys.some((key) => key.startsWith("E-Users:column source:")));
   assert(rowKeys.includes("E-StatusList:items:Open, Closed:fixed"));
-  assert(rowKeys.includes("E-RoleSelect:option label:Viewer:fixed"));
-  assert(rowKeys.includes("E-RoleSelect:option source:${copy.roles.viewer}:fixed"));
+  assert.deepEqual(statusItemsRow?.contentSections, [{ title: "Items", rows: ["Open", "Closed"] }]);
+  assert.deepEqual(roleOptionsRow?.contentSections, [
+    { title: "Options", rows: ["Viewer (${copy.roles.viewer})", "Administrator (${copy.roles.administrator})"] }
+  ]);
+  assert(!rowKeys.some((key) => key.startsWith("E-RoleSelect:option label:")));
+  assert(!rowKeys.some((key) => key.startsWith("E-RoleSelect:option source:")));
   assert(rowKeys.includes("E-StatusBadge:text:Active:fixed"));
   assert(!rowKeys.some((key) => key.startsWith("E-FixedInput:sample:")));
 });

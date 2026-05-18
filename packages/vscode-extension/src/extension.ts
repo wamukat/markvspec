@@ -19,7 +19,8 @@ import {
   resolveMarkVSpecEntityReference,
   resolveRendererMessages,
   resolveProjectPath,
-  isProjectReferenceAllowed
+  isProjectReferenceAllowed,
+  isMarkVSpecSourceType
 } from "@markvspec/core";
 import {
   renderDesignDocumentSections
@@ -4144,7 +4145,13 @@ function renderDefaultAlways(result: ReturnType<typeof parseMarkVSpec>): string 
   return `<span class="spec-default-always">${text(label(result, "always"))}</span>`;
 }
 
-function renderDisplayContentValue(element: ParsedElement, value: string): string {
+function renderDisplayContentValue(element: ParsedElement, value: string, sections?: Array<{ title: string; rows: string[] }>): string {
+  if (sections && sections.length > 0) {
+    return renderSpecSections(sections.map((section) => ({
+      title: section.title,
+      rows: section.rows.map((row) => renderExpressionTokens(row))
+    })));
+  }
   if (hasOpaqueExpression(value)) {
     return renderExpressionTokens(value);
   }
@@ -6209,6 +6216,10 @@ function renderSourceSummary(value: string | true | undefined): string {
   const source = rawStringProperty(value);
   if (!source) {
     return "";
+  }
+
+  if (isMarkVSpecSourceType(source)) {
+    return `<span class="mm-chip mm-source-chip mm-source-chip-${source}">${text(source)}</span>`;
   }
 
   return hasOpaqueExpression(source) ? renderExpressionTokens(source) : code(source);

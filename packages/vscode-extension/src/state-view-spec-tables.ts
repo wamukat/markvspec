@@ -38,7 +38,7 @@ export interface StateViewSpecTableHelpers {
   renderEnabledConditionList(element: ParsedElement): string;
   renderDisplayContentElementState(element: ParsedElement): string;
   renderDisplayContentEnabledConditionList(element: ParsedElement): string;
-  renderDisplayContentValue(element: ParsedElement, value: string): string;
+  renderDisplayContentValue(element: ParsedElement, value: string, sections?: DisplayContentSpecRow["contentSections"]): string;
   renderSourceSummary(value: string | true | undefined): string;
   renderElementLabelSummary(properties: Record<string, string | true>): string;
   renderElementValueSummary(properties: Record<string, string | true>): string;
@@ -151,7 +151,7 @@ export function createStateViewSpecTableRenderer(
           renderRepeatedEntityRefCell(row.element.id, Boolean(repeatedElementIds?.has(row.element.id)))
         ]),
         helpers.text(row.location),
-        helpers.renderDisplayContentValue(row.element, row.value),
+        helpers.renderDisplayContentValue(row.element, row.value, row.contentSections),
         row.format ? helpers.text(row.format) : "",
         helpers.renderSourceSummary(row.source),
         helpers.renderDisplayContentElementState(row.element),

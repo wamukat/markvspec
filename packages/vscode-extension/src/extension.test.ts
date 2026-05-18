@@ -161,6 +161,10 @@ function plainCodePattern(value: string): string {
   return `<code>${escapeRegExp(value)}</code>`;
 }
 
+function sourceTypeChipPattern(value: string): string {
+  return `<span class="mm-chip mm-source-chip mm-source-chip-${escapeRegExp(value)}">${escapeRegExp(value)}</span>`;
+}
+
 function defaultAlwaysPattern(value = "always"): string {
   return `<span class="spec-default-always">${escapeRegExp(value)}</span>`;
 }
@@ -416,7 +420,7 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(waitAuthSection, /<th>Marker\/ID<\/th><th>Type<\/th><th>Triggered Actions<\/th><th>Description<\/th>/);
   assert.match(waitAuthSection, new RegExp(`<td>${detailElementRef("11", "E-AuthSpinner")}</td><td>Spinner</td><td>-</td><td>-</td>`));
   assert.match(waitAuthSection, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>/);
-  assert.match(waitAuthSection, new RegExp(`<td>${detailElementRef("11", "E-AuthSpinner")}</td><td>label</td><td>Signing in\\.\\.\\.</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>${specSectionPattern("Visible", ["authenticating"])}</td><td>${defaultAlwaysPattern()}</td>`));
+  assert.match(waitAuthSection, new RegExp(`<td>${detailElementRef("11", "E-AuthSpinner")}</td><td>label</td><td>Signing in\\.\\.\\.</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${specSectionPattern("Visible", ["authenticating"])}</td><td>${defaultAlwaysPattern()}</td>`));
   assert.match(waitAuthSection, new RegExp(`<td>${refActionChip("A2", "A-HandleLoginResponse", "Handle login response")}</td>`));
   const waitAuthWireframe = stateWireframeSection(waitAuthSection);
   assert.match(waitAuthWireframe, />L7<\/code>/);
@@ -4551,12 +4555,12 @@ locale: ja
   assert.match(elementSummary, /<th>番号\/ID<\/th><th>種別<\/th><th>関連アクション<\/th><th>説明<\/th>/);
   assert.match(elementSummary, new RegExp(`<td>${detailElementRef("1", "E-Create")}</td><td>Button</td><td><ul class="spec-list"><li>${refActionChip("A1", "A-Create", "新規作成")}</li></ul></td><td>-</td>`));
   assert.match(displayContent, /<th>番号\/ID<\/th><th>表示箇所<\/th><th>表示内容<\/th><th>表示形式<\/th><th>取得元<\/th><th>表示条件<\/th><th>有効条件<\/th>/);
-  assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-Title", "E-Title")}</td><td>value</td><td>prefix ${sourceCodePattern("${model.action.title}")} &amp; ${sourceCodePattern("${model.action.kind}")} &lt;x&gt;</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>${defaultAlwaysPattern("常に")}</td><td>${defaultAlwaysPattern("常に")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-Title", "E-Title")}</td><td>value</td><td>prefix ${sourceCodePattern("${model.action.title}")} &amp; ${sourceCodePattern("${model.action.kind}")} &lt;x&gt;</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${defaultAlwaysPattern("常に")}</td><td>${defaultAlwaysPattern("常に")}</td>`));
   const displayCondition = `${specSectionPattern("表示", ["empty"])}${specSectionPattern("非表示", [sourceCodePattern("${model.notice.read}")])}`;
-  assert.match(displayContent, new RegExp(`<td rowspan="4">${detailElementRef("1", "E-Create")}</td><td>label</td><td>新規作成</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>${displayCondition}</td><td>${specSectionPattern("有効", [`not ${sourceCodePattern("${model.saving}")}`])}</td>`));
-  assert.match(displayContent, new RegExp(`<tr><td>text</td><td>作成する</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>${displayCondition}</td>`));
-  assert.match(displayContent, new RegExp(`<tr><td>src</td><td>${sourceCodePattern("${model.action.createLabel}")}</td><td>button label</td><td>${plainCodePattern("fixed")}</td><td>${displayCondition}</td>`));
-  assert.match(displayContent, new RegExp(`<tr><td>value</td><td>create</td><td>button label</td><td>${plainCodePattern("fixed")}</td><td>${displayCondition}</td>`));
+  assert.match(displayContent, new RegExp(`<td rowspan="4">${detailElementRef("1", "E-Create")}</td><td>label</td><td>新規作成</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${displayCondition}</td><td>${specSectionPattern("有効", [`not ${sourceCodePattern("${model.saving}")}`])}</td>`));
+  assert.match(displayContent, new RegExp(`<tr><td>text</td><td>作成する</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${displayCondition}</td>`));
+  assert.match(displayContent, new RegExp(`<tr><td>src</td><td>${sourceCodePattern("${model.action.createLabel}")}</td><td>button label</td><td>${sourceTypeChipPattern("fixed")}</td><td>${displayCondition}</td>`));
+  assert.match(displayContent, new RegExp(`<tr><td>value</td><td>create</td><td>button label</td><td>${sourceTypeChipPattern("fixed")}</td><td>${displayCondition}</td>`));
   assert.doesNotMatch(html, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">操作要素<\/h6>/);
   for (const oldHeader of ["表示名", "表示名参照元", "サンプル", "値", "無効条件"]) {
     assert.doesNotMatch(desktopSection, new RegExp(`<th>${oldHeader}</th>`));
@@ -5891,14 +5895,14 @@ test("renders scenario sample values in display content spec", () => {
   const displayContent = loadedSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
 
   assert.match(displayContent, /<colgroup><col class="spec-table-col spec-table-col-marker-id">/);
-  assert.match(displayContent, new RegExp(`<td>${detailElementRef("2", "E-MemberName")}</td><td>sample</td><td>Baseline Member</td><td>-</td><td>${plainCodePattern("data")}</td>`));
-  assert.match(displayContent, new RegExp(`<td>${detailElementRef("3", "E-PlanName")}</td><td>sample</td><td>Baseline Plan</td><td>-</td><td>${plainCodePattern("data")}</td>`));
-  assert.match(displayContent, new RegExp(`<td>${detailElementRef("4", "E-SeatCount")}</td><td>sample</td><td>1 seat</td><td>-</td><td>${plainCodePattern("data")}</td>`));
-  assert.match(displayContent, new RegExp(`<td rowspan="7">${detailElementRef("6", "E-SubscriptionTable")}</td><td>table rows</td><td>see wireframe</td><td>-</td><td>${plainCodePattern("data")}</td>`));
-  assert.match(displayContent, new RegExp(`<td>column: Product</td><td>Product</td><td>-</td><td>${plainCodePattern("data")}</td>`));
-  assert.match(displayContent, new RegExp(`<td>column source: Product</td><td>product</td><td>-</td><td>${plainCodePattern("data")}</td>`));
-  assert.match(displayContent, new RegExp(`<td>column: Seats</td><td>Seats</td><td>-</td><td>${plainCodePattern("data")}</td>`));
-  assert.match(displayContent, new RegExp(`<td>column source: Seats</td><td>seats</td><td>-</td><td>${plainCodePattern("data")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("2", "E-MemberName")}</td><td>sample</td><td>Baseline Member</td><td>-</td><td>${sourceTypeChipPattern("data")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("3", "E-PlanName")}</td><td>sample</td><td>Baseline Plan</td><td>-</td><td>${sourceTypeChipPattern("data")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("4", "E-SeatCount")}</td><td>sample</td><td>1 seat</td><td>-</td><td>${sourceTypeChipPattern("data")}</td>`));
+  assert.match(displayContent, new RegExp(`<td rowspan="4">${detailElementRef("6", "E-SubscriptionTable")}</td><td>table rows</td><td>see wireframe</td><td>-</td><td>${sourceTypeChipPattern("data")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>column</td><td>${specSectionPattern("Label", ["Product"])}${specSectionPattern("Field", ["product"])}</td><td>-</td><td>${sourceTypeChipPattern("data")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>column</td><td>${specSectionPattern("Label", ["Seats"])}${specSectionPattern("Field", ["seats"])}</td><td>-</td><td>${sourceTypeChipPattern("data")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>column</td><td>${specSectionPattern("Label", ["Renewal"])}${specSectionPattern("Field", ["renewal"])}</td><td>-</td><td>${sourceTypeChipPattern("data")}</td>`));
+  assert.doesNotMatch(displayContent, /column source/);
   assert.doesNotMatch(loadedSection, /<h6 class="state-screen-detail-heading">Other<\/h6>/);
 });
 
@@ -5910,7 +5914,38 @@ test("renders List items in display content spec without treating the list as in
   const displayContent = idleSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
 
   assert.doesNotMatch(inputForm, /E-AuditList/);
-  assert.match(displayContent, new RegExp(`<td>${detailElementRef("17", "E-AuditList")}</td><td>items</td><td>Created by Morgan Lee, Reviewed by Admin, Last edited today</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("17", "E-AuditList")}</td><td>items</td><td>${specSectionPattern("Items", ["Created by Morgan Lee", "Reviewed by Admin", "Last edited today"])}</td>`));
+});
+
+test("renders Table column source expressions as inline tokens in display content spec", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-TABLE-COLUMN-SOURCE
+type: screen
+title: Table Column Source
+---
+
+# SCR-TABLE-COLUMN-SOURCE Table Column Source
+
+## States
+
+- loaded*
+
+## Elements
+
+### E-Users Table
+
+- source: data
+- Columns:
+  - Email: \${model.users.email}
+- sample rows:
+  - row:
+    - email: taylor@example.com
+`);
+  const html = renderDesignDocumentHtml(result, "");
+  const displayContent = html.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.match(displayContent, new RegExp(`<td>column</td><td>${specSectionPattern("Label", ["Email"])}${specSectionPattern("Field", [sourceCodePattern("${model.users.email}")])}</td><td>-</td><td>${sourceTypeChipPattern("data")}</td>`));
+  assert.doesNotMatch(displayContent, /<li>email<\/li>/);
 });
 
 test("renders display.element scenario effects as display updates", () => {
@@ -7392,14 +7427,12 @@ title: Element Groups
   const displayContent = html.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
   assert.match(displayContent, /<th>Marker\/ID<\/th><th>Location<\/th><th>Content<\/th><th>Format<\/th><th>Source<\/th><th>Condition<\/th><th>Enabled When<\/th>/);
   assert.doesNotMatch(displayContent, /<th>Display Location<\/th>|<th>Display Content<\/th>|<th>Display Condition<\/th>/);
-  assert.match(displayContent, new RegExp(`<td rowspan="4">${detailElementRef("E-ロール選択", "E-ロール選択")}</td><td>option label</td><td>Viewer</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));
-  assert.match(displayContent, new RegExp(`<tr><td>option source</td><td>${sourceCodePattern("${copy.roles.viewer}")}</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>${defaultAlwaysPattern()}</td><td>${defaultAlwaysPattern()}</td></tr>`));
-  assert.match(displayContent, new RegExp(`<tr><td>option label</td><td>Administrator</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>${defaultAlwaysPattern()}</td><td>${defaultAlwaysPattern()}</td></tr>`));
-  assert.match(displayContent, new RegExp(`<tr><td>option source</td><td>${sourceCodePattern("${copy.roles.administrator}")}</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>${defaultAlwaysPattern()}</td><td>${defaultAlwaysPattern()}</td></tr>`));
-  assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-エラーバナー", "E-エラーバナー")}</td><td>text</td><td>Invalid login</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));
-  assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-状態バッジ", "E-状態バッジ")}</td><td>text</td><td>${semanticChip("Active", "success")}</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));
-  assert.match(displayContent, new RegExp(`<td rowspan="2">${detailElementRef("E-Title", "E-Title")}</td><td>label</td><td>Login</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));
-  assert.match(displayContent, new RegExp(`<tr><td>label src</td><td>${sourceCodePattern("${copy.login.title}")}</td><td>-</td><td>${plainCodePattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-ロール選択", "E-ロール選択")}</td><td>options</td><td>${specSectionPattern("Options", [`Viewer \\(${sourceCodePattern("${copy.roles.viewer}")}\\)`, `Administrator \\(${sourceCodePattern("${copy.roles.administrator}")}\\)`])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));
+  assert.doesNotMatch(displayContent, /option label|option source/);
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-エラーバナー", "E-エラーバナー")}</td><td>text</td><td>Invalid login</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-状態バッジ", "E-状態バッジ")}</td><td>text</td><td>${semanticChip("Active", "success")}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));
+  assert.match(displayContent, new RegExp(`<td rowspan="2">${detailElementRef("E-Title", "E-Title")}</td><td>label</td><td>Login</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));
+  assert.match(displayContent, new RegExp(`<tr><td>label src</td><td>${sourceCodePattern("${copy.login.title}")}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));
   assert.doesNotMatch(html, /<div class="element-detail-group"><h4>Status Display<\/h4>/);
   assert.doesNotMatch(html, /<div class="element-detail-group"><h4>Content<\/h4>/);
   assert.doesNotMatch(displayContent, /<th>Level<\/th>/);

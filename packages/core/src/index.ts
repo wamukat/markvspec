@@ -96,6 +96,7 @@ export { AI_INPUT_SUPPORTED_DOCUMENT_KINDS, diagnoseAiDesignInputDocument };
 export { messagesForLocale, resolveLocale, resolveRendererMessages, supportedRendererMessageKeys };
 export { createMarkVSpecDiagnostic, renderDiagnosticMessageForLocale, supportedDiagnosticMessageCodes } from "./diagnostic-messages.js";
 export { effectiveHistoryFields, latestHistoryBasicInfo, standardHistoryFields } from "./history.js";
+export { isMarkVSpecSourceType, markVSpecSourceTypes, sourceTypeForElement } from "./source-types.js";
 export { tableColumnSampleKeys } from "./table-columns.js";
 export { renderMarkVSpecHtml };
 export { renderMarkVSpecHtmlFragment, renderMarkVSpecHtmlFragments } from "./renderer.js";

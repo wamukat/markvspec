@@ -568,6 +568,15 @@ function standaloneHtml(
       ${baseWireframeViewportCss({ spaced: true })}
       .mm-inline-token { color: #0f766e; font-family: inherit; font-weight: 650; padding: 0 1px; }
       .mm-chip { align-items: center; border: 1px solid #d1d5db; border-radius: 999px; display: inline-flex; font-size: 11px; font-weight: 650; line-height: 1.2; max-width: 100%; padding: 2px 7px; vertical-align: middle; white-space: normal; }
+      .mm-source-chip { border-radius: 7px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+      .mm-source-chip-fixed { background: #f8fafc; border-color: #cbd5e1; color: #475569; }
+      .mm-source-chip-i18n { background: #eef2ff; border-color: #a5b4fc; color: #3730a3; }
+      .mm-source-chip-data { background: #eff6ff; border-color: #60a5fa; color: #1d4ed8; }
+      .mm-source-chip-route { background: #f0fdfa; border-color: #5eead4; color: #0f766e; }
+      .mm-source-chip-element { background: #fffbeb; border-color: #fcd34d; color: #b45309; }
+      .mm-source-chip-asset { background: #ecfeff; border-color: #67e8f9; color: #155e75; }
+      .mm-source-chip-external { background: #fff7ed; border-color: #fdba74; color: #c2410c; }
+      .mm-source-chip-computed { background: #f5f3ff; border-color: #c4b5fd; color: #6d28d9; }
       .mm-ref-chip { align-items: center; background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; color: #1f2937; display: inline-flex; font-size: 12px; font-weight: 600; gap: 5px; line-height: 1.35; max-width: 100%; padding: 2px 6px; text-decoration: none; vertical-align: baseline; }
       .mm-id { align-items: center; align-self: flex-start; border: 1px solid transparent; display: inline-flex; flex: 0 0 auto; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 9px; font-variant-numeric: tabular-nums; font-weight: 700; justify-content: center; letter-spacing: 0; line-height: 1; margin-right: 6px; min-height: 16px; min-width: 16px; padding: 1px 4px; width: max-content; }
       .mm-marker-layout { background: #ecfeff; border-color: #67e8f9; border-left: 3px solid #0891b2; border-radius: 4px; color: #155e75; }
