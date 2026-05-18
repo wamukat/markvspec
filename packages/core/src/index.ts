@@ -120,7 +120,9 @@ export {
   systemEventActionsForState
 } from "./state-views-read-model.js";
 export type {
-  DisplayContentSpecRow,
+  DisplayContentSpecRow
+} from "./display-content-spec.js";
+export type {
   FocusScope,
   RenderedIds,
   StateScreenReadModel,
