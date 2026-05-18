@@ -373,8 +373,8 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(html, /<section class="doc-section state-flow-section" data-section-number="2">/);
   assert.match(html, /<h6 class="state-screen-detail-heading">Element Summary<\/h6>/);
   assert.match(html, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>/);
-  assert.match(html, new RegExp(`<td>${detailElementRef("3", "E-EmailInput")}</td><td>Input</td><td>no</td><td>${specSectionPattern("Source", [sourceCodePattern("${data.email}")])}</td><td>-</td><td>${defaultAlwaysPattern()}</td>`));
-  assert.match(html, new RegExp(`<td>${detailElementRef("6", "E-RememberMe")}</td><td>Checkbox</td><td>no</td><td>${specSectionPattern("Source", [sourceCodePattern("${data.rememberMe}")])}</td><td>-</td><td>${defaultAlwaysPattern()}</td>`));
+  assert.match(html, new RegExp(`<td>${detailElementRef("3", "E-EmailInput")}</td><td>Input</td><td>no</td><td>${sourceCodePattern("${data.email}")}</td><td>${sourceTypeChipPattern("fixed")}</td><td>-</td><td>${defaultAlwaysPattern()}</td>`));
+  assert.match(html, new RegExp(`<td>${detailElementRef("6", "E-RememberMe")}</td><td>Checkbox</td><td>no</td><td>${sourceCodePattern("${data.rememberMe}")}</td><td>${sourceTypeChipPattern("fixed")}</td><td>-</td><td>${defaultAlwaysPattern()}</td>`));
   assert.match(html, /Enter both email and password\./);
   assert.match(html, new RegExp(`email: ${detailElementRef("3", "E-EmailInput")}\\.value`));
   assert.match(html, new RegExp(`rememberMe: ${detailElementRef("6", "E-RememberMe")}\\.value`));
@@ -4377,9 +4377,9 @@ test("renders input form spec without validation columns", () => {
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
   const formControls = html.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
 
-  assert.match(formControls, /<th>Marker\/ID<\/th><th>Type<\/th><th>Required<\/th><th>Value<\/th><th>Spec<\/th><th>Condition<\/th>/);
+  assert.match(formControls, /<th>Marker\/ID<\/th><th>Type<\/th><th>Required<\/th><th>Value<\/th><th>Source<\/th><th>Spec<\/th><th>Condition<\/th>/);
   assert.doesNotMatch(formControls, /<th>Enabled When<\/th>/);
-  assert.match(formControls, /<colgroup><col class="spec-table-col spec-table-col-marker-id"><col class="spec-table-col spec-table-col-default"><col class="spec-table-col spec-table-col-default"><col class="spec-table-col spec-table-col-default"><col class="spec-table-col spec-table-col-default"><col class="spec-table-col spec-table-col-default"><\/colgroup>/);
+  assert.match(formControls, /<colgroup><col class="spec-table-col spec-table-col-marker-id"><col class="spec-table-col spec-table-col-default"><col class="spec-table-col spec-table-col-default"><col class="spec-table-col spec-table-col-default"><col class="spec-table-col spec-table-col-default"><col class="spec-table-col spec-table-col-default"><col class="spec-table-col spec-table-col-default"><\/colgroup>/);
   assert.doesNotMatch(formControls, /<th>Validation<\/th>/);
   assert.doesNotMatch(formControls, /<th>Error<\/th>/);
   assert.doesNotMatch(formControls, /<th>Label<\/th>/);
@@ -4455,9 +4455,9 @@ locale: en
   const inputForm = html.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
   const displayContent = html.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
 
-  assert.match(inputForm, /<th>Marker\/ID<\/th><th>Type<\/th><th>Required<\/th><th>Value<\/th><th>Spec<\/th><th>Condition<\/th>/);
+  assert.match(inputForm, /<th>Marker\/ID<\/th><th>Type<\/th><th>Required<\/th><th>Value<\/th><th>Source<\/th><th>Spec<\/th><th>Condition<\/th>/);
   assert.doesNotMatch(inputForm, /<th>Enabled When<\/th>/);
-  assert.match(inputForm, new RegExp(`<td>${detailElementRef("1", "E-NameInput")}</td><td>Input</td><td>no</td><td>${specSectionPattern("Source", [sourceCodePattern("${model.name}")])}</td><td>-</td><td>${specSectionPattern("Visible", ["visible: idle"])}${specSectionPattern("Enabled", [`not ${sourceCodePattern("${model.saving}")}`])}</td>`));
+  assert.match(inputForm, new RegExp(`<td>${detailElementRef("1", "E-NameInput")}</td><td>Input</td><td>no</td><td>${sourceCodePattern("${model.name}")}</td><td>${sourceTypeChipPattern("fixed")}</td><td>-</td><td>${specSectionPattern("Visible", ["visible: idle"])}${specSectionPattern("Enabled", [`not ${sourceCodePattern("${model.saving}")}`])}</td>`));
   assert.match(displayContent, /<th>Marker\/ID<\/th><th>Location<\/th><th>Content<\/th><th>Format<\/th><th>Source<\/th><th>Condition<\/th>/);
   assert.doesNotMatch(displayContent, /<th>Enabled When<\/th>/);
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("2", "E-SaveButton")}</td><td>label</td><td>Save</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${specSectionPattern("Visible", ["visible: idle"])}${specSectionPattern("Enabled", [`not ${sourceCodePattern("${model.saving}")}`])}</td>`));
@@ -4661,11 +4661,11 @@ locale: ja
   const editingSection = stateSection(html, "editing");
   const editingFormControls = editingSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">入力フォーム仕様<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
 
-  assert.match(formControls, new RegExp(`<td>${detailElementRef("E-Name", "E-Name")}</td><td>Input</td><td>はい</td><td>${specSectionPattern("取得元", [sourceCodePattern("${model.name}")])}</td><td>${specSectionPattern("制約", ["max: 100"])}</td>`));
-  assert.match(formControls, new RegExp(`<td>${detailElementRef("E-Email", "E-Email")}</td><td>Input</td><td>はい</td><td>${specSectionPattern("取得元", [sourceCodePattern("${model.email}")])}</td><td>${specSectionPattern("制約", ["pattern: email"])}</td>`));
-  assert.match(formControls, new RegExp(`<td>${detailElementRef("E-Optional", "E-Optional")}</td><td>Input</td><td>いいえ</td><td>${specSectionPattern("取得元", [sourceCodePattern("${model.optionalCode}")])}</td><td>${specSectionPattern("制約", ["min: 2"])}</td>`));
+  assert.match(formControls, new RegExp(`<td>${detailElementRef("E-Name", "E-Name")}</td><td>Input</td><td>はい</td><td>${sourceCodePattern("${model.name}")}</td><td>${sourceTypeChipPattern("fixed")}</td><td>${specSectionPattern("制約", ["max: 100"])}</td>`));
+  assert.match(formControls, new RegExp(`<td>${detailElementRef("E-Email", "E-Email")}</td><td>Input</td><td>はい</td><td>${sourceCodePattern("${model.email}")}</td><td>${sourceTypeChipPattern("fixed")}</td><td>${specSectionPattern("制約", ["pattern: email"])}</td>`));
+  assert.match(formControls, new RegExp(`<td>${detailElementRef("E-Optional", "E-Optional")}</td><td>Input</td><td>いいえ</td><td>${sourceCodePattern("${model.optionalCode}")}</td><td>${sourceTypeChipPattern("fixed")}</td><td>${specSectionPattern("制約", ["min: 2"])}</td>`));
   assert.doesNotMatch(formControls, /<th>仕様<\/th>[\s\S]*required/);
-  assert.match(editingFormControls, new RegExp(`<td>${detailElementRef("E-Code", "E-Code")}</td><td>Input</td><td>条件: ${sourceCodePattern("${model.inviteRequired}")}</td><td>${specSectionPattern("取得元", [sourceCodePattern("${model.code}")])}</td><td>${specSectionPattern("制約", ["pattern: [\\s\\S]*"])}</td>`));
+  assert.match(editingFormControls, new RegExp(`<td>${detailElementRef("E-Code", "E-Code")}</td><td>Input</td><td>条件: ${sourceCodePattern("${model.inviteRequired}")}</td><td>${sourceCodePattern("${model.code}")}</td><td>${sourceTypeChipPattern("fixed")}</td><td>${specSectionPattern("制約", ["pattern: [\\s\\S]*"])}</td>`));
   assert.doesNotMatch(editingFormControls, /<th>仕様<\/th>[\s\S]*required/);
 });
 
@@ -6189,6 +6189,68 @@ test("renders the source-kind metadata example with property-level source chips"
   assert.doesNotMatch(loadedSection, /<h6 class="state-screen-detail-heading">Other<\/h6>/);
 });
 
+test("splits input form values and source metadata into separate columns", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-INPUT-SOURCE
+type: screen
+title: Input Source
+---
+
+# SCR-INPUT-SOURCE Input Source
+
+## States
+
+- loaded*
+
+## Layout
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- E-EmailInput
+- E-RoleSelect
+
+## Elements
+
+### E-EmailInput Input
+
+- value: morgan@example.com
+  - kind: data
+- type: email
+
+### E-RoleSelect Select
+
+- value: member
+  - kind: data
+  - source: \${data.member.role}
+- options:
+  - Member
+  - Administrator
+
+## Preview Scenarios
+
+### loaded-override
+
+- state: loaded
+- samples:
+  - E-EmailInput: taylor@example.com
+  - E-RoleSelect: administrator
+`);
+  const html = renderDesignDocumentHtml(result, "");
+  const baselineForm = stateSection(html, "loaded").match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+  const scenarioForm = stateViewTitleSection(html, "loaded / loaded-override").match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.match(baselineForm, /<th>Marker\/ID<\/th><th>Type<\/th><th>Required<\/th><th>Value<\/th><th>Source<\/th><th>Spec<\/th><th>Condition<\/th>/);
+  assert.match(baselineForm, new RegExp(`<td>${detailElementRef("E-EmailInput", "E-EmailInput")}</td><td>Input</td><td>no</td><td>morgan@example\\.com</td><td>${sourceTypeChipPattern("data")}</td><td>${specSectionPattern("Input", ["type: email"])}</td><td>${defaultAlwaysPattern()}</td>`));
+  assert.match(baselineForm, new RegExp(`<td>${detailElementRef("E-RoleSelect", "E-RoleSelect")}</td><td>Select</td><td>no</td><td>member</td><td>${sourceTypeChipPattern("data")}<br>${sourceCodePattern("${data.member.role}")}</td>`));
+  assert.match(scenarioForm, new RegExp(`<td>${detailElementRef("E-EmailInput", "E-EmailInput")}</td><td>Input</td><td>no</td><td>taylor@example\\.com</td><td>${sourceTypeChipPattern("data")}</td>`));
+  assert.match(scenarioForm, new RegExp(`<td>${detailElementRef("E-RoleSelect", "E-RoleSelect")}</td><td>Select</td><td>no</td><td>administrator</td><td>${sourceTypeChipPattern("data")}<br>${sourceCodePattern("${data.member.role}")}</td>`));
+  assert.doesNotMatch(scenarioForm, /<td>[^<]*(?:Source|Kind|Metadata)[\s\S]*?<\/td><td><span class="mm-chip mm-source-chip/);
+});
+
 test("renders List items in display content spec without treating the list as input", () => {
   const source = readFileSync(resolve("../../examples/04-real-world-screens/profile-edit-rich.vspec.md"), "utf8");
   const html = renderDesignDocumentHtml(parseMarkVSpec(source), "");
@@ -7699,14 +7761,14 @@ title: Element Groups
   assert.match(html, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>/);
   assert.match(elementSummary, new RegExp(`<td>${detailElementRef("E-状態バッジ", "E-状態バッジ")}</td><td>Badge</td>`));
   assert.doesNotMatch(elementSummary, /<span class="mm-chip mm-chip-type">Badge<\/span>/);
-  assert.match(html, new RegExp(`<td>${detailElementRef("E-ロール選択", "E-ロール選択")}</td><td>Select</td><td>no</td><td>${specSectionPattern("initial", ["Viewer"])}${specSectionPattern("Source", [sourceCodePattern("${model.role}")])}</td><td>${specSectionPattern("Input", [`Options: Viewer \\(${sourceCodePattern("${copy.roles.viewer}")}\\), Administrator \\(${sourceCodePattern("${copy.roles.administrator}")}\\)`])}</td><td>${defaultAlwaysPattern()}</td>`));
-  assert.match(html, new RegExp(`<td>${detailElementRef("E-StartDate", "E-StartDate")}</td><td>DatePicker</td><td>no</td><td>${specSectionPattern("Source", [sourceCodePattern("${model.startDate}")])}</td><td>${specSectionPattern("Constraints", ["min: 2020-01-01", "max: 2030-12-31"])}</td><td>${specSectionPattern("Enabled", [`not ${sourceCodePattern("${model.readonly}")}`])}</td>`));
-  assert.match(html, new RegExp(`<td>${detailElementRef("E-EndDate", "E-EndDate")}</td><td>DateInput</td><td>yes</td><td>${specSectionPattern("initial", ["2026-05-02"])}${specSectionPattern("Source", [sourceCodePattern("${model.endDate}")])}</td><td>${specSectionPattern("Constraints", ["min: 2020-01-01", "max: 2030-12-31"])}</td><td>${defaultAlwaysPattern()}</td>`));
-  assert.match(html, new RegExp(`<td>${detailElementRef("E-StartTime", "E-StartTime")}</td><td>TimeInput</td><td>no</td><td>${specSectionPattern("initial", ["09:30"])}${specSectionPattern("Source", [sourceCodePattern("${model.startTime}")])}</td><td>${specSectionPattern("Constraints", ["min: 09:00", "max: 18:00"])}</td>`));
-  assert.match(html, new RegExp(`<td>${detailElementRef("E-Headcount", "E-Headcount")}</td><td>NumberInput</td><td>yes</td><td>${specSectionPattern("initial", ["2"])}${specSectionPattern("Source", [sourceCodePattern("${model.headcount}")])}</td><td>${specSectionPattern("Constraints", ["min: 1", "max: 20", "step: 1"])}</td>`));
-  assert.match(html, new RegExp(`<td>${detailElementRef("E-Notes", "E-Notes")}</td><td>Textarea</td><td>no</td><td>${specSectionPattern("Source", [sourceCodePattern("${model.notes}")])}</td>`));
-  assert.match(html, new RegExp(`<td>${detailElementRef("E-アバターアップロード", "E-アバターアップロード")}</td><td>FileUpload</td><td>no</td><td>-</td><td>${specSectionPattern("Constraints", ["accept: image/png,image/jpeg"])}</td><td>${defaultAlwaysPattern()}</td>`));
-  assert.match(html, new RegExp(`<td>${detailElementRef("E-証憑ファイル", "E-証憑ファイル")}</td><td>FileInput</td><td>no</td><td>-</td><td>${specSectionPattern("Constraints", ["accept: application/pdf", "multiple"])}</td><td>${defaultAlwaysPattern()}</td>`));
+  assert.match(html, new RegExp(`<td>${detailElementRef("E-ロール選択", "E-ロール選択")}</td><td>Select</td><td>no</td><td>Viewer</td><td>${sourceTypeChipPattern("fixed")}</td><td>${specSectionPattern("Input", [`Options: Viewer \\(${sourceCodePattern("${copy.roles.viewer}")}\\), Administrator \\(${sourceCodePattern("${copy.roles.administrator}")}\\)`])}</td><td>${defaultAlwaysPattern()}</td>`));
+  assert.match(html, new RegExp(`<td>${detailElementRef("E-StartDate", "E-StartDate")}</td><td>DatePicker</td><td>no</td><td>${sourceCodePattern("${model.startDate}")}</td><td>${sourceTypeChipPattern("fixed")}</td><td>${specSectionPattern("Constraints", ["min: 2020-01-01", "max: 2030-12-31"])}</td><td>${specSectionPattern("Enabled", [`not ${sourceCodePattern("${model.readonly}")}`])}</td>`));
+  assert.match(html, new RegExp(`<td>${detailElementRef("E-EndDate", "E-EndDate")}</td><td>DateInput</td><td>yes</td><td>2026-05-02</td><td>${sourceTypeChipPattern("fixed")}</td><td>${specSectionPattern("Constraints", ["min: 2020-01-01", "max: 2030-12-31"])}</td><td>${defaultAlwaysPattern()}</td>`));
+  assert.match(html, new RegExp(`<td>${detailElementRef("E-StartTime", "E-StartTime")}</td><td>TimeInput</td><td>no</td><td>09:30</td><td>${sourceTypeChipPattern("fixed")}</td><td>${specSectionPattern("Constraints", ["min: 09:00", "max: 18:00"])}</td>`));
+  assert.match(html, new RegExp(`<td>${detailElementRef("E-Headcount", "E-Headcount")}</td><td>NumberInput</td><td>yes</td><td>2</td><td>${sourceTypeChipPattern("fixed")}</td><td>${specSectionPattern("Constraints", ["min: 1", "max: 20", "step: 1"])}</td>`));
+  assert.match(html, new RegExp(`<td>${detailElementRef("E-Notes", "E-Notes")}</td><td>Textarea</td><td>no</td><td>${sourceCodePattern("${model.notes}")}</td><td>${sourceTypeChipPattern("fixed")}</td>`));
+  assert.match(html, new RegExp(`<td>${detailElementRef("E-アバターアップロード", "E-アバターアップロード")}</td><td>FileUpload</td><td>no</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${specSectionPattern("Constraints", ["accept: image/png,image/jpeg"])}</td><td>${defaultAlwaysPattern()}</td>`));
+  assert.match(html, new RegExp(`<td>${detailElementRef("E-証憑ファイル", "E-証憑ファイル")}</td><td>FileInput</td><td>no</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${specSectionPattern("Constraints", ["accept: application/pdf", "multiple"])}</td><td>${defaultAlwaysPattern()}</td>`));
   const displayContent = html.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
   assert.match(displayContent, /<th>Marker\/ID<\/th><th>Location<\/th><th>Content<\/th><th>Format<\/th><th>Source<\/th><th>Condition<\/th>/);
   assert.doesNotMatch(displayContent, /<th>Enabled When<\/th>/);

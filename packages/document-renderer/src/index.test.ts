@@ -702,6 +702,65 @@ title: Static Display Metadata
   assert.match(displayContent, /option label[\s\S]*Administrator[\s\S]*copy\.roles\.admin[\s\S]*mm-source-chip-i18n/);
 });
 
+test("renders static input form value and source as separate columns", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-STATIC-INPUT-SOURCE
+type: screen
+title: Static Input Source
+---
+
+# SCR-STATIC-INPUT-SOURCE Static Input Source
+
+## States
+
+- loaded*
+
+## Layout
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- E-EmailInput
+- E-RoleSelect
+
+## Elements
+
+### E-EmailInput Input
+
+- value: morgan@example.com
+  - kind: data
+- type: email
+
+### E-RoleSelect Select
+
+- value: member
+  - kind: data
+  - source: ${"${data.member.role}"}
+- options:
+  - Member
+  - Administrator
+
+## Preview Scenarios
+
+### loaded-override
+
+- state: loaded
+- samples:
+  - E-EmailInput: taylor@example.com
+  - E-RoleSelect: administrator
+`);
+  const html = renderStaticDesignDocumentHtml(result);
+
+  assert.match(html, /<th>Marker\/ID<\/th><th>Type<\/th><th>Required<\/th><th>Value<\/th><th>Source<\/th><th>Spec<\/th><th>Condition<\/th>/);
+  assert.match(html, /<td><a class="mm-ref-chip mm-ref-chip-element" href="#state-views" data-mm-ref-id="E-EmailInput"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">E-EmailInput<\/code><\/a><\/td><td>Input<\/td><td>no<\/td><td>morgan@example\.com<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">data<\/span><\/td><td><div class="spec-section"><strong>Input<\/strong><ul class="spec-list"><li>type: email<\/li><\/ul><\/div><\/td><td><span class="spec-default-always">always<\/span><\/td>/);
+  assert.match(html, /<td><a class="mm-ref-chip mm-ref-chip-element" href="#state-views" data-mm-ref-id="E-RoleSelect"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">E-RoleSelect<\/code><\/a><\/td><td>Select<\/td><td>no<\/td><td>member<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">data<\/span><br><span class="mm-inline-token">\$\{data.member.role\}<\/span><\/td>/);
+  assert.match(html, /<td>taylor@example.com<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">data<\/span><\/td>/);
+  assert.match(html, /<td>administrator<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">data<\/span><br><span class="mm-inline-token">\$\{data.member.role\}<\/span><\/td>/);
+});
+
 test("renders wide scenario rows as independent readable blocks", () => {
   const columns = Array.from({ length: 10 }, (_, index) => {
     const number = index + 1;

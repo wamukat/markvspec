@@ -1610,7 +1610,7 @@ title: Markerless
 
   assert.match(html, /<h6 class="state-screen-detail-heading">Element Summary<\/h6>/);
   assert.match(html, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>/);
-  assert.match(html, new RegExp(`<td>${detailElementRef("E-メールアドレス入力", "E-メールアドレス入力")}</td><td>Input</td><td>yes</td><td>${specSectionPattern("initial", ["a@example\\.com"])}${specSectionPattern("Source", [sourceCodePattern("${model.email}")])}</td><td>-</td><td>${defaultAlwaysPattern()}</td>`));
+  assert.match(html, new RegExp(`<td>${detailElementRef("E-メールアドレス入力", "E-メールアドレス入力")}</td><td>Input</td><td>yes</td><td>a@example\\.com</td><td>${sourceTypeChipPattern("fixed")}</td><td>-</td><td>${defaultAlwaysPattern()}</td>`));
   assert.match(html, /<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>/);
   assert.doesNotMatch(html, /<div class="element-detail-group"><h4>Actionable<\/h4>/);
   assert.match(html, new RegExp(`<td>${detailElementRef("E-SubmitButton", "E-SubmitButton")}</td><td>Button</td><td><ul class="spec-list"><li>${refActionChip("A-Submit", "A-Submit", "Submit")}</li></ul></td><td>-</td>`));

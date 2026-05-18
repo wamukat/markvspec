@@ -20,7 +20,8 @@ import {
   resolveRendererMessages,
   resolveProjectPath,
   isProjectReferenceAllowed,
-  isMarkVSpecSourceType
+  isMarkVSpecSourceType,
+  sourceTypeForElement
 } from "@markvspec/core";
 import {
   renderDesignDocumentSections
@@ -3785,7 +3786,8 @@ function stateViewsRenderContext(result: ReturnType<typeof parseMarkVSpec>): Sta
     renderElementActionReferences: (element) => renderElementActionReferences(result, element),
     renderElementDescription,
     renderRequiredSpec: (element) => renderRequiredSpec(result, element),
-    renderFormControlInitialValueSource: (element) => renderFormControlInitialValueSource(result, element),
+    renderFormControlValue: (element, sampleValue) => renderFormControlValue(element, sampleValue),
+    renderFormControlSource: (element) => renderFormControlSource(element),
     renderInputSpec: (element) => renderInputSpec(result, element),
     renderElementConditionSummary: (element) => renderElementConditionSummary(result, element),
     renderContentElementState: (element) => renderContentElementState(result, element),
@@ -6000,41 +6002,21 @@ function renderElementSampleSummary(element: ReturnType<typeof parseMarkVSpec>["
   return sample;
 }
 
-function renderFormControlValueSource(result: ReturnType<typeof parseMarkVSpec>, element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
-  const labelValue = stringProperty(element.properties["label"]);
-  const labelSource = element.properties["label src"];
-  const sample = element.properties["source"] === "data" ? stringProperty(element.properties["sample"]) : "";
-  const value = stringProperty(element.properties["value"]);
-  const rows = [
-    labelValue ? renderValueWithOptionalSource(labelValue, labelSource) : "",
-    !labelValue && sample ? renderValueWithOptionalSource(sample, element.properties["src"]) : "",
-    shouldShowFormControlValueSource(element, labelValue, sample, value) ? renderSourceSummary(value) || text(value) : "",
-    renderSelectOptionSummary(result, element)
-  ].filter(Boolean);
-
-  if (rows.length === 0) {
-    return "";
-  }
-
-  return rows.length === 1 ? rows[0] ?? "" : `<ul class="spec-list">${rows.map((row) => `<li>${row}</li>`).join("")}</ul>`;
-}
-
-function renderFormControlInitialValueSource(
-  result: ReturnType<typeof parseMarkVSpec>,
-  element: ReturnType<typeof parseMarkVSpec>["elements"][number]
+function renderFormControlValue(
+  element: ReturnType<typeof parseMarkVSpec>["elements"][number],
+  sampleValue: string | undefined
 ): string {
   const initialValue = rawStringProperty(element.properties["initial value"]);
   const value = rawStringProperty(element.properties["value"]);
-  return renderSpecSections([
-    {
-      title: label(result, "initial"),
-      rows: initialValue ? [renderExpressionTokens(initialValue)] : []
-    },
-    {
-      title: label(result, "displaySource"),
-      rows: value ? [renderSourceSummary(value) || text(value)] : []
-    }
-  ]);
+  const renderedValue = sampleValue ?? (initialValue || value);
+  return renderedValue ? renderExpressionTokens(renderedValue) : "";
+}
+
+function renderFormControlSource(element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
+  const valueMetadata = element.propertyMetadata["value"];
+  const sourceKind = valueMetadata?.kind ?? sourceTypeForElement(element);
+  const sourceDetail = valueMetadata?.source;
+  return [renderSourceSummary(sourceKind), sourceDetail ? renderSourceSummary(sourceDetail) : ""].filter(Boolean).join("<br>");
 }
 
 function renderInputSpec(
@@ -6207,18 +6189,6 @@ function renderActionableElementState(
   ]) || renderDefaultAlways(result);
 }
 
-function shouldShowFormControlValueSource(
-  element: ReturnType<typeof parseMarkVSpec>["elements"][number],
-  labelValue: string,
-  sample: string,
-  value: string
-): boolean {
-  if (!value) {
-    return false;
-  }
-  return !labelValue || !sample || isOpaqueExpressionSource(value);
-}
-
 function isOpaqueExpressionSource(value: string): boolean {
   return /^\$\{[^}]+\}$/u.test(value.trim());
 }
@@ -6297,12 +6267,6 @@ function renderSourceSummary(value: string | true | undefined): string {
 function renderValidationList(element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
   return element.validations.length > 0
     ? `<ul class="spec-list">${element.validations.map((validation) => `<li>${text(validation)}</li>`).join("")}</ul>`
-    : "";
-}
-
-function renderSelectOptionSummary(result: ReturnType<typeof parseMarkVSpec>, element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
-  return element.selectOptions.length > 0
-    ? `${text(label(result, "options"))}: ${element.selectOptions.map((option) => renderValueWithOptionalSource(option.label, option.source)).join(", ")}`
     : "";
 }
 

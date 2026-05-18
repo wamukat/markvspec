@@ -583,7 +583,7 @@ function markRepeatedCurrentStateScreenItems(
     }
   }
   for (const elementId of model.renderedIds.elementIds) {
-    if (seen.current.has(stateScreenCurrentKey(keyResult, model, "element", elementId))) {
+    if (!model.scenarioSamples.some((sample) => sample.elementId === elementId) && seen.current.has(stateScreenCurrentKey(keyResult, model, "element", elementId))) {
       repeatedElementIds.add(elementId);
     }
   }

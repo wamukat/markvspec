@@ -32,7 +32,8 @@ export interface StateViewSpecTableHelpers {
   renderElementActionReferences(element: ParsedElement): string;
   renderElementDescription(element: ParsedElement): string;
   renderRequiredSpec(element: ParsedElement): string;
-  renderFormControlInitialValueSource(element: ParsedElement): string;
+  renderFormControlValue(element: ParsedElement, sampleValue: string | undefined): string;
+  renderFormControlSource(element: ParsedElement): string;
   renderInputSpec(element: ParsedElement): string;
   renderElementConditionSummary(element: ParsedElement): string;
   renderContentElementState(element: ParsedElement): string;
@@ -112,7 +113,7 @@ export function createStateViewSpecTableRenderer(
     return [
       `<h4>${helpers.label("elementSummary")}</h4>`,
       renderElementSummaryTable(elements, repeatedElementIds, repeatedContent?.elementSummaryEmptyWhenRepeatedHidden ?? false),
-      formControls.length > 0 ? renderElementDetailGroup(helpers.label("inputFormSpec"), renderFormControlElementsTable(formControls, repeatedElementIds, repeatedContent?.inputFormSpecEmptyWhenRepeatedHidden ?? false), repeatedContent?.inputFormSpecEmptyWhenRepeatedHidden ?? false) : "",
+      formControls.length > 0 ? renderElementDetailGroup(helpers.label("inputFormSpec"), renderFormControlElementsTable(formControls, repeatedElementIds, repeatedContent?.inputFormSpecEmptyWhenRepeatedHidden ?? false, model), repeatedContent?.inputFormSpecEmptyWhenRepeatedHidden ?? false) : "",
       displayContentRows.length > 0 ? renderElementDetailGroup(helpers.label("displayContentSpec"), renderDisplayContentSpecTable(displayContentRows, repeatedElementIds, repeatedContent?.displayContentSpecEmptyWhenRepeatedHidden ?? false), repeatedContent?.displayContentSpecEmptyWhenRepeatedHidden ?? false) : ""
     ].filter(Boolean).join("");
   };
@@ -128,17 +129,21 @@ export function createStateViewSpecTableRenderer(
       ])
     ), emptyWhenRepeatedHidden);
 
-  const renderFormControlElementsTable = (elements: ParsedElement[], repeatedElementIds: ReadonlySet<string> | undefined, emptyWhenRepeatedHidden: boolean): string =>
+  const renderFormControlElementsTable = (elements: ParsedElement[], repeatedElementIds: ReadonlySet<string> | undefined, emptyWhenRepeatedHidden: boolean, model?: StateScreenReadModel): string =>
     markRepeatedHiddenEmptyHtml(helpers.renderLocalizedTable(
-      [markerIdHeader(), helpers.label("type"), helpers.label("inputRequired"), helpers.label("initialValueSource"), helpers.label("inputSpec"), helpers.label("condition")],
-      elements.map((element) => [
-        renderRepeatedEntityRefCell(element.id, Boolean(repeatedElementIds?.has(element.id))),
-        helpers.text(element.type),
-        helpers.renderRequiredSpec(element),
-        helpers.renderFormControlInitialValueSource(element),
-        helpers.renderInputSpec(element),
-        helpers.renderElementConditionSummary(element)
-      ])
+      [markerIdHeader(), helpers.label("type"), helpers.label("inputRequired"), helpers.label("initialValueSource"), helpers.label("displaySource"), helpers.label("inputSpec"), helpers.label("condition")],
+      elements.map((element) => {
+        const sampleValue = model?.scenarioSamples.find((sample) => sample.elementId === element.id && sample.value !== undefined)?.value;
+        return [
+          renderRepeatedEntityRefCell(element.id, Boolean(repeatedElementIds?.has(element.id))),
+          helpers.text(element.type),
+          helpers.renderRequiredSpec(element),
+          helpers.renderFormControlValue(element, sampleValue),
+          helpers.renderFormControlSource(element),
+          helpers.renderInputSpec(element),
+          helpers.renderElementConditionSummary(element)
+        ];
+      })
     ), emptyWhenRepeatedHidden);
 
   const renderDisplayContentSpecTable = (rows: DisplayContentSpecRow[], repeatedElementIds: ReadonlySet<string> | undefined, emptyWhenRepeatedHidden: boolean): string => {
