@@ -18,7 +18,7 @@ easy to review without introducing a generic navigation menu.
 
 ## Layout: desktop
 
-### L-Page Account actions page
+### L1:L-Page Account actions page
 
 - stack
 - gap: md
@@ -56,12 +56,29 @@ easy to review without introducing a generic navigation menu.
 
 ## Actions
 
-### A-EditAccount Edit account
+### A1:A-EditAccount Edit account
 
 - From
   - idle
+- Process P1: Select menu item
+  - case: done
+    - description: Edit action item is selected from the open action menu.
+    - Effects
+      - state: idle
+    - stop
 
-### A-DisableAccount Disable account
+### A2:A-DisableAccount Disable account
 
 - From
   - idle
+- Process P1: Select menu item
+  - case: blocked
+    - description: Disable action is unavailable when selected-row-locked is true.
+    - Effects
+      - state: idle
+    - stop
+  - case: done
+    - description: Disable action item is selected with danger tone.
+    - Effects
+      - state: idle
+    - stop

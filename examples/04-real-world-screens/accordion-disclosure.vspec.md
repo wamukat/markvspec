@@ -18,7 +18,7 @@ review without introducing screen states for local UI expansion.
 
 ## Layout: desktop
 
-### L-Page Advanced settings page
+### L1:L-Page Advanced settings page
 
 - stack
 - gap: md
@@ -27,12 +27,21 @@ review without introducing screen states for local UI expansion.
 
 - E-PageTitle
 - E-AdvancedFilters
+- E-ShippingDetails
+- L-PanelReferenceDefinitions
+
+### L2:L-PanelReferenceDefinitions Panel reference definitions
+
+- stack
+- hidden when: idle
+
+#### Items
+
 - L-AdvancedFilterPanel
 - L-SavedFiltersPanel
-- E-ShippingDetails
 - L-ShippingDetailsPanel
 
-### L-AdvancedFilterPanel Advanced filter panel
+### L3:L-AdvancedFilterPanel Advanced filter panel
 
 - stack
 - gap: sm
@@ -42,7 +51,7 @@ review without introducing screen states for local UI expansion.
 - E-StatusFilter
 - E-DateRange
 
-### L-SavedFiltersPanel Saved filters panel
+### L4:L-SavedFiltersPanel Saved filters panel
 
 - stack
 - gap: sm
@@ -51,7 +60,7 @@ review without introducing screen states for local UI expansion.
 
 - E-SavedFilterName
 
-### L-ShippingDetailsPanel Shipping details panel
+### L5:L-ShippingDetailsPanel Shipping details panel
 
 - stack
 - gap: sm
@@ -112,12 +121,24 @@ review without introducing screen states for local UI expansion.
 
 ## Actions
 
-### A-ToggleAdvancedFilters Toggle advanced filters
+### A1:A-ToggleAdvancedFilters Toggle advanced filters
 
 - From
   - idle
+- Process P1: Toggle accordion item
+  - case: done
+    - description: Advanced filters item toggles the L-AdvancedFilterPanel panel reference.
+    - Effects
+      - state: idle
+    - stop
 
-### A-ToggleShippingDetails Toggle shipping details
+### A2:A-ToggleShippingDetails Toggle shipping details
 
 - From
   - idle
+- Process P1: Toggle disclosure
+  - case: done
+    - description: Shipping details disclosure toggles the L-ShippingDetailsPanel panel reference.
+    - Effects
+      - state: idle
+    - stop

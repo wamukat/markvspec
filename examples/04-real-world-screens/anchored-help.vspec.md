@@ -8,8 +8,9 @@ locale: en
 
 # SCR-ANCHORED-HELP Anchored Help
 
-Focused example for `Popover` and `Tooltip` Elements. It shows anchored
-non-modal help without modeling hover, focus, or interactive popover controls.
+Focused example for `Popover` and `Tooltip` Elements. It shows anchor element
+references, placement, static tooltip text, and a visible popover state without
+modeling hover, focus, or interactive popover controls.
 
 ## States
 
@@ -18,7 +19,7 @@ non-modal help without modeling hover, focus, or interactive popover controls.
 
 ## Layout: desktop
 
-### L-SecurityForm Security form
+### L1:L-SecurityForm Security form
 
 - stack
 - gap: sm
@@ -33,27 +34,27 @@ non-modal help without modeling hover, focus, or interactive popover controls.
 
 ## Elements
 
-### E-PasswordLabel Text
+### 1:E-PasswordLabel Text
 
 - text: Password
 
-### E-PasswordInput Input
+### 2:E-PasswordInput Input
 
 - type: password
 - placeholder: New password
 
-### E-PasswordHint Tooltip
+### 3:E-PasswordHint Tooltip
 
 - anchor: E-PasswordInput
 - placement: top
 - text: Use at least 12 characters.
 
-### E-PasswordHelpButton Button
+### 4:E-PasswordHelpButton Button
 
 - label: Password help
 - action: A-OpenPasswordHelp
 
-### E-PasswordHelp Popover
+### 5:E-PasswordHelp Popover
 
 - anchor: E-PasswordHelpButton
 - placement: bottom-start
@@ -62,7 +63,7 @@ non-modal help without modeling hover, focus, or interactive popover controls.
 
 ## Actions
 
-### A-OpenPasswordHelp Open password help
+### A1:A-OpenPasswordHelp Open password help
 
 - From
   - idle

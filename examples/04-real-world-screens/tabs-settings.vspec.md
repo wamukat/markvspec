@@ -17,7 +17,7 @@ active tab, controlled panels, and item actions are easy to review.
 
 ## Layout: desktop
 
-### L-Page Settings page
+### L1:L-Page Settings page
 
 - stack
 - gap: md
@@ -29,7 +29,7 @@ active tab, controlled panels, and item actions are easy to review.
 - L-ProfilePanel
 - L-BillingPanel
 
-### L-ProfilePanel Profile panel
+### L2:L-ProfilePanel Profile panel
 
 - stack
 - gap: sm
@@ -39,7 +39,7 @@ active tab, controlled panels, and item actions are easy to review.
 - E-ProfileHeading
 - E-ProfileEmail
 
-### L-BillingPanel Billing panel
+### L3:L-BillingPanel Billing panel
 
 - stack
 - gap: sm
@@ -89,12 +89,24 @@ active tab, controlled panels, and item actions are easy to review.
 
 ## Actions
 
-### A-SelectProfileTab Select profile tab
+### A1:A-SelectProfileTab Select profile tab
 
 - From
   - idle
+- Process P1: Select tab item
+  - case: done
+    - description: Profile tab is selected and L-ProfilePanel remains the active panel.
+    - Effects
+      - state: idle
+    - stop
 
-### A-SelectBillingTab Select billing tab
+### A2:A-SelectBillingTab Select billing tab
 
 - From
   - idle
+- Process P1: Select tab item
+  - case: done
+    - description: Billing tab is selected and L-BillingPanel becomes the active panel.
+    - Effects
+      - state: idle
+    - stop
