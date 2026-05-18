@@ -703,7 +703,7 @@ function renderInputFormSpecBox(
   messages: RendererMessages
 ): string {
   const elements = stateScreenElementsForModel(result, model);
-  const { formControls } = stateScreenElementGroups(elements, result, model.stateName);
+  const { formControls } = stateScreenElementGroups(elements, result, model.stateName, model);
   if (formControls.length === 0) {
     return "";
   }
@@ -821,7 +821,7 @@ function renderDisplayContentSpecBox(
   messages: RendererMessages
 ): string {
   const elements = stateScreenElementsForModel(result, model);
-  const { displayContentRows } = stateScreenElementGroups(elements, result, model.stateName);
+  const { displayContentRows } = stateScreenElementGroups(elements, result, model.stateName, model);
   if (displayContentRows.length === 0) {
     return "";
   }

@@ -6100,7 +6100,7 @@ test("renders scenario sample values in display content spec", () => {
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("2", "E-MemberName")}</td><td>sample</td><td>Baseline Member</td><td>-</td><td>${sourceTypeChipPattern("data")}</td>`));
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("3", "E-PlanName")}</td><td>sample</td><td>Baseline Plan</td><td>-</td><td>${sourceTypeChipPattern("data")}</td>`));
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("4", "E-SeatCount")}</td><td>sample</td><td>1 seat</td><td>-</td><td>${sourceTypeChipPattern("data")}</td>`));
-  assert.match(displayContent, new RegExp(`<td rowspan="4">${detailElementRef("6", "E-SubscriptionTable")}</td><td>table rows</td><td>see wireframe</td><td>-</td><td>${sourceTypeChipPattern("data")}</td>`));
+  assert.match(displayContent, new RegExp(`<td rowspan="4">${detailElementRef("6", "E-SubscriptionTable")}</td><td>table rows</td><td>Sample rows: E-SubscriptionTable</td><td>-</td><td>${sourceTypeChipPattern("data")}</td>`));
   assert.match(displayContent, new RegExp(`<td>column</td><td>${specSectionPattern("Label", ["Product"])}${specSectionPattern("Field", ["product"])}</td><td>-</td><td>${sourceTypeChipPattern("data")}</td>`));
   assert.match(displayContent, new RegExp(`<td>column</td><td>${specSectionPattern("Label", ["Seats"])}${specSectionPattern("Field", ["seats"])}</td><td>-</td><td>${sourceTypeChipPattern("data")}</td>`));
   assert.match(displayContent, new RegExp(`<td>column</td><td>${specSectionPattern("Label", ["Renewal"])}${specSectionPattern("Field", ["renewal"])}</td><td>-</td><td>${sourceTypeChipPattern("data")}</td>`));
@@ -6183,9 +6183,11 @@ test("renders the source-kind metadata example with property-level source chips"
   assert.match(displayContent, /external status page URL/);
   assert.match(displayContent, /currency USD/);
   assert.match(displayContent, /date yyyy\/MM\/dd/);
+  assert.match(displayContent, new RegExp(`<td rowspan="4">${detailElementRef("9", "E-LineItems")}</td><td>table rows</td><td>Sample rows: E-LineItems</td><td>-</td><td>${sourceTypeChipPattern("data")}</td>`));
   assert.match(displayContent, new RegExp(`<td rowspan="3">${detailElementRef("10", "E-RoleSelect")}</td><td>label</td><td>Role</td><td>-</td><td>${sourceTypeChipPattern("i18n")}</td>`));
   assert.match(displayContent, new RegExp(`<tr><td>option label</td><td>${specSectionPattern("Label", ["Member"])}</td><td>-</td><td>${sourceTypeChipPattern("i18n")}</td>`));
   assert.match(displayContent, new RegExp(`<tr><td>option label</td><td>${specSectionPattern("Label", ["Administrator"])}</td><td>-</td><td>${sourceTypeChipPattern("i18n")}</td>`));
+  assert.doesNotMatch(displayContent, /<td>table rows<\/td><td>see wireframe<\/td>/);
   assert.doesNotMatch(loadedSection, /<h6 class="state-screen-detail-heading">Other<\/h6>/);
 });
 

@@ -56,7 +56,7 @@ title: Display Content
   const roleOptionRows = rows.filter((row) => row.element.id === "E-RoleSelect" && row.location === "option label");
   const statusItemsRow = rows.find((row) => row.element.id === "E-StatusList" && row.location === "items");
 
-  assert(rowKeys.includes("E-Users:table rows:see wireframe:data"));
+  assert(rowKeys.includes("E-Users:table rows:Sample rows: E-Users:data"));
   assert.deepEqual(userColumnRows.map((row) => row.contentSections), [
     [
       { title: "Label", rows: ["Name"] },
@@ -89,6 +89,69 @@ title: Display Content
   assert(!rowKeys.some((key) => key.startsWith("E-RoleSelect:option source:")));
   assert(rowKeys.includes("E-StatusBadge:text:Active:fixed"));
   assert(!rowKeys.some((key) => key.startsWith("E-FixedInput:sample:")));
+});
+
+test("builds Display Content Spec row data references from preview scenario sample rows", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-SAMPLE-ROWS
+type: screen
+title: Sample Rows
+---
+
+## States
+
+- loaded*
+
+## Elements
+
+### E-Users Table
+
+- source: data
+- Columns:
+  - name: Name
+
+### E-UserList List
+
+- source: data
+
+### E-FixedRows Table
+
+- Columns:
+  - Name: name
+- Sample Rows:
+  - Row
+    - name: Fixed User
+
+### E-UnknownRows Table
+
+- Columns:
+  - name: Name
+
+## Preview Scenarios
+
+### loaded
+
+- samples:
+  - E-Users:
+    - rows:
+      - row:
+        - name: Scenario User
+  - E-UserList:
+    - rows:
+      - row:
+        - label: Scenario Item
+`);
+
+  const rows = buildDisplayContentSpecRows(result.elements, { scenarioSamples: result.previewScenarios[0]?.samples });
+  const tableRows = rows.find((row) => row.element.id === "E-Users" && row.location === "table rows");
+  const listRows = rows.find((row) => row.element.id === "E-UserList" && row.location === "list items");
+  const fixedRows = rows.find((row) => row.element.id === "E-FixedRows" && row.location === "table rows");
+  const unknownRows = rows.find((row) => row.element.id === "E-UnknownRows" && row.location === "table rows");
+
+  assert.deepEqual([tableRows?.value, tableRows?.source], ["Sample rows: E-Users", "data"]);
+  assert.deepEqual([listRows?.value, listRows?.source], ["Sample rows: E-UserList", "data"]);
+  assert.deepEqual([fixedRows?.value, fixedRows?.source], ["fixed rows: 1", "fixed"]);
+  assert.equal(unknownRows, undefined);
 });
 
 test("builds Display Content Spec rows from property-level metadata", () => {

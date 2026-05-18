@@ -187,3 +187,11 @@ displayed value; the property value itself is the baseline preview sample.
   - E-EmailInput: taylor@example.com
   - E-Subtotal: USD 240.00
   - E-RoleSelect: administrator
+  - E-LineItems:
+    - rows:
+      - row:
+        - item: Team plan
+        - amount: USD 200.00
+      - row:
+        - item: Support add-on
+        - amount: USD 40.00

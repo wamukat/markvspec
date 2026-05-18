@@ -542,6 +542,8 @@ title: Scenario Samples
   assert.match(loadedScenario, /<th>Product<\/th><th>Seats<\/th><th>renewal<\/th>/);
   assert.match(loadedScenario, /<td>Workspace<\/td><td>8<\/td><td>2026-06-30<\/td>/);
   assert.match(loadedScenario, /<td>Analytics<\/td><td>4<\/td><td>2026-07-15<\/td>/);
+  assert.match(loadedScenario, /<td>table rows<\/td><td>Sample rows: E-SubscriptionTable<\/td><td>-<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">data<\/span><\/td>/);
+  assert.doesNotMatch(loadedScenario, /<td>table rows<\/td><td>see wireframe<\/td>/);
   assert(loadedScenario.indexOf('<section class="scenario-sample-rows-block">') > loadedScenario.indexOf("</table></div>"));
   assert.match(emptyScenario, /0 seats/);
   assert.match(emptyScenario, /<code>rows: \[\]<\/code>/);

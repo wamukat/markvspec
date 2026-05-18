@@ -3,6 +3,11 @@ import { tableColumnSampleKeys } from "./table-columns.js";
 import type { MarkVSpecParseResult } from "./types.js";
 
 type ParsedElement = MarkVSpecParseResult["elements"][number];
+type ScenarioSample = MarkVSpecParseResult["previewScenarios"][number]["samples"][number];
+
+export type DisplayContentSpecContext = {
+  scenarioSamples?: readonly ScenarioSample[];
+};
 
 export type DisplayContentSpecRow = {
   element: ParsedElement;
@@ -18,7 +23,7 @@ export type DisplayContentSpecSection = {
   rows: string[];
 };
 
-export function buildDisplayContentSpecRows(elements: ParsedElement[]): DisplayContentSpecRow[] {
+export function buildDisplayContentSpecRows(elements: ParsedElement[], context: DisplayContentSpecContext = {}): DisplayContentSpecRow[] {
   return elements.flatMap((element) => {
     const properties = element.properties;
     const rows: DisplayContentSpecRow[] = [];
@@ -26,7 +31,7 @@ export function buildDisplayContentSpecRows(elements: ParsedElement[]): DisplayC
     const sourceType = sourceTypeForElement(element);
     const displaySample = sourceType === "data" ? properties["sample"] : undefined;
     if (element.type === "Table") {
-      pushDisplayPropertyRow(rows, element, "table rows", "see wireframe", sourceType);
+      pushTableRowsReferenceRow(rows, element, sourceType, context);
       pushDisplayPropertyRow(rows, element, "rows", properties["rows"], sourceType);
       pushTableColumnRows(rows, element, sourceType);
     }
@@ -49,7 +54,7 @@ export function buildDisplayContentSpecRows(elements: ParsedElement[]): DisplayC
     pushDisplayPropertyRow(rows, element, "title", properties["title"], sourceType);
     pushDisplayPropertyRow(rows, element, "alt", properties["alt"], sourceType);
     pushDisplayPropertyRow(rows, element, "name", properties["name"], sourceType);
-    pushListItemsRow(rows, element, sourceType);
+    pushListItemsRow(rows, element, sourceType, context);
     pushSelectOptionsRow(rows, element, sourceType);
     return rows;
   });
@@ -129,6 +134,39 @@ function pushTableColumnRows(
   }
 }
 
+function pushTableRowsReferenceRow(
+  rows: DisplayContentSpecRow[],
+  element: ParsedElement,
+  source: MarkVSpecSourceType,
+  context: DisplayContentSpecContext
+): void {
+  const scenarioRows = sampleRowsForElement(context, element.id);
+  if (scenarioRows) {
+    rows.push(sampleRowsReferenceRow(element, "table rows", "data"));
+    return;
+  }
+
+  const metadata = element.propertyMetadata["rows"] ?? element.propertyMetadata["sample rows"];
+  if (metadata?.kind) {
+    rows.push(sampleRowsReferenceRow(element, "table rows", metadata.kind));
+    return;
+  }
+
+  if (element.tableRows.length > 0) {
+    rows.push({
+      element,
+      location: "table rows",
+      value: `fixed rows: ${element.tableRows.length}`,
+      source: "fixed"
+    });
+    return;
+  }
+
+  if (source === "data" && element.sampleRows && (element.sampleRows.rows.length > 0 || element.sampleRows.explicitEmpty)) {
+    rows.push(sampleRowsReferenceRow(element, "table rows", "data"));
+  }
+}
+
 function pushSelectOptionsRow(
   rows: DisplayContentSpecRow[],
   element: ParsedElement,
@@ -156,8 +194,24 @@ function pushSelectOptionsRow(
 function pushListItemsRow(
   rows: DisplayContentSpecRow[],
   element: ParsedElement,
-  source: MarkVSpecSourceType
+  source: MarkVSpecSourceType,
+  context: DisplayContentSpecContext
 ): void {
+  if (element.type !== "List") {
+    return;
+  }
+
+  const scenarioRows = sampleRowsForElement(context, element.id);
+  if (scenarioRows) {
+    rows.push(sampleRowsReferenceRow(element, "list items", "data"));
+    return;
+  }
+
+  if (source === "data" && element.sampleRows && (element.sampleRows.rows.length > 0 || element.sampleRows.explicitEmpty)) {
+    rows.push(sampleRowsReferenceRow(element, "list items", "data"));
+    return;
+  }
+
   const items = splitListValue(rawStringProperty(element.properties["items"]));
   if (items.length === 0) {
     return;
@@ -169,8 +223,25 @@ function pushListItemsRow(
     contentSections: [
       { title: "Items", rows: items }
     ],
-    source
+    source: source === "data" ? undefined : source
   });
+}
+
+function sampleRowsReferenceRow(
+  element: ParsedElement,
+  location: string,
+  source: string
+): DisplayContentSpecRow {
+  return {
+    element,
+    location,
+    value: `Sample rows: ${element.id}`,
+    source
+  };
+}
+
+function sampleRowsForElement(context: DisplayContentSpecContext, elementId: string): ScenarioSample["rows"] | undefined {
+  return context.scenarioSamples?.find((sample) => sample.elementId === elementId && sample.rows)?.rows;
 }
 
 function displayValueProperty(element: ParsedElement): string | undefined {

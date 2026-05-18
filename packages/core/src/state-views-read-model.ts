@@ -631,7 +631,7 @@ function repeatedContentState(
 ): StateScreenRepeatedContent {
   const layouts = stateScreenLayoutsForModel(result, model);
   const elements = stateScreenElementsForModel(result, model);
-  const elementGroups = stateScreenElementGroups(elements, result, model.stateName);
+  const elementGroups = stateScreenElementGroups(elements, result, model.stateName, model);
   const actions = stateScreenActionsForModel(result, model);
   const systemEvents = systemEventActionsForState(result, model.renderedIds.elementIds, model.stateName, model.initial, model.focus);
   const layoutSpecEmptyWhenRepeatedHidden = everyIdRepeated(layouts, repeatedLayoutIds, (layout) => layout.id);
@@ -760,14 +760,15 @@ export function stateScreenActionsForModel(result: MarkVSpecParseResult, model: 
 export function stateScreenElementGroups(
   elements: ParsedElement[],
   result?: MarkVSpecParseResult,
-  stateName?: string
+  stateName?: string,
+  model?: StateScreenReadModel
 ): {
   formControls: ParsedElement[];
   displayContentRows: DisplayContentSpecRow[];
   other: ParsedElement[];
 } {
   const formControls = elements.filter((element) => isFormControlElement(element.type));
-  const displayContentRows = buildDisplayContentSpecRows(elements);
+  const displayContentRows = buildDisplayContentSpecRows(elements, { scenarioSamples: model?.scenarioSamples });
   const categorizedIds = new Set([
     ...formControls.map((element) => element.id),
     ...displayContentRows.map((row) => row.element.id)

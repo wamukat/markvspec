@@ -107,7 +107,7 @@ export function createStateViewSpecTableRenderer(
       return "";
     }
 
-    const { formControls, displayContentRows } = stateScreenElementGroups(elements, result, model?.stateName);
+    const { formControls, displayContentRows } = stateScreenElementGroups(elements, result, model?.stateName, model);
     const repeatedContent = model?.repeatedContent;
 
     return [
