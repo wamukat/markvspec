@@ -106,6 +106,47 @@ test("export html returns non-zero for invalid files", async () => {
   }
 });
 
+test("export document-list writes a project document list", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "markvspec-cli-document-list-"));
+  try {
+    const projectPath = join(dir, "markvspec.project.md");
+    const screenPath = join(dir, "home.vspec.md");
+    const outDir = join(dir, "out");
+    writeFileSync(projectPath, `---
+id: PRJ-CLI-DOC-LIST
+type: project
+title: CLI Document List
+screens:
+  - id: SCR-HOME
+    path: home.vspec.md
+---
+
+# PRJ-CLI-DOC-LIST CLI Document List
+`);
+    writeFileSync(screenPath, `---
+id: SCR-HOME
+type: screen
+title: Home
+route: /
+---
+
+# SCR-HOME Home
+
+Home screen.
+
+## States
+
+- idle*
+`);
+
+    assert.equal(await main(["export", "document-list", projectPath, "--out", outDir]), 0);
+    const output = readFileSync(join(outDir, "document-list.md"), "utf8");
+    assert.match(output, /\| 1 \| Screen \| SCR-HOME \| Home \| Home screen\. \| \/ \| - \| home\.vspec\.md \| 0 errors \/ 0 warnings \|/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("export pdf reports missing browser clearly", async () => {
   const dir = mkdtempSync(join(tmpdir(), "markvspec-cli-pdf-"));
   try {

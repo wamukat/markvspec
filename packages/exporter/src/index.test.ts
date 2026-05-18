@@ -6,6 +6,7 @@ import test from "node:test";
 import {
   defaultExportHtmlBaseName,
   expandMarkVSpecFiles,
+  exportMarkVSpecDocumentList,
   exportMarkVSpecPdfFiles,
   exportMarkVSpecHtmlFiles,
   pdfBrowserArgs,
@@ -331,6 +332,210 @@ locale: ja
     assert.match(scenarioSection, /<td>一郎<\/td>/);
     assert.match(scenarioSection, /<td>二郎<\/td>/);
     assert.doesNotMatch(scenarioSection, /2 rows/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("exports a project document list from screens templates and referenced partials", () => {
+  const dir = mkdtempSync(join(tmpdir(), "markvspec-document-list-"));
+  try {
+    mkdirSync(join(dir, "screens"));
+    mkdirSync(join(dir, "templates"));
+    mkdirSync(join(dir, "partials"));
+    const projectPath = join(dir, "markvspec.project.md");
+    const outDir = join(dir, "out");
+    writeFileSync(projectPath, `---
+id: PRJ-DOC-LIST
+type: project
+title: Document List Project
+templates:
+  - id: TPL-SHELL
+    path: templates/shell.vspec.md
+screens:
+  - id: SCR-SEARCH
+    path: screens/search.vspec.md
+---
+
+# PRJ-DOC-LIST Document List Project
+`);
+    writeFileSync(join(dir, "screens", "search.vspec.md"), `---
+id: SCR-SEARCH
+type: screen
+title: Search List
+route: /members
+references:
+  partials:
+    PRT-SUMMARY: ../partials/summary.partial.vspec.md
+---
+
+# SCR-SEARCH Search List
+
+Search and **filter** [members](https://example.com) before opening a profile.
+
+## States
+
+- idle*
+
+## History
+
+### v0.1
+
+- date: 2026-05-18
+- author: Product
+
+### v0.2
+
+- date: 2026-05-17
+- author: Product
+`);
+    writeFileSync(join(dir, "templates", "shell.vspec.md"), `---
+id: TPL-SHELL
+type: template
+title: App Shell
+references:
+  partials:
+    PRT-SUMMARY: ../partials/summary.partial.vspec.md
+    PRT-ALERTS: ../partials/alerts.partial.vspec.md
+---
+
+# TPL-SHELL App Shell
+
+Shared shell.
+
+## States
+
+- idle*
+`);
+    writeFileSync(join(dir, "partials", "summary.partial.vspec.md"), `---
+id: PRT-SUMMARY
+type: partial
+title: Profile Summary
+route: /members/:memberId/profile-summary
+---
+
+# PRT-SUMMARY Profile Summary
+
+Refreshable profile summary partial.
+
+## States
+
+- loaded*
+`);
+    writeFileSync(join(dir, "partials", "alerts.partial.vspec.md"), `---
+id: PRT-ALERTS
+type: partial
+title: Alerts
+---
+
+# PRT-ALERTS Alerts
+
+## States
+
+- loaded*
+`);
+
+    const result = exportMarkVSpecDocumentList(projectPath, outDir);
+    assert.equal(result.outputPath, join(outDir, "document-list.md"));
+    assert.equal(result.diagnostics.length, 0);
+    assert.equal(readFileSync(result.outputPath, "utf8"), `# Document List
+
+| No. | Kind | ID | Title | Summary | Route | Last Updated | File | Diagnostics |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | Screen | SCR-SEARCH | Search List | Search and filter members before opening a profile. | /members | 2026-05-18 | screens/search.vspec.md | 0 errors / 0 warnings |
+| 2 | Template | TPL-SHELL | App Shell | Shared shell. | - | - | templates/shell.vspec.md | 0 errors / 0 warnings |
+| 3 | Partial | PRT-SUMMARY | Profile Summary | Refreshable profile summary partial. | /members/:memberId/profile-summary | - | partials/summary.partial.vspec.md | 0 errors / 0 warnings |
+| 4 | Partial | PRT-ALERTS | Alerts | - | - | - | partials/alerts.partial.vspec.md | 0 errors / 0 warnings |
+`);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("includes project load diagnostics in document list rows", () => {
+  const dir = mkdtempSync(join(tmpdir(), "markvspec-document-list-diagnostics-"));
+  try {
+    mkdirSync(join(dir, "screens"));
+    const projectPath = join(dir, "markvspec.project.md");
+    const outDir = join(dir, "out");
+    writeFileSync(projectPath, `---
+id: PRJ-DOC-LIST-DIAG
+type: project
+title: Document List Diagnostics
+screens:
+  - id: SCR-MISSING
+    path: screens/missing.vspec.md
+---
+
+# PRJ-DOC-LIST-DIAG Document List Diagnostics
+`);
+
+    const result = exportMarkVSpecDocumentList(projectPath, outDir);
+    assert.equal(result.diagnostics.length, 1);
+    assert.match(result.diagnostics[0]?.message ?? "", /file not found/);
+    assert.equal(readFileSync(result.outputPath, "utf8"), `# Document List
+
+| No. | Kind | ID | Title | Summary | Route | Last Updated | File | Diagnostics |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | Screen | SCR-MISSING | - | - | - | - | screens/missing.vspec.md | 1 errors / 0 warnings |
+`);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("deduplicates missing referenced partial diagnostics in document list rows", () => {
+  const dir = mkdtempSync(join(tmpdir(), "markvspec-document-list-partial-diagnostics-"));
+  try {
+    const projectPath = join(dir, "markvspec.project.md");
+    const screenPath = join(dir, "screen.vspec.md");
+    const outDir = join(dir, "out");
+    writeFileSync(projectPath, `---
+id: PRJ-DOC-LIST-PARTIAL-DIAG
+type: project
+title: Document List Partial Diagnostics
+screens:
+  - id: SCR-HOST
+    path: screen.vspec.md
+---
+
+# PRJ-DOC-LIST-PARTIAL-DIAG Document List Partial Diagnostics
+`);
+    writeFileSync(screenPath, `---
+id: SCR-HOST
+type: screen
+title: Host
+references:
+  partials:
+    PRT-MISSING: missing.partial.vspec.md
+---
+
+# SCR-HOST Host
+
+## States
+
+- idle*
+
+## Layout: desktop
+
+### L-Host Host
+
+- stack
+- partial:
+  - id: PRT-MISSING
+  - states:
+    - idle: loaded
+`);
+
+    const result = exportMarkVSpecDocumentList(projectPath, outDir);
+    assert.equal(result.diagnostics.length, 1);
+    assert.equal(readFileSync(result.outputPath, "utf8"), `# Document List
+
+| No. | Kind | ID | Title | Summary | Route | Last Updated | File | Diagnostics |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | Screen | SCR-HOST | Host | - | - | - | screen.vspec.md | 0 errors / 0 warnings |
+| 2 | Partial | PRT-MISSING | - | - | - | - | missing.partial.vspec.md | 1 errors / 0 warnings |
+`);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

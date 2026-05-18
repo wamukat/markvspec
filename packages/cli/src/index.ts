@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import {
+  exportMarkVSpecDocumentList,
   exportMarkVSpecHtmlFiles,
   exportMarkVSpecPdfFiles,
   validateMarkVSpecFiles
@@ -26,6 +27,10 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
 
     if (args.command === "export" && args.subcommand === "html") {
       return runExportHtml(args);
+    }
+
+    if (args.command === "export" && args.subcommand === "document-list") {
+      return runExportDocumentList(args);
     }
 
     if (args.command === "export" && args.subcommand === "pdf") {
@@ -72,6 +77,21 @@ function runExportHtml(args: ParsedArgs): number {
   }
   console.log(`Exported ${results.length} HTML file(s).`);
   return evaluateMarkVSpecDiagnostics(results.flatMap((result) => result.diagnostics)).exitCode;
+}
+
+function runExportDocumentList(args: ParsedArgs): number {
+  const outDir = requireOutDir(args);
+  if (args.patterns.length === 0) {
+    throw new Error("Missing project index path.");
+  }
+  if (args.patterns.length > 1) {
+    throw new Error("export document-list accepts exactly one project index path.");
+  }
+  const result = exportMarkVSpecDocumentList(args.patterns[0]!, outDir);
+  printDiagnostics([result]);
+  console.log(`${result.sourcePath} -> ${result.outputPath}`);
+  console.log("Exported 1 document list file.");
+  return evaluateMarkVSpecDiagnostics(result.diagnostics).exitCode;
 }
 
 async function runExportPdf(args: ParsedArgs): Promise<number> {
@@ -136,6 +156,7 @@ function printUsage(): void {
   console.error(`Usage:
   markvspec validate <file-or-glob> [--fail-on-warnings]
   markvspec diagnose input <markdown-file>
+  markvspec export document-list <project-file> --out <dir>
   markvspec export html <file-or-glob> --out <dir> [--messages <path>]
   markvspec export pdf <file-or-glob> --out <dir> [--messages <path>]`);
 }

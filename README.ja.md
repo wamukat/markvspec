@@ -243,6 +243,7 @@ CLI コマンドは、`npx @markvspec/cli@latest` で実行するか、npm か�
 | 構文を確認する | `npx @markvspec/cli@latest validate <file>` を実行する。 |
 | HTML を共有する | `MarkVSpec: Export Static HTML` または `npx @markvspec/cli@latest export html <file> --out <dir>` を使う。 |
 | PDF を作る | `MarkVSpec: Export PDF` または `npx @markvspec/cli@latest export pdf <file> --out <dir>` を使う。 |
+| 画面・部品一覧を作る | `npx @markvspec/cli@latest export document-list <project-file> --out <dir>` を実行する。 |
 
 ## CLI
 
@@ -256,6 +257,7 @@ CLI は Node.js 22 以降で動作します。
 npx @markvspec/cli@latest validate login.vspec.md
 npx @markvspec/cli@latest export html login.vspec.md --out markvspec-html
 npx @markvspec/cli@latest export pdf login.vspec.md --out markvspec-pdf
+npx @markvspec/cli@latest export document-list markvspec.project.md --out docs/generated
 ```
 
 ローカルに固定したい場合は、`@markvspec/cli` を dev dependency として追加し、

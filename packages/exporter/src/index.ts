@@ -21,6 +21,7 @@ import {
   wireframePrintSectionCss
 } from "@markvspec/document-renderer";
 import type { MarkVSpecDiagnostic, MarkVSpecParseResult, MarkVSpecValidationGateOptions, RendererMessages, ResolvedRendererMessages } from "@markvspec/core";
+import type { MarkVSpecProjectScreen } from "@markvspec/core";
 
 export interface MarkVSpecExportFileResult {
   sourcePath: string;
@@ -46,6 +47,24 @@ export interface MarkVSpecValidateResult {
   warningCount: number;
   passed: boolean;
   exitCode: 0 | 1;
+}
+
+export interface MarkVSpecDocumentListExportResult {
+  sourcePath: string;
+  outputPath: string;
+  diagnostics: MarkVSpecDiagnostic[];
+  locale?: string;
+}
+
+interface MarkVSpecDocumentListRow {
+  kind: "Screen" | "Template" | "Partial";
+  id: string;
+  title: string;
+  summary: string;
+  route: string;
+  lastUpdated: string;
+  file: string;
+  diagnostics: MarkVSpecDiagnostic[];
 }
 
 export interface PdfBrowserCommand {
@@ -120,6 +139,23 @@ export async function exportMarkVSpecPdfFiles(
   }
 
   return results;
+}
+
+export function exportMarkVSpecDocumentList(projectPath: string, outDir: string): MarkVSpecDocumentListExportResult {
+  const source = readFileSync(projectPath, "utf8");
+  const project = loadMarkVSpecProject(source, {
+    projectPath,
+    readFile: readTextFile
+  });
+  const outputPath = join(outDir, "document-list.md");
+  mkdirSync(outDir, { recursive: true });
+  writeFileSync(outputPath, renderDocumentListMarkdown(projectPath, project), "utf8");
+  return {
+    sourcePath: projectPath,
+    outputPath,
+    diagnostics: project.diagnostics,
+    locale: project.project.project.frontMatter["locale"]
+  };
 }
 
 export function renderStandaloneHtmlForFile(sourcePath: string, options: MarkVSpecExportOptions = {}): { html: string; diagnostics: MarkVSpecDiagnostic[]; messageSourcePath?: string; locale?: string } {
@@ -314,6 +350,183 @@ function diagnosticsForFile(sourcePath: string): { diagnostics: MarkVSpecDiagnos
 
   const result = loadScreenResultForFile(source, sourcePath);
   return { diagnostics: result.diagnostics, locale: result.screen.locale };
+}
+
+function renderDocumentListMarkdown(projectPath: string, project: ReturnType<typeof loadMarkVSpecProject>): string {
+  const rows = documentListRows(projectPath, project);
+  const lines = [
+    "# Document List",
+    "",
+    "| No. | Kind | ID | Title | Summary | Route | Last Updated | File | Diagnostics |",
+    "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+    ...rows.map((row, index) => [
+      String(index + 1),
+      row.kind,
+      markdownTableCell(row.id),
+      markdownTableCell(row.title),
+      markdownTableCell(row.summary),
+      markdownTableCell(row.route),
+      markdownTableCell(row.lastUpdated),
+      markdownTableCell(row.file),
+      diagnosticsSummary(row.diagnostics)
+    ].join(" | "))
+      .map((line) => `| ${line} |`)
+  ];
+  return `${lines.join("\n")}\n`;
+}
+
+function documentListRows(projectPath: string, project: ReturnType<typeof loadMarkVSpecProject>): MarkVSpecDocumentListRow[] {
+  const rows: MarkVSpecDocumentListRow[] = [];
+  const seenPartialPaths = new Set<string>();
+
+  for (const screen of project.screens) {
+    rows.push(documentListRow(
+      "Screen",
+      projectPath,
+      screen.resolvedPath,
+      screen.sourceResult ?? screen.result,
+      screen.index.id,
+      documentDiagnostics(screen.sourceResult ?? screen.result, projectEntryDiagnostics(project.diagnostics, "screen", screen.index))
+    ));
+  }
+  for (const template of project.templates) {
+    rows.push(documentListRow(
+      "Template",
+      projectPath,
+      template.resolvedPath,
+      template.result,
+      template.index.id,
+      documentDiagnostics(template.result, projectEntryDiagnostics(project.diagnostics, "template", template.index))
+    ));
+  }
+
+  const collectPartials = (result: MarkVSpecParseResult | undefined, sourcePath: string | undefined): void => {
+    if (!result || !sourcePath) {
+      return;
+    }
+    // Document lists intentionally traverse declared references.partials only;
+    // display.partial-only IDs are diagnostics/reporting concerns, not discovery.
+    for (const [partialId, partialPath] of Object.entries(result.screen.references.partials)) {
+      const resolvedPartialPath = resolveProjectPath(sourcePath, partialPath);
+      if (seenPartialPaths.has(resolvedPartialPath)) {
+        continue;
+      }
+      seenPartialPaths.add(resolvedPartialPath);
+      const partialSource = readTextFile(resolvedPartialPath);
+      if (partialSource === undefined) {
+        rows.push(documentListRow("Partial", projectPath, resolvedPartialPath, undefined, partialId, uniqueDiagnostics([{
+          severity: "error",
+          message: `Partial reference ${partialId} file not found: ${partialPath}.`
+        }, ...partialReferenceDiagnostics(project.diagnostics, partialId)])));
+        continue;
+      }
+      const partialResult = parseMarkVSpec(partialSource);
+      rows.push(documentListRow(
+        "Partial",
+        projectPath,
+        resolvedPartialPath,
+        partialResult,
+        partialId,
+        documentDiagnostics(partialResult, partialReferenceDiagnostics(project.diagnostics, partialId))
+      ));
+      collectPartials(partialResult, resolvedPartialPath);
+    }
+  };
+
+  for (const screen of project.screens) {
+    collectPartials(screen.sourceResult ?? screen.result, screen.resolvedPath);
+  }
+  for (const template of project.templates) {
+    collectPartials(template.result, template.resolvedPath);
+  }
+
+  return rows;
+}
+
+function documentDiagnostics(result: MarkVSpecParseResult | undefined, extraDiagnostics: MarkVSpecDiagnostic[]): MarkVSpecDiagnostic[] {
+  return uniqueDiagnostics([...(result?.diagnostics ?? []), ...extraDiagnostics]);
+}
+
+function projectEntryDiagnostics(diagnostics: readonly MarkVSpecDiagnostic[], kind: "screen" | "template", entry: MarkVSpecProjectScreen): MarkVSpecDiagnostic[] {
+  const label = entry.id ?? "entry";
+  return diagnostics.filter((diagnostic) => diagnostic.message.startsWith(`Project ${kind} ${label} `));
+}
+
+function partialReferenceDiagnostics(diagnostics: readonly MarkVSpecDiagnostic[], partialId: string): MarkVSpecDiagnostic[] {
+  return diagnostics.filter((diagnostic) => diagnostic.message.startsWith(`Partial reference ${partialId} `));
+}
+
+function uniqueDiagnostics(diagnostics: readonly MarkVSpecDiagnostic[]): MarkVSpecDiagnostic[] {
+  const seen = new Set<string>();
+  const unique: MarkVSpecDiagnostic[] = [];
+  for (const diagnostic of diagnostics) {
+    const key = `${diagnostic.severity}\0${diagnostic.message}`;
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    unique.push(diagnostic);
+  }
+  return unique;
+}
+
+function documentListRow(
+  kind: "Screen" | "Template" | "Partial",
+  projectPath: string,
+  sourcePath: string | undefined,
+  result: MarkVSpecParseResult | undefined,
+  fallbackId: string | undefined,
+  diagnostics: MarkVSpecDiagnostic[] = result?.diagnostics ?? []
+): MarkVSpecDocumentListRow {
+  return {
+    kind,
+    id: valueOrDash(result?.screen.id ?? fallbackId),
+    title: valueOrDash(result?.screen.title),
+    summary: valueOrDash(plainText(result?.screen.description)),
+    route: valueOrDash(result?.screen.route),
+    lastUpdated: valueOrDash(latestHistoryDate(result)),
+    file: sourcePath ? normalizePath(relative(dirname(projectPath), sourcePath)) : "-",
+    diagnostics
+  };
+}
+
+function latestHistoryDate(result: MarkVSpecParseResult | undefined): string | undefined {
+  const dates = (result?.historyEntries ?? [])
+    .map((entry) => entry.fields.date?.trim())
+    .filter((date): date is string => Boolean(date));
+  return dates.sort((left, right) => compareHistoryDate(right, left))[0];
+}
+
+function compareHistoryDate(left: string, right: string): number {
+  const leftTime = Date.parse(left);
+  const rightTime = Date.parse(right);
+  if (Number.isFinite(leftTime) && Number.isFinite(rightTime)) {
+    return leftTime - rightTime;
+  }
+  return left.localeCompare(right);
+}
+
+function diagnosticsSummary(diagnostics: readonly MarkVSpecDiagnostic[]): string {
+  const errors = diagnostics.filter((diagnostic) => diagnostic.severity === "error").length;
+  const warnings = diagnostics.filter((diagnostic) => diagnostic.severity === "warning").length;
+  return `${errors} errors / ${warnings} warnings`;
+}
+
+function valueOrDash(value: string | undefined): string {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : "-";
+}
+
+function plainText(value: string | undefined): string | undefined {
+  return value
+    ?.replace(/\[([^\]]+)\]\([^)]+\)/gu, "$1")
+    .replace(/[`*_~]/gu, "")
+    .replace(/\s+/gu, " ")
+    .trim();
+}
+
+function markdownTableCell(value: string): string {
+  return value.replace(/\\/gu, "\\\\").replace(/\|/gu, "\\|").replace(/\r?\n/gu, " ");
 }
 
 function loadScreenResultForFile(source: string, sourcePath: string): MarkVSpecParseResult {

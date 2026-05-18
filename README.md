@@ -254,6 +254,7 @@ from npm.
 | Validate syntax | Run `npx @markvspec/cli@latest validate <file>`. |
 | Share HTML | Use `MarkVSpec: Export Static HTML` or `npx @markvspec/cli@latest export html <file> --out <dir>`. |
 | Create a PDF | Use `MarkVSpec: Export PDF` or `npx @markvspec/cli@latest export pdf <file> --out <dir>`. |
+| Generate a document list | Run `npx @markvspec/cli@latest export document-list <project-file> --out <dir>`. |
 
 ## CLI
 
@@ -267,6 +268,7 @@ Run it against your local `login.vspec.md` file:
 npx @markvspec/cli@latest validate login.vspec.md
 npx @markvspec/cli@latest export html login.vspec.md --out markvspec-html
 npx @markvspec/cli@latest export pdf login.vspec.md --out markvspec-pdf
+npx @markvspec/cli@latest export document-list markvspec.project.md --out docs/generated
 ```
 
 If you prefer a local install, add `@markvspec/cli` as a development dependency
