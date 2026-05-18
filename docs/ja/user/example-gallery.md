@@ -49,7 +49,7 @@ F-* / V-* を参照 chip として読みやすく見せたい場合は、安定 
 | [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md) | validation receive source、request parameters、server process detail、成功時 navigation の例。 |
 | [Single Field Validation](../../../examples/03-actions/single-field-validation.vspec.md) | 単項目 validation contract と、length / pattern / type / range / step などの element 入力仕様の対応例。 |
 | [Toast Feedback](../../../examples/03-actions/toast-feedback.vspec.md) | `Toast`、target なしの `display.element`、toast stack、success/error tone、`display: toast` の Error Codes の例。 |
-| [Parallel Initial Load](../../../examples/03-actions/parallel-initial-load.vspec.md) | parallel server call と `Resolve` の例。 |
+| [Parallel Initial Load](../../../examples/03-actions/parallel-initial-load.vspec.md) | `page.load` の request 開始、parallel server call、`response: A-InitialLoad.P*.response` を受ける response handler の例。 |
 | [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md) | Display Content Spec の `label`、`sample`、`src`、`format`、`value`、`params` を確認する例。 |
 | [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md) | 拡張 form、media、list、dialog 系 Element Type をまとめて確認する例。 |
 | [Search List](../../../examples/04-real-world-screens/search-list.vspec.md) | filter、Table、paging、empty/error state、result replacement の例。 |

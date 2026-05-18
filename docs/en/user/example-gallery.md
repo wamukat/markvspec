@@ -31,8 +31,9 @@ smallest useful reference:
   details, stop/continue flow, and success navigation.
 - `Single Field Validation` teaches field-level validation contracts alongside
   element input constraints such as length, pattern, type, range, and step.
-- `Parallel Initial Load` teaches parallel process groups and
-  `Process P3: Resolve grouped processes` final state decisions.
+- `Parallel Initial Load` teaches a `page.load` request action, parallel
+  process groups, and a separate response handler that makes the final state
+  decision.
 - `Search List` teaches admin list patterns: filters, Select options, Tables,
   paging, fetching/empty/error states, Scenario samples, and response-driven result
   replacement.
@@ -82,7 +83,7 @@ For `F-*` and `V-*` examples that should appear as reference chips, prefer a
 | [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md) | Submit action lifecycle. | Validation receive source, request parameters, server process details, flow stop/continue, and success navigation. |
 | [Single Field Validation](../../../examples/03-actions/single-field-validation.vspec.md) | Field-level validation examples. | Required, length, pattern, email, and numeric range validation contracts tied to element input specifications. |
 | [Toast Feedback](../../../examples/03-actions/toast-feedback.vspec.md) | Non-modal save feedback. | `Toast`, targetless `display.element`, toast stacks, success/error tones, and Error Codes with `display: toast`. |
-| [Parallel Initial Load](../../../examples/03-actions/parallel-initial-load.vspec.md) | Parallel server calls with a final resolver. | `group: initial-load`, `Process P3: Resolve grouped processes`, response cases, and final state decisions. |
+| [Parallel Initial Load](../../../examples/03-actions/parallel-initial-load.vspec.md) | Parallel server calls with a separate response handler. | `page.load` request start, `group: initial-load`, `response: A-InitialLoad.P*.response` receive sources, and final ready/failed state decisions. |
 | [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md) | Display Content Spec field coverage. | `label`, `placeholder`, `sample`, `src`, `format`, machine `value`, and navigation `params`. |
 | [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md) | Element type coverage screen using a realistic profile/settings form. | `Textarea`, `MultiSelect`, `CheckboxGroup`, `Switch`, `RadioGroup`, `List`, `Dialog`, `Image`, `Icon`, `Divider`, file inputs, date/time inputs, and number input. |
 | [Search List](../../../examples/04-real-world-screens/search-list.vspec.md) | Search screen with filters and pagination. | Desktop toolbar, Select options, Table sample rows, empty state, fetch-error state, and display element replacement. |

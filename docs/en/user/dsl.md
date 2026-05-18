@@ -2241,39 +2241,55 @@ action process at that case. `continue` advances to the next process step, and
 omitted flow is treated as `continue`.
 
 When an action starts multiple operations in parallel and decides after all of
-them complete, add `group: <group-id>` to each participating process and put the
-aggregate decision in a Resolve process with the same `group`.
+them complete, add `group: <group-id>` to each participating process. If the
+responses arrive asynchronously after a lifecycle trigger such as `page.load`,
+keep the initial request action separate from the response handler and consume
+`A-Action.P*.response` in the handler.
 
 ```markdown
+## Events
+
+- page.load: A-InitialLoad
+
+## Actions
+
+### A1:A-InitialLoad Initial load
+
+- From
+  - before-load
+- Process P0: Start initial loading
+  - Effects
+    - state: initializing
 - Process P1: Load profile
   - group: initial-load
   - server:
     - call: MemberQueryService.findSelfProfile()
-  - case: success
-    - description: 200 member profile
-    - continue
-  - case: failure
-    - description: 5xx or timeout
+  - case: sent
+    - description: profile request sent
     - continue
 - Process P2: Load points
   - group: initial-load
   - server:
     - call: PointQueryService.findSelfPoints()
-  - case: success
-    - description: 200 points
+  - case: sent
+    - description: points request sent
     - continue
-  - case: failure
-    - description: 5xx or timeout
-    - continue
-- Process P3: Resolve initial load
-  - group: initial-load
+
+### A2:A-HandleInitialLoadResponse Handle initial load response
+
+- From
+  - initializing
+- Process P1: Apply initial load responses
+  - receive:
+    - response: A-InitialLoad.P1.response
+    - response: A-InitialLoad.P2.response
   - case: ready
-    - description: profile and points loaded
+    - response: profile and points loaded
     - Effects
       - state: idle
     - stop
   - case: failed
-    - description: one or more calls failed
+    - response: one or more calls failed
     - Effects
       - state: initialize-error
     - stop

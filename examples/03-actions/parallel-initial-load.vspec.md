@@ -9,8 +9,8 @@ locale: en
 # SCR-PARALLEL-INITIAL-LOAD Parallel Initial Load
 
 This example teaches parallel initial loading. Read the grouped server processes,
-response cases, and final `Process P3: Resolve grouped processes`
-step; it avoids user input so the ordering and final state decision are clear.
+response handler, and final ready/failed state decision; it avoids user input so
+the ordering and final state decision are clear.
 
 ## States
 
@@ -91,37 +91,35 @@ step; it avoids user input so the ordering and final state decision are clear.
   - server:
     - MemberQueryService.findSelfProfile()
   - result:
-    - member profile load result
-  - case: success
-    - description: 200 member profile
-    - continue
-  - case: failure
-    - description: 5xx or timeout
+    - member profile load request
+  - case: sent
+    - description: member profile request sent
     - continue
 - Process P2: Call server service
   - group: initial-load
   - server:
     - PointQueryService.findSelfPoints()
   - result:
-    - points load result
-  - case: success
-    - description: 200 points
+    - points load request
+  - case: sent
+    - description: points request sent
     - continue
-  - case: failure
-    - description: 5xx or timeout
-    - continue
-- Process P3: Resolve grouped processes
-  - group: initial-load
+
+### A2:A-HandleInitialLoadResponse Handle initial load response
+
+- From
+  - initializing
+- Process P1: Apply initial load responses
   - receive:
-    - profile: A-InitialLoad.P1.result
-    - points: A-InitialLoad.P2.result
+    - response: A-InitialLoad.P1.response
+    - response: A-InitialLoad.P2.response
   - case: ready
-    - description: profile and points loaded
+    - response: profile and points loaded
     - Effects
       - state: idle
     - stop
   - case: failed
-    - description: one or more calls failed
+    - response: one or more calls failed
     - Effects
       - state: initialize-error
     - stop

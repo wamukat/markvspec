@@ -1738,27 +1738,47 @@ constraint の詳細は `V-*` 定義側に残します。
   - element: E-SavedToast
 ```
 
-複数の処理を並列に開始し、全完了後にまとめて判定する場合は、各 process に `group: <group-id>` を書き、同じ group を持つ Resolve process で集約します。
+複数の処理を並列に開始し、全完了後にまとめて判定する場合は、各 process に `group: <group-id>` を書きます。`page.load` のような lifecycle trigger の後に response が非同期で返る場合は、request 開始 Action と response handler Action を分け、handler 側で `response: A-Action.P*.response` を `receive:` します。
 
 ```markdown
+## Events
+
+- page.load: A-InitialLoad
+
+## Actions
+
+### A1:A-InitialLoad Initial load
+
+- From
+  - before-load
+- Process P0: Start initial loading
+  - Effects
+    - state: initializing
 - Process P1: Load profile
   - group: initial-load
   - server:
     - call: MemberQueryService.findSelfProfile()
-  - case: success
-    - description: 200 member profile
+  - case: sent
+    - description: profile request sent
     - continue
 - Process P2: Load points
   - group: initial-load
   - server:
     - call: PointQueryService.findSelfPoints()
-  - case: success
-    - description: 200 points
+  - case: sent
+    - description: points request sent
     - continue
-- Process P3: Resolve initial load
-  - group: initial-load
+
+### A2:A-HandleInitialLoadResponse Handle initial load response
+
+- From
+  - initializing
+- Process P1: Apply initial load responses
+  - receive:
+    - response: A-InitialLoad.P1.response
+    - response: A-InitialLoad.P2.response
   - case: ready
-    - description: profile and points loaded
+    - response: profile and points loaded
     - Effects
       - state: idle
     - stop

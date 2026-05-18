@@ -11,7 +11,8 @@ locale: en
 This example teaches non-click events and lifecycle triggers around a small
 preferences form. Read `page.load`, `.change`, `.blur`, `.focus`, `.submit`,
 dialog click/close actions, and the Preview Scenarios that show display effects
-such as unsaved notices, help text, validation feedback, and modal dialogs.
+such as unsaved notices, help text, validation feedback, and modal dialogs. The
+initial load separates the `page.load` request action from its response handler.
 
 ## States
 
@@ -221,16 +222,24 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
     - description: saved preferences request sent
     - Effects
       - state: initializing
+
+### A2:A-HandlePreferencesResponse Handle saved preferences response
+
+- From
+  - initializing
+- Process P1: Apply response
+  - receive:
+    - response: A-LoadPreferences.P1.response
   - case: success
-    - description: 200 saved preferences
+    - response: 200 saved preferences
     - Effects
       - state: idle
   - case: failure
-    - description: 5xx or timeout
+    - response: 5xx or timeout
     - Effects
       - state: initialize-error
 
-### A2:A-MarkPreferencesChanged Mark preferences changed
+### A3:A-MarkPreferencesChanged Mark preferences changed
 
 - From
   - idle
@@ -242,7 +251,7 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
         - element: E-UnsavedNotice
     - stop
 
-### A3:A-ValidateEmail Validate email on blur
+### A4:A-ValidateEmail Validate email on blur
 
 - From
   - idle
@@ -262,7 +271,7 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
       - state: idle
     - stop
 
-### A4:A-ShowDeliveryHelp Show delivery help
+### A5:A-ShowDeliveryHelp Show delivery help
 
 - From
   - idle
@@ -274,7 +283,7 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
         - element: E-HelpText
     - stop
 
-### A5:A-RequestDiscardDialog Request discard dialog
+### A6:A-RequestDiscardDialog Request discard dialog
 
 - From
   - idle
@@ -285,21 +294,21 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
         - element: E-ConfirmDialog
     - stop
 
-### A6:A-CloseDiscardDialog Close discard dialog
+### A7:A-CloseDiscardDialog Close discard dialog
 
 - From
   - idle
 - Process P1: Apply immediate effect
   - state: idle
 
-### A7:A-ConfirmDiscard Confirm discard
+### A8:A-ConfirmDiscard Confirm discard
 
 - From
   - idle
 - Process P1: Apply immediate effect
   - state: idle
 
-### A8:A-SubmitPreferences Submit preferences
+### A9:A-SubmitPreferences Submit preferences
 
 - From
   - idle

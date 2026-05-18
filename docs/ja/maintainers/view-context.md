@@ -291,10 +291,10 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
 - `case: <case-name>` は直近の `Process Pn:` の結果分岐を表す。旧 `cases:` block は canonical form から外す。
 - `response`、`when`、`skip when`、request parameter、service call などの step detail は `Process Pn:` 直下、または該当する `case:` 直下に置く。
 - `Effects` は `Process Pn:` 直下、または `case:` 直下にだけ置ける。
-- `Validate` や `Resolve` のように引数が必要な process は、`Process P2: Validate search form` + `target: V-...`、`Process P3: Resolve grouped processes` + `group: initial-load` のように detail として表す。
+- `Validate` のように引数が必要な process は、`Process P2: Validate search form` + `target: V-...` のように detail として表す。同期的に同一 Action 内で集約できる場合の `Resolve` は `Process P3: Resolve grouped processes` + `group: initial-load` のように書けるが、`page.load` 後に response を受ける初期化 flow では別 Action の `receive:` で扱う。
 - `Resolve: <group>` のような Action 直下の `Resolve` group は canonical form では廃止する。`Resolve` も処理列の一部として `Process Pn: Resolve ...` に統一する。
 
-並列 process と resolve は次のように表します。並列に参加する process は同じ `group` を持ち、各 case は結果を分類して `continue` します。最終的な `state` / `navigate` は `Process Pn: Resolve ...` に寄せます。
+`page.load` で並列 request を開始し、response 後に最終 state を決める場合は次のように表します。並列に参加する request process は同じ `group` を持ち、request 送信後は `continue` します。最終的な `state` / `navigate` は `From: initializing` の response handler Action に寄せます。
 
 ```markdown
 ## Events
@@ -306,34 +306,38 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
 ### A-InitialLoad Initial dashboard load
 
 - From
-  - fetching
+  - before-load
+- Process P0: Start initial loading
+  - Effects
+    - state: initializing
 - Process P1: Load member profile
   - group: initial-load
   - MemberQueryService.findSelfProfile()
-  - case: success
-    - description: 200 member profile
-    - continue
-  - case: failure
-    - description: 5xx or timeout
+  - case: sent
+    - description: member profile request sent
     - continue
 - Process P2: Load points
   - group: initial-load
   - PointQueryService.findSelfPoints()
-  - case: success
-    - description: 200 points
+  - case: sent
+    - description: points request sent
     - continue
-  - case: failure
-    - description: 5xx or timeout
-    - continue
-- Process P3: Resolve grouped processes
-  - group: initial-load
+
+### A-HandleInitialLoadResponse Handle initial load response
+
+- From
+  - initializing
+- Process P1: Apply initial load responses
+  - receive:
+    - response: A-InitialLoad.P1.response
+    - response: A-InitialLoad.P2.response
   - case: ready
-    - description: profile and points loaded
+    - response: profile and points loaded
     - Effects
       - state: idle
       - stop
   - case: failed
-    - description: one or more calls failed
+    - response: one or more calls failed
     - Effects
       - state: fetch-error
       - stop
