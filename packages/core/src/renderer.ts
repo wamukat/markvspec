@@ -1580,7 +1580,7 @@ function renderDefaultStyles(): string {
 .mm-switch-thumb{background:#fff;border-radius:50%;box-shadow:0 1px 2px rgba(15,23,42,.28);display:block;height:14px;width:14px}
 .mm-element-switch input:checked + .mm-switch-track{background:#2563eb}.mm-element-switch input:checked + .mm-switch-track .mm-switch-thumb{transform:translateX(16px)}
 .mm-layout > .mm-marker-layout,.mm-layout > .mm-marker-form-group{left:-1px;position:absolute;top:-9px;z-index:2}
-.mm-layout > .mm-marker-form-group{top:9px}
+.mm-layout > .mm-marker-form-group{left:24px;top:-9px}
 .mm-element-wrap{display:block;max-width:100%;min-width:0;position:relative;width:max-content}
 .mm-element-wrap-table{display:block;max-width:100%;min-width:0;width:100%}
 .mm-annotation-row{align-items:center;display:inline-flex;flex-wrap:wrap;gap:2px;left:0;line-height:1;max-width:calc(100% + 12px);pointer-events:none;position:absolute;top:0;transform:translate(-35%,-35%);width:max-content;z-index:3}

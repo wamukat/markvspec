@@ -8071,6 +8071,7 @@ title: FormGroup Fragment
 
   assert.match(fullHtml, /class="mm-id mm-marker mm-marker-form-group" data-mm-marker-category="form-group">F1<\/code>/);
   assert.match(fragment?.html ?? "", /class="mm-id mm-marker mm-marker-form-group" data-mm-marker-category="form-group">F1<\/code>/);
+  assert.match(renderMarkVSpecHtml(result), /\.mm-layout > \.mm-marker-form-group\{left:24px;top:-9px\}/);
 });
 
 test("keeps annotated fallback elements in block flow without a layout", () => {

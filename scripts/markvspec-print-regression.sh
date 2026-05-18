@@ -20,7 +20,7 @@ cd "$ROOT_DIR"
 
 run npm run build -w @markvspec/core
 run npm run build -w @markvspec/exporter
-run npm run build -w @markvspec/cli
+run npm run bundle -w @markvspec/cli
 run node packages/cli/dist/index.js validate "examples/**/*.vspec.md" --fail-on-warnings
 run node packages/cli/dist/index.js export html "examples/**/*.vspec.md" --out "$HTML_DIR"
 
