@@ -6,7 +6,7 @@ CODE_BIN="${MARKVSPEC_CODE_BIN:-code}"
 PORT="${MARKVSPEC_VSCODE_DEBUG_PORT:-9336}"
 USER_DATA_DIR="${MARKVSPEC_VSCODE_USER_DATA_DIR:-$(mktemp -d /tmp/markvspec-vscode-devhost-smoke.XXXXXX)}"
 EXTENSIONS_DIR="${MARKVSPEC_VSCODE_EXTENSIONS_DIR:-$(mktemp -d /tmp/markvspec-vscode-devhost-smoke-extensions.XXXXXX)}"
-TARGET_FILE="${1:-$ROOT_DIR/examples/01-basics/login-basic.vspec.md}"
+TARGET_FILE="${1:-$ROOT_DIR/examples/04-real-world-screens/login-basic.vspec.md}"
 
 if ! command -v "$CODE_BIN" >/dev/null 2>&1; then
   echo "VS Code CLI not found: $CODE_BIN" >&2
