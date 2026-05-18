@@ -132,6 +132,15 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
     diagnostics
   );
   checkMarkers(
+    result.errorCodes.map((errorCode) => ({
+      id: errorCode.id,
+      marker: firstStringProperty(errorCode.properties["marker"]),
+      location: firstPropertyLine(errorCode, "marker") ? { line: firstPropertyLine(errorCode, "marker") ?? errorCode.location.line } : errorCode.location
+    })),
+    "error code",
+    diagnostics
+  );
+  checkMarkers(
     result.elements.map((element) => ({
       id: element.id,
       marker: stringProperty(element, "marker"),
@@ -172,6 +181,15 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
       }))
     ],
     "message",
+    diagnostics
+  );
+  checkDuplicateMarkers(
+    result.errorCodes.map((errorCode) => ({
+      id: errorCode.id,
+      marker: firstStringProperty(errorCode.properties["marker"]),
+      location: firstPropertyLine(errorCode, "marker") ? { line: firstPropertyLine(errorCode, "marker") ?? errorCode.location.line } : errorCode.location
+    })),
+    "error code",
     diagnostics
   );
   checkDuplicateMarkers(

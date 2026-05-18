@@ -9308,6 +9308,22 @@ title: Markers
 
 ### MSG:R-Two Two
 
+## Error Codes
+
+### ER:ERR-One One
+
+- business rule: R-One
+- target: E-One
+- message: One failed.
+- display: inline
+
+### ER:ERR-Two Two
+
+- business rule: R-One
+- target: E-Two
+- message: Two failed.
+- display: inline
+
 ## Actions
 
 ### Do:A-One one
@@ -9339,6 +9355,7 @@ title: Markers
   assert(messages.includes("Duplicate message marker MSG: V-One and V-Two."));
   assert(messages.includes("Duplicate message marker MSG: V-One and R-One."));
   assert(messages.includes("Duplicate message marker MSG: V-One and R-Two."));
+  assert(messages.includes("Duplicate error code marker ER: ERR-One and ERR-Two."));
   assert(messages.includes("Duplicate action marker Do: A-One and A-Two."));
 });
 
@@ -9387,6 +9404,15 @@ title: Marker Shape
 
 ### Bad!Rule:R-Policy Policy
 
+## Error Codes
+
+### Bad!Error:ERR-Policy Policy error
+
+- business rule: R-Policy
+- target: E-Title
+- message: Policy failed.
+- display: inline
+
 ## Actions
 
 ### Do!:A-Submit Submit
@@ -9408,6 +9434,7 @@ title: Marker Shape
   assert(messages.includes("Invalid form group marker FormGroupMarkerTooLong on F-LoginForm. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
   assert(messages.includes("Invalid message marker bad.marker on V-Email. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
   assert(messages.includes("Invalid message marker Bad!Rule on R-Policy. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
+  assert(messages.includes("Invalid error code marker Bad!Error on ERR-Policy. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
   assert(messages.includes("Invalid action marker Do! on A-Submit. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
 });
 
