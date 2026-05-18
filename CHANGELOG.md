@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.4.1 - 2026-05-19
+
+### Added
+
+- Added generated GitHub Pages example showcase pages that display each
+  `.vspec.md` source beside the generated HTML preview.
+- Added formal support and focused examples for Tabs, Popover, Tooltip,
+  Accordion, Disclosure, and ActionMenu elements.
+- Added route sample support for Preview Scenarios and generated project
+  document-list export.
+- Added auxiliary preview icons for diagnostics, source kind chips, sample-row
+  references, and unplaced state-view rows.
+
+### Changed
+
+- Updated UI coverage documentation and Pages navigation so user-facing docs
+  distinguish implemented elements from future candidates.
+- Improved Display Content Spec aggregation for table columns, selection
+  options, input value/source columns, conditions, sample rows, and metadata.
+- Improved GitHub Pages validation to check generated UI coverage pages,
+  example showcase links, and duplicate example output names.
+
+### Fixed
+
+- Fixed sample-row anchors, route samples across display properties, page-load
+  transitions, lifecycle origins, layout condition display, and representative
+  localized diagnostics.
+
 ## 0.4.0 - 2026-05-18
 
 ### Added

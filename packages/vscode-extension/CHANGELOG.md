@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.4.1 - 2026-05-19
+
+### Added
+
+- Added formal preview and generated-document support for Tabs, Popover,
+  Tooltip, Accordion, Disclosure, and ActionMenu elements.
+- Added route sample support for Preview Scenarios and generated project
+  document-list export.
+- Added auxiliary icons for preview diagnostics, source kind chips, sample-row
+  references, and unplaced state-view rows.
+
+### Changed
+
+- Improved generated Display Content Spec output for table columns, selection
+  options, input value/source columns, conditions, sample rows, and metadata.
+- Updated shipped documentation and Pages example navigation for source plus
+  preview showcase pages.
+
+### Fixed
+
+- Fixed sample-row anchors, route samples across display properties, page-load
+  transitions, lifecycle origins, layout condition display, and representative
+  localized diagnostics.
+
 ## 0.4.0 - 2026-05-18
 
 ### Added

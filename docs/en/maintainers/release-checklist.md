@@ -1,6 +1,6 @@
 # Release Checklist
 
-This document defines the verification gate for the MarkVSpec `0.4.0` release.
+This document defines the verification gate for the MarkVSpec `0.4.1` release.
 The release target is a VS Code Marketplace package plus the npm package
 `@markvspec/cli`.
 
@@ -109,7 +109,7 @@ with `isResolved: false`; the user verifies the result before resolving it.
   If any previous ID has already been published, the release owner has a
   deprecation, unpublish, or migration plan before publishing this package.
 - [ ] Package metadata and the VSIX packaging script produce a
-  `dist/markvspec-0.4.0.vsix` artifact for this release.
+  `dist/markvspec-0.4.1.vsix` artifact for this release.
 - [ ] `npm run package:vsix -w packages/vscode-extension` creates the expected
   `dist/markvspec-<version>.vsix` artifact.
 - [ ] `npm run smoke:vscode-vsix` installs the generated VSIX into a clean
