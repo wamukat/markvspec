@@ -189,7 +189,7 @@ MarkVSpec は Markdown 全体を DSL として読むわけではありません�
 | Flow control | case の末尾に `stop` / `continue` | 実装済み | 省略時は `continue` として扱う。 |
 | Display | `display.target` + `element` / `message` / `partial` | 実装済み | `display.content`、`display.elements` は unsupported。 |
 | View Context | `## View Context`、`${view.<name>}`、`view:` effect | 実装済み | 型は `boolean` と `enum`。 |
-| source / samples | `source: data`、`sample`、`sample rows:`、scenario `samples` | 実装済み | source は表示値の由来、sample は preview 用の具体値。 |
+| 表示値 metadata / samples | 表示値 property 配下の `kind`、`source`、`format` と scenario `samples` | 実装済み | `kind` は由来分類、property value は baseline preview sample。 |
 | Preview Scenarios | `## Preview Scenarios` の `state` / `view` / `cases` / `samples` | 実装済み | baseline preview に追加する state/view/sample の明示 variant。 |
 | Validation | `## Field Validations` / `## Cross-field Validations` | 実装済み | `## Validations` は legacy-compatible。 |
 | Business Rules | `## Business Rules`、`### [marker:]R-* Name` | 実装済み | サーバ由来の業務制約は validation と分ける。 |
@@ -482,13 +482,11 @@ Element type です。
 Element property の主なキーです。
 
 - `marker`
-- `sample`
 - `sample rows`
+- `kind`
 - `source`
 - `label`
-- `label src`
 - `placeholder`
-- `placeholder src`
 - `text`
 - `hint`
 - `value`
@@ -1013,7 +1011,7 @@ wireframe preview では native `required` attribute や自動の `*` marker と
 
 ```markdown
 - label: ログイン
-- source: i18n
+  - kind: i18n
 - type: password
 - visible when: fetching
 - hidden when: idle
@@ -1060,10 +1058,10 @@ runtime 値を捏造せず、設計情報として表示します。
 ```markdown
 ### E-Greeting Text
 
-- source: data
-- sample: こんにちは「山田 太郎さん」
-- src: ${data.memberProfile.displayName}
-- format: こんにちは「{displayName}さん」
+- value: こんにちは「山田 太郎さん」
+  - kind: computed
+  - source: ${data.memberProfile.displayName}
+  - format: こんにちは「{displayName}さん」
 - visible when: ${data.memberProfile.loaded}
 
 ### E-GreetingLoading Text
@@ -1075,19 +1073,18 @@ runtime 値を捏造せず、設計情報として表示します。
 表示値まわりの責務は次のように分けます。
 
 - `label`: 見出し、ボタン、リンク、フォーム項目名など、ユーザーに見せる静的な文言。
-- `label src`: `label` の任意の不透明な取得元。実装上の i18n key には使いません。翻訳管理対象であることは `source: i18n` で示します。
+- `label` 配下の `kind` / `source` / `format`: `label` の由来分類、任意の詳細参照先、表示形式。
 - `placeholder`: 入力欄などに表示する補助文言。
-- `placeholder src`: `placeholder` の任意の不透明な取得元。実装上の i18n key には使いません。
+- `placeholder` 配下の `kind` / `source` / `format`: `placeholder` の由来分類、任意の詳細参照先、表示形式。
 - `text`: `Paragraph`、`Text`、`Banner`、`Badge` などの固定本文・固定表示文言。
 - `hint`: `FileUpload` / `FileInput` の固定補足文。
-- `sample`: `source: data` の Element で、動的データが実際に表示される時の preview 代表値。固定文言には使いません。
-- `src`: `sample` の取得元。`${data.notice.title}` や `${route.noticeId}` のような不透明な式。
-- `value`: 送信値、選択肢値、hidden value などの機械的な値。単なる表示サンプルには使いません。
+- `value`: 表示値、送信値、選択肢値、hidden value などの scalar 値。表示値として使う場合は property value が baseline preview sample です。
+- `value` / `text` / `hint` / `href` / `src` / `alt` 配下の `kind` / `source` / `format`: その property の由来分類、任意の詳細参照先、表示形式。
 
-`format` は `src` の値を `sample` の形へ整形する規則です。wireframe preview は
-固定文言を `text` / `hint` から表示し、`sample` は `source: data` の baseline preview 値として使います。
+`format` はその property の表示形式です。wireframe preview は
+scalar property value を baseline preview 値として使います。
 生成される設計書では
-`label src`、`placeholder src`、`src`、`sample`、`text`、`hint`、`value`、`format` を
+property-level `kind`、`source`、`format` と `text`、`hint`、`value` などを
 `表示内容仕様` に分離して表示します。入力フォーム仕様には入力制約を置き、
 label、placeholder、option label などの文言取得元は混ぜません。
 
@@ -1173,9 +1170,10 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 ### 4:E-ReadStatusFilter RadioGroup
 
 - label: 既読状態
-- source: i18n
+  - kind: i18n
 - name: readStatus
 - value: ${data.noticeSearch.readStatus}
+  - kind: data
 - initial value: "すべて"
 - options:
   - すべて
@@ -1201,12 +1199,36 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
   - オーナー
 ```
 
-`source` は値や文言の由来分類です。参照パスや i18n key は書きません。
-許可値は `fixed`, `i18n`, `data`, `route`, `element`, `asset`, `external`, `computed` です。
-未指定時は `fixed` と同義で、`source: fixed` の明示も許可されます。
+scalar な表示値では、property の値そのものが baseline preview sample です。
+表示値ごとの由来や詳細参照先が必要な場合は、その property 配下に
+`kind` / `source` / `format` をネストします。
+
+```markdown
+### E-PublishedAt Text
+
+- value: 2026/05/01
+  - kind: data
+  - source: ${data.notice.publishedAt}
+  - format: date yyyy/MM/dd
+- label: Published
+  - kind: i18n
+```
+
+- `value: 2026/05/01` は baseline preview に表示する値です。
+- `kind: data` はその表示値 property の由来分類です。
+- `source: ${data.notice.publishedAt}` は任意の詳細参照先です。preview 表示値ではなく、`${data.*}` 形式も必須ではありません。
+- `format:` はその property の表示形式です。
+- `kind: i18n` は翻訳管理対象であることだけを表します。i18n key、namespace、bundle 名、翻訳ファイル名は書きません。
+
+`kind` / `source` / `format` は `value`、`label`、`placeholder`、`text`、
+`message`、`hint`、`href`、`src`、`alt` などの表示値 property 配下だけで有効です。
+`type`、`width`、`level`、`variant`、`tone` などの Element 設定 property 配下には書きません。
+
+`kind` の許可値は `fixed`, `i18n`, `data`, `route`, `element`, `asset`, `external`, `computed` です。
+未指定時は `fixed` と同義です。
 
 - `fixed`: MarkVSpec 文書内に直接書いた固定値、固定文言、固定表示内容。
-- `i18n`: 国際化リソースで管理する表示文言。`source` に i18n key、namespace、bundle 名、翻訳ファイル名は書きません。
+- `i18n`: 国際化リソースで管理する表示文言。i18n key、namespace、bundle 名、翻訳ファイル名は書きません。
 - `data`: 業務データ、画面データ、API 応答、サーバ側モデルなどから来る生値。
 - `route`: URL path parameter、query string、route parameter などのルーティング由来の値。
 - `element`: `value: E-EmailInput.value` のように別 property で参照した他要素の現在値。双方向 binding ではありません。
@@ -1217,15 +1239,15 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 データソースから来る生値は `data`、加工・結合・計算した表示値は `computed` とします。
 他要素の値をそのまま表示する場合は `element`、加工する場合は `computed` とします。
 アプリ管理下のリソースは `asset`、アプリ管理外のリソースは `external` とします。
-`source: document` や `source: ${data.users.items}` のような旧来の参照パス指定は不許可です。
+Element 直下の `source: data`、Element 直下の `sample`、`source: ${data.users.items}` のような旧来の参照パス指定は legacy pattern です。新しい例では property-level `kind` metadata と property value を scalar baseline preview に使います。
 
-`source:` と sample の責務は分けます。
+metadata と sample の責務は分けます。
 
-- `source:` は表示値の由来分類です。`data` や `route` のようなカテゴリを示し、具体値そのものは持ちません。
-- `sample` / `sample rows:` は preview に渡す代表値です。実装時のデータ取得先や binding ではありません。
-- `source: fixed` または source 未指定の要素は、`label`、`text`、`message`、`hint`、`value` などに表示値そのものを持ちます。この場合 `sample` は書きません。
-- `source: fixed` に `sample` を併記した場合は warning です。preview は固定値を捏造せず、固定表示に必要な property を正として扱います。
-- `sample` は `source: data` の scalar element に使います。`Table` / `List` の複数行データには `sample rows:` または Preview Scenario の `rows:` を使います。
+- `kind:` は表示値 property ごとの由来分類です。`data` や `route` のようなカテゴリを示し、具体値そのものは持ちません。
+- ネストした `source:` は同じ property の任意の詳細参照先です。
+- scalar な表示値 property の値が baseline preview sample です。
+- Preview Scenario の `samples:` は state/scenario ごとの表示値だけを上書きし、`kind` / `source` / `format` は Element 側の仕様として維持します。
+- `Table` / `List` の複数行データには `sample rows:` または Preview Scenario の `rows:` を使います。Table/List rows 自体に metadata を持たせる構文はありません。
 
 最小例です。
 
@@ -1237,24 +1259,26 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 
 ### E-NoticeTitle Text
 
-- source: data
-- sample: 緊急メンテナンスのお知らせ
-- src: ${data.notice.title}
+- value: 緊急メンテナンスのお知らせ
+  - kind: data
+  - source: ${data.notice.title}
 
 ### E-NoticeId Text
 
-- source: route
-- src: ${route.noticeId}
+- value: N-100
+  - kind: route
+  - source: ${route.noticeId}
 
 ### E-ConfirmEmail Text
 
-- source: element
 - value: E-EmailInput.value
+  - kind: element
+  - source: E-EmailInput.value
 ```
 
 `Table` は Markdown table ではなく、ネストした Markdown リストで列とサンプル行を書きます。
 区切り文字を使った文字列操作を避け、設計書として読みやすい形を優先します。データ由来のテーブルは
-由来分類として `source: data` を書き、preview 用の行は `sample rows:` または Preview Scenario の `rows:` に書きます。
+scalar な値は property-level `kind: data` と property value で表し、preview 用の行は `sample rows:` または Preview Scenario の `rows:` に書きます。
 
 ネストした Element ブロックの開始は `options:`, `Columns:`, `Sample Rows:`, `params:`, `input rule:` のようにコロン付きで書きます。
 
@@ -1262,7 +1286,6 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 ### E-Users Table
 
 - label: Users
-- source: data
 - Columns:
   - name: 名前
     sortable: true
@@ -1287,7 +1310,7 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 従来の `Sample Rows:` ブロックも互換として利用できますが、新しい例では `sample rows:` を使います。
 `sample rows: []` は baseline preview で意図的に 0 件を表示する指定です。`Table` は列見出しを保持し、
 body に 0 件 fallback 行を表示します。`List` は 0 件 fallback item を表示します。
-`sample rows:` がなく、Preview Scenario にも `rows:` がない `source: data` の `Table` / `List` は warning です。
+`sample rows:` がなく、Preview Scenario にも `rows:` がない data-backed な `Table` / `List` は placeholder 的な表示に留め、行データを捏造しません。
 
 `Dialog` は既定で modal overlay として扱います。Dialog 表示のためだけに
 通常 Layout へ `L-DialogArea` のような専用領域を置くのは canonical ではありません。
@@ -1563,7 +1586,7 @@ execution detail も result classification も持たない、決定的な即時�
     - stop
 ```
 
-主な `Effects` entry は `view:`、`state:`、`navigate:`、`display:` です。Action の `Effects` で `${data.*}` に代入する `model:` mutation は canonical DSL ではありません。`${data.*}` は、Element の `value:` / `src:` や request parameter などの読み取り参照として使い、Action では実装内部の store や server-side model への代入を書かないようにします。preview / export 用の表示例は Element の `sample` / `sample rows:` または Preview Scenarios の `samples` に書きます。`stop` / `continue` は case-level の制御フローなので、`Effects` の外で case の最後に書きます。`display.target` は表示先の既存 `L-*` layout または `E-*` element を指します。また、Input 系 element に付属する field-level error slot として `E-*.error` も指定できます。`display.element` はその表示先に挿入または表示する既存の `E-*` element または `L-*` layout を1つだけ指します。`display.message` は `V-EmailRules.messages` のような validation / business rule の message group を指します。`display.partial` は、既存の `L-*` partial host に表示する参照済み `PRT-*` 文書を指します。直接の `display.content` と複数形の `display.elements` はサポートしません。例外として、`display.element` が `Dialog` の場合は `target` を省略でき、preview scenario では modal overlay として表示します。`display.element` が `Toast` の場合も `target` を省略でき、non-modal toast region に表示します。同じ display effect では、`element`、`message`、`partial` のいずれか 1 つだけを使います。
+主な `Effects` entry は `view:`、`state:`、`navigate:`、`display:` です。Action の `Effects` で `${data.*}` に代入する `model:` mutation は canonical DSL ではありません。`${data.*}` は、Element の `value:` / `src:` や request parameter などの読み取り参照として使い、Action では実装内部の store や server-side model への代入を書かないようにします。preview / export 用の scalar 表示例は Element の property value または Preview Scenarios の `samples` に書き、複数行データは `sample rows:` または Preview Scenario の `rows:` に書きます。`stop` / `continue` は case-level の制御フローなので、`Effects` の外で case の最後に書きます。`display.target` は表示先の既存 `L-*` layout または `E-*` element を指します。また、Input 系 element に付属する field-level error slot として `E-*.error` も指定できます。`display.element` はその表示先に挿入または表示する既存の `E-*` element または `L-*` layout を1つだけ指します。`display.message` は `V-EmailRules.messages` のような validation / business rule の message group を指します。`display.partial` は、既存の `L-*` partial host に表示する参照済み `PRT-*` 文書を指します。直接の `display.content` と複数形の `display.elements` はサポートしません。例外として、`display.element` が `Dialog` の場合は `target` を省略でき、preview scenario では modal overlay として表示します。`display.element` が `Toast` の場合も `target` を省略でき、non-modal toast region に表示します。同じ display effect では、`element`、`message`、`partial` のいずれか 1 つだけを使います。
 
 ```markdown
 - display:
@@ -1753,7 +1776,17 @@ htmx partial replacement に写像する場合も、MarkVSpec では `hx-*` 属�
 
 ## データ由来とサンプル
 
-`source: data` は、値が業務データ、API 応答、サーバ側モデルなどに由来することを示す分類です。データパスではありません。baseline preview の表示値は Element の `sample` / `sample rows:` に書き、state/scenario 固有の表示値は Preview Scenario の `samples` に書きます。
+Property-level `kind: data` は、その表示値が業務データ、API 応答、サーバ側モデルなどに由来することを示す分類です。データパスではありません。baseline preview の scalar 表示値は `value` / `label` / `text` などの property value に書き、state/scenario 固有の表示値は Preview Scenario の `samples` に書きます。複数行データは `sample rows:` または Preview Scenario の `rows:` に書きます。
+
+```markdown
+### E-NoticeTitle Text
+
+- value: 緊急メンテナンスのお知らせ
+  - kind: data
+  - source: ${data.notice.title}
+```
+
+Element 直下の `source: data` と `sample:` は legacy pattern です。新しい example では使わず、property-level metadata と property value を優先します。
 
 Action の `Effects` に `${data.*}` への代入を書く model mutation は canonical DSL ではありません。生成される設計書ビューにも、横断的なモデル更新セクションは表示しません。
 
@@ -2127,22 +2160,21 @@ sample の優先順位は次の通りです。
 
 1. 追加 Preview Scenario の `samples` が、その scenario の表示値として最優先です。
 2. 追加 scenario に対象 element の `samples` がない場合は、`### <state-name>` の baseline `samples` を使います。
-3. scenario 側に対象 element の `samples` がない場合は、Element 定義の `sample` / `sample rows:` を使います。
-4. `source: fixed` または source 未指定の要素は、`label`、`text`、`message`、`hint`、`value` などの固定値を使います。
-5. どこにも preview 用の値がない `source: data` の scalar element は placeholder 的な表示に留め、値を捏造しません。
+3. scenario 側に対象 element の `samples` がない場合は、`label`、`text`、`message`、`hint`、`value` などの scalar property value を baseline として使います。
+4. `sample rows:` は `Table` / `List` の複数行 baseline 値として使います。
+5. どこにも preview 用の値がない場合は placeholder 的な表示に留め、値を捏造しません。
 
 ```markdown
 ## Elements
 
 ### E-Title Text
 
-- source: data
-- sample: Baseline title
-- src: ${data.notice.title}
+- value: Baseline title
+  - kind: data
+  - source: ${data.notice.title}
 
 ### E-Users Table
 
-- source: data
 - Columns:
   - name: Name
 - sample rows:

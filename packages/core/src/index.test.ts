@@ -5453,6 +5453,7 @@ test("parses every release example without diagnostics", () => {
     "02-states/async-loading.vspec.md",
     "02-states/responsive-profile.vspec.md",
     "02-states/scenario-samples.vspec.md",
+    "02-states/source-kind-metadata.vspec.md",
     "03-actions/display-effects.vspec.md",
     "03-actions/event-triggers.vspec.md",
     "03-actions/form-submit-flow.vspec.md",

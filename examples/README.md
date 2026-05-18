@@ -6,6 +6,7 @@ the DSL, preview, State Views, Action Details, and export output.
 - `01-basics/hello-screen.vspec.md`: minimum document shape with metadata, one state, one viewport, layout, elements, and a click action marker.
 - `02-states/async-loading.vspec.md`: asynchronous state modeling for request send, response handling, fetching, loaded, empty, and error previews.
 - `02-states/scenario-samples.vspec.md`: baseline Element samples and Preview Scenario data variations, including table `rows: []` in the same loaded state.
+- `02-states/source-kind-metadata.vspec.md`: focused property-level `kind` / `source` / `format` metadata for Display Content Spec source categories.
 - `02-states/responsive-profile.vspec.md`: mobile and desktop layout variants over shared elements.
 - `03-actions/event-triggers.vspec.md`: `page.load`, `.change`, `.blur`, `.focus`, `.submit`, and dialog click/close triggers with visible display effects.
 - `03-actions/display-effects.vspec.md`: focused `display:` effect shapes for layout element insertion, field validation text, business-rule messages, targetless dialogs, and targetless toasts.

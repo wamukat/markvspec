@@ -204,7 +204,7 @@ This document uses these categories when describing syntax:
 | Flow control | `stop` / `continue` at the end of a case | Implemented | Omitted flow is treated as `continue`. |
 | Display | `display.target` plus exactly one of `element`, `message`, or `partial` | Implemented | `display.content` and `display.elements` are unsupported. |
 | View Context | `## View Context`, `${view.<name>}`, and `view:` effects | Implemented | Supported types are `boolean` and `enum`. |
-| source / samples | `source: data`, `sample`, `sample rows:`, scenario `samples` | Implemented | `source` is origin category; samples are concrete preview values. |
+| display value metadata / samples | Nested `kind`, `source`, and `format` under display value properties; scenario `samples` | Implemented | `kind` is the origin category; property values are baseline preview samples. |
 | Preview Scenarios | `state` / `view` / `cases` / `samples` in `## Preview Scenarios` | Implemented | Explicit state/view/sample variants added to baseline previews. |
 | Validation | `## Field Validations` / `## Cross-field Validations` | Implemented | `## Validations` is legacy-compatible. |
 | Business Rules | `## Business Rules`, `### [marker:]R-* Name` | Implemented | Server-side domain constraints stay separate from validation. |
@@ -508,14 +508,13 @@ Common property names:
 
 - `marker`
 - `label`
-- `label src`
 - `placeholder`
-- `placeholder src`
-- `sample`
 - `sample rows`
+- `kind`
 - `source`
 - `src`
 - `text`
+- `format`
 - `hint`
 - `value`
 - `variant`
@@ -983,8 +982,9 @@ render state.
     - idle: loaded
 ```
 
-Use Element `sample` for baseline preview values on `source: data` elements and
-`sample rows:` for baseline preview rows on `source: data` Table/List elements.
+Use scalar display property values as baseline preview values, with nested
+`kind` / `source` / `format` metadata when the origin matters. Use
+`sample rows:` for baseline preview rows on data-backed Table/List elements.
 Use Preview Scenario `samples` when a state/scenario needs different displayed
 values. Repeated rows come from `sample rows:` / scenario `rows:`; do not assign
 separate IDs such as `E-Notice1Link` and `E-Notice2Link` to each rendered sample
@@ -995,7 +995,6 @@ canonical sample data because row and field boundaries are harder to validate.
 ```markdown
 ### E-NoticeTable Table
 
-- source: data
 - Columns:
   - noticeId: Notice ID
   - title: Title
@@ -1266,9 +1265,9 @@ data.
 ```markdown
 ### E-Greeting Text
 
-- source: data
-- sample: Hello, Taylor
-- src: ${data.memberProfile.displayName}
+- value: Hello, Taylor
+  - kind: computed
+  - source: ${data.memberProfile.displayName}
 - visible when: ${data.memberProfile.loaded}
 
 ### E-GreetingLoading Text
@@ -1277,35 +1276,41 @@ data.
 - visible when: not ${data.memberProfile.loaded}
 ```
 
-Display text separates static UI wording from dynamic data examples:
+Display text separates static UI wording from dynamic data examples. For scalar
+display values, the property value itself is the baseline preview sample. Add
+nested metadata when reviewers need to know where that value comes from:
 
-- `label`: static wording shown to users, such as headings, buttons, links, and
-  form labels.
-- `label src`: an optional opaque source for `label`. Do not use it for
-  implementation i18n keys; prefer `source: i18n` when the label is
-  translation-backed.
-- `text`: fixed body text for static `Paragraph`, `Text`, `Banner`, and `Badge`
-  content.
-- `hint`: fixed helper text for `FileUpload` and `FileInput`.
-- `sample`: the representative preview value for `source: data` elements. Do
-  not use it for fixed wording.
-- `src`: the data source represented by `sample`, written as an
-  opaque expression such as `${data.notice.title}` or `${route.noticeId}`.
-- `value`: a mechanical value, such as a submitted form value, selected option
-  value, or hidden value. Do not use it as a plain display sample.
-- `source`: the origin category for the element's displayed value or wording.
-  It is not a reference path.
+```markdown
+### E-PublishedAt Text
 
-`format` describes how a `src` value is transformed into the `sample`.
+- value: 2026/05/01
+  - kind: data
+  - source: ${data.notice.publishedAt}
+  - format: date yyyy/MM/dd
+- label: Published
+  - kind: i18n
+```
 
-`source` accepts only these source types: `fixed`, `i18n`, `data`, `route`,
-`element`, `asset`, `external`, and `computed`. If omitted, `source` is treated
-as `fixed`; explicitly writing `source: fixed` is also valid.
+- `value: 2026/05/01` is the baseline preview value.
+- `kind: data` is the display value origin category.
+- `source: ${data.notice.publishedAt}` is an optional detail reference. It is
+  not the preview value and does not have to use a `${data.*}` expression.
+- `format:` describes the displayed formatting for that property.
+- `kind: i18n` marks wording as translation-managed. Do not write i18n keys,
+  namespaces, bundle names, or translation file names in MarkVSpec.
+
+Nested `kind`, `source`, and `format` are valid only under display value
+properties such as `value`, `label`, `placeholder`, `text`, `message`, `hint`,
+`href`, `src`, and `alt`. Do not nest them under element settings such as
+`type`, `width`, `level`, `variant`, or `tone`.
+
+`kind` accepts only these source types: `fixed`, `i18n`, `data`, `route`,
+`element`, `asset`, `external`, and `computed`. If omitted, `kind` is treated
+as `fixed`.
 
 - `fixed`: fixed content written directly in the MarkVSpec document.
 - `i18n`: wording that should be managed by internationalization resources.
-  Do not write i18n keys, namespaces, bundle names, or translation file names in
-  `source`; use `source: i18n` only to mark that the text is translation-backed.
+  Do not write i18n keys, namespaces, bundle names, or translation file names.
 - `data`: raw business data, screen data, API response data, or server-side
   model data. It is an origin category, not a path to sample data.
 - `route`: URL path parameters, query strings, and route parameters.
@@ -1321,22 +1326,22 @@ Use `data` for values as received from data sources. Use `computed` when the
 display value is derived from those values. Use `element` only when another
 element's value is displayed as-is; use `computed` when that value is transformed.
 Use `asset` for app-managed resources and `external` for resources managed
-outside the app. `source: document` and old reference-path usage such as
-`source: ${data.users.items}` are invalid.
+outside the app. Element-level `source: data`, Element-level `sample`, and old
+reference-path usage such as `source: ${data.users.items}` are legacy patterns;
+new examples should use property-level `kind` metadata and property values for
+scalar baseline previews.
 
-Keep `source:` and samples separate:
+Keep metadata and samples separate:
 
-- `source:` is the origin category for displayed content. It names a category
+- `kind:` is the origin category for one displayed property. It names a category
   such as `data` or `route`; it is not the concrete preview value.
-- `sample` / `sample rows:` are concrete values supplied to preview. They are
-  not implementation bindings or data-fetching paths.
-- `source: fixed` and elements without `source` already carry their displayed
-  value in `label`, `text`, `message`, `hint`, `value`, or a similar property.
-  Do not add `sample` for fixed content.
-- `source: fixed` with `sample` is a warning. Preview does not invent a fixed
-  value from the sample; the fixed display property remains authoritative.
-- Use `sample` for scalar `source: data` elements. Use `sample rows:` or
-  Preview Scenario `rows:` for multi-row `Table` and `List` data.
+- Nested `source:` is an optional detail reference for that same property.
+- The display property value is the scalar baseline preview sample.
+- Preview Scenario `samples:` override scalar property values for a state or
+  scenario, but they do not override `kind`, `source`, or `format`.
+- Use `sample rows:` or Preview Scenario `rows:` for multi-row `Table` and
+  `List` data. Table/List row metadata is not part of the property-level
+  metadata syntax.
 
 Minimal examples:
 
@@ -1344,7 +1349,7 @@ Minimal examples:
 ### E-PageTitle Heading
 
 - label: My Page
-- source: i18n
+  - kind: i18n
 
 ### E-FixedTitle Heading
 
@@ -1353,37 +1358,40 @@ Minimal examples:
 
 ### E-NoticeTitle Link
 
-- source: data
-- sample: Maintenance notice
-- src: ${data.notice.title}
+- label: Maintenance notice
+  - kind: data
+  - source: ${data.notice.title}
 - href: SCR-NOTICE-DETAIL
+  - kind: route
 - params:
   - noticeId: ${data.notice.noticeId}
 
 ### E-NoticePublishedAt Text
 
-- source: data
-- sample: 2026/05/01
-- src: ${data.notice.publishedAt}
-- format: date yyyy/MM/dd
+- value: 2026/05/01
+  - kind: data
+  - source: ${data.notice.publishedAt}
+  - format: date yyyy/MM/dd
 
 ### E-NoticeId Text
 
-- source: route
-- src: ${route.noticeId}
+- value: N-100
+  - kind: route
+  - source: ${route.noticeId}
 
 ### E-ConfirmEmail Text
 
-- source: element
 - value: E-EmailInput.value
+  - kind: element
+  - source: E-EmailInput.value
 ```
 
-Wireframes render fixed `text` / `hint` directly and use `sample` only as the
-baseline preview value for `source: data` elements. Generated design document tables
-surface `label src`, `placeholder src`, `src`, `sample`, `text`, `hint`, `value`, and `format`
-in Display Content Spec so implementation and review can verify wording,
-bindings, and machine values without mixing their meanings. Input Form Spec
-keeps input constraints separate from labels, placeholders, and option labels.
+Wireframes render scalar property values directly, then Preview Scenario
+`samples:` can replace those visible values per state or scenario. Generated
+design document tables surface property-level `kind`, `source`, and `format` in
+Display Content Spec so implementation and review can verify wording, bindings,
+and machine values without mixing their meanings. Input Form Spec keeps input
+constraints separate from labels, placeholders, and option labels.
 
 When a `Link` points at a screen ID, put navigation parameters under `params`.
 The values are data references, not display text. Project validation checks
@@ -1556,9 +1564,10 @@ selection in `initial value`.
 ### E-ReadStatusFilter RadioGroup
 
 - label: Read status
-- source: i18n
+  - kind: i18n
 - name: readStatus
 - value: ${data.noticeSearch.readStatus}
+  - kind: data
 - initial value: "All"
 - options:
   - All
@@ -1572,8 +1581,9 @@ source, one default value, and one options list.
 
 `List` uses a compact property for short sequences. `Table` uses nested
 Markdown lists so columns and sample rows remain readable without delimiter
-parsing. For data-backed tables, use `source: data` for the origin category and
-`sample rows:` or Preview Scenario `rows:` for preview rows.
+parsing. For data-backed tables, use `sample rows:` or Preview Scenario `rows:`
+for preview rows; table row origin metadata is outside the property-level
+metadata syntax.
 
 Use colon-suffixed block starters for nested element blocks: `options:`,
 `Columns:`, `Sample Rows:`, `params:`, and `input rule:`.
@@ -1586,7 +1596,6 @@ Use colon-suffixed block starters for nested element blocks: `options:`,
 ### E-Users Table
 
 - label: Users
-- source: data
 - Columns:
   - name: Name
     sortable: true
@@ -1613,8 +1622,9 @@ element block remains supported for older static tables, but new examples should
 use `sample rows:`.
 `sample rows: []` intentionally renders an empty baseline preview. A `Table`
 keeps its headers and renders a single empty fallback body row. A `List` renders
-an empty fallback item. A `source: data` `Table` or `List` without `sample rows:`
-and without Preview Scenario `rows:` is a warning.
+an empty fallback item. A data-backed `Table` or `List` without `sample rows:`
+and without Preview Scenario `rows:` remains placeholder-like; MarkVSpec does
+not invent row values.
 
 `Dialog`, `Toast`, `Image`, `Icon`, and `Spinner` use small semantic property sets.
 `Dialog` is a modal overlay by default. Do not place a dedicated
@@ -1803,10 +1813,12 @@ without reading framework-specific attributes.
 
 ## Data Sources And Samples
 
-`source: data` marks that a value comes from business data, API responses, or
-server-side data. It is an origin category, not a data path. Use `sample` and
-`sample rows:` for baseline preview values, and Preview Scenario `samples` for
-scenario-specific overrides.
+Property-level `kind: data` marks that a display value comes from business data,
+API responses, or server-side data. It is an origin category, not a data path.
+Use the display property value as the scalar baseline preview value, nested
+`source:` as an optional detail reference, `sample rows:` for multi-row
+Table/List preview values, and Preview Scenario `samples` for state/scenario
+specific overrides.
 
 Do not use Action `Effects` to assign into `${data.*}`. Action-side model
 mutation is not canonical because it describes an implementation store or server
@@ -1840,7 +1852,7 @@ Examples:
 - marker: 1
 - level: 1
 - label: Welcome back
-- source: i18n
+  - kind: i18n
 
 ### E-LeadText Paragraph
 
@@ -2463,25 +2475,25 @@ Sample precedence:
 1. Additional Preview Scenario `samples` are used first for that scenario.
 2. If the additional scenario does not override an element, state-name baseline
    `samples` from `### <state-name>` are used.
-3. If neither scenario layer overrides an element, the element's `sample` /
-   `sample rows:` provides the baseline value.
-4. `source: fixed` and elements without `source` use fixed properties such as
-   `label`, `text`, `message`, `hint`, or `value`.
-5. A scalar `source: data` element with no preview value remains a placeholder;
-   MarkVSpec does not invent a value.
+3. If neither scenario layer overrides an element, scalar display properties
+   such as `label`, `text`, `message`, `hint`, or `value` provide the baseline
+   value.
+4. `sample rows:` provides baseline values for multi-row `Table` and `List`
+   elements.
+5. If no property value or row sample exists, MarkVSpec leaves the preview
+   placeholder-like and does not invent a value.
 
 ```markdown
 ## Elements
 
 ### E-Title Text
 
-- source: data
-- sample: Baseline title
-- src: ${data.notice.title}
+- value: Baseline title
+  - kind: data
+  - source: ${data.notice.title}
 
 ### E-Users Table
 
-- source: data
 - Columns:
   - name: Name
 - sample rows:

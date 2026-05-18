@@ -6020,6 +6020,25 @@ title: Display Metadata
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-RoleSelect", "E-RoleSelect")}</td><td>options</td><td>${specSectionPattern("Options", ["Viewer / i18n / title case", "Administrator / i18n / copy.roles.admin"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
 });
 
+test("renders the source-kind metadata example with property-level source chips", () => {
+  const source = readFileSync(resolve("../../examples/02-states/source-kind-metadata.vspec.md"), "utf8");
+  const result = parseMarkVSpec(source);
+  assert.deepEqual(result.diagnostics, []);
+  const html = renderDesignDocumentHtml(result, "");
+  const loadedSection = stateSection(html, "loaded");
+  const displayContent = loadedSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  for (const kind of ["fixed", "i18n", "data", "route", "element", "asset", "external", "computed"]) {
+    assert.match(displayContent, new RegExp(sourceTypeChipPattern(kind)), kind);
+  }
+  assert.match(displayContent, /asset catalog: member-avatar/);
+  assert.match(displayContent, /external status page URL/);
+  assert.match(displayContent, /currency USD/);
+  assert.match(displayContent, /date yyyy\/MM\/dd/);
+  assert.match(displayContent, /Member \/ i18n/);
+  assert.doesNotMatch(loadedSection, /<h6 class="state-screen-detail-heading">Other<\/h6>/);
+});
+
 test("renders List items in display content spec without treating the list as input", () => {
   const source = readFileSync(resolve("../../examples/04-real-world-screens/profile-edit-rich.vspec.md"), "utf8");
   const html = renderDesignDocumentHtml(parseMarkVSpec(source), "");

@@ -246,6 +246,26 @@ test("exports preview scenarios and scenario samples in standalone HTML", () => 
   }
 });
 
+test("exports source-kind metadata example in standalone HTML", () => {
+  const dir = mkdtempSync(join(tmpdir(), "markvspec-html-source-kind-"));
+  try {
+    const sourcePath = resolve("../../examples/02-states/source-kind-metadata.vspec.md");
+    const outDir = join(dir, "out");
+    const results = exportMarkVSpecHtmlFiles([sourcePath], outDir);
+
+    assert.equal(results.length, 1);
+    assert(!results[0]?.diagnostics.some((diagnostic) => diagnostic.severity === "error"));
+    const html = readFileSync(join(outDir, "source-kind-metadata.html"), "utf8");
+    const loadedSection = stateViewSection(html, "loaded");
+    assert.match(loadedSection, /Member source kinds/);
+    assert.match(loadedSection, /morgan@example\.com/);
+    assert.match(stateViewSection(html, "loaded / loaded-admin"), /Taylor Stone/);
+    assert.match(html, /Scenario Samples/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("exports localized scenario sample rows in standalone HTML", () => {
   const dir = mkdtempSync(join(tmpdir(), "markvspec-html-scenarios-ja-"));
   try {
