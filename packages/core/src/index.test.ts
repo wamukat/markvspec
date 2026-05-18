@@ -12901,6 +12901,8 @@ locale: ja
       "element.unsupportedProperty",
       "frontMatter.missingRequired",
       "frontMatter.missingYaml",
+      "layout.groupIgnoredWithoutViewport",
+      "layout.missingViewport",
       "layout.unsupportedItemsEntry",
       "partial.referenceMissing",
       "previewScenario.missingState",
@@ -12948,6 +12950,38 @@ locale: ja
 ## States
 
 - idle*
+`
+    },
+    {
+      code: "layout.missingViewport",
+      ja: "Layout section に viewport がありません",
+      source: `---
+id: SCR-LAYOUT-MISSING-VIEWPORT
+type: screen
+title: Layout Missing Viewport
+locale: ja
+---
+# SCR-LAYOUT-MISSING-VIEWPORT Layout Missing Viewport
+
+## Layout
+`
+    },
+    {
+      code: "layout.groupIgnoredWithoutViewport",
+      ja: "この Layout group は無視されます",
+      source: `---
+id: SCR-LAYOUT-GROUP-NO-VIEWPORT
+type: screen
+title: Layout Group No Viewport
+locale: ja
+---
+# SCR-LAYOUT-GROUP-NO-VIEWPORT Layout Group No Viewport
+
+## Layout
+
+### L-Page Page
+
+- stack
 `
     },
     {

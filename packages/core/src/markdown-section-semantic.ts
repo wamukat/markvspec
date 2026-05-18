@@ -381,11 +381,12 @@ function parseLayoutOrSlotSection(section: SectionAst): LayoutSectionSemanticRes
     : undefined;
 
   if (section.kind === "Layout" && !viewport) {
-    diagnostics.push({
-      severity: "warning",
-      message: "Layout section must specify a viewport, for example ## Layout: mobile.",
-      line: section.heading.range.start.line
-    });
+    diagnostics.push(createMarkVSpecDiagnostic(
+      "warning",
+      "layout.missingViewport",
+      {},
+      section.heading.range.start.line
+    ));
   }
   if (isSlotSection && !slotName) {
     diagnostics.push({
@@ -441,11 +442,12 @@ function parseLayoutOrSlotSection(section: SectionAst): LayoutSectionSemanticRes
 
       const headingLocation = locationFromBlock(block);
       if (section.kind === "Layout" && !viewport) {
-        diagnostics.push({
-          severity: "warning",
-          message: "Layout group is ignored because its Layout section has no viewport.",
-          line: headingLocation.line
-        });
+        diagnostics.push(createMarkVSpecDiagnostic(
+          "warning",
+          "layout.groupIgnoredWithoutViewport",
+          {},
+          headingLocation.line
+        ));
         currentLayout = undefined;
         layoutSubsection = undefined;
         currentLayoutNestedProperty = undefined;

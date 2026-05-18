@@ -4,6 +4,8 @@ export type MarkVSpecDiagnosticCode =
   | "frontMatter.missingYaml"
   | "frontMatter.missingRequired"
   | "section.recommendedOrder"
+  | "layout.missingViewport"
+  | "layout.groupIgnoredWithoutViewport"
   | "layout.unsupportedItemsEntry"
   | "element.unknownType"
   | "element.unsupportedProperty"
@@ -32,6 +34,10 @@ const diagnosticMessageTemplates: Record<DiagnosticLocale, Record<MarkVSpecDiagn
       `Missing required Front Matter field: ${param(params, "field")}.`,
     "section.recommendedOrder": (params) =>
       `Section ## ${param(params, "section")} appears after a later section. Recommended order is ${param(params, "order")}.`,
+    "layout.missingViewport": () =>
+      "Layout section must specify a viewport, for example ## Layout: mobile.",
+    "layout.groupIgnoredWithoutViewport": () =>
+      "Layout group is ignored because its Layout section has no viewport.",
     "layout.unsupportedItemsEntry": (params) =>
       `Layout ${param(params, "layoutId")} has unsupported Items entry: ${param(params, "entry")}.`,
     "element.unknownType": (params) =>
@@ -70,6 +76,10 @@ const diagnosticMessageTemplates: Record<DiagnosticLocale, Record<MarkVSpecDiagn
       `必須 Front Matter field ${param(params, "field")} がありません。YAML Front Matter に ${param(params, "field")}: ... を追加してください。`,
     "section.recommendedOrder": (params) =>
       `Section ## ${param(params, "section")} が推奨順より後にあります。推奨順は ${param(params, "order")} です。`,
+    "layout.missingViewport": () =>
+      "Layout section に viewport がありません。## Layout: mobile のように viewport を指定してください。",
+    "layout.groupIgnoredWithoutViewport": () =>
+      "Layout section に viewport がないため、この Layout group は無視されます。親 section を ## Layout: mobile のように直してください。",
     "layout.unsupportedItemsEntry": (params) =>
       `Layout ${param(params, "layoutId")} の Items entry ${param(params, "entry")} はサポートされていません。Items には L-* または E-* を指定してください。`,
     "element.unknownType": (params) =>
