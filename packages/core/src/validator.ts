@@ -298,11 +298,12 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
           line: item.location.line
         });
       } else if (item.type === "flag" && item.scope === "items" && !isLayoutItemId(item.value)) {
-        diagnostics.push({
-          severity: "warning",
-          message: `Layout ${group.id} has unsupported Items entry: ${item.value}.`,
-          line: item.location.line
-        });
+        diagnostics.push(createMarkVSpecDiagnostic(
+          "warning",
+          "layout.unsupportedItemsEntry",
+          { layoutId: group.id, entry: item.value },
+          item.location.line
+        ));
       }
     }
   }
@@ -330,11 +331,12 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
 
   for (const element of result.elements) {
     if (!isKnownElementType(element.type)) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Unknown element type: ${element.type}.`,
-        line: element.location.line
-      });
+      diagnostics.push(createMarkVSpecDiagnostic(
+        "warning",
+        "element.unknownType",
+        { type: element.type },
+        element.location.line
+      ));
     } else {
       validateElementProperties(element, result, diagnostics);
     }
@@ -381,11 +383,12 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
     const actionLifecycleTrigger = action.triggeredBy ? actionLifecycleTriggerRegex.exec(action.triggeredBy) : undefined;
     const actionProcessLifecycleTrigger = action.triggeredBy ? actionProcessLifecycleTriggerRegex.exec(action.triggeredBy) : undefined;
     if (!action.triggeredBy) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Action ${action.id} has no trigger. Add a Triggered block with E-*.event, A-ActionId.P-marker.response, screen.load, or partial.render.`,
-        line: action.location.line
-      });
+      diagnostics.push(createMarkVSpecDiagnostic(
+        "warning",
+        "action.missingTrigger",
+        { actionId: action.id },
+        action.location.line
+      ));
     } else if (documentLifecycleTriggers.has(action.triggeredBy)) {
       // Valid document lifecycle trigger.
     } else if (action.triggeredBy.startsWith("E-") && !action.trigger) {
@@ -450,11 +453,12 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
         line: action.triggeredByLocation?.line ?? action.location.line
       });
     } else if (action.triggeredBy && !action.trigger) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Action ${action.id} has invalid trigger ${action.triggeredBy}. Expected E-*.event, A-ActionId.P-marker.response, screen.load, or partial.render.`,
-        line: action.triggeredByLocation?.line ?? action.location.line
-      });
+      diagnostics.push(createMarkVSpecDiagnostic(
+        "warning",
+        "action.invalidTrigger",
+        { actionId: action.id, trigger: action.triggeredBy },
+        action.triggeredByLocation?.line ?? action.location.line
+      ));
     }
 
     const processResponseTrigger = action.triggeredBy ? parseProcessOutputReference(action.triggeredBy) : undefined;
@@ -1107,11 +1111,12 @@ function validateValidationRules(
   for (const rule of validation.rules) {
     for (const target of rule.targets) {
       if (elementIdRegex.test(target) && !elementIds.has(target)) {
-        diagnostics.push({
-          severity: "error",
-          message: `Validation ${validation.id} rule ${rule.name} references missing element ${target}.`,
-          line: rule.location.line
-        });
+        diagnostics.push(createMarkVSpecDiagnostic(
+          "error",
+          "validation.ruleMissingElement",
+          { validationId: validation.id, ruleName: rule.name, elementId: target },
+          rule.location.line
+        ));
       } else if (formGroupIdRegex.test(target) && !formGroupIds.has(target)) {
         diagnostics.push({
           severity: "error",
@@ -1325,11 +1330,12 @@ function validateReferencedPartialIds(
       continue;
     }
 
-    diagnostics.push({
-      severity: "error",
-      message: `Partial reference ${partialId} is not defined in Front Matter references.partials.`,
-      line: location.line
-    });
+    diagnostics.push(createMarkVSpecDiagnostic(
+      "error",
+      "partial.referenceMissing",
+      { partialId },
+      location.line
+    ));
   }
 }
 
@@ -2547,11 +2553,12 @@ function validateViewContexts(
     const scenarioNames = new Set(result.previewScenarios.map((scenario) => scenario.name));
     for (const scenario of result.previewScenarios) {
       if (!scenario.state) {
-        diagnostics.push({
-          severity: "error",
-          message: `Preview Scenario ${scenario.name} must specify state.`,
-          line: scenario.location.line
-        });
+        diagnostics.push(createMarkVSpecDiagnostic(
+          "error",
+          "previewScenario.missingState",
+          { scenario: scenario.name },
+          scenario.location.line
+        ));
       } else if (!stateNames.has(scenario.state)) {
         diagnostics.push({
           severity: "error",
@@ -2617,11 +2624,12 @@ function validatePreviewScenarioSamples(
   for (const sample of scenario.samples) {
     const element = elementsById.get(sample.elementId);
     if (!element) {
-      diagnostics.push({
-        severity: "error",
-        message: `Preview Scenario ${scenario.name} samples references missing element ${sample.elementId}.`,
-        line: sample.location.line
-      });
+      diagnostics.push(createMarkVSpecDiagnostic(
+        "error",
+        "previewScenario.samplesMissingElement",
+        { scenario: scenario.name, elementId: sample.elementId },
+        sample.location.line
+      ));
       continue;
     }
     if (sample.rows && element.type !== "Table" && element.type !== "List") {

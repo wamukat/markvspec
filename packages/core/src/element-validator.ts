@@ -173,11 +173,12 @@ function checkUnsupportedElementProperties(element: MarkVSpecElement, diagnostic
       continue;
     }
 
-    diagnostics.push({
-      severity: "warning",
-      message: `Element ${element.id} of type ${element.type} uses unsupported property ${key}.`,
-      line: firstPropertyLine(element, key) ?? element.location.line
-    });
+    diagnostics.push(createMarkVSpecDiagnostic(
+      "warning",
+      "element.unsupportedProperty",
+      { elementId: element.id, type: element.type, property: key },
+      firstPropertyLine(element, key) ?? element.location.line
+    ));
   }
 }
 

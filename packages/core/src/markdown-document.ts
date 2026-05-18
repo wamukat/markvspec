@@ -5,6 +5,7 @@ import { parseDocument } from "yaml";
 import type { Root } from "mdast";
 import type { MarkVSpecDiagnostic, MarkVSpecDocumentReferences } from "./types.js";
 import { filterLinesWithoutStandaloneHtmlComments } from "./markdown-html-comments.js";
+import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
 
 export interface MarkdownHeading {
   depth: number;
@@ -91,11 +92,7 @@ function extractYamlFrontMatter(
   diagnostics: MarkVSpecDiagnostic[]
 ): { raw: string; bodyStartIndex: number } {
   if (lines[0] !== "---") {
-    diagnostics.push({
-      severity: "warning",
-      message: "Missing YAML Front Matter.",
-      line: 1
-    });
+    diagnostics.push(createMarkVSpecDiagnostic("warning", "frontMatter.missingYaml", {}, 1));
     return { raw: "", bodyStartIndex: 0 };
   }
 

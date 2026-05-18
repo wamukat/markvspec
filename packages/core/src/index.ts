@@ -7,6 +7,7 @@ import { renderMarkVSpecHtml, renderMarkVSpecHtmlFragments } from "./renderer.js
 import { computeMarkVSpecRenderInvalidation } from "./render-invalidation.js";
 import { AI_INPUT_SUPPORTED_DOCUMENT_KINDS, diagnoseAiDesignInputDocument } from "./ai-input-diagnostics.js";
 import { messagesForLocale, resolveLocale, resolveRendererMessages, supportedRendererMessageKeys } from "./renderer-messages.js";
+import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
 import type {
   MarkVSpecDiagnostic,
   MarkVSpecDocumentReferences,
@@ -346,11 +347,7 @@ function parseScreen(
 
   for (const key of ["id", "type", "title"]) {
     if (!frontMatter[key]) {
-      diagnostics.push({
-        severity: "error",
-        message: `Missing required Front Matter field: ${key}.`,
-        line: 1
-      });
+      diagnostics.push(createMarkVSpecDiagnostic("error", "frontMatter.missingRequired", { field: key }, 1));
     }
   }
 

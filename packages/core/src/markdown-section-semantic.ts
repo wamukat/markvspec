@@ -36,6 +36,7 @@ import {
   type SectionKind
 } from "./markdown-section-ast.js";
 import { filterLinesWithoutStandaloneHtmlComments, isStandaloneHtmlCommentBlock } from "./markdown-html-comments.js";
+import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
 
 export interface SemanticDependency {
   source: { type: "entity" | "section" | "render"; id: string };
@@ -179,11 +180,12 @@ function semanticSectionOrderDiagnostics(sections: SectionAst[]): MarkVSpecDiagn
       continue;
     }
     if (rank < highestSectionRank) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Section ## ${section.title} appears after a later section. Recommended order is ${recommendedSectionOrder}.`,
-        line: section.heading.range.start.line
-      });
+      diagnostics.push(createMarkVSpecDiagnostic(
+        "warning",
+        "section.recommendedOrder",
+        { section: section.title, order: recommendedSectionOrder },
+        section.heading.range.start.line
+      ));
       continue;
     }
     highestSectionRank = rank;

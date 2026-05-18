@@ -7,6 +7,7 @@ import {
   evaluateMarkVSpecDiagnostics,
   loadMarkVSpecProject,
   parseMarkVSpec,
+  renderDiagnosticMessageForLocale,
   resolveRendererMessages,
   resolveProjectPath
 } from "@markvspec/core";
@@ -26,6 +27,7 @@ export interface MarkVSpecExportFileResult {
   outputPath: string;
   diagnostics: MarkVSpecDiagnostic[];
   messageSourcePath?: string;
+  locale?: string;
 }
 
 export interface MarkVSpecExportOptions {
@@ -35,6 +37,7 @@ export interface MarkVSpecExportOptions {
 export interface MarkVSpecValidateFileResult {
   sourcePath: string;
   diagnostics: MarkVSpecDiagnostic[];
+  locale?: string;
 }
 
 export interface MarkVSpecValidateResult {
@@ -55,10 +58,14 @@ export function validateMarkVSpecFiles(
   options: MarkVSpecValidationGateOptions = {}
 ): MarkVSpecValidateResult {
   const input = resolveMarkVSpecFileInputs(patterns);
-  const files = input.files.map((sourcePath) => ({
-    sourcePath,
-    diagnostics: diagnosticsForFile(sourcePath)
-  }));
+  const files = input.files.map((sourcePath) => {
+    const result = diagnosticsForFile(sourcePath);
+    return {
+      sourcePath,
+      diagnostics: result.diagnostics,
+      locale: result.locale
+    };
+  });
   const diagnostics = [...input.diagnostics.map((entry) => entry.diagnostic), ...files.flatMap((file) => file.diagnostics)];
   const gate = evaluateMarkVSpecDiagnostics(diagnostics, options);
   return {
@@ -79,9 +86,9 @@ export function exportMarkVSpecHtmlFiles(patterns: readonly string[], outDir: st
   mkdirSync(outDir, { recursive: true });
   return files.map((sourcePath) => {
     const outputPath = outputPaths.get(sourcePath) ?? join(outDir, `${defaultExportHtmlBaseName(sourcePath)}.html`);
-    const { html, diagnostics, messageSourcePath } = renderStandaloneHtmlForFile(sourcePath, options);
+    const { html, diagnostics, messageSourcePath, locale } = renderStandaloneHtmlForFile(sourcePath, options);
     writeFileSync(outputPath, html, "utf8");
-    return { sourcePath, outputPath, diagnostics, messageSourcePath };
+    return { sourcePath, outputPath, diagnostics, messageSourcePath, locale };
   });
 }
 
@@ -106,16 +113,16 @@ export async function exportMarkVSpecPdfFiles(
     const baseName = defaultExportHtmlBaseName(sourcePath);
     const htmlPath = join(tempDir, `${baseName}.pdf-source.html`);
     const outputPath = outputPaths.get(sourcePath) ?? join(outDir, `${baseName}.pdf`);
-    const { html, diagnostics, messageSourcePath } = renderStandaloneHtmlForFile(sourcePath, options);
+    const { html, diagnostics, messageSourcePath, locale } = renderStandaloneHtmlForFile(sourcePath, options);
     writeFileSync(htmlPath, html, "utf8");
     await exportPdfFromHtmlWithFallback(htmlPath, outputPath, browsers);
-    results.push({ sourcePath, outputPath, diagnostics, messageSourcePath });
+    results.push({ sourcePath, outputPath, diagnostics, messageSourcePath, locale });
   }
 
   return results;
 }
 
-export function renderStandaloneHtmlForFile(sourcePath: string, options: MarkVSpecExportOptions = {}): { html: string; diagnostics: MarkVSpecDiagnostic[]; messageSourcePath?: string } {
+export function renderStandaloneHtmlForFile(sourcePath: string, options: MarkVSpecExportOptions = {}): { html: string; diagnostics: MarkVSpecDiagnostic[]; messageSourcePath?: string; locale?: string } {
   const source = readFileSync(sourcePath, "utf8");
   if (isMarkVSpecProjectPath(sourcePath)) {
     const project = loadMarkVSpecProject(source, {
@@ -143,7 +150,7 @@ export function renderStandaloneHtmlForFile(sourcePath: string, options: MarkVSp
           ? `<section class="mm-export-section"><h2>${escapeHtml(screen.result.screen.title ?? screen.result.screen.id ?? screen.index.id ?? resolvedMessages.messages.screen)}</h2>${renderStaticDesignDocumentHtml(screen.result, { messages: resolvedMessages.messages })}</section>`
           : "")
         .join(""),
-      renderDiagnostics(diagnostics, resolvedMessages.messages)
+      renderDiagnostics(diagnostics, resolvedMessages.messages, resolvedMessages.locale)
     ].join("\n");
     return {
       html: standaloneHtml(title, content, {
@@ -151,7 +158,8 @@ export function renderStandaloneHtmlForFile(sourcePath: string, options: MarkVSp
         messageSourcePath: resolvedMessages.sourcePath
       }),
       diagnostics,
-      messageSourcePath: resolvedMessages.sourcePath
+      messageSourcePath: resolvedMessages.sourcePath,
+      locale: resolvedMessages.locale
     };
   }
 
@@ -172,7 +180,7 @@ export function renderStandaloneHtmlForFile(sourcePath: string, options: MarkVSp
   const content = [
     `<h1>${escapeHtml(title)}</h1>`,
     renderStaticDesignDocumentHtml(result, { messages: resolvedMessages.messages }),
-    renderDiagnostics(diagnostics, resolvedMessages.messages)
+    renderDiagnostics(diagnostics, resolvedMessages.messages, resolvedMessages.locale)
   ].join("\n");
   return {
     html: standaloneHtml(title, content, {
@@ -180,7 +188,8 @@ export function renderStandaloneHtmlForFile(sourcePath: string, options: MarkVSp
       messageSourcePath: resolvedMessages.sourcePath
     }),
     diagnostics,
-    messageSourcePath: resolvedMessages.sourcePath
+    messageSourcePath: resolvedMessages.sourcePath,
+    locale: resolvedMessages.locale
   };
 }
 
@@ -293,16 +302,18 @@ export async function exportPdfFromHtmlWithFallback(htmlPath: string, pdfPath: s
   throw new Error(failures.join("; "));
 }
 
-function diagnosticsForFile(sourcePath: string): MarkVSpecDiagnostic[] {
+function diagnosticsForFile(sourcePath: string): { diagnostics: MarkVSpecDiagnostic[]; locale?: string } {
   const source = readFileSync(sourcePath, "utf8");
   if (isMarkVSpecProjectPath(sourcePath)) {
-    return loadMarkVSpecProject(source, {
+    const result = loadMarkVSpecProject(source, {
       projectPath: sourcePath,
       readFile: readTextFile
-    }).diagnostics;
+    });
+    return { diagnostics: result.diagnostics, locale: result.project.project.frontMatter["locale"] };
   }
 
-  return loadScreenResultForFile(source, sourcePath).diagnostics;
+  const result = loadScreenResultForFile(source, sourcePath);
+  return { diagnostics: result.diagnostics, locale: result.screen.locale };
 }
 
 function loadScreenResultForFile(source: string, sourcePath: string): MarkVSpecParseResult {
@@ -618,12 +629,12 @@ function standaloneHtml(
 </html>`;
 }
 
-function renderDiagnostics(diagnostics: readonly MarkVSpecDiagnostic[], messages: RendererMessages): string {
+function renderDiagnostics(diagnostics: readonly MarkVSpecDiagnostic[], messages: RendererMessages, locale: string | undefined): string {
   if (diagnostics.length === 0) {
     return "";
   }
 
-  const rows = diagnostics.map((diagnostic) => `<tr><td>${escapeHtml(diagnostic.severity)}</td><td>${diagnostic.line ?? ""}</td><td>${escapeHtml(diagnostic.message)}</td></tr>`).join("");
+  const rows = diagnostics.map((diagnostic) => `<tr><td>${escapeHtml(diagnostic.severity)}</td><td>${diagnostic.line ?? ""}</td><td>${escapeHtml(renderDiagnosticMessageForLocale(diagnostic, locale))}</td></tr>`).join("");
   return `<section class="mm-export-diagnostics"><h2>${escapeHtml(messages.diagnostics)}</h2><table><thead><tr><th>${escapeHtml(messages.severity)}</th><th>${escapeHtml(messages.line)}</th><th>${escapeHtml(messages.message)}</th></tr></thead><tbody>${rows}</tbody></table></section>`;
 }
 

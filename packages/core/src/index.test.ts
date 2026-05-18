@@ -12577,14 +12577,254 @@ locale: ja
   assert.deepEqual(
     supportedDiagnosticMessageCodes().sort(),
     [
+      "action.invalidTrigger",
+      "action.missingTrigger",
       "action.parallelProcess.caseShouldNotSetStateOrNavigate",
       "action.process.caseResponseWithoutReceive",
       "action.process.mixesExecutionDetailAndImmediateEffects",
       "action.process.mixesResultClassificationAndImmediateEffects",
       "action.process.multipleExecutionDetails",
-      "element.unsupportedLegacyBind"
+      "element.unknownType",
+      "element.unsupportedLegacyBind",
+      "element.unsupportedProperty",
+      "frontMatter.missingRequired",
+      "frontMatter.missingYaml",
+      "layout.unsupportedItemsEntry",
+      "partial.referenceMissing",
+      "previewScenario.missingState",
+      "previewScenario.samplesMissingElement",
+      "section.recommendedOrder",
+      "validation.ruleMissingElement"
     ].sort()
   );
+});
+
+test("localizes representative diagnostics across authoring categories", () => {
+  const cases = [
+    {
+      code: "frontMatter.missingYaml",
+      ja: "YAML Front Matter がありません",
+      source: "# Missing Front Matter\n"
+    },
+    {
+      code: "frontMatter.missingRequired",
+      ja: "必須 Front Matter field id がありません",
+      source: `---
+type: screen
+title: Missing ID
+---
+# SCR-MISSING-ID Missing ID
+`
+    },
+    {
+      code: "section.recommendedOrder",
+      ja: "推奨順",
+      source: `---
+id: SCR-SECTION-ORDER
+type: screen
+title: Section Order
+locale: ja
+---
+# SCR-SECTION-ORDER Section Order
+
+## Elements
+
+### E-Title Text
+
+- value: Title
+
+## States
+
+- idle*
+`
+    },
+    {
+      code: "layout.unsupportedItemsEntry",
+      ja: "Items には L-* または E-* を指定してください",
+      source: `---
+id: SCR-LAYOUT-DIAG
+type: screen
+title: Layout Diagnostic
+locale: ja
+---
+# SCR-LAYOUT-DIAG Layout Diagnostic
+
+## Layout: mobile
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- BadItem
+`
+    },
+    {
+      code: "element.unknownType",
+      ja: "サポート済み type",
+      source: `---
+id: SCR-ELEMENT-TYPE-DIAG
+type: screen
+title: Element Type Diagnostic
+locale: ja
+---
+# SCR-ELEMENT-TYPE-DIAG Element Type Diagnostic
+
+## Elements
+
+### E-Widget Widget
+
+- value: Widget
+`
+    },
+    {
+      code: "element.unsupportedProperty",
+      ja: "canonical property",
+      source: `---
+id: SCR-ELEMENT-PROP-DIAG
+type: screen
+title: Element Property Diagnostic
+locale: ja
+---
+# SCR-ELEMENT-PROP-DIAG Element Property Diagnostic
+
+## Elements
+
+### E-Button Button
+
+- placeholder: Bad
+`
+    },
+    {
+      code: "action.missingTrigger",
+      ja: "Triggered block",
+      source: `---
+id: SCR-ACTION-MISSING-TRIGGER
+type: screen
+title: Action Missing Trigger
+locale: ja
+---
+# SCR-ACTION-MISSING-TRIGGER Action Missing Trigger
+
+## Actions
+
+### A-Save Save
+
+- From
+  - idle
+`
+    },
+    {
+      code: "action.invalidTrigger",
+      ja: "trigger service.response は不正",
+      source: `---
+id: SCR-ACTION-INVALID-TRIGGER
+type: screen
+title: Action Invalid Trigger
+locale: ja
+---
+# SCR-ACTION-INVALID-TRIGGER Action Invalid Trigger
+
+## Actions
+
+### A-Save Save
+
+- Triggered
+  - service.response
+`
+    },
+    {
+      code: "partial.referenceMissing",
+      ja: "references.partials",
+      source: `---
+id: SCR-PARTIAL-REF
+type: screen
+title: Partial Ref
+locale: ja
+---
+# SCR-PARTIAL-REF Partial Ref
+
+## Layout: mobile
+
+### L-Host Host
+
+- partial:
+  - id: PRT-MISSING
+`
+    },
+    {
+      code: "validation.ruleMissingElement",
+      ja: "存在しない element E-Missing",
+      source: `---
+id: SCR-VALIDATION-DIAG
+type: screen
+title: Validation Diagnostic
+locale: ja
+---
+# SCR-VALIDATION-DIAG Validation Diagnostic
+
+## Field Validations
+
+### V-Email Email
+
+- rules:
+  - required:
+    - E-Missing
+`
+    },
+    {
+      code: "previewScenario.missingState",
+      ja: "- state: <state-name>",
+      source: `---
+id: SCR-SCENARIO-STATE
+type: screen
+title: Scenario State
+locale: ja
+---
+# SCR-SCENARIO-STATE Scenario State
+
+## Preview Scenarios
+
+### missing-state
+
+- view: default
+`
+    },
+    {
+      code: "previewScenario.samplesMissingElement",
+      ja: "samples が存在しない element E-Missing",
+      source: `---
+id: SCR-SCENARIO-SAMPLES
+type: screen
+title: Scenario Samples
+locale: ja
+---
+# SCR-SCENARIO-SAMPLES Scenario Samples
+
+## States
+
+- idle*
+
+## Preview Scenarios
+
+### idle
+
+- state: idle
+- samples:
+  - E-Missing: Ghost
+`
+    }
+  ] as const;
+
+  for (const entry of cases) {
+    const result = parseMarkVSpec(entry.source);
+    const diagnostic = result.diagnostics.find((candidate) => candidate.code === entry.code);
+
+    assert(diagnostic, `Missing diagnostic ${entry.code}`);
+    assert.equal(renderDiagnosticMessageForLocale(diagnostic, "en"), diagnostic.message);
+    assert(renderDiagnosticMessageForLocale(diagnostic, "ja").includes(entry.ja));
+  }
 });
 
 test("parses architecture-neutral process markers, display effects, and preview scenario cases", () => {

@@ -4,7 +4,7 @@ import {
   exportMarkVSpecPdfFiles,
   validateMarkVSpecFiles
 } from "@markvspec/exporter";
-import { diagnoseAiDesignInputDocument, evaluateMarkVSpecDiagnostics } from "@markvspec/core";
+import { diagnoseAiDesignInputDocument, evaluateMarkVSpecDiagnostics, renderDiagnosticMessageForLocale } from "@markvspec/core";
 import { readFileSync, realpathSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -127,7 +127,7 @@ function printDiagnostics(files: ReturnType<typeof validateMarkVSpecFiles>["file
   for (const file of files) {
     for (const diagnostic of file.diagnostics) {
       const location = diagnostic.line ? `${file.sourcePath}:${diagnostic.line}` : file.sourcePath;
-      console.log(`${location} ${diagnostic.severity}: ${diagnostic.message}`);
+      console.log(`${location} ${diagnostic.severity}: ${renderDiagnosticMessageForLocale(diagnostic, file.locale)}`);
     }
   }
 }

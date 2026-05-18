@@ -10,6 +10,7 @@ import {
   exportMarkVSpecHtmlFiles,
   pdfBrowserArgs,
   pdfBrowserCandidates,
+  renderStandaloneHtmlForFile,
   resolvePdfBrowserCommands,
   validateMarkVSpecFiles
 } from "./index.js";
@@ -52,6 +53,35 @@ test("validation fails for missing or unmatched inputs", () => {
     const unmatched = validateMarkVSpecFiles([join(dir, "*.vspec.md")]);
     assert.equal(unmatched.exitCode, 1);
     assert.match(unmatched.files[0]?.diagnostics[0]?.message ?? "", /No MarkVSpec files matched/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("exports diagnostics using the document locale", () => {
+  const dir = mkdtempSync(join(tmpdir(), "markvspec-localized-diagnostics-"));
+  try {
+    const sourcePath = join(dir, "ja.vspec.md");
+    writeFileSync(sourcePath, `---
+id: SCR-JA-DIAG
+type: screen
+title: Japanese Diagnostics
+locale: ja
+---
+# SCR-JA-DIAG Japanese Diagnostics
+
+## Actions
+
+### A-Save Save
+
+- From
+  - idle
+`);
+
+    const result = renderStandaloneHtmlForFile(sourcePath);
+
+    assert.match(result.html, /Action A-Save に trigger がありません/);
+    assert.doesNotMatch(result.html, /Action A-Save has no trigger/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

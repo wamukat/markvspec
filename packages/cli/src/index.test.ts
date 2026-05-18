@@ -20,6 +20,40 @@ test("validate returns zero for valid files and non-zero for invalid files", asy
   }
 });
 
+test("validate prints diagnostics using the document locale", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "markvspec-cli-ja-diagnostics-"));
+  const originalLog = console.log;
+  const logs: string[] = [];
+  try {
+    const sourcePath = join(dir, "ja.vspec.md");
+    writeFileSync(sourcePath, `---
+id: SCR-JA-DIAG
+type: screen
+title: Japanese Diagnostics
+locale: ja
+---
+# SCR-JA-DIAG Japanese Diagnostics
+
+## Actions
+
+### A-Save Save
+
+- From
+  - idle
+`);
+    console.log = (message?: unknown) => {
+      logs.push(String(message));
+    };
+
+    assert.equal(await main(["validate", sourcePath]), 0);
+    assert(logs.some((line) => line.includes("Action A-Save に trigger がありません")));
+    assert(!logs.some((line) => line.includes("Action A-Save has no trigger")));
+  } finally {
+    console.log = originalLog;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("export html writes an HTML file", async () => {
   const dir = mkdtempSync(join(tmpdir(), "markvspec-cli-html-"));
   try {
