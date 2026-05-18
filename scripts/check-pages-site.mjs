@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join, normalize } from "node:path";
 
 const root = process.cwd();
 const siteDir = join(root, "_site");
@@ -8,6 +8,7 @@ const requiredFiles = [
   "index.html",
   "examples/index.html",
   "examples/hello-screen.html",
+  "examples/showcase/hello-screen.html",
   "docs/ja/user/authoring-guide.html",
   "docs/en/user/authoring-guide.html",
   "docs/ja/user/document-structure.html",
@@ -41,6 +42,9 @@ expectContains(rootHtml, 'href="docs/en/user/ui-coverage.html"', "_site/index.ht
 const examplesHtml = readSiteFile("examples/index.html");
 expectContains(examplesHtml, "MarkVSpec Examples", "_site/examples/index.html should be the examples index.");
 expectContains(examplesHtml, "hello-screen.html", "_site/examples/index.html should link to Hello Screen.");
+expectContains(examplesHtml, "showcase/hello-screen.html", "_site/examples/index.html should link to the Hello Screen showcase.");
+expectContains(examplesHtml, "Source + Preview", "_site/examples/index.html should label showcase links.");
+expectContains(examplesHtml, ">Preview<", "_site/examples/index.html should keep preview-only links.");
 expectContains(examplesHtml, "examples/01-basics/hello-screen.vspec.md", "_site/examples/index.html should show the source path.");
 
 for (const coveragePath of ["docs/ja/user/ui-coverage.html", "docs/en/user/ui-coverage.html"]) {
@@ -54,6 +58,22 @@ const generatedExamples = readdirSync(join(siteDir, "examples")).filter((entry) 
 if (generatedExamples.length === 0) {
   failures.push("_site/examples should contain generated example HTML files.");
 }
+
+const generatedShowcases = readdirSync(join(siteDir, "examples", "showcase")).filter((entry) => entry.endsWith(".html"));
+if (generatedShowcases.length !== generatedExamples.length) {
+  failures.push(`_site/examples/showcase should contain one showcase per generated example (${generatedExamples.length} expected, ${generatedShowcases.length} found).`);
+}
+
+for (const filePath of ["examples/index.html", ...generatedShowcases.map((entry) => `examples/showcase/${entry}`)]) {
+  expectLocalLinks(filePath);
+}
+
+const helloShowcaseHtml = readSiteFile("examples/showcase/hello-screen.html");
+expectContains(helloShowcaseHtml, "Source and generated preview, side by side", "_site/examples/showcase/hello-screen.html should be a showcase page.");
+expectContains(helloShowcaseHtml, '<iframe src="../hello-screen.html"', "_site/examples/showcase/hello-screen.html should embed the generated preview.");
+expectContains(helloShowcaseHtml, '<span class="line-no">1</span>', "_site/examples/showcase/hello-screen.html should show source line numbers.");
+expectContains(helloShowcaseHtml, "SCR-HELLO", "_site/examples/showcase/hello-screen.html should render escaped source lines as HTML elements.");
+expectContains(helloShowcaseHtml, "Open preview only", "_site/examples/showcase/hello-screen.html should keep a preview-only link.");
 
 for (const readmePath of ["README.md", "README.ja.md"]) {
   const readme = readFileSync(join(root, readmePath), "utf8");
@@ -92,6 +112,29 @@ function readSiteFile(filePath) {
 function expectContains(content, needle, message) {
   if (!content.includes(needle)) {
     failures.push(message);
+  }
+}
+
+function expectLocalLinks(filePath) {
+  const html = readSiteFile(filePath);
+  for (const match of html.matchAll(/\b(?:href|src)="([^"]+)"/gu)) {
+    const href = match[1];
+    if (!href || href.startsWith("#") || /^[a-z][a-z0-9+.-]*:/iu.test(href)) {
+      continue;
+    }
+
+    const [pathPart] = href.split(/[?#]/u, 1);
+    if (!pathPart) {
+      continue;
+    }
+
+    const targetPath = normalize(join(dirname(filePath), pathPart.endsWith("/") ? `${pathPart}index.html` : pathPart));
+    if (targetPath.startsWith("..")) {
+      failures.push(`${filePath} links outside _site: ${href}`);
+      continue;
+    }
+
+    expectFile(targetPath, `${filePath} links to missing local artifact: ${href}`);
   }
 }
 
