@@ -53,7 +53,7 @@ title: Display Content
   const rows = buildDisplayContentSpecRows(result.elements);
   const rowKeys = rows.map((row) => `${row.element.id}:${row.location}:${row.value}:${row.source ?? ""}`);
   const userColumnRows = rows.filter((row) => row.element.id === "E-Users" && row.location === "column");
-  const roleOptionsRow = rows.find((row) => row.element.id === "E-RoleSelect" && row.location === "options");
+  const roleOptionRows = rows.filter((row) => row.element.id === "E-RoleSelect" && row.location === "option label");
   const statusItemsRow = rows.find((row) => row.element.id === "E-StatusList" && row.location === "items");
 
   assert(rowKeys.includes("E-Users:table rows:see wireframe:data"));
@@ -74,10 +74,18 @@ title: Display Content
   assert(!rowKeys.some((key) => key.startsWith("E-Users:column source:")));
   assert(rowKeys.includes("E-StatusList:items:Open, Closed:fixed"));
   assert.deepEqual(statusItemsRow?.contentSections, [{ title: "Items", rows: ["Open", "Closed"] }]);
-  assert.deepEqual(roleOptionsRow?.contentSections, [
-    { title: "Options", rows: ["Viewer (${copy.roles.viewer})", "Administrator (${copy.roles.administrator})"] }
+  assert.deepEqual(roleOptionRows.map((row) => [row.value, row.source, row.format, row.contentSections]), [
+    ["Viewer", "fixed", undefined, [
+      { title: "Label", rows: ["Viewer"] },
+      { title: "Source", rows: ["${copy.roles.viewer}"] }
+    ]],
+    ["Administrator", "fixed", undefined, [
+      { title: "Label", rows: ["Administrator"] },
+      { title: "Source", rows: ["${copy.roles.administrator}"] }
+    ]]
   ]);
-  assert(!rowKeys.some((key) => key.startsWith("E-RoleSelect:option label:")));
+  assert(rowKeys.includes("E-RoleSelect:option label:Viewer:fixed"));
+  assert(rowKeys.includes("E-RoleSelect:option label:Administrator:fixed"));
   assert(!rowKeys.some((key) => key.startsWith("E-RoleSelect:option source:")));
   assert(rowKeys.includes("E-StatusBadge:text:Active:fixed"));
   assert(!rowKeys.some((key) => key.startsWith("E-FixedInput:sample:")));
@@ -139,7 +147,7 @@ title: Property Metadata
   const publishedLabel = rows.find((row) => row.element.id === "E-PublishedAt" && row.location === "label");
   const avatarSrc = rows.find((row) => row.element.id === "E-AvatarPreview" && row.location === "src");
   const noticeHref = rows.find((row) => row.element.id === "E-NoticeLink" && row.location === "href");
-  const roleOptions = rows.find((row) => row.element.id === "E-RoleSelect" && row.location === "options");
+  const roleOptions = rows.filter((row) => row.element.id === "E-RoleSelect" && row.location === "option label");
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
   assert.equal(publishedValue?.source, "data");
@@ -159,8 +167,14 @@ title: Property Metadata
     { title: "Value", rows: ["/notices/123"] },
     { title: "Source", rows: ["notice detail route"] }
   ]);
-  assert.deepEqual(roleOptions?.contentSections, [
-    { title: "Options", rows: ["Viewer / i18n / title case", "Administrator / i18n / copy.roles.admin"] }
+  assert.deepEqual(roleOptions.map((row) => [row.value, row.source, row.format, row.contentSections]), [
+    ["Viewer", "i18n", "title case", [
+      { title: "Label", rows: ["Viewer"] }
+    ]],
+    ["Administrator", "i18n", undefined, [
+      { title: "Label", rows: ["Administrator"] },
+      { title: "Source", rows: ["copy.roles.admin"] }
+    ]]
   ]);
   assert(messages.includes("Element E-Broken display value property value has unknown kind unknown. Use fixed, i18n, data, route, element, asset, external, or computed."));
   assert(messages.includes("Element E-Broken display value property value has empty source metadata."));

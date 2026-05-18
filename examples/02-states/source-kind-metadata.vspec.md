@@ -180,9 +180,8 @@ displayed value; the property value itself is the baseline preview sample.
 
 ## Preview Scenarios
 
-### loaded-admin
+### loaded
 
-- state: loaded
 - samples:
   - E-DisplayName: Taylor Stone
   - E-EmailInput: taylor@example.com

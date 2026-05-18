@@ -267,7 +267,8 @@ test("exports source-kind metadata example in standalone HTML", () => {
     const html = readFileSync(join(outDir, "source-kind-metadata.html"), "utf8");
     const loadedSection = stateViewSection(html, "loaded");
     assert.match(loadedSection, /Member source kinds/);
-    assert.match(loadedSection, /morgan@example\.com/);
+    assert.match(loadedSection, /Taylor Stone/);
+    assert.match(loadedSection, /taylor@example\.com/);
     assert.match(loadedSection, /<h6 class="state-screen-detail-heading">Display Content Spec<\/h6>/);
     assert.match(loadedSection, /<th>Marker\/ID<\/th><th>Location<\/th><th>Content<\/th><th>Format<\/th><th>Source<\/th><th>Condition<\/th><th>Enabled When<\/th>/);
     for (const kind of ["fixed", "i18n", "data", "route", "element", "asset", "external", "computed"]) {
@@ -277,8 +278,10 @@ test("exports source-kind metadata example in standalone HTML", () => {
     assert.match(loadedSection, /external status page URL/);
     assert.match(loadedSection, /currency USD/);
     assert.match(loadedSection, /date yyyy\/MM\/dd/);
-    assert.match(loadedSection, /Member \/ i18n/);
-    assert.match(stateViewSection(html, "loaded / loaded-admin"), /Taylor Stone/);
+    assert.match(loadedSection, /option label[\s\S]*Member[\s\S]*mm-source-chip-i18n/);
+    assert.match(loadedSection, /option label[\s\S]*Administrator[\s\S]*mm-source-chip-i18n/);
+    assert.doesNotMatch(html, /data-state-view-title="loaded \/ loaded-admin"/);
+    assert.doesNotMatch(html, /data-state-view-title="loaded \/ loaded"/);
     assert.match(html, /Scenario Samples/);
   } finally {
     rmSync(dir, { recursive: true, force: true });

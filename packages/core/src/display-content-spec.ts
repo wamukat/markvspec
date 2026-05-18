@@ -132,29 +132,25 @@ function pushTableColumnRows(
 function pushSelectOptionsRow(
   rows: DisplayContentSpecRow[],
   element: ParsedElement,
-  source: MarkVSpecSourceType
+  _source: MarkVSpecSourceType
 ): void {
   if (element.selectOptions.length === 0) {
     return;
   }
-  const optionRows = element.selectOptions.map((option) => {
-    if (!option.metadata) {
-      return option.source ? `${option.label} (${option.source})` : option.label;
-    }
-    const source = option.metadata.source ?? option.source;
-    const kind = option.metadata?.kind;
-    const format = option.metadata?.format;
-    return [option.label, kind, source, format].filter(Boolean).join(" / ");
-  });
-  rows.push({
-    element,
-    location: "options",
-    value: optionRows.join(", "),
-    contentSections: [
-      { title: "Options", rows: optionRows }
-    ],
-    source
-  });
+  for (const option of element.selectOptions) {
+    const optionSource = option.metadata?.source ?? option.source;
+    rows.push({
+      element,
+      location: "option label",
+      value: option.label,
+      contentSections: [
+        { title: "Label", rows: [option.label] },
+        ...(optionSource ? [{ title: "Source", rows: [optionSource] }] : [])
+      ],
+      source: option.metadata?.kind ?? "fixed",
+      format: option.metadata?.format
+    });
+  }
 }
 
 function pushListItemsRow(

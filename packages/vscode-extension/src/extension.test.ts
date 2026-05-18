@@ -6038,7 +6038,8 @@ title: Display Metadata
   assert.match(displayContent, new RegExp(`<td rowspan="2">${detailElementRef("E-AvatarPreview", "E-AvatarPreview")}</td><td>src</td><td>${specSectionPattern("Value", ["/assets/avatar\\.png"])}${specSectionPattern("Source", ["asset catalog: member-avatar"])}</td><td>-</td><td>${sourceTypeChipPattern("asset")}</td>`));
   assert.match(displayContent, new RegExp(`<tr><td>alt</td><td>Current member avatar</td><td>-</td><td>${sourceTypeChipPattern("i18n")}</td>`));
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-NoticeLink", "E-NoticeLink")}</td><td>href</td><td>${specSectionPattern("Value", ["/notices/123"])}${specSectionPattern("Source", ["notice detail route"])}</td><td>-</td><td>${sourceTypeChipPattern("route")}</td>`));
-  assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-RoleSelect", "E-RoleSelect")}</td><td>options</td><td>${specSectionPattern("Options", ["Viewer / i18n / title case", "Administrator / i18n / copy.roles.admin"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
+  assert.match(displayContent, new RegExp(`<td rowspan="2">${detailElementRef("E-RoleSelect", "E-RoleSelect")}</td><td>option label</td><td>${specSectionPattern("Label", ["Viewer"])}</td><td>title case</td><td>${sourceTypeChipPattern("i18n")}</td>`));
+  assert.match(displayContent, new RegExp(`<tr><td>option label</td><td>${specSectionPattern("Label", ["Administrator"])}${specSectionPattern("Source", ["copy.roles.admin"])}</td><td>-</td><td>${sourceTypeChipPattern("i18n")}</td>`));
 });
 
 test("renders the source-kind metadata example with property-level source chips", () => {
@@ -6056,7 +6057,9 @@ test("renders the source-kind metadata example with property-level source chips"
   assert.match(displayContent, /external status page URL/);
   assert.match(displayContent, /currency USD/);
   assert.match(displayContent, /date yyyy\/MM\/dd/);
-  assert.match(displayContent, /Member \/ i18n/);
+  assert.match(displayContent, new RegExp(`<td rowspan="3">${detailElementRef("10", "E-RoleSelect")}</td><td>label</td><td>Role</td><td>-</td><td>${sourceTypeChipPattern("i18n")}</td>`));
+  assert.match(displayContent, new RegExp(`<tr><td>option label</td><td>${specSectionPattern("Label", ["Member"])}</td><td>-</td><td>${sourceTypeChipPattern("i18n")}</td>`));
+  assert.match(displayContent, new RegExp(`<tr><td>option label</td><td>${specSectionPattern("Label", ["Administrator"])}</td><td>-</td><td>${sourceTypeChipPattern("i18n")}</td>`));
   assert.doesNotMatch(loadedSection, /<h6 class="state-screen-detail-heading">Other<\/h6>/);
 });
 
@@ -7581,8 +7584,8 @@ title: Element Groups
   const displayContent = html.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
   assert.match(displayContent, /<th>Marker\/ID<\/th><th>Location<\/th><th>Content<\/th><th>Format<\/th><th>Source<\/th><th>Condition<\/th><th>Enabled When<\/th>/);
   assert.doesNotMatch(displayContent, /<th>Display Location<\/th>|<th>Display Content<\/th>|<th>Display Condition<\/th>/);
-  assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-ロール選択", "E-ロール選択")}</td><td>options</td><td>${specSectionPattern("Options", [`Viewer \\(${sourceCodePattern("${copy.roles.viewer}")}\\)`, `Administrator \\(${sourceCodePattern("${copy.roles.administrator}")}\\)`])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));
-  assert.doesNotMatch(displayContent, /option label|option source/);
+  assert.match(displayContent, new RegExp(`<td rowspan="2">${detailElementRef("E-ロール選択", "E-ロール選択")}</td><td>option label</td><td>${specSectionPattern("Label", ["Viewer"])}${specSectionPattern("Source", [sourceCodePattern("${copy.roles.viewer}")])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));
+  assert.match(displayContent, new RegExp(`<tr><td>option label</td><td>${specSectionPattern("Label", ["Administrator"])}${specSectionPattern("Source", [sourceCodePattern("${copy.roles.administrator}")])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-エラーバナー", "E-エラーバナー")}</td><td>text</td><td>Invalid login</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-状態バッジ", "E-状態バッジ")}</td><td>text</td><td>${semanticChip("Active", "success")}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));
   assert.match(displayContent, new RegExp(`<td rowspan="2">${detailElementRef("E-Title", "E-Title")}</td><td>label</td><td>Login</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));
