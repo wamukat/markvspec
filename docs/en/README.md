@@ -16,7 +16,9 @@ The directory is split into user-facing `user/` documents and maintainer-facing 
 
 | Goal | Read |
 | --- | --- |
-| Write your first screen spec | [DSL reference](user/dsl.md), then [Example gallery](user/example-gallery.md) |
+| Understand how source becomes preview and generated specs | [HTML Authoring Guide](user/document-structure.html) |
+| Try real `.vspec.md` files | [Example gallery](user/example-gallery.md) |
+| Look up exact syntax | [Reference documents](#reference-documents) |
 | Share HTML/PDF output | [PDF export approach](user/pdf-export.md) |
 
 ## Document Types
@@ -32,18 +34,22 @@ The directory is split into user-facing `user/` documents and maintainer-facing 
 
 ### Write Design Documents
 
-- [DSL reference](user/dsl.md): file structure, Front Matter, layouts, elements, actions, and validation rules.
-- [Structured section reference](user/structured-section-reference.md): section-by-section ownership of Lead, Entity Block, Structured Body, and Notes.
+- [HTML Authoring Guide](user/document-structure.html): visual entry point for how Markdown source maps to preview and generated document structure.
 - [UI coverage](user/ui-coverage.md): supported UI elements and screen patterns.
 
 ### Browse Examples
 
-- [Example gallery](user/example-gallery.md): entry point for screens, templates, and partials under `examples/`.
+- [Example gallery](user/example-gallery.md): entry point for opening and previewing screens, templates, and partials under `examples/`.
+
+### Reference Documents
+
+- [DSL reference](user/dsl.md): exact file structure, Front Matter, layouts, elements, actions, and validation rules.
+- [Structured section reference](user/structured-section-reference.md): section-by-section ownership of Lead, Entity Block, Structured Body, and Notes.
 - [Server-rendered partials](user/server-partials.md): partial documents, partial requests, and response modeling.
+- [PDF export approach](user/pdf-export.md): HTML/PDF output constraints and fallback behavior.
 
 ### Preview and Export
 
-- [PDF export approach](user/pdf-export.md): HTML/PDF output constraints and fallback behavior.
 - [Known limitations](user/limitations.md): current limitations that can affect first-time use or release evaluation.
 - [Renderer message dictionary](user/renderer-message-dictionary.md): overriding preview/export fixed UI text.
 
@@ -66,6 +72,7 @@ The directory is split into user-facing `user/` documents and maintainer-facing 
 
 ## When Unsure
 
-- To start authoring, read [DSL reference](user/dsl.md) and [Example gallery](user/example-gallery.md).
+- To start authoring, read [HTML Authoring Guide](user/document-structure.html), then open files from [Example gallery](user/example-gallery.md).
+- Use [DSL reference](user/dsl.md) when you need exact syntax details.
 - For export or printing issues, read [PDF export approach](user/pdf-export.md).
 - If every document feels implementation-oriented, return to the repository root [README.md](../../README.md).

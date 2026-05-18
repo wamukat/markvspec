@@ -18,7 +18,9 @@ MarkVSpec では、Markdown で画面仕様を書き、VS Code で状態別プ�
 
 | やりたいこと | 読む順番 |
 | --- | --- |
-| 初めて画面仕様を書く | [DSL リファレンス](user/dsl.md) を読み、その後 [サンプルギャラリー](user/example-gallery.md) を見る |
+| source が preview / 生成設計書になる流れを理解する | [HTML Authoring Guide](user/document-structure.html) |
+| 実 `.vspec.md` を開いて試す | [サンプルギャラリー](user/example-gallery.md) |
+| 正確な記法を引く | [Reference documents](#reference-documents) |
 | HTML/PDF で共有する | [PDF 出力と共有](user/pdf-export.md) を読む |
 
 ## 文書種別
@@ -34,18 +36,22 @@ MarkVSpec では、Markdown で画面仕様を書き、VS Code で状態別プ�
 
 ### 設計書を書く
 
-- [DSL リファレンス](user/dsl.md): ファイル構造、Front Matter、Layout、Elements、Actions などの基本記法。
-- [構造化セクションリファレンス](user/structured-section-reference.md): section ごとの Lead、Entity Block、Structured Body、Notes の扱い。
+- [HTML Authoring Guide](user/document-structure.html): Markdown source が preview と生成設計書にどう対応するかを見る視覚的な入口。
 - [UI 部品・画面パターン対応範囲](user/ui-coverage.md): 対応している UI 部品と画面パターン。
 
 ### サンプルを見る
 
-- [サンプルギャラリー](user/example-gallery.md): `examples/` の画面、template、partial を目的別に探す入口。
+- [サンプルギャラリー](user/example-gallery.md): `examples/` の画面、template、partial を開いて preview する入口。
+
+### Reference Documents
+
+- [DSL リファレンス](user/dsl.md): ファイル構造、Front Matter、Layout、Elements、Actions などの正確な記法。
+- [構造化セクションリファレンス](user/structured-section-reference.md): section ごとの Lead、Entity Block、Structured Body、Notes の扱い。
 - [サーバレンダリング部分更新](user/server-partials.md): partial、partial request、response modeling の考え方。
+- [PDF 出力と共有](user/pdf-export.md): HTML/PDF export の手順、制約、fallback。
 
 ### 出力とプレビューを見る
 
-- [PDF 出力と共有](user/pdf-export.md): HTML/PDF export の手順、制約、fallback。
 - [既知の制限](user/limitations.md): 初回利用やリリース判定に影響する現在の制限事項。
 - [レンダラーメッセージ辞書](user/renderer-message-dictionary.md): preview/export の表示文言を差し替える方法。
 
@@ -65,6 +71,7 @@ MarkVSpec では、Markdown で画面仕様を書き、VS Code で状態別プ�
 
 ## 迷ったとき
 
-- 設計書を書き始めるなら、[DSL リファレンス](user/dsl.md) と [サンプルギャラリー](user/example-gallery.md)。
+- 設計書を書き始めるなら、[HTML Authoring Guide](user/document-structure.html) を見てから [サンプルギャラリー](user/example-gallery.md) の実ファイルを開く。
+- 正確な記法を確認したいときは [DSL リファレンス](user/dsl.md)。
 - export や印刷で詰まったら、[PDF 出力と共有](user/pdf-export.md)。
 - どの文書も内部実装向けに見える場合は、まずリポジトリルートの [README.ja.md](../../README.ja.md) に戻ってください。

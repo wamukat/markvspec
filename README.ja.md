@@ -219,10 +219,18 @@ route: /login
 | 目的 | 最初に読む場所 |
 | --- | --- |
 | 最短で1画面をプレビューする | [Marketplace から入れる](#1-marketplace-から入れる)、[`login.vspec.md` を作る](#2-loginvspecmd-を作る)、[プレビューを開く](#3-プレビューを開く) |
+| source / preview / 生成設計書の関係を理解する | [HTML Authoring Guide](docs/ja/user/document-structure.html) |
+| Guide の後に実ファイルを試す | [サンプルギャラリー](docs/ja/user/example-gallery.md) |
+| 書きながら記法を引く | [Reference documents](#reference-documents) |
 | VS Code 拡張を入れる | [Marketplace から入れる](#1-marketplace-から入れる) |
 | CLI で検証や出力を試す | [CLI](#cli) |
-| 記法を覚える | [ID と marker](#id-と-marker)、[DSL リファレンス](docs/ja/user/dsl.md) |
 | サンプルから探す | [サンプル](#サンプル) |
+
+初めて読む場合のおすすめ順です。
+
+1. [HTML Authoring Guide](docs/ja/user/document-structure.html): MarkVSpec source が preview と生成設計書にどうつながるかを HTML の視覚的説明で見る。
+2. [サンプルギャラリー](docs/ja/user/example-gallery.md): 実際の `.vspec.md` を開いて preview する。
+3. [Reference documents](#reference-documents): DSL、構造化セクション、partial、export の詳細を必要なときに引く。
 
 ## よく使う作業
 
@@ -290,6 +298,18 @@ marker です。参照には marker ではなく ID を使います。
 
 詳しくは [日本語 サンプルギャラリー](docs/ja/user/example-gallery.md) を参照してください。
 
+## Reference Documents
+
+HTML Authoring Guide や実ファイルを見た後、具体的に書くときに参照します。
+
+| 知りたいこと | Reference |
+| --- | --- |
+| 正確な DSL 記法 | [DSL リファレンス](docs/ja/user/dsl.md) |
+| section の責務と prose の扱い | [構造化セクションリファレンス](docs/ja/user/structured-section-reference.md) |
+| server-rendered partial の modeling | [サーバレンダリング部分更新](docs/ja/user/server-partials.md) |
+| HTML/PDF export の制約 | [PDF 出力と共有](docs/ja/user/pdf-export.md) |
+| 現在の制限事項 | [既知の制限](docs/ja/user/limitations.md) |
+
 ## 困ったとき
 
 | 症状 | 確認すること |
@@ -307,8 +327,9 @@ marker です。参照には marker ではなく ID を使います。
 | 目的 | ドキュメント |
 | --- | --- |
 | 日本語ドキュメント全体から探す | [日本語ドキュメント索引](docs/ja/README.md) |
-| 記法全体を確認する | [DSL リファレンス](docs/ja/user/dsl.md) |
+| HTML authoring の導線から始める | [HTML Authoring Guide](docs/ja/user/document-structure.html) |
 | 実例から探す | [サンプルギャラリー](docs/ja/user/example-gallery.md) |
+| 記法全体を確認する | [DSL リファレンス](docs/ja/user/dsl.md) |
 | PDF 出力の制約を見る | [PDF 出力と共有](docs/ja/user/pdf-export.md) |
 | 現在の制限事項を確認する | [既知の制限](docs/ja/user/limitations.md) |
 | リリース内容を見る | [Changelog（英語）](CHANGELOG.md) |
