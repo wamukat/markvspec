@@ -33,7 +33,7 @@ export function buildDisplayContentSpecRows(elements: ParsedElement[], context: 
     const displaySample = sourceType === "data" ? properties["sample"] : undefined;
     if (element.type === "Table") {
       pushTableRowsReferenceRow(rows, element, sourceType, context);
-    pushDisplayPropertyRow(rows, element, "rows", properties["rows"], sourceType, undefined, context);
+      pushDisplayPropertyRow(rows, element, "rows", properties["rows"], sourceType, undefined, context);
       pushTableColumnRows(rows, element, sourceType);
     }
     pushDisplayPropertyRow(rows, element, "label", properties["label"], sourceType, undefined, context);

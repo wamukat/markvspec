@@ -611,7 +611,7 @@ function renderElement(
   const sourceValue = sourceTypeForElement(element) === "element" ? elementValueFromElementSource(element, context, new Set()) : undefined;
   const formattedSourceValue = sourceValue === undefined ? "" : formatModelValue(sourceValue, stringProperty(element, "format"));
   const sampleOverride = context.sampleOverrides[element.id];
-  const sourceDataSample = sourceTypeForElement(element) === "data" ? stringProperty(element, "sample") : "";
+  const sourceDataSample = sourceTypeForElement(element) === "data" ? routeResolvedStringProperty(element, "sample", context) : "";
   const sample = sampleOverride?.value ?? (formattedSourceValue || sourceDataSample);
   const value = routeResolvedStringProperty(element, "value", context);
   const label = routeResolvedStringProperty(element, "label", context);
@@ -645,20 +645,20 @@ function renderElement(
 
   if (element.type === "Input") {
     const type = stringProperty(element, "type") || "text";
-    const placeholder = stringProperty(element, "placeholder");
+    const placeholder = routeResolvedStringProperty(element, "placeholder", context);
     const inputValue = stringProperty(element, "initial value") || sample || inputLiteralValue(value);
     return renderAnnotatedElement(markers, element.type, `<input class="${classes}" data-mm-id="${escapeHtml(element.id)}" type="${escapeHtml(type)}" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(inputValue)}"${disabledAttribute}>`, elementWidthWrapperStyle(element));
   }
 
   if (element.type === "Textarea") {
-    const placeholder = stringProperty(element, "placeholder");
+    const placeholder = routeResolvedStringProperty(element, "placeholder", context);
     const inputValue = stringProperty(element, "initial value") || sample || inputLiteralValue(value);
     const rows = normalizePositiveInteger(stringProperty(element, "rows"), 3);
     return renderAnnotatedElement(markers, element.type, `<textarea class="${classes}" data-mm-id="${escapeHtml(element.id)}" rows="${rows}" placeholder="${escapeHtml(placeholder)}"${disabledAttribute}>${escapeHtml(inputValue)}</textarea>`, elementWidthWrapperStyle(element));
   }
 
   if (element.type === "DatePicker" || element.type === "DateInput" || element.type === "TimeInput" || element.type === "NumberInput") {
-    const placeholder = stringProperty(element, "placeholder");
+    const placeholder = routeResolvedStringProperty(element, "placeholder", context);
     const inputValue = stringProperty(element, "initial value") || sample || inputLiteralValue(value);
     const min = stringProperty(element, "min");
     const max = stringProperty(element, "max");
@@ -674,7 +674,7 @@ function renderElement(
     const accept = stringProperty(element, "accept");
     const acceptAttribute = accept ? ` accept="${escapeHtml(accept)}"` : "";
     const multipleAttribute = element.properties["multiple"] === true ? " multiple" : "";
-    const helperText = stringProperty(element, "hint") || sample;
+    const helperText = routeResolvedStringProperty(element, "hint", context) || sample;
     const helper = helperText ? `<span class="mm-file-upload-helper">${escapeHtml(helperText)}</span>` : "";
     return renderAnnotatedElement(markers, element.type, `<label class="${classes}" data-mm-id="${escapeHtml(element.id)}"${ariaDisabled}><input type="file"${acceptAttribute}${multipleAttribute}${disabledAttribute}>${escapeHtml(displayLabel || "Select file")}${helper}</label>`, elementWidthWrapperStyle(element));
   }
@@ -790,7 +790,7 @@ function renderElement(
   }
 
   if (element.type === "Link") {
-    const href = stringProperty(element, "href") || "#";
+    const href = routeResolvedStringProperty(element, "href", context) || "#";
     return renderAnnotatedElement(markers, element.type, `<a class="${classes}" data-mm-id="${escapeHtml(element.id)}" href="${escapeHtml(href)}"${ariaDisabled}>${escapeHtml(displayLabel || href)}</a>`);
   }
 
@@ -799,15 +799,15 @@ function renderElement(
   }
 
   if (element.type === "Toast") {
-    const message = stringProperty(element, "message") || displayValue || element.id;
+    const message = routeResolvedStringProperty(element, "message", context) || displayValue || element.id;
     const placement = stringProperty(element, "placement") || "top-right";
     const duration = stringProperty(element, "duration") || "medium";
-    const actionLabel = stringProperty(element, "action") ? `<span class="mm-toast-action">${escapeHtml(stringProperty(element, "label") || "Action")}</span>` : "";
+    const actionLabel = stringProperty(element, "action") ? `<span class="mm-toast-action">${escapeHtml(label || "Action")}</span>` : "";
     return renderAnnotatedElement(markers, element.type, `<div class="${classes}" data-mm-id="${escapeHtml(element.id)}" role="status" data-mm-toast-placement="${escapeHtml(placement)}" data-mm-toast-duration="${escapeHtml(duration)}"><span class="mm-toast-message">${escapeHtml(message)}</span>${actionLabel}</div>`);
   }
 
   if (element.type === "Popover" || element.type === "Tooltip") {
-    const overlayText = textValue || stringProperty(element, "content") || displayValue || element.id;
+    const overlayText = textValue || routeResolvedStringProperty(element, "content", context) || displayValue || element.id;
     const anchor = stringProperty(element, "anchor");
     const placement = stringProperty(element, "placement") || "auto";
     const meta = [anchor ? `anchor: ${anchor}` : "", placement ? `placement: ${placement}` : ""].filter(Boolean).join(" / ");
@@ -852,21 +852,21 @@ function renderElement(
   }
 
   if (element.type === "Dialog") {
-    const title = stringProperty(element, "title") || displayLabel || element.id;
-    const content = stringProperty(element, "message") || stringProperty(element, "content") || displayValue;
+    const title = routeResolvedStringProperty(element, "title", context) || displayLabel || element.id;
+    const content = routeResolvedStringProperty(element, "message", context) || routeResolvedStringProperty(element, "content", context) || displayValue;
     const actions = renderDialogActionButtons(element, actionMarkersByElementId, activeState, stateNames, options, context);
     const actionHtml = actions ? `<div class="mm-dialog-actions">${actions}</div>` : "";
     return renderAnnotatedElement(markers, element.type, `<section class="${classes}" data-mm-id="${escapeHtml(element.id)}" role="dialog" aria-modal="true" aria-label="${escapeHtml(title)}"><div class="mm-dialog-title">${escapeHtml(title)}</div><div class="mm-dialog-body">${escapeHtml(content)}</div>${actionHtml}</section>`);
   }
 
   if (element.type === "Image") {
-    const src = stringProperty(element, "src");
-    const alt = stringProperty(element, "alt") || displayLabel || element.id;
+    const src = routeResolvedStringProperty(element, "src", context);
+    const alt = routeResolvedStringProperty(element, "alt", context) || displayLabel || element.id;
     return renderAnnotatedElement(markers, element.type, `<figure class="${classes}" data-mm-id="${escapeHtml(element.id)}"><div class="mm-image-placeholder">${escapeHtml(alt)}</div>${src ? `<figcaption>${escapeHtml(src)}</figcaption>` : ""}</figure>`);
   }
 
   if (element.type === "Icon") {
-    const name = stringProperty(element, "name") || displayValue || element.id;
+    const name = routeResolvedStringProperty(element, "name", context) || displayValue || element.id;
     return renderAnnotatedElement(markers, element.type, `<span class="${classes}" data-mm-id="${escapeHtml(element.id)}" aria-label="${escapeHtml(displayLabel || name)}"><span class="mm-icon-symbol">${escapeHtml(name)}</span></span>`);
   }
 

@@ -12995,6 +12995,9 @@ route: /members/:memberId
 #### Items
 
 - E-MemberId
+- E-RoutePlaceholder
+- E-RouteToast
+- E-RouteLink
 - E-SourceOnly
 
 ## Elements
@@ -13005,6 +13008,19 @@ route: /members/:memberId
 - value: \${route.memberId}
   - kind: route
   - source: \${route.memberId}
+
+### E-RoutePlaceholder Input
+
+- label: Member search
+- placeholder: \${route.memberId}
+
+### E-RouteToast Toast
+
+- message: \${route.memberId}
+
+### E-RouteLink Link
+
+- href: \${route.memberId}
 
 ### E-SourceOnly Text
 
@@ -13055,10 +13071,13 @@ route: /members/:memberId
     sampleOverrides: Object.fromEntries(direct.scenarioSamples.map((sample) => [sample.elementId, sample]))
   });
   assert.match(loadedHtml, /M-200/);
+  assert.match(loadedHtml, /placeholder="M-200"/);
+  assert.match(loadedHtml, /<span class="mm-toast-message">M-200<\/span>/);
+  assert.match(loadedHtml, /href="M-200"/);
   assert.match(loadedHtml, /Baseline source-only value/);
   assert.doesNotMatch(loadedHtml, /M-300|Direct ID/);
-  assert.match(directHtml, /Direct ID/);
-  assert.doesNotMatch(directHtml, /M-300/);
+  assert.match(directHtml, /<span class="mm-element mm-element-text" data-mm-id="E-MemberId">Direct ID<\/span>/);
+  assert.match(directHtml, /placeholder="M-300"/);
 
   const rows = stateScreenElementGroups(result.elements, result, "loaded", loaded).displayContentRows;
   const memberValueRow = rows.find((row) => row.element.id === "E-MemberId" && row.location === "value");
