@@ -279,8 +279,8 @@ test("exports source-kind metadata example in standalone HTML", () => {
     assert.match(loadedSection, /external status page URL/);
     assert.match(loadedSection, /currency USD/);
     assert.match(loadedSection, /date yyyy\/MM\/dd/);
-    assert.match(loadedSection, /option label[\s\S]*Member[\s\S]*mm-source-chip-i18n/);
-    assert.match(loadedSection, /option label[\s\S]*Administrator[\s\S]*mm-source-chip-i18n/);
+    assert.match(loadedSection, /options[\s\S]*<strong>Options<\/strong>[\s\S]*Member \(i18n\)[\s\S]*Administrator \(i18n\)[\s\S]*mm-source-chip-i18n/);
+    assert.doesNotMatch(loadedSection, /option label/);
     assert.doesNotMatch(html, /data-state-view-title="loaded \/ loaded-admin"/);
     assert.doesNotMatch(html, /data-state-view-title="loaded \/ loaded"/);
     assert.match(html, /Scenario Samples/);

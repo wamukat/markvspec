@@ -6167,6 +6167,9 @@ title: Display Metadata
   - Administrator
     - kind: i18n
     - source: copy.roles.admin
+  - System role
+    - kind: data
+    - source: ${"${data.role}"}
 `);
   const html = renderDesignDocumentHtml(result, "");
   const displayContent = html.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
@@ -6176,8 +6179,8 @@ title: Display Metadata
   assert.match(displayContent, new RegExp(`<td rowspan="2">${detailElementRef("E-AvatarPreview", "E-AvatarPreview")}</td><td>src</td><td>${specSectionPattern("Value", ["/assets/avatar\\.png"])}${specSectionPattern("Source", ["asset catalog: member-avatar"])}</td><td>-</td><td>${sourceTypeChipPattern("asset")}</td>`));
   assert.match(displayContent, new RegExp(`<tr><td>alt</td><td>Current member avatar</td><td>-</td><td>${sourceTypeChipPattern("i18n")}</td>`));
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-NoticeLink", "E-NoticeLink")}</td><td>href</td><td>${specSectionPattern("Value", ["/notices/123"])}${specSectionPattern("Source", ["notice detail route"])}</td><td>-</td><td>${sourceTypeChipPattern("route")}</td>`));
-  assert.match(displayContent, new RegExp(`<td rowspan="2">${detailElementRef("E-RoleSelect", "E-RoleSelect")}</td><td>option label</td><td>${specSectionPattern("Label", ["Viewer"])}</td><td>title case</td><td>${sourceTypeChipPattern("i18n")}</td>`));
-  assert.match(displayContent, new RegExp(`<tr><td>option label</td><td>${specSectionPattern("Label", ["Administrator"])}${specSectionPattern("Source", ["copy.roles.admin"])}</td><td>-</td><td>${sourceTypeChipPattern("i18n")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-RoleSelect", "E-RoleSelect")}</td><td>options</td><td>${specSectionPattern("Options", ["Viewer \\(i18n; format: title case\\)", "Administrator \\(i18n; copy\\.roles\\.admin\\)", `System role \\(data; ${sourceCodePattern("${data.role}")}\\)`])}</td><td>mixed</td><td>${plainCodePattern("mixed")}</td>`));
+  assert.doesNotMatch(displayContent, /option label/);
 });
 
 test("renders the source-kind metadata example with property-level source chips", () => {
@@ -6196,11 +6199,25 @@ test("renders the source-kind metadata example with property-level source chips"
   assert.match(displayContent, /currency USD/);
   assert.match(displayContent, /date yyyy\/MM\/dd/);
   assert.match(displayContent, new RegExp(`<td rowspan="4">${detailElementRef("9", "E-LineItems")}</td><td>table rows</td><td>Sample rows: E-LineItems</td><td>-</td><td>${sourceTypeChipPattern("data")}</td>`));
-  assert.match(displayContent, new RegExp(`<td rowspan="3">${detailElementRef("10", "E-RoleSelect")}</td><td>label</td><td>Role</td><td>-</td><td>${sourceTypeChipPattern("i18n")}</td>`));
-  assert.match(displayContent, new RegExp(`<tr><td>option label</td><td>${specSectionPattern("Label", ["Member"])}</td><td>-</td><td>${sourceTypeChipPattern("i18n")}</td>`));
-  assert.match(displayContent, new RegExp(`<tr><td>option label</td><td>${specSectionPattern("Label", ["Administrator"])}</td><td>-</td><td>${sourceTypeChipPattern("i18n")}</td>`));
+  assert.match(displayContent, new RegExp(`<td rowspan="2">${detailElementRef("10", "E-RoleSelect")}</td><td>label</td><td>Role</td><td>-</td><td>${sourceTypeChipPattern("i18n")}</td>`));
+  assert.match(displayContent, new RegExp(`<tr><td>options</td><td>${specSectionPattern("Options", ["Member \\(i18n\\)", "Administrator \\(i18n\\)"])}</td><td>-</td><td>${sourceTypeChipPattern("i18n")}</td>`));
+  assert.doesNotMatch(displayContent, /option label/);
   assert.doesNotMatch(displayContent, /<td>table rows<\/td><td>see wireframe<\/td>/);
   assert.doesNotMatch(loadedSection, /<h6 class="state-screen-detail-heading">Other<\/h6>/);
+});
+
+test("aggregates rich profile selection options in display content spec", () => {
+  const source = readFileSync(resolve("../../examples/04-real-world-screens/profile-edit-rich.vspec.md"), "utf8");
+  const result = parseMarkVSpec(source);
+  assert.deepEqual(result.diagnostics, []);
+  const html = renderDesignDocumentHtml(result, "");
+  const idleSection = stateSection(html, "idle");
+  const displayContent = idleSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.match(displayContent, new RegExp(`<tr><td>options</td><td>${specSectionPattern("Options", ["Accessibility", "Analytics", "Automation", "Customer support"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
+  assert.match(displayContent, new RegExp(`<tr><td>options</td><td>${specSectionPattern("Options", ["Email", "In-app", "SMS"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
+  assert.match(displayContent, new RegExp(`<tr><td>options</td><td>${specSectionPattern("Options", ["Private", "Team", "Public"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
+  assert.doesNotMatch(displayContent, /option label/);
 });
 
 test("splits input form values and source metadata into separate columns", () => {
@@ -7787,8 +7804,8 @@ title: Element Groups
   assert.match(displayContent, /<th>Marker\/ID<\/th><th>Location<\/th><th>Content<\/th><th>Format<\/th><th>Source<\/th><th>Condition<\/th>/);
   assert.doesNotMatch(displayContent, /<th>Enabled When<\/th>/);
   assert.doesNotMatch(displayContent, /<th>Display Location<\/th>|<th>Display Content<\/th>|<th>Display Condition<\/th>/);
-  assert.match(displayContent, new RegExp(`<td rowspan="2">${detailElementRef("E-ロール選択", "E-ロール選択")}</td><td>option label</td><td>${specSectionPattern("Label", ["Viewer"])}${specSectionPattern("Source", [sourceCodePattern("${copy.roles.viewer}")])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));
-  assert.match(displayContent, new RegExp(`<tr><td>option label</td><td>${specSectionPattern("Label", ["Administrator"])}${specSectionPattern("Source", [sourceCodePattern("${copy.roles.administrator}")])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-ロール選択", "E-ロール選択")}</td><td>options</td><td>${specSectionPattern("Options", [`Viewer \\(${sourceCodePattern("${copy.roles.viewer}")}\\)`, `Administrator \\(${sourceCodePattern("${copy.roles.administrator}")}\\)`])}</td><td>-</td><td>${plainCodePattern("mixed")}</td><td>${defaultAlwaysPattern()}</td>`));
+  assert.doesNotMatch(displayContent, /option label/);
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-エラーバナー", "E-エラーバナー")}</td><td>text</td><td>Invalid login</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-状態バッジ", "E-状態バッジ")}</td><td>text</td><td>${semanticChip("Active", "success")}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));
   assert.match(displayContent, new RegExp(`<td rowspan="2">${detailElementRef("E-Title", "E-Title")}</td><td>label</td><td>Login</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td><td>${defaultAlwaysPattern()}</td>`));

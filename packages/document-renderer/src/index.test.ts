@@ -684,6 +684,9 @@ title: Static Display Metadata
   - Administrator
     - kind: i18n
     - source: copy.roles.admin
+  - System role
+    - kind: data
+    - source: ${"${data.role}"}
 `);
   const html = renderStaticDesignDocumentHtml(result);
   const loadedSection = stateViewSection(html, "loaded");
@@ -700,8 +703,9 @@ title: Static Display Metadata
   assert.match(displayContent, /asset catalog: member-avatar/);
   assert.match(displayContent, /external status URL/);
   assert.match(displayContent, /currency USD/);
-  assert.match(displayContent, /option label[\s\S]*Member[\s\S]*mm-source-chip-i18n/);
-  assert.match(displayContent, /option label[\s\S]*Administrator[\s\S]*copy\.roles\.admin[\s\S]*mm-source-chip-i18n/);
+  assert.match(displayContent, /options[\s\S]*<strong>Options<\/strong>[\s\S]*Member \(i18n\)[\s\S]*Administrator \(i18n; copy\.roles\.admin\)[\s\S]*System role \(data; <span class="mm-inline-token">\$\{data\.role\}<\/span>\)/);
+  assert.match(displayContent, /options[\s\S]*<td>-<\/td><td><code>mixed<\/code><\/td>/);
+  assert.doesNotMatch(displayContent, /option label/);
 });
 
 test("renders static input form value and source as separate columns", () => {

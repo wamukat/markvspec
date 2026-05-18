@@ -175,20 +175,58 @@ function pushSelectOptionsRow(
   if (element.selectOptions.length === 0) {
     return;
   }
-  for (const option of element.selectOptions) {
-    const optionSource = option.metadata?.source ?? option.source;
-    rows.push({
-      element,
-      location: "option label",
-      value: option.label,
-      contentSections: [
-        { title: "Label", rows: [option.label] },
-        ...(optionSource ? [{ title: "Source", rows: [optionSource] }] : [])
-      ],
-      source: option.metadata?.kind ?? "fixed",
-      format: option.metadata?.format
-    });
+  const optionFormats = element.selectOptions.map((option) => option.metadata?.format ?? "");
+  const source = aggregateSelectOptionSource(element.selectOptions);
+  const format = aggregateDisplayMetadata(optionFormats, { includeEmpty: true });
+  rows.push({
+    element,
+    location: "options",
+    value: element.selectOptions.map((option) => option.label).join(", "),
+    contentSections: [
+      {
+        title: "Options",
+        rows: element.selectOptions.map(formatSelectOptionContentRow)
+      }
+    ],
+    source,
+    ...(format ? { format } : {})
+  });
+}
+
+function aggregateDisplayMetadata(values: string[], options: { includeEmpty?: boolean } = {}): string | undefined {
+  if (values.every((value) => !value)) {
+    return undefined;
   }
+  const unique = Array.from(new Set(options.includeEmpty ? values : values.filter(Boolean)));
+  if (unique.length === 0) {
+    return undefined;
+  }
+  return unique.length === 1 ? unique[0] : "mixed";
+}
+
+function aggregateSelectOptionSource(options: ParsedElement["selectOptions"]): string | undefined {
+  const signatures = options.map((option) => {
+    const kind = option.metadata?.kind ?? "fixed";
+    const source = option.metadata?.source ?? option.source ?? "";
+    return source ? `${kind}:${source}` : kind;
+  });
+  const unique = Array.from(new Set(signatures));
+  if (unique.length === 0) {
+    return undefined;
+  }
+  if (unique.length > 1) {
+    return "mixed";
+  }
+  return options[0]?.metadata?.kind ?? "fixed";
+}
+
+function formatSelectOptionContentRow(option: ParsedElement["selectOptions"][number]): string {
+  const details = [
+    option.metadata?.kind,
+    option.metadata?.source ?? option.source,
+    option.metadata?.format ? `format: ${option.metadata.format}` : ""
+  ].filter(Boolean);
+  return details.length > 0 ? `${option.label} (${details.join("; ")})` : option.label;
 }
 
 function pushListItemsRow(
