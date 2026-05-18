@@ -239,15 +239,17 @@ test("exports preview scenarios and scenario samples in standalone HTML", () => 
     assert.match(baselineLoaded, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
     assert.match(baselineLoaded, /E-SubscriptionTable/);
     assert.match(baselineLoaded, /<code>rows: 2 rows<\/code>/);
-    assert.match(baselineLoaded, /<section class="scenario-sample-rows-block">/);
+    assert.match(baselineLoaded, /<section class="scenario-sample-rows-block" id="sample-rows-desktop-loaded-E-SubscriptionTable">/);
     assert.match(baselineLoaded, /<table class="spec-table scenario-sample-rows-table">/);
     assert.match(html, /\.scenario-sample-rows-table \{ font-size: 7pt; min-width: 0; table-layout: fixed; width: 100%; \}/);
     assert.match(baselineLoaded, /<th>Product<\/th><th>Seats<\/th><th>Renewal<\/th>/);
     assert.match(baselineLoaded, /<td>Workspace<\/td><td>8<\/td><td>2026-06-30<\/td>/);
     assert.match(baselineLoaded, /<td>Analytics<\/td><td>4<\/td><td>2026-07-15<\/td>/);
-    assert(baselineLoaded.indexOf('<section class="scenario-sample-rows-block">') > baselineLoaded.indexOf("</table></div>"));
+    assert(baselineLoaded.indexOf('<section class="scenario-sample-rows-block"') > baselineLoaded.indexOf("</table></div>"));
     assert.match(emptyScenario, /0 seats/);
     assert.match(emptyScenario, /<code>rows: \[\]<\/code>/);
+    assert.match(emptyScenario, /<section class="scenario-sample-rows-block" id="sample-rows-desktop-loaded.20.2F.20loaded-empty-account-E-SubscriptionTable">/);
+    assert.match(emptyScenario, /<td class="mm-table-empty" colspan="3">\(no data\)<\/td>/);
     assert.match(renewalScenario, /98 seats/);
     assert.doesNotMatch(emptyScenario, /Renewal attention required\./);
   } finally {

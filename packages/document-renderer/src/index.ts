@@ -1,5 +1,5 @@
-import { buildViewportStateScreenReadModels, effectiveHistoryFields, isMarkVSpecSourceType, latestHistoryBasicInfo, messagesForLocale, renderMarkVSpecHtml, resolveMarkVSpecEntityReference, scenarioRouteValues, sourceTypeForElement, stateScreenElementGroups, stateScreenElementsForModel, stateScreenLayoutsForModel, stateScreenUnplacedLayoutIdsForModel, tableColumnSampleKeys } from "@markvspec/core";
-import type { DisplayContentSpecRow, MarkVSpecParseResult, RendererMessages, StateScreenReadModel } from "@markvspec/core";
+import { buildViewportStateScreenReadModels, effectiveHistoryFields, isMarkVSpecSourceType, latestHistoryBasicInfo, messagesForLocale, renderMarkVSpecHtml, resolveMarkVSpecEntityReference, sampleRowsAnchorId, scenarioRouteValues, sourceTypeForElement, stateScreenElementGroups, stateScreenElementsForModel, stateScreenLayoutsForModel, stateScreenUnplacedLayoutIdsForModel, tableColumnSampleKeys } from "@markvspec/core";
+import type { DisplayContentSpecRow, DisplayContentSpecSampleRowsRef, MarkVSpecParseResult, RendererMessages, StateScreenReadModel } from "@markvspec/core";
 
 export type MarkVSpecDocumentViewport = "mobile" | "tablet" | "desktop" | string;
 
@@ -597,7 +597,7 @@ function renderScenarioSamplesBox(
     return [renderScenarioSampleElementRef(result, sample.elementId), renderScenarioSampleSummary(sample, messages)];
   });
   const rowBlocks = model.scenarioSamples
-    .map((sample) => renderScenarioSampleRowsBlock(result, sample, elementById.get(sample.elementId), messages))
+    .map((sample) => renderScenarioSampleRowsBlock(result, model, sample, elementById.get(sample.elementId), messages))
     .filter(Boolean)
     .join("");
   const samplesTable = rows.length > 0
@@ -643,18 +643,19 @@ function renderScenarioSampleSummary(
 
 function renderScenarioSampleRowsBlock(
   result: MarkVSpecParseResult,
+  model: StateScreenReadModel,
   sample: StateScreenReadModel["scenarioSamples"][number],
   element: MarkVSpecParseResult["elements"][number] | undefined,
   messages: RendererMessages
 ): string {
-  if (!sample.rows || sample.rows.rows.length === 0) {
+  if (!sample.rows) {
     return "";
   }
   const rowsTable = renderScenarioSampleRowsTable(sample.rows.rows, element);
   if (!rowsTable) {
     return "";
   }
-  return `<section class="scenario-sample-rows-block">
+  return `<section class="scenario-sample-rows-block" id="${escapeHtml(sampleRowsAnchorId(model, sample.elementId))}">
     <h6 class="scenario-sample-rows-heading">${escapeHtml(messages.sample)} ${escapeHtml(messages.rows)}: ${renderScenarioSampleElementRef(result, sample.elementId)}</h6>
     ${rowsTable}
   </section>`;
@@ -669,9 +670,11 @@ function renderScenarioSampleRowsTable(
     return "";
   }
   const header = columns.map((column) => `<th>${escapeHtml(column.label)}</th>`).join("");
-  const body = rows
-    .map((row) => `<tr>${columns.map((column) => `<td>${escapeHtml(scenarioSampleCellValue(row.fields, column.keys))}</td>`).join("")}</tr>`)
-    .join("");
+  const body = rows.length > 0
+    ? rows
+      .map((row) => `<tr>${columns.map((column) => `<td>${escapeHtml(scenarioSampleCellValue(row.fields, column.keys))}</td>`).join("")}</tr>`)
+      .join("")
+    : `<tr><td class="mm-table-empty" colspan="${Math.max(columns.length, 1)}">(no data)</td></tr>`;
   return `<div class="scenario-sample-rows-wrap"><table class="spec-table scenario-sample-rows-table"><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
@@ -691,6 +694,9 @@ function scenarioSampleColumns(
       seen.add(key);
     }
     columns.push({ keys, label: column.label });
+  }
+  if (columns.length === 0 && rows.length === 0 && element?.type === "List") {
+    columns.push({ keys: ["value", "item", "label"], label: "Value" });
   }
   for (const row of rows) {
     for (const key of Object.keys(row.fields)) {
@@ -871,7 +877,7 @@ function renderDisplayContentSpecTable(
         renderScenarioSampleElementRef(result, row.element.id)
       ]),
       escapeHtml(row.location),
-      renderDisplayContentValue(row.element, row.value, row.contentSections),
+      renderDisplayContentValue(row.element, row.value, row.contentSections, row.sampleRowsRef),
       row.format ? escapeHtml(row.format) : "",
       renderSourceSummary(row.source),
       renderElementConditionSummary(row.element, messages)
@@ -882,8 +888,12 @@ function renderDisplayContentSpecTable(
 function renderDisplayContentValue(
   element: MarkVSpecParseResult["elements"][number],
   value: string,
-  sections?: DisplayContentSpecRow["contentSections"]
+  sections?: DisplayContentSpecRow["contentSections"],
+  sampleRowsRef?: DisplayContentSpecSampleRowsRef
 ): string {
+  if (sampleRowsRef) {
+    return `${escapeHtml(value)}: ${renderSampleRowsReference(element, sampleRowsRef)}`;
+  }
   if (sections && sections.length > 0) {
     return renderSpecSections(sections.map((section) => ({
       title: section.title,
@@ -897,6 +907,15 @@ function renderDisplayContentValue(
   return element.type === "Badge" && (value === dataSample || value === rawStringProperty(element.properties["text"]))
     ? renderSemanticChip(value, rawStringProperty(element.properties["tone"]))
     : escapeHtml(value);
+}
+
+function renderSampleRowsReference(
+  element: MarkVSpecParseResult["elements"][number],
+  sampleRowsRef: DisplayContentSpecSampleRowsRef
+): string {
+  const marker = rawStringProperty(element.properties["marker"]) || sampleRowsRef.elementId;
+  const href = sampleRowsRef.anchorId ? ` href="#${escapeHtml(sampleRowsRef.anchorId)}"` : "";
+  return `<a class="mm-ref-chip mm-ref-chip-element"${href} data-mm-ref-id="${escapeHtml(sampleRowsRef.elementId)}"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">${escapeHtml(marker)}</code> <span class="mm-detail-ref-id">${escapeHtml(sampleRowsRef.elementId)}</span></a>`;
 }
 
 function renderSourceSummary(value: string | true | undefined): string {

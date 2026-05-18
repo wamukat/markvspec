@@ -536,18 +536,19 @@ title: Scenario Samples
   assert.match(loadedScenario, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
   assert.match(loadedScenario, /E-SubscriptionTable/);
   assert.match(loadedScenario, /<code>rows: 2 rows<\/code>/);
-  assert.match(loadedScenario, /<section class="scenario-sample-rows-block">/);
+  assert.match(loadedScenario, /<section class="scenario-sample-rows-block" id="sample-rows-desktop-loaded.20.2F.20loaded-renewal-risk-E-SubscriptionTable">/);
   assert.match(loadedScenario, /<h6 class="scenario-sample-rows-heading">Sample Rows: [\s\S]*E-SubscriptionTable/);
   assert.match(loadedScenario, /<table class="spec-table scenario-sample-rows-table">/);
   assert.match(loadedScenario, /<th>Product<\/th><th>Seats<\/th><th>renewal<\/th>/);
   assert.match(loadedScenario, /<td>Workspace<\/td><td>8<\/td><td>2026-06-30<\/td>/);
   assert.match(loadedScenario, /<td>Analytics<\/td><td>4<\/td><td>2026-07-15<\/td>/);
-  assert.match(loadedScenario, /<td>table rows<\/td><td>Sample rows: E-SubscriptionTable<\/td><td>-<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">data<\/span><\/td>/);
+  assert.match(loadedScenario, /<td>table rows<\/td><td>Sample rows: <a class="mm-ref-chip mm-ref-chip-element" href="#sample-rows-desktop-loaded.20.2F.20loaded-renewal-risk-E-SubscriptionTable"[^>]*data-mm-ref-id="E-SubscriptionTable"[\s\S]*?<\/a><\/td><td>-<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">data<\/span><\/td>/);
   assert.doesNotMatch(loadedScenario, /<td>table rows<\/td><td>see wireframe<\/td>/);
-  assert(loadedScenario.indexOf('<section class="scenario-sample-rows-block">') > loadedScenario.indexOf("</table></div>"));
+  assert(loadedScenario.indexOf('<section class="scenario-sample-rows-block"') > loadedScenario.indexOf("</table></div>"));
   assert.match(emptyScenario, /0 seats/);
   assert.match(emptyScenario, /<code>rows: \[\]<\/code>/);
-  assert.doesNotMatch(emptyScenario, /scenario-sample-rows-block/);
+  assert.match(emptyScenario, /<section class="scenario-sample-rows-block" id="sample-rows-desktop-loaded.20.2F.20loaded-empty-account-E-SubscriptionTable">/);
+  assert.match(emptyScenario, /<td class="mm-table-empty" colspan="2">\(no data\)<\/td>/);
 });
 
 test("renders preview scenario route samples in static state views", () => {
@@ -965,7 +966,7 @@ ${rowFields}
 
   assert.match(scenarioSection, /<code>rows: 1 rows<\/code>/);
   assert.match(scenarioSection, /<h6 class="scenario-sample-rows-heading">Sample Rows: [\s\S]*data-mm-ref-id="E-WideTable"[\s\S]*<code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">6<\/code>/);
-  assert(scenarioSection.indexOf('<section class="scenario-sample-rows-block">') > scenarioSection.indexOf("</table></div>"));
+  assert(scenarioSection.indexOf('<section class="scenario-sample-rows-block"') > scenarioSection.indexOf("</table></div>"));
   for (let index = 1; index <= 10; index += 1) {
     assert.match(scenarioSection, new RegExp(`<th>Column ${index}</th>`));
     assert.match(scenarioSection, new RegExp(`<td>value-${index}</td>`));

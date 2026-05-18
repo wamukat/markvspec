@@ -8,6 +8,7 @@ type ScenarioSample = MarkVSpecParseResult["previewScenarios"][number]["samples"
 export type DisplayContentSpecContext = {
   scenarioSamples?: readonly ScenarioSample[];
   routeValues?: Record<string, string>;
+  sampleRowsAnchorId?: (elementId: string) => string;
 };
 
 export type DisplayContentSpecRow = {
@@ -15,8 +16,14 @@ export type DisplayContentSpecRow = {
   location: string;
   value: string;
   contentSections?: DisplayContentSpecSection[];
+  sampleRowsRef?: DisplayContentSpecSampleRowsRef;
   source?: string | true;
   format?: string;
+};
+
+export type DisplayContentSpecSampleRowsRef = {
+  elementId: string;
+  anchorId?: string;
 };
 
 export type DisplayContentSpecSection = {
@@ -160,13 +167,13 @@ function pushTableRowsReferenceRow(
 ): void {
   const scenarioRows = sampleRowsForElement(context, element.id);
   if (scenarioRows) {
-    rows.push(sampleRowsReferenceRow(element, "table rows", "data"));
+    rows.push(sampleRowsReferenceRow(element, "table rows", "data", context));
     return;
   }
 
   const metadata = element.propertyMetadata["rows"] ?? element.propertyMetadata["sample rows"];
   if (metadata?.kind) {
-    rows.push(sampleRowsReferenceRow(element, "table rows", metadata.kind));
+    rows.push(sampleRowsReferenceRow(element, "table rows", metadata.kind, context));
     return;
   }
 
@@ -181,7 +188,7 @@ function pushTableRowsReferenceRow(
   }
 
   if (source === "data" && element.sampleRows && (element.sampleRows.rows.length > 0 || element.sampleRows.explicitEmpty)) {
-    rows.push(sampleRowsReferenceRow(element, "table rows", "data"));
+    rows.push(sampleRowsReferenceRow(element, "table rows", "data", context));
   }
 }
 
@@ -259,12 +266,12 @@ function pushListItemsRow(
 
   const scenarioRows = sampleRowsForElement(context, element.id);
   if (scenarioRows) {
-    rows.push(sampleRowsReferenceRow(element, "list items", "data"));
+    rows.push(sampleRowsReferenceRow(element, "list items", "data", context));
     return;
   }
 
   if (source === "data" && element.sampleRows && (element.sampleRows.rows.length > 0 || element.sampleRows.explicitEmpty)) {
-    rows.push(sampleRowsReferenceRow(element, "list items", "data"));
+    rows.push(sampleRowsReferenceRow(element, "list items", "data", context));
     return;
   }
 
@@ -429,12 +436,17 @@ function pushAnchoredOverlayRow(
 function sampleRowsReferenceRow(
   element: ParsedElement,
   location: string,
-  source: string
+  source: string,
+  context: DisplayContentSpecContext
 ): DisplayContentSpecRow {
   return {
     element,
     location,
-    value: `Sample rows: ${element.id}`,
+    value: "Sample rows",
+    sampleRowsRef: {
+      elementId: element.id,
+      ...(context.sampleRowsAnchorId ? { anchorId: context.sampleRowsAnchorId(element.id) } : {})
+    },
     source
   };
 }

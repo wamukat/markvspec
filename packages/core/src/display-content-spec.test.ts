@@ -56,7 +56,10 @@ title: Display Content
   const roleOptionsRow = rows.find((row) => row.element.id === "E-RoleSelect" && row.location === "options");
   const statusItemsRow = rows.find((row) => row.element.id === "E-StatusList" && row.location === "items");
 
-  assert(rowKeys.includes("E-Users:table rows:Sample rows: E-Users:data"));
+  assert(rowKeys.includes("E-Users:table rows:Sample rows:data"));
+  assert.deepEqual(rows.find((row) => row.element.id === "E-Users" && row.location === "table rows")?.sampleRowsRef, {
+    elementId: "E-Users"
+  });
   assert.deepEqual(userColumnRows.map((row) => row.contentSections), [
     [
       { title: "Label", rows: ["Name"] },
@@ -140,14 +143,23 @@ title: Sample Rows
         - label: Scenario Item
 `);
 
-  const rows = buildDisplayContentSpecRows(result.elements, { scenarioSamples: result.previewScenarios[0]?.samples });
+  const rows = buildDisplayContentSpecRows(result.elements, {
+    scenarioSamples: result.previewScenarios[0]?.samples,
+    sampleRowsAnchorId: (elementId) => `sample-rows-loaded-${elementId}`
+  });
   const tableRows = rows.find((row) => row.element.id === "E-Users" && row.location === "table rows");
   const listRows = rows.find((row) => row.element.id === "E-UserList" && row.location === "list items");
   const fixedRows = rows.find((row) => row.element.id === "E-FixedRows" && row.location === "table rows");
   const unknownRows = rows.find((row) => row.element.id === "E-UnknownRows" && row.location === "table rows");
 
-  assert.deepEqual([tableRows?.value, tableRows?.source], ["Sample rows: E-Users", "data"]);
-  assert.deepEqual([listRows?.value, listRows?.source], ["Sample rows: E-UserList", "data"]);
+  assert.deepEqual([tableRows?.value, tableRows?.source, tableRows?.sampleRowsRef], ["Sample rows", "data", {
+    elementId: "E-Users",
+    anchorId: "sample-rows-loaded-E-Users"
+  }]);
+  assert.deepEqual([listRows?.value, listRows?.source, listRows?.sampleRowsRef], ["Sample rows", "data", {
+    elementId: "E-UserList",
+    anchorId: "sample-rows-loaded-E-UserList"
+  }]);
   assert.deepEqual([fixedRows?.value, fixedRows?.source], ["fixed rows: 1", "fixed"]);
   assert.equal(unknownRows, undefined);
 });

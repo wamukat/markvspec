@@ -122,6 +122,7 @@ export {
   stateScreenElementsForModel,
   stateScreenLayoutsForModel,
   stateScreenUnplacedLayoutIdsForModel,
+  sampleRowsAnchorId,
   scenarioRouteValues,
   systemEventActionsForState
 } from "./state-views-read-model.js";
@@ -142,7 +143,8 @@ export {
   resolveMarkVSpecEntityReference
 } from "./entity-reference.js";
 export type {
-  DisplayContentSpecRow
+  DisplayContentSpecRow,
+  DisplayContentSpecSampleRowsRef
 } from "./display-content-spec.js";
 export type {
   DisplayMessageReference,

@@ -807,7 +807,8 @@ export function stateScreenElementGroups(
   const formControls = elements.filter((element) => isFormControlElement(element.type));
   const displayContentRows = buildDisplayContentSpecRows(elements, {
     scenarioSamples: model?.scenarioSamples,
-    routeValues: scenarioRouteValues(model?.scenarioRoute)
+    routeValues: scenarioRouteValues(model?.scenarioRoute),
+    sampleRowsAnchorId: model ? (elementId) => sampleRowsAnchorId(model, elementId) : undefined
   });
   const categorizedIds = new Set([
     ...formControls.map((element) => element.id),
@@ -822,6 +823,17 @@ export function scenarioRouteValues(routeSamples: readonly ParsedPreviewScenario
     return undefined;
   }
   return Object.fromEntries(routeSamples.map((sample) => [sample.key, sample.value]));
+}
+
+export function sampleRowsAnchorId(model: Pick<StateScreenReadModel, "stateViewTitle" | "viewport">, elementId: string): string {
+  const viewport = model.viewport ?? "default";
+  return `sample-rows-${anchorToken(viewport)}-${anchorToken(model.stateViewTitle)}-${anchorToken(elementId)}`;
+}
+
+function anchorToken(value: string): string {
+  return encodeURIComponent(value)
+    .replace(/%/gu, ".")
+    .replace(/[^A-Za-z0-9_.-]/gu, "-");
 }
 
 function everyIdRepeated<T>(

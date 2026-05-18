@@ -27,6 +27,7 @@ import {
   renderDesignDocumentSections
 } from "@markvspec/document-renderer";
 import type {
+  DisplayContentSpecSampleRowsRef,
   MarkVSpecProjectLoadResult,
   MessageKey,
   RendererMessages
@@ -4138,7 +4139,10 @@ function renderDefaultAlways(result: ReturnType<typeof parseMarkVSpec>): string 
   return `<span class="spec-default-always">${text(label(result, "always"))}</span>`;
 }
 
-function renderDisplayContentValue(element: ParsedElement, value: string, sections?: Array<{ title: string; rows: string[] }>): string {
+function renderDisplayContentValue(element: ParsedElement, value: string, sections?: Array<{ title: string; rows: string[] }>, sampleRowsRef?: DisplayContentSpecSampleRowsRef): string {
+  if (sampleRowsRef) {
+    return `${text(value)}: ${renderSampleRowsRef(element, sampleRowsRef)}`;
+  }
   if (sections && sections.length > 0) {
     return renderSpecSections(sections.map((section) => ({
       title: section.title,
@@ -4152,6 +4156,16 @@ function renderDisplayContentValue(element: ParsedElement, value: string, sectio
   return element.type === "Badge" && (value === dataSample || value === rawStringProperty(element.properties["text"]))
     ? renderSemanticChip(value, rawStringProperty(element.properties["tone"]))
     : text(value);
+}
+
+function renderSampleRowsRef(element: ParsedElement, sampleRowsRef: DisplayContentSpecSampleRowsRef): string {
+  return renderEntityRefChip({
+    id: sampleRowsRef.elementId,
+    category: "element",
+    marker: rawStringProperty(element.properties["marker"]) || sampleRowsRef.elementId,
+    label: element.id,
+    href: sampleRowsRef.anchorId ? `#${sampleRowsRef.anchorId}` : undefined
+  });
 }
 
 function renderActionableElementsTable(

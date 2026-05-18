@@ -1,5 +1,6 @@
 import {
   preferredLayoutGroupForViewport,
+  sampleRowsAnchorId,
   stateScreenActionsForModel,
   stateScreenElementsForModel,
   systemEventActionsForState,
@@ -166,7 +167,7 @@ function renderScenarioSamplesBox(
     return `<tr><td>${renderScenarioSampleElementRef(context, sample.elementId, element)}</td><td>${renderScenarioSampleSummary(context, sample)}</td></tr>`;
   }).join("");
   const rowBlocks = model.scenarioSamples
-    .map((sample) => renderScenarioSampleRowsBlock(context, sample, elementById.get(sample.elementId)))
+    .map((sample) => renderScenarioSampleRowsBlock(context, model, sample, elementById.get(sample.elementId)))
     .filter(Boolean)
     .join("");
   const samplesTable = rows
@@ -228,18 +229,19 @@ function renderScenarioSampleSummary(
 
 function renderScenarioSampleRowsBlock(
   context: StateViewsRenderContext,
+  model: StateScreenReadModel,
   sample: StateScreenReadModel["scenarioSamples"][number],
   element: MarkVSpecParseResult["elements"][number] | undefined
 ): string {
   const { format } = context;
-  if (!sample.rows || sample.rows.rows.length === 0) {
+  if (!sample.rows) {
     return "";
   }
   const rowsTable = renderScenarioSampleRowsTable(context, sample.rows.rows, element);
   if (!rowsTable) {
     return "";
   }
-  return `<section class="scenario-sample-rows-block">
+  return `<section class="scenario-sample-rows-block" id="${format.escapeHtml(sampleRowsAnchorId(model, sample.elementId))}">
     <h6 class="scenario-sample-rows-heading">${format.label("sample")} ${format.label("rows")}: ${renderScenarioSampleElementRef(context, sample.elementId, element)}</h6>
     ${rowsTable}
   </section>`;
@@ -256,9 +258,11 @@ function renderScenarioSampleRowsTable(
     return "";
   }
   const header = columns.map((column) => `<th>${format.escapeHtml(column.label)}</th>`).join("");
-  const body = rows
-    .map((row) => `<tr>${columns.map((column) => `<td>${format.text(scenarioSampleCellValue(row.fields, column.keys))}</td>`).join("")}</tr>`)
-    .join("");
+  const body = rows.length > 0
+    ? rows
+      .map((row) => `<tr>${columns.map((column) => `<td>${format.text(scenarioSampleCellValue(row.fields, column.keys))}</td>`).join("")}</tr>`)
+      .join("")
+    : `<tr><td class="mm-table-empty" colspan="${Math.max(columns.length, 1)}">(no data)</td></tr>`;
   return `<div class="scenario-sample-rows-wrap"><table class="spec-table scenario-sample-rows-table"><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
@@ -278,6 +282,9 @@ function scenarioSampleColumns(
       seen.add(key);
     }
     columns.push({ keys, label: column.label });
+  }
+  if (columns.length === 0 && rows.length === 0 && element?.type === "List") {
+    columns.push({ keys: ["value", "item", "label"], label: "Value" });
   }
   for (const row of rows) {
     for (const key of Object.keys(row.fields)) {
