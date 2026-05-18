@@ -4330,16 +4330,8 @@ function renderStateFlowSpec(result: ReturnType<typeof parseMarkVSpec>): string 
 function renderActionTransitionsSpec(result: ReturnType<typeof parseMarkVSpec>): string {
   const sectionProse = sectionProseForKind(result, "States");
   const stateNames = orderedTransitionStateNames(result);
-  const entryEvent = lifecycleEntryEvent(result);
-  const matrixStateNames = entryEvent ? ["(*)", ...stateNames] : stateNames;
+  const matrixStateNames = stateNames;
   const cellEvents = new Map<string, string[]>();
-
-  if (entryEvent) {
-    cellEvents.set(
-      transitionMatrixKey("(*)", entryEvent.initialState),
-      [renderLifecycleEntryMatrixEvent(result, entryEvent)]
-    );
-  }
 
   for (const action of result.actions) {
     for (const transition of action.transitions) {
@@ -4431,21 +4423,11 @@ function renderTransitionMatrixEvent(
 ): string {
   const actionReference = referenceForDetailId(result, action.id);
   const notes = [
+    isDocumentLifecycleTrigger(action.triggeredBy) ? text(action.triggeredBy) : "",
     resultName ? text(resultName) : "",
     renderTransitionOriginChainText(result, action, resultName)
   ].filter(Boolean);
   return `${actionReference}${notes.map((note) => `<div class="mm-ref-chip-note">${note}</div>`).join("")}`;
-}
-
-function renderLifecycleEntryMatrixEvent(
-  result: ReturnType<typeof parseMarkVSpec>,
-  event: LifecycleEntryEvent
-): string {
-  const actionReferences = event.actionIds.map((actionId) => {
-    const action = result.actions.find((candidate) => candidate.id === actionId);
-    return action ? referenceForDetailId(result, action.id) : `<code>${text(actionId)}</code>`;
-  });
-  return `${text(event.event)}<div class="mm-ref-chip-note">${actionReferences.join(", ")}</div>`;
 }
 
 function renderScreenTransitionsSpec(result: ReturnType<typeof parseMarkVSpec>): string {
@@ -4532,14 +4514,9 @@ function renderMermaidStateDiagram(result: ReturnType<typeof parseMarkVSpec>): s
   const nodeNames = collectStateFlowNodes(result);
   const aliases = new Map(nodeNames.map((name, index) => [name, `S${index}`]));
   const lines = ["stateDiagram-v2", "  direction TB"];
-  const entryEvent = lifecycleEntryEvent(result);
 
   for (const name of nodeNames) {
     lines.push(`  state "${mermaidLabel(name)}" as ${aliases.get(name)}`);
-  }
-
-  if (entryEvent && aliases.has(entryEvent.initialState)) {
-    lines.push(`  [*] --> ${aliases.get(entryEvent.initialState)}: ${mermaidLabel(entryEvent.event)}`);
   }
 
   const edgeGroups = new Map<string, { from: string; to: string; labels: string[]; seenLabels: Set<string> }>();
@@ -4579,23 +4556,6 @@ function renderMermaidStateDiagram(result: ReturnType<typeof parseMarkVSpec>): s
   return lines.join("\n");
 }
 
-interface LifecycleEntryEvent {
-  event: string;
-  actionIds: string[];
-  initialState: string;
-}
-
-function lifecycleEntryEvent(result: ReturnType<typeof parseMarkVSpec>): LifecycleEntryEvent | undefined {
-  const initialState = result.states.find((state) => state.initial)?.name ?? result.states[0]?.name;
-  if (!initialState) {
-    return undefined;
-  }
-  const actionIds = [...new Set(result.events
-    .filter((candidate) => candidate.event === "page.load")
-    .map((event) => event.actionId))];
-  return actionIds.length > 0 ? { event: "page.load", actionIds, initialState } : undefined;
-}
-
 function collectStateFlowNodes(result: ReturnType<typeof parseMarkVSpec>): string[] {
   const names = new Set(result.states.map((state) => state.name));
   for (const action of result.actions) {
@@ -4616,7 +4576,8 @@ function actionTransitionLabel(
   target: string
 ): string {
   const actionLabel = [action.properties["marker"], action.name].filter(Boolean).join(" ");
-  const resultLabel = resultName ? `${actionLabel} / ${resultName}` : actionLabel;
+  const lifecycleLabel = isDocumentLifecycleTrigger(action.triggeredBy) ? `${action.triggeredBy} / ${actionLabel}` : actionLabel;
+  const resultLabel = resultName ? `${lifecycleLabel} / ${resultName}` : lifecycleLabel;
   return isTerminalTransitionTarget(target) ? `${resultLabel} / navigate` : resultLabel;
 }
 

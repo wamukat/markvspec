@@ -1261,8 +1261,25 @@ function parseEventsSection(section: SectionAst): Pick<SectionSemanticResult, "e
 
 function parseStateText(text: string, location: SourceLocation, diagnostics: MarkVSpecDiagnostic[]): MarkVSpecState {
   const stateText = text.trim();
-  const initial = stateText.endsWith("*");
-  const name = initial ? stateText.slice(0, -1).trim() : stateText;
+  const suffixMatch = /([*+]+)$/u.exec(stateText);
+  const suffix = suffixMatch?.[1] ?? "";
+  const initial = suffix.includes("*");
+  const preInitial = suffix.includes("+");
+  const name = suffix ? stateText.slice(0, -suffix.length).trim() : stateText;
+  if (suffix.includes("*") && suffix.includes("+")) {
+    diagnostics.push({
+      severity: "error",
+      message: `State ${stateText} cannot be marked both pre-initial and initial.`,
+      line: location.line
+    });
+  }
+  if ((suffix.match(/\*/gu)?.length ?? 0) > 1 || (suffix.match(/\+/gu)?.length ?? 0) > 1) {
+    diagnostics.push({
+      severity: "error",
+      message: `State ${stateText} has multiple state suffix markers.`,
+      line: location.line
+    });
+  }
   if (!initial && stateText.includes("*")) {
     diagnostics.push({
       severity: "error",
@@ -1270,9 +1287,17 @@ function parseStateText(text: string, location: SourceLocation, diagnostics: Mar
       line: location.line
     });
   }
+  if (!preInitial && stateText.includes("+")) {
+    diagnostics.push({
+      severity: "error",
+      message: `State ${stateText} uses + outside the end of the state name.`,
+      line: location.line
+    });
+  }
   return {
     name,
     initial,
+    ...(preInitial ? { preInitial } : {}),
     location,
     raw: text
   };

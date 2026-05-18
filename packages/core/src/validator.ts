@@ -214,6 +214,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   );
 
   const initialStates = result.states.filter((state) => state.initial);
+  const preInitialStates = result.states.filter((state) => state.preInitial);
   if (result.screen.defaultState && !stateNames.has(result.screen.defaultState)) {
     diagnostics.push({
       severity: "warning",
@@ -233,10 +234,11 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   validateMarkdownEntityReferences(result, diagnostics);
 
   if (result.states.length > 0 && initialStates.length === 0) {
+    const firstDisplayState = result.states.find((state) => !state.preInitial) ?? result.states[0];
     diagnostics.push({
       severity: "warning",
       message: "No initial state is marked; the first state will be treated as initial.",
-      line: result.states[0]?.location.line
+      line: firstDisplayState?.location.line
     });
   } else if (initialStates.length > 1) {
     diagnostics.push({
@@ -245,6 +247,14 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
       line: initialStates[1]?.location.line
     });
   }
+  if (preInitialStates.length > 1) {
+    diagnostics.push({
+      severity: "warning",
+      message: "Multiple states are marked pre-initial; only the first pre-initial state is used for page.load entry checks.",
+      line: preInitialStates[1]?.location.line
+    });
+  }
+  validatePageLoadPreInitialState(result, diagnostics);
 
   for (const group of result.layoutGroups) {
     validatePresentationPanelProperties(group, diagnostics);
@@ -2826,6 +2836,47 @@ function layoutPropertyValues(group: MarkVSpecLayoutGroup, key: string): string[
   }
   const value = group.properties[key];
   return typeof value === "string" ? [value] : [];
+}
+
+function validatePageLoadPreInitialState(result: MarkVSpecParseResult, diagnostics: MarkVSpecDiagnostic[]): void {
+  const pageLoadEvents = result.events.filter((event) => event.event === "page.load");
+  if (pageLoadEvents.length === 0) {
+    return;
+  }
+
+  const preInitialState = result.states.find((state) => state.preInitial);
+  if (!preInitialState) {
+    for (const event of pageLoadEvents) {
+      diagnostics.push({
+        severity: "warning",
+        message: "page.load event has no pre-initial state. Add a + state such as before-load+ to show lifecycle entry transitions.",
+        line: event.location.line
+      });
+    }
+    return;
+  }
+
+  const initialState = result.states.find((state) => state.initial) ?? result.states.find((state) => !state.preInitial);
+  for (const event of pageLoadEvents) {
+    const action = result.actions.find((candidate) => candidate.id === event.actionId);
+    if (!action) {
+      continue;
+    }
+    if (!action.fromStates.includes(preInitialState.name)) {
+      diagnostics.push({
+        severity: "warning",
+        message: `page.load action ${action.id} should include pre-initial state ${preInitialState.name} in From.`,
+        line: event.location.line
+      });
+    }
+    if (initialState && !action.transitions.some((transition) => transition.from === preInitialState.name && transition.to === initialState.name)) {
+      diagnostics.push({
+        severity: "warning",
+        message: `page.load action ${action.id} should transition from ${preInitialState.name} to initial state ${initialState.name}.`,
+        line: event.location.line
+      });
+    }
+  }
 }
 
 function validateViewContextActionEffects(

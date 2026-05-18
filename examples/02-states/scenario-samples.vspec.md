@@ -15,6 +15,8 @@ account data without creating extra states.
 
 ## States
 
+- before-load+
+  - Account data has not started loading yet.
 - initializing*
   - Account data is being initialized before scenario-specific data is available.
 - loaded
@@ -113,13 +115,15 @@ account data without creating extra states.
 ### A1:A-LoadAccount Load account
 
 - From
-  - initializing
+  - before-load
 - Process P1: Send request
   - request:
     - method: GET
     - path: /account/subscriptions
-  - result:
-    - account subscription response
+  - case: sent
+    - description: account subscription request sent
+    - Effects
+      - state: initializing
 
 ### A2:A-HandleAccountResponse Handle account response
 

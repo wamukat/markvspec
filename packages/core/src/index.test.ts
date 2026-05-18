@@ -688,6 +688,42 @@ Free-form section body.
   ]);
 });
 
+test("parses pre-initial States suffixes and validates conflicting suffix markers", () => {
+  const source = `---
+id: SCR-PRE-INITIAL-STATES
+type: screen
+title: Pre Initial States
+---
+
+# SCR-PRE-INITIAL-STATES Pre Initial States
+
+## States
+
+- before-load+
+- initializing*
+- invalid+*
+- lo+ading
+`;
+  const result = parseMarkVSpec(source);
+
+  assert.deepEqual(result.states.map((state) => [state.name, state.initial, state.preInitial]), [
+    ["before-load", false, true],
+    ["initializing", true, undefined],
+    ["invalid", true, true],
+    ["lo+ading", false, undefined]
+  ]);
+  assert.ok(result.diagnostics.some((diagnostic) =>
+    diagnostic.severity === "error" &&
+    diagnostic.message === "State invalid+* cannot be marked both pre-initial and initial." &&
+    diagnostic.line === lineNumber(source, "- invalid+*")
+  ));
+  assert.ok(result.diagnostics.some((diagnostic) =>
+    diagnostic.severity === "error" &&
+    diagnostic.message === "State lo+ading uses + outside the end of the state name." &&
+    diagnostic.line === lineNumber(source, "- lo+ading")
+  ));
+});
+
 test("limits State Views layout signatures to state-view-affecting properties in core", () => {
   assert.deepEqual([...STATE_VIEW_AFFECTING_LAYOUT_PROPERTY_KEYS], [
     "active when",
@@ -7402,6 +7438,7 @@ title: Events
 
 ## States
 
+- before-load+
 - initializing*
 - idle
 
@@ -7415,11 +7452,14 @@ title: Events
 ### A-Load Load
 
 - From
-  - initializing
+  - before-load
 - Process P1: Load
   - request:
     - method: GET
     - path: /items
+  - case: sent
+    - Effects
+      - state: initializing
   - case: success
     - Effects
       - state: idle
@@ -7659,10 +7699,121 @@ title: Events Diagnostics
   const diagnostics = result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]);
 
   assert.deepEqual(diagnostics, [
+    [
+      "warning",
+      "page.load event has no pre-initial state. Add a + state such as before-load+ to show lifecycle entry transitions.",
+      lineNumber(source, "- page.load: A-Missing")
+    ],
     ["error", "Event page.load references missing action A-Missing.", lineNumber(source, "- page.load: A-Missing")],
     ["error", "Event timer.elapsed is not supported. Use page.load or partial.render.", lineNumber(source, "- timer.elapsed: A-Load")],
     ["error", "Event E-SubmitButton.click is not supported. Use page.load or partial.render.", lineNumber(source, "- E-SubmitButton.click: A-Load")],
     ["error", "Event E-SubmitButton.click is a user operation. Connect user operations with Element action: instead of ## Events.", lineNumber(source, "- E-SubmitButton.click: A-Load")]
+  ]);
+});
+
+test("validates page.load pre-initial lifecycle entries", () => {
+  const source = `---
+id: SCR-PAGE-LOAD-PRE-INITIAL
+type: screen
+title: Page Load Pre Initial
+---
+
+# SCR-PAGE-LOAD-PRE-INITIAL Page Load Pre Initial
+
+## States
+
+- before-load+
+- initializing*
+- loaded
+
+## Events
+
+- page.load: A-Load
+- page.load: A-MissingFrom
+- page.load: A-MissingInitial
+
+## Actions
+
+### A-Load Load
+
+- From
+  - before-load
+- Process: Immediate
+  - Effects
+    - state: initializing
+
+### A-MissingFrom Missing From
+
+- From
+  - initializing
+- Process: Immediate
+  - Effects
+    - state: loaded
+
+### A-MissingInitial Missing Initial
+
+- From
+  - before-load
+- Process: Immediate
+  - Effects
+    - state: loaded
+`;
+  const result = parseMarkVSpec(source);
+
+  assert.deepEqual(result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]), [
+    [
+      "warning",
+      "page.load action A-MissingFrom should include pre-initial state before-load in From.",
+      lineNumber(source, "- page.load: A-MissingFrom")
+    ],
+    [
+      "warning",
+      "page.load action A-MissingFrom should transition from before-load to initial state initializing.",
+      lineNumber(source, "- page.load: A-MissingFrom")
+    ],
+    [
+      "warning",
+      "page.load action A-MissingInitial should transition from before-load to initial state initializing.",
+      lineNumber(source, "- page.load: A-MissingInitial")
+    ]
+  ]);
+});
+
+test("warns when page.load has no pre-initial state marker", () => {
+  const source = `---
+id: SCR-PAGE-LOAD-NO-PRE-INITIAL
+type: screen
+title: Page Load No Pre Initial
+---
+
+# SCR-PAGE-LOAD-NO-PRE-INITIAL Page Load No Pre Initial
+
+## States
+
+- initializing*
+
+## Events
+
+- page.load: A-Load
+
+## Actions
+
+### A-Load Load
+
+- From
+  - initializing
+- Process: Immediate
+  - Effects
+    - state: initializing
+`;
+  const result = parseMarkVSpec(source);
+
+  assert.deepEqual(result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]), [
+    [
+      "warning",
+      "page.load event has no pre-initial state. Add a + state such as before-load+ to show lifecycle entry transitions.",
+      lineNumber(source, "- page.load: A-Load")
+    ]
   ]);
 });
 

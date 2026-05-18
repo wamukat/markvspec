@@ -610,6 +610,7 @@ title: Static Transitions
 
 ## States
 
+- before-load+
 - initializing*
 - loaded
 - initialize-error
@@ -624,20 +625,23 @@ title: Static Transitions
 ### A1:A-LoadAccount Load account
 
 - From
-  - initializing
+  - before-load
 - Process P1: Send request
   - request:
     - method: GET
     - path: /account
-  - result:
-    - account response
+  - case: sent
+    - response: account request sent
+    - Effects
+      - state: initializing
 
 ### A2:A-PrimeTelemetry Prime telemetry
 
 - From
-  - initializing
+  - before-load
 - Process: Immediate
   - Effects
+    - state: initializing
     - display: E-TelemetryStatus = ready
 
 ### A3:A-HandleAccountResponse Handle account response
@@ -661,17 +665,23 @@ title: Static Transitions
   const telemetryAction = result.actions.find((action) => action.id === "A-PrimeTelemetry");
   const responseAction = result.actions.find((action) => action.id === "A-HandleAccountResponse");
 
-  assert.deepEqual(loadAction?.transitions, []);
-  assert.deepEqual(telemetryAction?.transitions, []);
+  assert.deepEqual(loadAction?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
+    ["before-load", "sent", "initializing"]
+  ]);
+  assert.deepEqual(telemetryAction?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
+    ["before-load", undefined, "initializing"]
+  ]);
   assert.deepEqual(responseAction?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
     ["initializing", "success", "loaded"],
     ["initializing", "failure", "initialize-error"]
   ]);
   assert.match(html, /<h2>State Flow<\/h2>/);
-  assert.match(html, /\[\*\] --&gt; S0: page\.load/);
+  assert.doesNotMatch(html, /\[\*\] --&gt;/);
   assert.match(html, /<h2>State Transitions<\/h2>/);
-  assert.match(html, /<td><code class="mm-doc-label mm-doc-label-state">\(\*\)<\/code><\/td><td><code class="mm-doc-label mm-doc-label-state">initializing<\/code><\/td><td>-<\/td><td>page\.load<div class="mm-ref-chip-note"><a class="mm-ref-chip mm-ref-chip-action" href="#state-views" data-mm-ref-id="A-LoadAccount"><code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1<\/code> Load account<\/a>, <a class="mm-ref-chip mm-ref-chip-action" href="#state-views" data-mm-ref-id="A-PrimeTelemetry"><code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A2<\/code> Prime telemetry<\/a><\/div><\/td>/);
-  assert.equal([...html.matchAll(/page\.load<div class="mm-ref-chip-note"/g)].length, 1);
+  assert.match(html, /<td><code class="mm-doc-label mm-doc-label-state">before-load<\/code><\/td><td><code class="mm-doc-label mm-doc-label-state">initializing<\/code><\/td><td><code class="mm-doc-label mm-doc-label-result">sent<\/code><\/td><td><a class="mm-ref-chip mm-ref-chip-action" href="#state-views" data-mm-ref-id="A-LoadAccount"><code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1<\/code> Load account<\/a><div class="mm-ref-chip-note">page\.load<\/div><\/td>/);
+  assert.match(html, /<td><code class="mm-doc-label mm-doc-label-state">before-load<\/code><\/td><td><code class="mm-doc-label mm-doc-label-state">initializing<\/code><\/td><td>-<\/td><td><a class="mm-ref-chip mm-ref-chip-action" href="#state-views" data-mm-ref-id="A-PrimeTelemetry"><code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A2<\/code> Prime telemetry<\/a><div class="mm-ref-chip-note">page\.load<\/div><\/td>/);
+  assert.doesNotMatch(html, /\(\*\)/);
+  assert.doesNotMatch(html, /id="state-view-before-load"/);
   assert.match(html, /page\.load -&gt; A-LoadAccount -&gt; A-LoadAccount\.P1\.response -&gt; A-HandleAccountResponse\.P1\.success/);
   assert.match(html, /page\.load -&gt; A-LoadAccount -&gt; A-LoadAccount\.P1\.response -&gt; A-HandleAccountResponse\.P1\.failure/);
   assert.doesNotMatch(html, /A-LoadAccount\.transitions/);

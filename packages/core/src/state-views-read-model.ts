@@ -1015,7 +1015,7 @@ function actionDefinitionSignature(result: MarkVSpecParseResult, id: string): st
 }
 
 function primaryDisplayState(result: MarkVSpecParseResult): MarkVSpecParseResult["states"][number] | undefined {
-  return result.states.find((state) => state.initial) ?? result.states[0];
+  return result.states.find((state) => state.initial) ?? result.states.find((state) => !state.preInitial);
 }
 
 function orderedDisplayStates(result: MarkVSpecParseResult): MarkVSpecParseResult["states"] {
@@ -1026,7 +1026,7 @@ function orderedDisplayStates(result: MarkVSpecParseResult): MarkVSpecParseResul
 
   return [
     firstState,
-    ...result.states.filter((state) => state.name !== firstState.name)
+    ...result.states.filter((state) => state.name !== firstState.name && !state.preInitial)
   ];
 }
 

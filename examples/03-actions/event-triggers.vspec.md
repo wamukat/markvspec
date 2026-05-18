@@ -15,6 +15,8 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
 
 ## States
 
+- before-load+
+  - Saved preferences have not started loading yet.
 - initializing*
   - The screen is requesting saved preferences.
 - idle
@@ -209,12 +211,16 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
 ### A1:A-LoadPreferences Load saved preferences
 
 - From
-  - initializing
+  - before-load
 - Process P1: Call server service
   - server:
     - PreferencesQueryService.findSaved()
   - result:
     - saved preferences load result
+  - case: sent
+    - description: saved preferences request sent
+    - Effects
+      - state: initializing
   - case: success
     - description: 200 saved preferences
     - Effects

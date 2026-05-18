@@ -67,6 +67,7 @@ export interface MarkVSpecProjectScreen {
 export interface MarkVSpecState {
   name: string;
   initial: boolean;
+  preInitial?: boolean;
   message?: string;
   location: SourceLocation;
   raw: string;

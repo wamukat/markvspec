@@ -14,6 +14,7 @@ step; it avoids user input so the ordering and final state decision are clear.
 
 ## States
 
+- before-load+
 - initializing*
 - idle
 - initialize-error
@@ -81,7 +82,10 @@ step; it avoids user input so the ordering and final state decision are clear.
 ### A1:A-InitialLoad Initial dashboard load
 
 - From
-  - initializing
+  - before-load
+- Process P0: Start initial loading
+  - Effects
+    - state: initializing
 - Process P1: Call server service
   - group: initial-load
   - server:
