@@ -4086,6 +4086,8 @@ States section notes for the matrix.
   assert.match(section, new RegExp(`<tr><th scope="row">${docLabel("idle", "state")}</th><td>-</td><td>${refActionChip("A1", "A-Submit", "Submit")}</td><td>-</td></tr>`));
   assert.match(section, new RegExp(`<tr><th scope="row">${docLabel("submitting", "state")}</th><td>-</td><td>-</td><td>${refActionChip("A2", "A-SubmitResponse", "Submit response")}<div class="mm-ref-chip-note">failure</div></td></tr>`));
   assert.match(section, /<h3 class="state-transition-context-heading">State Notes<\/h3>\s*<div class="entity-notes"><p class="note-paragraph">States section notes for the matrix\.<\/p><\/div>/);
+  assert.doesNotMatch(section, /\(\*\)/);
+  assert.doesNotMatch(stateFlowSection, /\[\*\] --&gt;/);
   assert.doesNotMatch(section, /E-SubmitButton\.click \/ /);
   assert.doesNotMatch(section, /SCR-DONE/);
   assert.doesNotMatch(html, /<h2>Action Transitions<\/h2>/);
@@ -4097,19 +4099,88 @@ test("renders lifecycle origin chains for response-triggered state transitions",
   const loadAction = result.actions.find((action) => action.id === "A-LoadAccount");
   const responseAction = result.actions.find((action) => action.id === "A-HandleAccountResponse");
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const stateFlow = html.match(/<section class="doc-section state-flow-section"[^>]*>[\s\S]*?(?=<section class="doc-section state-views-section")/)?.[0] ?? "";
   const stateTransitions = docSectionByHeading(html, "State Transitions", "Diagnostics");
   const actionDetails = docSectionByHeading(html, "Action Details", "Form Groups");
 
+  assert.match(stateFlow, /<h2><span class="section-number">\d+\.<\/span> State Flow<\/h2>/);
   assert.deepEqual(loadAction?.transitions, []);
   assert.deepEqual(responseAction?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
     ["initializing", "has-subscriptions", "loaded"],
     ["initializing", "empty", "loaded"],
     ["initializing", "failure", "initialize-error"]
   ]);
+  assert.match(stateFlow, /\[\*\] --&gt; S0: page\.load/);
+  assert.match(stateTransitions, new RegExp(`<th>${docLabel("(*)", "state")}</th><th>${docLabel("initializing", "state")}</th><th>${docLabel("loaded", "state")}</th><th>${docLabel("initialize-error", "state")}</th>`));
+  assert.match(stateTransitions, new RegExp(`<tr><th scope="row">${docLabel("(*)", "state")}</th><td>-</td><td>page\\.load<div class="mm-ref-chip-note">${refActionChip("A1", "A-LoadAccount", "Load account")}</div></td><td>-</td><td>-</td></tr>`));
   assert.match(stateTransitions, /page\.load -&gt; A-LoadAccount -&gt; A-LoadAccount\.P1\.response -&gt; A-HandleAccountResponse\.P1\.has-subscriptions/);
   assert.match(stateTransitions, /page\.load -&gt; A-LoadAccount -&gt; A-LoadAccount\.P1\.response -&gt; A-HandleAccountResponse\.P1\.empty/);
   assert.match(stateTransitions, /page\.load -&gt; A-LoadAccount -&gt; A-LoadAccount\.P1\.response -&gt; A-HandleAccountResponse\.P1\.failure/);
+  assert.doesNotMatch(stateTransitions, /initializing[\s\S]{0,120}loaded[\s\S]{0,120}page\.load<div/);
   assert.match(actionDetails, /Triggered by: page\.load -&gt; A-LoadAccount -&gt; A-LoadAccount\.P1\.response -&gt; A-HandleAccountResponse\.P1\.has-subscriptions/);
+});
+
+test("aggregates multiple page.load lifecycle entry actions", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-MULTI-PAGE-LOAD
+type: screen
+title: Multi Page Load
+---
+
+# SCR-MULTI-PAGE-LOAD Multi Page Load
+
+## States
+
+- initializing*
+- loaded
+
+## Events
+
+- page.load: A-LoadAccount
+- page.load: A-PrimeTelemetry
+
+## Actions
+
+### A1:A-LoadAccount Load account
+
+- From
+  - initializing
+- Process P1: Send request
+  - request:
+    - method: GET
+    - path: /account
+  - result:
+    - account response
+
+### A2:A-PrimeTelemetry Prime telemetry
+
+- From
+  - initializing
+- Process: Immediate
+  - Effects
+    - display: E-TelemetryStatus = ready
+
+### A3:A-HandleAccountResponse Handle account response
+
+- From
+  - initializing
+- Process P1: Apply response
+  - receive:
+    - response: A-LoadAccount.P1.response
+  - case: success
+    - response: 200
+    - Effects
+      - state: loaded
+`);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const stateFlow = html.match(/<section class="doc-section state-flow-section"[^>]*>[\s\S]*?(?=<section class="doc-section state-views-section")/)?.[0] ?? "";
+  const stateTransitions = docSectionByHeading(html, "State Transitions", "Diagnostics");
+
+  assert.deepEqual(result.actions.find((action) => action.id === "A-LoadAccount")?.transitions, []);
+  assert.deepEqual(result.actions.find((action) => action.id === "A-PrimeTelemetry")?.transitions, []);
+  assert.match(stateFlow, /\[\*\] --&gt; S0: page\.load/);
+  assert.match(stateTransitions, new RegExp(`<tr><th scope="row">${docLabel("(*)", "state")}</th><td>-</td><td>page\\.load<div class="mm-ref-chip-note">${refActionChip("A1", "A-LoadAccount", "Load account")}, ${refActionChip("A2", "A-PrimeTelemetry", "Prime telemetry")}</div></td><td>-</td></tr>`));
+  assert.equal([...stateTransitions.matchAll(/page\.load<div class="mm-ref-chip-note"/g)].length, 1);
 });
 
 test("renders screen transitions as a compact navigation index", () => {

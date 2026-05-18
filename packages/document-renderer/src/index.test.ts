@@ -566,6 +566,7 @@ title: Static Transitions
 ## Events
 
 - page.load: A-LoadAccount
+- page.load: A-PrimeTelemetry
 
 ## Actions
 
@@ -580,7 +581,15 @@ title: Static Transitions
   - result:
     - account response
 
-### A2:A-HandleAccountResponse Handle account response
+### A2:A-PrimeTelemetry Prime telemetry
+
+- From
+  - initializing
+- Process: Immediate
+  - Effects
+    - display: E-TelemetryStatus = ready
+
+### A3:A-HandleAccountResponse Handle account response
 
 - From
   - initializing
@@ -598,16 +607,23 @@ title: Static Transitions
 `);
   const html = renderStaticDesignDocumentHtml(result);
   const loadAction = result.actions.find((action) => action.id === "A-LoadAccount");
+  const telemetryAction = result.actions.find((action) => action.id === "A-PrimeTelemetry");
   const responseAction = result.actions.find((action) => action.id === "A-HandleAccountResponse");
 
   assert.deepEqual(loadAction?.transitions, []);
+  assert.deepEqual(telemetryAction?.transitions, []);
   assert.deepEqual(responseAction?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
     ["initializing", "success", "loaded"],
     ["initializing", "failure", "initialize-error"]
   ]);
+  assert.match(html, /<h2>State Flow<\/h2>/);
+  assert.match(html, /\[\*\] --&gt; S0: page\.load/);
   assert.match(html, /<h2>State Transitions<\/h2>/);
+  assert.match(html, /<td><code class="mm-doc-label mm-doc-label-state">\(\*\)<\/code><\/td><td><code class="mm-doc-label mm-doc-label-state">initializing<\/code><\/td><td>-<\/td><td>page\.load<div class="mm-ref-chip-note"><a class="mm-ref-chip mm-ref-chip-action" href="#state-views" data-mm-ref-id="A-LoadAccount"><code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1<\/code> Load account<\/a>, <a class="mm-ref-chip mm-ref-chip-action" href="#state-views" data-mm-ref-id="A-PrimeTelemetry"><code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A2<\/code> Prime telemetry<\/a><\/div><\/td>/);
+  assert.equal([...html.matchAll(/page\.load<div class="mm-ref-chip-note"/g)].length, 1);
   assert.match(html, /page\.load -&gt; A-LoadAccount -&gt; A-LoadAccount\.P1\.response -&gt; A-HandleAccountResponse\.P1\.success/);
   assert.match(html, /page\.load -&gt; A-LoadAccount -&gt; A-LoadAccount\.P1\.response -&gt; A-HandleAccountResponse\.P1\.failure/);
+  assert.doesNotMatch(html, /A-LoadAccount\.transitions/);
 });
 
 test("renders property-level display metadata in static display content spec", () => {

@@ -147,6 +147,7 @@ export function renderStaticDesignDocumentHtml(result: MarkVSpecParseResult, opt
   return renderDesignDocumentSections([
     renderDocumentOverviewSection(result, messages),
     renderHistorySection(result, messages),
+    renderStaticStateFlowSection(result, messages),
     renderStaticActionTransitionsSection(result, messages),
     renderStateViewsSection(result, messages)
   ]);
@@ -194,19 +195,116 @@ function renderStateViewsSection(result: MarkVSpecParseResult, messages: Rendere
 </section>`;
 }
 
+function renderStaticStateFlowSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
+  const diagram = renderStaticMermaidStateDiagram(result);
+  if (!diagram) {
+    return "";
+  }
+  return `<section class="doc-section state-flow-section"><h2>${escapeHtml(messages.stateFlow)}</h2><pre class="mermaid-source" data-mermaid-source><code class="language-mermaid">${escapeHtml(diagram)}</code></pre></section>`;
+}
+
 function renderStaticActionTransitionsSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
-  const rows = result.actions.flatMap((action) => action.transitions
+  const entryEvent = staticLifecycleEntryEvent(result);
+  const rows = [
+    ...(entryEvent ? [[
+      renderStaticStateLabel("(*)"),
+      renderStaticStateLabel(entryEvent.initialState),
+      "",
+      renderStaticLifecycleEntrySource(result, entryEvent)
+    ]] : []),
+    ...result.actions.flatMap((action) => action.transitions
     .filter((transition) => !isStaticTerminalTransitionTarget(transition.to))
     .map((transition) => [
       renderStaticStateLabel(transition.from),
       renderStaticStateLabel(transition.to),
       transition.result ? renderStaticResultLabel(transition.result) : "",
       renderStaticActionTransitionSource(result, action, transition.result)
-    ]));
+    ]))
+  ];
   if (rows.length === 0) {
     return "";
   }
   return `<section class="doc-section" id="state-transition-table"><h2>${escapeHtml(messages.actionTransitions)}</h2>${renderTable([messages.from, messages.to, messages.case, messages.triggeredBy], rows)}</section>`;
+}
+
+function renderStaticMermaidStateDiagram(result: MarkVSpecParseResult): string {
+  const nodeNames = collectStaticStateFlowNodes(result);
+  const aliases = new Map(nodeNames.map((name, index) => [name, `S${index}`]));
+  if (nodeNames.length === 0) {
+    return "";
+  }
+
+  const lines = ["stateDiagram-v2", "  direction TB"];
+  const entryEvent = staticLifecycleEntryEvent(result);
+  for (const name of nodeNames) {
+    lines.push(`  state "${staticMermaidLabel(name)}" as ${aliases.get(name)}`);
+  }
+  if (entryEvent && aliases.has(entryEvent.initialState)) {
+    lines.push(`  [*] --> ${aliases.get(entryEvent.initialState)}: ${staticMermaidLabel(entryEvent.event)}`);
+  }
+
+  const edgeGroups = new Map<string, { from: string; to: string; labels: string[]; seenLabels: Set<string> }>();
+  for (const action of result.actions) {
+    for (const transition of action.transitions) {
+      const from = aliases.get(transition.from);
+      const to = aliases.get(transition.to);
+      if (!from || !to || transition.from === transition.to || isStaticTerminalTransitionTarget(transition.to)) {
+        continue;
+      }
+
+      const key = `${from}\u0000${to}`;
+      const group = edgeGroups.get(key) ?? { from, to, labels: [], seenLabels: new Set<string>() };
+      const transitionLabel = staticActionTransitionLabel(action, transition.result, transition.to);
+      if (!group.seenLabels.has(transitionLabel)) {
+        group.labels.push(transitionLabel);
+        group.seenLabels.add(transitionLabel);
+      }
+      edgeGroups.set(key, group);
+    }
+  }
+
+  for (const group of edgeGroups.values()) {
+    lines.push(`  ${group.from} --> ${group.to}: ${staticMermaidLabel(group.labels.join(", "))}`);
+  }
+  return lines.join("\n");
+}
+
+function collectStaticStateFlowNodes(result: MarkVSpecParseResult): string[] {
+  const names = new Set(result.states.map((state) => state.name));
+  for (const action of result.actions) {
+    for (const transition of action.transitions) {
+      names.add(transition.from);
+      if (!isStaticTerminalTransitionTarget(transition.to)) {
+        names.add(transition.to);
+      }
+    }
+  }
+  return [...names];
+}
+
+function staticActionTransitionLabel(
+  action: MarkVSpecParseResult["actions"][number],
+  resultName: string | undefined,
+  target: string
+): string {
+  const actionLabel = [action.properties["marker"], action.name].filter(Boolean).join(" ");
+  const resultLabel = resultName ? `${actionLabel} / ${resultName}` : actionLabel;
+  return isStaticTerminalTransitionTarget(target) ? `${resultLabel} / navigate` : resultLabel;
+}
+
+function staticMermaidLabel(value: string): string {
+  return value.replaceAll("\\", "\\\\").replaceAll("\"", "\\\"").replaceAll("\n", " ").replaceAll(";", ",");
+}
+
+function renderStaticLifecycleEntrySource(
+  result: MarkVSpecParseResult,
+  event: StaticLifecycleEntryEvent
+): string {
+  const actionReferences = event.actionIds.map((actionId) => {
+    const action = result.actions.find((candidate) => candidate.id === actionId);
+    return action ? renderStaticActionReference(result, action) : code(actionId);
+  });
+  return `${escapeHtml(event.event)}<div class="mm-ref-chip-note">${actionReferences.join(", ")}</div>`;
 }
 
 function renderStaticActionTransitionSource(
@@ -277,6 +375,23 @@ function renderStaticResultLabel(value: string): string {
 
 function isStaticDocumentLifecycleTrigger(trigger: string | undefined): trigger is string {
   return trigger === "page.load" || trigger === "partial.render" || trigger === "screen.load";
+}
+
+interface StaticLifecycleEntryEvent {
+  event: string;
+  actionIds: string[];
+  initialState: string;
+}
+
+function staticLifecycleEntryEvent(result: MarkVSpecParseResult): StaticLifecycleEntryEvent | undefined {
+  const initialState = result.states.find((state) => state.initial)?.name ?? result.states[0]?.name;
+  if (!initialState) {
+    return undefined;
+  }
+  const actionIds = [...new Set(result.events
+    .filter((candidate) => candidate.event === "page.load")
+    .map((event) => event.actionId))];
+  return actionIds.length > 0 ? { event: "page.load", actionIds, initialState } : undefined;
 }
 
 function isStaticTerminalTransitionTarget(target: string): boolean {
