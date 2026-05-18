@@ -18,6 +18,12 @@ blocked.
 Never move a MarkVSpec ticket to `done` until an independent sub-agent has reviewed
 the completed local changes.
 
+When accepting tickets from the `acceptance` lane, do not rely only on implementer
+comments, passing tests, or a sub-agent's "no blocking findings" summary. The
+acceptance reviewer must inspect the actual output that the user will see,
+especially for preview, document, export, print, table, marker, chip, layout,
+style, and i18n changes.
+
 This applies to all tickets on:
 
 - Board URL: `http://localhost:3470/boards/7`
@@ -36,6 +42,47 @@ This applies to all tickets on:
 6. Commit intentionally after each coherent ticket or tightly coupled ticket group.
 7. Use the required pre-done review workflow below before moving each ticket to `done`.
 
+## Acceptance Review Workflow
+
+Use this workflow when the user asks to accept tickets, review the `acceptance`
+lane, or move completed work to `done`.
+
+1. Read each candidate ticket and its latest implementation comments.
+2. Confirm that an independent sub-agent review is recorded. If it is missing,
+   do not accept the ticket.
+3. Review the implementation diff, not only the comment summary.
+4. Run verification in a separate git worktree when the user or workspace state
+   requires isolation. Do not run tests in the main workspace if another agent is
+   working there.
+5. For UI, preview, generated document, export, PDF, print, style, marker/chip,
+   table, i18n, or example changes, inspect generated output:
+   - generate or open the relevant HTML preview/export
+   - generate PDF/print artifacts when the ticket affects print or PDF behavior
+   - inspect the affected sections directly, not only the existence of files
+   - compare the result against the user's stated design intent and recent
+     product decisions, not only the ticket's narrow acceptance criteria
+6. Check at least one representative target example and any obvious related
+   examples. If a change claims a cross-cutting rule, sample across the relevant
+   table/section families.
+7. Look for visual and semantic regressions the user would notice immediately:
+   - unreadable wrapping or wasted column width
+   - marker-only, ID-only, and Marker/ID chip representation mixed without a rule
+   - table columns that contradict recent naming or display decisions
+   - duplicated, missing, or stale localized text
+   - hidden scrollbars, clipped content, overlapping labels, or print overflow
+   - behavior that satisfies a CSS/string test but fails the actual preview
+8. If the output is poor or inconsistent, create or update a follow-up ticket
+   before moving anything to `done`. If the flaw invalidates the current ticket's
+   acceptance, add a review comment and move the ticket back to `todo`.
+9. If accepting the ticket, add a Kanbalone comment that states both:
+   - commands/tests that passed
+   - concrete generated outputs or sections inspected
+10. Move the ticket to `done` with `isResolved: false` unless the user explicitly
+    asks to resolve it.
+
+For visual tickets, "tests passed" is never enough by itself. If the reviewer did
+not inspect the resulting preview/export/PDF, the ticket is not accepted.
+
 ## Required Workflow
 
 1. Finish the implementation and run relevant local verification.
@@ -48,7 +95,7 @@ This applies to all tickets on:
    - acceptance criteria
    - changed file list
    - verification commands and results
-   - relevant docs such as `AGENT.md`, `docs/en/design-spec.md`,
+   - relevant docs such as `AGENTS.md`, `docs/en/design-spec.md`,
      `docs/en/dsl.md`, `docs/ja/design-spec.md`, or `docs/ja/dsl.md`
 5. Do not ask the sub-agent to implement changes unless the review explicitly
    finds issues and the user authorizes delegation.
@@ -73,7 +120,7 @@ Use a prompt like:
 Review MarkVSpec ticket <ID>: <title>.
 
 Context:
-- Project notes: read AGENT.md.
+- Project notes: read AGENTS.md.
 - Relevant spec docs: <paths>.
 - Acceptance criteria: <paste criteria>.
 - Changed files: <list>.
