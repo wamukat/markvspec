@@ -17,8 +17,8 @@ smallest useful reference:
 - `Login Basic` teaches a compact login flow with responsive layout, required
   validation, request parameters, response cases, disabled form controls,
   navigation, Form Groups, and Business Rules.
-- `Async Loading` teaches separating request sending from asynchronous response
-  handling, including loading, empty, loaded, and error states.
+- `Async Fetching` teaches separating request sending from asynchronous response
+  handling, including fetching, empty, loaded, and error states.
 - `Responsive Profile` teaches mobile and desktop layout variants over shared
   elements and state-aware actions without server flow noise.
 - `Event Triggers` teaches `page.load`, `.change`, `.blur`, `.focus`,
@@ -34,7 +34,7 @@ smallest useful reference:
 - `Parallel Initial Load` teaches parallel process groups and
   `Process P3: Resolve grouped processes` final state decisions.
 - `Search List` teaches admin list patterns: filters, Select options, Tables,
-  paging, loading/empty/error states, Scenario samples, and response-driven result
+  paging, fetching/empty/error states, Scenario samples, and response-driven result
   replacement.
 - `Template Shell`, `Basic Slot Page`, `Responsive Slot Page`,
   `Default Slot Page`, `Profile Page With Template`, and
@@ -73,7 +73,7 @@ For `F-*` and `V-*` examples that should appear as reference chips, prefer a
 | Example | Purpose | Demonstrates |
 | --- | --- | --- |
 | [Hello Screen](../../../examples/01-basics/hello-screen.vspec.md) | Minimum useful screen. | Metadata, one state, one viewport, layout, elements, and a click action marker. |
-| [Async Loading](../../../examples/02-states/async-loading.vspec.md) | Request send and response handling. | Loading, loaded, empty, and load-error states, response cases, and table sample rows. |
+| [Async Fetching](../../../examples/02-states/async-loading.vspec.md) | Request send and response handling. | Fetching, loaded, empty, and fetch-error states, response cases, and table sample rows. |
 | [Scenario Samples](../../../examples/02-states/scenario-samples.vspec.md) | Dedicated preview data variation example. | Neutral Element `sample` / `sample rows:` plus loaded-state Preview Scenario `samples`, including `rows: []`. |
 | [Responsive Profile](../../../examples/02-states/responsive-profile.vspec.md) | Same content in mobile and desktop layouts. | Viewport-specific layout groups over shared elements. |
 | [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | Non-click events and lifecycle triggers. | `page.load`, `.change` unsaved notice display, `.blur` validation, `.focus` help text, `.submit`, dialog click actions, `close`, and Preview Scenarios. |
@@ -84,7 +84,7 @@ For `F-*` and `V-*` examples that should appear as reference chips, prefer a
 | [Parallel Initial Load](../../../examples/03-actions/parallel-initial-load.vspec.md) | Parallel server calls with a final resolver. | `group: initial-load`, `Process P3: Resolve grouped processes`, response cases, and final state decisions. |
 | [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md) | Display Content Spec field coverage. | `label`, `placeholder`, `sample`, `src`, `format`, machine `value`, and navigation `params`. |
 | [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md) | Element type coverage screen using a realistic profile/settings form. | `Textarea`, `MultiSelect`, `CheckboxGroup`, `Switch`, `RadioGroup`, `List`, `Dialog`, `Image`, `Icon`, `Divider`, file inputs, date/time inputs, and number input. |
-| [Search List](../../../examples/04-real-world-screens/search-list.vspec.md) | Search screen with filters and pagination. | Desktop toolbar, Select options, Table sample rows, empty state, load-error state, and display element replacement. |
+| [Search List](../../../examples/04-real-world-screens/search-list.vspec.md) | Search screen with filters and pagination. | Desktop toolbar, Select options, Table sample rows, empty state, fetch-error state, and display element replacement. |
 | [Login Basic](../../../examples/04-real-world-screens/login-basic.vspec.md) | Compact authentication flow with mobile and desktop layouts. | Required inputs, validation/auth/request messages as display scenarios, spinner overlay, disabled controls, request parameters, response cases, screen navigation, and Business Rules. |
 | [Template Shell](../../../examples/05-reuse/template-shell.vspec.md) | Shared template shell. | Template document unit, navigation frame, top bar, language Select, and `content` slot placeholder. |
 | [Basic Slot Page](../../../examples/05-reuse/basic-slot-page.vspec.md) | Smallest screen using a template slot. | Front Matter `template` and viewport-neutral `## Slot: content` without partial or action noise. |

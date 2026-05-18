@@ -22,8 +22,8 @@ updates; the reusable shell itself is defined in the template example.
 ## States
 
 - idle*
-- loading
-- load-error
+- fetching
+- fetch-error
 
 ## Slot: content
 
@@ -47,8 +47,8 @@ updates; the reusable shell itself is defined in the template example.
   - id: PRT-PROFILE-SUMMARY
   - states:
     - idle: loaded
-    - loading: loading
-    - load-error: load-error
+    - fetching: fetching
+    - fetch-error: fetch-error
 
 ## Elements
 
@@ -71,7 +71,7 @@ updates; the reusable shell itself is defined in the template example.
 
 - tone: danger
 - text: Profile summary could not be refreshed.
-- visible when: load-error
+- visible when: fetch-error
 
 ## Actions
 
@@ -79,7 +79,7 @@ updates; the reusable shell itself is defined in the template example.
 
 - From
   - idle
-  - load-error
+  - fetch-error
 - Process P1: Refresh partial content
   - request:
     - method: GET
@@ -89,18 +89,18 @@ updates; the reusable shell itself is defined in the template example.
   - case: sent
     - description: request accepted
     - Effects
-      - state: loading
+      - state: fetching
     - stop
   - case: send-failed
     - description: network error
     - Effects
-      - state: load-error
+      - state: fetch-error
     - stop
 
 ### A2:A-HandleProfileSummaryResponse Handle profile summary response
 
 - From
-  - loading
+  - fetching
 - Process P1: PartialResponse
   - receive:
     - response: A-RefreshProfile.P1.response
@@ -115,5 +115,5 @@ updates; the reusable shell itself is defined in the template example.
   - case: failure
     - response: 5xx or timeout
     - Effects
-      - state: load-error
+      - state: fetch-error
     - stop

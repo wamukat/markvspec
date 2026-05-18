@@ -5522,16 +5522,16 @@ test("renders realistic examples with canonical property encodings", () => {
   const nextPageResponse = usersResult.actions.find((action) => action.id === "A-HandleNextPageResponse");
   assert.equal(nextPageResponse?.triggeredBy, "A-NextPage.P1.response");
   assert.deepEqual(nextPageResponse?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
-    ["loading", "success", "idle"],
-    ["loading", "empty", "empty"],
-    ["loading", "failure", "load-error"]
+    ["fetching", "success", "idle"],
+    ["fetching", "empty", "empty"],
+    ["fetching", "failure", "fetch-error"]
   ]);
   const previousPageResponse = usersResult.actions.find((action) => action.id === "A-HandlePreviousPageResponse");
   assert.equal(previousPageResponse?.triggeredBy, "A-PreviousPage.P1.response");
   assert.deepEqual(previousPageResponse?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
-    ["loading", "success", "idle"],
-    ["loading", "empty", "empty"],
-    ["loading", "failure", "load-error"]
+    ["fetching", "success", "idle"],
+    ["fetching", "empty", "empty"],
+    ["fetching", "failure", "fetch-error"]
   ]);
 
   const asyncSource = readFileSync(examplePath("02-states/async-loading.vspec.md"), "utf8");

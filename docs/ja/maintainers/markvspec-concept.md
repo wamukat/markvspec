@@ -203,7 +203,7 @@ state は実装 framework の状態変数ではなく、画面の状態を表し
 例です。
 
 - `idle`
-- `loading`
+- `fetching`
 - `empty`
 - `error`
 - `success`

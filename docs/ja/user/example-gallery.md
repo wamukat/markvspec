@@ -40,7 +40,7 @@ F-* / V-* を参照 chip として読みやすく見せたい場合は、安定 
 | サンプル | 用途 |
 | --- | --- |
 | [Hello Screen](../../../examples/01-basics/hello-screen.vspec.md) | metadata、1 state、1 viewport、layout、element、click action marker の最小例。 |
-| [Async Loading](../../../examples/02-states/async-loading.vspec.md) | request 送信、response handling、empty/error state、table sample rows の例。 |
+| [Async Fetching](../../../examples/02-states/async-loading.vspec.md) | request 送信、response handling、fetching/empty/fetch-error state、table sample rows の例。 |
 | [Scenario Samples](../../../examples/02-states/scenario-samples.vspec.md) | baseline の Element `sample` / `sample rows:` と、同じ loaded state に対する Preview Scenario data variation / `rows: []` の例。 |
 | [Responsive Profile](../../../examples/02-states/responsive-profile.vspec.md) | mobile / desktop viewport で同じ情報を異なる配置にする例。 |
 | [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | `page.load`、`.change` の未保存通知、`.blur` validation、`.focus` help、`.submit`、dialog click / `close` と Preview Scenarios の例。 |

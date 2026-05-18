@@ -9,18 +9,18 @@ locale: en
 # SCR-USERS Search List
 
 This example teaches a compact real-world search list. Read the criteria form,
-table `sample rows:`, loading/empty/error states, request and response cases,
+table `sample rows:`, fetching/empty/error states, request and response cases,
 pagination actions, and result replacement display effects; detail editing is
 outside this example.
 
 ## States
 
 - idle*
-- loading
+- fetching
   - A search or paging request has been sent.
 - empty
   - The request succeeded but no rows matched.
-- load-error
+- fetch-error
   - The request could not be sent or the server response failed.
 
 ## Layout: desktop
@@ -43,7 +43,7 @@ outside this example.
 - row
 - gap: sm
 - align: center
-- disabled when: loading
+- disabled when: fetching
 
 #### Items
 
@@ -110,14 +110,14 @@ outside this example.
 
 ### 5:E-LoadingSpinner Spinner
 
-- label: Loading results
-- visible when: loading
+- label: Fetching results
+- visible when: fetching
 
 ### 6:E-LoadErrorBanner Banner
 
 - tone: danger
 - text: Results could not be loaded.
-- visible when: load-error
+- visible when: fetch-error
 
 ### 7:E-UsersTable Table
 
@@ -164,7 +164,7 @@ outside this example.
 - From
   - idle
   - empty
-  - load-error
+  - fetch-error
 - Process P1: Request matching users
   - request:
     - method: GET
@@ -177,10 +177,10 @@ outside this example.
     - first search page request
   - case: sent
     - Effects
-      - state: loading
+      - state: fetching
   - case: send-failed
     - Effects
-      - state: load-error
+      - state: fetch-error
       - display:
         - target: L-StatusArea
         - element: E-LoadErrorBanner
@@ -188,7 +188,7 @@ outside this example.
 ### A2:A-HandleSearchUsersResponse Handle search users response
 
 - From
-  - loading
+  - fetching
 - Process P1: Handle response
   - receive:
     - response: A-SearchUsers.P1.response
@@ -209,7 +209,7 @@ outside this example.
   - case: failure
     - response: 5xx or timeout
     - Effects
-      - state: load-error
+      - state: fetch-error
       - display:
         - target: L-StatusArea
         - element: E-LoadErrorBanner
@@ -230,10 +230,10 @@ outside this example.
     - next search page request
   - case: sent
     - Effects
-      - state: loading
+      - state: fetching
   - case: send-failed
     - Effects
-      - state: load-error
+      - state: fetch-error
 
 ### A4:A-PreviousPage Previous page
 
@@ -251,15 +251,15 @@ outside this example.
     - previous search page request
   - case: sent
     - Effects
-      - state: loading
+      - state: fetching
   - case: send-failed
     - Effects
-      - state: load-error
+      - state: fetch-error
 
 ### A5:A-HandleNextPageResponse Handle next page response
 
 - From
-  - loading
+  - fetching
 - Process P1: Handle response
   - receive:
     - response: A-NextPage.P1.response
@@ -280,7 +280,7 @@ outside this example.
   - case: failure
     - response: 5xx or timeout
     - Effects
-      - state: load-error
+      - state: fetch-error
       - display:
         - target: L-StatusArea
         - element: E-LoadErrorBanner
@@ -288,7 +288,7 @@ outside this example.
 ### A6:A-HandlePreviousPageResponse Handle previous page response
 
 - From
-  - loading
+  - fetching
 - Process P1: Handle response
   - receive:
     - response: A-PreviousPage.P1.response
@@ -309,7 +309,7 @@ outside this example.
   - case: failure
     - response: 5xx or timeout
     - Effects
-      - state: load-error
+      - state: fetch-error
       - display:
         - target: L-StatusArea
         - element: E-LoadErrorBanner

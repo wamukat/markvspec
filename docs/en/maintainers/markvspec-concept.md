@@ -272,7 +272,7 @@ State describes the screen condition, not the implementation framework.
 Examples:
 
 - `idle`
-- `loading`
+- `fetching`
 - `empty`
 - `error`
 - `success`

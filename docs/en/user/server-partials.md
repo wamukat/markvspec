@@ -67,7 +67,7 @@ partial-state mapping on the target layout. This marks the `L-*` layout as a
 partial host. Initial MarkVSpec supports one partial ID per host: one host maps
 to one `PRT-*` document. The left side of each `states` entry is the screen
 state, and the right side is the render state used inside the partial document.
-This lets the same partial render as `loading` while the screen is
+This lets the same partial render as `fetching` while the screen is
 `initializing`, and as `loaded` when the screen is `idle`.
 
 ```markdown
@@ -78,7 +78,7 @@ This lets the same partial render as `loading` while the screen is
 - partial:
   - id: PRT-MEMBER-PROFILE-CARD
   - states:
-    - initializing: loading
+    - initializing: fetching
     - idle: loaded
 ```
 
@@ -137,7 +137,7 @@ title: Points Content
     - path: /points/content
   - case: success
     - Effects
-      - state: loading
+      - state: fetching
 ```
 
 ## Request Modeling
@@ -201,7 +201,7 @@ For a response that replaces a partial host with returned partial content, use
 `display.partial` points to the `PRT-*` document content displayed in that host.
 Do not combine `display.partial` with `display.element` or `display.message` in
 the same display effect. Canonical examples keep request-sent cases to effects
-such as `state: loading`; the partial content appears on the response success
+such as `state: fetching`; the partial content appears on the response success
 case.
 
 Use `state` when the current screen changes state. Message-only failures can
@@ -229,7 +229,7 @@ the page.
 - [Login Basic](../../../examples/04-real-world-screens/login-basic.vspec.md) models
   authentication response errors and remember-me cookie side effects.
 - [Search List](../../../examples/04-real-world-screens/search-list.vspec.md)
-  models search, empty result, and load-error partial updates.
+  models search, empty result, and fetch-error partial updates.
 - [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md)
   models validation, request cases, and update targets.
 - [Template Shell](../../../examples/05-reuse/template-shell.vspec.md)

@@ -80,10 +80,10 @@ state list is `Section Notes`.
 The screen tracks request progress only.
 
 - idle*
-- loading
+- fetching
 - loaded
 
-`loading` disables submit actions.
+`fetching` disables submit actions.
 ```
 
 ### Layout / Slot Content
@@ -108,7 +108,7 @@ the wireframe itself remains driven by `Structured Body`.
 ## Layout: mobile
 (A)
 
-### L1:L-Page Async loading page
+### L1:L-Page Async fetching page
 (B)
 
 - stack
@@ -202,7 +202,7 @@ Validate and send the form.
     - path: /login
   - case: sent
     - Effects
-      - state: loading
+      - state: submitting
 ```
 
 ### Preview Scenarios

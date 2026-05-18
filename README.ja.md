@@ -283,7 +283,7 @@ marker です。参照には marker ではなく ID を使います。
 リンクを開くと、生成済み HTML をブラウザで確認できます。
 
 - [Hello Screen](https://wamukat.github.io/markvspec/examples/hello-screen.html): 最小の画面。([source](examples/01-basics/hello-screen.vspec.md))
-- [Async Loading](https://wamukat.github.io/markvspec/examples/async-loading.html): request send と response states。([source](examples/02-states/async-loading.vspec.md))
+- [Async Fetching](https://wamukat.github.io/markvspec/examples/async-loading.html): request send と response states。([source](examples/02-states/async-loading.vspec.md))
 - [Scenario Samples](https://wamukat.github.io/markvspec/examples/scenario-samples.html): baseline Element samples に対する Preview Scenario data variation。([source](examples/02-states/scenario-samples.vspec.md))
 - [Responsive Profile](https://wamukat.github.io/markvspec/examples/responsive-profile.html): mobile / desktop layout。([source](examples/02-states/responsive-profile.vspec.md))
 - [Event Triggers](https://wamukat.github.io/markvspec/examples/event-triggers.html): click 以外の element event と lifecycle trigger。([source](examples/03-actions/event-triggers.vspec.md))

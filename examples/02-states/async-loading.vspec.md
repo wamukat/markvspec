@@ -1,30 +1,30 @@
 ---
 id: SCR-ASYNC-LOADING
 type: screen
-title: Async Loading
+title: Async Fetching
 route: /async-loading
 locale: en
 ---
 
-# SCR-ASYNC-LOADING Async Loading
+# SCR-ASYNC-LOADING Async Fetching
 
 This example teaches asynchronous state modeling for a list refresh. Read
 `## States`, the split send/receive `## Actions`, response cases, and the
-table `sample rows:`; it keeps layout and input controls minimal so loading,
+table `sample rows:`; it keeps layout and input controls minimal so fetching,
 loaded, empty, and error previews are the focus.
 
 ## States
 
 - idle*
-- loading
+- fetching
   - The list request has been sent and the screen is waiting for a response.
 - loaded
 - empty
-- load-error
+- fetch-error
 
 ## Layout: mobile
 
-### L1:L-Page Async loading page
+### L1:L-Page Async fetching page
 
 - stack
 - gap: md
@@ -51,25 +51,25 @@ loaded, empty, and error previews are the focus.
 ### 1:E-Title Heading
 
 - level: 1
-- label: Async loading
+- label: Async fetching
 
 ### 2:E-RefreshButton Button
 
 - label: Refresh
 - variant: primary
 - action: A-RefreshItems
-- disabled when: loading
+- disabled when: fetching
 
 ### 3:E-LoadingSpinner Spinner
 
-- label: Loading items
-- visible when: loading
+- label: Fetching items
+- visible when: fetching
 
 ### 4:E-ErrorBanner Banner
 
 - tone: danger
 - text: Items could not be loaded.
-- visible when: load-error
+- visible when: fetch-error
 
 ### 5:E-ItemsTable Table
 
@@ -99,7 +99,7 @@ loaded, empty, and error previews are the focus.
   - idle
   - loaded
   - empty
-  - load-error
+  - fetch-error
 - Process P1: Send request
   - request:
     - method: GET
@@ -108,10 +108,10 @@ loaded, empty, and error previews are the focus.
     - item list request
   - case: sent
     - Effects
-      - state: loading
+      - state: fetching
   - case: send-failed
     - Effects
-      - state: load-error
+      - state: fetch-error
       - display:
         - target: L-StatusArea
         - element: E-ErrorBanner
@@ -119,7 +119,7 @@ loaded, empty, and error previews are the focus.
 ### A2:A-HandleItemsResponse Handle items response
 
 - From
-  - loading
+  - fetching
 - Process P1: Handle response
   - receive:
     - response: A-RefreshItems.P1.response
@@ -137,4 +137,4 @@ loaded, empty, and error previews are the focus.
   - case: failure
     - response: HTTP error or timeout
     - Effects
-      - state: load-error
+      - state: fetch-error

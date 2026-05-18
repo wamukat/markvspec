@@ -79,10 +79,10 @@ prose は `Section Notes` です。
 この画面では request の進行状態だけを state として扱う。
 
 - idle*
-- loading
+- fetching
 - loaded
 
-`loading` 中は送信 action を無効化する。
+`fetching` 中は送信 action を無効化する。
 ```
 
 ### Layout / Slot Content
@@ -104,7 +104,7 @@ layout group の説明です。`Structured Body` は layout kind/properties と
 ## Layout: mobile
 (A)
 
-### L1:L-Page Async loading page
+### L1:L-Page Async fetching page
 (B)
 
 - stack
@@ -197,7 +197,7 @@ form を検証して送信する。
     - path: /login
   - case: sent
     - Effects
-      - state: loading
+      - state: submitting
 ```
 
 ### Preview Scenarios

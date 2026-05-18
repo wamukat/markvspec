@@ -15,8 +15,8 @@ global layout are handled by the host screen.
 ## States
 
 - loaded*
-- loading
-- load-error
+- fetching
+- fetch-error
 
 ## Layout: desktop
 
@@ -54,7 +54,7 @@ global layout are handled by the host screen.
 
 - tone: danger
 - text: Profile summary could not be loaded.
-- visible when: load-error
+- visible when: fetch-error
 
 ## Events
 
@@ -65,7 +65,7 @@ global layout are handled by the host screen.
 ### A1:A-BuildProfileSummary Build profile summary
 
 - From
-  - loading
+  - fetching
 - Process P1: Call server service
   - server:
     - MemberQueryService.findCurrent()
@@ -79,5 +79,5 @@ global layout are handled by the host screen.
   - case: failure
     - description: 5xx or timeout
     - Effects
-      - state: load-error
+      - state: fetch-error
     - stop

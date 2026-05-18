@@ -14,7 +14,7 @@
 ## States
 
 - idle*
-- loading
+- fetching
 - loaded
 - validation-error
 - auth-error
@@ -257,12 +257,12 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
     - page: ${data.searchRequest.page}
   - case: sent
     - Effects
-      - state: loading
+      - state: fetching
       - stop
   - case: send-failed
     - description: request could not be sent
     - Effects
-      - state: load-error
+      - state: fetch-error
       - stop
 
 ### A-ApplySearchResult Apply search result
@@ -270,7 +270,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
 - Triggered
   - A-SubmitSearch.P3.response
 - From
-  - loading
+  - fetching
 - Process P1: Receive search response
   - case: success
     - description: 200 search result
@@ -281,7 +281,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
   - case: failure
     - description: 5xx or timeout
     - Effects
-      - state: load-error
+      - state: fetch-error
       - view: ${view.isHelpPanelOpen} = false
 ```
 
@@ -304,7 +304,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
 - Triggered
   - screen.load
 - From
-  - loading
+  - fetching
 - Process P1: Load member profile
   - group: initial-load
   - MemberQueryService.findSelfProfile()
@@ -333,7 +333,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
   - case: failed
     - description: one or more calls failed
     - Effects
-      - state: load-error
+      - state: fetch-error
       - stop
 ```
 

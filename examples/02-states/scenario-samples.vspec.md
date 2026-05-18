@@ -15,12 +15,12 @@ account data without creating extra states.
 
 ## States
 
-- loading*
-  - Account data is being loaded before scenario-specific data is available.
+- initializing*
+  - Account data is being initialized before scenario-specific data is available.
 - loaded
-  - Account data was loaded. Scenario samples decide which data variation is shown.
-- load-error
-  - Account data could not be loaded.
+  - Account data was initialized. Scenario samples decide which data variation is shown.
+- initialize-error
+  - Account data could not be initialized.
 
 ## Layout: desktop
 
@@ -41,7 +41,7 @@ account data without creating extra states.
 - grid
 - columns: 3
 - gap: sm
-- hidden when: loading
+- hidden when: initializing
 
 #### Items
 
@@ -95,14 +95,14 @@ account data without creating extra states.
 
 ### 7:E-LoadingMessage Text
 
-- text: Loading account data...
-- visible when: loading
+- text: Initializing account data...
+- visible when: initializing
 
 ### 8:E-LoadErrorMessage Paragraph
 
-- text: Account subscription data could not be loaded.
+- text: Account subscription data could not be initialized.
 - tone: danger
-- visible when: load-error
+- visible when: initialize-error
 
 ## Events
 
@@ -113,7 +113,7 @@ account data without creating extra states.
 ### A1:A-LoadAccount Load account
 
 - From
-  - loading
+  - initializing
 - Process P1: Send request
   - request:
     - method: GET
@@ -124,7 +124,7 @@ account data without creating extra states.
 ### A2:A-HandleAccountResponse Handle account response
 
 - From
-  - loading
+  - initializing
 - Process P1: Apply response
   - receive:
     - response: A-LoadAccount.P1.response
@@ -139,7 +139,7 @@ account data without creating extra states.
   - case: failure
     - response: HTTP 5xx or network failure
     - Effects
-      - state: load-error
+      - state: initialize-error
 
 ## Preview Scenarios
 

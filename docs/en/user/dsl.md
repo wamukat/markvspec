@@ -648,10 +648,10 @@ Example state names should keep lifecycle intent screen-oriented:
 
 - Use `initializing` for initial screen bootstrap.
 - Use `idle` for the initialized, interactive baseline state.
-- Use `loading` for user-triggered or in-screen read operations.
+- Use `fetching` for user-triggered or in-screen read operations.
 - Use `saving`, `submitting`, or a domain-specific state such as
   `authenticating` for pending writes or submissions.
-- Use `initialize-error` for bootstrap failures and `load-error` for later read
+- Use `initialize-error` for bootstrap failures and `fetch-error` for later read
   failures when the distinction matters.
 - Use `loaded` only when the example explicitly teaches loaded data variants or
   a visible loaded result state.
@@ -915,7 +915,7 @@ Layout metadata and setting bullets:
 - row
 - grid
 - stack
-- visible when: loading
+- visible when: fetching
 - marker: L1
 - align: center
 - justify: end
@@ -979,7 +979,7 @@ render state.
 - partial:
   - id: PRT-MEMBER-PROFILE-CARD
   - states:
-    - initializing: loading
+    - initializing: fetching
     - idle: loaded
 ```
 
@@ -1222,7 +1222,7 @@ Element bullets:
 Visibility and availability conditions are authored as readable condition text:
 
 ```markdown
-- visible when: loading
+- visible when: fetching
 - hidden when: user.role is guest
 - disabled when: E-EmailInput is empty
 - disabled when: E-PasswordInput is empty
@@ -1245,7 +1245,7 @@ Condition joining and readable condition text apply to Element conditions
 `skip when`), Validation constraint `when`, and legacy `condition`.
 
 Preview evaluation is intentionally limited. Tools may evaluate state names such
-as `loading`, `state is loading`, and supported opaque expressions such as
+as `fetching`, `state is fetching`, and supported opaque expressions such as
 `${view.isHelpPanelOpen}`, `not ${view.isHelpPanelOpen}`, and
 `${view.selectedTab} = results`. Other conditions, including field emptiness,
 roles, authorization text, and single-line conditions containing `and` or `or`,
@@ -2278,8 +2278,8 @@ for the host layout and `display.partial` update.
   - id: PRT-PROFILE-SUMMARY
   - states:
     - idle: loaded
-    - loading: loading
-    - load-error: load-error
+    - fetching: fetching
+    - fetch-error: fetch-error
 ```
 
 ```markdown
@@ -2300,7 +2300,7 @@ for the host layout and `display.partial` update.
 `partial:` directly under an Action Process. Process-level `partial:` is
 unsupported authoring syntax and is not treated as an alias for
 `display.partial`. Canonical examples keep request-sent cases to effects such as
-`state: loading`; returned partial content is modeled on the response success
+`state: fetching`; returned partial content is modeled on the response success
 case.
 
 For htmx partial replacement, keep MarkVSpec semantic. `request:` describes the
@@ -2346,7 +2346,7 @@ followed by the element and action lists relevant to that state. Other states
 are rendered below it with their own wireframes, followed by current element and
 action specifications for that state. State-specific rendering uses the
 `States` section and visibility conditions such as `visible when:
-${state.loading}`. Non-state conditions use namespaced sources such as
+${state.fetching}`. Non-state conditions use namespaced sources such as
 `${view.isHelpPanelOpen}` or `${data.profile.loaded}`.
 
 ## View Context Section

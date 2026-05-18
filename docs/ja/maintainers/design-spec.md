@@ -347,10 +347,10 @@ route: /mypage/partials/notices
 
 ## States
 
-- loading*
+- fetching*
 - loaded
 - empty
-- load-error
+- fetch-error
 
 ## Layout: mobile
 
@@ -370,7 +370,7 @@ route: /mypage/partials/notices
 - Triggered
   - partial.render
 - From
-  - loading
+  - fetching
 - Process P1: Find latest notices
   - server:
     - NoticeQueryService.findLatest()
@@ -382,7 +382,7 @@ route: /mypage/partials/notices
       - state: empty
   - case: failure
     - Effects
-      - state: load-error
+      - state: fetch-error
 ```
 
 `partial.render` は partial 文書がサーバ側で描画される契機です。`ServerCall`

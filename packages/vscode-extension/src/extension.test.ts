@@ -1424,13 +1424,13 @@ test("uses explicit From states for State Views action relevance", () => {
   const source = readFileSync(sourcePath, "utf8");
   const loaded = loadScreenDocumentResult(createTextDocument(source, sourcePath) as vscode.TextDocument);
   const html = renderDesignDocumentHtml(loaded.result, "", loaded.focus ? { focus: loaded.focus } : undefined);
-  const loadingSection = viewportStateSection(html, "loading", "desktop");
-  const loadingActions = loadingSection.match(/<h5 class="state-screen-subheading">Actions<\/h5>[\s\S]*?<\/table>/)?.[0] ?? "";
+  const fetchingSection = viewportStateSection(html, "fetching", "desktop");
+  const fetchingActions = fetchingSection.match(/<h5 class="state-screen-subheading">Actions<\/h5>[\s\S]*?<\/table>/)?.[0] ?? "";
 
-  assert.match(loadingActions, new RegExp(`<td>${refActionChip("A2", "A-HandleSearchUsersResponse", "Handle search users response")}</td>`));
-  assert.doesNotMatch(loadingActions, /Search users/);
-  assert.doesNotMatch(loadingActions, new RegExp(`<tr><td>${refActionChip("A1", "A-SearchUsers", "Search users")}</td>`));
-  assert.match(stateWireframeSection(loadingSection), />5<\/code>/);
+  assert.match(fetchingActions, new RegExp(`<td>${refActionChip("A2", "A-HandleSearchUsersResponse", "Handle search users response")}</td>`));
+  assert.doesNotMatch(fetchingActions, /Search users/);
+  assert.doesNotMatch(fetchingActions, new RegExp(`<tr><td>${refActionChip("A1", "A-SearchUsers", "Search users")}</td>`));
+  assert.match(stateWireframeSection(fetchingSection), />5<\/code>/);
 });
 
 test("renders localized state change headings without difference wording", () => {

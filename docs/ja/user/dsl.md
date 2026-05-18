@@ -628,9 +628,9 @@ example の state 名は、画面上の lifecycle 意図が分かる名前に揃
 
 - `initializing` は初期表示時の bootstrap / 初期データ取得に使います。
 - `idle` は初期化済みで通常操作できる基準状態に使います。
-- `loading` は検索、ページング、再読込など、画面操作後の読み込みに使います。
+- `fetching` は検索、ページング、再読込など、画面操作後の読み込みに使います。
 - `saving`、`submitting`、`authenticating` のような domain-specific state は、保存や送信などの待機状態に使います。
-- `initialize-error` は初期化失敗、`load-error` は操作後の読み込み失敗に使い分けます。
+- `initialize-error` は初期化失敗、`fetch-error` は操作後の読み込み失敗に使い分けます。
 - `loaded` は、読み込み済みデータの variant や visible result state を説明する example に限って使います。
 - `editing` は非編集 mode から編集 mode へ明示的に遷移する screen に限って使います。
 - help、dialog、banner のような表示だけの差分は、永続 state ではなく `display:` と Preview Scenarios を優先します。
@@ -886,7 +886,7 @@ partial 文書内で使う render state です。
 - partial:
   - id: PRT-MEMBER-PROFILE-CARD
   - states:
-    - initializing: loading
+    - initializing: fetching
     - idle: loaded
 ```
 
@@ -1015,7 +1015,7 @@ wireframe preview では native `required` attribute や自動の `*` marker と
 - label: ログイン
 - source: i18n
 - type: password
-- visible when: loading
+- visible when: fetching
 - hidden when: idle
 - disabled when: E-EmailInput is empty
 - disabled when: E-PasswordInput is empty
@@ -1047,7 +1047,7 @@ wireframe preview では native `required` attribute や自動の `*` marker と
 `enabled when` / `selected when` / `active when`、Process step の `when` /
 `skip when`、Validation constraint の `when`、legacy `condition` に適用します。
 
-preview が評価できる条件は意図的に限定します。`loading` のような state 名、`state is loading`、
+preview が評価できる条件は意図的に限定します。`fetching` のような state 名、`state is fetching`、
 `${view.isHelpPanelOpen}`、`not ${view.isHelpPanelOpen}`、
 `${view.selectedTab} = results` のような対応済み opaque expression は評価してよい対象です。
 field の空判定、role、authorization text、`and` / `or` を含む 1 行 condition などは、
@@ -1714,8 +1714,8 @@ screen 側 host と `display.partial` は
   - id: PRT-PROFILE-SUMMARY
   - states:
     - idle: loaded
-    - loading: loading
-    - load-error: load-error
+    - fetching: fetching
+    - fetch-error: fetch-error
 ```
 
 ```markdown
@@ -1735,7 +1735,7 @@ screen 側 host と `display.partial` は
 `request:` は endpoint と parameter の通信契約だけを表します。Action Process 直下に
 `partial:` を置きません。Process 直下の `partial:` は unsupported authoring syntax
 であり、`display.partial` の互換 alias としては扱いません。canonical では、request
-送信直後の `case: sent` は `state: loading` などに留め、返却 partial content の
+送信直後の `case: sent` は `state: fetching` などに留め、返却 partial content の
 表示は response success 側で表現します。
 
 htmx partial replacement に写像する場合も、MarkVSpec では `hx-*` 属性を書きません。

@@ -75,7 +75,7 @@ screen 側で partial のプレビューを埋め込む場合は、置き換え�
 であることを表す contract です。初期仕様では 1 host は 1 つの partial ID だけを持ち、
 1 host = 1 `PRT-*` 文書として扱います。`states` の左側は screen state、右側は
 partial 文書内で使う render state です。これにより、同じ partial でも
-`initializing` では `loading`、`idle` では `loaded` のように表示を切り替えられます。
+`initializing` では `fetching`、`idle` では `loaded` のように表示を切り替えられます。
 
 ```markdown
 ### L2:L-MemberProfilePartial Member Profile Partial
@@ -85,7 +85,7 @@ partial 文書内で使う render state です。これにより、同じ partia
 - partial:
   - id: PRT-MEMBER-PROFILE-CARD
   - states:
-    - initializing: loading
+    - initializing: fetching
     - idle: loaded
 ```
 
@@ -143,7 +143,7 @@ title: Points Content
     - path: /points/content
   - case: success
     - Effects
-      - state: loading
+      - state: fetching
 ```
 
 ## リクエストモデリング
@@ -210,7 +210,7 @@ response 側の case に `display.partial` を書きます。
 `display.target` は既存の `L-*` partial host を指します。`display.partial` は、
 その host に表示される `PRT-*` 文書由来の content を指します。同じ display effect
 で `display.partial` と `display.element` / `display.message` を併用しません。
-canonical では、request 送信直後の `case: sent` は `state: loading` などに留め、
+canonical では、request 送信直後の `case: sent` は `state: fetching` などに留め、
 partial content の表示は response success 側で表現します。
 
 現在画面の状態が変わる場合は `state`、別画面へ移る場合は `navigate` を使います。
@@ -236,7 +236,7 @@ scope します。
 - [Login Basic](../../../examples/04-real-world-screens/login-basic.vspec.md) は認証レスポンスの
   エラーと remember-me cookie side effect を扱います。
 - [Search List](../../../examples/04-real-world-screens/search-list.vspec.md) は検索、
-  empty result、load-error の部分更新を扱います。
+  empty result、fetch-error の部分更新を扱います。
 - [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md) は
   validation、request case、update target を扱います。
 - [Template Shell](../../../examples/05-reuse/template-shell.vspec.md) は、

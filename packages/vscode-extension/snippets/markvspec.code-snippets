@@ -55,7 +55,8 @@
       "## States",
       "",
       "- loaded*",
-      "- load-error",
+      "- fetching",
+      "- fetch-error",
       "",
       "## Layout: ${4:mobile}",
       "",
@@ -83,7 +84,7 @@
       "### ${10:A1}:${11:A-BuildPartial} Build partial",
       "",
       "- From",
-      "  - loaded",
+      "  - fetching",
       "- Process ${12:P1}: ${13:Call server service}",
       "  - server: ${14:Service.method()}",
       "  - case: success",
@@ -93,7 +94,7 @@
       "  - case: failure",
       "    - description: ${16:Failure result}",
       "    - Effects",
-      "      - state: load-error",
+      "      - state: fetch-error",
       "${0}"
     ]
   },

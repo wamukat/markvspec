@@ -294,7 +294,7 @@ Generated HTML previews are available on
 below to view the generated HTML output in a browser.
 
 - [Hello Screen](https://wamukat.github.io/markvspec/examples/hello-screen.html): minimum screen. ([source](examples/01-basics/hello-screen.vspec.md))
-- [Async Loading](https://wamukat.github.io/markvspec/examples/async-loading.html): request send and response states. ([source](examples/02-states/async-loading.vspec.md))
+- [Async Fetching](https://wamukat.github.io/markvspec/examples/async-loading.html): request send and response states. ([source](examples/02-states/async-loading.vspec.md))
 - [Scenario Samples](https://wamukat.github.io/markvspec/examples/scenario-samples.html): Preview Scenario data variations over baseline Element samples. ([source](examples/02-states/scenario-samples.vspec.md))
 - [Responsive Profile](https://wamukat.github.io/markvspec/examples/responsive-profile.html): mobile and desktop layouts. ([source](examples/02-states/responsive-profile.vspec.md))
 - [Event Triggers](https://wamukat.github.io/markvspec/examples/event-triggers.html): non-click element events and lifecycle triggers. ([source](examples/03-actions/event-triggers.vspec.md))
