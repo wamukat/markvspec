@@ -348,6 +348,85 @@
       color: #17603a;
     }
 
+    .shell-frame {
+      display: grid;
+      grid-template-columns: 120px minmax(0, 1fr);
+      min-height: 210px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .shell-nav {
+      display: grid;
+      gap: 8px;
+      align-content: start;
+      border-right: 1px solid var(--line-soft);
+      background: #f8fafc;
+      padding: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #3d4b5c;
+    }
+
+    .slot-area,
+    .partial-host {
+      border: 1px dashed #9fb3c8;
+      border-radius: 8px;
+      background: #fbfdff;
+      padding: 12px;
+    }
+
+    .source-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .source-row {
+      display: grid;
+      grid-template-columns: 90px minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+      border-bottom: 1px solid var(--line-soft);
+      padding-bottom: 6px;
+    }
+
+    .source-row:last-child { border-bottom: 0; padding-bottom: 0; }
+
+    .source-kind {
+      border: 1px solid #b9c6d8;
+      border-radius: 999px;
+      background: #f8fafc;
+      padding: 2px 7px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .table-mock {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .table-mock th,
+    .table-mock td {
+      border: 1px solid var(--line);
+      padding: 7px 8px;
+      text-align: left;
+    }
+
+    .table-mock th {
+      background: #f8fafc;
+      color: #3d4b5c;
+    }
+
+    .empty-row {
+      color: var(--muted);
+      text-align: center;
+    }
+
     .doc-map {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -372,6 +451,8 @@
       main { padding: 18px; }
       .example-grid { grid-template-columns: 1fr; }
       .doc-map { grid-template-columns: 1fr; }
+      .shell-frame { grid-template-columns: 1fr; }
+      .shell-nav { border-right: 0; border-bottom: 1px solid var(--line-soft); }
     }
   </style>
 </head>
@@ -623,6 +704,232 @@ title: Login
             <li>Toast は global notification なので、layout target を持ちません。</li>
             <li>この authoring guide では、element 定義は tone と text だけに絞ります。</li>
             <li>最終的な表示位置や animation は renderer が決めます。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Template と Slot 合成</h2>
+      <div class="example">
+        <div class="example-head">
+          <h3>screen の slot source が template shell の preview を埋める</h3>
+          <span class="badge">template</span>
+        </div>
+        <div class="example-grid">
+          <pre><code>---
+id: SCR-ACCOUNT
+type: screen
+title: Account
+template:
+  id: TPL-ACCOUNT-SHELL
+  src: ../templates/account-shell.vspec.md
+---
+
+## Slot: content
+
+### L-AccountContent Account Content
+
+- stack
+
+#### Items
+
+- E-AccountTitle
+- L-ProfileSummaryHost
+
+## Elements
+
+### E-AccountTitle Heading
+
+- level: 1
+- label: Account</code></pre>
+          <div class="mock">
+            <div class="shell-frame">
+              <div class="shell-nav">
+                <span>Home</span>
+                <span>Profile</span>
+                <span>Billing</span>
+              </div>
+              <div class="slot-area stack">
+                <div class="row"><span class="marker">L1</span><span class="id-chip">L-AccountContent</span></div>
+                <div class="mock-title">Account</div>
+                <div class="panel">Profile summary host</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <ul>
+            <li>screen source は画面固有の slot content だけを持ち、周囲の shell は template が持ちます。</li>
+            <li><code>template.id</code> は期待する template 文書ID、<code>template.src</code> は読み込むファイルです。</li>
+            <li>preview result は、template shell と解決済み <code>## Slot: content</code> content を合成した表示です。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Partial Host と <code>display.partial</code></h2>
+      <div class="example">
+        <div class="example-head">
+          <h3>response effect が partial host を参照済み partial で置き換える</h3>
+          <span class="badge">partial</span>
+        </div>
+        <div class="example-grid">
+          <pre><code>---
+id: SCR-ACCOUNT
+type: screen
+title: Account
+references:
+  partials:
+    PRT-PROFILE-SUMMARY: ../partials/profile-summary.partial.vspec.md
+---
+
+## Layout: desktop
+
+### L-ProfileSummaryHost Profile Summary Host
+
+- stack
+- partial:
+  - id: PRT-PROFILE-SUMMARY
+  - states:
+    - idle: loaded
+
+## Actions
+
+### A-RefreshProfile Refresh profile
+
+- Process P1: Handle profile response
+  - case: success
+    - Effects
+      - display:
+        - target: L-ProfileSummaryHost
+        - partial: PRT-PROFILE-SUMMARY</code></pre>
+          <div class="mock stack">
+            <div class="row"><span class="marker">L2</span><span class="id-chip">L-ProfileSummaryHost</span></div>
+            <div class="partial-host stack">
+              <div class="mock-title">Jane Doe</div>
+              <div class="row"><span class="badge">Gold</span><span>Last updated: 2026-05-18</span></div>
+              <span class="button">Refresh</span>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <ul>
+            <li><code>references.partials</code> は <code>PRT-*</code> ID と再利用 partial 文書ファイルの対応を持ちます。</li>
+            <li>Layout の <code>partial:</code> block は置き換え先 host と、必要に応じた screen state から partial state への対応を宣言します。</li>
+            <li><code>display.partial</code> は返却 fragment の設計を示します。htmx の swap 属性は実装コード側の責務です。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Source Categories</h2>
+      <div class="example">
+        <div class="example-head">
+          <h3><code>source:</code> は表示値の由来を説明する</h3>
+          <span class="badge">source</span>
+        </div>
+        <div class="example-grid">
+          <pre><code>## Elements
+
+### E-ScreenTitle Heading
+
+- level: 1
+- label: Account
+- source: fixed
+
+### E-UserName Text
+
+- source: data
+- sample: Jane Doe
+- src: ${data.user.name}
+
+### E-AccountId Text
+
+- source: route
+- src: ${route.accountId}
+
+### E-SearchEcho Text
+
+- source: element
+- value: E-KeywordInput.value
+
+### E-MemberCount Text
+
+- source: computed
+- src: ${data.memberCount}
+- format: number with unit</code></pre>
+          <div class="mock source-list">
+            <div class="source-row"><span class="source-kind">fixed</span><span>Account</span></div>
+            <div class="source-row"><span class="source-kind">data</span><span>Jane Doe</span></div>
+            <div class="source-row"><span class="source-kind">route</span><span>URL の accountId</span></div>
+            <div class="source-row"><span class="source-kind">element</span><span>現在の keyword input value</span></div>
+            <div class="source-row"><span class="source-kind">computed</span><span>12 members</span></div>
+          </div>
+        </div>
+        <div class="notes">
+          <ul>
+            <li><code>source:</code> は由来分類であり、データパスや実装 binding ではありません。</li>
+            <li><code>source: fixed</code> は <code>label</code> や <code>text</code> に表示値そのものを持つため、<code>sample</code> を足しません。</li>
+            <li>preview が runtime data を知らない値には、必要に応じて具体的な <code>sample</code> を与えます。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Samples と Preview Scenarios</h2>
+      <div class="example">
+        <div class="example-head">
+          <h3>scenario samples は baseline preview value を上書きする</h3>
+          <span class="badge">samples</span>
+        </div>
+        <div class="example-grid">
+          <pre><code>## Elements
+
+### E-Users Table
+
+- source: data
+- Columns:
+  - name: Name
+  - role: Role
+- sample rows:
+  - row:
+    - name: Alice
+    - role: Admin
+
+## Preview Scenarios
+
+### loaded-empty
+
+- state: loaded
+- samples:
+  - E-Users:
+    - rows: []</code></pre>
+          <div class="mock stack">
+            <div>
+              <div class="mock-title">Baseline preview</div>
+              <table class="table-mock">
+                <thead><tr><th>Name</th><th>Role</th></tr></thead>
+                <tbody><tr><td>Alice</td><td>Admin</td></tr></tbody>
+              </table>
+            </div>
+            <div>
+              <div class="mock-title">Scenario: loaded-empty</div>
+              <table class="table-mock">
+                <thead><tr><th>Name</th><th>Role</th></tr></thead>
+                <tbody><tr><td class="empty-row" colspan="2">No rows</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <ul>
+            <li>Element の <code>sample rows:</code> は、上書きされない全 state の baseline preview に使われます。</li>
+            <li>Preview Scenario の <code>samples</code> はその scenario にだけ適用され、優先順位が最も高くなります。</li>
+            <li><code>rows: []</code> は意図的な 0 件 collection として、table fallback を表示します。</li>
           </ul>
         </div>
       </div>
