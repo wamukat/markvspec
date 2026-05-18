@@ -41,7 +41,7 @@ export function buildDisplayContentSpecRows(elements: ParsedElement[], context: 
     if (element.type === "Table") {
       pushTableRowsReferenceRow(rows, element, sourceType, context);
       pushDisplayPropertyRow(rows, element, "rows", properties["rows"], sourceType, undefined, context);
-      pushTableColumnRows(rows, element, sourceType);
+      pushTableColumnsRow(rows, element, sourceType);
     }
     pushDisplayPropertyRow(rows, element, "label", properties["label"], sourceType, undefined, context);
     pushDisplayPropertyRow(rows, element, "label src", properties["label src"], sourceType, undefined, context);
@@ -118,28 +118,25 @@ function resolveRouteValue(value: string, routeValues: Record<string, string> | 
   return routeValues[match[1]] ?? value;
 }
 
-function pushTableColumnRows(
+function pushTableColumnsRow(
   rows: DisplayContentSpecRow[],
   element: ParsedElement,
   source: MarkVSpecSourceType
 ): void {
+  if (element.tableColumns.length === 0 && sampleRowFieldKeys(element).length === 0) {
+    return;
+  }
   const knownKeys = new Set<string>();
+  const columnRows: string[] = [];
+  const columnLabels: string[] = [];
+  const columnFormats: string[] = [];
   for (const column of element.tableColumns) {
-    const field = tableColumnField(column);
     for (const key of tableColumnSampleKeys(column)) {
       knownKeys.add(key);
     }
-    rows.push({
-      element,
-      location: "column",
-      value: column.label,
-      contentSections: [
-        { title: "Label", rows: [column.label] },
-        ...(field ? [{ title: "Field", rows: [field] }] : [])
-      ],
-      source,
-      format: tableColumnMetadataValue(column, "format")
-    });
+    columnLabels.push(column.label);
+    columnRows.push(formatTableColumnContentRow(column));
+    columnFormats.push(tableColumnMetadataValue(column, "format") ?? "");
   }
 
   for (const key of sampleRowFieldKeys(element)) {
@@ -147,16 +144,22 @@ function pushTableColumnRows(
       continue;
     }
     knownKeys.add(key);
-    rows.push({
-      element,
-      location: "column",
-      value: key,
-      contentSections: [
-        { title: "Field", rows: [key] }
-      ],
-      source
-    });
+    columnLabels.push(key);
+    columnRows.push(`field: ${key}`);
+    columnFormats.push("");
   }
+
+  const format = aggregateDisplayMetadata(columnFormats, { includeEmpty: true });
+  rows.push({
+    element,
+    location: "columns",
+    value: columnLabels.join(", "),
+    contentSections: [
+      { title: "Columns", rows: columnRows }
+    ],
+    source,
+    ...(format ? { format } : {})
+  });
 }
 
 function pushTableRowsReferenceRow(
@@ -473,6 +476,16 @@ function tableColumnField(column: ParsedElement["tableColumns"][number]): string
 
 function tableColumnMetadataValue(column: ParsedElement["tableColumns"][number], key: string): string | undefined {
   return column.metadata?.find((metadata) => metadata.key === key)?.value;
+}
+
+function formatTableColumnContentRow(column: ParsedElement["tableColumns"][number]): string {
+  const details = [
+    tableColumnField(column) ? `field: ${tableColumnField(column)}` : "",
+    tableColumnMetadataValue(column, "format") ? `format: ${tableColumnMetadataValue(column, "format")}` : "",
+    column.sortable ? "sortable: true" : "",
+    column.sort ? `sort: ${column.sort}` : ""
+  ].filter(Boolean);
+  return details.length > 0 ? `${column.label} (${details.join("; ")})` : column.label;
 }
 
 function sampleRowFieldKeys(element: ParsedElement): string[] {

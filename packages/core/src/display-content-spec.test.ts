@@ -52,7 +52,7 @@ title: Display Content
 
   const rows = buildDisplayContentSpecRows(result.elements);
   const rowKeys = rows.map((row) => `${row.element.id}:${row.location}:${row.value}:${row.source ?? ""}`);
-  const userColumnRows = rows.filter((row) => row.element.id === "E-Users" && row.location === "column");
+  const userColumnsRow = rows.find((row) => row.element.id === "E-Users" && row.location === "columns");
   const roleOptionsRow = rows.find((row) => row.element.id === "E-RoleSelect" && row.location === "options");
   const statusItemsRow = rows.find((row) => row.element.id === "E-StatusList" && row.location === "items");
 
@@ -66,20 +66,11 @@ title: Display Content
   assert.deepEqual(rowsWithAnchorContext.find((row) => row.element.id === "E-Users" && row.location === "table rows")?.sampleRowsRef, {
     elementId: "E-Users"
   });
-  assert.deepEqual(userColumnRows.map((row) => row.contentSections), [
-    [
-      { title: "Label", rows: ["Name"] },
-      { title: "Field", rows: ["name"] }
-    ],
-    [
-      { title: "Label", rows: ["Role"] },
-      { title: "Field", rows: ["role"] }
-    ],
-    [
-      { title: "Label", rows: ["Email"] },
-      { title: "Field", rows: ["${model.users.email}"] }
-    ]
+  assert.deepEqual(userColumnsRow?.contentSections, [
+    { title: "Columns", rows: ["Name (field: name)", "Role (field: role)", "Email (field: ${model.users.email})"] }
   ]);
+  assert.deepEqual([userColumnsRow?.value, userColumnsRow?.source, userColumnsRow?.format], ["Name, Role, Email", "data", undefined]);
+  assert(!rowKeys.some((key) => key.startsWith("E-Users:column:")));
   assert(!rowKeys.some((key) => key.startsWith("E-Users:column source:")));
   assert(rowKeys.includes("E-StatusList:items:Open, Closed:fixed"));
   assert.deepEqual(statusItemsRow?.contentSections, [{ title: "Items", rows: ["Open", "Closed"] }]);
@@ -168,6 +159,51 @@ title: Sample Rows
   }]);
   assert.deepEqual([fixedRows?.value, fixedRows?.source], ["fixed rows: 1", "fixed"]);
   assert.equal(unknownRows, undefined);
+});
+
+test("aggregates Table columns into one Display Content Spec row", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-TABLE-COLUMNS
+type: screen
+title: Table Columns
+---
+
+## Elements
+
+### E-Users Table
+
+- source: data
+- Columns:
+  - name: Name
+    sortable: true
+  - email: Email
+  - Status: \${model.users.status}
+- sample rows:
+  - row:
+    - name: Taylor
+    - email: taylor@example.com
+    - status: Active
+    - lastLogin: 2026-05-18
+`);
+
+  const rows = buildDisplayContentSpecRows(result.elements);
+  const columnsRow = rows.find((row) => row.element.id === "E-Users" && row.location === "columns");
+  const rowKeys = rows.map((row) => `${row.element.id}:${row.location}:${row.value}`);
+
+  assert.deepEqual([columnsRow?.value, columnsRow?.source, columnsRow?.format], [
+    "Name, Email, Status, lastLogin",
+    "data",
+    undefined
+  ]);
+  assert.deepEqual(columnsRow?.contentSections, [
+    { title: "Columns", rows: [
+      "Name (field: name; sortable: true)",
+      "Email (field: email)",
+      "Status (field: ${model.users.status})",
+      "field: lastLogin"
+    ] }
+  ]);
+  assert(!rowKeys.some((key) => key.startsWith("E-Users:column:")));
 });
 
 test("builds Display Content Spec rows from property-level metadata", () => {

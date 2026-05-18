@@ -746,6 +746,14 @@ title: Static Display Metadata
   - System role
     - kind: data
     - source: ${"${data.role}"}
+
+### 6:E-UsersTable Table
+
+- source: data
+- Columns:
+  - name: Name
+    sortable: true
+  - Email: ${"${model.users.email}"}
 `);
   const html = renderStaticDesignDocumentHtml(result);
   const loadedSection = stateViewSection(html, "loaded");
@@ -764,6 +772,8 @@ title: Static Display Metadata
   assert.match(displayContent, /currency USD/);
   assert.match(displayContent, /options[\s\S]*<strong>Options<\/strong>[\s\S]*Member \(i18n\)[\s\S]*Administrator \(i18n; copy\.roles\.admin\)[\s\S]*System role \(data; <span class="mm-inline-token">\$\{data\.role\}<\/span>\)/);
   assert.match(displayContent, /options[\s\S]*<td>-<\/td><td><code>mixed<\/code><\/td>/);
+  assert.match(displayContent, /columns[\s\S]*<strong>Columns<\/strong>[\s\S]*Name \(field: name; sortable: true\)[\s\S]*Email \(field: <span class="mm-inline-token">\$\{model\.users\.email\}<\/span>\)/);
+  assert.doesNotMatch(displayContent, /<td>column<\/td>/);
   assert.doesNotMatch(displayContent, /option label/);
 });
 
