@@ -156,7 +156,7 @@ function renderScenarioSamplesBox(
   context: StateViewsRenderContext,
   model: StateScreenReadModel
 ): string {
-  if (model.scenarioSamples.length === 0) {
+  if (model.scenarioSamples.length === 0 && model.scenarioRoute.length === 0) {
     return "";
   }
   const { format } = context;
@@ -169,11 +169,29 @@ function renderScenarioSamplesBox(
     .map((sample) => renderScenarioSampleRowsBlock(context, sample, elementById.get(sample.elementId)))
     .filter(Boolean)
     .join("");
+  const samplesTable = rows
+    ? `<div class="spec-table-wrap"><table class="spec-table scenario-samples-table"><thead><tr><th>${format.label("elements")}</th><th>${format.label("sample")}</th></tr></thead><tbody>${rows}</tbody></table></div>`
+    : "";
   return `<aside class="scenario-samples-box">
     <h6 class="state-screen-detail-heading">${format.label("scenarioSamples")}</h6>
-    <div class="spec-table-wrap"><table class="spec-table scenario-samples-table"><thead><tr><th>${format.label("elements")}</th><th>${format.label("sample")}</th></tr></thead><tbody>${rows}</tbody></table></div>
+    ${renderScenarioRouteTable(context, model)}
+    ${samplesTable}
     ${rowBlocks}
   </aside>`;
+}
+
+function renderScenarioRouteTable(
+  context: StateViewsRenderContext,
+  model: StateScreenReadModel
+): string {
+  if (model.scenarioRoute.length === 0) {
+    return "";
+  }
+  const { format } = context;
+  const rows = model.scenarioRoute
+    .map((sample) => `<tr><td>${format.text(sample.key)}</td><td>${format.text(sample.value)}</td></tr>`)
+    .join("");
+  return `<div class="spec-section"><strong>${format.label("routeParameters")}</strong><div class="spec-table-wrap"><table class="spec-table scenario-route-table"><thead><tr><th>${format.label("name")}</th><th>${format.label("value")}</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 
 function renderScenarioSampleElementRef(

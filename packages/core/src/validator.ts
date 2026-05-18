@@ -2641,6 +2641,7 @@ function validateViewContexts(
 
       validatePreviewScenarioCases(scenario, result, diagnostics);
       validatePreviewScenarioSamples(scenario, elementsById, diagnostics);
+      validatePreviewScenarioRouteSamples(scenario, result.screen.route, diagnostics);
     }
   }
 
@@ -2653,11 +2654,11 @@ function validateBaselinePreviewScenario(
   scenario: MarkVSpecParseResult["previewScenarios"][number],
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
-  const disallowedProperties = Object.keys(scenario.properties).filter((key) => key !== "samples");
+  const disallowedProperties = Object.keys(scenario.properties).filter((key) => key !== "samples" && key !== "route");
   for (const key of disallowedProperties) {
     diagnostics.push({
       severity: "error",
-      message: `Preview Scenario ${scenario.name} is a baseline state sample and cannot define ${key}. Use samples only, or add state: with a distinct scenario name for an additional preview variant.`,
+      message: `Preview Scenario ${scenario.name} is a baseline state sample and cannot define ${key}. Use samples or route only, or add state: with a distinct scenario name for an additional preview variant.`,
       line: firstPropertyLine(scenario, key) ?? scenario.location.line
     });
   }
@@ -2665,7 +2666,7 @@ function validateBaselinePreviewScenario(
   if (scenario.cases.length > 0) {
     diagnostics.push({
       severity: "error",
-      message: `Preview Scenario ${scenario.name} is a baseline state sample and cannot define cases. Use samples only, or add state: with a distinct scenario name for an additional preview variant.`,
+      message: `Preview Scenario ${scenario.name} is a baseline state sample and cannot define cases. Use samples or route only, or add state: with a distinct scenario name for an additional preview variant.`,
       line: scenario.cases[0]?.location.line ?? scenario.location.line
     });
   }
@@ -2714,6 +2715,35 @@ function validatePreviewScenarioSamples(
         severity: "warning",
         message: `Preview Scenario ${scenario.name} scalar sample target ${sample.elementId} should not be a Table or List element. Use rows instead.`,
         line: sample.location.line
+      });
+    }
+  }
+}
+
+function validatePreviewScenarioRouteSamples(
+  scenario: MarkVSpecParseResult["previewScenarios"][number],
+  screenRoute: string | undefined,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  if (scenario.route.length === 0) {
+    return;
+  }
+  if (!screenRoute) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Preview Scenario ${scenario.name} defines route samples, but screen route is not defined.`,
+      line: scenario.route[0]?.location.line ?? scenario.location.line
+    });
+    return;
+  }
+
+  const declared = extractRoutePlaceholders(screenRoute);
+  for (const routeSample of scenario.route) {
+    if (!declared.has(routeSample.key)) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Preview Scenario ${scenario.name} route sample ${routeSample.key} does not match any :param in screen route.`,
+        line: routeSample.location.line
       });
     }
   }

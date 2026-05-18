@@ -51,6 +51,7 @@ export interface StateScreenReadModel {
   readonly focus?: FocusScope;
   readonly modelValues: Record<string, boolean>;
   readonly viewValues: Record<string, boolean | number | string>;
+  readonly scenarioRoute: ParsedPreviewScenario["route"];
   readonly scenarioSamples: ParsedPreviewScenario["samples"];
   readonly renderedIds: RenderedIds;
   readonly displayEffects: ParsedDisplayEffect[];
@@ -163,6 +164,7 @@ export function buildStateScreenReadModels(
       focus,
       modelValues: displayModelValues,
       viewValues: displayViewValues,
+      scenarioRoute: [],
       scenarioSamples: [],
       renderedIds: ids,
       displayEffects: [],
@@ -180,6 +182,7 @@ export function buildStateScreenReadModels(
         focus,
         modelValues: displayModelValues,
         viewValues: displayViewValues,
+        scenarioRoute: [],
         scenarioSamples: [],
         renderedIds: ids,
         displayEffects: [],
@@ -193,15 +196,18 @@ export function buildStateScreenReadModels(
 
   const stateNames = new Set(result.states.map((state) => state.name));
   const baselineScenarioSamplesByState = baselinePreviewScenarioSamplesByState(result);
-  const stateRenderings = new Map<string, { ids: RenderedIds; actionIds: Set<string>; modelValues: Record<string, boolean>; viewValues: Record<string, boolean | number | string>; scenarioSamples: ParsedPreviewScenario["samples"]; displayEffects: ParsedDisplayEffect[]; displayExplanations: StateScreenDisplayExplanation[] }>();
+  const baselineScenarioRouteByState = baselinePreviewScenarioRouteByState(result);
+  const stateRenderings = new Map<string, { ids: RenderedIds; actionIds: Set<string>; modelValues: Record<string, boolean>; viewValues: Record<string, boolean | number | string>; scenarioRoute: ParsedPreviewScenario["route"]; scenarioSamples: ParsedPreviewScenario["samples"]; displayEffects: ParsedDisplayEffect[]; displayExplanations: StateScreenDisplayExplanation[] }>();
   if (displayStateName) {
     const displayScenarioSamples = baselineScenarioSamplesByState.get(displayStateName) ?? [];
+    const displayScenarioRoute = baselineScenarioRouteByState.get(displayStateName) ?? [];
     const displayIds = stateScreenRenderedIdsFromReadModel(wireframeResult, viewport, displayStateName, displayModelValues, displayViewValues);
     stateRenderings.set(displayStateName, {
       ids: displayIds,
       actionIds: relevantActionIdsForState(wireframeResult, displayStateName, displayIds.elementIds),
       modelValues: displayModelValues,
       viewValues: displayViewValues,
+      scenarioRoute: displayScenarioRoute,
       scenarioSamples: displayScenarioSamples,
       displayEffects: [],
       displayExplanations: []
@@ -215,9 +221,10 @@ export function buildStateScreenReadModels(
     const stateModelValues = modelValuesForState(wireframeResult, stateName);
     const stateViewValues = viewValuesForScenario(wireframeResult, undefined);
     const scenarioSamples = baselineScenarioSamplesByState.get(stateName) ?? [];
+    const scenarioRoute = baselineScenarioRouteByState.get(stateName) ?? [];
     const ids = stateScreenRenderedIdsFromReadModel(wireframeResult, viewport, stateName, stateModelValues, stateViewValues);
     const actionIds = relevantActionIdsForState(wireframeResult, stateName, ids.elementIds);
-    const rendered = { ids, actionIds, modelValues: stateModelValues, viewValues: stateViewValues, scenarioSamples, displayEffects: [], displayExplanations: [] };
+    const rendered = { ids, actionIds, modelValues: stateModelValues, viewValues: stateViewValues, scenarioRoute, scenarioSamples, displayEffects: [], displayExplanations: [] };
     stateRenderings.set(stateName, rendered);
     return rendered;
   };
@@ -227,11 +234,13 @@ export function buildStateScreenReadModels(
     stateName: string,
     modelName: string | undefined,
     viewName: string | undefined,
+    route: ParsedPreviewScenario["route"],
     samples: ParsedPreviewScenario["samples"],
     cases: MarkVSpecParseResult["previewScenarios"][number]["cases"]
   ) => {
     const modelValues = modelValuesForState(scenarioResult, modelName ?? stateName);
     const viewValues = viewValuesForScenario(scenarioResult, viewName);
+    const scenarioRoute = mergeScenarioRoute(baselineScenarioRouteByState.get(stateName) ?? [], route);
     const scenarioSamples = mergeScenarioSamples(baselineScenarioSamplesByState.get(stateName) ?? [], samples);
     const ids = stateScreenRenderedIdsFromReadModel(scenarioResult, scenarioViewport, stateName, modelValues, viewValues);
     const displayEffects = displayEffectsForScenarioCases(scenarioResult, cases);
@@ -242,6 +251,7 @@ export function buildStateScreenReadModels(
       actionIds: relevantActionIdsForState(scenarioResult, stateName, ids.elementIds),
       modelValues,
       viewValues,
+      scenarioRoute,
       scenarioSamples,
       displayEffects,
       displayExplanations
@@ -253,7 +263,7 @@ export function buildStateScreenReadModels(
   return displays
     .map((display, index) => {
       const current = display.scenario
-        ? renderScenario(wireframeResult, viewport, display.state.name, display.scenario.model, display.scenario.view, display.scenario.samples, display.scenario.cases)
+        ? renderScenario(wireframeResult, viewport, display.state.name, display.scenario.model, display.scenario.view, display.scenario.route, display.scenario.samples, display.scenario.cases)
         : renderState(display.state.name);
       const title = display.scenario
         ? display.scenario.name
@@ -273,6 +283,7 @@ export function buildStateScreenReadModels(
         focus,
         modelValues: current.modelValues,
         viewValues: current.viewValues,
+        scenarioRoute: current.scenarioRoute,
         scenarioSamples: current.scenarioSamples,
         renderedIds: current.ids,
         displayEffects: current.displayEffects,
@@ -290,6 +301,7 @@ export function buildStateScreenReadModels(
           focus,
           modelValues: current.modelValues,
           viewValues: current.viewValues,
+          scenarioRoute: current.scenarioRoute,
           scenarioSamples: current.scenarioSamples,
           renderedIds: current.ids,
           displayEffects: current.displayEffects,
@@ -383,6 +395,31 @@ function baselinePreviewScenarioSamplesByState(result: MarkVSpecParseResult): Ma
     }
   }
   return samplesByState;
+}
+
+function baselinePreviewScenarioRouteByState(result: MarkVSpecParseResult): Map<string, ParsedPreviewScenario["route"]> {
+  const stateNames = new Set(result.states.map((state) => state.name));
+  const routeByState = new Map<string, ParsedPreviewScenario["route"]>();
+  for (const scenario of result.previewScenarios) {
+    if (!scenario.state && stateNames.has(scenario.name)) {
+      routeByState.set(scenario.name, mergeScenarioRoute(routeByState.get(scenario.name) ?? [], scenario.route));
+    }
+  }
+  return routeByState;
+}
+
+function mergeScenarioRoute(
+  baseline: ParsedPreviewScenario["route"],
+  override: ParsedPreviewScenario["route"]
+): ParsedPreviewScenario["route"] {
+  const byKey = new Map<string, ParsedPreviewScenario["route"][number]>();
+  for (const sample of baseline) {
+    byKey.set(sample.key, sample);
+  }
+  for (const sample of override) {
+    byKey.set(sample.key, sample);
+  }
+  return [...byKey.values()];
 }
 
 function mergeScenarioSamples(
@@ -583,7 +620,7 @@ function markRepeatedCurrentStateScreenItems(
     }
   }
   for (const elementId of model.renderedIds.elementIds) {
-    if (!model.scenarioSamples.some((sample) => sample.elementId === elementId) && seen.current.has(stateScreenCurrentKey(keyResult, model, "element", elementId))) {
+    if (model.scenarioRoute.length === 0 && !model.scenarioSamples.some((sample) => sample.elementId === elementId) && seen.current.has(stateScreenCurrentKey(keyResult, model, "element", elementId))) {
       repeatedElementIds.add(elementId);
     }
   }
@@ -768,13 +805,23 @@ export function stateScreenElementGroups(
   other: ParsedElement[];
 } {
   const formControls = elements.filter((element) => isFormControlElement(element.type));
-  const displayContentRows = buildDisplayContentSpecRows(elements, { scenarioSamples: model?.scenarioSamples });
+  const displayContentRows = buildDisplayContentSpecRows(elements, {
+    scenarioSamples: model?.scenarioSamples,
+    routeValues: scenarioRouteValues(model?.scenarioRoute)
+  });
   const categorizedIds = new Set([
     ...formControls.map((element) => element.id),
     ...displayContentRows.map((row) => row.element.id)
   ]);
   const other = elements.filter((element) => !categorizedIds.has(element.id));
   return { formControls, displayContentRows, other };
+}
+
+export function scenarioRouteValues(routeSamples: readonly ParsedPreviewScenario["route"][number][] | undefined): Record<string, string> | undefined {
+  if (!routeSamples || routeSamples.length === 0) {
+    return undefined;
+  }
+  return Object.fromEntries(routeSamples.map((sample) => [sample.key, sample.value]));
 }
 
 function everyIdRepeated<T>(

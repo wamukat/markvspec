@@ -7,6 +7,7 @@ type ScenarioSample = MarkVSpecParseResult["previewScenarios"][number]["samples"
 
 export type DisplayContentSpecContext = {
   scenarioSamples?: readonly ScenarioSample[];
+  routeValues?: Record<string, string>;
 };
 
 export type DisplayContentSpecRow = {
@@ -32,28 +33,28 @@ export function buildDisplayContentSpecRows(elements: ParsedElement[], context: 
     const displaySample = sourceType === "data" ? properties["sample"] : undefined;
     if (element.type === "Table") {
       pushTableRowsReferenceRow(rows, element, sourceType, context);
-      pushDisplayPropertyRow(rows, element, "rows", properties["rows"], sourceType);
+    pushDisplayPropertyRow(rows, element, "rows", properties["rows"], sourceType, undefined, context);
       pushTableColumnRows(rows, element, sourceType);
     }
-    pushDisplayPropertyRow(rows, element, "label", properties["label"], sourceType);
-    pushDisplayPropertyRow(rows, element, "label src", properties["label src"], sourceType);
-    pushDisplayPropertyRow(rows, element, "placeholder", properties["placeholder"], sourceType);
-    pushDisplayPropertyRow(rows, element, "placeholder src", properties["placeholder src"], sourceType);
-    pushDisplayPropertyRow(rows, element, "help", properties["help"], sourceType);
-    pushDisplayPropertyRow(rows, element, "help src", properties["help src"], sourceType);
-    pushDisplayPropertyRow(rows, element, "hint", properties["hint"], sourceType);
-    pushDisplayPropertyRow(rows, element, "message", properties["message"], sourceType);
-    pushDisplayPropertyRow(rows, element, "message src", properties["message src"], sourceType);
-    pushDisplayPropertyRow(rows, element, "error text", properties["error text"], sourceType);
-    pushDisplayPropertyRow(rows, element, "sample", displaySample, sourceType, rawStringProperty(properties["format"]));
-    pushDisplayPropertyRow(rows, element, "src", displaySource, sourceType, rawStringProperty(properties["format"]));
-    pushDisplayPropertyRow(rows, element, "href", properties["href"], sourceType, rawStringProperty(properties["format"]));
-    pushDisplayPropertyRow(rows, element, "value", displayValueProperty(element), sourceType, rawStringProperty(properties["format"]));
-    pushDisplayPropertyRow(rows, element, "content", properties["content"], sourceType);
-    pushDisplayPropertyRow(rows, element, "text", properties["text"], sourceType);
-    pushDisplayPropertyRow(rows, element, "title", properties["title"], sourceType);
-    pushDisplayPropertyRow(rows, element, "alt", properties["alt"], sourceType);
-    pushDisplayPropertyRow(rows, element, "name", properties["name"], sourceType);
+    pushDisplayPropertyRow(rows, element, "label", properties["label"], sourceType, undefined, context);
+    pushDisplayPropertyRow(rows, element, "label src", properties["label src"], sourceType, undefined, context);
+    pushDisplayPropertyRow(rows, element, "placeholder", properties["placeholder"], sourceType, undefined, context);
+    pushDisplayPropertyRow(rows, element, "placeholder src", properties["placeholder src"], sourceType, undefined, context);
+    pushDisplayPropertyRow(rows, element, "help", properties["help"], sourceType, undefined, context);
+    pushDisplayPropertyRow(rows, element, "help src", properties["help src"], sourceType, undefined, context);
+    pushDisplayPropertyRow(rows, element, "hint", properties["hint"], sourceType, undefined, context);
+    pushDisplayPropertyRow(rows, element, "message", properties["message"], sourceType, undefined, context);
+    pushDisplayPropertyRow(rows, element, "message src", properties["message src"], sourceType, undefined, context);
+    pushDisplayPropertyRow(rows, element, "error text", properties["error text"], sourceType, undefined, context);
+    pushDisplayPropertyRow(rows, element, "sample", displaySample, sourceType, rawStringProperty(properties["format"]), context);
+    pushDisplayPropertyRow(rows, element, "src", displaySource, sourceType, rawStringProperty(properties["format"]), context);
+    pushDisplayPropertyRow(rows, element, "href", properties["href"], sourceType, rawStringProperty(properties["format"]), context);
+    pushDisplayPropertyRow(rows, element, "value", displayValueProperty(element), sourceType, rawStringProperty(properties["format"]), context);
+    pushDisplayPropertyRow(rows, element, "content", properties["content"], sourceType, undefined, context);
+    pushDisplayPropertyRow(rows, element, "text", properties["text"], sourceType, undefined, context);
+    pushDisplayPropertyRow(rows, element, "title", properties["title"], sourceType, undefined, context);
+    pushDisplayPropertyRow(rows, element, "alt", properties["alt"], sourceType, undefined, context);
+    pushDisplayPropertyRow(rows, element, "name", properties["name"], sourceType, undefined, context);
     pushListItemsRow(rows, element, sourceType, context);
     pushSelectOptionsRow(rows, element, sourceType);
     pushTabsRow(rows, element, sourceType);
@@ -74,27 +75,40 @@ function pushDisplayPropertyRow(
   location: string,
   value: string | true | undefined,
   source?: MarkVSpecSourceType,
-  format?: string
+  format?: string,
+  context: DisplayContentSpecContext = {}
 ): void {
   const stringValue = rawStringProperty(value);
   if (!stringValue) {
     return;
   }
+  const resolvedValue = resolveRouteValue(stringValue, context.routeValues);
   const metadata = element.propertyMetadata[location];
   const contentSections = metadata?.source
     ? [
-        { title: "Value", rows: [stringValue] },
+        { title: "Value", rows: [resolvedValue] },
         { title: "Source", rows: [metadata.source] }
       ]
     : undefined;
   rows.push({
     element,
     location,
-    value: stringValue,
+    value: resolvedValue,
     ...(contentSections ? { contentSections } : {}),
     source: metadata?.kind ?? source,
     format: metadata?.format ?? format
   });
+}
+
+function resolveRouteValue(value: string, routeValues: Record<string, string> | undefined): string {
+  if (!routeValues) {
+    return value;
+  }
+  const match = /^\$\{\s*route\.([A-Za-z][A-Za-z0-9_-]*)\s*\}$/u.exec(value);
+  if (!match) {
+    return value;
+  }
+  return routeValues[match[1]] ?? value;
 }
 
 function pushTableColumnRows(

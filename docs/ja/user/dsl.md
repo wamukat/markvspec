@@ -1776,7 +1776,7 @@ Action レベルの `When` / guard はサポートしません。操作可否は
 
 ## Preview Scenarios
 
-`## Preview Scenarios` は、preview/export で使う state、model、view、samples、Action process case の組み合わせを明示したい場合に使います。`## States` から作る baseline preview は常に表示されます。見出しが state 名と一致し、`state:` を省略した block は、その通常 state preview に適用する baseline samples です。state 名とは異なる見出しに `state:` を書くと、追加 preview variant になります。
+`## Preview Scenarios` は、preview/export で使う state、model、view、route parameter data、samples、Action process case の組み合わせを明示したい場合に使います。`## States` から作る baseline preview は常に表示されます。見出しが state 名と一致し、`state:` を省略した block は、その通常 state preview に適用する baseline samples です。state 名とは異なる見出しに `state:` を書くと、追加 preview variant になります。
 
 ```markdown
 ## Preview Scenarios
@@ -1793,6 +1793,8 @@ Action レベルの `When` / guard はサポートしません。操作可否は
 
 ### loaded
 
+- route:
+  - memberId: M-200
 - samples:
   - E-Title: Baseline loaded title
 
@@ -2242,7 +2244,7 @@ Preview Scenario が `view` を指定しない場合、preview/export はまず
 
 ## Preview Scenarios セクション
 
-`## Preview Scenarios` は、state preview に使う `state`、`model`、`view`、`samples` の組み合わせを明示します。`## States` から作る baseline preview は常に表示されます。`### <state-name>` block で `state:` を省略すると、その state の baseline preview に `samples:` を適用します。state 名とは異なる scenario 名に `state:` を明示すると、追加 preview variant になります。
+`## Preview Scenarios` は、state preview に使う `state`、`model`、`view`、route parameter data、`samples` の組み合わせを明示します。`## States` から作る baseline preview は常に表示されます。`### <state-name>` block で `state:` を省略すると、その state の baseline preview に `samples:` を適用します。state 名とは異なる scenario 名に `state:` を明示すると、追加 preview variant になります。
 
 ```markdown
 ## Preview Scenarios
@@ -2262,9 +2264,18 @@ state の標準表示データを書きたい場合は、state 名を見出し�
 
 ### loaded
 
+- route:
+  - memberId: M-200
 - samples:
   - E-Title: Baseline loaded title
 ```
+
+`route:` は `samples:` とは別の scenario top-level property です。子要素は
+`key: value` 形式で書き、key は Front Matter の `route` にある `:param`
+placeholder と一致させます。route sample は `${route.memberId}` のように
+表示値 property に書かれた route 参照を解決します。`source: ${route.memberId}`
+だけを根拠に value を置換することはなく、Element の `samples:` がある場合は
+そちらを優先します。
 
 `before:` を使うと、baseline state preview または別の preview scenario の前に scenario を挿入できます。並び順指定は `before:` だけをサポートします。`after:` は使いません。`before:` を省略した場合、その scenario は base state preview の後に挿入されます。
 
@@ -2276,9 +2287,10 @@ sample の優先順位は次の通りです。
 
 1. 追加 Preview Scenario の `samples` が、その scenario の表示値として最優先です。
 2. 追加 scenario に対象 element の `samples` がない場合は、`### <state-name>` の baseline `samples` を使います。
-3. scenario 側に対象 element の `samples` がない場合は、`label`、`text`、`message`、`hint`、`value` などの scalar property value を baseline として使います。
-4. `sample rows:` は `Table` / `List` の複数行 baseline 値として使います。
-5. どこにも preview 用の値がない場合は placeholder 的な表示に留め、値を捏造しません。
+3. Element sample がない場合、route sample が `${route.*}` として書かれた表示値を解決します。
+4. scenario 側に対象 element の `samples` も route 解決対象もない場合は、`label`、`text`、`message`、`hint`、`value` などの scalar property value を baseline として使います。
+5. `sample rows:` は `Table` / `List` の複数行 baseline 値として使います。
+6. どこにも preview 用の値がない場合は placeholder 的な表示に留め、値を捏造しません。
 
 ```markdown
 ## Elements

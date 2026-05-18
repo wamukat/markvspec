@@ -133,7 +133,8 @@ export function createStateViewSpecTableRenderer(
     markRepeatedHiddenEmptyHtml(helpers.renderLocalizedTable(
       [markerIdHeader(), helpers.label("type"), helpers.label("inputRequired"), helpers.label("initialValueSource"), helpers.label("displaySource"), helpers.label("inputSpec"), helpers.label("condition")],
       elements.map((element) => {
-        const sampleValue = model?.scenarioSamples.find((sample) => sample.elementId === element.id && sample.value !== undefined)?.value;
+        const sampleValue = model?.scenarioSamples.find((sample) => sample.elementId === element.id && sample.value !== undefined)?.value
+          ?? routeResolvedValue(stringProperty(element.properties["value"]), model);
         return [
           renderRepeatedEntityRefCell(element.id, Boolean(repeatedElementIds?.has(element.id))),
           helpers.text(element.type),
@@ -284,6 +285,17 @@ export function createStateViewSpecTableRenderer(
     renderActionsTable,
     renderRepeatedMarkerCell
   };
+}
+
+function routeResolvedValue(value: string, model: StateScreenReadModel | undefined): string | undefined {
+  if (!value || !model) {
+    return undefined;
+  }
+  const match = /^\$\{\s*route\.([A-Za-z][A-Za-z0-9_-]*)\s*\}$/u.exec(value);
+  if (!match) {
+    return undefined;
+  }
+  return model.scenarioRoute.find((sample) => sample.key === match[1])?.value;
 }
 
 function repeatedHiddenEmptyAttr(emptyWhenRepeatedHidden: boolean): string {

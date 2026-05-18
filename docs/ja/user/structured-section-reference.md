@@ -204,7 +204,9 @@ form を検証して送信する。
 
 `Preview Scenarios` は ID 付き entity ではなく、scenario heading の階層を持ちます。
 `Section Lead` は scenario 全体の説明です。`### <scenario-name>` は scenario を開始し、
-`state`、`view`、`before`、display `cases`、Element ID keyed の `samples` を束ねます。
+`state`、`view`、`before`、route parameter data、display `cases`、Element ID keyed の
+`samples` を束ねます。`route` entry は Front Matter `route` の `:param` placeholder
+に対する `key: value` sample です。
 
 ```markdown
 ## Preview Scenarios
@@ -212,6 +214,8 @@ form を検証して送信する。
 ### loaded-with-results
 
 - state: loaded
+- route:
+  - memberId: M-200
 - samples:
   - E-ItemsTable:
     - rows:

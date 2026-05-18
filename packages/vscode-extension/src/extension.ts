@@ -53,7 +53,8 @@ import {
 import type { TableCell } from "./design-document-renderer.js";
 import {
   buildStateScreenReadModels,
-  buildViewportStateScreenReadModels
+  buildViewportStateScreenReadModels,
+  scenarioRouteValues
 } from "@markvspec/core";
 import type { FocusScope, StateScreenReadModel } from "@markvspec/core";
 import {
@@ -3762,7 +3763,7 @@ function renderStateScreenWireframe(
   model: StateScreenReadModel,
   index: number
 ): string {
-  return renderWireframeFor(wireframeResult, model.viewport, model.stateName, index === 0, model.focus, model.modelValues, model.viewValues, model.displayEffects, model.scenarioSamples);
+  return renderWireframeFor(wireframeResult, model.viewport, model.stateName, index === 0, model.focus, model.modelValues, model.viewValues, model.displayEffects, model.scenarioSamples, model.scenarioRoute);
 }
 
 function stateViewsRenderContext(result: ReturnType<typeof parseMarkVSpec>): StateViewsRenderContext {
@@ -3833,7 +3834,8 @@ function renderWireframeFor(
   modelValues?: Record<string, boolean | number | string>,
   viewValues?: Record<string, boolean | number | string>,
   displayEffects?: StateScreenReadModel["displayEffects"],
-  scenarioSamples?: StateScreenReadModel["scenarioSamples"]
+  scenarioSamples?: StateScreenReadModel["scenarioSamples"],
+  scenarioRoute?: StateScreenReadModel["scenarioRoute"]
 ): string {
   const html = renderMarkVSpecHtml(result, {
     includeConditionalContent: false,
@@ -3841,6 +3843,7 @@ function renderWireframeFor(
     state,
     modelValues,
     viewValues,
+    routeValues: scenarioRouteValues(scenarioRoute),
     sampleOverrides: sampleOverridesFromScenarioSamples(scenarioSamples),
     messages: rendererMessagesForResult(result),
     markerVisibility: {

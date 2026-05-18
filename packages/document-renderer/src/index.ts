@@ -1,4 +1,4 @@
-import { buildViewportStateScreenReadModels, effectiveHistoryFields, isMarkVSpecSourceType, latestHistoryBasicInfo, messagesForLocale, renderMarkVSpecHtml, resolveMarkVSpecEntityReference, sourceTypeForElement, stateScreenElementGroups, stateScreenElementsForModel, stateScreenLayoutsForModel, stateScreenUnplacedLayoutIdsForModel, tableColumnSampleKeys } from "@markvspec/core";
+import { buildViewportStateScreenReadModels, effectiveHistoryFields, isMarkVSpecSourceType, latestHistoryBasicInfo, messagesForLocale, renderMarkVSpecHtml, resolveMarkVSpecEntityReference, scenarioRouteValues, sourceTypeForElement, stateScreenElementGroups, stateScreenElementsForModel, stateScreenLayoutsForModel, stateScreenUnplacedLayoutIdsForModel, tableColumnSampleKeys } from "@markvspec/core";
 import type { DisplayContentSpecRow, MarkVSpecParseResult, RendererMessages, StateScreenReadModel } from "@markvspec/core";
 
 export type MarkVSpecDocumentViewport = "mobile" | "tablet" | "desktop" | string;
@@ -433,6 +433,7 @@ function renderStateScreenSection(
     markerVisibility: { layout: true, element: true, action: true },
     messages,
     modelValues: model.modelValues,
+    routeValues: scenarioRouteValues(model.scenarioRoute),
     sampleOverrides: sampleOverridesFromScenarioSamples(model.scenarioSamples),
     state: model.stateName,
     viewport: model.viewport,
@@ -587,7 +588,7 @@ function renderScenarioSamplesBox(
   model: StateScreenReadModel,
   messages: RendererMessages
 ): string {
-  if (model.scenarioSamples.length === 0) {
+  if (model.scenarioSamples.length === 0 && model.scenarioRoute.length === 0) {
     return "";
   }
 
@@ -599,11 +600,26 @@ function renderScenarioSamplesBox(
     .map((sample) => renderScenarioSampleRowsBlock(result, sample, elementById.get(sample.elementId), messages))
     .filter(Boolean)
     .join("");
+  const samplesTable = rows.length > 0
+    ? renderTable([messages.elements, messages.sample], rows)
+    : "";
   return `<aside class="scenario-samples-box">
     <h6 class="state-screen-detail-heading">${escapeHtml(messages.scenarioSamples)}</h6>
-    ${renderTable([messages.elements, messages.sample], rows)}
+    ${renderScenarioRouteTable(model, messages)}
+    ${samplesTable}
     ${rowBlocks}
   </aside>`;
+}
+
+function renderScenarioRouteTable(
+  model: StateScreenReadModel,
+  messages: RendererMessages
+): string {
+  if (model.scenarioRoute.length === 0) {
+    return "";
+  }
+  const rows = model.scenarioRoute.map((sample) => [escapeHtml(sample.key), escapeHtml(sample.value)]);
+  return `<div class="spec-section"><strong>${escapeHtml(messages.routeParameters)}</strong>${renderTable([messages.name, messages.value], rows)}</div>`;
 }
 
 function renderScenarioSampleElementRef(result: MarkVSpecParseResult, elementId: string): string {
@@ -725,11 +741,20 @@ function renderInputFormSpecBox(
 }
 
 function renderStaticFormControlValue(element: MarkVSpecParseResult["elements"][number], model: StateScreenReadModel): string {
-  const sampleValue = model.scenarioSamples.find((sample) => sample.elementId === element.id && sample.value !== undefined)?.value;
+  const sampleValue = model.scenarioSamples.find((sample) => sample.elementId === element.id && sample.value !== undefined)?.value
+    ?? routeResolvedValue(rawStringProperty(element.properties["value"]), model);
   const initialValue = rawStringProperty(element.properties["initial value"]);
   const value = rawStringProperty(element.properties["value"]);
   const renderedValue = sampleValue ?? (initialValue || value);
   return renderedValue ? renderExpressionTokens(renderedValue) : "";
+}
+
+function routeResolvedValue(value: string, model: StateScreenReadModel): string | undefined {
+  const match = /^\$\{\s*route\.([A-Za-z][A-Za-z0-9_-]*)\s*\}$/u.exec(value);
+  if (!match) {
+    return undefined;
+  }
+  return model.scenarioRoute.find((sample) => sample.key === match[1])?.value;
 }
 
 function renderStaticFormControlSource(element: MarkVSpecParseResult["elements"][number]): string {

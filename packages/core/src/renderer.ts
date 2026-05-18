@@ -27,6 +27,7 @@ export function renderMarkVSpecHtml(result: MarkVSpecParseResult, options: MarkV
   const containedLayoutIds = new Set<string>();
   const context = {
     ...renderContextForState(result, activeState),
+    routeValues: options.routeValues ?? {},
     sampleOverrides: options.sampleOverrides ?? {},
     elementById,
     actionMarkersByElementId,
@@ -89,6 +90,7 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
       renderKey,
       html: renderElement(element, actionMarkersByElementId, activeState, stateNames, { ...options, viewValues: options.viewValues ?? defaultViewValues(result) }, false, {
         ...renderContextForState(result, activeState),
+        routeValues: options.routeValues ?? {},
         sampleOverrides: options.sampleOverrides ?? {},
         elementById,
         actionMarkersByElementId
@@ -122,6 +124,7 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
         new Set(),
         {
           ...renderContextForState(result, activeState),
+          routeValues: options.routeValues ?? {},
           sampleOverrides: options.sampleOverrides ?? {},
           elementById,
           actionMarkersByElementId,
@@ -170,6 +173,7 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
         new Set(),
         {
           ...renderContextForState(result, activeState),
+          routeValues: options.routeValues ?? {},
           sampleOverrides: options.sampleOverrides ?? {},
           elementById,
           actionMarkersByElementId,
@@ -199,6 +203,7 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
     const renderOptions = { ...options, viewValues: options.viewValues ?? defaultViewValues(result) };
     const context = {
       ...renderContextForState(result, activeState),
+      routeValues: options.routeValues ?? {},
       sampleOverrides: options.sampleOverrides ?? {},
       elementById,
       actionMarkersByElementId,
@@ -236,6 +241,7 @@ interface ActionMarkerReference {
 
 interface RenderContext {
   sampleOverrides: Record<string, MarkVSpecParseResult["previewScenarios"][number]["samples"][number]>;
+  routeValues: Record<string, string>;
   elementById?: Map<string, MarkVSpecElement>;
   actionMarkersByElementId?: Map<string, ActionMarkerReference[]>;
   formGroupMarkersByLayoutId?: Map<string, FormGroupMarkerReference[]>;
@@ -444,7 +450,7 @@ function renderLayoutGroupChildren(
 }
 
 function emptyRenderContext(): RenderContext {
-  return { sampleOverrides: {} };
+  return { sampleOverrides: {}, routeValues: {} };
 }
 
 function layoutDepthFor(layoutId: string, layoutGroups: MarkVSpecLayoutGroup[]): number {
@@ -607,11 +613,11 @@ function renderElement(
   const sampleOverride = context.sampleOverrides[element.id];
   const sourceDataSample = sourceTypeForElement(element) === "data" ? stringProperty(element, "sample") : "";
   const sample = sampleOverride?.value ?? (formattedSourceValue || sourceDataSample);
-  const value = stringProperty(element, "value");
-  const label = stringProperty(element, "label");
-  const textValue = stringProperty(element, "text");
+  const value = routeResolvedStringProperty(element, "value", context);
+  const label = routeResolvedStringProperty(element, "label", context);
+  const textValue = routeResolvedStringProperty(element, "text", context);
   const staticLabel = label || textValue || sample || value;
-  const displayValue = sample || textValue || label || value;
+  const displayValue = sample || textValue || value || label;
   const displayLabel = label || textValue || sample || value;
   const disabled = forceDisabled || isElementDisabled(element, activeState, stateNames, options);
   const disabledAttribute = disabled ? " disabled" : "";
@@ -1237,6 +1243,18 @@ function coerceViewValue(value: string, type: string | undefined): boolean | str
 function stringProperty(element: MarkVSpecElement, key: string): string {
   const value = element.properties[key];
   return typeof value === "string" ? value : "";
+}
+
+function routeResolvedStringProperty(element: MarkVSpecElement, key: string, context: RenderContext): string {
+  return resolveRouteExpressionValue(stringProperty(element, key), context.routeValues);
+}
+
+function resolveRouteExpressionValue(value: string, routeValues: Record<string, string>): string {
+  const match = /^\$\{\s*route\.([A-Za-z][A-Za-z0-9_-]*)\s*\}$/u.exec(value);
+  if (!match) {
+    return value;
+  }
+  return routeValues[match[1]] ?? value;
 }
 
 function elementValueFromElementSource(

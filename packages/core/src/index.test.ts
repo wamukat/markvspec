@@ -39,6 +39,8 @@ import {
   renderProjectTransitionMermaid,
   resolveRendererMessages,
   resolveProjectPath,
+  scenarioRouteValues,
+  stateScreenElementGroups,
   stateScreenLayoutsForModel,
   supportedDiagnosticMessageCodes
 } from "./index.js";
@@ -12769,10 +12771,10 @@ title: Bad Baseline Scenarios
   const messages = parseMarkVSpec(source).diagnostics.map((diagnostic) => diagnostic.message);
 
   assert(messages.includes("Preview Scenario idle matches a state name and repeats state: idle. Omit state: to define baseline state samples."));
-  assert(messages.includes("Preview Scenario loaded is a baseline state sample and cannot define view. Use samples only, or add state: with a distinct scenario name for an additional preview variant."));
-  assert(messages.includes("Preview Scenario loaded is a baseline state sample and cannot define model. Use samples only, or add state: with a distinct scenario name for an additional preview variant."));
-  assert(messages.includes("Preview Scenario loaded is a baseline state sample and cannot define before. Use samples only, or add state: with a distinct scenario name for an additional preview variant."));
-  assert(messages.includes("Preview Scenario loaded is a baseline state sample and cannot define cases. Use samples only, or add state: with a distinct scenario name for an additional preview variant."));
+  assert(messages.includes("Preview Scenario loaded is a baseline state sample and cannot define view. Use samples or route only, or add state: with a distinct scenario name for an additional preview variant."));
+  assert(messages.includes("Preview Scenario loaded is a baseline state sample and cannot define model. Use samples or route only, or add state: with a distinct scenario name for an additional preview variant."));
+  assert(messages.includes("Preview Scenario loaded is a baseline state sample and cannot define before. Use samples or route only, or add state: with a distinct scenario name for an additional preview variant."));
+  assert(messages.includes("Preview Scenario loaded is a baseline state sample and cannot define cases. Use samples or route only, or add state: with a distinct scenario name for an additional preview variant."));
   assert(messages.includes("Preview Scenario ghost must specify state."));
   assert(messages.includes("Duplicate preview scenario ID: loaded."));
   assert(messages.includes("Duplicate preview scenario ID: idle."));
@@ -12796,11 +12798,13 @@ title: Bad Scenario Entry
 ### idle
 
 - unexpected
+- route: memberId: M-200
 `;
 
   const messages = parseMarkVSpec(source).diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Preview Scenario idle has malformed entry: unexpected. Use state, model, view, samples, before, or cases."));
+  assert(messages.includes("Preview Scenario idle has malformed entry: unexpected. Use state, model, view, route, samples, before, or cases."));
+  assert(messages.includes("Preview Scenario idle route must be a block with key: value entries."));
 });
 
 test("validates Preview Scenario sample targets and data source sample rows", () => {
@@ -12969,6 +12973,125 @@ title: Sample Wireframe
   assert.match(scenarioHtml, /<td>Carol<\/td><td>Owner<\/td>/);
   assert.match(scenarioHtml, /<li>\(no data\)<\/li>/);
   assert.doesNotMatch(scenarioHtml, /Fallback title|<td>Alice<\/td><td>Admin<\/td>|<li>Stable<\/li>/);
+});
+
+test("applies Preview Scenario route samples to route expression display values", () => {
+  const source = `---
+id: SCR-ROUTE-SAMPLES
+type: screen
+title: Route Samples
+route: /members/:memberId
+---
+# SCR-ROUTE-SAMPLES Route Samples
+
+## States
+
+- loaded*
+
+## Layout
+
+### L-Main Stack
+
+#### Items
+
+- E-MemberId
+- E-SourceOnly
+
+## Elements
+
+### E-MemberId Text
+
+- label: Member ID
+- value: \${route.memberId}
+  - kind: route
+  - source: \${route.memberId}
+
+### E-SourceOnly Text
+
+- label: Source only
+- value: Baseline source-only value
+  - kind: route
+  - source: \${route.memberId}
+
+## Preview Scenarios
+
+### loaded
+
+- route:
+  - memberId: M-200
+  - unused: kept
+
+### direct-sample
+
+- state: loaded
+- route:
+  - memberId: M-300
+- samples:
+  - E-MemberId: Direct ID
+`;
+  const result = parseMarkVSpec(source);
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+  assert(messages.includes("Preview Scenario loaded route sample unused does not match any :param in screen route."));
+  assert.deepEqual(result.previewScenarios[0]?.route.map((sample) => [sample.key, sample.value]), [
+    ["memberId", "M-200"],
+    ["unused", "kept"]
+  ]);
+
+  const models = buildStateScreenReadModels(result, result, undefined);
+  const loaded = models.find((model) => model.stateViewTitle === "loaded");
+  const direct = models.find((model) => model.stateViewTitle === "loaded / direct-sample");
+  assert(loaded);
+  assert(direct);
+
+  const loadedHtml = renderMarkVSpecHtml(result, {
+    includeStyles: false,
+    state: "loaded",
+    routeValues: scenarioRouteValues(loaded.scenarioRoute)
+  });
+  const directHtml = renderMarkVSpecHtml(result, {
+    includeStyles: false,
+    state: "loaded",
+    routeValues: scenarioRouteValues(direct.scenarioRoute),
+    sampleOverrides: Object.fromEntries(direct.scenarioSamples.map((sample) => [sample.elementId, sample]))
+  });
+  assert.match(loadedHtml, /M-200/);
+  assert.match(loadedHtml, /Baseline source-only value/);
+  assert.doesNotMatch(loadedHtml, /M-300|Direct ID/);
+  assert.match(directHtml, /Direct ID/);
+  assert.doesNotMatch(directHtml, /M-300/);
+
+  const rows = stateScreenElementGroups(result.elements, result, "loaded", loaded).displayContentRows;
+  const memberValueRow = rows.find((row) => row.element.id === "E-MemberId" && row.location === "value");
+  const sourceOnlyRow = rows.find((row) => row.element.id === "E-SourceOnly" && row.location === "value");
+  assert.equal(memberValueRow?.value, "M-200");
+  assert.deepEqual(memberValueRow?.contentSections?.map((section) => [section.title, section.rows]), [
+    ["Value", ["M-200"]],
+    ["Source", ["${route.memberId}"]]
+  ]);
+  assert.equal(sourceOnlyRow?.value, "Baseline source-only value");
+});
+
+test("warns when Preview Scenario route samples are used without a screen route", () => {
+  const source = `---
+id: SCR-ROUTE-SAMPLE-NO-ROUTE
+type: screen
+title: Route Sample Without Route
+---
+# SCR-ROUTE-SAMPLE-NO-ROUTE Route Sample Without Route
+
+## States
+
+- loaded*
+
+## Preview Scenarios
+
+### loaded
+
+- route:
+  - memberId: M-200
+`;
+  const messages = parseMarkVSpec(source).diagnostics.map((diagnostic) => diagnostic.message);
+  assert(messages.includes("Preview Scenario loaded defines route samples, but screen route is not defined."));
 });
 
 test("validates view context values and preview scenario coverage", () => {

@@ -350,12 +350,19 @@ export interface MarkVSpecPreviewScenario {
   model?: string;
   view?: string;
   before?: string;
+  route: MarkVSpecPreviewScenarioRouteSample[];
   samples: MarkVSpecPreviewScenarioSample[];
   cases: MarkVSpecPreviewScenarioCase[];
   properties: Record<string, string>;
   propertyLocations: Record<string, SourceLocation[]>;
   overview?: string[];
   notes?: string[];
+  location: SourceLocation;
+}
+
+export interface MarkVSpecPreviewScenarioRouteSample {
+  key: string;
+  value: string;
   location: SourceLocation;
 }
 
@@ -691,6 +698,7 @@ export interface MarkVSpecRenderOptions {
   viewport?: string;
   modelValues?: Record<string, boolean | number | string>;
   viewValues?: Record<string, boolean | number | string>;
+  routeValues?: Record<string, string>;
   sampleOverrides?: Record<string, MarkVSpecPreviewScenarioSample>;
   messages?: Partial<Pick<RendererMessages, "noVisibleElements">>;
   showIds?: boolean;

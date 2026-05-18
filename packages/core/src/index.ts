@@ -69,6 +69,7 @@ export type {
   MarkVSpecViewContextDefinition,
   MarkVSpecViewContextSample,
   MarkVSpecPreviewScenario,
+  MarkVSpecPreviewScenarioRouteSample,
   MarkVSpecPreviewScenarioSample,
   SourceLocation
 } from "./types.js";
@@ -121,6 +122,7 @@ export {
   stateScreenElementsForModel,
   stateScreenLayoutsForModel,
   stateScreenUnplacedLayoutIdsForModel,
+  scenarioRouteValues,
   systemEventActionsForState
 } from "./state-views-read-model.js";
 export {

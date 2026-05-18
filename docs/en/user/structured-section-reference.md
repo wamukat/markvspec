@@ -209,8 +209,10 @@ Validate and send the form.
 
 `Preview Scenarios` uses scenario headings rather than ID-bearing entities.
 `Section Lead` describes all scenarios. `### <scenario-name>` starts a scenario
-that can bind `state`, `view`, `before`, display `cases`, and `samples`.
-Scenario `samples` are structured preview overrides keyed by Element ID.
+that can bind `state`, `view`, `before`, route parameter data, display `cases`,
+and `samples`. Scenario `route` entries are `key: value` samples for Front
+Matter `route` `:param` placeholders. Scenario `samples` are structured preview
+overrides keyed by Element ID.
 
 ```markdown
 ## Preview Scenarios
@@ -218,6 +220,8 @@ Scenario `samples` are structured preview overrides keyed by Element ID.
 ### loaded-with-results
 
 - state: loaded
+- route:
+  - memberId: M-200
 - samples:
   - E-ItemsTable:
     - rows:

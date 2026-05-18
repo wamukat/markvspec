@@ -550,6 +550,54 @@ title: Scenario Samples
   assert.doesNotMatch(emptyScenario, /scenario-sample-rows-block/);
 });
 
+test("renders preview scenario route samples in static state views", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-STATIC-ROUTE-SAMPLES
+type: screen
+title: Static Route Samples
+route: /members/:memberId
+---
+
+# SCR-STATIC-ROUTE-SAMPLES Static Route Samples
+
+## States
+
+- loaded*
+
+## Layout: desktop
+
+### L-Page Page
+
+#### Items
+
+- E-MemberId
+
+## Elements
+
+### E-MemberId Text
+
+- label: Member ID
+- value: \${route.memberId}
+  - kind: route
+  - source: \${route.memberId}
+
+## Preview Scenarios
+
+### loaded
+
+- route:
+  - memberId: M-200
+`);
+  const html = renderStaticDesignDocumentHtml(result);
+  const loaded = stateViewSection(html, "loaded");
+
+  assert.match(loaded, /M-200/);
+  assert.match(loaded, /<strong>Route Parameters<\/strong>/);
+  assert.match(loaded, /<td>memberId<\/td><td>M-200<\/td>/);
+  assert.match(loaded, /<div class="spec-section"><strong>Value<\/strong><ul class="spec-list"><li>M-200<\/li><\/ul><\/div>/);
+  assert.match(loaded, /<strong>Source<\/strong><ul class="spec-list"><li><span class="mm-inline-token">\${route.memberId}<\/span><\/li><\/ul>/);
+});
+
 test("renders lifecycle origin chains in static state transitions", () => {
   const result = parseMarkVSpec(`---
 id: SCR-STATIC-TRANSITIONS

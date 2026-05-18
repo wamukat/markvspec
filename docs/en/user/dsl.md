@@ -2320,7 +2320,7 @@ one Action has multiple processes and should not be used as canonical syntax.
 ## Preview Scenarios
 
 Use `## Preview Scenarios` when state previews need explicit `state`, `model`,
-`view`, samples, and action/process case combinations. Baseline previews from
+`view`, route parameter data, samples, and action/process case combinations. Baseline previews from
 `## States` still render. A heading that matches a state name and omits
 `state:` defines baseline samples for that normal state preview; a heading with
 a distinct scenario name and explicit `state:` adds an extra variant.
@@ -2340,6 +2340,8 @@ a distinct scenario name and explicit `state:` adds an extra variant.
 
 ### loaded
 
+- route:
+  - memberId: M-200
 - samples:
   - E-Title: Baseline loaded title
 
@@ -2552,7 +2554,7 @@ their first listed value.
 ## Preview Scenarios Section
 
 Use `## Preview Scenarios` when state previews need explicit `state`, `model`,
-`view`, and sample combinations. Baseline previews from `## States` always
+`view`, route parameter data, and sample combinations. Baseline previews from `## States` always
 render. A `### <state-name>` block without `state:` attaches `samples:` to that
 baseline state preview. A distinct scenario name with explicit `state:` adds an
 extra preview variant.
@@ -2576,9 +2578,17 @@ heading:
 
 ### loaded
 
+- route:
+  - memberId: M-200
 - samples:
   - E-Title: Baseline loaded title
 ```
+
+`route:` is a top-level scenario property, separate from `samples:`. Its child
+items must be `key: value` entries whose keys match `:param` placeholders in the
+screen Front Matter `route`. Route samples resolve scalar display values written
+as `${route.memberId}`. They do not replace a value based only on
+`source: ${route.memberId}`, and direct Element `samples:` still take priority.
 
 Use `before:` to insert a scenario before a baseline state preview or another
 preview scenario. Only `before:` is supported for scenario ordering. If
@@ -2594,12 +2604,14 @@ Sample precedence:
 1. Additional Preview Scenario `samples` are used first for that scenario.
 2. If the additional scenario does not override an element, state-name baseline
    `samples` from `### <state-name>` are used.
-3. If neither scenario layer overrides an element, scalar display properties
+3. Route samples resolve display values written as `${route.*}` when no Element
+   sample overrides that element.
+4. If neither scenario layer nor route data overrides an element, scalar display properties
    such as `label`, `text`, `message`, `hint`, or `value` provide the baseline
    value.
-4. `sample rows:` provides baseline values for multi-row `Table` and `List`
+5. `sample rows:` provides baseline values for multi-row `Table` and `List`
    elements.
-5. If no property value or row sample exists, MarkVSpec leaves the preview
+6. If no property value or row sample exists, MarkVSpec leaves the preview
    placeholder-like and does not invent a value.
 
 ```markdown

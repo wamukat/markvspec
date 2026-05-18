@@ -1581,6 +1581,7 @@ function parsePreviewScenariosSection(section: SectionAst): Pick<SectionSemantic
       hasSeenEntity = true;
       current = {
         name: block.text.trim(),
+        route: [],
         samples: [],
         cases: [],
         properties: {},
@@ -1639,17 +1640,28 @@ function parsePreviewScenariosSection(section: SectionAst): Pick<SectionSemantic
             activeSampleRow = sampleResult.row;
           }
         }
+        if (activeKey === "route") {
+          applyPreviewScenarioRouteBullet(current, bullet, diagnostics);
+        }
         continue;
       }
 
       activeKey = key;
-      if ((key === "cases" || key === "samples") && value === undefined) {
+      if ((key === "cases" || key === "samples" || key === "route") && (value === undefined || value === "")) {
         continue;
       }
       if (value === undefined) {
         diagnostics.push({
           severity: "warning",
-          message: `Preview Scenario ${current.name} has malformed entry: ${bullet.text}. Use state, model, view, samples, before, or cases.`,
+          message: `Preview Scenario ${current.name} has malformed entry: ${bullet.text}. Use state, model, view, route, samples, before, or cases.`,
+          line: bullet.location.line
+        });
+        continue;
+      }
+      if (key === "route") {
+        diagnostics.push({
+          severity: "warning",
+          message: `Preview Scenario ${current.name} route must be a block with key: value entries.`,
           line: bullet.location.line
         });
         continue;
@@ -1673,6 +1685,39 @@ function parsePreviewScenariosSection(section: SectionAst): Pick<SectionSemantic
     sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["preview-scenarios"]),
     diagnostics
   };
+}
+
+function applyPreviewScenarioRouteBullet(
+  scenario: MarkVSpecPreviewScenario,
+  bullet: ParsedBullet,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  if (bullet.indent !== 1) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Preview Scenario ${scenario.name} route entry must use key: value entries.`,
+      line: bullet.location.line
+    });
+    return;
+  }
+
+  const [keyPart, valuePart] = splitKeyValue(bullet.text);
+  const key = keyPart.trim();
+  const value = valuePart?.trim();
+  if (!key || value === undefined || value === "") {
+    diagnostics.push({
+      severity: "warning",
+      message: `Preview Scenario ${scenario.name} route entry must use key: value entries.`,
+      line: bullet.location.line
+    });
+    return;
+  }
+
+  scenario.route.push({
+    key,
+    value,
+    location: bullet.location
+  });
 }
 
 function parsePreviewScenarioCaseReference(text: string, location: SourceLocation): MarkVSpecPreviewScenario["cases"][number] | undefined {

@@ -87,7 +87,7 @@ displayed value; the property value itself is the baseline preview sample.
 
 - label: Member ID
   - kind: i18n
-- value: M-100
+- value: ${route.memberId}
   - kind: route
   - source: ${route.memberId}
 
@@ -182,6 +182,8 @@ displayed value; the property value itself is the baseline preview sample.
 
 ### loaded
 
+- route:
+  - memberId: M-200
 - samples:
   - E-DisplayName: Taylor Stone
   - E-EmailInput: taylor@example.com
