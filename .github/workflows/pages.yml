@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   deploy:
-    name: Deploy static examples
+    name: Deploy GitHub Pages site
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -41,6 +41,9 @@ jobs:
 
       - name: Build Pages site
         run: npm run build:pages
+
+      - name: Check Pages site
+        run: npm run check:pages-site
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

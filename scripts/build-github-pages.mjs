@@ -68,13 +68,25 @@ function toPosixPath(filePath) {
   return filePath.split(/[\\/]/u).join("/");
 }
 
-function renderIndex(files) {
-  const links = files
-    .map((filePath) => {
-      const repoPath = relative(root, filePath);
-      const title = titleFromFile(filePath);
-      const href = `examples/${htmlFileName(filePath)}`;
-      return `<li><a href="${escapeHtml(href)}">${escapeHtml(title)}</a><span>${escapeHtml(repoPath)}</span></li>`;
+function renderExamplesIndex(files) {
+  const groups = groupExampleFiles(files);
+  const sections = groups
+    .map(({ label, files: groupFiles }) => {
+      const links = groupFiles
+        .map((filePath) => {
+          const repoPath = toPosixPath(relative(root, filePath));
+          const title = titleFromFile(filePath);
+          const href = htmlFileName(filePath);
+          return `<li><a href="${escapeHtml(href)}">${escapeHtml(title)}</a><span>${escapeHtml(repoPath)}</span><a class="source" href="${githubBlobBaseUrl}${escapeHtml(repoPath)}">source</a></li>`;
+        })
+        .join("\n");
+
+      return `<section>
+      <h2>${escapeHtml(label)}</h2>
+      <ul>
+${links}
+      </ul>
+    </section>`;
     })
     .join("\n");
 
@@ -108,6 +120,15 @@ function renderIndex(files) {
       line-height: 1.6;
       margin: 0 0 24px;
     }
+    section {
+      margin-top: 28px;
+    }
+    h2 {
+      border-bottom: 1px solid #d1d5db;
+      font-size: 18px;
+      margin: 0 0 12px;
+      padding-bottom: 8px;
+    }
     ul {
       display: grid;
       gap: 10px;
@@ -120,7 +141,8 @@ function renderIndex(files) {
       border: 1px solid #d1d5db;
       border-radius: 8px;
       display: grid;
-      gap: 4px;
+      gap: 6px;
+      grid-template-columns: 1fr auto;
       padding: 14px 16px;
     }
     a {
@@ -131,24 +153,41 @@ function renderIndex(files) {
     a:hover {
       text-decoration: underline;
     }
+    .source {
+      font-size: 13px;
+      font-weight: 700;
+    }
     span {
       color: #6b7280;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
       font-size: 12px;
+      grid-column: 1 / -1;
     }
   </style>
 </head>
 <body>
   <main>
     <h1>MarkVSpec Examples</h1>
-    <p>Generated static HTML previews for the shipped MarkVSpec examples.</p>
-    <ul>
-${links}
-    </ul>
+    <p>Generated static HTML previews for the shipped MarkVSpec examples. Use the source links when you want to inspect the Markdown that produced each page.</p>
+    ${sections}
   </main>
 </body>
 </html>
 `;
+}
+
+function groupExampleFiles(files) {
+  const groups = new Map();
+  for (const filePath of files) {
+    const relativeExamplePath = toPosixPath(relative(examplesDir, filePath));
+    const [folder = "examples"] = relativeExamplePath.split("/");
+    const label = folder.replace(/^\d+-/u, "").replaceAll("-", " ").replace(/\b\w/gu, (match) => match.toUpperCase());
+    const group = groups.get(label) ?? [];
+    group.push(filePath);
+    groups.set(label, group);
+  }
+
+  return [...groups.entries()].map(([label, groupFiles]) => ({ label, files: groupFiles }));
 }
 
 function copySiteFiles() {
@@ -218,4 +257,4 @@ execFileSync("node", ["packages/cli/dist/index.js", "export", "html", "examples/
 });
 copySiteFiles();
 copyDocsAssets();
-writeFileSync(join(outputDir, "index.html"), renderIndex(files));
+writeFileSync(join(examplesOutDir, "index.html"), renderExamplesIndex(files));
