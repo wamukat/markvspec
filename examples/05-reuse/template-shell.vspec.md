@@ -103,7 +103,7 @@ belong to the screens that use the template.
 
 ### 7:E-LanguageSelect Select
 
-- initial value: en
+- initial value: English
 - options:
   - English
   - Japanese

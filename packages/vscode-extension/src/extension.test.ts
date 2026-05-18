@@ -5033,6 +5033,18 @@ test("renders template slot gallery examples", () => {
   assert.match(defaultHtml, /No content has been assigned to this template slot/);
 });
 
+test("renders template shell language select with matching option value", () => {
+  const templatePath = resolve(extensionRoot, "../../examples/05-reuse/template-shell.vspec.md");
+  const result = parseMarkVSpec(readFileSync(templatePath, "utf8"));
+  const html = renderDesignDocumentHtml(result, "");
+
+  assert.deepEqual(result.diagnostics, []);
+  assert.match(html, /<select class="mm-element mm-element-select" data-mm-id="E-LanguageSelect">/);
+  assert.match(html, /<option value="English" selected>English<\/option>/);
+  assert.match(html, /Input Form Spec[\s\S]*E-LanguageSelect[\s\S]*English/);
+  assert.doesNotMatch(html, /<option value="en" selected>en<\/option>/);
+});
+
 test("only opens preview references inside a trusted workspace", () => {
   assert.equal(canOpenPreviewReference("/workspace/specs/home.vspec.md", "/workspace", true), true);
   assert.equal(canOpenPreviewReference("/workspace2/specs/home.vspec.md", "/workspace", true), false);

@@ -816,6 +816,49 @@ title: Static Condition Columns
   assert.match(displayContent, /<strong>Enabled<\/strong><ul class="spec-list"><li>not <span class="mm-inline-token">\$\{model\.saving\}<\/span><\/li><\/ul>/);
 });
 
+test("renders static select initial value from matching option labels", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-STATIC-SELECT
+type: screen
+title: Static Select
+---
+
+# SCR-STATIC-SELECT Static Select
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Form Form
+
+- stack
+
+#### Items
+
+- E-LanguageSelect
+
+## Elements
+
+### E-LanguageSelect Select
+
+- initial value: English
+- options:
+  - English
+  - Japanese
+`);
+  const html = renderStaticDesignDocumentHtml(result);
+  const idleSection = stateViewSection(html, "idle");
+  const inputForm = idleSection.match(/<div class="element-detail-group">\s*<h6 class="state-screen-detail-heading">Input Form Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.deepEqual(result.diagnostics, []);
+  assert.match(idleSection, /<select class="mm-element mm-element-select" data-mm-id="E-LanguageSelect">/);
+  assert.match(idleSection, /<option value="English" selected>English<\/option>/);
+  assert.match(inputForm, /E-LanguageSelect[\s\S]*<td>English<\/td>/);
+  assert.doesNotMatch(idleSection, /<option value="en" selected>en<\/option>/);
+});
+
 test("renders wide scenario rows as independent readable blocks", () => {
   const columns = Array.from({ length: 10 }, (_, index) => {
     const number = index + 1;

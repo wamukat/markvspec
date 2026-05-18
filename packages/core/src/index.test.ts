@@ -8451,8 +8451,71 @@ title: Compact Select
 
   assert(diagnostic);
   assert.equal(diagnostic.line, lineNumber(source, "- options: viewer=Viewer, admin=Administrator"));
+  assert.equal(result.diagnostics.some((item) => item.message.includes("does not match any options")), false);
   assert.doesNotMatch(html, /Viewer/);
   assert.match(html, /<option value="admin" selected>admin<\/option>/);
+});
+
+test("warns when selection initial values do not match defined options", () => {
+  const source = `---
+id: SCR-SELECT-INITIAL
+type: screen
+title: Select Initial
+---
+
+# SCR-SELECT-INITIAL Select Initial
+
+## States
+
+- idle*
+
+## Elements
+
+### E-RoleSelect Select
+
+- initial value: admin
+- options:
+  - Viewer
+  - Administrator
+
+### E-TeamSelect MultiSelect
+
+- initial value: Viewer, Auditor
+- options:
+  - Viewer
+  - Administrator
+
+### E-NotifyGroup CheckboxGroup
+
+- initial value: Email, Push
+- options:
+  - Email
+  - SMS
+
+### E-UnlistedSelect Select
+
+- initial value: legacy
+
+### E-PlanGroup RadioGroup
+
+- initial value: Pro, Annual
+- options:
+  - Basic
+  - Pro, Annual
+`;
+  const result = parseMarkVSpec(source);
+  const optionDiagnostics = result.diagnostics.filter((item) => item.message.includes("does not match any options"));
+
+  assert.deepEqual(optionDiagnostics.map((item) => item.message), [
+    'Element E-RoleSelect initial value "admin" does not match any options.',
+    'Element E-TeamSelect initial value "Auditor" does not match any options.',
+    'Element E-NotifyGroup initial value "Push" does not match any options.'
+  ]);
+  assert.deepEqual(optionDiagnostics.map((item) => item.line), [
+    lineNumber(source, "- initial value: admin"),
+    lineNumber(source, "- initial value: Viewer, Auditor"),
+    lineNumber(source, "- initial value: Email, Push")
+  ]);
 });
 
 test("renders Checkbox and RadioGroup elements with checked state", () => {

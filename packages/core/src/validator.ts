@@ -53,6 +53,7 @@ const elementIdRegex = new RegExp(String.raw`^${elementIdPattern}$`, "u");
 const formGroupIdRegex = new RegExp(String.raw`^${formGroupIdPattern}$`, "u");
 const validationResultReferenceRegex = new RegExp(String.raw`^(V-${idNamePattern})\.result$`, "u");
 const markerRegex = /^[A-Za-z0-9][A-Za-z0-9_-]{0,11}$/u;
+const multiInitialValueOptionElementTypes = new Set(["MultiSelect", "CheckboxGroup"]);
 
 export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagnostic[] {
   const diagnostics = result.diagnostics;
@@ -351,6 +352,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
       });
     }
     validateDialogActions(element, elementsById, actionIds, diagnostics);
+    validateSelectInitialValue(element, diagnostics);
 
     for (const param of element.routeParams) {
       const sourceId = requestParamSourceId(param.source);
@@ -3043,6 +3045,33 @@ function commaListProperty(element: MarkVSpecElement, key: string): string[] {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function validateSelectInitialValue(element: MarkVSpecElement, diagnostics: MarkVSpecDiagnostic[]): void {
+  if (element.selectOptions.length === 0) {
+    return;
+  }
+  const initialValue = stringProperty(element, "initial value").trim();
+  if (!initialValue) {
+    return;
+  }
+
+  const optionLabels = element.selectOptions.map((option) => option.label.trim());
+  const optionLabelSet = new Set(optionLabels);
+  const values = multiInitialValueOptionElementTypes.has(element.type)
+    ? initialValue.split(",").map((value) => value.trim()).filter(Boolean)
+    : [initialValue];
+
+  for (const value of values) {
+    if (optionLabelSet.has(value)) {
+      continue;
+    }
+    diagnostics.push({
+      severity: "warning",
+      message: `Element ${element.id} initial value "${value}" does not match any options.`,
+      line: firstPropertyLine(element, "initial value") ?? element.location.line
+    });
+  }
 }
 
 function firstPropertyLine(
