@@ -6266,7 +6266,7 @@ test("renders Tabs element summary, wireframe, and display content spec", () => 
   assert.match(idleSection, /<span class="mm-tab-item mm-tab-item-active" aria-selected="true" data-mm-tab-panel="L-ProfilePanel" data-mm-tab-action="A-SelectProfileTab">Profile<\/span>/);
   assert.match(idleSection, /<span class="mm-tab-item" data-mm-tab-panel="L-BillingPanel" data-mm-tab-action="A-SelectBillingTab">Billing<\/span>/);
   assert.match(idleSection, /<div class="mm-tabs-panel-note">panel: L-ProfilePanel<\/div>/);
-  assert.match(elementSummary, new RegExp(`<td>${detailElementRef("2", "E-SettingsTabs")}</td><td>Tabs</td><td><ul class="spec-list"><li>${refActionChip("A-SelectProfileTab", "A-SelectProfileTab", "Select profile tab")}</li><li>${refActionChip("A-SelectBillingTab", "A-SelectBillingTab", "Select billing tab")}</li></ul></td><td>active tab: Profile</td>`));
+  assert.match(elementSummary, new RegExp(`<td>${detailElementRef("2", "E-SettingsTabs")}</td><td>Tabs</td><td><ul class="spec-list"><li>${refActionChip("A1", "A-SelectProfileTab", "Select profile tab")}</li><li>${refActionChip("A2", "A-SelectBillingTab", "Select billing tab")}</li></ul></td><td>active tab: Profile</td>`));
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("2", "E-SettingsTabs")}</td><td>tabs</td><td>${specSectionPattern("Tabs", ["Profile \\(panel: L-ProfilePanel; action: A-SelectProfileTab\\)", "Billing \\(panel: L-BillingPanel; action: A-SelectBillingTab\\)"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
 });
 
@@ -6307,8 +6307,8 @@ test("renders Accordion and Disclosure element summary, wireframe, and display c
   assert.match(elementSummary, /open item: Advanced filters/);
   assert.match(elementSummary, /<td>Disclosure<\/td>/);
   assert.match(elementSummary, /open: true/);
-  assert.match(elementSummary, new RegExp(refActionChip("A-ToggleAdvancedFilters", "A-ToggleAdvancedFilters", "Toggle advanced filters")));
-  assert.match(elementSummary, new RegExp(refActionChip("A-ToggleShippingDetails", "A-ToggleShippingDetails", "Toggle shipping details")));
+  assert.match(elementSummary, new RegExp(refActionChip("A1", "A-ToggleAdvancedFilters", "Toggle advanced filters")));
+  assert.match(elementSummary, new RegExp(refActionChip("A2", "A-ToggleShippingDetails", "Toggle shipping details")));
   assert.match(displayContent, new RegExp(`<td>accordion</td><td>${specSectionPattern("Accordion", ["Advanced filters \\(panel: L-AdvancedFilterPanel; action: A-ToggleAdvancedFilters\\)", "Saved filters \\(panel: L-SavedFiltersPanel\\)"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
   assert.match(displayContent, new RegExp(`<td>disclosure</td><td>${specSectionPattern("Disclosure", ["label: Shipping details", "open: true", "panel: L-ShippingDetailsPanel", "action: A-ToggleShippingDetails"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
 });
@@ -6327,8 +6327,8 @@ test("renders ActionMenu element summary, wireframe, and display content spec", 
   assert.match(idleSection, /<div class="mm-action-menu-item mm-action-menu-item-disabled mm-action-menu-item-danger" data-mm-action-menu-action="A-DisableAccount">/);
   assert.match(elementSummary, /<td>ActionMenu<\/td>/);
   assert.match(elementSummary, /open: true/);
-  assert.match(elementSummary, new RegExp(refActionChip("A-EditAccount", "A-EditAccount", "Edit account")));
-  assert.match(elementSummary, new RegExp(refActionChip("A-DisableAccount", "A-DisableAccount", "Disable account")));
+  assert.match(elementSummary, new RegExp(refActionChip("A1", "A-EditAccount", "Edit account")));
+  assert.match(elementSummary, new RegExp(refActionChip("A2", "A-DisableAccount", "Disable account")));
   assert.match(displayContent, new RegExp(`<td>action menu</td><td>${specSectionPattern("Action Menu", ["Edit \\(action: A-EditAccount\\)", "Disable \\(action: A-DisableAccount; tone: danger; disabled when: selected-row-locked\\)"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
 });
 
@@ -6457,7 +6457,7 @@ test("renders targetless dialog display.element effects as display updates", () 
   const displayUpdates = scenarioSection.match(/<aside class="display-explanations-box display-updates-box">[\s\S]*?<\/aside>/)?.[0] ?? "";
 
   assert.match(displayUpdates, /<h6 class="state-screen-detail-heading">Display updates<\/h6>/);
-  assert.match(displayUpdates, new RegExp(`${refActionChip("A5", "A-RequestDiscardDialog", "Request discard dialog")}[\\s\\S]*P1\\.done`));
+  assert.match(displayUpdates, new RegExp(`${refActionChip("A6", "A-RequestDiscardDialog", "Request discard dialog")}[\\s\\S]*P1\\.done`));
   assert.match(displayUpdates, new RegExp(`overlay[\\s\\S]*receives[\\s\\S]*${detailElementRef("14", "E-ConfirmDialog")}`));
   assert.doesNotMatch(displayUpdates, /Discard changes\\?/);
   assert.doesNotMatch(scenarioSection, /<h6 class="state-screen-detail-heading">Displayed messages<\/h6>/);
