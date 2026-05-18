@@ -264,7 +264,7 @@ parser behavior, documentation, and tickets. These names are canonical in both
 English and Japanese documentation.
 
 For a visual annotated skeleton of these regions, see
-[Document Structure](document-structure.html).
+[Document Structure](https://wamukat.github.io/markvspec/docs/en/user/document-structure.html).
 
 - `Document Header`: YAML Front Matter and the first level-1 heading. It is the
   document-level entry point for metadata and the design subject title.
@@ -2486,7 +2486,7 @@ empty fallback. The baseline preview still renders `Baseline title` and the
 
 For a section-by-section reference that uses `Section Lead`, `Entity Block`,
 `Structured Body`, and `Entity Notes` terminology, see
-[Structured Section Reference](structured-section-reference.html).
+[Structured Section Reference](https://wamukat.github.io/markvspec/docs/en/user/structured-section-reference.html).
 
 ## Field Validations and Cross-field Validations Sections
 

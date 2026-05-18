@@ -245,7 +245,7 @@ Preview、parser、docs、ticket で MarkVSpec 文書内の位置を議論する
 次の用語を使います。英語名を canonical とし、日本語文書でも同じ英語名を使います。
 
 各領域を視覚的に確認する annotated skeleton は
-[文書構造](document-structure.html) を参照してください。
+[文書構造](https://wamukat.github.io/markvspec/docs/ja/user/document-structure.html) を参照してください。
 
 - `Document Header`: YAML Front Matter と最初の level-1 見出しです。文書全体の
   メタデータと設計対象名を書く入口です。
@@ -1760,7 +1760,7 @@ Action の `Effects` に `${data.*}` への代入を書く model mutation は ca
 ```
 
 各 section を `Section Lead`、`Entity Block`、`Structured Body`、`Entity Notes`
-などの用語で確認したい場合は、[構造化セクションリファレンス](structured-section-reference.html)
+などの用語で確認したい場合は、[構造化セクションリファレンス](https://wamukat.github.io/markvspec/docs/ja/user/structured-section-reference.html)
 を参照してください。
 
 ## Field Validations / Cross-field Validations

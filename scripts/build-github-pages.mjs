@@ -4,10 +4,11 @@ import { basename, dirname, join, relative, resolve } from "node:path";
 
 const root = process.cwd();
 const githubBlobBaseUrl = "https://github.com/wamukat/markvspec/blob/main/";
-const siteDir = join(root, "_site");
+const outputDir = join(root, "_site");
+const siteSourceDir = join(root, "site");
 const examplesDir = join(root, "examples");
-const docsDir = join(root, "docs");
-const examplesOutDir = join(siteDir, "examples");
+const docsAssetsDir = join(root, "docs", "assets");
+const examplesOutDir = join(outputDir, "examples");
 
 function collectVspecFiles(dir) {
   const entries = readdirSync(dir, { withFileTypes: true });
@@ -150,8 +151,8 @@ ${links}
 `;
 }
 
-function copyPageAssets() {
-  const docsFiles = collectFiles(docsDir, (filePath) => {
+function copySiteFiles() {
+  const siteFiles = collectFiles(siteSourceDir, (filePath) => {
     return filePath.endsWith(".html")
       || filePath.endsWith(".png")
       || filePath.endsWith(".svg")
@@ -159,14 +160,29 @@ function copyPageAssets() {
       || filePath.endsWith(".js");
   });
 
-  for (const filePath of docsFiles) {
-    const targetPath = join(siteDir, relative(root, filePath));
+  for (const filePath of siteFiles) {
+    const targetPath = join(outputDir, relative(siteSourceDir, filePath));
     mkdirSync(dirname(targetPath), { recursive: true });
     if (filePath.endsWith(".html")) {
       writeFileSync(targetPath, rewriteHtmlMarkdownLinks(filePath, readFileSync(filePath, "utf8")), "utf8");
     } else {
       copyFileSync(filePath, targetPath);
     }
+  }
+}
+
+function copyDocsAssets() {
+  const assetFiles = collectFiles(docsAssetsDir, (filePath) => {
+    return filePath.endsWith(".png")
+      || filePath.endsWith(".svg")
+      || filePath.endsWith(".css")
+      || filePath.endsWith(".js");
+  });
+
+  for (const filePath of assetFiles) {
+    const targetPath = join(outputDir, "docs", "assets", relative(docsAssetsDir, filePath));
+    mkdirSync(dirname(targetPath), { recursive: true });
+    copyFileSync(filePath, targetPath);
   }
 }
 
@@ -178,7 +194,7 @@ function rewriteHtmlMarkdownLinks(htmlPath, html) {
 
     const [pathPart, hashPart = ""] = href.split("#", 2);
     const absoluteTarget = resolve(dirname(htmlPath), pathPart);
-    const relativeTarget = toPosixPath(relative(root, absoluteTarget));
+    const relativeTarget = toRepositoryPath(absoluteTarget);
     if (relativeTarget.startsWith("../")) {
       return match;
     }
@@ -188,12 +204,18 @@ function rewriteHtmlMarkdownLinks(htmlPath, html) {
   });
 }
 
-rmSync(siteDir, { recursive: true, force: true });
+function toRepositoryPath(absolutePath) {
+  const relativeTarget = toPosixPath(relative(root, absolutePath));
+  return relativeTarget.startsWith("site/") ? relativeTarget.slice("site/".length) : relativeTarget;
+}
+
+rmSync(outputDir, { recursive: true, force: true });
 mkdirSync(examplesOutDir, { recursive: true });
 
 const files = collectVspecFiles(examplesDir);
 execFileSync("node", ["packages/cli/dist/index.js", "export", "html", "examples/**/*.vspec.md", "--out", examplesOutDir], {
   stdio: "inherit"
 });
-copyPageAssets();
-writeFileSync(join(siteDir, "index.html"), renderIndex(files));
+copySiteFiles();
+copyDocsAssets();
+writeFileSync(join(outputDir, "index.html"), renderIndex(files));
