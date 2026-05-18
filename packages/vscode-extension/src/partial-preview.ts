@@ -3,6 +3,8 @@ import { pathToFileURL } from "node:url";
 import {
   allResolvedLayoutGroups,
   isProjectReferenceAllowed,
+  parseFieldErrorTarget,
+  resolveDisplayMessageReference,
   renderMarkVSpecHtml,
   renderMarkVSpecHtmlFragment,
   resolveProjectPath
@@ -384,13 +386,13 @@ function embedPartialPreviewsForResult(
   const modalDisplays = displayEffects.filter((display) => !display.target && display.element && elementType(result, display.element) === "Dialog");
   const toastDisplays = displayEffects.filter((display) => !display.target && display.element && elementType(result, display.element) === "Toast");
   for (const display of displayEffects) {
-    const fieldErrorTarget = parseFieldErrorTarget(display.target);
-    if (!fieldErrorTarget) {
+    const fieldErrorElementId = display.target ? parseFieldErrorTarget(display.target) : undefined;
+    if (!fieldErrorElementId) {
       continue;
     }
     const content = renderFieldErrorDisplayContent(result, display, viewport, screenState, messagesForResult, markerLink);
     if (content) {
-      output = insertFieldErrorContent(output, fieldErrorTarget.elementId, content);
+      output = insertFieldErrorContent(output, fieldErrorElementId, content);
     }
   }
   for (const display of displayEffects) {
@@ -613,7 +615,7 @@ function partialTargets(result: MarkVSpecParseResult, viewport?: string, options
 
 function partialTargetsFromDisplayEffects(displayEffects: MarkVSpecDisplayEffect[]): PartialTarget[] {
   return displayEffects
-    .filter((display): display is MarkVSpecDisplayEffect & { target: string } => Boolean(display.target) && !parseFieldErrorTarget(display.target))
+    .filter((display): display is MarkVSpecDisplayEffect & { target: string } => typeof display.target === "string" && !parseFieldErrorTarget(display.target))
     .map((display) => {
       const partialId = display.partial ?? display.contentSource.find((detail) => detail.key === "partial")?.value;
       const partialState = display.contentSource.find((detail) => detail.key === "state")?.value;
@@ -627,11 +629,6 @@ function partialTargetsFromDisplayEffects(displayEffects: MarkVSpecDisplayEffect
         line: firstPropertyLine(display, "target") ?? display.location.line
       };
     });
-}
-
-function parseFieldErrorTarget(target: string | undefined): { elementId: string } | undefined {
-  const match = /^(E-[\p{L}\p{N}-]+)\.error$/u.exec(target ?? "");
-  return match?.[1] ? { elementId: match[1] } : undefined;
 }
 
 function renderFieldErrorDisplayContent(
@@ -665,59 +662,14 @@ function renderFieldErrorDisplayContent(
 }
 
 function renderDisplayMessageContent(result: MarkVSpecParseResult, reference: string, className = "mm-display-message"): string {
-  const messages = messagesForDisplayReference(result, reference);
-  if (messages.length === 0) {
+  const resolvedReference = resolveDisplayMessageReference(reference, result);
+  if (!resolvedReference || resolvedReference.textSummary.length === 0) {
     return "";
   }
-  const marker = displayMessageMarker(result, reference);
-  const sourceId = displayMessageSourceId(reference);
-  const sourceAttr = sourceId ? ` data-mm-display-source="${escapeHtml(sourceId)}"` : "";
+  const messages = resolvedReference.textSummary;
+  const marker = `<code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="${escapeHtml(resolvedReference.sourceId)}">${escapeHtml(resolvedReference.marker)}</code>`;
+  const sourceAttr = ` data-mm-display-source="${escapeHtml(resolvedReference.sourceId)}"`;
   return `<div class="${className}"${sourceAttr}>${marker}${messages.map((message) => escapeHtml(message)).join("<br>")}</div>`;
-}
-
-function displayMessageMarker(result: MarkVSpecParseResult, reference: string): string {
-  const sourceId = displayMessageSourceId(reference);
-  if (!sourceId) {
-    return "";
-  }
-  const marker = sourceId.startsWith("V-")
-    ? validationMarker(result, sourceId)
-    : businessRuleMarker(result, sourceId);
-  return `<code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="${escapeHtml(sourceId)}">${escapeHtml(marker)}</code>`;
-}
-
-function validationMarker(result: MarkVSpecParseResult, validationId: string): string {
-  const marker = result.validations.find((validation) => validation.id === validationId)?.properties["marker"];
-  return typeof marker === "string" && marker ? marker : validationId;
-}
-
-function businessRuleMarker(result: MarkVSpecParseResult, ruleId: string): string {
-  const marker = result.rules.find((rule) => rule.id === ruleId)?.properties["marker"];
-  return typeof marker === "string" && marker ? marker : ruleId;
-}
-
-function messagesForDisplayReference(result: MarkVSpecParseResult, reference: string): string[] {
-  const sourceId = displayMessageSourceId(reference);
-  if (!sourceId) {
-    return [];
-  }
-  if (sourceId.startsWith("V-")) {
-    const validation = result.validations.find((candidate) => candidate.id === sourceId);
-    return validationPropertyValues(validation?.properties["message"]);
-  }
-  const rule = result.rules.find((candidate) => candidate.id === sourceId);
-  return validationPropertyValues(rule?.properties["messages"] ?? rule?.properties["message"]);
-}
-
-function displayMessageSourceId(reference: string): string | undefined {
-  return /^((?:V|R)-[\p{L}\p{N}-]+)\.messages$/u.exec(reference)?.[1];
-}
-
-function validationPropertyValues(value: string | string[] | undefined): string[] {
-  if (Array.isArray(value)) {
-    return value;
-  }
-  return value ? [value] : [];
 }
 
 function insertFieldErrorContent(html: string, elementId: string, content: string): string {

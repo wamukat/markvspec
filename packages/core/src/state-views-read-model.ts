@@ -1,6 +1,12 @@
 import { actionAppliesToState } from "./action-applicability.js";
 import { buildDisplayContentSpecRows, isFormControlElement } from "./display-content-spec.js";
 import type { DisplayContentSpecRow } from "./display-content-spec.js";
+import {
+  displayMessageExplanationKind,
+  displayMessageMarker,
+  displayMessageTextSummary,
+  parseDisplayMessageReference
+} from "./display-effect.js";
 import { resolveLayoutGroupsForViewport } from "./layout-resolution.js";
 import { stateViewLayoutSignature } from "./state-view-signatures.js";
 import type { MarkVSpecParseResult } from "./types.js";
@@ -406,28 +412,28 @@ function displayExplanationsForScenarioCases(
 
     const targetRef = display.target ?? "(overlay)";
     const triggeredBy = `${action.id}.${step.marker ?? step.name}.${caseRef.caseName}`;
-    const messageSourceId = display.message ? displayMessageSourceId(display.message) : undefined;
-    const sourceId = messageSourceId ?? display.element ?? display.partial ?? "";
+    const messageReference = display.message ? parseDisplayMessageReference(display.message) : undefined;
+    const sourceId = messageReference?.sourceId ?? display.element ?? display.partial ?? "";
     if (!sourceId) {
       continue;
     }
 
-    const validation = sourceId.startsWith("V-") ? validationsById.get(sourceId) : undefined;
-    const rule = sourceId.startsWith("R-") ? rulesById.get(sourceId) : undefined;
-    const element = sourceId.startsWith("E-") || sourceId.startsWith("L-") ? elementsById.get(sourceId) : undefined;
+    const validation = messageReference?.sourceKind === "validation" ? validationsById.get(sourceId) : undefined;
+    const rule = messageReference?.sourceKind === "business-rule" ? rulesById.get(sourceId) : undefined;
+    const element = sourceId.startsWith("E-") ? elementsById.get(sourceId) : undefined;
     const layout = sourceId.startsWith("L-") ? layoutsById.get(sourceId) : undefined;
-    const markerId = displayExplanationMarker(sourceId, validation, rule);
+    const markerId = messageReference ? displayMessageMarker(messageReference, validation, rule) : sourceId;
     const contentKind = display.message ? "message" : display.partial ? "partial" : "element";
     const key = `${sourceId}:${contentKind}`;
     const existing = explanations.get(key);
     const textSummary = display.message
-      ? displayMessageTextSummary(display.message, validation, rule)
+      ? messageReference ? displayMessageTextSummary(messageReference, validation, rule) : []
       : [];
     const nextTargetRefs = appendUnique(existing?.targetRefs ?? [], targetRef);
     const nextTriggeredBy = appendUnique(existing?.triggeredBy ?? [], triggeredBy);
     explanations.set(key, {
       markerId,
-      markerSource: sourceId.startsWith("V-") ? "validation" : sourceId.startsWith("R-") ? "business-rule" : sourceId.startsWith("PRT-") ? "partial" : "element",
+      markerSource: messageReference?.sourceKind === "validation" ? "validation" : messageReference?.sourceKind === "business-rule" ? "business-rule" : sourceId.startsWith("PRT-") ? "partial" : "element",
       sourceId,
       sourceName: validation?.name ?? rule?.name ?? elementDisplayName(element) ?? layoutDisplayName(layout) ?? sourceId,
       targetRefs: nextTargetRefs,
@@ -437,37 +443,11 @@ function displayExplanationsForScenarioCases(
       partialRef: display.partial,
       textSummary: existing?.textSummary.length ? existing.textSummary : textSummary,
       triggeredBy: nextTriggeredBy,
-      kind: displayExplanationKind(display, validation, rule)
+      kind: displayMessageExplanationKind(messageReference, display.target, validation, rule)
     });
   }
 
   return [...explanations.values()];
-}
-
-function displayMessageSourceId(message: string): string | undefined {
-  return /^((?:V|R)-[\p{L}\p{N}-]+)\.messages$/u.exec(message)?.[1];
-}
-
-function displayExplanationMarker(sourceId: string, validation: ParsedValidation | undefined, rule: ParsedRule | undefined): string {
-  const marker = validation?.properties["marker"] ?? rule?.properties["marker"];
-  return typeof marker === "string" && marker ? marker : sourceId;
-}
-
-type ParsedValidation = MarkVSpecParseResult["validations"][number];
-type ParsedRule = MarkVSpecParseResult["rules"][number];
-
-function displayMessageTextSummary(
-  message: string,
-  validation: ParsedValidation | undefined,
-  rule: ParsedRule | undefined
-): string[] {
-  if (message.startsWith("V-")) {
-    return validationPropertyValues(validation?.properties["message"]);
-  }
-  if (message.startsWith("R-")) {
-    return validationPropertyValues(rule?.properties["messages"] ?? rule?.properties["message"]);
-  }
-  return [];
 }
 
 function elementDisplayName(element: ParsedElement | undefined): string | undefined {
@@ -479,34 +459,6 @@ function elementDisplayName(element: ParsedElement | undefined): string | undefi
 
 function layoutDisplayName(layout: ParsedLayout | undefined): string | undefined {
   return layout?.name || layout?.id;
-}
-
-function validationPropertyValues(value: string | string[] | undefined): string[] {
-  if (Array.isArray(value)) {
-    return value;
-  }
-  return value ? [value] : [];
-}
-
-function displayExplanationKind(
-  display: ParsedDisplayEffect,
-  validation: ParsedValidation | undefined,
-  rule: ParsedRule | undefined
-): string {
-  if (validation) {
-    const run = firstValidationProperty(validation, "run") || "client";
-    const scope = firstValidationProperty(validation, "scope") || (firstValidationProperty(validation, "target")?.startsWith("F-") ? "cross-field" : "field");
-    return `${run} ${scope} validation error`;
-  }
-  if (rule) {
-    return "business rule message";
-  }
-  return display.target?.endsWith(".error") ? "field error display" : "display update";
-}
-
-function firstValidationProperty(validation: ParsedValidation, key: string): string | undefined {
-  const value = validation.properties[key];
-  return Array.isArray(value) ? value[0] : value;
 }
 
 function appendUnique(values: string[], value: string): string[] {

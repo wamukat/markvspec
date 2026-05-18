@@ -119,9 +119,27 @@ export {
   stateScreenUnplacedLayoutIdsForModel,
   systemEventActionsForState
 } from "./state-views-read-model.js";
+export {
+  displayMessageExplanationKind,
+  displayMessageMarker,
+  displayMessageTextSummary,
+  isInvalidFieldErrorElement,
+  isTargetlessOverlayDisplay,
+  parseDisplayMessageReference,
+  parseFieldErrorTarget,
+  resolveDisplayMessageReference,
+  resolveDisplayTarget
+} from "./display-effect.js";
 export type {
   DisplayContentSpecRow
 } from "./display-content-spec.js";
+export type {
+  DisplayMessageReference,
+  DisplayMessageSourceKind,
+  DisplayTargetKind,
+  DisplayTargetResolution,
+  ResolvedDisplayMessageReference
+} from "./display-effect.js";
 export type {
   FocusScope,
   RenderedIds,

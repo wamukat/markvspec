@@ -9,6 +9,7 @@ import {
   effectiveHistoryFields,
   latestHistoryBasicInfo,
   loadMarkVSpecProject,
+  parseDisplayMessageReference,
   parseMarkVSpec,
   parseMarkVSpecProject,
   allResolvedLayoutGroups,
@@ -5764,12 +5765,11 @@ function referenceForDisplayTarget(
 }
 
 function renderDisplayMessageReference(result: ReturnType<typeof parseMarkVSpec>, message: string): string {
-  const match = /^((?:V|R)-[\p{L}\p{N}-]+)\.messages$/u.exec(message);
-  const sourceId = match?.[1];
-  if (!sourceId) {
+  const reference = parseDisplayMessageReference(message);
+  if (!reference) {
     return text(message);
   }
-  return `${referenceForDetailId(result, sourceId)}<span class="mm-detail-ref-suffix">.messages</span>`;
+  return `${referenceForDetailId(result, reference.sourceId)}<span class="mm-detail-ref-suffix">.messages</span>`;
 }
 
 function targetlessDisplayTargetLabel(result: ReturnType<typeof parseMarkVSpec>, elementId?: string): string {

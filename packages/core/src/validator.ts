@@ -6,8 +6,8 @@ import {
   idNamePattern,
   isLayoutItemId,
   isLocalId,
-  isPresentationPanelId,
   isOpaqueExpression,
+  isPresentationPanelId,
   requestParamSourceIdRegex,
   stripOpaqueExpressions
 } from "./ids.js";
@@ -18,6 +18,11 @@ import {
   isKnownElementType,
   validateElementProperties
 } from "./element-validator.js";
+import {
+  isInvalidFieldErrorElement,
+  parseDisplayMessageReference,
+  resolveDisplayTarget
+} from "./display-effect.js";
 import type {
   MarkVSpecActionOutcome,
   MarkVSpecDiagnostic,
@@ -42,8 +47,6 @@ const actionProcessLifecycleTriggerRegex = new RegExp(String.raw`^(${actionIdPat
 const elementIdRegex = new RegExp(String.raw`^${elementIdPattern}$`, "u");
 const formGroupIdRegex = new RegExp(String.raw`^${formGroupIdPattern}$`, "u");
 const validationResultReferenceRegex = new RegExp(String.raw`^(V-${idNamePattern})\.result$`, "u");
-const displayMessageReferenceRegex = new RegExp(String.raw`^((?:V|R)-${idNamePattern})\.messages$`, "u");
-const fieldErrorTargetRegex = new RegExp(String.raw`^(${elementIdPattern})\.error$`, "u");
 const markerRegex = /^[A-Za-z0-9][A-Za-z0-9_-]{0,11}$/u;
 
 export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagnostic[] {
@@ -1716,41 +1719,41 @@ function validateDisplayEffect(
   if (!display) {
     return;
   }
-  const targetlessOverlay = isTargetlessOverlayDisplay(display, elementsById);
+  const targetResolution = resolveDisplayTarget(display, { layoutIds, elementIds, elementsById });
   const target = display.target;
-  if (!target && !targetlessOverlay) {
+  if (targetResolution.kind === "none") {
     diagnostics.push({
       severity: "error",
       message: `Action ${actionId} ${context} display effect must define target.`,
       line: display.location.line
     });
-  } else if (target && isPresentationPanelId(target)) {
+  } else if (targetResolution.kind === "presentation-panel" && target) {
     diagnostics.push(presentationPanelTargetDiagnostic(`Action ${actionId} ${context} display effect`, target, firstPropertyLine(display, "target") ?? display.location.line));
-  } else if (target && fieldErrorTargetRegex.test(target)) {
-    const [, elementId] = fieldErrorTargetRegex.exec(target) ?? [];
-    const element = elementId ? elementsById.get(elementId) : undefined;
+  } else if (targetResolution.kind === "field-error") {
+    const elementId = targetResolution.fieldErrorElementId;
+    const element = targetResolution.fieldErrorElement;
     if (!elementId || !element) {
       diagnostics.push({
         severity: "error",
         message: `Action ${actionId} ${context} display effect targets missing field error element ${elementId ?? target}.`,
         line: firstPropertyLine(display, "target") ?? display.location.line
       });
-    } else if (!isInputElementType(element.type)) {
+    } else if (isInvalidFieldErrorElement(element)) {
       diagnostics.push({
         severity: "warning",
         message: `Action ${actionId} ${context} display effect targets ${target}, but ${elementId} is ${element.type}. Field error targets should use input elements.`,
         line: firstPropertyLine(display, "target") ?? display.location.line
       });
     }
-  } else if (target && formGroupIdRegex.test(target)) {
+  } else if (targetResolution.kind === "form-group" && target) {
     diagnostics.push(formGroupUpdateTargetDiagnostic(`Action ${actionId} ${context} display effect`, target, firstPropertyLine(display, "target") ?? display.location.line));
-  } else if (target && isLocalId(target) && !layoutIds.has(target) && !elementIds.has(target)) {
+  } else if (targetResolution.kind === "missing-local" && target) {
     diagnostics.push({
       severity: "error",
       message: `Action ${actionId} ${context} display effect targets missing layout or element ${target}.`,
       line: firstPropertyLine(display, "target") ?? display.location.line
     });
-  } else if (target && layoutIds.has(target)) {
+  } else if (targetResolution.kind === "layout" && target) {
     checkLayoutTargetViewportCoverage(
       target,
       layoutIdsByViewport,
@@ -1869,8 +1872,8 @@ function validateDisplayMessage(
   }
 
   const line = firstPropertyLine(display, "message") ?? display.location.line;
-  const match = displayMessageReferenceRegex.exec(display.message);
-  if (!match) {
+  const reference = parseDisplayMessageReference(display.message);
+  if (!reference) {
     diagnostics.push({
       severity: "warning",
       message: `Action ${actionId} ${context} display.message ${display.message} is not recognized. Use V-*.messages or R-*.messages.`,
@@ -1879,8 +1882,8 @@ function validateDisplayMessage(
     return;
   }
 
-  const sourceId = match[1] ?? "";
-  if (sourceId.startsWith("V-")) {
+  const sourceId = reference.sourceId;
+  if (reference.sourceKind === "validation") {
     const validation = validationsById.get(sourceId);
     if (!validation) {
       diagnostics.push({
@@ -1985,16 +1988,6 @@ function validateDialogActions(
       });
     }
   }
-}
-
-function isTargetlessOverlayDisplay(
-  display: MarkVSpecActionOutcome["display"],
-  elementsById: Map<string, MarkVSpecElement>
-): boolean {
-  if (!display?.element || display.target) {
-    return false;
-  }
-  return ["Dialog", "Toast"].includes(elementsById.get(display.element)?.type ?? "");
 }
 
 function validatePreviewScenarioCases(
