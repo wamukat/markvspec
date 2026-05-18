@@ -18,7 +18,7 @@ displayed value; the property value itself is the baseline preview sample.
 
 ## Layout: desktop
 
-### L-Page Source kind page
+### L1:L-Page Source kind page
 
 - stack
 - gap: md
@@ -32,7 +32,7 @@ displayed value; the property value itself is the baseline preview sample.
 - E-RoleSelect
 - E-SaveButton
 
-### L-ProfileSummary Profile summary
+### L2:L-ProfileSummary Profile summary
 
 - grid
 - columns: 2
@@ -46,7 +46,7 @@ displayed value; the property value itself is the baseline preview sample.
 - E-EmailInput
 - E-ConfirmEmail
 
-### L-OrderSummary Order summary
+### L3:L-OrderSummary Order summary
 
 - stack
 - gap: sm
@@ -57,7 +57,7 @@ displayed value; the property value itself is the baseline preview sample.
 - E-RenewalDate
 - E-LineItems
 
-### L-ReferenceLinks Reference links
+### L4:L-ReferenceLinks Reference links
 
 - row
 - gap: sm
@@ -69,13 +69,13 @@ displayed value; the property value itself is the baseline preview sample.
 
 ## Elements
 
-### E-Title Heading
+### 1:E-Title Heading
 
 - level: 1
 - label: Member source kinds
   - kind: i18n
 
-### E-Avatar Image
+### 2:E-Avatar Image
 
 - src: /assets/member-avatar.png
   - kind: asset
@@ -83,7 +83,7 @@ displayed value; the property value itself is the baseline preview sample.
 - alt: Current member avatar
   - kind: i18n
 
-### E-MemberId Text
+### 3:E-MemberId Text
 
 - label: Member ID
   - kind: i18n
@@ -91,7 +91,7 @@ displayed value; the property value itself is the baseline preview sample.
   - kind: route
   - source: ${route.memberId}
 
-### E-DisplayName Text
+### 4:E-DisplayName Text
 
 - label: Display name
   - kind: i18n
@@ -99,7 +99,7 @@ displayed value; the property value itself is the baseline preview sample.
   - kind: data
   - source: ${data.member.displayName}
 
-### E-EmailInput Input
+### 5:E-EmailInput Input
 
 - label: Email address
   - kind: i18n
@@ -109,7 +109,7 @@ displayed value; the property value itself is the baseline preview sample.
 - placeholder: name@example.com
   - kind: i18n
 
-### E-ConfirmEmail Text
+### 6:E-ConfirmEmail Text
 
 - label: Confirmation email
   - kind: i18n
@@ -117,7 +117,7 @@ displayed value; the property value itself is the baseline preview sample.
   - kind: element
   - source: E-EmailInput.value
 
-### E-Subtotal Text
+### 7:E-Subtotal Text
 
 - label: Subtotal
   - kind: i18n
@@ -126,7 +126,7 @@ displayed value; the property value itself is the baseline preview sample.
   - source: ${data.invoice.subtotalCents} formatted as currency
   - format: currency USD
 
-### E-RenewalDate Text
+### 8:E-RenewalDate Text
 
 - label: Renewal reminder
   - kind: i18n
@@ -135,7 +135,7 @@ displayed value; the property value itself is the baseline preview sample.
   - source: ${data.subscription.renewalDate} - 7 days
   - format: date yyyy/MM/dd
 
-### E-LineItems Table
+### 9:E-LineItems Table
 
 - label: Line items
   - kind: i18n
@@ -143,7 +143,7 @@ displayed value; the property value itself is the baseline preview sample.
   - item: Item
   - amount: Amount
 
-### E-RoleSelect Select
+### 10:E-RoleSelect Select
 
 - label: Role
   - kind: i18n
@@ -156,7 +156,7 @@ displayed value; the property value itself is the baseline preview sample.
   - Administrator
     - kind: i18n
 
-### E-StatusLink Link
+### 11:E-StatusLink Link
 
 - label: Status page
   - kind: i18n
@@ -164,7 +164,7 @@ displayed value; the property value itself is the baseline preview sample.
   - kind: external
   - source: external status page URL
 
-### E-HelpLink Link
+### 12:E-HelpLink Link
 
 - label: Help center
   - kind: i18n
@@ -172,7 +172,7 @@ displayed value; the property value itself is the baseline preview sample.
   - kind: route
   - source: application help route
 
-### E-SaveButton Button
+### 13:E-SaveButton Button
 
 - label: Save changes
   - kind: i18n
