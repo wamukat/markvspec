@@ -3,6 +3,7 @@ import {
   stateScreenActionsForModel,
   stateScreenElementsForModel,
   systemEventActionsForState,
+  tableColumnSampleKeys,
   type FocusScope,
   type MarkVSpecParseResult,
   type MessageKey,
@@ -170,7 +171,7 @@ function renderScenarioSamplesBox(
         label: typeof element.properties["label"] === "string" ? element.properties["label"] : element.id
       })
       : format.text(sample.elementId);
-    return `<tr><td>${elementRef}</td><td>${renderScenarioSampleValue(context, sample)}</td></tr>`;
+    return `<tr><td>${elementRef}</td><td>${renderScenarioSampleValue(context, sample, element)}</td></tr>`;
   }).join("");
   return `<aside class="scenario-samples-box">
     <h6 class="state-screen-detail-heading">${format.label("scenarioSamples")}</h6>
@@ -180,16 +181,72 @@ function renderScenarioSamplesBox(
 
 function renderScenarioSampleValue(
   context: StateViewsRenderContext,
-  sample: StateScreenReadModel["scenarioSamples"][number]
+  sample: StateScreenReadModel["scenarioSamples"][number],
+  element?: MarkVSpecParseResult["elements"][number]
 ): string {
   const { format } = context;
   if (sample.rows) {
     if (sample.rows.explicitEmpty && sample.rows.rows.length === 0) {
       return `<code>rows: []</code>`;
     }
-    return format.text(`${sample.rows.rows.length} ${format.label("scenarioSampleRowsUnit")}`);
+    return renderScenarioSampleRowsTable(context, sample.rows.rows, element);
   }
   return format.text(sample.value ?? "");
+}
+
+function renderScenarioSampleRowsTable(
+  context: StateViewsRenderContext,
+  rows: NonNullable<StateScreenReadModel["scenarioSamples"][number]["rows"]>["rows"],
+  element: MarkVSpecParseResult["elements"][number] | undefined
+): string {
+  const { format } = context;
+  const columns = scenarioSampleColumns(rows, element);
+  if (columns.length === 0) {
+    return "";
+  }
+  const header = columns.map((column) => `<th>${format.escapeHtml(column.label)}</th>`).join("");
+  const body = rows
+    .map((row) => `<tr>${columns.map((column) => `<td>${format.text(scenarioSampleCellValue(row.fields, column.keys))}</td>`).join("")}</tr>`)
+    .join("");
+  return `<div class="scenario-sample-rows-wrap"><table class="spec-table scenario-sample-rows-table"><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table></div>`;
+}
+
+function scenarioSampleColumns(
+  rows: NonNullable<StateScreenReadModel["scenarioSamples"][number]["rows"]>["rows"],
+  element: MarkVSpecParseResult["elements"][number] | undefined
+): Array<{ keys: string[]; label: string }> {
+  const seen = new Set<string>();
+  const columns: Array<{ keys: string[]; label: string }> = [];
+  for (const column of element?.tableColumns ?? []) {
+    const keys = tableColumnSampleKeys(column);
+    const primaryKey = keys[0];
+    if (!primaryKey || seen.has(primaryKey)) {
+      continue;
+    }
+    for (const key of keys) {
+      seen.add(key);
+    }
+    columns.push({ keys, label: column.label });
+  }
+  for (const row of rows) {
+    for (const key of Object.keys(row.fields)) {
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      columns.push({ keys: [key], label: key });
+    }
+  }
+  return columns;
+}
+
+function scenarioSampleCellValue(fields: Record<string, string>, keys: string[]): string {
+  for (const key of keys) {
+    if (fields[key] !== undefined) {
+      return fields[key] ?? "";
+    }
+  }
+  return "";
 }
 
 function renderDisplayExplanationsBox(

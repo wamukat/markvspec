@@ -1,4 +1,4 @@
-import { buildViewportStateScreenReadModels, effectiveHistoryFields, latestHistoryBasicInfo, messagesForLocale, renderMarkVSpecHtml, resolveMarkVSpecEntityReference } from "@markvspec/core";
+import { buildViewportStateScreenReadModels, effectiveHistoryFields, latestHistoryBasicInfo, messagesForLocale, renderMarkVSpecHtml, resolveMarkVSpecEntityReference, tableColumnSampleKeys } from "@markvspec/core";
 import type { MarkVSpecParseResult, RendererMessages, StateScreenReadModel } from "@markvspec/core";
 
 export type MarkVSpecDocumentViewport = "mobile" | "tablet" | "desktop" | string;
@@ -267,7 +267,7 @@ function renderScenarioSamplesBox(
     const element = elementById.get(sample.elementId);
     const elementLabel = element?.properties["label"];
     const elementText = typeof elementLabel === "string" ? `${sample.elementId} ${elementLabel}` : sample.elementId;
-    return [escapeHtml(elementText), renderScenarioSampleValue(sample, messages)];
+    return [escapeHtml(elementText), renderScenarioSampleValue(sample, element)];
   });
   return `<aside class="scenario-samples-box">
     <h6 class="state-screen-detail-heading">${escapeHtml(messages.scenarioSamples)}</h6>
@@ -275,14 +275,70 @@ function renderScenarioSamplesBox(
   </aside>`;
 }
 
-function renderScenarioSampleValue(sample: StateScreenReadModel["scenarioSamples"][number], messages: RendererMessages): string {
+function renderScenarioSampleValue(
+  sample: StateScreenReadModel["scenarioSamples"][number],
+  element?: MarkVSpecParseResult["elements"][number]
+): string {
   if (sample.rows) {
     if (sample.rows.explicitEmpty && sample.rows.rows.length === 0) {
       return "<code>rows: []</code>";
     }
-    return escapeHtml(`${sample.rows.rows.length} ${messages.scenarioSampleRowsUnit}`);
+    return renderScenarioSampleRowsTable(sample.rows.rows, element);
   }
   return escapeHtml(sample.value ?? "");
+}
+
+function renderScenarioSampleRowsTable(
+  rows: NonNullable<StateScreenReadModel["scenarioSamples"][number]["rows"]>["rows"],
+  element: MarkVSpecParseResult["elements"][number] | undefined
+): string {
+  const columns = scenarioSampleColumns(rows, element);
+  if (columns.length === 0) {
+    return "";
+  }
+  const header = columns.map((column) => `<th>${escapeHtml(column.label)}</th>`).join("");
+  const body = rows
+    .map((row) => `<tr>${columns.map((column) => `<td>${escapeHtml(scenarioSampleCellValue(row.fields, column.keys))}</td>`).join("")}</tr>`)
+    .join("");
+  return `<div class="scenario-sample-rows-wrap"><table class="spec-table scenario-sample-rows-table"><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table></div>`;
+}
+
+function scenarioSampleColumns(
+  rows: NonNullable<StateScreenReadModel["scenarioSamples"][number]["rows"]>["rows"],
+  element: MarkVSpecParseResult["elements"][number] | undefined
+): Array<{ keys: string[]; label: string }> {
+  const seen = new Set<string>();
+  const columns: Array<{ keys: string[]; label: string }> = [];
+  for (const column of element?.tableColumns ?? []) {
+    const keys = tableColumnSampleKeys(column);
+    const primaryKey = keys[0];
+    if (!primaryKey || seen.has(primaryKey)) {
+      continue;
+    }
+    for (const key of keys) {
+      seen.add(key);
+    }
+    columns.push({ keys, label: column.label });
+  }
+  for (const row of rows) {
+    for (const key of Object.keys(row.fields)) {
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      columns.push({ keys: [key], label: key });
+    }
+  }
+  return columns;
+}
+
+function scenarioSampleCellValue(fields: Record<string, string>, keys: string[]): string {
+  for (const key of keys) {
+    if (fields[key] !== undefined) {
+      return fields[key] ?? "";
+    }
+  }
+  return "";
 }
 
 function renderHistorySection(result: MarkVSpecParseResult, messages: RendererMessages): string {

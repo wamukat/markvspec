@@ -371,8 +371,8 @@ title: Scenario Samples
 
 - source: data
 - Columns:
-  - product: Product
-  - seats: Seats
+  - Product: \${model.subscriptions.product}
+  - Seats: \${model.subscriptions.seats}
 - sample rows:
   - row:
     - product: Workspace
@@ -391,9 +391,11 @@ title: Scenario Samples
       - row:
         - product: Workspace
         - seats: 8
+        - renewal: 2026-06-30
       - row:
         - product: Analytics
         - seats: 4
+        - renewal: 2026-07-15
 
 ### loaded-empty-account
 
@@ -414,7 +416,11 @@ title: Scenario Samples
   assert.match(loadedScenario, /<span class="state-badge">loaded-renewal-risk<\/span>/);
   assert.match(loadedScenario, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
   assert.match(loadedScenario, /E-SubscriptionTable/);
-  assert.match(loadedScenario, /2 rows/);
+  assert.match(loadedScenario, /<table class="spec-table scenario-sample-rows-table">/);
+  assert.match(loadedScenario, /<th>Product<\/th><th>Seats<\/th><th>renewal<\/th>/);
+  assert.match(loadedScenario, /<td>Workspace<\/td><td>8<\/td><td>2026-06-30<\/td>/);
+  assert.match(loadedScenario, /<td>Analytics<\/td><td>4<\/td><td>2026-07-15<\/td>/);
+  assert.doesNotMatch(loadedScenario, /2 rows/);
   assert.match(emptyScenario, /0 seats/);
   assert.match(emptyScenario, /<code>rows: \[\]<\/code>/);
 });
@@ -476,8 +482,12 @@ locale: ja
   assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">シナリオサンプル<\/h6>/);
   assert.match(scenarioSection, /<th>画面要素<\/th>/);
   assert.match(scenarioSection, /<th>サンプル<\/th>/);
-  assert.match(scenarioSection, /2 行/);
+  assert.match(scenarioSection, /<table class="spec-table scenario-sample-rows-table">/);
+  assert.match(scenarioSection, /<th>名前<\/th>/);
+  assert.match(scenarioSection, /<td>一郎<\/td>/);
+  assert.match(scenarioSection, /<td>二郎<\/td>/);
   assert.doesNotMatch(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>|<th>Sample<\/th>/);
+  assert.doesNotMatch(scenarioSection, /2 行/);
   assert.doesNotMatch(scenarioSection, /2 rows/);
 });
 

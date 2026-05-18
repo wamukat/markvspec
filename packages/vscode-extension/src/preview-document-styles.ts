@@ -111,6 +111,9 @@ ${baseWireframeViewportCss()}
 .spec-table th{background:#f9fafb;font-weight:600;white-space:nowrap}
 .spec-table tbody tr:nth-child(even){background:#fcfcfd}
 .spec-table code:not(.mm-id):not(.mm-doc-label):not(.mm-document-ref-id){background:#f3f4f6;border-radius:3px;padding:1px 3px}
+.scenario-sample-rows-wrap{max-width:100%;overflow:auto}
+.scenario-sample-rows-table{font-size:11px;min-width:max-content;width:auto}
+.scenario-sample-rows-table th,.scenario-sample-rows-table td{padding:4px 6px}
 .spec-default-always{color:#94a3b8;font-weight:500}
 .state-transition-context-heading{color:#374151;font-size:13px;font-weight:700;margin:12px 0 6px}
 .state-transition-axis-cell{min-width:112px;padding:6px 8px!important;position:relative}
@@ -265,6 +268,8 @@ body.hide-marker-action .mm-marker-action{display:none}
     .spec-table tr{break-inside:avoid;page-break-inside:avoid}
     .spec-table th,.spec-table td{overflow-wrap:break-word;padding:4pt 5pt;word-break:normal}
     .spec-table th{white-space:normal}
+    .scenario-sample-rows-wrap{max-width:100%;overflow:visible}
+    .scenario-sample-rows-table{font-size:8pt;min-width:0;width:auto}
     .spec-table code:not(.mm-id):not(.mm-doc-label):not(.mm-document-ref-id){background:transparent;padding:0}
     ${printSpecTableChipCss()}
     .mm-inline-token{color:inherit}
@@ -373,6 +378,9 @@ ${baseWireframeViewportCss()}
 .spec-table th{background:#f9fafb;font-weight:600;white-space:nowrap}
 .spec-table tbody tr:nth-child(even){background:#fcfcfd}
 .spec-table code:not(.mm-id):not(.mm-doc-label):not(.mm-document-ref-id){background:#f3f4f6;border-radius:3px;padding:1px 3px}
+.scenario-sample-rows-wrap{max-width:100%;overflow:auto}
+.scenario-sample-rows-table{font-size:11px;min-width:max-content;width:auto}
+.scenario-sample-rows-table th,.scenario-sample-rows-table td{padding:4px 6px}
 .spec-default-always{color:#94a3b8;font-weight:500}
 .state-transition-context-heading{color:#374151;font-size:13px;font-weight:700;margin:12px 0 6px}
 .state-transition-axis-cell{min-width:112px;padding:6px 8px!important;position:relative}
@@ -433,6 +441,8 @@ ${baseWireframeViewportCss()}
     .spec-table{font-size:8.5pt;table-layout:auto;width:100%}
     .spec-table thead{display:table-header-group}
     .spec-table th,.spec-table td{overflow-wrap:break-word;padding:4pt 5pt;word-break:normal}
+    .scenario-sample-rows-wrap{max-width:100%;overflow:visible}
+    .scenario-sample-rows-table{font-size:8pt;min-width:0;width:auto}
     ${printSpecTableChipCss()}
     .mm-inline-token{color:inherit}
     .mermaid-source,.mermaid-render{break-inside:avoid;font-size:8.5pt;max-width:100%;overflow:visible;page-break-inside:avoid;white-space:pre-wrap}

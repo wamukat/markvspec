@@ -3441,8 +3441,8 @@ title: Scenario Samples
 
 - source: data
 - Columns:
-  - name: Name
-  - role: Role
+  - Name: \${model.users.name}
+  - Role: \${model.users.role}
 - sample rows:
   - row:
     - name: Alice
@@ -3486,7 +3486,10 @@ title: Scenario Samples
   assert.match(scenarioWireframe, /<td class="mm-table-empty" colspan="1">\(no data\)<\/td>/);
   assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
   assert.match(scenarioSection, /E-Title[\s\S]*Scenario title/);
-  assert.match(scenarioSection, /E-Users[\s\S]*1 rows/);
+  assert.match(scenarioSection, /E-Users[\s\S]*<table class="spec-table scenario-sample-rows-table">/);
+  assert.match(scenarioSection, /<th>Name<\/th><th>Role<\/th>/);
+  assert.match(scenarioSection, /<td>Carol<\/td><td>Owner<\/td>/);
+  assert.doesNotMatch(scenarioSection, /1 rows/);
   assert.match(scenarioSection, /E-EmptyUsers[\s\S]*<code>rows: \[\]<\/code>/);
 });
 
@@ -3549,8 +3552,12 @@ locale: ja
 
   assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">シナリオサンプル<\/h6>/);
   assert.match(scenarioSection, /<th>画面要素<\/th><th>サンプル<\/th>/);
-  assert.match(scenarioSection, /2 行/);
+  assert.match(scenarioSection, /<table class="spec-table scenario-sample-rows-table">/);
+  assert.match(scenarioSection, /<th>名前<\/th>/);
+  assert.match(scenarioSection, /<td>一郎<\/td>/);
+  assert.match(scenarioSection, /<td>二郎<\/td>/);
   assert.doesNotMatch(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>|<th>Sample<\/th>/);
+  assert.doesNotMatch(scenarioSection, /2 行/);
   assert.doesNotMatch(scenarioSection, /2 rows/);
 });
 

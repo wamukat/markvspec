@@ -1,5 +1,5 @@
 import { isLocalId, isPresentationPanelId, opaqueExpressionBody } from "./ids.js";
-import { sourcePathKey } from "./model-paths.js";
+import { tableColumnSampleKeys } from "./table-columns.js";
 import { messagesForLocale } from "./renderer-messages.js";
 import { actionAppliesToState } from "./action-applicability.js";
 import { sourceTypeForElement } from "./source-types.js";
@@ -1351,13 +1351,6 @@ function sampleRowsToTableRows(
           raw: `${key}: ${value}`
         }))
   }));
-}
-
-function tableColumnSampleKeys(column: MarkVSpecElement["tableColumns"][number]): string[] {
-  const sourceKey = column.source ? sourcePathKey(column.source) : undefined;
-  const sourceLeaf = sourceKey?.split(".").filter(Boolean).slice(-1)[0];
-  const rawSourceLeaf = column.source?.replace(/^\$\{/u, "").replace(/\}$/u, "").split(".").filter(Boolean).slice(-1)[0];
-  return [column.key, sourceKey, sourceLeaf, rawSourceLeaf, column.label].filter((value): value is string => Boolean(value));
 }
 
 function normalizeHeadingLevel(value: string): 1 | 2 | 3 | 4 | 5 | 6 {

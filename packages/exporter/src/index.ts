@@ -557,6 +557,9 @@ function standaloneHtml(
       .spec-table th { background: #f9fafb; font-weight: 600; white-space: nowrap; }
       .spec-table tbody tr:nth-child(even) { background: #fcfcfd; }
       .spec-table code:not(.mm-id):not(.mm-doc-label):not(.mm-document-ref-id) { background: #f3f4f6; border-radius: 3px; padding: 1px 3px; }
+      .scenario-sample-rows-wrap { max-width: 100%; overflow: auto; }
+      .scenario-sample-rows-table { font-size: 11px; min-width: max-content; width: auto; }
+      .scenario-sample-rows-table th, .scenario-sample-rows-table td { padding: 4px 6px; }
       .wireframe-section { max-width: 100%; overflow-x: auto; overflow-y: visible; padding-bottom: 4px; scrollbar-color: #9ca3af #f3f4f6; scrollbar-width: thin; }
       .wireframe-section::-webkit-scrollbar { height: 10px; width: 10px; }
       .wireframe-section::-webkit-scrollbar-track { background: #f3f4f6; }
@@ -606,6 +609,8 @@ function standaloneHtml(
         .spec-table th,
         .spec-table td { box-sizing: border-box; overflow-wrap: break-word; padding: 4pt 5pt; word-break: normal; }
         .spec-table th { white-space: normal; }
+        .scenario-sample-rows-wrap { max-width: 100%; overflow: visible; }
+        .scenario-sample-rows-table { font-size: 8pt; min-width: 0; width: auto; }
         ${printSpecTableChipCss({ spaced: true })}
       }
     </style>
