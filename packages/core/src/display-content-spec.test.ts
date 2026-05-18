@@ -82,3 +82,87 @@ title: Display Content
   assert(rowKeys.includes("E-StatusBadge:text:Active:fixed"));
   assert(!rowKeys.some((key) => key.startsWith("E-FixedInput:sample:")));
 });
+
+test("builds Display Content Spec rows from property-level metadata", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-PROPERTY-METADATA
+type: screen
+title: Property Metadata
+---
+
+## Elements
+
+### E-PublishedAt Text
+
+- value: 2026/05/01
+  - kind: data
+  - source: notice published date
+  - format: date yyyy/MM/dd
+- label: Published
+  - kind: i18n
+
+### E-AvatarPreview Image
+
+- src: /assets/avatar.png
+  - kind: asset
+  - source: asset catalog: member-avatar
+- alt: Current member avatar
+  - kind: i18n
+
+### E-NoticeLink Link
+
+- href: /notices/123
+  - kind: route
+  - source: notice detail route
+
+### E-RoleSelect Select
+
+- options:
+  - Viewer
+    - kind: i18n
+    - format: title case
+  - Administrator
+    - kind: i18n
+    - source: copy.roles.admin
+
+### E-Broken Text
+
+- value: Broken
+  - kind: unknown
+  - source:
+- type: email
+  - kind: data
+`);
+
+  const rows = buildDisplayContentSpecRows(result.elements);
+  const publishedValue = rows.find((row) => row.element.id === "E-PublishedAt" && row.location === "value");
+  const publishedLabel = rows.find((row) => row.element.id === "E-PublishedAt" && row.location === "label");
+  const avatarSrc = rows.find((row) => row.element.id === "E-AvatarPreview" && row.location === "src");
+  const noticeHref = rows.find((row) => row.element.id === "E-NoticeLink" && row.location === "href");
+  const roleOptions = rows.find((row) => row.element.id === "E-RoleSelect" && row.location === "options");
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert.equal(publishedValue?.source, "data");
+  assert.equal(publishedValue?.format, "date yyyy/MM/dd");
+  assert.deepEqual(publishedValue?.contentSections, [
+    { title: "Value", rows: ["2026/05/01"] },
+    { title: "Source", rows: ["notice published date"] }
+  ]);
+  assert.equal(publishedLabel?.source, "i18n");
+  assert.equal(avatarSrc?.source, "asset");
+  assert.deepEqual(avatarSrc?.contentSections, [
+    { title: "Value", rows: ["/assets/avatar.png"] },
+    { title: "Source", rows: ["asset catalog: member-avatar"] }
+  ]);
+  assert.equal(noticeHref?.source, "route");
+  assert.deepEqual(noticeHref?.contentSections, [
+    { title: "Value", rows: ["/notices/123"] },
+    { title: "Source", rows: ["notice detail route"] }
+  ]);
+  assert.deepEqual(roleOptions?.contentSections, [
+    { title: "Options", rows: ["Viewer / i18n / title case", "Administrator / i18n / copy.roles.admin"] }
+  ]);
+  assert(messages.includes("Element E-Broken display value property value has unknown kind unknown. Use fixed, i18n, data, route, element, asset, external, or computed."));
+  assert(messages.includes("Element E-Broken display value property value has empty source metadata."));
+  assert(messages.includes("Element E-Broken metadata kind must be nested under a display value property such as value, label, placeholder, text, message, hint, href, src, or alt."));
+});

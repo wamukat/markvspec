@@ -809,9 +809,16 @@ function cloneTemplateElements(elements: MarkVSpecParseResult["elements"]): Mark
     ...element,
     documentRole: "template",
     properties: cloneProperties(element.properties, true),
+    propertyMetadata: Object.fromEntries(Object.entries(element.propertyMetadata).map(([key, metadata]) => [key, {
+      ...metadata,
+      locations: { ...metadata.locations }
+    }])),
     propertyLocations: clonePropertyLocations(element.propertyLocations, true),
     routeParams: element.routeParams.map((param) => ({ ...param })),
-    selectOptions: element.selectOptions.map((option) => ({ ...option })),
+    selectOptions: element.selectOptions.map((option) => ({
+      ...option,
+      metadata: option.metadata ? { ...option.metadata, locations: { ...option.metadata.locations } } : undefined
+    })),
     tableColumns: element.tableColumns.map((column) => ({ ...column })),
     tableRows: element.tableRows.map((row) => ({
       ...row,

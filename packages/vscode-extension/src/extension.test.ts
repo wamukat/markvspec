@@ -5961,6 +5961,65 @@ test("renders scenario sample values in display content spec", () => {
   assert.doesNotMatch(loadedSection, /<h6 class="state-screen-detail-heading">Other<\/h6>/);
 });
 
+test("renders property-level display value metadata in display content spec", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-DISPLAY-METADATA
+type: screen
+title: Display Metadata
+---
+
+# SCR-DISPLAY-METADATA Display Metadata
+
+## States
+
+- loaded*
+
+## Elements
+
+### E-PublishedAt Text
+
+- value: 2026/05/01
+  - kind: data
+  - source: notice published date
+  - format: date yyyy/MM/dd
+- label: Published
+  - kind: i18n
+
+### E-AvatarPreview Image
+
+- src: /assets/avatar.png
+  - kind: asset
+  - source: asset catalog: member-avatar
+- alt: Current member avatar
+  - kind: i18n
+
+### E-NoticeLink Link
+
+- href: /notices/123
+  - kind: route
+  - source: notice detail route
+
+### E-RoleSelect Select
+
+- options:
+  - Viewer
+    - kind: i18n
+    - format: title case
+  - Administrator
+    - kind: i18n
+    - source: copy.roles.admin
+`);
+  const html = renderDesignDocumentHtml(result, "");
+  const displayContent = html.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.match(displayContent, new RegExp(`<td rowspan="2">${detailElementRef("E-PublishedAt", "E-PublishedAt")}</td><td>label</td><td>Published</td><td>-</td><td>${sourceTypeChipPattern("i18n")}</td>`));
+  assert.match(displayContent, new RegExp(`<tr><td>value</td><td>${specSectionPattern("Value", ["2026/05/01"])}${specSectionPattern("Source", ["notice published date"])}</td><td>date yyyy/MM/dd</td><td>${sourceTypeChipPattern("data")}</td>`));
+  assert.match(displayContent, new RegExp(`<td rowspan="2">${detailElementRef("E-AvatarPreview", "E-AvatarPreview")}</td><td>src</td><td>${specSectionPattern("Value", ["/assets/avatar\\.png"])}${specSectionPattern("Source", ["asset catalog: member-avatar"])}</td><td>-</td><td>${sourceTypeChipPattern("asset")}</td>`));
+  assert.match(displayContent, new RegExp(`<tr><td>alt</td><td>Current member avatar</td><td>-</td><td>${sourceTypeChipPattern("i18n")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-NoticeLink", "E-NoticeLink")}</td><td>href</td><td>${specSectionPattern("Value", ["/notices/123"])}${specSectionPattern("Source", ["notice detail route"])}</td><td>-</td><td>${sourceTypeChipPattern("route")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("E-RoleSelect", "E-RoleSelect")}</td><td>options</td><td>${specSectionPattern("Options", ["Viewer / i18n / title case", "Administrator / i18n / copy.roles.admin"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
+});
+
 test("renders List items in display content spec without treating the list as input", () => {
   const source = readFileSync(resolve("../../examples/04-real-world-screens/profile-edit-rich.vspec.md"), "utf8");
   const html = renderDesignDocumentHtml(parseMarkVSpec(source), "");

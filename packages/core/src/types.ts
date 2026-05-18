@@ -152,6 +152,7 @@ export interface MarkVSpecElement {
   type: string;
   documentRole?: "template";
   properties: Record<string, string | true>;
+  propertyMetadata: Record<string, MarkVSpecDisplayValueMetadata>;
   propertyLocations: Record<string, SourceLocation[]>;
   routeParams: MarkVSpecRouteParam[];
   selectOptions: MarkVSpecSelectOption[];
@@ -203,8 +204,16 @@ export interface MarkVSpecInputRule {
 export interface MarkVSpecSelectOption {
   label: string;
   source?: string;
+  metadata?: MarkVSpecDisplayValueMetadata;
   location: SourceLocation;
   raw: string;
+}
+
+export interface MarkVSpecDisplayValueMetadata {
+  kind?: string;
+  source?: string;
+  format?: string;
+  locations: Partial<Record<"kind" | "source" | "format", SourceLocation>>;
 }
 
 export interface MarkVSpecTableColumn {

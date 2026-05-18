@@ -38,6 +38,7 @@ import {
 } from "./markdown-section-ast.js";
 import { filterLinesWithoutStandaloneHtmlComments, isStandaloneHtmlCommentBlock } from "./markdown-html-comments.js";
 import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
+import { isMarkVSpecSourceType } from "./source-types.js";
 
 export interface SemanticDependency {
   source: { type: "entity" | "section" | "render"; id: string };
@@ -678,6 +679,7 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
   let currentTableColumn: MarkVSpecElement["tableColumns"][number] | undefined;
   let currentTableRow: MarkVSpecElement["tableRows"][number] | undefined;
   let currentSampleRow: MarkVSpecSampleRow | undefined;
+  let currentSelectOption: MarkVSpecElement["selectOptions"][number] | undefined;
   let currentElementHasStructuredContent = false;
   let hasSeenEntity = false;
   let inSectionNotes = false;
@@ -715,6 +717,7 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
         currentTableColumn = undefined;
         currentTableRow = undefined;
         currentSampleRow = undefined;
+        currentSelectOption = undefined;
         currentElementHasStructuredContent = false;
         continue;
       }
@@ -728,6 +731,7 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
           ...(heading[1] ? { marker: heading[1] } : {}),
           ...(parsedType.required ? { required: true } : {})
         },
+        propertyMetadata: {},
         propertyLocations: {
           ...(heading[1] ? { marker: [headingLocation] } : {}),
           ...(parsedType.required ? { required: [headingLocation] } : {})
@@ -789,6 +793,14 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
       if (bulletResult.sampleRow) {
         currentSampleRow = bulletResult.sampleRow;
       }
+      if (bulletResult.selectOption) {
+        currentSelectOption = bulletResult.selectOption;
+      } else if (currentElementNestedProperty !== "options" || bullet.indent <= 1) {
+        currentSelectOption = currentElementNestedProperty === "options" ? currentSelectOption : undefined;
+      }
+      if (currentElementNestedProperty === "options" && currentSelectOption && bullet.indent > 1) {
+        applyDisplayValueMetadata(currentSelectOption, "option", bullet, diagnostics, currentElement.id);
+      }
     }
   }
 
@@ -813,10 +825,28 @@ function applyElementSemanticBullet(
   sampleRow: MarkVSpecSampleRow | undefined,
   diagnostics: MarkVSpecDiagnostic[],
   dependencies: SemanticDependency[]
-): { nestedProperty: string | undefined; sampleRow?: MarkVSpecSampleRow } {
+): { nestedProperty: string | undefined; sampleRow?: MarkVSpecSampleRow; selectOption?: MarkVSpecElement["selectOptions"][number] } {
   if (bullet.indent > 0) {
     if (optionElementTypes.has(element.type) && nestedProperty === "options") {
-      element.selectOptions.push(parseElementOption(bullet));
+      if (bullet.indent > 1) {
+        return { nestedProperty };
+      }
+      const option = parseElementOption(bullet);
+      element.selectOptions.push(option);
+      return { nestedProperty, selectOption: option };
+    }
+
+    if (isDisplayValueProperty(nestedProperty) && isDisplayValueMetadataKey(bullet.text)) {
+      applyDisplayValueMetadata(element, nestedProperty, bullet, diagnostics, element.id);
+      return { nestedProperty };
+    }
+
+    if (isDisplayValueMetadataKey(bullet.text)) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Element ${element.id} metadata ${splitKeyValue(bullet.text)[0].trim()} must be nested under a display value property such as value, label, placeholder, text, message, hint, href, src, or alt.`,
+        line: bullet.location.line
+      });
       return { nestedProperty };
     }
 
@@ -901,7 +931,7 @@ function applyElementSemanticBullet(
 
   applyElementBullet(element, bullet, diagnostics);
   addElementBulletDependencies(element, bullet, dependencies);
-  return { nestedProperty: undefined };
+  return isDisplayValueProperty(nextNestedProperty) ? { nestedProperty: nextNestedProperty } : { nestedProperty: undefined };
 }
 
 function parseActionsSection(section: SectionAst): ActionSectionSemanticResult {
@@ -2688,6 +2718,75 @@ function parseElementOption(bullet: ParsedBullet): MarkVSpecElement["selectOptio
     location: bullet.location,
     raw: bullet.text
   };
+}
+
+const displayValueProperties = new Set([
+  "value",
+  "label",
+  "placeholder",
+  "text",
+  "message",
+  "hint",
+  "href",
+  "src",
+  "alt"
+]);
+
+function isDisplayValueProperty(property: string | undefined): property is string {
+  return Boolean(property && displayValueProperties.has(property));
+}
+
+function isDisplayValueMetadataKey(text: string): boolean {
+  const [key] = splitKeyValue(text);
+  return ["kind", "source", "format"].includes(key.trim());
+}
+
+function applyDisplayValueMetadata(
+  target: MarkVSpecElement | MarkVSpecElement["selectOptions"][number],
+  property: string,
+  bullet: ParsedBullet,
+  diagnostics: MarkVSpecDiagnostic[],
+  elementId: string
+): void {
+  const [key, value] = splitKeyValue(bullet.text);
+  const normalizedKey = key.trim();
+  if (!["kind", "source", "format"].includes(normalizedKey)) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Element ${elementId} display value property ${property} has unsupported metadata ${normalizedKey}. Use kind, source, or format.`,
+      line: bullet.location.line
+    });
+    return;
+  }
+
+  const normalizedValue = value?.trim() ?? "";
+  if (normalizedKey === "kind" && !isMarkVSpecSourceType(normalizedValue)) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Element ${elementId} display value property ${property} has unknown kind ${normalizedValue}. Use fixed, i18n, data, route, element, asset, external, or computed.`,
+      line: bullet.location.line
+    });
+  }
+  if (normalizedKey === "source" && normalizedValue.length === 0) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Element ${elementId} display value property ${property} has empty source metadata.`,
+      line: bullet.location.line
+    });
+  }
+
+  const metadata = "propertyMetadata" in target
+    ? (target.propertyMetadata[property] ?? { locations: {} })
+    : (target.metadata ?? { locations: {} });
+  if (normalizedKey === "kind" || normalizedKey === "source" || normalizedKey === "format") {
+    metadata[normalizedKey] = normalizedValue;
+    metadata.locations[normalizedKey] = bullet.location;
+  }
+  if ("propertyMetadata" in target) {
+    target.propertyMetadata[property] = metadata;
+  } else {
+    target.metadata = metadata;
+  }
 }
 
 function applySampleRowsBullet(

@@ -42,6 +42,7 @@ export function buildDisplayContentSpecRows(elements: ParsedElement[]): DisplayC
     pushDisplayPropertyRow(rows, element, "error text", properties["error text"], sourceType);
     pushDisplayPropertyRow(rows, element, "sample", displaySample, sourceType, rawStringProperty(properties["format"]));
     pushDisplayPropertyRow(rows, element, "src", displaySource, sourceType, rawStringProperty(properties["format"]));
+    pushDisplayPropertyRow(rows, element, "href", properties["href"], sourceType, rawStringProperty(properties["format"]));
     pushDisplayPropertyRow(rows, element, "value", displayValueProperty(element), sourceType, rawStringProperty(properties["format"]));
     pushDisplayPropertyRow(rows, element, "content", properties["content"], sourceType);
     pushDisplayPropertyRow(rows, element, "text", properties["text"], sourceType);
@@ -70,7 +71,21 @@ function pushDisplayPropertyRow(
   if (!stringValue) {
     return;
   }
-  rows.push({ element, location, value: stringValue, source, format });
+  const metadata = element.propertyMetadata[location];
+  const contentSections = metadata?.source
+    ? [
+        { title: "Value", rows: [stringValue] },
+        { title: "Source", rows: [metadata.source] }
+      ]
+    : undefined;
+  rows.push({
+    element,
+    location,
+    value: stringValue,
+    ...(contentSections ? { contentSections } : {}),
+    source: metadata?.kind ?? source,
+    format: metadata?.format ?? format
+  });
 }
 
 function pushTableColumnRows(
@@ -122,7 +137,15 @@ function pushSelectOptionsRow(
   if (element.selectOptions.length === 0) {
     return;
   }
-  const optionRows = element.selectOptions.map((option) => option.source ? `${option.label} (${option.source})` : option.label);
+  const optionRows = element.selectOptions.map((option) => {
+    if (!option.metadata) {
+      return option.source ? `${option.label} (${option.source})` : option.label;
+    }
+    const source = option.metadata.source ?? option.source;
+    const kind = option.metadata?.kind;
+    const format = option.metadata?.format;
+    return [option.label, kind, source, format].filter(Boolean).join(" / ");
+  });
   rows.push({
     element,
     location: "options",
