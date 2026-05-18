@@ -8,6 +8,7 @@ the DSL, preview, State Views, Action Details, and export output.
 - `02-states/scenario-samples.vspec.md`: baseline Element samples and Preview Scenario data variations, including table `rows: []` in the same loaded state.
 - `02-states/responsive-profile.vspec.md`: mobile and desktop layout variants over shared elements.
 - `03-actions/event-triggers.vspec.md`: `screen.load`, `.change`, `.blur`, `.focus`, `.submit`, and dialog click/close triggers with visible display effects.
+- `03-actions/display-effects.vspec.md`: focused `display:` effect shapes for layout element insertion, field validation text, business-rule messages, targetless dialogs, and targetless toasts.
 - `03-actions/form-submit-flow.vspec.md`: submit lifecycle with validation receive source, request parameters, server process details, stop/continue flow, and navigation.
 - `03-actions/single-field-validation.vspec.md`: focused single-field validation contracts and browser-facing input constraints without request or navigation noise.
 - `03-actions/toast-feedback.vspec.md`: non-modal toast feedback from action cases, targetless display effects, toast stacks, and Error Codes with `display: toast`.

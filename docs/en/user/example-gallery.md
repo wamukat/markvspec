@@ -24,6 +24,9 @@ smallest useful reference:
 - `Event Triggers` teaches `screen.load`, `.change`, `.blur`, `.focus`,
   `.submit`, and dialog click/close triggers with Preview Scenarios for display
   effects.
+- `Display Effects` teaches the core `display:` variants in one small screen:
+  layout-level element insertion, field validation text, business-rule message
+  text, targetless dialogs, and targetless toasts.
 - `Form Submit Flow` teaches validation, request parameters, server process
   details, stop/continue flow, and success navigation.
 - `Single Field Validation` teaches field-level validation contracts alongside
@@ -62,6 +65,9 @@ For rule and validation headings, use the stable IDs directly, for example
 `### V-RequiredEmail Required email`, so document symbols and parser tests stay
 unambiguous.
 
+For `F-*` and `V-*` examples that should appear as reference chips, prefer a
+`marker:` property such as `F1` or `V1` instead of changing the stable ID.
+
 ## Learning Path
 
 | Example | Purpose | Demonstrates |
@@ -71,6 +77,7 @@ unambiguous.
 | [Scenario Samples](../../../examples/02-states/scenario-samples.vspec.md) | Dedicated preview data variation example. | Neutral Element `sample` / `sample rows:` plus loaded-state Preview Scenario `samples`, including `rows: []`. |
 | [Responsive Profile](../../../examples/02-states/responsive-profile.vspec.md) | Same content in mobile and desktop layouts. | Viewport-specific layout groups over shared elements. |
 | [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | Non-click events and lifecycle triggers. | `screen.load`, `.change` unsaved notice display, `.blur` validation, `.focus` help text, `.submit`, dialog click actions, `close`, and Preview Scenarios. |
+| [Display Effects](../../../examples/03-actions/display-effects.vspec.md) | Focused display effect reference. | `target: L-*` with `element:`, `target: E-*.error` with `message: V-*.messages`, layout-level `message: R-*.messages`, targetless Dialog, targetless Toast, and Preview Scenarios for each case. |
 | [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md) | Submit action lifecycle. | Validation receive source, request parameters, server process details, flow stop/continue, and success navigation. |
 | [Single Field Validation](../../../examples/03-actions/single-field-validation.vspec.md) | Field-level validation examples. | Required, length, pattern, email, and numeric range validation contracts tied to element input specifications. |
 | [Toast Feedback](../../../examples/03-actions/toast-feedback.vspec.md) | Non-modal save feedback. | `Toast`, targetless `display.element`, toast stacks, success/error tones, and Error Codes with `display: toast`. |
@@ -100,17 +107,19 @@ unambiguous.
    and confirm scenario sample overrides render.
 6. Open [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md)
    and confirm non-click events and lifecycle triggers render in Action Details.
-7. Open [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md)
+7. Open [Display Effects](../../../examples/03-actions/display-effects.vspec.md)
+   and confirm each Preview Scenario shows a different display target pattern.
+8. Open [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md)
    and confirm Display Content Spec separates wording, samples, data sources, formats, values, and params.
-8. Open [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md)
+9. Open [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md)
    and confirm the extended element type controls render without diagnostics.
-9. Open [Basic Slot Page](../../../examples/05-reuse/basic-slot-page.vspec.md),
+10. Open [Basic Slot Page](../../../examples/05-reuse/basic-slot-page.vspec.md),
    [Responsive Slot Page](../../../examples/05-reuse/responsive-slot-page.vspec.md),
    and [Default Slot Page](../../../examples/05-reuse/default-slot-page.vspec.md)
    to confirm template slot content, viewport-specific slot override, and
    default fallback render.
-10. Open [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md)
+11. Open [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md)
    and confirm template composition and partial references render.
-11. Open [History And Errors](../../../examples/06-structured-sections/history-and-errors.vspec.md)
+12. Open [History And Errors](../../../examples/06-structured-sections/history-and-errors.vspec.md)
    and confirm structured release metadata renders.
-12. Run `npm run test -w @markvspec/core` before changing example syntax.
+13. Run `npm run test -w @markvspec/core` before changing example syntax.

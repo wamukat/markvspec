@@ -14,6 +14,7 @@
 - 段階順に読み、最小画面から状態、アクション、実務寄りの一覧、再利用へ進める。
 - 1つのサンプルで学ぶ主題を絞り、複数機能を詰め込みすぎない。
 - `States`、responsive layout、slot、主要 element type、Action の `Triggered` / `Process <marker>: <name>`、process step の `case: <name>`、scenario samples を段階的にカバーする。
+- `display:` は専用の基本例から読み、validation message、business rule message、targetless display、partial update の順に理解できるようにする。
 
 ## marker 方針
 
@@ -31,6 +32,9 @@ marker は表示用です。layout item、action trigger、display target、実�
 rule と validation の見出しは、document symbol と parser test が曖昧にならないように
 `### R-AccessControl Access control`、`### V-RequiredEmail Required email` のように安定 ID を直接書きます。
 
+F-* / V-* を参照 chip として読みやすく見せたい場合は、安定 ID を変えずに `marker: F1` や
+`marker: V1` のような marker property を使います。
+
 ## 主なサンプル
 
 | サンプル | 用途 |
@@ -40,6 +44,7 @@ rule と validation の見出しは、document symbol と parser test が曖昧�
 | [Scenario Samples](../../../examples/02-states/scenario-samples.vspec.md) | baseline の Element `sample` / `sample rows:` と、同じ loaded state に対する Preview Scenario data variation / `rows: []` の例。 |
 | [Responsive Profile](../../../examples/02-states/responsive-profile.vspec.md) | mobile / desktop viewport で同じ情報を異なる配置にする例。 |
 | [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | `screen.load`、`.change` の未保存通知、`.blur` validation、`.focus` help、`.submit`、dialog click / `close` と Preview Scenarios の例。 |
+| [Display Effects](../../../examples/03-actions/display-effects.vspec.md) | `target: L-*` + `element:`、`target: E-*.error` + `message: V-*.messages`、`message: R-*.messages`、targetless Dialog / Toast を1画面で比較する display 基本例。 |
 | [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md) | validation receive source、request parameters、server process detail、成功時 navigation の例。 |
 | [Single Field Validation](../../../examples/03-actions/single-field-validation.vspec.md) | 単項目 validation contract と、length / pattern / type / range / step などの element 入力仕様の対応例。 |
 | [Toast Feedback](../../../examples/03-actions/toast-feedback.vspec.md) | `Toast`、target なしの `display.element`、toast stack、success/error tone、`display: toast` の Error Codes の例。 |
@@ -63,8 +68,9 @@ rule と validation の見出しは、document symbol と parser test が曖昧�
 2. marker 表示、viewport filter、state 切替を確認する。
 3. [Scenario Samples](../../../examples/02-states/scenario-samples.vspec.md) で scenario sample override の表示を確認する。
 4. [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) で click 以外の event と lifecycle trigger を確認する。
-5. [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md) で Display Content Spec の文言、表示値、データソース、format、value、params を確認する。
-6. [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md) で拡張 Element Type の preview 表示を確認する。
-7. [Basic Slot Page](../../../examples/05-reuse/basic-slot-page.vspec.md)、[Responsive Slot Page](../../../examples/05-reuse/responsive-slot-page.vspec.md)、[Default Slot Page](../../../examples/05-reuse/default-slot-page.vspec.md) で template slot content、viewport 固有 slot override、default fallback を確認する。
-8. [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md) で template 合成、partial host、`display.partial` を確認する。
-9. [History And Errors](../../../examples/06-structured-sections/history-and-errors.vspec.md) で構造化された履歴とエラーコードを確認する。
+5. [Display Effects](../../../examples/03-actions/display-effects.vspec.md) で display target の違いを Preview Scenarios ごとに確認する。
+6. [Notice Detail](../../../examples/04-real-world-screens/notice-detail.vspec.md) で Display Content Spec の文言、表示値、データソース、format、value、params を確認する。
+7. [Profile Edit Rich](../../../examples/04-real-world-screens/profile-edit-rich.vspec.md) で拡張 Element Type の preview 表示を確認する。
+8. [Basic Slot Page](../../../examples/05-reuse/basic-slot-page.vspec.md)、[Responsive Slot Page](../../../examples/05-reuse/responsive-slot-page.vspec.md)、[Default Slot Page](../../../examples/05-reuse/default-slot-page.vspec.md) で template slot content、viewport 固有 slot override、default fallback を確認する。
+9. [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md) で template 合成、partial host、`display.partial` を確認する。
+10. [History And Errors](../../../examples/06-structured-sections/history-and-errors.vspec.md) で構造化された履歴とエラーコードを確認する。
