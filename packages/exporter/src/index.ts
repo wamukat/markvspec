@@ -557,6 +557,8 @@ function standaloneHtml(
       .spec-table th { background: #f9fafb; font-weight: 600; white-space: nowrap; }
       .spec-table tbody tr:nth-child(even) { background: #fcfcfd; }
       .spec-table code:not(.mm-id):not(.mm-doc-label):not(.mm-document-ref-id) { background: #f3f4f6; border-radius: 3px; padding: 1px 3px; }
+      .scenario-sample-rows-block { margin-top: 10px; }
+      .scenario-sample-rows-heading { align-items: center; display: flex; flex-wrap: wrap; gap: 5px; }
       .scenario-sample-rows-wrap { max-width: 100%; overflow: auto; }
       .scenario-sample-rows-table { font-size: 11px; min-width: max-content; width: auto; }
       .scenario-sample-rows-table th, .scenario-sample-rows-table td { padding: 4px 6px; }
@@ -618,8 +620,10 @@ function standaloneHtml(
         .spec-table th,
         .spec-table td { box-sizing: border-box; overflow-wrap: break-word; padding: 4pt 5pt; word-break: normal; }
         .spec-table th { white-space: normal; }
+        .scenario-sample-rows-block { break-inside: auto; page-break-inside: auto; }
         .scenario-sample-rows-wrap { max-width: 100%; overflow: visible; }
-        .scenario-sample-rows-table { font-size: 8pt; min-width: 0; width: auto; }
+        .scenario-sample-rows-table { font-size: 7pt; min-width: 0; table-layout: fixed; width: 100%; }
+        .scenario-sample-rows-table th, .scenario-sample-rows-table td { overflow-wrap: anywhere; word-break: break-word; }
         ${printSpecTableChipCss({ spaced: true })}
       }
     </style>

@@ -264,28 +264,55 @@ function renderScenarioSamplesBox(
 
   const elementById = new Map(result.elements.map((element) => [element.id, element]));
   const rows = model.scenarioSamples.map((sample) => {
-    const element = elementById.get(sample.elementId);
-    const elementLabel = element?.properties["label"];
-    const elementText = typeof elementLabel === "string" ? `${sample.elementId} ${elementLabel}` : sample.elementId;
-    return [escapeHtml(elementText), renderScenarioSampleValue(sample, element)];
+    return [renderScenarioSampleElementRef(result, sample.elementId), renderScenarioSampleSummary(sample, messages)];
   });
+  const rowBlocks = model.scenarioSamples
+    .map((sample) => renderScenarioSampleRowsBlock(result, sample, elementById.get(sample.elementId), messages))
+    .filter(Boolean)
+    .join("");
   return `<aside class="scenario-samples-box">
     <h6 class="state-screen-detail-heading">${escapeHtml(messages.scenarioSamples)}</h6>
     ${renderTable([messages.elements, messages.sample], rows)}
+    ${rowBlocks}
   </aside>`;
 }
 
-function renderScenarioSampleValue(
+function renderScenarioSampleElementRef(result: MarkVSpecParseResult, elementId: string): string {
+  const reference = resolveMarkVSpecEntityReference(result, elementId);
+  return reference ? renderStaticEntityReference(reference) : escapeHtml(elementId);
+}
+
+function renderScenarioSampleSummary(
   sample: StateScreenReadModel["scenarioSamples"][number],
-  element?: MarkVSpecParseResult["elements"][number]
+  messages: RendererMessages
 ): string {
   if (sample.rows) {
     if (sample.rows.explicitEmpty && sample.rows.rows.length === 0) {
       return "<code>rows: []</code>";
     }
-    return renderScenarioSampleRowsTable(sample.rows.rows, element);
+    const count = sample.rows.rows.length;
+    return `<code>rows: ${count} ${escapeHtml(messages.scenarioSampleRowsUnit)}</code>`;
   }
   return escapeHtml(sample.value ?? "");
+}
+
+function renderScenarioSampleRowsBlock(
+  result: MarkVSpecParseResult,
+  sample: StateScreenReadModel["scenarioSamples"][number],
+  element: MarkVSpecParseResult["elements"][number] | undefined,
+  messages: RendererMessages
+): string {
+  if (!sample.rows || sample.rows.rows.length === 0) {
+    return "";
+  }
+  const rowsTable = renderScenarioSampleRowsTable(sample.rows.rows, element);
+  if (!rowsTable) {
+    return "";
+  }
+  return `<section class="scenario-sample-rows-block">
+    <h6 class="scenario-sample-rows-heading">${escapeHtml(messages.sample)} ${escapeHtml(messages.rows)}: ${renderScenarioSampleElementRef(result, sample.elementId)}</h6>
+    ${rowsTable}
+  </section>`;
 }
 
 function renderScenarioSampleRowsTable(

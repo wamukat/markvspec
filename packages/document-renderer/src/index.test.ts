@@ -429,13 +429,78 @@ title: Scenario Samples
   assert.match(loadedScenario, /<span class="state-badge">loaded-renewal-risk<\/span>/);
   assert.match(loadedScenario, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
   assert.match(loadedScenario, /E-SubscriptionTable/);
+  assert.match(loadedScenario, /<code>rows: 2 rows<\/code>/);
+  assert.match(loadedScenario, /<section class="scenario-sample-rows-block">/);
+  assert.match(loadedScenario, /<h6 class="scenario-sample-rows-heading">Sample Rows: [\s\S]*E-SubscriptionTable/);
   assert.match(loadedScenario, /<table class="spec-table scenario-sample-rows-table">/);
   assert.match(loadedScenario, /<th>Product<\/th><th>Seats<\/th><th>renewal<\/th>/);
   assert.match(loadedScenario, /<td>Workspace<\/td><td>8<\/td><td>2026-06-30<\/td>/);
   assert.match(loadedScenario, /<td>Analytics<\/td><td>4<\/td><td>2026-07-15<\/td>/);
-  assert.doesNotMatch(loadedScenario, /2 rows/);
+  assert(loadedScenario.indexOf('<section class="scenario-sample-rows-block">') > loadedScenario.indexOf("</table></div>"));
   assert.match(emptyScenario, /0 seats/);
   assert.match(emptyScenario, /<code>rows: \[\]<\/code>/);
+  assert.doesNotMatch(emptyScenario, /scenario-sample-rows-block/);
+});
+
+test("renders wide scenario rows as independent readable blocks", () => {
+  const columns = Array.from({ length: 10 }, (_, index) => {
+    const number = index + 1;
+    return `  - Column ${number}: \${model.wide.c${number}}`;
+  }).join("\n");
+  const rowFields = Array.from({ length: 10 }, (_, index) => {
+    const number = index + 1;
+    return `        - c${number}: value-${number}`;
+  }).join("\n");
+  const result = parseMarkVSpec(`---
+id: SCR-WIDE-SCENARIO-ROWS
+type: screen
+title: Wide Scenario Rows
+---
+
+# SCR-WIDE-SCENARIO-ROWS Wide Scenario Rows
+
+## States
+
+- loaded*
+
+## Layout: desktop
+
+### L-Page Page
+
+#### Items
+
+- E-WideTable
+
+## Elements
+
+### E-WideTable Table
+
+- marker: 6
+- source: data
+- Columns:
+${columns}
+
+## Preview Scenarios
+
+### loaded-wide
+
+- state: loaded
+- samples:
+  - E-WideTable:
+    - rows:
+      - row:
+${rowFields}
+`);
+  const html = renderStaticDesignDocumentHtml(result);
+  const scenarioSection = stateViewSection(html, "loaded / loaded-wide");
+
+  assert.match(scenarioSection, /<code>rows: 1 rows<\/code>/);
+  assert.match(scenarioSection, /<h6 class="scenario-sample-rows-heading">Sample Rows: [\s\S]*data-mm-ref-id="E-WideTable"[\s\S]*<code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">6<\/code>/);
+  assert(scenarioSection.indexOf('<section class="scenario-sample-rows-block">') > scenarioSection.indexOf("</table></div>"));
+  for (let index = 1; index <= 10; index += 1) {
+    assert.match(scenarioSection, new RegExp(`<th>Column ${index}</th>`));
+    assert.match(scenarioSection, new RegExp(`<td>value-${index}</td>`));
+  }
 });
 
 test("localizes scenario samples labels in static state views", () => {
@@ -495,13 +560,13 @@ locale: ja
   assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">シナリオサンプル<\/h6>/);
   assert.match(scenarioSection, /<th>画面要素<\/th>/);
   assert.match(scenarioSection, /<th>サンプル<\/th>/);
+  assert.match(scenarioSection, /<code>rows: 2 行<\/code>/);
+  assert.match(scenarioSection, /<h6 class="scenario-sample-rows-heading">サンプル 行数:/);
   assert.match(scenarioSection, /<table class="spec-table scenario-sample-rows-table">/);
   assert.match(scenarioSection, /<th>名前<\/th>/);
   assert.match(scenarioSection, /<td>一郎<\/td>/);
   assert.match(scenarioSection, /<td>二郎<\/td>/);
   assert.doesNotMatch(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>|<th>Sample<\/th>/);
-  assert.doesNotMatch(scenarioSection, /2 行/);
-  assert.doesNotMatch(scenarioSection, /2 rows/);
 });
 
 function stateViewSection(html: string, title: string): string {

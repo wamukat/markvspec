@@ -3540,11 +3540,15 @@ title: Scenario Samples
   assert.match(scenarioWireframe, /<td class="mm-table-empty" colspan="1">\(no data\)<\/td>/);
   assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
   assert.match(scenarioSection, /E-Title[\s\S]*Baseline scenario title/);
-  assert.match(scenarioSection, /E-Users[\s\S]*<table class="spec-table scenario-sample-rows-table">/);
+  assert.match(scenarioSection, /E-Users[\s\S]*<code>rows: 1 rows<\/code>/);
+  assert.match(scenarioSection, /<section class="scenario-sample-rows-block">/);
+  assert.match(scenarioSection, /<h6 class="scenario-sample-rows-heading">Sample Rows: [\s\S]*E-Users/);
+  assert.match(scenarioSection, /<table class="spec-table scenario-sample-rows-table">/);
   assert.match(scenarioSection, /<th>Name<\/th><th>Role<\/th>/);
   assert.match(scenarioSection, /<td>Carol<\/td><td>Owner<\/td>/);
-  assert.doesNotMatch(scenarioSection, /1 rows/);
+  assert(scenarioSection.indexOf('<section class="scenario-sample-rows-block">') > scenarioSection.indexOf("</table></div>"));
   assert.match(scenarioSection, /E-EmptyUsers[\s\S]*<code>rows: \[\]<\/code>/);
+  assert.equal(scenarioSection.match(/<section class="scenario-sample-rows-block">/g)?.length, 1);
 });
 
 test("localizes preview scenario sample table labels in generated state views", () => {
@@ -3606,12 +3610,13 @@ locale: ja
 
   assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">シナリオサンプル<\/h6>/);
   assert.match(scenarioSection, /<th>画面要素<\/th><th>サンプル<\/th>/);
+  assert.match(scenarioSection, /<code>rows: 2 行<\/code>/);
+  assert.match(scenarioSection, /<h6 class="scenario-sample-rows-heading">サンプル 行数:/);
   assert.match(scenarioSection, /<table class="spec-table scenario-sample-rows-table">/);
   assert.match(scenarioSection, /<th>名前<\/th>/);
   assert.match(scenarioSection, /<td>一郎<\/td>/);
   assert.match(scenarioSection, /<td>二郎<\/td>/);
   assert.doesNotMatch(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>|<th>Sample<\/th>/);
-  assert.doesNotMatch(scenarioSection, /2 行/);
   assert.doesNotMatch(scenarioSection, /2 rows/);
 });
 

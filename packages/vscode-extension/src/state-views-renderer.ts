@@ -163,35 +163,68 @@ function renderScenarioSamplesBox(
   const elementById = new Map(result.elements.map((element) => [element.id, element]));
   const rows = model.scenarioSamples.map((sample) => {
     const element = elementById.get(sample.elementId);
-    const elementRef = element
-      ? format.renderEntityRef({
-        id: element.id,
-        category: "element",
-        marker: typeof element.properties["marker"] === "string" ? element.properties["marker"] : element.id,
-        label: typeof element.properties["label"] === "string" ? element.properties["label"] : element.id
-      })
-      : format.text(sample.elementId);
-    return `<tr><td>${elementRef}</td><td>${renderScenarioSampleValue(context, sample, element)}</td></tr>`;
+    return `<tr><td>${renderScenarioSampleElementRef(context, sample.elementId, element)}</td><td>${renderScenarioSampleSummary(context, sample)}</td></tr>`;
   }).join("");
+  const rowBlocks = model.scenarioSamples
+    .map((sample) => renderScenarioSampleRowsBlock(context, sample, elementById.get(sample.elementId)))
+    .filter(Boolean)
+    .join("");
   return `<aside class="scenario-samples-box">
     <h6 class="state-screen-detail-heading">${format.label("scenarioSamples")}</h6>
     <div class="spec-table-wrap"><table class="spec-table scenario-samples-table"><thead><tr><th>${format.label("elements")}</th><th>${format.label("sample")}</th></tr></thead><tbody>${rows}</tbody></table></div>
+    ${rowBlocks}
   </aside>`;
 }
 
-function renderScenarioSampleValue(
+function renderScenarioSampleElementRef(
   context: StateViewsRenderContext,
-  sample: StateScreenReadModel["scenarioSamples"][number],
+  elementId: string,
   element?: MarkVSpecParseResult["elements"][number]
+): string {
+  const { format } = context;
+  if (!element) {
+    return format.text(elementId);
+  }
+  return format.renderEntityRef({
+    id: element.id,
+    category: "element",
+    marker: typeof element.properties["marker"] === "string" ? element.properties["marker"] : element.id,
+    label: typeof element.properties["label"] === "string" ? element.properties["label"] : element.id
+  });
+}
+
+function renderScenarioSampleSummary(
+  context: StateViewsRenderContext,
+  sample: StateScreenReadModel["scenarioSamples"][number]
 ): string {
   const { format } = context;
   if (sample.rows) {
     if (sample.rows.explicitEmpty && sample.rows.rows.length === 0) {
       return `<code>rows: []</code>`;
     }
-    return renderScenarioSampleRowsTable(context, sample.rows.rows, element);
+    const count = sample.rows.rows.length;
+    return `<code>rows: ${count} ${format.label("scenarioSampleRowsUnit")}</code>`;
   }
   return format.text(sample.value ?? "");
+}
+
+function renderScenarioSampleRowsBlock(
+  context: StateViewsRenderContext,
+  sample: StateScreenReadModel["scenarioSamples"][number],
+  element: MarkVSpecParseResult["elements"][number] | undefined
+): string {
+  const { format } = context;
+  if (!sample.rows || sample.rows.rows.length === 0) {
+    return "";
+  }
+  const rowsTable = renderScenarioSampleRowsTable(context, sample.rows.rows, element);
+  if (!rowsTable) {
+    return "";
+  }
+  return `<section class="scenario-sample-rows-block">
+    <h6 class="scenario-sample-rows-heading">${format.label("sample")} ${format.label("rows")}: ${renderScenarioSampleElementRef(context, sample.elementId, element)}</h6>
+    ${rowsTable}
+  </section>`;
 }
 
 function renderScenarioSampleRowsTable(

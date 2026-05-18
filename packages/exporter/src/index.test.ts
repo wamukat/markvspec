@@ -229,11 +229,14 @@ test("exports preview scenarios and scenario samples in standalone HTML", () => 
     assert.match(baselineLoaded, /Team Pro/);
     assert.match(baselineLoaded, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
     assert.match(baselineLoaded, /E-SubscriptionTable/);
+    assert.match(baselineLoaded, /<code>rows: 2 rows<\/code>/);
+    assert.match(baselineLoaded, /<section class="scenario-sample-rows-block">/);
     assert.match(baselineLoaded, /<table class="spec-table scenario-sample-rows-table">/);
+    assert.match(html, /\.scenario-sample-rows-table \{ font-size: 7pt; min-width: 0; table-layout: fixed; width: 100%; \}/);
     assert.match(baselineLoaded, /<th>Product<\/th><th>Seats<\/th><th>Renewal<\/th>/);
     assert.match(baselineLoaded, /<td>Workspace<\/td><td>8<\/td><td>2026-06-30<\/td>/);
     assert.match(baselineLoaded, /<td>Analytics<\/td><td>4<\/td><td>2026-07-15<\/td>/);
-    assert.doesNotMatch(baselineLoaded, /2 rows/);
+    assert(baselineLoaded.indexOf('<section class="scenario-sample-rows-block">') > baselineLoaded.indexOf("</table></div>"));
     assert.match(emptyScenario, /0 seats/);
     assert.match(emptyScenario, /<code>rows: \[\]<\/code>/);
     assert.match(renewalScenario, /98 seats/);
@@ -301,11 +304,12 @@ locale: ja
     const scenarioSection = stateViewSection(html, "loaded / loaded-special");
 
     assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">シナリオサンプル<\/h6>/);
+    assert.match(scenarioSection, /<code>rows: 2 行<\/code>/);
+    assert.match(scenarioSection, /<h6 class="scenario-sample-rows-heading">サンプル 行数:/);
     assert.match(scenarioSection, /<table class="spec-table scenario-sample-rows-table">/);
     assert.match(scenarioSection, /<th>名前<\/th>/);
     assert.match(scenarioSection, /<td>一郎<\/td>/);
     assert.match(scenarioSection, /<td>二郎<\/td>/);
-    assert.doesNotMatch(scenarioSection, /2 行/);
     assert.doesNotMatch(scenarioSection, /2 rows/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
