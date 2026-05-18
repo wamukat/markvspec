@@ -230,7 +230,7 @@ release metadata.
 | Goal | Start here |
 | --- | --- |
 | Fastest local preview | [Install from Marketplace](#1-install-from-marketplace), [Create `login.vspec.md`](#2-create-loginvspecmd), then [Open the Preview](#3-open-the-preview) |
-| Understand the source / preview / generated document model | [HTML Authoring Guide](docs/en/user/document-structure.html) |
+| Understand the source / preview / generated document model | [HTML Authoring Guide](docs/en/user/authoring-guide.html) |
 | Try real files after the guide | [Example Gallery](docs/en/user/example-gallery.md) |
 | Look up exact syntax while writing | [Reference documents](#reference-documents) |
 | Install the VS Code extension | [Install from Marketplace](#1-install-from-marketplace) |
@@ -239,7 +239,7 @@ release metadata.
 
 Recommended reading order for new users:
 
-1. [HTML Authoring Guide](docs/en/user/document-structure.html): start with the visual HTML explanation of how MarkVSpec source becomes preview and generated-document structure.
+1. [HTML Authoring Guide](docs/en/user/authoring-guide.html): start with the visual HTML explanation of how MarkVSpec source becomes preview and generated-document structure.
 2. [Example Gallery](docs/en/user/example-gallery.md): open real `.vspec.md` files and preview them locally.
 3. [Reference documents](#reference-documents): look up exact DSL, structured section, partial, and export rules only when needed.
 
@@ -339,7 +339,7 @@ Use these after the authoring guide or while editing a concrete file:
 | Goal | Document |
 | --- | --- |
 | Browse all English documentation | [English documentation index](docs/en/README.md) |
-| Start from the HTML authoring path | [HTML Authoring Guide](docs/en/user/document-structure.html) |
+| Start from the HTML authoring path | [HTML Authoring Guide](docs/en/user/authoring-guide.html) |
 | Browse practical examples | [Example gallery](docs/en/user/example-gallery.md) |
 | Read the full syntax | [DSL reference](docs/en/user/dsl.md) |
 | Understand PDF constraints | [PDF export approach](docs/en/user/pdf-export.md) |

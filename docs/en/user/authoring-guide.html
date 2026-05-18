@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MarkVSpec HTML Authoring Guide</title>
+  <style>
+    :root {
+      --page: #f6f7f9;
+      --paper: #ffffff;
+      --ink: #172033;
+      --muted: #5f6b7a;
+      --line: #d8dee7;
+      --line-soft: #e9edf3;
+      --accent: #1f7a8c;
+      --accent-soft: #e8f6f8;
+      --danger: #b42318;
+      --danger-soft: #fff1f0;
+      --success: #18794e;
+      --success-soft: #eaf7ef;
+      --warning: #9a6700;
+      --warning-soft: #fff7df;
+      --code-bg: #111827;
+      --code-ink: #e5edf8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 22px;
+      padding-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 28px 0 12px;
+      font-size: 19px;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      letter-spacing: 0;
+    }
+
+    p { margin: 0 0 10px; }
+    a { color: #1d5ea8; }
+
+    code {
+      border: 1px solid var(--line-soft);
+      border-radius: 4px;
+      background: #f8fafc;
+      padding: 1px 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+
+    pre {
+      margin: 0;
+      overflow: auto;
+      border-radius: 6px;
+      background: var(--code-bg);
+      color: var(--code-ink);
+      padding: 14px;
+      font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    pre code {
+      border: 0;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      font: inherit;
+    }
+
+    .lead {
+      max-width: 880px;
+      color: var(--muted);
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .nav a {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--paper);
+      padding: 5px 10px;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .callout {
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      background: var(--paper);
+      padding: 14px 16px;
+      margin: 18px 0;
+    }
+
+    .example {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--paper);
+      margin: 14px 0;
+      overflow: hidden;
+    }
+
+    .example-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--line-soft);
+      padding: 12px 14px;
+      background: #fbfcfe;
+    }
+
+    .badge {
+      align-self: flex-start;
+      border: 1px solid #b8c3d2;
+      border-radius: 999px;
+      color: #3d4b5c;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .example-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, .95fr);
+      gap: 14px;
+      padding: 14px;
+      align-items: stretch;
+    }
+
+    .notes {
+      grid-column: 1 / -1;
+      border-top: 1px solid var(--line-soft);
+      margin: 0 14px 14px;
+      padding-top: 10px;
+      color: var(--muted);
+    }
+
+    .notes ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .mock {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 16px;
+      min-height: 180px;
+      position: relative;
+    }
+
+    .mock-title {
+      font-weight: 750;
+      margin-bottom: 10px;
+    }
+
+    .wireframe {
+      border: 1px dashed #b9c6d8;
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfdff;
+    }
+
+    .stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .field {
+      display: grid;
+      gap: 4px;
+      min-width: 220px;
+    }
+
+    .label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #3d4b5c;
+    }
+
+    .input {
+      border: 1px solid #b9c6d8;
+      border-radius: 4px;
+      background: #fff;
+      padding: 7px 9px;
+      min-height: 34px;
+    }
+
+    .input.error {
+      border-color: #d92d20;
+      background: #fffafa;
+    }
+
+    .field-error {
+      color: var(--danger);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .button {
+      border: 1px solid #1f6feb;
+      border-radius: 4px;
+      background: #1f6feb;
+      color: #fff;
+      padding: 7px 12px;
+      font-weight: 700;
+      display: inline-block;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    .banner {
+      border: 1px solid #f2b8b5;
+      border-radius: 6px;
+      background: var(--danger-soft);
+      color: var(--danger);
+      padding: 10px;
+      font-weight: 650;
+    }
+
+    .summary {
+      border: 1px solid #f4d06f;
+      border-radius: 6px;
+      background: var(--warning-soft);
+      color: #513a00;
+      padding: 10px;
+    }
+
+    .dialog {
+      max-width: 280px;
+      margin: 10px auto;
+      border: 1px solid #a9b7ca;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 18px 40px rgba(23, 32, 51, .18);
+      padding: 14px;
+    }
+
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .ghost {
+      border: 1px solid #b9c6d8;
+      border-radius: 4px;
+      padding: 5px 9px;
+      background: #fff;
+      font-weight: 650;
+    }
+
+    .toast {
+      position: absolute;
+      right: 16px;
+      bottom: 16px;
+      border: 1px solid #98d5b3;
+      border-radius: 6px;
+      background: var(--success-soft);
+      color: var(--success);
+      padding: 9px 12px;
+      font-weight: 700;
+      box-shadow: 0 10px 24px rgba(23, 32, 51, .13);
+    }
+
+    .marker {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 21px;
+      height: 18px;
+      border: 1px solid #00a3c7;
+      border-radius: 4px;
+      background: #e9fbff;
+      color: #006d84;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .id-chip,
+    .ref-chip {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #b9c6d8;
+      border-radius: 4px;
+      background: #f8fafc;
+      color: #223044;
+      padding: 2px 6px;
+      font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-weight: 800;
+    }
+
+    .ref-chip {
+      border-color: #94d3a2;
+      background: #effaf2;
+      color: #17603a;
+    }
+
+    .doc-map {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .doc-map a {
+      display: block;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--paper);
+      padding: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .doc-map strong { display: block; margin-bottom: 4px; }
+    .doc-map span { color: var(--muted); font-size: 12px; }
+
+    @media (max-width: 860px) {
+      main { padding: 18px; }
+      .example-grid { grid-template-columns: 1fr; }
+      .doc-map { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>MarkVSpec HTML Authoring Guide</h1>
+      <p class="lead">
+        This guide shows how Markdown source turns into preview and generated design-document output.
+        The examples use small source snippets and hand-written static HTML mocks. They follow the
+        current preview visual language, but they do not execute the production preview engine and
+        are not renderer-perfect output.
+      </p>
+      <nav class="nav" aria-label="Related documents">
+        <a href="example-gallery.md">Example Gallery</a>
+        <a href="dsl.md">DSL Reference</a>
+        <a href="pdf-export.md">PDF Export</a>
+        <a href="document-structure.html">Document Structure</a>
+        <a href="../../ja/user/authoring-guide.html">Japanese</a>
+      </nav>
+    </header>
+
+    <section>
+      <h2>Document Flow</h2>
+      <div class="callout">
+        Start with this visual guide when you want to understand the authoring model.
+        Use the <a href="example-gallery.md">Example Gallery</a> to open real `.vspec.md` files,
+        then use the <a href="dsl.md">DSL Reference</a> when you need exact syntax details.
+      </div>
+      <div class="example">
+        <div class="example-head">
+          <h3>One screen document</h3>
+          <span class="badge">structure</span>
+        </div>
+        <div class="example-grid">
+          <pre><code>---
+id: SCR-LOGIN
+title: Login
+---
+
+# Login
+
+## States
+### idle
+
+## Layout
+### L-LoginForm Login Form
+
+## Elements
+### E-EmailInput TextField
+### E-SubmitButton Button
+
+## Actions
+### A-SubmitLogin Submit login</code></pre>
+          <div class="mock">
+            <div class="mock-title">Login</div>
+            <div class="wireframe stack">
+              <div class="row"><span class="marker">L1</span><span class="id-chip">L-LoginForm</span></div>
+              <div class="field">
+                <span class="label">Email</span>
+                <div class="input"></div>
+              </div>
+              <span class="button">Submit</span>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <ul>
+            <li>One `.vspec.md` file describes one screen.</li>
+            <li>Headings declare states, layouts, elements, and actions. Bullets declare their properties.</li>
+            <li>Front Matter stays document-level; Markdown tables are display aids, not the canonical authoring form.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Display Results</h2>
+      <div class="example">
+        <div class="example-head">
+          <h3><code>display.element</code> renders an existing element into an existing layout</h3>
+          <span class="badge">target: L-*</span>
+        </div>
+        <div class="example-grid">
+          <pre><code>### E-AuthErrorBanner Banner
+- tone: danger
+- text: Email or password is invalid.
+
+### A-SubmitLogin Submit login
+- Process: HttpResponse
+  - case: failure
+    - Effects
+      - display:
+        - target: L-MessageArea
+        - element: E-AuthErrorBanner</code></pre>
+          <div class="mock stack">
+            <div class="row"><span class="marker">L2</span><span class="id-chip">L-MessageArea</span></div>
+            <div class="banner">Email or password is invalid.</div>
+          </div>
+        </div>
+        <div class="notes">
+          <ul>
+            <li>The target is a layout or element slot that already exists in the wireframe.</li>
+            <li>The rendered element is declared once under <code>## Elements</code>, then referenced by ID.</li>
+            <li>Use this when the result is structured UI, such as a banner, badge, or panel.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="example">
+        <div class="example-head">
+          <h3><code>display.message</code> writes field validation into an input error slot</h3>
+          <span class="badge">target: E-*.error</span>
+        </div>
+        <div class="example-grid">
+          <pre><code>### V-EmailRequired Required
+- field: E-EmailInput
+- rule: required
+- messages
+  - Email is required.
+
+### A-ValidateEmail Validate email
+- Process: Validation
+  - case: invalid
+    - Effects
+      - display:
+        - target: E-EmailInput.error
+        - message: V-EmailRequired.messages</code></pre>
+          <div class="mock">
+            <div class="field">
+              <span class="label">Email</span>
+              <div class="input error"></div>
+              <div class="field-error">Email is required.</div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <ul>
+            <li><code>E-*.error</code> means the built-in error slot of that field.</li>
+            <li>You do not need to create a separate message element for this common field error case.</li>
+            <li>If the validation source is opaque, author the received source and show the message target clearly.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="example">
+        <div class="example-head">
+          <h3><code>display.message</code> writes business messages into a layout</h3>
+          <span class="badge">target: L-*</span>
+        </div>
+        <div class="example-grid">
+          <pre><code>### R-AccessPolicy Business rule
+- condition: account requires administrator approval
+- messages
+  - Administrator approval is required.
+
+### A-RequestAccess Request access
+- Process: BusinessRule
+  - case: blocked
+    - Effects
+      - display:
+        - target: L-PolicySummary
+        - message: R-AccessPolicy.messages</code></pre>
+          <div class="mock stack">
+            <div class="row"><span class="marker">L3</span><span class="id-chip">L-PolicySummary</span></div>
+            <div class="summary">Administrator approval is required.</div>
+          </div>
+        </div>
+        <div class="notes">
+          <ul>
+            <li>Use a layout target when the message belongs to a summary area, not a single field.</li>
+            <li>Rule messages stay connected to their source rule so reviewers can trace why they appear.</li>
+            <li>The preview shows the result, while the source keeps the rule and target explicit.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="example">
+        <div class="example-head">
+          <h3>Targetless Dialog</h3>
+          <span class="badge">overlay</span>
+        </div>
+        <div class="example-grid">
+          <pre><code>### E-DeleteDialog Dialog
+- title: Delete item?
+- text: This action cannot be undone.
+
+### A-OpenDeleteDialog Open delete dialog
+- Process: Immediate
+  - case: open
+    - Effects
+      - display:
+        - element: E-DeleteDialog</code></pre>
+          <div class="mock">
+            <div class="wireframe">Underlying page content</div>
+            <div class="dialog">
+              <div class="mock-title">Delete item?</div>
+              <p>This action cannot be undone.</p>
+              <div class="dialog-actions">
+                <span class="ghost">Cancel</span>
+                <span class="button">Delete</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <ul>
+            <li>A dialog is not placed inside a layout target; it appears as an overlay result.</li>
+            <li>The displayed dialog is still an existing element ID, so review comments can refer to it.</li>
+            <li>Use targetless display for overlays whose position is owned by the renderer.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="example">
+        <div class="example-head">
+          <h3>Targetless Toast</h3>
+          <span class="badge">notification</span>
+        </div>
+        <div class="example-grid">
+          <pre><code>### E-SavedToast Toast
+- tone: success
+- text: Saved.
+
+### A-SaveProfile Save profile
+- Process: HttpResponse
+  - case: success
+    - Effects
+      - display:
+        - element: E-SavedToast</code></pre>
+          <div class="mock">
+            <div class="wireframe stack">
+              <div class="panel">Profile form</div>
+              <span class="button">Save</span>
+            </div>
+            <div class="toast">Saved.</div>
+          </div>
+        </div>
+        <div class="notes">
+          <ul>
+            <li>A toast is a global notification, so it has no layout target.</li>
+            <li>Keep the element definition semantic: tone and text are enough for this authoring guide.</li>
+            <li>The renderer decides the final notification position and animation.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Markers and References</h2>
+      <div class="example">
+        <div class="example-head">
+          <h3>ID chips connect prose, markers, and source IDs</h3>
+          <span class="badge">#{ID}</span>
+        </div>
+        <div class="example-grid">
+          <pre><code>## Notes
+
+Review the required email behavior in #{E-EmailInput}
+before changing #{A-SubmitLogin}.
+
+### E-EmailInput TextField
+- label: Email</code></pre>
+          <div class="mock stack">
+            <p>
+              Review the required email behavior in <span class="ref-chip">E-EmailInput</span>
+              before changing <span class="ref-chip">A-SubmitLogin</span>.
+            </p>
+            <div class="wireframe">
+              <span class="marker">E1</span>
+              <span class="id-chip">E-EmailInput</span>
+              <div class="field" style="margin-top: 8px;">
+                <span class="label">Email</span>
+                <div class="input"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <ul>
+            <li>Use <code>#{ID}</code> in prose to point to a screen, layout, element, action, rule, or validation ID.</li>
+            <li>The preview can show a compact reference chip in prose and a marker near the visual element.</li>
+            <li>Markers are review aids. They should not force authors to add low-level layout instructions.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>HTML and PDF Export</h2>
+      <div class="callout">
+        Exported HTML and PDF are sharing formats for review. The static HTML renderer keeps the same
+        authoring intent visible: source IDs, generated sections, wireframes, and display results.
+        For commands, browser requirements, and print behavior, read the
+        <a href="pdf-export.md">PDF Export Approach</a>.
+      </div>
+      <div class="doc-map" aria-label="Next documents">
+        <a href="example-gallery.md"><strong>Example Gallery</strong><span>Open real screens, templates, and partials under `examples/`.</span></a>
+        <a href="dsl.md"><strong>DSL Reference</strong><span>Use when you need exact syntax and validation rules.</span></a>
+        <a href="pdf-export.md"><strong>PDF Export</strong><span>Share static HTML and PDF output with reviewers.</span></a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

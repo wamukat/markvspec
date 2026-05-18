@@ -219,7 +219,7 @@ route: /login
 | 目的 | 最初に読む場所 |
 | --- | --- |
 | 最短で1画面をプレビューする | [Marketplace から入れる](#1-marketplace-から入れる)、[`login.vspec.md` を作る](#2-loginvspecmd-を作る)、[プレビューを開く](#3-プレビューを開く) |
-| source / preview / 生成設計書の関係を理解する | [HTML Authoring Guide](docs/ja/user/document-structure.html) |
+| source / preview / 生成設計書の関係を理解する | [HTML Authoring Guide](docs/ja/user/authoring-guide.html) |
 | Guide の後に実ファイルを試す | [サンプルギャラリー](docs/ja/user/example-gallery.md) |
 | 書きながら記法を引く | [Reference documents](#reference-documents) |
 | VS Code 拡張を入れる | [Marketplace から入れる](#1-marketplace-から入れる) |
@@ -228,7 +228,7 @@ route: /login
 
 初めて読む場合のおすすめ順です。
 
-1. [HTML Authoring Guide](docs/ja/user/document-structure.html): MarkVSpec source が preview と生成設計書にどうつながるかを HTML の視覚的説明で見る。
+1. [HTML Authoring Guide](docs/ja/user/authoring-guide.html): MarkVSpec source が preview と生成設計書にどうつながるかを HTML の視覚的説明で見る。
 2. [サンプルギャラリー](docs/ja/user/example-gallery.md): 実際の `.vspec.md` を開いて preview する。
 3. [Reference documents](#reference-documents): DSL、構造化セクション、partial、export の詳細を必要なときに引く。
 
@@ -327,7 +327,7 @@ HTML Authoring Guide や実ファイルを見た後、具体的に書くとき�
 | 目的 | ドキュメント |
 | --- | --- |
 | 日本語ドキュメント全体から探す | [日本語ドキュメント索引](docs/ja/README.md) |
-| HTML authoring の導線から始める | [HTML Authoring Guide](docs/ja/user/document-structure.html) |
+| HTML authoring の導線から始める | [HTML Authoring Guide](docs/ja/user/authoring-guide.html) |
 | 実例から探す | [サンプルギャラリー](docs/ja/user/example-gallery.md) |
 | 記法全体を確認する | [DSL リファレンス](docs/ja/user/dsl.md) |
 | PDF 出力の制約を見る | [PDF 出力と共有](docs/ja/user/pdf-export.md) |

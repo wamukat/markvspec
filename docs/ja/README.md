@@ -18,7 +18,7 @@ MarkVSpec では、Markdown で画面仕様を書き、VS Code で状態別プ�
 
 | やりたいこと | 読む順番 |
 | --- | --- |
-| source が preview / 生成設計書になる流れを理解する | [HTML Authoring Guide](user/document-structure.html) |
+| source が preview / 生成設計書になる流れを理解する | [HTML Authoring Guide](user/authoring-guide.html) |
 | 実 `.vspec.md` を開いて試す | [サンプルギャラリー](user/example-gallery.md) |
 | 正確な記法を引く | [Reference documents](#reference-documents) |
 | HTML/PDF で共有する | [PDF 出力と共有](user/pdf-export.md) を読む |
@@ -36,7 +36,7 @@ MarkVSpec では、Markdown で画面仕様を書き、VS Code で状態別プ�
 
 ### 設計書を書く
 
-- [HTML Authoring Guide](user/document-structure.html): Markdown source が preview と生成設計書にどう対応するかを見る視覚的な入口。
+- [HTML Authoring Guide](user/authoring-guide.html): Markdown source が preview と生成設計書にどう対応するかを見る視覚的な入口。
 - [UI 部品・画面パターン対応範囲](user/ui-coverage.md): 対応している UI 部品と画面パターン。
 
 ### サンプルを見る
@@ -71,7 +71,7 @@ MarkVSpec では、Markdown で画面仕様を書き、VS Code で状態別プ�
 
 ## 迷ったとき
 
-- 設計書を書き始めるなら、[HTML Authoring Guide](user/document-structure.html) を見てから [サンプルギャラリー](user/example-gallery.md) の実ファイルを開く。
+- 設計書を書き始めるなら、[HTML Authoring Guide](user/authoring-guide.html) を見てから [サンプルギャラリー](user/example-gallery.md) の実ファイルを開く。
 - 正確な記法を確認したいときは [DSL リファレンス](user/dsl.md)。
 - export や印刷で詰まったら、[PDF 出力と共有](user/pdf-export.md)。
 - どの文書も内部実装向けに見える場合は、まずリポジトリルートの [README.ja.md](../../README.ja.md) に戻ってください。
