@@ -115,7 +115,6 @@ route: /login
 
 ### 2:E-EmailInput Input
 
-- value: ${model.email}
 - initial value: "test@example.com"
 - input rule:
   - type: email

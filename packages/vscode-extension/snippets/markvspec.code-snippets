@@ -157,7 +157,7 @@
     "body": [
       "### ${1:1}:${2:E-Input} Input",
       "",
-      "- value: \\${model.${3:field}}",
+      "- value: \\${data.${3:field}}",
       "- initial value: ${4:initial value}",
       "- input rule:",
       "  - ${5:type}: ${6:text}",
@@ -183,7 +183,7 @@
     "body": [
       "### ${1:3}:${2:E-Select} Select",
       "",
-      "- value: \\${model.${3:status}}",
+      "- value: \\${data.${3:status}}",
       "- initial value: ${4:Active}",
       "- options:",
       "  - ${4:Active}",
