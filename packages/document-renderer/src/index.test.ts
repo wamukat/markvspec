@@ -442,6 +442,67 @@ title: Scenario Samples
   assert.doesNotMatch(emptyScenario, /scenario-sample-rows-block/);
 });
 
+test("renders property-level display metadata in static display content spec", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-STATIC-DISPLAY-METADATA
+type: screen
+title: Static Display Metadata
+---
+
+# SCR-STATIC-DISPLAY-METADATA Static Display Metadata
+
+## States
+
+- loaded*
+
+## Elements
+
+### 1:E-PublishedAt Text
+
+- value: 2026/05/01
+  - kind: data
+  - source: ${"${data.notice.publishedAt}"}
+  - format: date yyyy/MM/dd
+- label: Published
+  - kind: i18n
+
+### 2:E-Avatar Image
+
+- src: /assets/avatar.png
+  - kind: asset
+  - source: asset catalog: member-avatar
+- alt: Current member avatar
+  - kind: i18n
+
+### 3:E-StatusLink Link
+
+- href: https://status.example.com
+  - kind: external
+  - source: external status URL
+
+### 4:E-Total Text
+
+- value: USD 128.40
+  - kind: computed
+  - source: ${"${data.invoice.subtotalCents}"} formatted as currency
+  - format: currency USD
+`);
+  const html = renderStaticDesignDocumentHtml(result);
+  const loadedSection = stateViewSection(html, "loaded");
+  const displayContent = loadedSection.match(/<div class="element-detail-group">\s*<h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.match(displayContent, /<th>Marker\/ID<\/th><th>Location<\/th><th>Content<\/th><th>Format<\/th><th>Source<\/th><th>Condition<\/th><th>Enabled When<\/th>/);
+  for (const kind of ["i18n", "data", "asset", "external", "computed"]) {
+    assert.match(displayContent, new RegExp(`mm-source-chip-${kind}`), kind);
+  }
+  assert.match(displayContent, /<strong>Value<\/strong>/);
+  assert.match(displayContent, /<strong>Source<\/strong>/);
+  assert.match(displayContent, /<span class="mm-inline-token">\$\{data\.notice\.publishedAt\}<\/span>/);
+  assert.match(displayContent, /asset catalog: member-avatar/);
+  assert.match(displayContent, /external status URL/);
+  assert.match(displayContent, /currency USD/);
+});
+
 test("renders wide scenario rows as independent readable blocks", () => {
   const columns = Array.from({ length: 10 }, (_, index) => {
     const number = index + 1;

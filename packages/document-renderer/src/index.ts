@@ -1,5 +1,5 @@
-import { buildViewportStateScreenReadModels, effectiveHistoryFields, latestHistoryBasicInfo, messagesForLocale, renderMarkVSpecHtml, resolveMarkVSpecEntityReference, tableColumnSampleKeys } from "@markvspec/core";
-import type { MarkVSpecParseResult, RendererMessages, StateScreenReadModel } from "@markvspec/core";
+import { buildViewportStateScreenReadModels, effectiveHistoryFields, isMarkVSpecSourceType, latestHistoryBasicInfo, messagesForLocale, renderMarkVSpecHtml, resolveMarkVSpecEntityReference, stateScreenElementGroups, stateScreenElementsForModel, tableColumnSampleKeys } from "@markvspec/core";
+import type { DisplayContentSpecRow, MarkVSpecParseResult, RendererMessages, StateScreenReadModel } from "@markvspec/core";
 
 export type MarkVSpecDocumentViewport = "mobile" | "tablet" | "desktop" | string;
 
@@ -240,6 +240,7 @@ function renderStateScreenSection(
     <h5 class="state-screen-subheading">${escapeHtml(messages.wireframe)}</h5>
     <section class="wireframe-section">${wireframe}</section>
     ${renderScenarioSamplesBox(result, model, messages)}
+    ${renderDisplayContentSpecBox(result, model, messages)}
   </section>
 </section>`;
 }
@@ -366,6 +367,142 @@ function scenarioSampleCellValue(fields: Record<string, string>, keys: string[])
     }
   }
   return "";
+}
+
+function renderDisplayContentSpecBox(
+  result: MarkVSpecParseResult,
+  model: StateScreenReadModel,
+  messages: RendererMessages
+): string {
+  const elements = stateScreenElementsForModel(result, model);
+  const { displayContentRows } = stateScreenElementGroups(elements, result, model.stateName);
+  if (displayContentRows.length === 0) {
+    return "";
+  }
+
+  return `<div class="element-detail-group">
+    <h6 class="state-screen-detail-heading">${escapeHtml(messages.displayContentSpec)}</h6>
+    ${renderDisplayContentSpecTable(result, displayContentRows, messages)}
+  </div>`;
+}
+
+function renderDisplayContentSpecTable(
+  result: MarkVSpecParseResult,
+  rows: DisplayContentSpecRow[],
+  messages: RendererMessages
+): string {
+  const spans = consecutiveRowspans(rows, (row) => row.element.id);
+  const markerIdHeader = `${messages.marker}/${messages.id}`;
+  return renderTableWithCells(
+    [markerIdHeader, messages.displayLocation, messages.displayValue, messages.format, messages.displaySource, messages.displayCondition, messages.enabledWhen],
+    rows.map((row, index) => [
+      ...rowspanPrefixCells(spans[index] ?? 0, [
+        renderScenarioSampleElementRef(result, row.element.id)
+      ]),
+      escapeHtml(row.location),
+      renderDisplayContentValue(row.element, row.value, row.contentSections),
+      row.format ? escapeHtml(row.format) : "",
+      renderSourceSummary(row.source),
+      renderDisplayCondition(row.element, messages),
+      renderEnabledCondition(row.element, messages)
+    ])
+  );
+}
+
+function renderDisplayContentValue(
+  element: MarkVSpecParseResult["elements"][number],
+  value: string,
+  sections?: DisplayContentSpecRow["contentSections"]
+): string {
+  if (sections && sections.length > 0) {
+    return renderSpecSections(sections.map((section) => ({
+      title: section.title,
+      rows: section.rows.map((row) => renderExpressionTokens(row))
+    })));
+  }
+  if (hasOpaqueExpression(value)) {
+    return renderExpressionTokens(value);
+  }
+  const dataSample = element.properties["source"] === "data" ? rawStringProperty(element.properties["sample"]) : "";
+  return element.type === "Badge" && (value === dataSample || value === rawStringProperty(element.properties["text"]))
+    ? renderSemanticChip(value, rawStringProperty(element.properties["tone"]))
+    : escapeHtml(value);
+}
+
+function renderSourceSummary(value: string | true | undefined): string {
+  const source = rawStringProperty(value);
+  if (!source) {
+    return "";
+  }
+  if (isMarkVSpecSourceType(source)) {
+    return `<span class="mm-chip mm-source-chip mm-source-chip-${escapeHtml(source)}">${escapeHtml(source)}</span>`;
+  }
+  return hasOpaqueExpression(source) ? renderExpressionTokens(source) : code(source);
+}
+
+function renderDisplayCondition(
+  element: MarkVSpecParseResult["elements"][number],
+  messages: RendererMessages
+): string {
+  const rows = [
+    ...element.visibleWhen.map((condition) => `${messages.conditionVisibleShort}: ${renderCondition(condition)}`),
+    ...element.hiddenWhen.map((condition) => `${messages.conditionHiddenShort}: ${renderCondition(condition)}`)
+  ];
+  return rows.length > 0 ? renderSpecSections([{ title: messages.condition, rows }]) : renderDefaultAlways(messages);
+}
+
+function renderEnabledCondition(
+  element: MarkVSpecParseResult["elements"][number],
+  messages: RendererMessages
+): string {
+  if (element.disabledWhen.length === 0) {
+    return renderDefaultAlways(messages);
+  }
+  return renderSpecSections([{
+    title: messages.conditionEnabledShort,
+    rows: element.disabledWhen.map((condition) => `${messages.conditionNot} ${renderCondition(condition)}`)
+  }]);
+}
+
+function renderDefaultAlways(messages: RendererMessages): string {
+  return `<span class="spec-default-always">${escapeHtml(messages.always)}</span>`;
+}
+
+function renderSpecSections(sections: Array<{ title: string; rows: string[] }>): string {
+  const visibleSections = sections.filter((section) => section.rows.length > 0);
+  if (visibleSections.length === 0) {
+    return "";
+  }
+  return visibleSections.map((section) => (
+    `<div class="spec-section"><strong>${escapeHtml(section.title)}</strong><ul class="spec-list">${section.rows.map((row) => `<li>${row}</li>`).join("")}</ul></div>`
+  )).join("");
+}
+
+function renderExpressionTokens(source: string): string {
+  return source.split(/(\$\{[^}]+\})/gu).map((part) => isOpaqueExpressionSource(part) ? `<span class="mm-inline-token">${escapeHtml(part)}</span>` : escapeHtml(part)).join("");
+}
+
+function renderCondition(condition: string): string {
+  return renderExpressionTokens(condition);
+}
+
+function isOpaqueExpressionSource(value: string): boolean {
+  return /^\$\{[^}]+\}$/u.test(value.trim());
+}
+
+function hasOpaqueExpression(value: string): boolean {
+  return /\$\{[^}]+\}/u.test(value);
+}
+
+function renderSemanticChip(value: string, tone: string | undefined): string {
+  return `<span class="mm-chip mm-chip-tone-${semanticChipTone(tone)}">${escapeHtml(value)}</span>`;
+}
+
+function semanticChipTone(tone: string | undefined): "neutral" | "info" | "success" | "warning" | "danger" {
+  if (tone === "info" || tone === "success" || tone === "warning" || tone === "danger") {
+    return tone;
+  }
+  return "neutral";
 }
 
 function renderHistorySection(result: MarkVSpecParseResult, messages: RendererMessages): string {
