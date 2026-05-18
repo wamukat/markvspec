@@ -2203,9 +2203,10 @@ one Action has multiple processes and should not be used as canonical syntax.
 ## Preview Scenarios
 
 Use `## Preview Scenarios` when state previews need explicit `state`, `model`,
-`view`, and action/process case combinations. Preview Scenarios are additive:
-baseline previews from `## States` still render, and each scenario adds an
-extra variant.
+`view`, samples, and action/process case combinations. Baseline previews from
+`## States` still render. A heading that matches a state name and omits
+`state:` defines baseline samples for that normal state preview; a heading with
+a distinct scenario name and explicit `state:` adds an extra variant.
 
 ```markdown
 ## Preview Scenarios
@@ -2215,6 +2216,22 @@ extra variant.
 - state: idle
 - cases:
   - A-AuthResponse.P1.failure
+```
+
+```markdown
+## Preview Scenarios
+
+### loaded
+
+- samples:
+  - E-Title: Baseline loaded title
+
+### loaded-empty
+
+- state: loaded
+- samples:
+  - E-Users:
+    - rows: []
 ```
 
 Use `before:` to insert the scenario before a baseline state preview or another
@@ -2418,8 +2435,10 @@ their first listed value.
 ## Preview Scenarios Section
 
 Use `## Preview Scenarios` when state previews need explicit `state`, `model`,
-and `view` combinations. Preview Scenarios are additive: baseline previews from
-`## States` always render, and each scenario adds an extra preview variant.
+`view`, and sample combinations. Baseline previews from `## States` always
+render. A `### <state-name>` block without `state:` attaches `samples:` to that
+baseline state preview. A distinct scenario name with explicit `state:` adds an
+extra preview variant.
 
 ```markdown
 ## Preview Scenarios
@@ -2430,6 +2449,18 @@ and `view` combinations. Preview Scenarios are additive: baseline previews from
 - model: loaded
 - view: help-open
 - before: saved
+```
+
+For state-level baseline data, omit `state:` and use the state name as the
+heading:
+
+```markdown
+## Preview Scenarios
+
+### loaded
+
+- samples:
+  - E-Title: Baseline loaded title
 ```
 
 Use `before:` to insert a scenario before a baseline state preview or another
@@ -2443,12 +2474,14 @@ back to their first listed value.
 
 Sample precedence:
 
-1. Preview Scenario `samples` are used first for that scenario.
-2. If the scenario does not override an element, the element's `sample` /
+1. Additional Preview Scenario `samples` are used first for that scenario.
+2. If the additional scenario does not override an element, state-name baseline
+   `samples` from `### <state-name>` are used.
+3. If neither scenario layer overrides an element, the element's `sample` /
    `sample rows:` provides the baseline value.
-3. `source: fixed` and elements without `source` use fixed properties such as
+4. `source: fixed` and elements without `source` use fixed properties such as
    `label`, `text`, `message`, `hint`, or `value`.
-4. A scalar `source: data` element with no preview value remains a placeholder;
+5. A scalar `source: data` element with no preview value remains a placeholder;
    MarkVSpec does not invent a value.
 
 ```markdown
@@ -2881,7 +2914,7 @@ view_context_entry = "### " view_name bullet*
 view_context_samples = "## View Context Samples" view_context_sample*
 view_context_sample = "### " sample_name key_value*
 preview_scenarios = "## Preview Scenarios" preview_scenario*
-preview_scenario = "### " scenario_name key_value*
+preview_scenario = "### " (scenario_name | state_name) key_value*
 field_validations = "## Field Validations" field_validation*
 cross_field_validations = "## Cross-field Validations" cross_field_validation*
 validations       = "## Validations" validation* ; legacy-compatible

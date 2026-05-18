@@ -1644,7 +1644,7 @@ Action レベルの `When` / guard はサポートしません。操作可否は
 
 ## Preview Scenarios
 
-`## Preview Scenarios` は、preview/export で使う state、model、view、Action process case の組み合わせを明示したい場合に使います。Preview Scenarios は追加プレビューです。`## States` から作る baseline preview は常に表示され、scenario はその上に追加されます。
+`## Preview Scenarios` は、preview/export で使う state、model、view、samples、Action process case の組み合わせを明示したい場合に使います。`## States` から作る baseline preview は常に表示されます。見出しが state 名と一致し、`state:` を省略した block は、その通常 state preview に適用する baseline samples です。state 名とは異なる見出しに `state:` を書くと、追加 preview variant になります。
 
 ```markdown
 ## Preview Scenarios
@@ -1654,6 +1654,22 @@ Action レベルの `When` / guard はサポートしません。操作可否は
 - state: idle
 - cases:
   - A-HandleLoginResponse.P1.failure
+```
+
+```markdown
+## Preview Scenarios
+
+### loaded
+
+- samples:
+  - E-Title: Baseline loaded title
+
+### loaded-empty
+
+- state: loaded
+- samples:
+  - E-Users:
+    - rows: []
 ```
 
 `before:` を使うと、baseline state preview または別の preview scenario の前に scenario を挿入できます。並び順指定は `before:` だけをサポートします。`after:` は使いません。`before:` を省略した場合、その scenario は base state preview の後に挿入されます。
@@ -2086,7 +2102,7 @@ Preview Scenario が `view` を指定しない場合、preview/export はまず
 
 ## Preview Scenarios セクション
 
-`## Preview Scenarios` は、state preview に使う `state`、`model`、`view` の組み合わせを明示します。Preview Scenarios は追加プレビューです。`## States` から作る baseline preview は常に表示され、scenario はその上に追加されます。
+`## Preview Scenarios` は、state preview に使う `state`、`model`、`view`、`samples` の組み合わせを明示します。`## States` から作る baseline preview は常に表示されます。`### <state-name>` block で `state:` を省略すると、その state の baseline preview に `samples:` を適用します。state 名とは異なる scenario 名に `state:` を明示すると、追加 preview variant になります。
 
 ```markdown
 ## Preview Scenarios
@@ -2099,6 +2115,17 @@ Preview Scenario が `view` を指定しない場合、preview/export はまず
 - before: saved
 ```
 
+state の標準表示データを書きたい場合は、state 名を見出しにして `state:` を省略します。
+
+```markdown
+## Preview Scenarios
+
+### loaded
+
+- samples:
+  - E-Title: Baseline loaded title
+```
+
 `before:` を使うと、baseline state preview または別の preview scenario の前に scenario を挿入できます。並び順指定は `before:` だけをサポートします。`after:` は使いません。`before:` を省略した場合、その scenario は base state preview の後に挿入されます。
 
 `## Preview Scenarios` がない場合、preview/export はすべての state を表示します。
@@ -2107,10 +2134,11 @@ View Context の fallback は、`View Context Samples.default`、View Context �
 
 sample の優先順位は次の通りです。
 
-1. Preview Scenario の `samples` が、その scenario の表示値として最優先です。
-2. Preview Scenario に対象 element の `samples` がない場合は、Element 定義の `sample` / `sample rows:` を使います。
-3. `source: fixed` または source 未指定の要素は、`label`、`text`、`message`、`hint`、`value` などの固定値を使います。
-4. どこにも preview 用の値がない `source: data` の scalar element は placeholder 的な表示に留め、値を捏造しません。
+1. 追加 Preview Scenario の `samples` が、その scenario の表示値として最優先です。
+2. 追加 scenario に対象 element の `samples` がない場合は、`### <state-name>` の baseline `samples` を使います。
+3. scenario 側に対象 element の `samples` がない場合は、Element 定義の `sample` / `sample rows:` を使います。
+4. `source: fixed` または source 未指定の要素は、`label`、`text`、`message`、`hint`、`value` などの固定値を使います。
+5. どこにも preview 用の値がない `source: data` の scalar element は placeholder 的な表示に留め、値を捏造しません。
 
 ```markdown
 ## Elements

@@ -221,23 +221,23 @@ test("exports preview scenarios and scenario samples in standalone HTML", () => 
     assert(!results[0]?.diagnostics.some((diagnostic) => diagnostic.severity === "error"));
     const html = readFileSync(join(outDir, "scenario-samples.html"), "utf8");
     const baselineLoaded = stateViewSection(html, "loaded");
-    const loadedScenario = stateViewSection(html, "loaded / loaded-standard-account");
     const emptyScenario = stateViewSection(html, "loaded / loaded-empty-account");
     const renewalScenario = stateViewSection(html, "loaded / loaded-renewal-risk");
 
-    assert.match(loadedScenario, /<span class="state-badge">loaded-standard-account<\/span>/);
-    assert.match(loadedScenario, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
-    assert.match(loadedScenario, /E-SubscriptionTable/);
-    assert.match(loadedScenario, /<table class="spec-table scenario-sample-rows-table">/);
-    assert.match(loadedScenario, /<th>Product<\/th><th>Seats<\/th><th>Renewal<\/th>/);
-    assert.match(loadedScenario, /<td>Workspace<\/td><td>8<\/td><td>2026-06-30<\/td>/);
-    assert.match(loadedScenario, /<td>Analytics<\/td><td>4<\/td><td>2026-07-15<\/td>/);
-    assert.doesNotMatch(loadedScenario, /2 rows/);
+    assert.doesNotMatch(html, /data-state-view-title="loaded \/ loaded"/);
+    assert.match(baselineLoaded, /Morgan Lee/);
+    assert.match(baselineLoaded, /Team Pro/);
+    assert.match(baselineLoaded, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
+    assert.match(baselineLoaded, /E-SubscriptionTable/);
+    assert.match(baselineLoaded, /<table class="spec-table scenario-sample-rows-table">/);
+    assert.match(baselineLoaded, /<th>Product<\/th><th>Seats<\/th><th>Renewal<\/th>/);
+    assert.match(baselineLoaded, /<td>Workspace<\/td><td>8<\/td><td>2026-06-30<\/td>/);
+    assert.match(baselineLoaded, /<td>Analytics<\/td><td>4<\/td><td>2026-07-15<\/td>/);
+    assert.doesNotMatch(baselineLoaded, /2 rows/);
     assert.match(emptyScenario, /0 seats/);
     assert.match(emptyScenario, /<code>rows: \[\]<\/code>/);
     assert.match(renewalScenario, /98 seats/);
     assert.doesNotMatch(emptyScenario, /Renewal attention required\./);
-    assert.doesNotMatch(baselineLoaded, /Scenario Samples/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

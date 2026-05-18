@@ -143,12 +143,12 @@ account data without creating extra states.
 
 ## Preview Scenarios
 
-### loaded-standard-account
+### loaded
 
-Shows a normal loaded account with a small subscription list. This scenario
-uses realistic account data instead of repeating the neutral baseline samples.
+Defines the standard loaded-state account data. Because the heading matches the
+`loaded` state and omits `state:`, these samples apply to the normal `loaded`
+preview instead of creating an extra `loaded / loaded` scenario.
 
-- state: loaded
 - samples:
   - E-MemberName: Morgan Lee
   - E-PlanName: Team Pro

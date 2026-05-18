@@ -11931,6 +11931,138 @@ title: Scenario Samples
   assert(!result.diagnostics.some((diagnostic) => diagnostic.severity === "error"));
 });
 
+test("treats state-named Preview Scenario samples as baseline state samples", () => {
+  const source = `---
+id: SCR-BASELINE-SCENARIO-SAMPLES
+type: screen
+title: Baseline Scenario Samples
+---
+# SCR-BASELINE-SCENARIO-SAMPLES Baseline Scenario Samples
+
+## States
+
+- idle*
+- loaded
+
+## Layout: mobile
+
+### L-Main Stack
+
+#### Items
+
+- E-Title
+- E-Users
+
+## Elements
+
+### E-Title Text
+
+- source: data
+- sample: Fallback title
+
+### E-Users Table
+
+- source: data
+- Columns:
+  - name: Name
+- sample rows:
+  - row:
+    - name: Alice
+
+## Preview Scenarios
+
+### loaded
+
+- samples:
+  - E-Title: Baseline loaded title
+  - E-Users:
+    - rows:
+      - row:
+        - name: Carol
+
+### loaded-empty
+
+- state: loaded
+- samples:
+  - E-Users:
+    - rows: []
+`;
+  const result = parseMarkVSpec(source);
+  const models = buildStateScreenReadModels(result, result, undefined);
+  const loaded = models.find((model) => model.stateViewTitle === "loaded");
+  const loadedEmpty = models.find((model) => model.stateViewTitle === "loaded / loaded-empty");
+
+  assert.deepEqual(result.diagnostics, []);
+  assert.deepEqual(models.map((model) => model.stateViewTitle), ["idle", "loaded", "loaded / loaded-empty"]);
+  assert.equal(loaded?.scenario, false);
+  assert.deepEqual(loaded?.scenarioSamples.map((sample) => [sample.elementId, sample.value, sample.rows?.rows.map((row) => row.fields)]), [
+    ["E-Title", "Baseline loaded title", undefined],
+    ["E-Users", undefined, [{ name: "Carol" }]]
+  ]);
+  assert.deepEqual(loadedEmpty?.scenarioSamples.map((sample) => [sample.elementId, sample.value, sample.rows?.explicitEmpty]), [
+    ["E-Title", "Baseline loaded title", undefined],
+    ["E-Users", undefined, true]
+  ]);
+});
+
+test("validates baseline Preview Scenario state-name blocks", () => {
+  const source = `---
+id: SCR-BAD-BASELINE-SCENARIOS
+type: screen
+title: Bad Baseline Scenarios
+---
+# SCR-BAD-BASELINE-SCENARIOS Bad Baseline Scenarios
+
+## States
+
+- idle*
+- loaded
+
+## Preview Scenarios
+
+### idle
+
+- state: idle
+
+### loaded
+
+- view: default
+- model: loaded
+- before: idle
+- cases:
+  - A-Submit.P1.success
+
+### ghost
+
+- samples:
+  - E-Missing: Ghost
+
+### loaded
+
+- samples:
+  - E-Missing: Duplicate
+
+### idle-mismatch
+
+- state: loaded
+
+### idle
+
+- state: loaded
+`;
+  const messages = parseMarkVSpec(source).diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert(messages.includes("Preview Scenario idle matches a state name and repeats state: idle. Omit state: to define baseline state samples."));
+  assert(messages.includes("Preview Scenario loaded is a baseline state sample and cannot define view. Use samples only, or add state: with a distinct scenario name for an additional preview variant."));
+  assert(messages.includes("Preview Scenario loaded is a baseline state sample and cannot define model. Use samples only, or add state: with a distinct scenario name for an additional preview variant."));
+  assert(messages.includes("Preview Scenario loaded is a baseline state sample and cannot define before. Use samples only, or add state: with a distinct scenario name for an additional preview variant."));
+  assert(messages.includes("Preview Scenario loaded is a baseline state sample and cannot define cases. Use samples only, or add state: with a distinct scenario name for an additional preview variant."));
+  assert(messages.includes("Preview Scenario ghost must specify state."));
+  assert(messages.includes("Duplicate preview scenario ID: loaded."));
+  assert(messages.includes("Duplicate preview scenario ID: idle."));
+  assert(messages.includes("Preview Scenario idle matches a state name but references state loaded. Use a different scenario name or omit state: for baseline state samples."));
+});
+
 test("diagnoses malformed Preview Scenario entries with samples guidance", () => {
   const source = `---
 id: SCR-BAD-SCENARIO-ENTRY

@@ -381,6 +381,16 @@ title: Scenario Samples
 
 ## Preview Scenarios
 
+### loaded
+
+- samples:
+  - E-SeatCount: 10 seats
+  - E-SubscriptionTable:
+    - rows:
+      - row:
+        - product: Baseline workspace
+        - seats: 10
+
 ### loaded-renewal-risk
 
 - state: loaded
@@ -412,7 +422,10 @@ title: Scenario Samples
 
   assert.match(html, /data-state-view-title="loaded \/ loaded-renewal-risk"/);
   assert.match(html, /data-state-view-title="loaded \/ loaded-empty-account"/);
-  assert.doesNotMatch(baselineLoaded, /Scenario Samples/);
+  assert.doesNotMatch(html, /data-state-view-title="loaded \/ loaded"/);
+  assert.match(baselineLoaded, /10 seats/);
+  assert.match(baselineLoaded, /<td>Baseline workspace<\/td><td>10<\/td>/);
+  assert.match(baselineLoaded, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
   assert.match(loadedScenario, /<span class="state-badge">loaded-renewal-risk<\/span>/);
   assert.match(loadedScenario, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
   assert.match(loadedScenario, /E-SubscriptionTable/);

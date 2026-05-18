@@ -3500,11 +3500,20 @@ title: Scenario Samples
 
 ## Preview Scenarios
 
+### loaded
+
+- samples:
+  - E-Title: Baseline scenario title
+  - E-Users:
+    - rows:
+      - row:
+        - name: Bob
+        - role: Viewer
+
 ### loaded-users
 
 - state: loaded
 - samples:
-  - E-Title: Scenario title
   - E-Users:
     - rows:
       - row:
@@ -3520,15 +3529,17 @@ title: Scenario Samples
   const baseWireframe = stateWireframeSection(baseSection);
   const scenarioWireframe = stateWireframeSection(scenarioSection);
 
-  assert.match(baseWireframe, /Fallback title/);
-  assert.match(baseWireframe, /<td>Alice<\/td><td>Admin<\/td>/);
-  assert.doesNotMatch(baseSection, /Scenario Samples/);
-  assert.match(scenarioWireframe, /Scenario title/);
+  assert.match(baseWireframe, /Baseline scenario title/);
+  assert.match(baseWireframe, /<td>Bob<\/td><td>Viewer<\/td>/);
+  assert.match(baseSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
+  assert.match(baseSection, /E-Title[\s\S]*Baseline scenario title/);
+  assert.doesNotMatch(html, /data-state-view-title="loaded \/ loaded"/);
+  assert.match(scenarioWireframe, /Baseline scenario title/);
   assert.match(scenarioWireframe, /<td>Carol<\/td><td>Owner<\/td>/);
-  assert.doesNotMatch(scenarioWireframe, /Fallback title|<td>Alice<\/td><td>Admin<\/td>/);
+  assert.doesNotMatch(scenarioWireframe, /Fallback title|<td>Alice<\/td><td>Admin<\/td>|<td>Bob<\/td><td>Viewer<\/td>/);
   assert.match(scenarioWireframe, /<td class="mm-table-empty" colspan="1">\(no data\)<\/td>/);
   assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
-  assert.match(scenarioSection, /E-Title[\s\S]*Scenario title/);
+  assert.match(scenarioSection, /E-Title[\s\S]*Baseline scenario title/);
   assert.match(scenarioSection, /E-Users[\s\S]*<table class="spec-table scenario-sample-rows-table">/);
   assert.match(scenarioSection, /<th>Name<\/th><th>Role<\/th>/);
   assert.match(scenarioSection, /<td>Carol<\/td><td>Owner<\/td>/);

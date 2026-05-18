@@ -2552,7 +2552,11 @@ function validateViewContexts(
   if (result.previewScenarios.length > 0) {
     const scenarioNames = new Set(result.previewScenarios.map((scenario) => scenario.name));
     for (const scenario of result.previewScenarios) {
-      if (!scenario.state) {
+      const scenarioNameIsStateName = stateNames.has(scenario.name);
+      const isBaselineStateSample = scenarioNameIsStateName && !scenario.state;
+      if (isBaselineStateSample) {
+        validateBaselinePreviewScenario(scenario, diagnostics);
+      } else if (!scenario.state) {
         diagnostics.push(createMarkVSpecDiagnostic(
           "error",
           "previewScenario.missingState",
@@ -2563,6 +2567,18 @@ function validateViewContexts(
         diagnostics.push({
           severity: "error",
           message: `Preview Scenario ${scenario.name} references missing state ${scenario.state}.`,
+          line: firstPropertyLine(scenario, "state") ?? scenario.location.line
+        });
+      } else if (scenarioNameIsStateName && scenario.state === scenario.name) {
+        diagnostics.push({
+          severity: "warning",
+          message: `Preview Scenario ${scenario.name} matches a state name and repeats state: ${scenario.state}. Omit state: to define baseline state samples.`,
+          line: firstPropertyLine(scenario, "state") ?? scenario.location.line
+        });
+      } else if (scenarioNameIsStateName && scenario.state !== scenario.name) {
+        diagnostics.push({
+          severity: "error",
+          message: `Preview Scenario ${scenario.name} matches a state name but references state ${scenario.state}. Use a different scenario name or omit state: for baseline state samples.`,
           line: firstPropertyLine(scenario, "state") ?? scenario.location.line
         });
       }
@@ -2599,6 +2615,28 @@ function validateViewContexts(
   validateDataSourceSampleRows(result, diagnostics);
   validateConditionNamespaces(result, viewContextNames, stateNames, diagnostics);
   validateViewContextActionEffects(result, viewContextByName, diagnostics);
+}
+
+function validateBaselinePreviewScenario(
+  scenario: MarkVSpecParseResult["previewScenarios"][number],
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  const disallowedProperties = Object.keys(scenario.properties).filter((key) => key !== "samples");
+  for (const key of disallowedProperties) {
+    diagnostics.push({
+      severity: "error",
+      message: `Preview Scenario ${scenario.name} is a baseline state sample and cannot define ${key}. Use samples only, or add state: with a distinct scenario name for an additional preview variant.`,
+      line: firstPropertyLine(scenario, key) ?? scenario.location.line
+    });
+  }
+
+  if (scenario.cases.length > 0) {
+    diagnostics.push({
+      severity: "error",
+      message: `Preview Scenario ${scenario.name} is a baseline state sample and cannot define cases. Use samples only, or add state: with a distinct scenario name for an additional preview variant.`,
+      line: scenario.cases[0]?.location.line ?? scenario.location.line
+    });
+  }
 }
 
 function validateTemplateScreenTopLevelLayouts(result: MarkVSpecParseResult, diagnostics: MarkVSpecDiagnostic[]): void {

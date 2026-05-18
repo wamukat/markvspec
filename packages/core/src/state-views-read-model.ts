@@ -192,15 +192,17 @@ export function buildStateScreenReadModels(
   }
 
   const stateNames = new Set(result.states.map((state) => state.name));
+  const baselineScenarioSamplesByState = baselinePreviewScenarioSamplesByState(result);
   const stateRenderings = new Map<string, { ids: RenderedIds; actionIds: Set<string>; modelValues: Record<string, boolean>; viewValues: Record<string, boolean | number | string>; scenarioSamples: ParsedPreviewScenario["samples"]; displayEffects: ParsedDisplayEffect[]; displayExplanations: StateScreenDisplayExplanation[] }>();
   if (displayStateName) {
+    const displayScenarioSamples = baselineScenarioSamplesByState.get(displayStateName) ?? [];
     const displayIds = stateScreenRenderedIdsFromReadModel(wireframeResult, viewport, displayStateName, displayModelValues, displayViewValues);
     stateRenderings.set(displayStateName, {
       ids: displayIds,
       actionIds: relevantActionIdsForState(wireframeResult, displayStateName, displayIds.elementIds),
       modelValues: displayModelValues,
       viewValues: displayViewValues,
-      scenarioSamples: [],
+      scenarioSamples: displayScenarioSamples,
       displayEffects: [],
       displayExplanations: []
     });
@@ -212,9 +214,10 @@ export function buildStateScreenReadModels(
     }
     const stateModelValues = modelValuesForState(wireframeResult, stateName);
     const stateViewValues = viewValuesForScenario(wireframeResult, undefined);
+    const scenarioSamples = baselineScenarioSamplesByState.get(stateName) ?? [];
     const ids = stateScreenRenderedIdsFromReadModel(wireframeResult, viewport, stateName, stateModelValues, stateViewValues);
     const actionIds = relevantActionIdsForState(wireframeResult, stateName, ids.elementIds);
-    const rendered = { ids, actionIds, modelValues: stateModelValues, viewValues: stateViewValues, scenarioSamples: [], displayEffects: [], displayExplanations: [] };
+    const rendered = { ids, actionIds, modelValues: stateModelValues, viewValues: stateViewValues, scenarioSamples, displayEffects: [], displayExplanations: [] };
     stateRenderings.set(stateName, rendered);
     return rendered;
   };
@@ -229,6 +232,7 @@ export function buildStateScreenReadModels(
   ) => {
     const modelValues = modelValuesForState(scenarioResult, modelName ?? stateName);
     const viewValues = viewValuesForScenario(scenarioResult, viewName);
+    const scenarioSamples = mergeScenarioSamples(baselineScenarioSamplesByState.get(stateName) ?? [], samples);
     const ids = stateScreenRenderedIdsFromReadModel(scenarioResult, scenarioViewport, stateName, modelValues, viewValues);
     const displayEffects = displayEffectsForScenarioCases(scenarioResult, cases);
     const displayExplanations = displayExplanationsForScenarioCases(scenarioResult, cases);
@@ -238,7 +242,7 @@ export function buildStateScreenReadModels(
       actionIds: relevantActionIdsForState(scenarioResult, stateName, ids.elementIds),
       modelValues,
       viewValues,
-      scenarioSamples: samples,
+      scenarioSamples,
       displayEffects,
       displayExplanations
     };
@@ -368,6 +372,31 @@ function orderedStatePreviewDisplays(
   }
 
   return displays;
+}
+
+function baselinePreviewScenarioSamplesByState(result: MarkVSpecParseResult): Map<string, ParsedPreviewScenario["samples"]> {
+  const stateNames = new Set(result.states.map((state) => state.name));
+  const samplesByState = new Map<string, ParsedPreviewScenario["samples"]>();
+  for (const scenario of result.previewScenarios) {
+    if (!scenario.state && stateNames.has(scenario.name)) {
+      samplesByState.set(scenario.name, mergeScenarioSamples(samplesByState.get(scenario.name) ?? [], scenario.samples));
+    }
+  }
+  return samplesByState;
+}
+
+function mergeScenarioSamples(
+  baseline: ParsedPreviewScenario["samples"],
+  override: ParsedPreviewScenario["samples"]
+): ParsedPreviewScenario["samples"] {
+  const byElementId = new Map<string, ParsedPreviewScenario["samples"][number]>();
+  for (const sample of baseline) {
+    byElementId.set(sample.elementId, sample);
+  }
+  for (const sample of override) {
+    byElementId.set(sample.elementId, sample);
+  }
+  return [...byElementId.values()];
 }
 
 function lastIndexWhere<T>(items: T[], predicate: (item: T) => boolean): number {
