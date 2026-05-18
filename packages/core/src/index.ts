@@ -11,6 +11,7 @@ import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
 import type {
   MarkVSpecDiagnostic,
   MarkVSpecDocumentReferences,
+  MarkVSpecElement,
   MarkVSpecParseResult,
   MarkVSpecRenderOptions,
   MarkVSpecScreenSummary
@@ -193,6 +194,7 @@ export function parseMarkVSpec(source: string): MarkVSpecParseResult {
     slotContents: [],
     elements: [],
     formGroups: [],
+    events: [],
     actions: [],
     validations: [],
     rules: [],
@@ -213,6 +215,7 @@ export function parseMarkVSpec(source: string): MarkVSpecParseResult {
   applyElementSectionSemantics(result, parseElementSectionSemantics(document));
   applyActionSectionSemantics(result, parseActionSectionSemantics(document));
   applySmallSectionSemantics(result, parseSmallSectionSemantics(document));
+  applyCanonicalActionTriggers(result);
   validateMarkVSpec(result);
   return result;
 }
@@ -270,6 +273,7 @@ function applySmallSectionSemantics(
   result.viewContextSamples = semantics.viewContextSamples;
   result.previewScenarios = semantics.previewScenarios;
   result.formGroups = semantics.formGroups;
+  result.events = semantics.events;
   result.validations = semantics.validations;
   result.rules = semantics.rules;
   result.errorCodes = semantics.errorCodes;
@@ -279,6 +283,62 @@ function applySmallSectionSemantics(
   result.sectionProse.push(...semantics.sectionProse);
   result.notes = semantics.notes;
   mergeDiagnostics(result.diagnostics, semantics.diagnostics);
+}
+
+function applyCanonicalActionTriggers(result: MarkVSpecParseResult): void {
+  const actionsById = new Map(result.actions.map((action) => [action.id, action]));
+
+  for (const element of result.elements) {
+    const actionId = element.properties["action"];
+    if (typeof actionId !== "string") {
+      continue;
+    }
+    const action = actionsById.get(actionId);
+    if (!action || action.triggeredBy) {
+      continue;
+    }
+    const actionEvent = elementActionEvent(element);
+    action.triggeredBy = `${element.id}.${actionEvent}`;
+    action.triggeredByLocation = element.propertyLocations["action"]?.[0] ?? element.location;
+    action.trigger = {
+      elementId: element.id,
+      event: actionEvent
+    };
+  }
+
+  for (const event of result.events) {
+    const action = actionsById.get(event.actionId);
+    if (!action || action.triggeredBy || !["page.load", "partial.render"].includes(event.event)) {
+      continue;
+    }
+    action.triggeredBy = event.event;
+    action.triggeredByLocation = event.location;
+  }
+
+  for (const action of result.actions) {
+    if (action.triggeredBy) {
+      continue;
+    }
+    const receivedResponse = action.processSteps
+      .flatMap((step) => step.receives)
+      .find((receive) => /^A-[\p{L}\p{N}-]+\.P[A-Za-z0-9_-]+\.response$/u.test(receive.value));
+    if (!receivedResponse) {
+      continue;
+    }
+    action.triggeredBy = receivedResponse.value;
+    action.triggeredByLocation = receivedResponse.location;
+  }
+}
+
+function elementActionEvent(element: MarkVSpecElement): string {
+  const explicitEvent = element.properties["action event"];
+  if (typeof explicitEvent === "string" && explicitEvent.trim().length > 0) {
+    return explicitEvent.trim();
+  }
+  if (element.type === "custom:Form") {
+    return "submit";
+  }
+  return "click";
 }
 
 function mergeDiagnostics(target: MarkVSpecDiagnostic[], diagnostics: MarkVSpecDiagnostic[]): void {

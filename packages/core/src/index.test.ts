@@ -2069,7 +2069,7 @@ title: Action AST Diagnostics
   const parseResult = parseMarkVSpec(source);
   const expectedDiagnostics = [
     ["warning", "Malformed Action heading. Expected ### [<marker>:]A-* <name>.", lineNumber(source, "### Submit without ID")],
-    ["warning", "Action A-Submit has unsupported top-level entry: request: POST /login. Use Triggered, From, Process P1: <name>, or Otherwise.", lineNumber(source, "- request: POST /login")],
+    ["warning", "Action A-Submit has unsupported top-level entry: request: POST /login. Use From, Process P1: <name>, or Otherwise.", lineNumber(source, "- request: POST /login")],
     ["warning", "Action A-Submit has nested entry outside a recognized block: E-メールアドレス入力.click.", lineNumber(source, "  - E-メールアドレス入力.click")],
     ["warning", "Action A-Submit has malformed Process entry: POST /login. Put request lines under a marked process such as Process P1: Submit request.", lineNumber(source, "- Process: POST /login")]
   ];
@@ -6116,7 +6116,7 @@ title: Section Order
     result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
     [[
       "warning",
-      "Section ## Layout: mobile appears after a later section. Recommended order is States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Actions, View Context, View Context Samples, Preview Scenarios, Field Validations, Cross-field Validations, Validations, Business Rules, Error Codes, History Fields, History.",
+      "Section ## Layout: mobile appears after a later section. Recommended order is States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Events, Actions, View Context, View Context Samples, Preview Scenarios, Field Validations, Cross-field Validations, Validations, Business Rules, Error Codes, History Fields, History.",
       lineNumber(source, "## Layout: mobile")
     ]]
   );
@@ -6822,7 +6822,7 @@ title: Missing Trigger
     result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
     [[
       "warning",
-      "Action A-Submit has no trigger. Add a Triggered block with E-*.event, A-ActionId.P-marker.response, screen.load, or partial.render.",
+      "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.",
       lineNumber(source, "### A-Submit Submit")
     ]]
   );
@@ -6965,7 +6965,7 @@ title: Outcome
     [
       [
         "warning",
-        "Action A-Submit has invalid trigger service.response. Expected E-*.event, A-ActionId.P-marker.response, screen.load, or partial.render.",
+        "Action A-Submit has invalid trigger service.response. Expected Element action:, ## Events page.load or partial.render, or A-ActionId.P-marker.response.",
         lineNumber(source, "  - service.response")
       ],
       [
@@ -7140,9 +7140,9 @@ title: Conditions
   const action = result.actions.find((candidate) => candidate.id === "A-Submit");
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Action A-Submit has unsupported top-level entry: When. Use Triggered, From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Action A-Submit has unsupported top-level entry: When. Use From, Process P1: <name>, or Otherwise."));
   assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit has unsupported top-level entry: When. Use Triggered, From, Process P1: <name>, or Otherwise.")?.line,
+    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit has unsupported top-level entry: When. Use From, Process P1: <name>, or Otherwise.")?.line,
     lineNumber(source, "- When")
   );
   assert.equal(action?.id, "A-Submit");
@@ -7180,11 +7180,11 @@ title: Action Aliases
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Action A-Submit has unsupported top-level entry: Effect. Use Triggered, From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Action A-Submit has unsupported top-level entry: Case. Use Triggered, From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Action A-Submit has unsupported top-level entry: Else. Use Triggered, From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Action A-Submit has unsupported top-level entry: Effect. Use From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Action A-Submit has unsupported top-level entry: Case. Use From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Action A-Submit has unsupported top-level entry: Else. Use From, Process P1: <name>, or Otherwise."));
   assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit has unsupported top-level entry: Effect. Use Triggered, From, Process P1: <name>, or Otherwise.")?.line,
+    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit has unsupported top-level entry: Effect. Use From, Process P1: <name>, or Otherwise.")?.line,
     lineNumber(source, "- Effect")
   );
 });
@@ -7212,7 +7212,7 @@ title: Removed Action Group
   const result = parseMarkVSpec(source);
 
   assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit has unsupported top-level entry: When. Use Triggered, From, Process P1: <name>, or Otherwise.")?.line,
+    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit has unsupported top-level entry: When. Use From, Process P1: <name>, or Otherwise.")?.line,
     lineNumber(source, "- When")
   );
   assert.equal(result.actions.find((candidate) => candidate.id === "A-Submit")?.overview?.length ?? 0, 0);
@@ -7265,10 +7265,10 @@ title: Legacy Action DSL
   const action = result.actions.find((candidate) => candidate.id === "A-Legacy");
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Action A-Legacy has unsupported top-level entry: Effects. Use Triggered, From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Action A-Legacy has unsupported top-level entry: Cases. Use Triggered, From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Action A-Legacy has unsupported top-level entry: Process. Use Triggered, From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Action A-Legacy has unsupported top-level entry: Resolve: load-group. Use Triggered, From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Action A-Legacy has unsupported top-level entry: Effects. Use From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Action A-Legacy has unsupported top-level entry: Cases. Use From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Action A-Legacy has unsupported top-level entry: Process. Use From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Action A-Legacy has unsupported top-level entry: Resolve: load-group. Use From, Process P1: <name>, or Otherwise."));
   assert(messages.includes("Action A-Legacy process step ServerCall uses removed cases block syntax. Use direct case: <name> entries under Process: ServerCall."));
   assert(messages.includes("Action A-Legacy has unsupported process step ServerCall case success entry: ${model.member.loaded}: true. Use description, state, navigate, response, from, params, update, stop, or continue."));
   assert.equal(
@@ -7380,6 +7380,186 @@ title: Server Call
   ]);
   assert.deepEqual(success?.description ? [["success", success.description]] : [], [
     ["success", "ApiBridgeResult.Success<MemberProfileDto>"]
+  ]);
+});
+
+test("parses built-in Events lifecycle dispatches", () => {
+  const source = `---
+id: SCR-EVENTS
+type: screen
+title: Events
+---
+
+# SCR-EVENTS Events
+
+## States
+
+- initializing*
+- idle
+
+## Events
+
+- page.load: A-Load
+- partial.render: A-RefreshPartial
+
+## Actions
+
+### A-Load Load
+
+- From
+  - initializing
+- Process P1: Load
+  - request:
+    - method: GET
+    - path: /items
+  - case: success
+    - Effects
+      - state: idle
+
+### A-RefreshPartial Refresh partial
+
+- From
+  - idle
+- Process P1: Refresh partial
+  - request:
+    - method: GET
+    - path: /summary
+  - case: success
+    - Effects
+      - state: idle
+`;
+  const result = parseMarkVSpec(source);
+
+  assert.equal(result.diagnostics.length, 0);
+  assert.deepEqual(result.events.map((event) => [event.event, event.actionId]), [
+    ["page.load", "A-Load"],
+    ["partial.render", "A-RefreshPartial"]
+  ]);
+  assert.equal(result.actions.find((action) => action.id === "A-Load")?.triggeredBy, "page.load");
+  assert.equal(result.actions.find((action) => action.id === "A-RefreshPartial")?.triggeredBy, "partial.render");
+});
+
+test("infers action callers from Element action events", () => {
+  const source = `---
+id: SCR-ACTION-EVENTS
+type: screen
+title: Action Events
+---
+
+# SCR-ACTION-EVENTS Action Events
+
+## States
+
+- idle*
+
+## Elements
+
+### E-SearchInput Input
+
+- action: A-MarkChanged
+- action event: change
+
+### E-EmailInput Input
+
+- action: A-ValidateEmail
+- action event: blur
+
+### E-PreferencesForm custom:Form
+
+- action: A-SubmitPreferences
+- action event: submit
+
+### E-HelpIcon Icon
+
+- action: A-ShowHelp
+- action event: focus
+
+### E-ConfirmDialog Dialog
+
+- actions: E-CloseButton
+- action: A-CloseDialog
+- action event: close
+
+### E-CloseButton Button
+
+- action: A-CloseDialog
+
+## Actions
+
+### A-MarkChanged Mark changed
+
+- Process P1: Immediate
+  - Effects
+    - state: idle
+
+### A-ValidateEmail Validate email
+
+- Process P1: Immediate
+  - Effects
+    - state: idle
+
+### A-SubmitPreferences Submit preferences
+
+- Process P1: Immediate
+  - Effects
+    - state: idle
+
+### A-ShowHelp Show help
+
+- Process P1: Immediate
+  - Effects
+    - state: idle
+
+### A-CloseDialog Close dialog
+
+- Process P1: Immediate
+  - Effects
+    - state: idle
+`;
+  const result = parseMarkVSpec(source);
+  const triggers = new Map(result.actions.map((action) => [action.id, action.triggeredBy]));
+
+  assert.equal(result.diagnostics.length, 0);
+  assert.equal(triggers.get("A-MarkChanged"), "E-SearchInput.change");
+  assert.equal(triggers.get("A-ValidateEmail"), "E-EmailInput.blur");
+  assert.equal(triggers.get("A-SubmitPreferences"), "E-PreferencesForm.submit");
+  assert.equal(triggers.get("A-ShowHelp"), "E-HelpIcon.focus");
+  assert.equal(triggers.get("A-CloseDialog"), "E-ConfirmDialog.close");
+});
+
+test("validates built-in Events dispatches", () => {
+  const source = `---
+id: SCR-EVENTS-DIAGNOSTICS
+type: screen
+title: Events Diagnostics
+---
+
+# SCR-EVENTS-DIAGNOSTICS Events Diagnostics
+
+## Events
+
+- page.load: A-Missing
+- partial.render: A-Load
+- timer.elapsed: A-Load
+- E-SubmitButton.click: A-Load
+
+## Actions
+
+### A-Load Load
+
+- Process P1: Load
+  - request:
+    - method: GET
+    - path: /items
+`;
+  const result = parseMarkVSpec(source);
+  const diagnostics = result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]);
+
+  assert.deepEqual(diagnostics, [
+    ["error", "Event page.load references missing action A-Missing.", lineNumber(source, "- page.load: A-Missing")],
+    ["error", "Event timer.elapsed is not supported. Use page.load or partial.render.", lineNumber(source, "- timer.elapsed: A-Load")],
+    ["error", "Event E-SubmitButton.click is not supported. Use page.load or partial.render.", lineNumber(source, "- E-SubmitButton.click: A-Load")],
+    ["error", "Event E-SubmitButton.click is a user operation. Connect user operations with Element action: instead of ## Events.", lineNumber(source, "- E-SubmitButton.click: A-Load")]
   ]);
 });
 
@@ -7714,7 +7894,7 @@ title: Params
     [
       [
         "warning",
-        "Action A-Submit has invalid trigger service.submit. Expected E-*.event, A-ActionId.P-marker.response, screen.load, or partial.render.",
+        "Action A-Submit has invalid trigger service.submit. Expected Element action:, ## Events page.load or partial.render, or A-ActionId.P-marker.response.",
         lineNumber(source, "  - service.submit")
       ],
       [
@@ -7819,7 +7999,7 @@ title: Response
     [
       [
         "warning",
-        "Action A-Submit has invalid trigger service.response. Expected E-*.event, A-ActionId.P-marker.response, screen.load, or partial.render.",
+        "Action A-Submit has invalid trigger service.response. Expected Element action:, ## Events page.load or partial.render, or A-ActionId.P-marker.response.",
         lineNumber(source, "  - service.response")
       ],
       [
@@ -10593,7 +10773,7 @@ title: Malformed Action
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Action A-Submit has unsupported top-level entry: request: POST /login. Use Triggered, From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Action A-Submit has unsupported top-level entry: request: POST /login. Use From, Process P1: <name>, or Otherwise."));
   assert(messages.includes("Action A-Submit has nested entry outside a recognized block: E-メールアドレス入力.click."));
   assert(messages.includes("Action A-Submit has malformed Process entry: POST /login. Put request lines under a marked process such as Process P1: Submit request."));
   assert(messages.includes("Action A-Submit has malformed Process entry: email: E-メールアドレス入力.value. Start with a marked process such as Process P1: Submit request."));
@@ -12830,7 +13010,7 @@ locale: ja
     },
     {
       code: "action.missingTrigger",
-      ja: "Triggered block",
+      ja: "Element action:",
       source: `---
 id: SCR-ACTION-MISSING-TRIGGER
 type: screen

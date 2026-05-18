@@ -1081,12 +1081,12 @@ function createMissingTriggerAction(document: vscode.TextDocument, diagnostic: v
     return undefined;
   }
 
-  const action = new vscode.CodeAction(`Add Triggered block to ${actionId}`, vscode.CodeActionKind.QuickFix);
+  const action = new vscode.CodeAction(`Add page.load event for ${actionId}`, vscode.CodeActionKind.QuickFix);
   action.diagnostics = [diagnostic];
-  action.isPreferred = true;
   const edit = new vscode.WorkspaceEdit();
-  const insertLine = diagnostic.range.start.line + 1;
-  edit.insert(document.uri, new vscode.Position(insertLine, 0), "\n- Triggered\n  - E-Element.click");
+  const insertLine = document.lineCount;
+  const prefix = document.lineAt(document.lineCount - 1).text.trim().length > 0 ? "\n\n" : "\n";
+  edit.insert(document.uri, new vscode.Position(insertLine, 0), `${prefix}## Events\n\n- page.load: ${actionId}\n`);
   action.edit = edit;
   return action;
 }

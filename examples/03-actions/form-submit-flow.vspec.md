@@ -89,8 +89,6 @@ try to cover non-submit element events.
 
 ### A1:A-SubmitRequest Submit request
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Check validation
@@ -126,8 +124,6 @@ try to cover non-submit element events.
 
 ### A2:A-HandleSubmitResponse Handle submit response
 
-- Triggered
-  - A-SubmitRequest.P2.response
 - From
   - submitting
 - Process P1: Handle server response

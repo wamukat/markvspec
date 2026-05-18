@@ -195,7 +195,7 @@ This document uses these categories when describing syntax:
 | Layout | `## Layout: <viewport>`, `### [marker:]L-* Name`, `#### Items` | Implemented | [Layout](#layout-section) |
 | Element | `### [marker:]E-* Type` with element property bullets | Implemented | [Elements](#elements-section) |
 | Form Group | `### [marker:]F-* Name`, `fields`, and `submit` | Implemented | [Form Groups](#form-groups) |
-| Action | `Triggered` / `From` / `Process <marker>: <name>` | Implemented | [Actions](#actions-section) |
+| Action | `From` / `Process <marker>: <name>` plus Element `action:` or `## Events` callers | Implemented | [Actions](#actions-section) |
 | Process detail | `request:` / `server:` / `receive:` / project-specific detail | Implemented | Use at most one execution detail per Process. |
 | Request params | `request.params` with sources such as `E-*.value` | Implemented | `input:` is legacy. |
 | Server params | `server.params` for values passed to service calls | Implemented | Service call text is an arbitrary string. |
@@ -351,8 +351,6 @@ Entity-level prose:
 
 Validate the input and move to auth wait only when the request can be sent.
 
-- Triggered
-  - E-SignInButton.click
 - From
   - idle
 - Process P1: Submit login
@@ -425,7 +423,6 @@ Primary Front Matter keys:
 
 Action group names:
 
-- `Triggered`
 - `From`
 - `Process`
 - `Effects`
@@ -456,9 +453,9 @@ syntax separator between the ID and event name; the keyword is `click`.
 - `change`
 - `submit`
 
-Document lifecycle triggers:
+Document lifecycle events in `## Events`:
 
-- `screen.load`
+- `page.load`
 - `partial.render`
 
 Layout kinds:
@@ -1398,8 +1395,6 @@ Use the same nested `params` block for action-driven screen navigation.
 ```markdown
 ### A-OpenNotice Open notice
 
-- Triggered
-  - E-NoticeTitle.click
 - From
   - loaded
 - Process P1: Immediate
@@ -1779,8 +1774,6 @@ screen does, not the exact htmx attributes.
 ```markdown
 ### A-ValidateEmail Validate email
 
-- Triggered
-  - E-EmailInput.blur
 - From
   - idle
 - Process P1: Check email field
@@ -1798,7 +1791,8 @@ screen does, not the exact htmx attributes.
 
 Mapping to htmx/Thymeleaf is implementation-facing:
 
-- `Triggered` maps to the event that starts the interaction, such as `click` or `blur`.
+- Element `action:` maps user operations to actions. Use `action event:` when the caller is not the default `click`, for example `change`, `blur`, `focus`, `submit`, or `close`.
+- `## Events` maps lifecycle events such as `page.load`.
 - `request:` maps to request method and path.
 - `target` maps to the layout or element that will be replaced.
 - `element` maps to the existing `E-*` element or `L-*` layout shown in that target.
@@ -1957,8 +1951,6 @@ result-specific effects under that case's `Effects` block.
 
 ### A1:A-SubmitLogin Submit login
 
-- Triggered
-  - E-SignInButton.click
 - From
   - idle
 - Process P1: Check login form
@@ -1997,8 +1989,6 @@ result-specific effects under that case's `Effects` block.
 
 ### A2:A-AuthResponse Handle auth response
 
-- Triggered
-  - A-SubmitLogin.P2.response
 - From
   - authenticating
 - Process P1: Handle auth response
@@ -2022,10 +2012,6 @@ result-specific effects under that case's `Effects` block.
 Preferred action groups and effects:
 
 ```text
-- Triggered
-  - <element-id>.<event>
-  - <action-id>.<process-marker>.response
-  - screen.load
 - From
   - <state>
 - Process <marker>: <process name>
@@ -2624,8 +2610,6 @@ are consumed and where messages are displayed.
 ```markdown
 ### A-SubmitLogin Submit login
 
-- Triggered
-  - E-SignInButton.click
 - From
   - idle
 - Process P1: Check validation
@@ -2845,7 +2829,7 @@ The validator should check:
 
 - `- E-EmailInput` under `#### Items` references an existing element.
 - `action: A-SubmitLogin` references an existing action.
-- `Triggered` references such as `E-SignInButton.click` reference an existing element.
+- Element `action:` references and `## Events` dispatch targets must reference existing IDs.
 - Conditions reference existing IDs when they contain ID-like tokens.
 - Transitions to local states reference existing states.
 - Transitions to `SCR-*` are allowed as external screen references.
@@ -2927,8 +2911,7 @@ layout_group      = "### " marker_prefix? layout_id " " name bullet*
 element           = "### " marker_prefix? element_id " " element_type required_suffix? bullet*
 form_group        = "### " marker_prefix? form_group_id " " name bullet*
 action            = "### " marker_prefix? action_id " " action_name action_group*
-action_group      = triggered_group | from_group | process_group
-triggered_group   = "- Triggered" nested_bullet*
+action_group      = from_group | process_group
 from_group        = "- From" nested_bullet*
 process_group     = "- Process " marker ": " process_name process_detail*
 process_case      = indent "- case:" result_name nested_bullet*

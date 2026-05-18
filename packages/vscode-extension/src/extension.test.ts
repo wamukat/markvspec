@@ -7961,20 +7961,20 @@ title: Quick Fix
   const diagnostic = createDiagnostic(
     source,
     "### A-Submit Submit",
-    "Action A-Submit has no trigger. Add a Triggered block with E-*.event, A-ActionId.P-marker.response, screen.load, or partial.render."
+    "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response."
   );
   const actions = createMarkVSpecCodeActions(document, [diagnostic]);
   const edits = actions[0]?.edit as unknown as { edits: Array<{ kind: string; newText?: string; position?: { line: number; character: number }; uri?: unknown }> };
 
   assert.equal(actions.length, 1);
-  assert.equal(actions[0]?.title, "Add Triggered block to A-Submit");
-  assert.equal(actions[0]?.isPreferred, true);
+  assert.equal(actions[0]?.title, "Add page.load event for A-Submit");
+  assert.equal(actions[0]?.isPreferred, undefined);
   assert.equal(edits.edits.length, 1);
   assert.equal(edits.edits[0]?.kind, "insert");
   assert.deepEqual(edits.edits[0]?.uri, (document as { uri: unknown }).uri);
-  assert.equal(edits.edits[0]?.position?.line, 15);
+  assert.equal(edits.edits[0]?.position?.line, 19);
   assert.equal(edits.edits[0]?.position?.character, 0);
-  assert.equal(edits.edits[0]?.newText, "\n- Triggered\n  - E-Element.click");
+  assert.equal(edits.edits[0]?.newText, "\n## Events\n\n- page.load: A-Submit\n");
 });
 
 test("does not create a missing trigger quick fix when the diagnostic range is stale", () => {
@@ -7993,7 +7993,7 @@ Not an action heading
   const diagnostic = createDiagnostic(
     source,
     "Not an action heading",
-    "Action A-Submit has no trigger. Add a Triggered block with E-*.event, A-ActionId.P-marker.response, screen.load, or partial.render."
+    "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response."
   );
 
   assert.deepEqual(createMarkVSpecCodeActions(createTextDocument(source) as never, [diagnostic]), []);
@@ -8436,7 +8436,7 @@ test("declares MarkVSpec syntax highlighting contributions", () => {
   assert(!grammar.repository?.["references"]?.patterns?.some((pattern) => pattern.name === "constant.other.marker.markvspec"));
 
   const grammarSource = readFileSync(grammarPath, "utf8");
-  for (const token of ["SCR|TPL|PRT", "L|P|E|F|A|V|R", "L|P", "E-", "F-", "A-", "V-", "R-", "Slot", "Triggered", "Process", "View Context", "View Context Samples", "Preview Scenarios", "Form Groups", "Business Rules", "Error Codes", "History Fields", "History", "HttpRequest", "PartialRequest", "ServerCall", "Resolve", "params", "group", "stop|continue"]) {
+  for (const token of ["SCR|TPL|PRT", "L|P|E|F|A|V|R", "L|P", "E-", "F-", "A-", "V-", "R-", "Slot", "Events", "Process", "View Context", "View Context Samples", "Preview Scenarios", "Form Groups", "Business Rules", "Error Codes", "History Fields", "History", "HttpRequest", "PartialRequest", "ServerCall", "Resolve", "params", "group", "stop|continue"]) {
     assert.match(grammarSource, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
   const headingPatterns = grammar.repository?.["headings"]?.patterns ?? [];
@@ -8478,7 +8478,7 @@ test("declares MarkVSpec syntax highlighting contributions", () => {
   }
   assert(snippets["MarkVSpec Screen"].body?.includes("## States"));
   assert(snippets["MarkVSpec Partial"].body?.includes("type: partial"));
-  assert(snippets["MarkVSpec Partial"].body?.includes("  - partial.render"));
+  assert(snippets["MarkVSpec Partial"].body?.includes("- partial.render: ${11:A-BuildPartial}"));
   assert(snippets["MarkVSpec Screen"].body?.includes("## Layout: ${4:mobile}"));
   assert(snippets["MarkVSpec Responsive Layouts"].body?.includes("## Layout: desktop"));
   assert(snippets["MarkVSpec Layout Group"].body?.includes("#### Items"));
@@ -8488,9 +8488,9 @@ test("declares MarkVSpec syntax highlighting contributions", () => {
   assert(snippets["MarkVSpec Button Element"].body?.includes("- tone: ${5|neutral,info,success,warning,danger|}"));
   assert(snippets["MarkVSpec Select Element"].body?.includes("- options:"));
   assert(snippets["MarkVSpec Select Element"].body?.includes("  - ${4:Active}"));
-  assert(snippets["MarkVSpec Action"].body?.includes("- Triggered"));
-  assert(snippets["MarkVSpec Action"].body?.includes("- Process ${6:P1}: ${7:Submit request}"));
-  assert(snippets["MarkVSpec Action"].body?.includes("  - case: ${12:sent}"));
+  assert(!snippets["MarkVSpec Action"].body?.includes("- Triggered"));
+  assert(snippets["MarkVSpec Action"].body?.includes("- Process ${5:P1}: ${6:Submit request}"));
+  assert(snippets["MarkVSpec Action"].body?.includes("  - case: ${11:sent}"));
   assert(!snippets["MarkVSpec Action"].body?.includes("- Effects"));
   assert(!snippets["MarkVSpec Action"].body?.includes("- Cases"));
 

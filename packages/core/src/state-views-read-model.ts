@@ -1192,7 +1192,7 @@ export function systemEventActionsForState(
 }
 
 function isSystemEventTrigger(triggeredBy: string | undefined): boolean {
-  if (triggeredBy === "screen.load" || triggeredBy === "partial.render") {
+  if (triggeredBy === "page.load" || triggeredBy === "screen.load" || triggeredBy === "partial.render") {
     return true;
   }
 

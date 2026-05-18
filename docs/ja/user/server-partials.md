@@ -45,8 +45,6 @@ screen 側の Action では、リクエストと画面上の置き換え結果�
 ```markdown
 ### A1:A-SubmitLogin ログイン送信
 
-- Triggered
-  - E-SignInButton.click
 - From
   - idle
 - Process P1: ログイン送信
@@ -111,8 +109,6 @@ route: /mypage/partials/notices
 
 ### A-BuildNoticeList Build notice list
 
-- Triggered
-  - partial.render
 - Process P1: Notice list を構築
   - server:
     - call: NoticeQueryService.findLatest()
@@ -141,8 +137,6 @@ title: Points Content
 
 ### A-RefreshPoints Refresh points
 
-- Triggered
-  - E-Refresh.click
 - Process P1: Points content を更新
   - request:
     - method: GET
@@ -178,8 +172,6 @@ response は、`A-SubmitLogin.P1.response` のような response handler Action 
 ```markdown
 ### A2:A-HandleLoginResponse ログイン応答処理
 
-- Triggered
-  - A-SubmitLogin.P1.response
 - From
   - wait-auth
 - Process P1: ログイン応答処理

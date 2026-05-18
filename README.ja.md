@@ -145,8 +145,6 @@ route: /login
 
 ### A1:A-SubmitLogin ログイン送信
 
-- Triggered
-  - E-SignInButton.click
 - From
   - idle
 - Process P1: Validate login form
@@ -326,7 +324,7 @@ HTML Authoring Guide や実ファイルを見た後、具体的に書くとき�
 | `npx @markvspec/cli@latest` が見つからない | npm registry から `@markvspec/cli` を解決できるか確認する。 |
 | PDF export が失敗する | [既知の制限](docs/ja/user/limitations.md) を確認し、環境上 PDF 出力が難しい場合は static HTML を出力する。 |
 | プレビューが出ない | ファイル名が `.vspec.md` または `.vspec.project.md` であることを確認する。 |
-| ID 参照の診断が出る | `Items`、`action`、`Triggered` などで marker ではなく `E-*` / `L-*` / `A-*` の ID を参照しているか確認する。 |
+| ID 参照の診断が出る | `Items`、`action`、`Events` などで marker ではなく `E-*` / `L-*` / `A-*` の ID を参照しているか確認する。 |
 
 ## 次に読むもの
 

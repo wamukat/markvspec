@@ -77,8 +77,6 @@ updates; the reusable shell itself is defined in the template example.
 
 ### A1:A-RefreshProfile Refresh profile partial
 
-- Triggered
-  - E-RefreshProfileButton.click
 - From
   - idle
   - load-error
@@ -101,8 +99,6 @@ updates; the reusable shell itself is defined in the template example.
 
 ### A2:A-HandleProfileSummaryResponse Handle profile summary response
 
-- Triggered
-  - A-RefreshProfile.P1.response
 - From
   - loading
 - Process P1: PartialResponse

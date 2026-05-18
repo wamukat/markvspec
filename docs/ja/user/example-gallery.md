@@ -13,7 +13,7 @@
 
 - 段階順に読み、最小画面から状態、アクション、実務寄りの一覧、再利用へ進める。
 - 1つのサンプルで学ぶ主題を絞り、複数機能を詰め込みすぎない。
-- `States`、responsive layout、slot、主要 element type、Action の `Triggered` / `Process <marker>: <name>`、process step の `case: <name>`、scenario samples を段階的にカバーする。
+- `States`、responsive layout、slot、主要 element type、Action の Element `action:` / `## Events` / `Process <marker>: <name>`、process step の `case: <name>`、scenario samples を段階的にカバーする。
 - `display:` は専用の基本例から読み、validation message、business rule message、targetless display、partial update の順に理解できるようにする。
 
 ## marker 方針
@@ -43,7 +43,7 @@ F-* / V-* を参照 chip として読みやすく見せたい場合は、安定 
 | [Async Loading](../../../examples/02-states/async-loading.vspec.md) | request 送信、response handling、empty/error state、table sample rows の例。 |
 | [Scenario Samples](../../../examples/02-states/scenario-samples.vspec.md) | baseline の Element `sample` / `sample rows:` と、同じ loaded state に対する Preview Scenario data variation / `rows: []` の例。 |
 | [Responsive Profile](../../../examples/02-states/responsive-profile.vspec.md) | mobile / desktop viewport で同じ情報を異なる配置にする例。 |
-| [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | `screen.load`、`.change` の未保存通知、`.blur` validation、`.focus` help、`.submit`、dialog click / `close` と Preview Scenarios の例。 |
+| [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | `page.load`、`.change` の未保存通知、`.blur` validation、`.focus` help、`.submit`、dialog click / `close` と Preview Scenarios の例。 |
 | [Display Effects](../../../examples/03-actions/display-effects.vspec.md) | `target: L-*` + `element:`、`target: E-*.error` + `message: V-*.messages`、`message: R-*.messages`、targetless Dialog / Toast を1画面で比較する display 基本例。 |
 | [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md) | validation receive source、request parameters、server process detail、成功時 navigation の例。 |
 | [Single Field Validation](../../../examples/03-actions/single-field-validation.vspec.md) | 単項目 validation contract と、length / pattern / type / range / step などの element 入力仕様の対応例。 |

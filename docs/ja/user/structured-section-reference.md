@@ -49,9 +49,10 @@ level-2 section です。
 | `Layout` / `Layout: <viewport>` | viewport ごとの wireframe layout group を定義する。 | あり: `### [marker:]L-* Name` と presentation `P-*`。 | layout kind/properties と `#### Items`。 | wireframe と State View の Layouts fragment。 |
 | `Slot: <name>` | template slot に差し込む screen 側 content を定義する。 | あり: Layout と同じ。 | layout kind/properties と `#### Items`。 | template slot に合成された wireframe。 |
 | `Slots` | template が所有する slot contract を定義する。 | あり: `### <slot-name>`。 | `required`、`purpose`、`default: <ID>` などの slot metadata。 | template slot summary。 |
-| `Elements` | UI element を定義する。 | あり: `### [marker:]E-* Type`。 | `label`、`src`、`action`、`visible when` などの element properties。 | wireframe elements、Element Summary、detail fragments。 |
+| `Elements` | UI element を定義する。 | あり: `### [marker:]E-* Type`。 | `label`、`src`、`action`、`action event`、`visible when` などの element properties。 | wireframe elements、Element Summary、detail fragments。 |
 | `Form Groups` | form の意味単位を定義する。 | あり: `### F-* Name`。 | field/member references と submit/validation metadata。 | form group summary と validation context。 |
-| `Actions` | user/system event と process outcome を定義する。 | あり: `### [marker:]A-* Name`。 | `Triggered`、`From`、`Process`、process `case`、`Effects`、`stop`、`continue`。 | Action Summary、Action Details、action markers、state flow、transition diagrams。 |
+| `Events` | lifecycle event から Action への dispatch を定義する。 | なし。 | `page.load: A-*`、`partial.render: A-*`。 | System events と action caller label。 |
+| `Actions` | 受付 state、process、outcome を定義する。 | あり: `### [marker:]A-* Name`。 | `From`、`Process`、process `case`、`Effects`、`stop`、`continue`。 | Action Summary、Action Details、action markers、state flow、transition diagrams。 |
 | `View Context` | state とは別の UI-local context を定義する。 | ID entity ではない definition heading: `### <view-name>`。 | view type、values、default `*`。 | State View context resolution と condition evaluation。 |
 | `View Context Samples` | view context value set に名前を付ける。 | ID entity ではない sample heading: `### <sample-name>`。 | `${view.*}` keyed view values。 | Preview Scenario と baseline view resolution。 |
 | `Preview Scenarios` | state/view/sample の explicit preview combination を追加する。 | ID entity ではない scenario heading: `### <scenario-name>`。 | state、view、before、case values、`samples`。 | baseline state previews の後に追加表示される State Views。 |
@@ -176,8 +177,10 @@ preview は structured properties だけを DSL として解釈します。
 
 `Section Lead` は action 設計方針の説明です。`### [marker:]A-* Name` heading は
 `Entity Block` です。`Entity Lead` は authored action summary です。
-`Structured Body` には trigger、source state、process、case、effect を書きます。
-`Entity Notes` は Action Details に表示し、Action Summary には表示しません。
+`Structured Body` には source state、process、case、effect を書きます。caller は
+Element の `action:` property から来ます。click 以外の caller は `action event:`
+で表します。lifecycle caller は `## Events` から来ます。`Entity Notes` は Action
+Details に表示し、Action Summary には表示しません。
 
 ```markdown
 ## Actions
@@ -186,8 +189,6 @@ preview は structured properties だけを DSL として解釈します。
 
 form を検証して送信する。
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Send request

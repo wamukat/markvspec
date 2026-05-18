@@ -21,7 +21,7 @@ smallest useful reference:
   handling, including loading, empty, loaded, and error states.
 - `Responsive Profile` teaches mobile and desktop layout variants over shared
   elements and state-aware actions without server flow noise.
-- `Event Triggers` teaches `screen.load`, `.change`, `.blur`, `.focus`,
+- `Event Triggers` teaches `page.load`, `.change`, `.blur`, `.focus`,
   `.submit`, and dialog click/close triggers with Preview Scenarios for display
   effects.
 - `Display Effects` teaches the core `display:` variants in one small screen:
@@ -76,7 +76,7 @@ For `F-*` and `V-*` examples that should appear as reference chips, prefer a
 | [Async Loading](../../../examples/02-states/async-loading.vspec.md) | Request send and response handling. | Loading, loaded, empty, and load-error states, response cases, and table sample rows. |
 | [Scenario Samples](../../../examples/02-states/scenario-samples.vspec.md) | Dedicated preview data variation example. | Neutral Element `sample` / `sample rows:` plus loaded-state Preview Scenario `samples`, including `rows: []`. |
 | [Responsive Profile](../../../examples/02-states/responsive-profile.vspec.md) | Same content in mobile and desktop layouts. | Viewport-specific layout groups over shared elements. |
-| [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | Non-click events and lifecycle triggers. | `screen.load`, `.change` unsaved notice display, `.blur` validation, `.focus` help text, `.submit`, dialog click actions, `close`, and Preview Scenarios. |
+| [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | Non-click events and lifecycle triggers. | `page.load`, `.change` unsaved notice display, `.blur` validation, `.focus` help text, `.submit`, dialog click actions, `close`, and Preview Scenarios. |
 | [Display Effects](../../../examples/03-actions/display-effects.vspec.md) | Focused display effect reference. | `target: L-*` with `element:`, `target: E-*.error` with `message: V-*.messages`, layout-level `message: R-*.messages`, targetless Dialog, targetless Toast, and Preview Scenarios for each case. |
 | [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md) | Submit action lifecycle. | Validation receive source, request parameters, server process details, flow stop/continue, and success navigation. |
 | [Single Field Validation](../../../examples/03-actions/single-field-validation.vspec.md) | Field-level validation examples. | Required, length, pattern, email, and numeric range validation contracts tied to element input specifications. |

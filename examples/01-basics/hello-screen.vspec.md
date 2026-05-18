@@ -54,8 +54,6 @@ entry; it intentionally avoids validation, model data, and response handling.
 This example keeps the action intentionally small so the marker appears in the
 wireframe and Action Details without introducing request handling.
 
-- Triggered
-  - E-ContinueButton.click
 - From
   - idle
 - Process P1: Apply immediate effect

@@ -104,12 +104,14 @@ account data without creating extra states.
 - tone: danger
 - visible when: load-error
 
+## Events
+
+- page.load: A-LoadAccount
+
 ## Actions
 
 ### A1:A-LoadAccount Load account
 
-- Triggered
-  - screen.load
 - From
   - loading
 - Process P1: Send request
@@ -121,8 +123,6 @@ account data without creating extra states.
 
 ### A2:A-HandleAccountResponse Handle account response
 
-- Triggered
-  - A-LoadAccount.P1.response
 - From
   - loading
 - Process P1: Apply response

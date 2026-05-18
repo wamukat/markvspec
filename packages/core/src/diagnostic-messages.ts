@@ -41,9 +41,9 @@ const diagnosticMessageTemplates: Record<DiagnosticLocale, Record<MarkVSpecDiagn
     "element.unsupportedLegacyBind": (params) =>
       `Element ${param(params, "elementId")} uses unsupported legacy bind property. Use value/source for value origin, initial value for initial display, and E-*.value in request params instead.`,
     "action.missingTrigger": (params) =>
-      `Action ${param(params, "actionId")} has no trigger. Add a Triggered block with E-*.event, A-ActionId.P-marker.response, screen.load, or partial.render.`,
+      `Action ${param(params, "actionId")} has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.`,
     "action.invalidTrigger": (params) =>
-      `Action ${param(params, "actionId")} has invalid trigger ${param(params, "trigger")}. Expected E-*.event, A-ActionId.P-marker.response, screen.load, or partial.render.`,
+      `Action ${param(params, "actionId")} has invalid trigger ${param(params, "trigger")}. Expected Element action:, ## Events page.load or partial.render, or A-ActionId.P-marker.response.`,
     "action.process.multipleExecutionDetails": (params) =>
       `Action ${param(params, "actionId")} process step ${param(params, "stepLabel")} contains multiple execution detail blocks (${param(params, "details")}). Split them into separate Process steps.`,
     "action.process.mixesExecutionDetailAndImmediateEffects": (params) =>
@@ -79,9 +79,9 @@ const diagnosticMessageTemplates: Record<DiagnosticLocale, Record<MarkVSpecDiagn
     "element.unsupportedLegacyBind": (params) =>
       `Element ${param(params, "elementId")} はサポート対象外の旧 bind property を使用しています。入力値の由来は value/source、初期表示は initial value、送信値参照は E-*.value を使ってください。`,
     "action.missingTrigger": (params) =>
-      `Action ${param(params, "actionId")} に trigger がありません。Triggered block に E-*.event、A-ActionId.P-marker.response、screen.load、partial.render のいずれかを追加してください。`,
+      `Action ${param(params, "actionId")} に trigger がありません。Element action:、## Events の page.load / partial.render、または receive A-ActionId.P-marker.response を追加してください。`,
     "action.invalidTrigger": (params) =>
-      `Action ${param(params, "actionId")} の trigger ${param(params, "trigger")} は不正です。E-*.event、A-ActionId.P-marker.response、screen.load、partial.render のいずれかにしてください。`,
+      `Action ${param(params, "actionId")} の trigger ${param(params, "trigger")} は不正です。Element action:、## Events の page.load / partial.render、または A-ActionId.P-marker.response のいずれかにしてください。`,
     "action.process.multipleExecutionDetails": (params) =>
       `Action ${param(params, "actionId")} の Process step ${param(params, "stepLabel")} に複数の実行 detail (${param(params, "details")}) があります。別々の Process step に分けてください。`,
     "action.process.mixesExecutionDetailAndImmediateEffects": (params) =>

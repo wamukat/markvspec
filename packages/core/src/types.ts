@@ -453,6 +453,13 @@ export interface MarkVSpecAction {
   location: SourceLocation;
 }
 
+export interface MarkVSpecEventDispatch {
+  event: string;
+  actionId: string;
+  location: SourceLocation;
+  raw: string;
+}
+
 export interface MarkVSpecRule {
   id: string;
   name?: string;
@@ -551,6 +558,7 @@ export interface MarkVSpecParseResult {
   slotContents: MarkVSpecSlotContent[];
   elements: MarkVSpecElement[];
   formGroups: MarkVSpecFormGroup[];
+  events: MarkVSpecEventDispatch[];
   actions: MarkVSpecAction[];
   validations: MarkVSpecValidationRule[];
   rules: MarkVSpecRule[];

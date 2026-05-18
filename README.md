@@ -154,8 +154,6 @@ route: /login
 
 ### A1:A-SubmitLogin Submit login
 
-- Triggered
-  - E-SignInButton.click
 - From
   - idle
 - Process P1: Validate login form
@@ -338,7 +336,7 @@ Use these after the authoring guide or while editing a concrete file:
 | `npx @markvspec/cli@latest` cannot find the package | Confirm that your npm registry can resolve `@markvspec/cli`. |
 | PDF export fails | Check [Known limitations](docs/en/user/limitations.md), then export static HTML if PDF output is blocked in your environment. |
 | Preview does not open | Confirm that the file name ends with `.vspec.md` or `.vspec.project.md`. |
-| ID-reference diagnostics appear | Check that `Items`, `action`, and `Triggered` entries refer to `E-*`, `L-*`, or `A-*` IDs, not markers. |
+| ID-reference diagnostics appear | Check that `Items`, `action`, and `Events` entries refer to `E-*`, `L-*`, or `A-*` IDs, not markers. |
 
 ## Next Reading
 

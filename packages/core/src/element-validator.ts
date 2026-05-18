@@ -70,7 +70,8 @@ const commonElementProperties = new Set([
   "validation",
   "input rule",
   "error text",
-  "action"
+  "action",
+  "action event"
 ]);
 
 const elementTypeProperties = new Map<string, Set<string>>([

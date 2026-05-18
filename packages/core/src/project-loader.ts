@@ -592,6 +592,7 @@ export function composeMarkVSpecTemplate(template: MarkVSpecParseResult, screen:
     slotContents: cloneSlotContents(screen.slotContents),
     elements: [...cloneTemplateElements(template.elements), ...screen.elements],
     formGroups: [...cloneTemplateFormGroups(template.formGroups), ...screen.formGroups],
+    events: [...template.events, ...screen.events],
     actions: [...cloneTemplateActions(template.actions), ...screen.actions],
     validations: [...template.validations, ...screen.validations],
     rules: [...template.rules, ...screen.rules],

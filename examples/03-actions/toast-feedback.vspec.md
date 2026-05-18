@@ -84,8 +84,6 @@ toast stack.
 
 ### A1:A-SaveSettings Save settings
 
-- Triggered
-  - E-SaveButton.click
 - From
   - idle
 - Process P1: Save settings

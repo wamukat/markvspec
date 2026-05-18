@@ -126,8 +126,6 @@ behavior are intentionally excluded.
 
 ### A1:A-Submit Submit form
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Check validation
@@ -157,8 +155,6 @@ behavior are intentionally excluded.
 
 ### A2:A-RequestDelete Request delete dialog
 
-- Triggered
-  - E-DeleteButton.click
 - From
   - idle
 - Process P1: Show dialog
@@ -170,10 +166,6 @@ behavior are intentionally excluded.
 
 ### A3:A-CloseDeleteDialog Close delete dialog
 
-- Triggered
-  - E-CancelDeleteButton.click
-  - E-ConfirmDeleteButton.click
-  - E-DeleteDialog.close
 - From
   - idle
 - Process P1: Close dialog
@@ -183,8 +175,6 @@ behavior are intentionally excluded.
 
 ### A4:A-SaveDraft Save draft
 
-- Triggered
-  - E-SaveButton.click
 - From
   - idle
 - Process P1: Show toast

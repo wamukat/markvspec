@@ -161,8 +161,6 @@ outside this example.
 
 ### A1:A-SearchUsers Search users
 
-- Triggered
-  - E-SearchButton.click
 - From
   - idle
   - empty
@@ -189,8 +187,6 @@ outside this example.
 
 ### A2:A-HandleSearchUsersResponse Handle search users response
 
-- Triggered
-  - A-SearchUsers.P1.response
 - From
   - loading
 - Process P1: Handle response
@@ -220,8 +216,6 @@ outside this example.
 
 ### A3:A-NextPage Next page
 
-- Triggered
-  - E-NextPageButton.click
 - From
   - idle
 - Process P1: Request next page
@@ -243,8 +237,6 @@ outside this example.
 
 ### A4:A-PreviousPage Previous page
 
-- Triggered
-  - E-PreviousPageButton.click
 - From
   - idle
 - Process P1: Request previous page
@@ -266,8 +258,6 @@ outside this example.
 
 ### A5:A-HandleNextPageResponse Handle next page response
 
-- Triggered
-  - A-NextPage.P1.response
 - From
   - loading
 - Process P1: Handle response
@@ -297,8 +287,6 @@ outside this example.
 
 ### A6:A-HandlePreviousPageResponse Handle previous page response
 
-- Triggered
-  - A-PreviousPage.P1.response
 - From
   - loading
 - Process P1: Handle response

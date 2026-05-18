@@ -101,7 +101,7 @@ export function applyActionBulletToContext(
 
     diagnostics.push({
       severity: "warning",
-      message: `Action ${action.id} has unsupported top-level entry: ${bullet.text}. Use Triggered, From, Process P1: <name>, or Otherwise.`,
+      message: `Action ${action.id} has unsupported top-level entry: ${bullet.text}. Use From, Process P1: <name>, or Otherwise.`,
       line: bullet.location.line
     });
     return {};
@@ -339,6 +339,8 @@ function isCasesBlock(text: string): boolean {
 function applyActionTrigger(action: MarkVSpecAction, value: string, location: SourceLocation): void {
   action.triggeredBy = value;
   action.triggeredByLocation = location;
+  action.properties["triggered"] = value;
+  addPropertyLocation(action.propertyLocations, "triggered", location);
   const triggerParts = new RegExp(String.raw`^(${elementIdPattern})\.([A-Za-z][A-Za-z0-9_-]*)$`, "u").exec(value);
   if (triggerParts) {
     action.trigger = {

@@ -45,8 +45,6 @@ replacement:
 ```markdown
 ### A2:A-AuthResponse Handle auth response
 
-- Triggered
-  - A-SubmitLogin.P1.response
 - From
   - wait-auth
 - Process P1: Handle auth response
@@ -105,8 +103,6 @@ route: /mypage/partials/notices
 
 ### A-BuildNoticeList Build notice list
 
-- Triggered
-  - partial.render
 - Process P1: Build notice list
   - server:
     - call: NoticeQueryService.findLatest()
@@ -135,8 +131,6 @@ title: Points Content
 
 ### A-RefreshPoints Refresh points
 
-- Triggered
-  - E-Refresh.click
 - Process P1: Refresh points content
   - request:
     - method: GET

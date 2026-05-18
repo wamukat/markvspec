@@ -180,7 +180,7 @@ MarkVSpec は Markdown 全体を DSL として読むわけではありません�
 | Layout | `## Layout: <viewport>`、`### [marker:]L-* Name`、`#### Items` | 実装済み | [Layout](#layout) |
 | Element | `### [marker:]E-* Type` と element property bullets | 実装済み | [Elements](#elements) |
 | Form Group | `### [marker:]F-* Name`、`fields`、`submit` | 実装済み | [Form Groups](#form-groups) |
-| Action | `Triggered` / `From` / `Process <marker>: <name>` | 実装済み | [Actions](#actions) |
+| Action | `From` / `Process <marker>: <name>` と Element `action:` または `## Events` の呼び出し元 | 実装済み | [Actions](#actions) |
 | Process detail | `request:` / `server:` / `receive:` / project-specific detail | 実装済み | 1 Process につき execution detail は最大 1 つ。 |
 | Request params | `request.params` に `name: E-*.value` などを書く | 実装済み | `input:` は legacy。 |
 | Server params | `server.params` に service call へ渡す値を書く | 実装済み | service call text は任意文字列。 |
@@ -340,8 +340,6 @@ entity ごとの説明です。
 
 入力内容を検証し、送信できた場合だけ認証待ちへ遷移します。
 
-- Triggered
-  - E-SignInButton.click
 - From
   - idle
 - Process P1: Submit login request
@@ -412,7 +410,6 @@ Front Matter の主なキーです。
 
 Action のグループ名です。
 
-- `Triggered`
 - `From`
 - `Process`
 - `Effects`
@@ -1508,8 +1505,6 @@ execution detail も result classification も持たない、決定的な即時�
 ```markdown
 ### A1:A-SubmitLogin ログイン送信
 
-- Triggered
-  - E-SignInButton.click
 - From
   - idle
 - Process P1: Check login form
@@ -1548,8 +1543,6 @@ execution detail も result classification も持たない、決定的な即時�
 
 ### A2:A-HandleLoginResponse ログイン応答処理
 
-- Triggered
-  - A-SubmitLogin.P2.response
 - From
   - authenticating
 - Process P1: Handle login response
@@ -1634,7 +1627,7 @@ constraint の詳細は `V-*` 定義側に残します。
 
 Action レベルの `When` / guard はサポートしません。操作可否は要素の `disabled when` に寄せ、入力検証は `Validations` に書きます。
 
-イベント例は `E-SignInButton.click`、`E-EmailInput.blur`、`A-SubmitLogin.P2.response`、`screen.load`、`partial.render` です。現行リリースの要素イベントは `click`、`change`、`submit`、`focus`、`blur`、`open`、`close` です。Action lifecycle event は `response` です。
+ユーザー操作は Element の `action:` で Action に接続します。呼び出し元が既定の `click` ではない場合は、`action event:` に `change`、`blur`、`focus`、`submit`、`close` などを書きます。ライフサイクルイベントは `## Events` に `page.load: A-*` または `partial.render: A-*` と書きます。Action lifecycle event は `A-SubmitLogin.P2.response` のような `response` です。
 
 ## Cases
 
@@ -1875,8 +1868,6 @@ Action が決めます。
 ```markdown
 ### A-SubmitLogin Submit login
 
-- Triggered
-  - E-SignInButton.click
 - From
   - idle
 - Process P1: Check validation

@@ -87,7 +87,7 @@
         },
         {
           "name": "markup.heading.section.markvspec",
-          "match": "^(##)\\s+(States|Layout|Slots|Elements|Form Groups|Actions|View Context|View Context Samples|Preview Scenarios|Field Validations|Cross-field Validations|Validations|Business Rules|Error Codes|History Fields|History)\\s*$",
+          "match": "^(##)\\s+(States|Layout|Slots|Elements|Form Groups|Events|Actions|View Context|View Context Samples|Preview Scenarios|Field Validations|Cross-field Validations|Validations|Business Rules|Error Codes|History Fields|History)\\s*$",
           "captures": {
             "1": {
               "name": "punctuation.definition.heading.markvspec"
@@ -163,7 +163,7 @@
       "patterns": [
         {
           "name": "meta.action-group.markvspec",
-          "match": "^(\\s*-\\s+)(Triggered|From|Effects|Otherwise)\\s*:?\\s*$",
+          "match": "^(\\s*-\\s+)(From|Effects|Otherwise)\\s*:?\\s*$",
           "captures": {
             "1": {
               "name": "punctuation.definition.list.begin.markvspec"

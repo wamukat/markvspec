@@ -9,7 +9,7 @@ locale: en
 # SCR-EVENT-TRIGGERS Event Triggers
 
 This example teaches non-click events and lifecycle triggers around a small
-preferences form. Read `screen.load`, `.change`, `.blur`, `.focus`, `.submit`,
+preferences form. Read `page.load`, `.change`, `.blur`, `.focus`, `.submit`,
 dialog click/close actions, and the Preview Scenarios that show display effects
 such as unsaved notices, help text, validation feedback, and modal dialogs.
 
@@ -117,6 +117,7 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
 - label: Preferences form
 - purpose: Form submit event boundary for the preferences fields.
 - action: A-SubmitPreferences
+- action event: submit
 
 ### 8:E-SearchInput Input
 
@@ -124,6 +125,8 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
 - initial value: system alerts
 - placeholder: notification keyword
 - width: medium
+- action: A-MarkPreferencesChanged
+- action event: change
 
 ### 9:E-EmailInput Input
 
@@ -132,6 +135,8 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
 - initial value: member@example.com
 - placeholder: member@example.com
 - width: long
+- action: A-ValidateEmail
+- action event: blur
 
 ### 10:E-DeliverySelect Select
 
@@ -147,6 +152,8 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
 
 - label: Delivery help
 - name: circle-help
+- action: A-ShowDeliveryHelp
+- action event: focus
 
 ### 12:E-SubmitButton Button
 
@@ -166,6 +173,8 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
 - message: Closing this dialog keeps the current edits on the page.
 - tone: warning
 - actions: E-CancelDiscardButton, E-ConfirmDiscardButton
+- action: A-CloseDiscardDialog
+- action event: close
 
 ### 15:E-CancelDiscardButton Button
 
@@ -191,12 +200,14 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
   - E-DeliverySelect
 - submit: A-SubmitPreferences
 
+## Events
+
+- page.load: A-LoadPreferences
+
 ## Actions
 
 ### A1:A-LoadPreferences Load saved preferences
 
-- Triggered
-  - screen.load
 - From
   - initializing
 - Process P1: Call server service
@@ -215,8 +226,6 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
 
 ### A2:A-MarkPreferencesChanged Mark preferences changed
 
-- Triggered
-  - E-SearchInput.change
 - From
   - idle
 - Process P1: Mark changed
@@ -229,8 +238,6 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
 
 ### A3:A-ValidateEmail Validate email on blur
 
-- Triggered
-  - E-EmailInput.blur
 - From
   - idle
 - Process P1: Check validation
@@ -251,8 +258,6 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
 
 ### A4:A-ShowDeliveryHelp Show delivery help
 
-- Triggered
-  - E-HelpIcon.focus
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -265,8 +270,6 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
 
 ### A5:A-RequestDiscardDialog Request discard dialog
 
-- Triggered
-  - E-DiscardButton.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -278,9 +281,6 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
 
 ### A6:A-CloseDiscardDialog Close discard dialog
 
-- Triggered
-  - E-CancelDiscardButton.click
-  - E-ConfirmDialog.close
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -288,8 +288,6 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
 
 ### A7:A-ConfirmDiscard Confirm discard
 
-- Triggered
-  - E-ConfirmDiscardButton.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -297,8 +295,6 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
 
 ### A8:A-SubmitPreferences Submit preferences
 
-- Triggered
-  - E-PreferencesForm.submit
 - From
   - idle
 - Process P1: Check validation

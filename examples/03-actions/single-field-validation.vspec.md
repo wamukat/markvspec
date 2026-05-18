@@ -109,8 +109,6 @@ so field-level contracts remain the main topic.
 
 ### A1:A-CheckFields Check fields
 
-- Triggered
-  - E-CheckButton.click
 - From
   - idle
 - Process P1: Check field validation

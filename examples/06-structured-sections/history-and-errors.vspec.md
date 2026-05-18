@@ -95,8 +95,6 @@ to the main screen examples.
 This action shows how a validation error code and a server error code can be
 referenced from the same flow.
 
-- Triggered
-  - E-SaveButton.click
 - From
   - idle
 - Process P1: Check validation

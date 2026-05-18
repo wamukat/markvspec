@@ -56,12 +56,14 @@ global layout are handled by the host screen.
 - text: Profile summary could not be loaded.
 - visible when: load-error
 
+## Events
+
+- partial.render: A-BuildProfileSummary
+
 ## Actions
 
 ### A1:A-BuildProfileSummary Build profile summary
 
-- Triggered
-  - partial.render
 - From
   - loading
 - Process P1: Call server service

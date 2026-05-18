@@ -248,8 +248,6 @@ the primary purpose.
 
 ### A1:A-RequestDiscardDialog Request discard dialog
 
-- Triggered
-  - E-DiscardButton.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -261,9 +259,6 @@ the primary purpose.
 
 ### A2:A-CloseDiscardDialog Close discard dialog
 
-- Triggered
-  - E-CancelDiscardButton.click
-  - E-DiscardDialog.close
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -271,8 +266,6 @@ the primary purpose.
 
 ### A3:A-ConfirmDiscard Confirm discard
 
-- Triggered
-  - E-ConfirmDiscardButton.click
 - From
   - idle
 - Process P1: Apply immediate effect

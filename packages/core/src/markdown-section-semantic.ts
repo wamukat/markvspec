@@ -2,6 +2,7 @@ import type {
   MarkVSpecAction,
   MarkVSpecDiagnostic,
   MarkVSpecElement,
+  MarkVSpecEventDispatch,
   MarkVSpecErrorCode,
   MarkVSpecFormGroup,
   MarkVSpecHistoryEntry,
@@ -55,6 +56,7 @@ export interface SectionSemanticResult {
   viewContextSamples: MarkVSpecViewContextSample[];
   previewScenarios: MarkVSpecPreviewScenario[];
   formGroups: MarkVSpecFormGroup[];
+  events: MarkVSpecEventDispatch[];
   validations: MarkVSpecValidationRule[];
   rules: MarkVSpecRule[];
   errorCodes: MarkVSpecErrorCode[];
@@ -75,6 +77,7 @@ export interface SmallSectionSemanticResult {
   viewContextSamples: MarkVSpecViewContextSample[];
   previewScenarios: MarkVSpecPreviewScenario[];
   formGroups: MarkVSpecFormGroup[];
+  events: MarkVSpecEventDispatch[];
   validations: MarkVSpecValidationRule[];
   rules: MarkVSpecRule[];
   errorCodes: MarkVSpecErrorCode[];
@@ -156,6 +159,7 @@ export function parseSmallSectionSemantics(document: MarkdownDocument): SmallSec
     viewContextSamples: sectionResults.flatMap((result) => result.viewContextSamples),
     previewScenarios: sectionResults.flatMap((result) => result.previewScenarios),
     formGroups: sectionResults.flatMap((result) => result.formGroups),
+    events: sectionResults.flatMap((result) => result.events),
     validations: sectionResults.flatMap((result) => result.validations),
     rules: sectionResults.flatMap((result) => result.rules),
     errorCodes: sectionResults.flatMap((result) => result.errorCodes),
@@ -168,7 +172,7 @@ export function parseSmallSectionSemantics(document: MarkdownDocument): SmallSec
   };
 }
 
-const recommendedSectionOrder = "States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Actions, View Context, View Context Samples, Preview Scenarios, Field Validations, Cross-field Validations, Validations, Business Rules, Error Codes, History Fields, History";
+const recommendedSectionOrder = "States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Events, Actions, View Context, View Context Samples, Preview Scenarios, Field Validations, Cross-field Validations, Validations, Business Rules, Error Codes, History Fields, History";
 
 function semanticSectionOrderDiagnostics(sections: SectionAst[]): MarkVSpecDiagnostic[] {
   const diagnostics: MarkVSpecDiagnostic[] = [];
@@ -207,28 +211,30 @@ function sectionOrderRank(kind: SectionKind): number {
       return 4;
     case "FormGroups":
       return 5;
-    case "Actions":
+    case "Events":
       return 6;
-    case "ViewContext":
+    case "Actions":
       return 7;
-    case "ViewContextSamples":
+    case "ViewContext":
       return 8;
-    case "PreviewScenarios":
+    case "ViewContextSamples":
       return 9;
-    case "FieldValidations":
+    case "PreviewScenarios":
       return 10;
-    case "CrossFieldValidations":
+    case "FieldValidations":
       return 11;
-    case "Validations":
+    case "CrossFieldValidations":
       return 12;
-    case "BusinessRules":
+    case "Validations":
       return 13;
-    case "ErrorCodes":
+    case "BusinessRules":
       return 14;
-    case "HistoryFields":
+    case "ErrorCodes":
       return 15;
-    case "History":
+    case "HistoryFields":
       return 16;
+    case "History":
+      return 17;
     case "ModelSamples":
     case "Unknown":
       return 0;
@@ -282,6 +288,7 @@ export function parseActionSectionSemantics(document: MarkdownDocument): ActionS
 function isSmallSemanticSection(kind: SectionKind): boolean {
   return kind === "States" ||
     kind === "FormGroups" ||
+    kind === "Events" ||
     kind === "ModelSamples" ||
     kind === "ViewContext" ||
     kind === "ViewContextSamples" ||
@@ -302,6 +309,8 @@ function parseSmallSection(document: MarkdownDocument, sections: SectionAst[], s
       return resultFor(section, parseStatesSection(section), ["states:list"]);
     case "FormGroups":
       return resultFor(section, parseFormGroupsSection(section), ["form-groups:list"]);
+    case "Events":
+      return resultFor(section, parseEventsSection(section), ["events:list"]);
     case "ModelSamples":
       return resultFor(section, unsupportedModelSamplesSection(section), ["unsupported:model-samples"]);
     case "ViewContext":
@@ -1024,7 +1033,7 @@ function parseActionsSection(section: SectionAst): ActionSectionSemanticResult {
 
 function resultFor(
   section: SectionAst,
-  values: Partial<Pick<SectionSemanticResult, "states" | "modelSamples" | "modelSampleGroups" | "viewContexts" | "viewContextSamples" | "previewScenarios" | "formGroups" | "validations" | "rules" | "errorCodes" | "historyFields" | "historyEntries" | "notes" | "sectionProse" | "diagnostics" | "dependencies">>,
+  values: Partial<Pick<SectionSemanticResult, "states" | "modelSamples" | "modelSampleGroups" | "viewContexts" | "viewContextSamples" | "previewScenarios" | "formGroups" | "events" | "validations" | "rules" | "errorCodes" | "historyFields" | "historyEntries" | "notes" | "sectionProse" | "diagnostics" | "dependencies">>,
   renderKeys: string[]
 ): SectionSemanticResult {
   const diagnostics = [
@@ -1041,6 +1050,7 @@ function resultFor(
     viewContextSamples: values.viewContextSamples ?? [],
     previewScenarios: values.previewScenarios ?? [],
     formGroups: values.formGroups ?? [],
+    events: values.events ?? [],
     validations: values.validations ?? [],
     rules: values.rules ?? [],
     errorCodes: values.errorCodes ?? [],
@@ -1084,6 +1094,46 @@ function parseStatesSection(section: SectionAst): Pick<SectionSemanticResult, "s
   return {
     states,
     sectionProse: listSectionProse(section, ["states:list"]),
+    diagnostics
+  };
+}
+
+function parseEventsSection(section: SectionAst): Pick<SectionSemanticResult, "events" | "sectionProse" | "diagnostics"> {
+  const events: MarkVSpecEventDispatch[] = [];
+  const diagnostics: MarkVSpecDiagnostic[] = [];
+
+  for (const item of listItems(section.blocks)) {
+    const location = locationFromBlock(item);
+    if (item.depth > 0) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Event entry has nested content that is ignored: ${item.text}.`,
+        line: location.line
+      });
+      continue;
+    }
+
+    const [eventName, actionId] = splitKeyValue(item.text);
+    if (actionId === undefined || actionId.trim().length === 0) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Malformed event entry: ${item.text}. Expected - page.load: A-ActionId or - partial.render: A-ActionId.`,
+        line: location.line
+      });
+      continue;
+    }
+
+    events.push({
+      event: eventName.trim(),
+      actionId: actionId.trim(),
+      location,
+      raw: item.text
+    });
+  }
+
+  return {
+    events,
+    sectionProse: listSectionProse(section, ["events:list"]),
     diagnostics
   };
 }

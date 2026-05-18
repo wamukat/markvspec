@@ -122,6 +122,7 @@ function focusResultForDetails(result: MarkVSpecParseResult, focus: FocusScope):
       .filter((slot) => slot.layoutGroups.length > 0),
     elements: result.elements.filter((element) => focus.elementIds.has(element.id)),
     actions: result.actions.filter((action) => focus.actionIds.has(action.id)),
+    events: result.events.filter((event) => focus.actionIds.has(event.actionId)),
     formGroups: result.formGroups.filter((formGroup) => formGroupMatchesFocus(formGroup, focus))
   };
   return {
@@ -151,6 +152,8 @@ function filterSectionProseForDetails(
         return result.elements.length > 0;
       case "Actions":
         return result.actions.length > 0;
+      case "Events":
+        return result.events.length > 0;
       case "FormGroups":
         return result.formGroups.length > 0;
       case "Validations":

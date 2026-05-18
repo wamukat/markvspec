@@ -95,8 +95,6 @@ loaded, empty, and error previews are the focus.
 
 ### A1:A-RefreshItems Refresh items
 
-- Triggered
-  - E-RefreshButton.click
 - From
   - idle
   - loaded
@@ -120,8 +118,6 @@ loaded, empty, and error previews are the focus.
 
 ### A2:A-HandleItemsResponse Handle items response
 
-- Triggered
-  - A-RefreshItems.P1.response
 - From
   - loading
 - Process P1: Handle response

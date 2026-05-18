@@ -196,8 +196,6 @@ profile fields and reusable templates are left to later examples.
 Validate required fields and submit the current form values. This action does
 not decide whether credentials are correct.
 
-- Triggered
-  - E-SignInButton.click
 - From
   - idle
 - Process P1: Check validation
@@ -238,8 +236,6 @@ success or failure is handled by `A-HandleLoginResponse`.
 
 ### A2:A-HandleLoginResponse Handle login response
 
-- Triggered
-  - A-SubmitLogin.P2.response
 - From
   - authenticating
 - Process P1: Handle response
@@ -259,8 +255,6 @@ success or failure is handled by `A-HandleLoginResponse`.
 
 ### A3:A-ForgotPassword Open password reset
 
-- Triggered
-  - E-ForgotPasswordLink.click
 - From
   - idle
 - Process P1: Apply immediate effect

@@ -45,7 +45,8 @@ const layoutKinds = new Set(["stack", "row", "grid", "inline"]);
 const partialIdRegex = /^PRT-[\p{L}\p{N}-]+$/u;
 const actionEvents = new Set(["click", "change", "submit", "focus", "blur", "open", "close"]);
 const actionLifecycleEvents = new Set(["response"]);
-const documentLifecycleTriggers = new Set(["screen.load", "partial.render"]);
+const documentLifecycleTriggers = new Set(["page.load", "partial.render", "screen.load"]);
+const canonicalDocumentLifecycleEvents = new Set(["page.load", "partial.render"]);
 const actionLifecycleTriggerRegex = new RegExp(String.raw`^(${actionIdPattern})\.([A-Za-z][A-Za-z0-9_-]*)$`, "u");
 const actionProcessLifecycleTriggerRegex = new RegExp(String.raw`^(${actionIdPattern})\.([A-Za-z0-9][A-Za-z0-9_-]{0,11})\.([A-Za-z][A-Za-z0-9_-]*)$`, "u");
 const elementIdRegex = new RegExp(String.raw`^${elementIdPattern}$`, "u");
@@ -375,6 +376,31 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
           element.propertyLocations[key]?.[index]?.line ?? element.location.line,
           "warning"
         );
+      });
+    }
+  }
+
+  for (const event of result.events) {
+    if (!actionIds.has(event.actionId)) {
+      diagnostics.push({
+        severity: "error",
+        message: `Event ${event.event} references missing action ${event.actionId}.`,
+        line: event.location.line
+      });
+    }
+    if (!canonicalDocumentLifecycleEvents.has(event.event)) {
+      const severity = /^[A-Za-z][A-Za-z0-9_-]*\.[A-Za-z][A-Za-z0-9_-]*$/u.test(event.event) ? "error" : "warning";
+      diagnostics.push({
+        severity,
+        message: `Event ${event.event} is not supported. Use page.load or partial.render.`,
+        line: event.location.line
+      });
+    }
+    if (/^E-[\p{L}\p{N}-]+\.[A-Za-z][A-Za-z0-9_-]*$/u.test(event.event)) {
+      diagnostics.push({
+        severity: "error",
+        message: `Event ${event.event} is a user operation. Connect user operations with Element action: instead of ## Events.`,
+        line: event.location.line
       });
     }
   }

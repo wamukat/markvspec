@@ -72,12 +72,14 @@ step; it avoids user input so the ordering and final state decision are clear.
 - text: Dashboard data could not be loaded.
 - visible when: initialize-error
 
+## Events
+
+- page.load: A-InitialLoad
+
 ## Actions
 
 ### A1:A-InitialLoad Initial dashboard load
 
-- Triggered
-  - screen.load
 - From
   - initializing
 - Process P1: Call server service

@@ -50,9 +50,10 @@ Unrecognized level-2 sections, including `## Notes` and `## Open Questions`, are
 | `Layout` / `Layout: <viewport>` | Defines wireframe layout groups for a viewport. | Yes: `### [marker:]L-* Name` and presentation `P-*`. | Layout kind/properties and `#### Items`. | Wireframe and State View Layouts fragment. |
 | `Slot: <name>` | Defines screen-provided content for a template slot. | Yes: same as Layout. | Layout kind/properties and `#### Items`. | Composed wireframe at the template slot. |
 | `Slots` | Defines template-owned slot contracts. | Yes: `### <slot-name>`. | Slot metadata such as `required`, `purpose`, and `default: <ID>`. | Template slot summary. |
-| `Elements` | Defines UI elements. | Yes: `### [marker:]E-* Type`. | Element properties such as `label`, `src`, `action`, `visible when`. | Wireframe elements, Element Summary, and detail fragments. |
+| `Elements` | Defines UI elements. | Yes: `### [marker:]E-* Type`. | Element properties such as `label`, `src`, `action`, `action event`, `visible when`. | Wireframe elements, Element Summary, and detail fragments. |
 | `Form Groups` | Defines semantic form units. | Yes: `### F-* Name`. | Field/member references and submit/validation metadata. | Form group summary and validation context. |
-| `Actions` | Defines user/system events and process outcomes. | Yes: `### [marker:]A-* Name`. | `Triggered`, `From`, `Process`, process `case`, `Effects`, `stop`, `continue`. | Action Summary, Action Details, action markers, state flow, and transition diagrams. |
+| `Events` | Defines lifecycle event dispatches to actions. | No. | `page.load: A-*`, `partial.render: A-*`. | System events and action caller labels. |
+| `Actions` | Defines accepted states, processes, and outcomes. | Yes: `### [marker:]A-* Name`. | `From`, `Process`, process `case`, `Effects`, `stop`, `continue`. | Action Summary, Action Details, action markers, state flow, and transition diagrams. |
 | `View Context` | Defines UI-local context separate from state. | Definition headings, not ID entities: `### <view-name>`. | View type, values, and optional default `*`. | State View context resolution and condition evaluation. |
 | `View Context Samples` | Names reusable view context value sets. | Sample headings, not ID entities: `### <sample-name>`. | View values keyed by `${view.*}`. | Preview scenario and baseline view resolution. |
 | `Preview Scenarios` | Adds explicit state/view/sample preview combinations. | Scenario headings, not ID entities: `### <scenario-name>`. | State, view, before, cases, and `samples`. | Additional State Views after baseline state previews. |
@@ -181,8 +182,10 @@ validation or submit metadata.
 
 Use `Section Lead` for action design policy. Each `### [marker:]A-* Name`
 heading is an `Entity Block`. `Entity Lead` is the authored action summary.
-`Structured Body` contains triggers, source states, processes, cases, and
-effects. `Entity Notes` appear in Action Details, not in Action Summary.
+`Structured Body` contains source states, processes, cases, and effects. User
+callers come from Element `action:` properties. Use `action event:` for
+non-click callers. Lifecycle callers come from `## Events`. `Entity Notes`
+appear in Action Details, not in Action Summary.
 
 ```markdown
 ## Actions
@@ -191,8 +194,6 @@ effects. `Entity Notes` appear in Action Details, not in Action Summary.
 
 Validate and send the form.
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Send request
