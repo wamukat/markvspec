@@ -442,6 +442,68 @@ title: Scenario Samples
   assert.doesNotMatch(emptyScenario, /scenario-sample-rows-block/);
 });
 
+test("renders lifecycle origin chains in static state transitions", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-STATIC-TRANSITIONS
+type: screen
+title: Static Transitions
+---
+
+# SCR-STATIC-TRANSITIONS Static Transitions
+
+## States
+
+- initializing*
+- loaded
+- initialize-error
+
+## Events
+
+- page.load: A-LoadAccount
+
+## Actions
+
+### A1:A-LoadAccount Load account
+
+- From
+  - initializing
+- Process P1: Send request
+  - request:
+    - method: GET
+    - path: /account
+  - result:
+    - account response
+
+### A2:A-HandleAccountResponse Handle account response
+
+- From
+  - initializing
+- Process P1: Apply response
+  - receive:
+    - response: A-LoadAccount.P1.response
+  - case: success
+    - response: 200
+    - Effects
+      - state: loaded
+  - case: failure
+    - response: 500
+    - Effects
+      - state: initialize-error
+`);
+  const html = renderStaticDesignDocumentHtml(result);
+  const loadAction = result.actions.find((action) => action.id === "A-LoadAccount");
+  const responseAction = result.actions.find((action) => action.id === "A-HandleAccountResponse");
+
+  assert.deepEqual(loadAction?.transitions, []);
+  assert.deepEqual(responseAction?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
+    ["initializing", "success", "loaded"],
+    ["initializing", "failure", "initialize-error"]
+  ]);
+  assert.match(html, /<h2>State Transitions<\/h2>/);
+  assert.match(html, /page\.load -&gt; A-LoadAccount -&gt; A-LoadAccount\.P1\.response -&gt; A-HandleAccountResponse\.P1\.success/);
+  assert.match(html, /page\.load -&gt; A-LoadAccount -&gt; A-LoadAccount\.P1\.response -&gt; A-HandleAccountResponse\.P1\.failure/);
+});
+
 test("renders property-level display metadata in static display content spec", () => {
   const result = parseMarkVSpec(`---
 id: SCR-STATIC-DISPLAY-METADATA

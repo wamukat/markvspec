@@ -147,6 +147,7 @@ export function renderStaticDesignDocumentHtml(result: MarkVSpecParseResult, opt
   return renderDesignDocumentSections([
     renderDocumentOverviewSection(result, messages),
     renderHistorySection(result, messages),
+    renderStaticActionTransitionsSection(result, messages),
     renderStateViewsSection(result, messages)
   ]);
 }
@@ -191,6 +192,95 @@ function renderStateViewsSection(result: MarkVSpecParseResult, messages: Rendere
   <h2 id="state-views">${escapeHtml(messages.stateViews)}</h2>
   ${viewportSections}
 </section>`;
+}
+
+function renderStaticActionTransitionsSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
+  const rows = result.actions.flatMap((action) => action.transitions
+    .filter((transition) => !isStaticTerminalTransitionTarget(transition.to))
+    .map((transition) => [
+      renderStaticStateLabel(transition.from),
+      renderStaticStateLabel(transition.to),
+      transition.result ? renderStaticResultLabel(transition.result) : "",
+      renderStaticActionTransitionSource(result, action, transition.result)
+    ]));
+  if (rows.length === 0) {
+    return "";
+  }
+  return `<section class="doc-section" id="state-transition-table"><h2>${escapeHtml(messages.actionTransitions)}</h2>${renderTable([messages.from, messages.to, messages.case, messages.triggeredBy], rows)}</section>`;
+}
+
+function renderStaticActionTransitionSource(
+  result: MarkVSpecParseResult,
+  action: MarkVSpecParseResult["actions"][number],
+  resultName: string | undefined
+): string {
+  const actionReference = renderStaticActionReference(result, action);
+  const chain = staticTransitionOriginChain(result, action, resultName);
+  if (chain.length === 0) {
+    return actionReference;
+  }
+  return `${actionReference}<div class="mm-ref-chip-note">${chain.map(escapeHtml).join(" -&gt; ")}</div>`;
+}
+
+function staticTransitionOriginChain(
+  result: MarkVSpecParseResult,
+  action: MarkVSpecParseResult["actions"][number],
+  resultName: string | undefined
+): string[] {
+  const trigger = action.triggeredBy;
+  const responseTrigger = trigger ? /^(A-[\p{L}\p{N}-]+)\.(P[A-Za-z0-9_-]+)\.response$/u.exec(trigger) : undefined;
+  if (!responseTrigger) {
+    return [];
+  }
+  const sourceAction = result.actions.find((candidate) => candidate.id === responseTrigger[1]);
+  if (!isStaticDocumentLifecycleTrigger(sourceAction?.triggeredBy)) {
+    return [];
+  }
+  return [
+    sourceAction.triggeredBy,
+    sourceAction.id,
+    trigger,
+    staticTransitionCaseReference(action, resultName)
+  ].filter((part): part is string => Boolean(part));
+}
+
+function staticTransitionCaseReference(
+  action: MarkVSpecParseResult["actions"][number],
+  resultName: string | undefined
+): string {
+  if (!resultName) {
+    return action.id;
+  }
+  for (const step of action.processSteps) {
+    if (step.outcomes.some((outcome) => outcome.result === resultName)) {
+      return `${action.id}.${step.marker ?? step.name}.${resultName}`;
+    }
+  }
+  return `${action.id}.${resultName}`;
+}
+
+function renderStaticActionReference(
+  result: MarkVSpecParseResult,
+  action: MarkVSpecParseResult["actions"][number]
+): string {
+  const reference = resolveMarkVSpecEntityReference(result, action.id);
+  return reference ? renderStaticEntityReference(reference) : code(action.id);
+}
+
+function renderStaticStateLabel(value: string): string {
+  return `<code class="mm-doc-label mm-doc-label-state">${escapeHtml(value)}</code>`;
+}
+
+function renderStaticResultLabel(value: string): string {
+  return `<code class="mm-doc-label mm-doc-label-result">${escapeHtml(value)}</code>`;
+}
+
+function isStaticDocumentLifecycleTrigger(trigger: string | undefined): trigger is string {
+  return trigger === "page.load" || trigger === "partial.render" || trigger === "screen.load";
+}
+
+function isStaticTerminalTransitionTarget(target: string): boolean {
+  return target.startsWith("SCR-") || target.startsWith("/") || /^https?:\/\//u.test(target);
 }
 
 function renderStateViewportSection(

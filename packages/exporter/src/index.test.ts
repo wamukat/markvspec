@@ -225,6 +225,14 @@ test("exports preview scenarios and scenario samples in standalone HTML", () => 
     const emptyScenario = stateViewSection(html, "loaded / loaded-empty-account");
     const renewalScenario = stateViewSection(html, "loaded / loaded-renewal-risk");
 
+    assert.match(html, /<h2>State Transitions<\/h2>/);
+    assert.match(html, /initializing/);
+    assert.match(html, /has-subscriptions/);
+    assert.match(html, /empty/);
+    assert.match(html, /initialize-error/);
+    assert.match(html, /page\.load -&gt; A-LoadAccount -&gt; A-LoadAccount\.P1\.response -&gt; A-HandleAccountResponse\.P1\.has-subscriptions/);
+    assert.match(html, /page\.load -&gt; A-LoadAccount -&gt; A-LoadAccount\.P1\.response -&gt; A-HandleAccountResponse\.P1\.empty/);
+    assert.match(html, /page\.load -&gt; A-LoadAccount -&gt; A-LoadAccount\.P1\.response -&gt; A-HandleAccountResponse\.P1\.failure/);
     assert.doesNotMatch(html, /data-state-view-title="loaded \/ loaded"/);
     assert.match(baselineLoaded, /Morgan Lee/);
     assert.match(baselineLoaded, /Team Pro/);

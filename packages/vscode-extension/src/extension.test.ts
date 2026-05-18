@@ -4090,6 +4090,27 @@ States section notes for the matrix.
   assert.doesNotMatch(html, /<h2>Action Transitions<\/h2>/);
 });
 
+test("renders lifecycle origin chains for response-triggered state transitions", () => {
+  const source = readFileSync(resolve("../../examples/02-states/scenario-samples.vspec.md"), "utf8");
+  const result = parseMarkVSpec(source);
+  const loadAction = result.actions.find((action) => action.id === "A-LoadAccount");
+  const responseAction = result.actions.find((action) => action.id === "A-HandleAccountResponse");
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const stateTransitions = docSectionByHeading(html, "State Transitions", "Diagnostics");
+  const actionDetails = docSectionByHeading(html, "Action Details", "Form Groups");
+
+  assert.deepEqual(loadAction?.transitions, []);
+  assert.deepEqual(responseAction?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
+    ["initializing", "has-subscriptions", "loaded"],
+    ["initializing", "empty", "loaded"],
+    ["initializing", "failure", "initialize-error"]
+  ]);
+  assert.match(stateTransitions, /page\.load -&gt; A-LoadAccount -&gt; A-LoadAccount\.P1\.response -&gt; A-HandleAccountResponse\.P1\.has-subscriptions/);
+  assert.match(stateTransitions, /page\.load -&gt; A-LoadAccount -&gt; A-LoadAccount\.P1\.response -&gt; A-HandleAccountResponse\.P1\.empty/);
+  assert.match(stateTransitions, /page\.load -&gt; A-LoadAccount -&gt; A-LoadAccount\.P1\.response -&gt; A-HandleAccountResponse\.P1\.failure/);
+  assert.match(actionDetails, /Triggered by: page\.load -&gt; A-LoadAccount -&gt; A-LoadAccount\.P1\.response -&gt; A-HandleAccountResponse\.P1\.has-subscriptions/);
+});
+
 test("renders screen transitions as a compact navigation index", () => {
   const source = `---
 id: SCR-SCREEN-TRANSITIONS

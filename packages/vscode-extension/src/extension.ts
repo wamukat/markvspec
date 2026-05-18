@@ -4414,8 +4414,11 @@ function renderTransitionMatrixEvent(
   resultName: string | undefined
 ): string {
   const actionReference = referenceForDetailId(result, action.id);
-  const resultSuffix = resultName ? `<div class="mm-ref-chip-note">${text(resultName)}</div>` : "";
-  return `${actionReference}${resultSuffix}`;
+  const notes = [
+    resultName ? text(resultName) : "",
+    renderTransitionOriginChainText(result, action, resultName)
+  ].filter(Boolean);
+  return `${actionReference}${notes.map((note) => `<div class="mm-ref-chip-note">${note}</div>`).join("")}`;
 }
 
 function renderScreenTransitionsSpec(result: ReturnType<typeof parseMarkVSpec>): string {
@@ -5645,14 +5648,73 @@ function renderActionTransitionDetails(
   return `<ul class="spec-list">${sortActionTransitionsByState(result, transitions).map((transition) => {
     const outcome = transition.result ? findActionOutcomeForTransition(action, transition) : undefined;
     const params = kind === "navigation" ? renderActionNavigationParams(result, action, outcome) : "";
+    const originChain = renderTransitionOriginChainText(result, action, transition.result);
     const details = [
       `${label(result, "from")}: ${renderStateLabel(transition.from)}`,
       transition.result ? `${label(result, "case")}: ${renderResultLabel(transition.result)}` : "",
       `${label(result, "to")}: ${kind === "navigation" ? renderNavigationTarget(transition.to) : renderStateLabel(transition.to)}`,
+      originChain ? `${label(result, "triggeredBy")}: ${originChain}` : "",
       params ? `${label(result, "params")}: ${params}` : ""
     ].filter(Boolean);
     return `<li>${details.join("; ")}</li>`;
   }).join("")}</ul>`;
+}
+
+function renderTransitionOriginChainText(
+  result: ReturnType<typeof parseMarkVSpec>,
+  action: ReturnType<typeof parseMarkVSpec>["actions"][number],
+  resultName: string | undefined
+): string {
+  const chain = transitionOriginChain(result, action, resultName);
+  if (chain.length === 0) {
+    return "";
+  }
+  return chain.map((part) => escapeHtml(part)).join(" -&gt; ");
+}
+
+function transitionOriginChain(
+  result: ReturnType<typeof parseMarkVSpec>,
+  action: ReturnType<typeof parseMarkVSpec>["actions"][number],
+  resultName: string | undefined
+): string[] {
+  const trigger = action.triggeredBy;
+  const responseTrigger = trigger ? /^(A-[\p{L}\p{N}-]+)\.(P[A-Za-z0-9_-]+)\.response$/u.exec(trigger) : undefined;
+  if (!responseTrigger) {
+    return [];
+  }
+
+  const sourceAction = result.actions.find((candidate) => candidate.id === responseTrigger[1]);
+  if (!isDocumentLifecycleTrigger(sourceAction?.triggeredBy)) {
+    return [];
+  }
+
+  const caseReference = transitionCaseReference(action, resultName);
+  return [
+    sourceAction.triggeredBy,
+    sourceAction.id,
+    trigger,
+    caseReference
+  ].filter((part): part is string => Boolean(part));
+}
+
+function transitionCaseReference(
+  action: ReturnType<typeof parseMarkVSpec>["actions"][number],
+  resultName: string | undefined
+): string {
+  if (!resultName) {
+    return action.id;
+  }
+
+  for (const step of action.processSteps) {
+    if (step.outcomes.some((outcome) => outcome.result === resultName)) {
+      return `${action.id}.${step.marker ?? step.name}.${resultName}`;
+    }
+  }
+  return `${action.id}.${resultName}`;
+}
+
+function isDocumentLifecycleTrigger(trigger: string | undefined): trigger is string {
+  return trigger === "page.load" || trigger === "partial.render" || trigger === "screen.load";
 }
 
 function renderActionNavigationParams(
