@@ -166,7 +166,7 @@ test("exports standalone HTML files", () => {
     const html = readFileSync(join(outDir, "sample.html"), "utf8");
     assert.match(html, /Sample/);
     assert.match(html, /class="doc-section state-screen-section"(?=[^>]*\bdata-state="idle")/);
-    assert.match(html, /<section class="doc-section state-views-section">\s*<h2>State Views<\/h2>/);
+    assert.match(html, /<section class="doc-section state-views-section">\s*<h2 id="state-views">State Views<\/h2>/);
     assert.match(html, /<h4 class="state-screen-heading">State: idle initial<\/h4>/);
     assert.match(html, /<h5 class="state-screen-subheading">Wireframe<\/h5>/);
     assert.match(html, /:root \{ --markvspec-heading-state-views: 20px; --markvspec-heading-viewport: 17px; --markvspec-heading-state: 15px; --markvspec-heading-detail: 13px; --markvspec-heading-badge: 11px; \}/);

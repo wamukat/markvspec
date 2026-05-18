@@ -13,7 +13,11 @@ export function trimNoteLines(lines: string[]): string[] {
   return lines.slice(start, end);
 }
 
-export function renderMarkdownSectionContent(lines: string[]): string {
+export interface MarkdownRenderOptions {
+  readonly renderEntityReference?: (id: string) => string | undefined;
+}
+
+export function renderMarkdownSectionContent(lines: string[], options: MarkdownRenderOptions = {}): string {
   const blocks: string[] = [];
   let index = 0;
 
@@ -27,7 +31,7 @@ export function renderMarkdownSectionContent(lines: string[]): string {
     const heading = /^(#{1,6})\s+(.+?)\s*#*\s*$/u.exec(line.trim());
     if (heading) {
       const level = Math.min(6, Math.max(3, heading[1].length + 2));
-      blocks.push(`<h${level} class="note-heading">${renderInlineMarkdown(heading[2])}</h${level}>`);
+      blocks.push(`<h${level} class="note-heading">${renderInlineMarkdown(heading[2], options)}</h${level}>`);
       index += 1;
       continue;
     }
@@ -60,7 +64,7 @@ export function renderMarkdownSectionContent(lines: string[]): string {
         tableLines.push(lines[index]);
         index += 1;
       }
-      blocks.push(renderMarkdownTable(tableLines));
+      blocks.push(renderMarkdownTable(tableLines, options));
       continue;
     }
 
@@ -70,13 +74,13 @@ export function renderMarkdownSectionContent(lines: string[]): string {
         quoteLines.push(lines[index].replace(/^\s*>\s?/u, ""));
         index += 1;
       }
-      blocks.push(`<blockquote class="note-blockquote">${renderMarkdownSectionContent(quoteLines)}</blockquote>`);
+      blocks.push(`<blockquote class="note-blockquote">${renderMarkdownSectionContent(quoteLines, options)}</blockquote>`);
       continue;
     }
 
     const marker = markdownListMarker(line);
     if (marker) {
-      const list = renderMarkdownList(lines, index, marker.indent, marker.ordered);
+      const list = renderMarkdownList(lines, index, marker.indent, marker.ordered, options);
       blocks.push(list.html);
       index = list.nextIndex;
       continue;
@@ -95,19 +99,19 @@ export function renderMarkdownSectionContent(lines: string[]): string {
       paragraphLines.push(lines[index].trim());
       index += 1;
     }
-    blocks.push(`<p class="note-paragraph">${renderInlineMarkdown(paragraphLines.join(" "))}</p>`);
+    blocks.push(`<p class="note-paragraph">${renderInlineMarkdown(paragraphLines.join(" "), options)}</p>`);
   }
 
   return blocks.join("");
 }
 
-export function renderEntityNotes(lines: string[] | undefined): string {
-  const content = renderMarkdownSectionContent(trimNoteLines(lines ?? []));
+export function renderEntityNotes(lines: string[] | undefined, options: MarkdownRenderOptions = {}): string {
+  const content = renderMarkdownSectionContent(trimNoteLines(lines ?? []), options);
   return content ? `<div class="entity-notes">${content}</div>` : "";
 }
 
-export function renderEntityOverview(lines: string[] | undefined): string {
-  const content = renderMarkdownSectionContent(trimNoteLines(lines ?? []));
+export function renderEntityOverview(lines: string[] | undefined, options: MarkdownRenderOptions = {}): string {
+  const content = renderMarkdownSectionContent(trimNoteLines(lines ?? []), options);
   return content ? `<div class="entity-overview">${content}</div>` : "";
 }
 
@@ -171,7 +175,7 @@ function markdownListMarker(line: string): MarkdownListMarker | undefined {
   };
 }
 
-function renderMarkdownList(lines: string[], startIndex: number, indent: number, ordered: boolean): { html: string; nextIndex: number } {
+function renderMarkdownList(lines: string[], startIndex: number, indent: number, ordered: boolean, options: MarkdownRenderOptions = {}): { html: string; nextIndex: number } {
   const items: string[] = [];
   let index = startIndex;
 
@@ -187,7 +191,7 @@ function renderMarkdownList(lines: string[], startIndex: number, indent: number,
       break;
     }
 
-    const itemParts: string[] = [renderInlineMarkdown(marker.text)];
+    const itemParts: string[] = [renderInlineMarkdown(marker.text, options)];
     index += 1;
 
     while (index < lines.length) {
@@ -200,14 +204,14 @@ function renderMarkdownList(lines: string[], startIndex: number, indent: number,
         if (isMarkdownTableRow(lines[index]) || /^\s*>/u.test(lines[index]) || isMarkdownThematicBreak(lines[index])) {
           break;
         }
-        itemParts.push(renderInlineMarkdown(lines[index].trim()));
+        itemParts.push(renderInlineMarkdown(lines[index].trim(), options));
         index += 1;
         continue;
       }
       if (nextMarker.indent <= indent) {
         break;
       }
-      const nested = renderMarkdownList(lines, index, nextMarker.indent, nextMarker.ordered);
+      const nested = renderMarkdownList(lines, index, nextMarker.indent, nextMarker.ordered, options);
       itemParts.push(nested.html);
       index = nested.nextIndex;
     }
@@ -219,21 +223,16 @@ function renderMarkdownList(lines: string[], startIndex: number, indent: number,
   return { html: `<${tag} class="spec-list">${items.join("")}</${tag}>`, nextIndex: index };
 }
 
-function renderMarkdownTable(lines: string[]): string {
+function renderMarkdownTable(lines: string[], options: MarkdownRenderOptions = {}): string {
   const rows = lines
     .map((line) => line.trim().slice(1, -1).split("|").map((cell) => cell.trim()))
     .filter((cells) => !cells.every((cell) => /^:?-{3,}:?$/u.test(cell)));
   const [headers = [], ...bodyRows] = rows;
-  return renderTable(headers, bodyRows.map((row) => row.map(renderInlineMarkdown)));
+  return renderTable(headers, bodyRows.map((row) => row.map((cell) => renderInlineMarkdown(cell, options))));
 }
 
-export function renderInlineMarkdown(value: string): string {
-  const codeSpans: string[] = [];
-  const tokenized = value.replace(/`([^`]+)`/gu, (_match, code: string) => {
-    const token = `\u0000CODE${codeSpans.length}\u0000`;
-    codeSpans.push(`<span class="mm-inline-token">${escapeHtml(code)}</span>`);
-    return token;
-  });
+export function renderInlineMarkdown(value: string, options: MarkdownRenderOptions = {}): string {
+  const { tokenized, codeSpans } = tokenizeCodeSpans(value);
 
   const htmlSpans: string[] = [];
   let rendered = escapeHtml(tokenized);
@@ -255,6 +254,15 @@ export function renderInlineMarkdown(value: string): string {
     htmlSpans.push(`<a href="${safe}"${title ? ` title="${escapeHtml(title)}"` : ""}>${applyInlineEmphasis(labelText)}</a>`);
     return token;
   });
+  rendered = rendered.replace(/#\{((?:SCR|ERR|L|E|F|A|V|R)-[\p{L}\p{N}-]+)\}/gu, (match, id: string) => {
+    const reference = options.renderEntityReference?.(id);
+    if (!reference) {
+      return match;
+    }
+    const token = `\u0000HTML${htmlSpans.length}\u0000`;
+    htmlSpans.push(reference);
+    return token;
+  });
   rendered = applyInlineEmphasis(rendered);
 
   for (let index = 0; index < codeSpans.length; index += 1) {
@@ -264,6 +272,62 @@ export function renderInlineMarkdown(value: string): string {
     rendered = rendered.replace(new RegExp(`\\u0000HTML${index}\\u0000`, "gu"), htmlSpans[index]);
   }
   return rendered;
+}
+
+function tokenizeCodeSpans(value: string): { tokenized: string; codeSpans: string[] } {
+  const codeSpans: string[] = [];
+  let tokenized = "";
+  let cursor = 0;
+  let index = 0;
+
+  while (index < value.length) {
+    if (value[index] !== "`") {
+      index += 1;
+      continue;
+    }
+
+    const openerStart = index;
+    const delimiterLength = countBacktickRun(value, openerStart);
+    const closerStart = findMatchingBacktickRun(value, openerStart + delimiterLength, delimiterLength);
+    if (closerStart === -1) {
+      index += delimiterLength;
+      continue;
+    }
+
+    tokenized += value.slice(cursor, openerStart);
+    const token = `\u0000CODE${codeSpans.length}\u0000`;
+    codeSpans.push(`<span class="mm-inline-token">${escapeHtml(value.slice(openerStart + delimiterLength, closerStart))}</span>`);
+    tokenized += token;
+    index = closerStart + delimiterLength;
+    cursor = index;
+  }
+
+  tokenized += value.slice(cursor);
+  return { tokenized, codeSpans };
+}
+
+function countBacktickRun(value: string, start: number): number {
+  let index = start;
+  while (index < value.length && value[index] === "`") {
+    index += 1;
+  }
+  return index - start;
+}
+
+function findMatchingBacktickRun(value: string, start: number, delimiterLength: number): number {
+  let index = start;
+  while (index < value.length) {
+    if (value[index] !== "`") {
+      index += 1;
+      continue;
+    }
+    const runLength = countBacktickRun(value, index);
+    if (runLength === delimiterLength) {
+      return index;
+    }
+    index += runLength;
+  }
+  return -1;
 }
 
 function applyInlineEmphasis(value: string): string {

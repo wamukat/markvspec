@@ -16,6 +16,7 @@ import {
   renderDiagnosticMessageForLocale,
   renderMarkVSpecHtml,
   renderProjectTransitionMermaid,
+  resolveMarkVSpecEntityReference,
   resolveRendererMessages,
   resolveProjectPath,
   isProjectReferenceAllowed
@@ -32,9 +33,9 @@ import { messagesForLocale, resolveLocale } from "@markvspec/core";
 import {
   firstEntityProseParagraph,
   joinProseLineGroups,
-  renderEntityNotes,
-  renderEntityOverview,
-  renderMarkdownSectionContent,
+  renderEntityNotes as renderEntityNotesBase,
+  renderEntityOverview as renderEntityOverviewBase,
+  renderMarkdownSectionContent as renderMarkdownSectionContentBase,
   trimNoteLines
 } from "./markdown-renderer.js";
 import {
@@ -89,6 +90,8 @@ import { renderPreviewPrintWireframeOverrideStyle } from "./preview-styles.js";
 import { renderProjectPreviewStyles, renderScreenPreviewStyles } from "./preview-document-styles.js";
 import {
   actionDetailAnchor,
+  businessRulesAnchor,
+  errorCodesAnchor,
   formGroupsAnchor,
   isDocumentRefId,
   isInternalId,
@@ -97,7 +100,9 @@ import {
   referenceForDetailId,
   renderDetailRefId,
   renderDocumentRefId,
-  renderEntityRefChip
+  renderEntityRefChip,
+  screenAnchor,
+  validationRulesAnchor
 } from "./entity-reference-presenter.js";
 export {
   defaultExportHtmlBaseName,
@@ -3557,6 +3562,28 @@ interface DesignDocumentOptions {
   messages?: RendererMessages;
 }
 
+let activeMarkdownResult: ReturnType<typeof parseMarkVSpec> | undefined;
+
+function markdownRenderOptions(result: ReturnType<typeof parseMarkVSpec>): { renderEntityReference: (id: string) => string | undefined } {
+  return {
+    renderEntityReference: (id) => resolveMarkVSpecEntityReference(result, id)
+      ? referenceChipForId(result, id, true, true) || renderDetailRefId(id)
+      : undefined
+  };
+}
+
+function renderMarkdownSectionContent(lines: string[]): string {
+  return renderMarkdownSectionContentBase(lines, activeMarkdownResult ? markdownRenderOptions(activeMarkdownResult) : {});
+}
+
+function renderEntityNotes(lines: string[] | undefined): string {
+  return renderEntityNotesBase(lines, activeMarkdownResult ? markdownRenderOptions(activeMarkdownResult) : {});
+}
+
+function renderEntityOverview(lines: string[] | undefined): string {
+  return renderEntityOverviewBase(lines, activeMarkdownResult ? markdownRenderOptions(activeMarkdownResult) : {});
+}
+
 function label(result: ReturnType<typeof parseMarkVSpec>, key: MessageKey): string {
   return rendererMessagesForResult(result)[key];
 }
@@ -3591,6 +3618,9 @@ function conditionLabel(result: ReturnType<typeof parseMarkVSpec>, key: string):
 }
 
 export function renderDesignDocumentHtml(result: ReturnType<typeof parseMarkVSpec>, _preview: string, options: DesignDocumentOptions = {}): string {
+  const previousMarkdownResult = activeMarkdownResult;
+  activeMarkdownResult = result;
+  try {
   const scope = buildDocumentScope(result, options.focus);
   const detailsResult = scope.specResult;
   const messages = options.messages ?? rendererMessagesForResult(result);
@@ -3637,6 +3667,9 @@ export function renderDesignDocumentHtml(result: ReturnType<typeof parseMarkVSpe
     numberedSection((number) => withSectionNumber(renderActionTransitionsSpec(detailsResult), number)),
     numberedSection((number) => withSectionNumber(renderDiagnosticsSpec(result), number))
   ]);
+  } finally {
+    activeMarkdownResult = previousMarkdownResult;
+  }
 }
 
 function withSectionNumber(html: string, sectionNumber: string): string {
@@ -3976,7 +4009,7 @@ function renderScreenSpec(result: ReturnType<typeof parseMarkVSpec>): string {
   const otherMetadata = renderScreenOtherMetadata(result);
 
   return `<section class="doc-section screen-spec-section">
-    <h2>${heading}</h2>
+    <h2 id="${screenAnchor()}">${heading}</h2>
     <div class="screen-overview">
       <div class="screen-overview-badges">
         ${renderSemanticChip(screen.type ?? "screen", undefined, "type")}
@@ -4584,7 +4617,7 @@ function renderValidationRulesSpec(result: ReturnType<typeof parseMarkVSpec>): s
     .join("");
 
   return `<section class="doc-section">
-    <h2>${label(result, "validationRules")}</h2>
+    <h2 id="${validationRulesAnchor()}">${label(result, "validationRules")}</h2>
     ${renderSectionOverview(validationSectionProse)}
     ${content || `<p class="spec-empty">${label(result, "none")}</p>`}
     ${renderSectionNotes(validationSectionProse)}
@@ -4922,7 +4955,7 @@ function renderRulesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
   const showNotes = result.rules.some((rule) => (rule.notes?.length ?? 0) > 0);
   const showMessages = result.rules.some((rule) => businessRulePropertyValues(rule, "messages").length > 0 || businessRulePropertyValues(rule, "message").length > 0);
   return `<section class="doc-section">
-    <h2>${label(result, "businessRules")}</h2>
+    <h2 id="${businessRulesAnchor()}">${label(result, "businessRules")}</h2>
     ${renderSectionOverview(sectionProse)}
     ${renderLocalizedTable(result,
       [
@@ -4987,7 +5020,7 @@ function renderErrorCodesSpec(result: ReturnType<typeof parseMarkVSpec>): string
   const showOverview = result.errorCodes.some((errorCode) => (errorCode.overview?.length ?? 0) > 0);
   const showNotes = result.errorCodes.some((errorCode) => (errorCode.notes?.length ?? 0) > 0);
   return `<section class="doc-section">
-    <h2>${label(result, "errorCodes")}</h2>
+    <h2 id="${errorCodesAnchor()}">${label(result, "errorCodes")}</h2>
     ${renderSectionOverview(sectionProse)}
     ${renderLocalizedTable(result,
       [

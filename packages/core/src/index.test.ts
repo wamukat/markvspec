@@ -13421,6 +13421,71 @@ title: Action Neutral Diagnostics
   assert(messages.includes("Preview Scenario loaded references missing process marker P2 on action A-Run."));
 });
 
+test("warns for unresolved markdown entity references while ignoring code spans and fences", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-ENTITY-REFS
+type: screen
+title: Entity refs
+---
+
+See #{R-Eligibility}, #{E-NameInput}, and #{L-SlotContent}.
+Keep \`#{R-InlineCode}\`, \`\`#{E-MultiBacktickCode}\`\`, and \`\`literal \` #{A-Submit}\`\` literal.
+
+\`\`\`markdown
+#{R-CodeFence}
+\`\`\`
+
+## States
+
+- idle*
+
+## Layout: desktop
+
+### L-Form Form
+
+- stack
+
+#### Items
+
+- E-NameInput
+
+## Slot: content
+
+### L-SlotContent Slot content
+
+Slot prose misses #{R-MissingSlotRule}.
+
+- stack
+
+## Elements
+
+### E-NameInput Input
+
+- label: Name
+
+## Business Rules
+
+### R-Eligibility Eligibility
+
+- marker: R1
+
+## Notes
+
+Missing #{R-MissingRule}.
+`);
+
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+  assert(messages.includes("Reference #{R-MissingRule} does not match any MarkVSpec entity."));
+  assert(messages.includes("Reference #{R-MissingSlotRule} does not match any MarkVSpec entity."));
+  assert(!messages.some((message) => message.includes("R-InlineCode")));
+  assert(!messages.some((message) => message.includes("E-MultiBacktickCode")));
+  assert(!messages.some((message) => message.includes("A-Submit")));
+  assert(!messages.some((message) => message.includes("R-CodeFence")));
+  assert(!messages.some((message) => message.includes("R-Eligibility")));
+  assert(!messages.some((message) => message.includes("E-NameInput")));
+  assert(!messages.some((message) => message.includes("L-SlotContent")));
+});
+
 function lineNumber(source: string, needle: string, occurrence = 1): number {
   let matches = 0;
   const index = source.split(/\r?\n/).findIndex((line) => {

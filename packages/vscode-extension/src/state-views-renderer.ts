@@ -58,7 +58,7 @@ export function renderStateViewsSection(context: StateViewsRenderContext, conten
     return "";
   }
   return `<section class="doc-section state-views-section">
-    <h2>${context.format.label("stateViews")}</h2>
+    <h2 id="state-views">${context.format.label("stateViews")}</h2>
     ${content}
   </section>`;
 }

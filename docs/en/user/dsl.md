@@ -245,6 +245,22 @@ section. Prose regions such as `Document Lead`, `Section Lead`, `Entity Lead`,
 interpreted as DSL semantics. HTML comments (`<!-- -->`) in prose regions are
 authoring comments and are not displayed in preview or export output.
 
+### Entity References in Prose
+
+Use `#{ID}` in Markdown prose to link to a MarkVSpec entity without colliding
+with Markdown anchors, URLs, or `${...}` model expressions.
+
+```markdown
+See #{R-ApplicationEligibility} for the detailed rule.
+```
+
+Preview and static HTML export render resolved references as reference chips
+using the entity marker when one exists, then the entity name. Supported prefixes
+are `SCR-*`, `L-*`, `E-*`, `A-*`, `F-*`, `V-*`, `R-*`, and `ERR-*`.
+
+Unresolved references remain as literal text and produce a warning. References
+inside code spans and fenced code blocks are left unchanged.
+
 ### Supplemental Prose in Structured Sections
 
 Structured sections may contain Markdown paragraphs, tables, and code blocks as

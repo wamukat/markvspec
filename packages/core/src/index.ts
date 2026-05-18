@@ -130,6 +130,11 @@ export {
   resolveDisplayMessageReference,
   resolveDisplayTarget
 } from "./display-effect.js";
+export {
+  findMarkdownEntityReferences,
+  findMarkdownEntityReferencesInLines,
+  resolveMarkVSpecEntityReference
+} from "./entity-reference.js";
 export type {
   DisplayContentSpecRow
 } from "./display-content-spec.js";
@@ -140,6 +145,10 @@ export type {
   DisplayTargetResolution,
   ResolvedDisplayMessageReference
 } from "./display-effect.js";
+export type {
+  MarkVSpecEntityReference,
+  MarkVSpecEntityReferenceKind
+} from "./entity-reference.js";
 export type {
   FocusScope,
   RenderedIds,

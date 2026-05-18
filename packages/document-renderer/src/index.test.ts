@@ -146,7 +146,7 @@ Initial \`static\` release.
   const html = renderStaticDesignDocumentHtml(result);
 
   assert.match(html, /<article class="document">/);
-  assert.match(html, /<section class="doc-section screen-spec-section"><h2>Screen<\/h2>/);
+  assert.match(html, /<section class="doc-section screen-spec-section"><h2 id="screen">Screen<\/h2>/);
   assert.match(html, /<div class="screen-description"><p>Static screen overview\.<\/p><\/div>/);
   assert.match(html, /<th>Field<\/th><th>Value<\/th>/);
   assert.match(html, /<td>ID<\/td><td>SCR-STATIC<\/td>/);
@@ -158,11 +158,61 @@ Initial \`static\` release.
   assert.match(html, /<td>ver 1\.0<\/td><td>2026-05-13<\/td><td>Alice<\/td><td>-<\/td><td>-<\/td><td>MM-1<\/td>/);
   assert.match(html, /Initial <span class="mm-inline-token">static<\/span> release\./);
   assert.match(html, /<li>Added export history\.<\/li>/);
-  assert.match(html, /<section class="doc-section state-views-section">\s*<h2>State Views<\/h2>/);
+  assert.match(html, /<section class="doc-section state-views-section">\s*<h2 id="state-views">State Views<\/h2>/);
   assert.match(html, /<section class="state-viewport-section" data-viewport="mobile">\s*<h3>Viewport mobile <span class="state-badge">Default<\/span><\/h3>/);
   assert.match(html, /<section class="doc-section state-screen-section"(?=[^>]*\bdata-state="idle")(?=[^>]*\bdata-viewport="mobile")(?=[^>]*\bstyle="--markvspec-viewport-width:390px;--markvspec-print-scale:1")/);
   assert.match(html, /<h4 class="state-screen-heading">State: idle initial<\/h4>/);
   assert.match(html, /<h5 class="state-screen-subheading">Wireframe<\/h5>/);
+});
+
+test("renders MarkVSpec entity references in static markdown prose", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-STATIC-ENTITY-REFS
+type: screen
+title: Static Entity Refs
+---
+
+See #{R-Eligibility}, #{E-NameInput}, \`#{R-Code}\`, \`\`#{E-Code}\`\`, and \`\`literal \` #{R-ShortRun}\`\`.
+
+\`\`\`
+#{R-Fenced}
+\`\`\`
+
+## States
+
+- idle*
+
+## Layout: desktop
+
+### L-Form Form
+
+- stack
+
+#### Items
+
+- E-NameInput
+
+## Elements
+
+### E-NameInput Input
+
+- marker: E1
+- label: Name
+
+## Business Rules
+
+### R-Eligibility Eligibility
+
+- marker: R1
+`);
+  const html = renderStaticDesignDocumentHtml(result);
+
+  assert.match(html, /<a class="mm-ref-chip mm-ref-chip-message" href="#state-views"[^>]*data-mm-ref-id="R-Eligibility"[^>]*>[\s\S]*>R1<\/code> Eligibility<\/a>/);
+  assert.match(html, /<a class="mm-ref-chip mm-ref-chip-element" href="#state-views"[^>]*data-mm-ref-id="E-NameInput"[^>]*>[\s\S]*>E1<\/code> Name<\/a>/);
+  assert.match(html, /<span class="mm-inline-token">#\{R-Code\}<\/span>/);
+  assert.match(html, /<span class="mm-inline-token">#\{E-Code\}<\/span>/);
+  assert.match(html, /<span class="mm-inline-token">literal ` #\{R-ShortRun\}<\/span>/);
+  assert.match(html, /<pre><code>#\{R-Fenced\}<\/code><\/pre>/);
 });
 
 test("omits standalone HTML comments from static screen descriptions", () => {

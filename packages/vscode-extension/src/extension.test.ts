@@ -244,7 +244,8 @@ function assertPatternsInOrder(source: string, patterns: RegExp[]): void {
 }
 
 function numberedHeadingPattern(level: 2 | 3 | 4, label: string, attributes = ""): RegExp {
-  return new RegExp(`<h${level}${attributes}>\\s*<span class="section-number">[\\d.]+\\.</span>\\s*${escapeRegExp(label)}`);
+  const headingAttributes = attributes || "[^>]*";
+  return new RegExp(`<h${level}${headingAttributes}>\\s*<span class="section-number">[\\d.]+\\.</span>\\s*${escapeRegExp(label)}`);
 }
 
 function docSectionByHeading(html: string, label: string, nextLabel?: string): string {
@@ -302,7 +303,7 @@ test("renders generated design document sections without launching VS Code", () 
 
   assert.match(html, /<section class="doc-section screen-spec-section">/);
   assertPatternsInOrder(html, [
-    /<h2>Screen<\/h2>/,
+    /<h2 id="screen">Screen<\/h2>/,
     /<nav class="toc-inline"/,
     numberedHeadingPattern(2, "States"),
     numberedHeadingPattern(2, "State Flow"),
@@ -5842,7 +5843,7 @@ default-state: loaded
   const emptySection = stateSection(html, "empty");
   const errorSection = stateSection(html, "load-error");
 
-  assert.match(html, /<h2>Partial<\/h2>/);
+  assert.match(html, /<h2 id="screen">Partial<\/h2>/);
   assert.match(loadedSection, /data-mm-id="L-NoticeCard"/);
   assert.equal([...loadedSection.matchAll(/<a class="mm-element mm-element-link" data-mm-id="E-NoticeLink"/g)].length, 1);
   assert.match(loadedSection, /data-mm-id="E-NoticeLink"/);
@@ -7509,6 +7510,103 @@ Use **strong** text, *emphasis*, [help](./my_file_name.md), and \`token\`.
   assert.match(actionDetail, /<img src="\.\/diagram\.png" alt="Diagram">/);
   assert.match(actionDetail, /&lt;script&gt;alert\(&quot;x&quot;\)&lt;\/script&gt;/);
   assert.doesNotMatch(actionDetail, /<script>alert/);
+});
+
+test("renders MarkVSpec entity references in markdown prose as reference chips", () => {
+  const source = `---
+id: SCR-ENTITY-REFS
+type: screen
+title: Entity refs
+---
+
+See #{SCR-ENTITY-REFS}, #{L-Form}, #{E-NameInput}, #{A-Submit}, #{F-LoginForm}, #{V-NameValidation}, #{R-Eligibility}, and #{ERR-NAME-REQUIRED}.
+
+## States
+
+- idle*
+
+## Layout: desktop
+
+### L-Form Form
+
+- stack
+
+#### Items
+
+- E-NameInput
+
+## Elements
+
+### E-NameInput Input
+
+- marker: E1
+- label: Name
+
+## Actions
+
+### A-Submit Submit
+
+Refer to #{R-Eligibility}; keep \`#{E-NameInput}\`, \`\`#{A-Submit}\`\`, and \`\`literal \` #{ERR-IN-CODE}\`\` literal.
+
+\`\`\`markdown
+#{R-Eligibility}
+\`\`\`
+
+- Triggered
+  - E-NameInput.change
+- From
+  - idle
+- Process: Immediate
+  - Effects
+    - state: idle
+
+## Business Rules
+
+### R-Eligibility Eligibility
+
+- marker: R1
+
+## Form Groups
+
+### F-LoginForm Login form
+
+- marker: F1
+- fields:
+  - E-NameInput
+
+## Validations
+
+### V-NameValidation Name validation
+
+- marker: V1
+- target: E-NameInput
+- message: Name is required.
+
+## Error Codes
+
+### ERR-NAME-REQUIRED Name required
+
+- marker: ER1
+- target: E-NameInput
+- message: Name is required.
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, "");
+  const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Submit">[\s\S]*?<\/article>/)?.[0] ?? "";
+
+  assert.match(html, /<a class="mm-ref-chip mm-ref-chip-document" href="#screen"[^>]*data-mm-ref-id="SCR-ENTITY-REFS"[^>]*>/);
+  assert.match(html, /<a class="mm-ref-chip mm-ref-chip-layout" href="#state-views"[^>]*data-mm-ref-id="L-Form"[^>]*>/);
+  assert.match(html, /<a class="mm-ref-chip mm-ref-chip-element" href="#state-views"[^>]*data-mm-ref-id="E-NameInput"[^>]*>[\s\S]*>E1<\/code> <span class="mm-detail-ref-id">E-NameInput<\/span><\/a>/);
+  assert.match(html, /<a class="mm-ref-chip mm-ref-chip-action" href="#action-detail-A-Submit"[^>]*data-mm-ref-id="A-Submit"[^>]*>/);
+  assert.match(html, /<a class="mm-ref-chip mm-ref-chip-form-group" href="#form-groups"[^>]*data-mm-ref-id="F-LoginForm"[^>]*>/);
+  assert.match(html, /<a class="mm-ref-chip mm-ref-chip-message" href="#validation-rules"[^>]*data-mm-ref-id="V-NameValidation"[^>]*>/);
+  assert.match(html, /<a class="mm-ref-chip mm-ref-chip-message" href="#business-rules"[^>]*data-mm-ref-id="R-Eligibility"[^>]*>[\s\S]*>R1<\/code> Eligibility<\/a>/);
+  assert.match(html, /<a class="mm-ref-chip mm-ref-chip-error-code" href="#error-codes"[^>]*data-mm-ref-id="ERR-NAME-REQUIRED"[^>]*>/);
+  assert.match(actionDetail, /Refer to <a class="mm-ref-chip mm-ref-chip-message" href="#business-rules"[^>]*data-mm-ref-id="R-Eligibility"/);
+  assert.match(actionDetail, /<span class="mm-inline-token">#\{E-NameInput\}<\/span>/);
+  assert.match(actionDetail, /<span class="mm-inline-token">#\{A-Submit\}<\/span>/);
+  assert.match(actionDetail, /<span class="mm-inline-token">literal ` #\{ERR-IN-CODE\}<\/span>/);
+  assert.match(actionDetail, /<pre><code class="language-markdown">#\{R-Eligibility\}<\/code><\/pre>/);
 });
 
 test("blocks external markdown images while preserving external links", () => {

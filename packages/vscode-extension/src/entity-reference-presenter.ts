@@ -7,7 +7,7 @@ import {
   text
 } from "./design-document-renderer.js";
 
-export type EntityReferenceKind = "action" | "layout" | "element" | "form-group" | "message";
+export type EntityReferenceKind = "action" | "layout" | "element" | "form-group" | "message" | "document" | "error-code";
 
 export interface EntityReference {
   readonly id: string;
@@ -53,6 +53,26 @@ export function renderFormGroupReferenceId(id: string): string {
 
 export function formGroupsAnchor(): string {
   return "form-groups";
+}
+
+export function screenAnchor(): string {
+  return "screen";
+}
+
+export function stateViewsAnchor(): string {
+  return "state-views";
+}
+
+export function validationRulesAnchor(): string {
+  return "validation-rules";
+}
+
+export function businessRulesAnchor(): string {
+  return "business-rules";
+}
+
+export function errorCodesAnchor(): string {
+  return "error-codes";
 }
 
 export function renderDocumentRefId(id: string): string {
@@ -128,7 +148,17 @@ export function markerBadgeForId(result: MarkVSpecParseResult, id: string | unde
   return badge;
 }
 
-export function referenceChipForId(result: MarkVSpecParseResult, id: string, linkAction = true): string {
+export function referenceChipForId(result: MarkVSpecParseResult, id: string, linkAction = true, linkEntity = false): string {
+  if (id.startsWith("SCR-")) {
+    return renderEntityRefChip({
+      id,
+      category: "document",
+      marker: id,
+      label: result.screen.id === id ? result.screen.title ?? result.screen.heading ?? id : id,
+      href: linkEntity && result.screen.id === id ? `#${screenAnchor()}` : undefined
+    });
+  }
+
   if (id.startsWith("A-")) {
     const action = result.actions.find((candidate) => candidate.id === id);
     return renderEntityRefChip({
@@ -146,7 +176,8 @@ export function referenceChipForId(result: MarkVSpecParseResult, id: string, lin
       id,
       category: "layout",
       marker: findMarker(result, id) || id,
-      label: layout?.name || id
+      label: layout?.name || id,
+      href: linkEntity ? `#${stateViewsAnchor()}` : undefined
     });
   }
 
@@ -155,7 +186,8 @@ export function referenceChipForId(result: MarkVSpecParseResult, id: string, lin
       id,
       category: "element",
       marker: findMarker(result, id) || id,
-      label: id
+      label: id,
+      href: linkEntity ? `#${stateViewsAnchor()}` : undefined
     });
   }
 
@@ -178,7 +210,19 @@ export function referenceChipForId(result: MarkVSpecParseResult, id: string, lin
       category: "message",
       marker: firstStringProperty(validation?.properties["marker"]) || firstStringProperty(rule?.properties["marker"]) || id,
       label: validation?.name || rule?.name || id,
+      href: linkEntity && validation ? `#${validationRulesAnchor()}` : linkEntity && rule ? `#${businessRulesAnchor()}` : undefined,
       displaySource: id
+    });
+  }
+
+  if (id.startsWith("ERR-")) {
+    const errorCode = result.errorCodes.find((candidate) => candidate.id === id);
+    return renderEntityRefChip({
+      id,
+      category: "error-code",
+      marker: firstStringProperty(errorCode?.properties["marker"]) || id,
+      label: errorCode?.name || id,
+      href: linkEntity && errorCode ? `#${errorCodesAnchor()}` : undefined
     });
   }
 
@@ -218,7 +262,24 @@ function preferredLayoutById(
   layoutId: string,
   viewport?: string
 ): MarkVSpecParseResult["layoutGroups"][number] | undefined {
-  return preferredLayoutGroupForViewport(result, layoutId, viewport);
+  return preferredLayoutGroupForViewport(result, layoutId, viewport)
+    ?? preferredSlotContentLayoutGroupForViewport(result, layoutId, viewport);
+}
+
+function preferredSlotContentLayoutGroupForViewport(
+  result: MarkVSpecParseResult,
+  layoutId: string,
+  viewport?: string
+): MarkVSpecParseResult["layoutGroups"][number] | undefined {
+  const candidates = result.slotContents
+    .flatMap((slot) => slot.layoutGroups)
+    .filter((group) => group.id === layoutId);
+  if (viewport) {
+    return candidates.find((group) => group.viewport === viewport)
+      ?? candidates.find((group) => !group.viewport)
+      ?? candidates[0];
+  }
+  return candidates.find((group) => !group.viewport) ?? candidates[0];
 }
 
 function firstStringProperty(value: string | string[] | true | undefined): string | undefined {

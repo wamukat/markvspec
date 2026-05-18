@@ -1,4 +1,4 @@
-import { buildViewportStateScreenReadModels, effectiveHistoryFields, latestHistoryBasicInfo, messagesForLocale, renderMarkVSpecHtml } from "@markvspec/core";
+import { buildViewportStateScreenReadModels, effectiveHistoryFields, latestHistoryBasicInfo, messagesForLocale, renderMarkVSpecHtml, resolveMarkVSpecEntityReference } from "@markvspec/core";
 import type { MarkVSpecParseResult, RendererMessages, StateScreenReadModel } from "@markvspec/core";
 
 export type MarkVSpecDocumentViewport = "mobile" | "tablet" | "desktop" | string;
@@ -148,12 +148,12 @@ function renderDocumentOverviewSection(result: MarkVSpecParseResult, messages: R
   }
 
   const description = screen.description
-    ? `<div class="screen-description">${renderMarkdownLines(screen.description.split(/\r?\n/u))}</div>`
+    ? `<div class="screen-description">${renderMarkdownLines(screen.description.split(/\r?\n/u), result)}</div>`
     : "";
   const table = facts.length > 0
     ? renderTable([messages.field, messages.value], facts.map(([key, value]) => [escapeHtml(key), escapeHtml(value)]))
     : "";
-  return `<section class="doc-section screen-spec-section"><h2>${escapeHtml(heading)}</h2>${description}${table}</section>`;
+  return `<section class="doc-section screen-spec-section"><h2 id="screen">${escapeHtml(heading)}</h2>${description}${table}</section>`;
 }
 
 function renderStateViewsSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
@@ -169,7 +169,7 @@ function renderStateViewsSection(result: MarkVSpecParseResult, messages: Rendere
     )
   ).join("");
   return `<section class="doc-section state-views-section">
-  <h2>${escapeHtml(messages.stateViews)}</h2>
+  <h2 id="state-views">${escapeHtml(messages.stateViews)}</h2>
   ${viewportSections}
 </section>`;
 }
@@ -276,7 +276,7 @@ function renderHistorySection(result: MarkVSpecParseResult, messages: RendererMe
   const rows = result.historyEntries.map((entry) => [
     escapeHtml(entry.version),
     ...fields.map((field) => escapeHtml(entry.fields[field.key] ?? "")),
-    renderMarkdownLines(entry.bodyLines)
+    renderMarkdownLines(entry.bodyLines, result)
   ]);
   return `<section class="doc-section history-section"><h2>${escapeHtml(messages.history)}</h2>${renderTable(headers, rows)}</section>`;
 }
@@ -350,28 +350,44 @@ export function text(value: string | undefined): string {
   return value ? escapeHtml(value) : "";
 }
 
-function renderMarkdownLines(lines: string[]): string {
+function renderMarkdownLines(lines: string[], result: MarkVSpecParseResult): string {
   const blocks: string[] = [];
   let paragraph: string[] = [];
   let listItems: string[] = [];
+  let codeLines: string[] | undefined;
 
   const flushParagraph = (): void => {
     if (paragraph.length === 0) {
       return;
     }
-    blocks.push(`<p>${renderInlineMarkdown(paragraph.join(" "))}</p>`);
+    blocks.push(`<p>${renderInlineMarkdown(paragraph.join(" "), result)}</p>`);
     paragraph = [];
   };
   const flushList = (): void => {
     if (listItems.length === 0) {
       return;
     }
-    blocks.push(`<ul class="spec-list">${listItems.map((item) => `<li>${renderInlineMarkdown(item)}</li>`).join("")}</ul>`);
+    blocks.push(`<ul class="spec-list">${listItems.map((item) => `<li>${renderInlineMarkdown(item, result)}</li>`).join("")}</ul>`);
     listItems = [];
   };
 
   for (const line of lines) {
     const trimmed = line.trim();
+    if (/^```/u.test(trimmed)) {
+      flushParagraph();
+      flushList();
+      if (codeLines) {
+        blocks.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+        codeLines = undefined;
+      } else {
+        codeLines = [];
+      }
+      continue;
+    }
+    if (codeLines) {
+      codeLines.push(line);
+      continue;
+    }
     if (!trimmed) {
       flushParagraph();
       flushList();
@@ -389,11 +405,95 @@ function renderMarkdownLines(lines: string[]): string {
 
   flushParagraph();
   flushList();
+  if (codeLines) {
+    blocks.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+  }
   return blocks.join("");
 }
 
-function renderInlineMarkdown(value: string): string {
-  return escapeHtml(value).replace(/`([^`]+)`/gu, '<span class="mm-inline-token">$1</span>');
+function renderInlineMarkdown(value: string, result: MarkVSpecParseResult): string {
+  const { tokenized, codeSpans } = tokenizeCodeSpans(value);
+  let rendered = escapeHtml(tokenized).replace(/#\{((?:SCR|ERR|L|E|F|A|V|R)-[\p{L}\p{N}-]+)\}/gu, (match, id: string) => {
+    const reference = resolveMarkVSpecEntityReference(result, id);
+    return reference ? renderStaticEntityReference(reference) : match;
+  });
+  for (let index = 0; index < codeSpans.length; index += 1) {
+    rendered = rendered.replace(new RegExp(`\\u0000CODE${index}\\u0000`, "gu"), codeSpans[index]);
+  }
+  return rendered;
+}
+
+function tokenizeCodeSpans(value: string): { tokenized: string; codeSpans: string[] } {
+  const codeSpans: string[] = [];
+  let tokenized = "";
+  let cursor = 0;
+  let index = 0;
+
+  while (index < value.length) {
+    if (value[index] !== "`") {
+      index += 1;
+      continue;
+    }
+
+    const openerStart = index;
+    const delimiterLength = countBacktickRun(value, openerStart);
+    const closerStart = findMatchingBacktickRun(value, openerStart + delimiterLength, delimiterLength);
+    if (closerStart === -1) {
+      index += delimiterLength;
+      continue;
+    }
+
+    tokenized += value.slice(cursor, openerStart);
+    const token = `\u0000CODE${codeSpans.length}\u0000`;
+    codeSpans.push(`<span class="mm-inline-token">${escapeHtml(value.slice(openerStart + delimiterLength, closerStart))}</span>`);
+    tokenized += token;
+    index = closerStart + delimiterLength;
+    cursor = index;
+  }
+
+  tokenized += value.slice(cursor);
+  return { tokenized, codeSpans };
+}
+
+function countBacktickRun(value: string, start: number): number {
+  let index = start;
+  while (index < value.length && value[index] === "`") {
+    index += 1;
+  }
+  return index - start;
+}
+
+function findMatchingBacktickRun(value: string, start: number, delimiterLength: number): number {
+  let index = start;
+  while (index < value.length) {
+    if (value[index] !== "`") {
+      index += 1;
+      continue;
+    }
+    const runLength = countBacktickRun(value, index);
+    if (runLength === delimiterLength) {
+      return index;
+    }
+    index += runLength;
+  }
+  return -1;
+}
+
+function renderStaticEntityReference(reference: NonNullable<ReturnType<typeof resolveMarkVSpecEntityReference>>): string {
+  const category = reference.kind === "business-rule" || reference.kind === "validation"
+    ? "message"
+    : reference.kind;
+  const marker = reference.marker ?? reference.id;
+  const label = reference.label && reference.label !== reference.id ? ` ${escapeHtml(reference.label)}` : "";
+  const href = staticEntityReferenceHref(reference);
+  return `<a class="mm-ref-chip mm-ref-chip-${escapeHtml(category)}" href="${escapeHtml(href)}" data-mm-ref-id="${escapeHtml(reference.id)}"><code class="mm-id mm-marker mm-marker-${escapeHtml(category)}" data-mm-marker-category="${escapeHtml(category)}">${escapeHtml(marker)}</code>${label}</a>`;
+}
+
+function staticEntityReferenceHref(reference: NonNullable<ReturnType<typeof resolveMarkVSpecEntityReference>>): string {
+  if (reference.kind === "screen") {
+    return "#screen";
+  }
+  return "#state-views";
 }
 
 export function escapeHtml(value: string): string {

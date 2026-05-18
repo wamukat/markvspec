@@ -223,6 +223,22 @@ Preview、parser、docs、ticket で MarkVSpec 文書内の位置を議論する
 prose 領域内の HTML コメント `<!-- -->` は authoring comment として扱い、
 preview や export には表示しません。
 
+### prose 内の entity 参照
+
+Markdown の prose から MarkVSpec entity へリンクしたい場合は `#{ID}` を使います。
+Markdown の anchor、URL、`${...}` の model expression と衝突しにくい MarkVSpec 専用の参照記法です。
+
+```markdown
+詳細な業務条件は #{R-ApplicationEligibility} を参照する。
+```
+
+preview と static HTML export では、解決できた参照を reference chip として表示します。
+entity に marker があれば marker と名前を優先して表示します。対象 prefix は
+`SCR-*`、`L-*`、`E-*`、`A-*`、`F-*`、`V-*`、`R-*`、`ERR-*` です。
+
+解決できない参照は本文上ではそのまま残し、warning を出します。code span と fenced code block
+内の `#{ID}` は変換しません。
+
 ### 構造化セクション内の説明文
 
 構造化セクションでも、Markdown の本文、表、コードブロックを補足説明として書けます。

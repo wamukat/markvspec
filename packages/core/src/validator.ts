@@ -23,6 +23,10 @@ import {
   parseDisplayMessageReference,
   resolveDisplayTarget
 } from "./display-effect.js";
+import {
+  findMarkdownEntityReferencesInLines,
+  resolveMarkVSpecEntityReference
+} from "./entity-reference.js";
 import type {
   MarkVSpecActionOutcome,
   MarkVSpecDiagnostic,
@@ -206,6 +210,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
     });
   }
   validateRouteParameterReferences(result, diagnostics);
+  validateMarkdownEntityReferences(result, diagnostics);
 
   if (result.states.length > 0 && initialStates.length === 0) {
     diagnostics.push({
@@ -835,6 +840,69 @@ function validateHistory(result: MarkVSpecParseResult, diagnostics: MarkVSpecDia
         });
       }
     }
+  }
+}
+
+function validateMarkdownEntityReferences(
+  result: MarkVSpecParseResult,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  const proseBlocks: string[][] = [];
+  const pushLines = (lines: string[] | undefined): void => {
+    if (lines && lines.length > 0) {
+      proseBlocks.push(lines);
+    }
+  };
+
+  if (result.screen.description) {
+    pushLines(result.screen.description.split(/\r?\n/u));
+  }
+  for (const section of result.sectionProse) {
+    pushLines(section.overview);
+    pushLines(section.notes);
+  }
+  for (const note of result.notes) {
+    pushLines(note.lines);
+  }
+  for (const entity of [
+    ...result.layoutGroups,
+    ...result.slotContents.flatMap((slot) => slot.layoutGroups),
+    ...result.slotDefinitions,
+    ...result.elements,
+    ...result.formGroups,
+    ...result.actions,
+    ...result.validations,
+    ...result.rules,
+    ...result.errorCodes
+  ]) {
+    pushLines(entity.overview);
+    pushLines(entity.notes);
+  }
+  for (const rule of result.rules) {
+    pushLines(rule.bodyLines);
+    pushLines(rule.bullets.map((bullet) => bullet.text));
+  }
+  for (const errorCode of result.errorCodes) {
+    pushLines(errorCode.bullets.map((bullet) => bullet.text));
+  }
+  for (const entry of result.historyEntries) {
+    pushLines(entry.bodyLines);
+  }
+
+  const missingIds = new Set<string>();
+  for (const lines of proseBlocks) {
+    for (const id of findMarkdownEntityReferencesInLines(lines)) {
+      if (!resolveMarkVSpecEntityReference(result, id)) {
+        missingIds.add(id);
+      }
+    }
+  }
+
+  for (const id of missingIds) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Reference #{${id}} does not match any MarkVSpec entity.`
+    });
   }
 }
 
