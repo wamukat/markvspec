@@ -60,6 +60,12 @@ title: Display Content
   assert.deepEqual(rows.find((row) => row.element.id === "E-Users" && row.location === "table rows")?.sampleRowsRef, {
     elementId: "E-Users"
   });
+  const rowsWithAnchorContext = buildDisplayContentSpecRows(result.elements, {
+    sampleRowsAnchorId: (elementId) => `sample-rows-loaded-${elementId}`
+  });
+  assert.deepEqual(rowsWithAnchorContext.find((row) => row.element.id === "E-Users" && row.location === "table rows")?.sampleRowsRef, {
+    elementId: "E-Users"
+  });
   assert.deepEqual(userColumnRows.map((row) => row.contentSections), [
     [
       { title: "Label", rows: ["Name"] },

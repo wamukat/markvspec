@@ -167,13 +167,13 @@ function pushTableRowsReferenceRow(
 ): void {
   const scenarioRows = sampleRowsForElement(context, element.id);
   if (scenarioRows) {
-    rows.push(sampleRowsReferenceRow(element, "table rows", "data", context));
+    rows.push(sampleRowsReferenceRow(element, "table rows", "data", context.sampleRowsAnchorId?.(element.id)));
     return;
   }
 
   const metadata = element.propertyMetadata["rows"] ?? element.propertyMetadata["sample rows"];
   if (metadata?.kind) {
-    rows.push(sampleRowsReferenceRow(element, "table rows", metadata.kind, context));
+    rows.push(sampleRowsReferenceRow(element, "table rows", metadata.kind));
     return;
   }
 
@@ -188,7 +188,7 @@ function pushTableRowsReferenceRow(
   }
 
   if (source === "data" && element.sampleRows && (element.sampleRows.rows.length > 0 || element.sampleRows.explicitEmpty)) {
-    rows.push(sampleRowsReferenceRow(element, "table rows", "data", context));
+    rows.push(sampleRowsReferenceRow(element, "table rows", "data"));
   }
 }
 
@@ -266,12 +266,12 @@ function pushListItemsRow(
 
   const scenarioRows = sampleRowsForElement(context, element.id);
   if (scenarioRows) {
-    rows.push(sampleRowsReferenceRow(element, "list items", "data", context));
+    rows.push(sampleRowsReferenceRow(element, "list items", "data", context.sampleRowsAnchorId?.(element.id)));
     return;
   }
 
   if (source === "data" && element.sampleRows && (element.sampleRows.rows.length > 0 || element.sampleRows.explicitEmpty)) {
-    rows.push(sampleRowsReferenceRow(element, "list items", "data", context));
+    rows.push(sampleRowsReferenceRow(element, "list items", "data"));
     return;
   }
 
@@ -437,7 +437,7 @@ function sampleRowsReferenceRow(
   element: ParsedElement,
   location: string,
   source: string,
-  context: DisplayContentSpecContext
+  anchorId?: string
 ): DisplayContentSpecRow {
   return {
     element,
@@ -445,7 +445,7 @@ function sampleRowsReferenceRow(
     value: "Sample rows",
     sampleRowsRef: {
       elementId: element.id,
-      ...(context.sampleRowsAnchorId ? { anchorId: context.sampleRowsAnchorId(element.id) } : {})
+      ...(anchorId ? { anchorId } : {})
     },
     source
   };

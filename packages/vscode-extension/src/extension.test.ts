@@ -6184,6 +6184,19 @@ title: Display Metadata
   assert.doesNotMatch(displayContent, /option label/);
 });
 
+test("does not link element sample row references without rendered row blocks", () => {
+  const source = readFileSync(resolve("../../examples/02-states/async-loading.vspec.md"), "utf8");
+  const result = parseMarkVSpec(source);
+  assert.deepEqual(result.diagnostics, []);
+  const html = renderDesignDocumentHtml(result, "");
+  const loadedSection = stateSection(html, "loaded");
+  const displayContent = loadedSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.match(displayContent, /<td>table rows<\/td><td>Sample rows: <span class="mm-ref-chip mm-ref-chip-element" data-mm-ref-id="E-ItemsTable"/);
+  assert.doesNotMatch(displayContent, /href="#sample-rows-[^"]*E-ItemsTable"/);
+  assert.doesNotMatch(loadedSection, /id="sample-rows-[^"]*E-ItemsTable"/);
+});
+
 test("renders the source-kind metadata example with property-level source chips", () => {
   const source = readFileSync(resolve("../../examples/02-states/source-kind-metadata.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
