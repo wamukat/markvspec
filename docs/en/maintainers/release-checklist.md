@@ -43,13 +43,62 @@ HTML export, and PDF export:
 - `examples/05-reuse/profile-summary.partial.vspec.md`: partial route and partial-local states.
 - `examples/06-structured-sections/history-and-errors.vspec.md`: Error Codes, History Fields, and History.
 
+## Pre-Acceptance Quality Gate
+
+Before accepting a normal implementation ticket, run the checks that match the
+change, in this order:
+
+1. Worktree sanity: run `git status --short` and confirm there are no unexpected
+   changes.
+2. Whitespace check: run `git diff --check`.
+3. Unit / integration tests: run `npm test`.
+4. Example preview audit: run `npm run audit:examples`.
+5. Examples HTML export: run `npm run build -w @markvspec/cli`, then
+   `node packages/cli/dist/index.js export html "examples/**/*.vspec.md" --out .work/release-html`
+   and open representative HTML files in a browser.
+6. For print or PDF-affecting changes, run `npm run check:print-regression`.
+   If PDF export is unavailable, record that HTML artifacts were generated and
+   PDF was skipped because no compatible browser was available.
+7. For README, DSL, example, or release metadata changes, also run
+   `npm run check:readme-release`.
+
+`npm run check:release` is the aggregate gate for the release environment. This
+repository does not add `npm run verify` at this point because `check:release`
+already groups the automatable release checks, while HTML visual inspection,
+optional PDF skips, and Kanbalone review steps cannot be safely completed by a
+single npm script.
+
+For large changes, concurrent-agent work, or acceptance-lane review, verify in a
+separate worktree instead of the main workspace:
+
+```bash
+git worktree add .work/release-check <branch-or-sha>
+cd .work/release-check
+npm install
+git diff --check
+npm test
+npm run audit:examples
+npm run check:print-regression
+```
+
+When using a worktree, record the target commit / branch, commands run, generated
+HTML/PDF artifact paths, and visually inspected representative examples in the
+Kanbalone comment.
+
+Kanbalone tickets require independent sub-agent review after implementation.
+Under the current ticket workflow, reviewed work moves to the `acceptance` lane
+with `isResolved: false`; the user verifies the result before resolving it.
+
 ## Release Checklist
 
 - [ ] `npm install` completes from a clean checkout.
+- [ ] `git diff --check` passes.
 - [ ] `npm run typecheck` passes.
 - [ ] `npm test` passes.
 - [ ] `npm run build` passes.
 - [ ] `npm run audit:examples` passes.
+- [ ] `node packages/cli/dist/index.js export html "examples/**/*.vspec.md" --out .work/release-html`
+  exports examples HTML, and representative examples have been opened in a browser.
 - [ ] `npm run check:print-regression` passes, or PDF export is explicitly skipped
   because no compatible browser is available.
 - [ ] `npm run check:readme-release` passes.
@@ -97,9 +146,9 @@ HTML export, and PDF export:
   source and generated static HTML.
 - [ ] After npm publish, `npx @markvspec/cli@latest validate ...` and
   `npx @markvspec/cli@latest export html ...` work with the published package.
-- [ ] Done-ticket process is followed: implementation, verification, independent
-  review, Kanbalone review/verification summary comment, then Kanbalone `done`
-  with `isResolved: true`.
+- [ ] Kanbalone ticket process is followed: implementation, verification,
+  independent review, Kanbalone review/verification summary comment, then move to
+  `acceptance` with `isResolved: false` for user verification.
 
 ## Manual CLI npm Package Smoke Steps
 

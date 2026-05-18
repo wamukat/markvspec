@@ -49,13 +49,58 @@ example を代表セットとして使う。
 - `examples/05-reuse/profile-summary.partial.vspec.md`: partial route、partial-local state。
 - `examples/06-structured-sections/history-and-errors.vspec.md`: Error Codes、History Fields、History。
 
+## 受け入れ前品質ゲート
+
+通常のチケット受け入れ前には、変更内容に応じて次の順で確認する。
+
+1. 作業ツリー確認: `git status --short` で想定外の差分がないことを確認する。
+2. whitespace 確認: `git diff --check` を実行する。
+3. unit / integration test: `npm test` を実行する。
+4. example preview audit: `npm run audit:examples` を実行する。
+5. examples HTML export: `npm run build -w @markvspec/cli` の後、
+   `node packages/cli/dist/index.js export html "examples/**/*.vspec.md" --out .work/release-html`
+   を実行し、代表 example の HTML をブラウザで開いて確認する。
+6. print / PDF に影響する変更では `npm run check:print-regression` を実行する。
+   PDF export が使えない環境では、HTML artifact が出ていることと、互換ブラウザが
+   ないため PDF を skip したことを記録する。
+7. README、DSL、example、release metadata に影響する変更では
+   `npm run check:readme-release` も実行する。
+
+`npm run check:release` は release 環境でまとめて実行する gate です。現時点では
+`npm run verify` は追加しません。理由は、既に `check:release` が自動化可能な
+release gate を束ねており、HTML の目視確認、PDF の optional skip、Kanbalone
+レビュー手順は単純な npm script だけでは安全に完了判定できないためです。
+
+大きい変更、複数 agent が同時に触る変更、または acceptance lane の受け入れ確認では、
+メイン workspace ではなく別 worktree で確認する。
+
+```bash
+git worktree add .work/release-check <branch-or-sha>
+cd .work/release-check
+npm install
+git diff --check
+npm test
+npm run audit:examples
+npm run check:print-regression
+```
+
+worktree での確認では、対象 commit / branch、実行した command、生成した HTML/PDF
+artifact の場所、目視確認した representative examples を Kanbalone comment に残す。
+
+Kanbalone の運用では、実装後に独立したサブエージェントレビューを受ける。現在の
+チケット処理では、レビュー完了後に `acceptance` lane へ移動し、`isResolved` は
+`false` のままにする。ユーザーが確認してから resolved / done 相当の扱いにする。
+
 ## リリースチェックリスト
 
 - [ ] clean checkout から `npm install` が完了する。
+- [ ] `git diff --check` が通る。
 - [ ] `npm run typecheck` が通る。
 - [ ] `npm test` が通る。
 - [ ] `npm run build` が通る。
 - [ ] `npm run audit:examples` が通る。
+- [ ] `node packages/cli/dist/index.js export html "examples/**/*.vspec.md" --out .work/release-html`
+  で examples HTML export が通り、代表 example をブラウザで目視している。
 - [ ] `npm run check:print-regression` が通る。PDF export が使えない環境では、
   互換ブラウザがないため skip したことを明示する。
 - [ ] `npm run check:readme-release` が通る。
@@ -101,9 +146,9 @@ example を代表セットとして使う。
   左右並びの実キャプチャである。
 - [ ] npm publish 後に `npx @markvspec/cli@latest validate ...` と
   `npx @markvspec/cli@latest export html ...` で公開済み package を確認する。
-- [ ] Done チケットのプロセスを守る。実装、検証、独立レビュー、
-  Kanbalone の review/verification summary comment、その後 Kanbalone `done` と
-  `isResolved: true` の順に進める。
+- [ ] Kanbalone チケットのプロセスを守る。実装、検証、独立レビュー、
+  Kanbalone の review/verification summary comment、その後 `acceptance` lane へ
+  移動し、`isResolved: false` のままユーザー確認を待つ。
 
 ## CLI npm package 手動スモーク手順
 
