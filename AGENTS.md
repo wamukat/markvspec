@@ -191,6 +191,29 @@ The webview should show a low-fidelity wireframe and update as the document chan
 このロールは、ユーザーが実装、修正、リファクタリング、テスト、todo チケットの
 完了を依頼したときに使う。
 
+標準フロー:
+
+1. Kanbalone の `todo` lane を確認し、優先順位、position、blocker を見て次に
+   実行可能なチケットを選ぶ。blocker が未完了のチケットは拾わない。
+2. 対象チケットの本文、コメント、remote issue、受入条件、関連資料を読み直す。
+   remote body やコメントが更新されている可能性がある場合は、必ず最新内容を
+   取得してから着手する。
+3. 対象チケットを `doing` lane に移動し、作業開始コメントを残す。
+4. 実装する。変更範囲は対象チケットに必要な parser、validator、renderer、
+   VS Code extension、docs、examples、tests に絞る。
+5. 自己チェックとして、受入条件に対応する検索、生成物確認、preview/export/PDF
+   確認、関連 test、`npm run audit:examples`、`npm test` などを必要な粒度で実行する。
+6. チケットに対応する commit を作る。外部 issue 連携があるチケットでは、commit
+   message body に `Refs #<ticket>` などの参照を入れる。
+7. 独立した sub-agent review を依頼する。blocking finding があれば修正、再検証、
+   必要に応じて追加 commit を行い、blocking finding がなくなるまで review を
+   繰り返す。
+8. 対応内容、commit SHA、実行した検証、確認した生成物、sub-agent review 結果を
+   Kanbalone コメントに記録する。
+9. blocking finding がなく、自己チェックと受入条件確認が完了したら、チケットを
+   `acceptance` lane に移動する。このとき `isResolved: false` は維持する。
+10. `todo` lane に戻り、同じ基準で次の実行可能チケットを選ぶ。
+
 責務:
 
 - Kanbalone の `todo` チケットを blocker 順に選び、実装前に対象チケットを
@@ -200,7 +223,7 @@ The webview should show a low-fidelity wireframe and update as the document chan
 - 既存のプロジェクトパターンに従って parser、validator、renderer、VS Code
   extension、docs、examples、tests を実装する。
 - 関連する検証を実行し、まとまりのあるチケットまたはチケット群ごとに commit する。
-- `done` に移動する前に、独立した sub-agent review を依頼する。
+- `acceptance` に移動する前に、独立した sub-agent review を依頼する。
 - 完了前に blocking review finding を解消する。
 - Kanbalone コメントに commit SHA、review 結果、修正内容、検証コマンドを明確に
   残す。
@@ -211,9 +234,9 @@ The webview should show a low-fidelity wireframe and update as the document chan
 - ユーザーが他のエージェントが作業中だと言っている場合、メイン workspace で
   テストを実行しない。別の git worktree を使う。
 - 無関係なリファクタリングを実装チケットに混ぜない。
-- `skills/markvspec-done-review/SKILL.md` に従わずに review 済み作業を `done` に
-  移動しない。
-- ユーザーが明示的に resolve を依頼しない限り、`done` に移動するときも
+- 独立した sub-agent review なしに review 済み作業を `acceptance` に移動しない。
+- ユーザーが明示的に resolve を依頼しない限り、`acceptance` に移動するときも
+  `isResolved: false` を維持する。ユーザー確認後の `done` 移動でも同様に
   `isResolved: false` を維持する。
 
 ## Kanban
@@ -222,7 +245,7 @@ Use Kanbalone for project task tracking.
 
 - Board URL: `http://localhost:3470/boards/7`
 - Board ID: `7`
-- Lanes: `todo`, `doing`, `done`
+- Lanes: `backlog`, `todo`, `doing`, `acceptance`, `done`
 - Use the `kanbalone-api` skill and HTTP API only.
 - Installed skill path: `~/.codex/skills/kanbalone-api`
 - Write MarkVSpec Kanbalone ticket titles, bodies, and comments in Japanese by
@@ -234,18 +257,33 @@ The requested GitHub skill source was:
 
 It was already installed in this environment.
 
-## Done Policy
+## Completion Review Policy
 
-Before moving any MarkVSpec Kanbalone ticket to `done`, use the project-local skill:
+Before moving any MarkVSpec Kanbalone ticket out of `doing` as implementation-complete,
+use the project-local skill:
 
 `skills/markvspec-done-review/SKILL.md`
 
 Hard rule: every ticket must receive an independent sub-agent review before it is
-moved to `done`.
+moved to `acceptance` or `done`.
 
-Codex is responsible for moving reviewed work to the `done` lane, but must leave
-`isResolved: false`. The user will verify the result and set the resolve flag.
+Codex is responsible for moving reviewed implementation work to the `acceptance`
+lane, but must leave `isResolved: false`. The user will verify the result and
+decide whether it can later move to `done` and whether the resolve flag should be
+set.
 
 If sub-agents are unavailable, leave the ticket in `doing` and add a Kanbalone
 comment explaining that the ticket is blocked from completion until review is
 available.
+
+## GitHub Issue Triage
+
+MarkVSpec の GitHub issue を棚卸しし、検討結果コメントを残して close する場合は、
+project-local skill を使うこと:
+
+`skills/markvspec-github-issue-triage/SKILL.md`
+
+この作業では、GitHub issue に残っている古い設計案をそのまま正とせず、Kanbalone 側の
+現在方針と照合する。別手段で対策することに決まった issue は、検討結果をコメントに
+残してから `not planned` で close する。具体的な bug、release tracking、まだ
+Kanbalone に移管されていない実装課題は close しない。
