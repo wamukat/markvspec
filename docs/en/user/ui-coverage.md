@@ -19,6 +19,7 @@ without falling back to ambiguous prose.
 | Banner / badge | Supported | `Banner`, `Badge` | Use `tone` for semantic intent such as danger or success. |
 | List / table | Supported | `List`, `Table` | Table columns and sample rows use nested Markdown lists. |
 | Dialog / overlay | Supported | `Dialog` with targetless `display.element` | Dialogs are modal overlays by default. Define cancel/confirm buttons with `actions:` and show the dialog from a Preview Scenario or action case without a layout target. |
+| Popover / Tooltip | Supported | `Popover`, `Tooltip` | Anchored non-modal help. `anchor` must reference `E-*`; `placement`, `text`, and visibility conditions are shown in preview and generated specs. Runtime hover/focus behavior and interactive popover content are outside the initial contract. |
 | Toast notification | Supported | `Toast` with targetless `display.element` | Toasts are non-modal overlays. Use `message`, `tone`, `placement`, and `duration`; multiple displayed toasts stack in a toast region. |
 | Spinner / loading mask | Supported | `Spinner` with state-visible overlay layout | Used for wait states and partial loading states. |
 | Divider | Supported | `Divider` | Separates groups inside forms or detail screens. |
@@ -62,7 +63,6 @@ review from generic Layout and Element combinations.
 | Candidate | Classification | Decision | Reason |
 | --- | --- | --- | --- |
 | Menu / DropdownMenu / ActionMenu | Add candidate | Define canonical semantics | Menu item actions and open/closed overlay state are hard to see from a row of Buttons. |
-| Popover / Tooltip | Add candidate | Define anchored overlay semantics | These are lighter than Dialog and need an anchor plus visibility rule. |
 | Accordion / Disclosure | Add candidate | Define canonical semantics | Expanded/collapsed sections are common and should be reviewable without inventing state names. |
 | ProgressBar | Add candidate | Define canonical semantics | Determinate progress has value/max/tone semantics that Spinner cannot express. |
 | Stepper | Add candidate | Define canonical semantics | Multi-step flows need current/completed/error step summaries. |
@@ -124,12 +124,14 @@ in a Preview Scenario, show it as an anchored overlay.
 
 - anchor: E-PasswordHelpButton
 - placement: bottom-start
-- visible when: ${view.isPasswordHelpOpen}
-- content: Password must be at least 12 characters.
+- visible when: help-open
+- text: Password must be at least 12 characters.
 ```
 
-Preview policy: render as an anchored non-modal overlay and expose anchor,
-placement, visibility, and content in Display Content Spec.
+`Popover` and `Tooltip` are implemented. Preview renders them as anchored
+non-modal help and exposes anchor, placement, visibility, and text in Display
+Content Spec. Tooltip hover/focus runtime behavior and interactive Popover
+content are intentionally out of scope.
 
 ### Accordion / Disclosure
 
@@ -205,8 +207,8 @@ page-size information. Keep page-changing actions visible in Action Summary.
 
 - Add a search-list Pagination example only after the row-layout alternative
   becomes too noisy in generated Input/Display/Action specs.
-- Add an overlay example that compares Dialog, Toast, Popover, and Tooltip after
-  anchored overlay syntax is designed.
+- Add a broader overlay example that compares Dialog, Toast, Popover, and
+  Tooltip after more overlay usage repeats.
 - Add Accordion and Stepper examples together with View Context samples because
   both need non-state UI mode values.
 - Keep Skeleton, Card, Toolbar, SearchBox, EmptyState, and Avatar as examples of

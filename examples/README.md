@@ -18,6 +18,7 @@ the DSL, preview, State Views, Action Details, and export output.
 - `04-real-world-screens/profile-edit-rich.vspec.md`: extended element catalog for form controls, media, list content, and modal dialog wiring.
 - `04-real-world-screens/search-list.vspec.md`: real-world search list with filters, table sample rows, paging, empty/error states, and result replacement.
 - `04-real-world-screens/tabs-settings.vspec.md`: focused Tabs element example covering active tab, panel references, item actions, and generated spec aggregation.
+- `04-real-world-screens/anchored-help.vspec.md`: focused Popover and Tooltip example covering anchors, placement, visibility, and generated overlay specs.
 - `04-real-world-screens/login-basic.vspec.md`: compact authentication flow covering responsive layout, required validation, request parameters, response cases, disabled controls, and navigation.
 - `05-reuse/template-shell.vspec.md`: template document unit, reusable navigation shell, language select, and `content` slot placeholder.
 - `05-reuse/basic-slot-page.vspec.md`: smallest screen that fills a template `content` slot without partial or action noise.

@@ -4204,7 +4204,7 @@ function isActionableElement(type: string): boolean {
 }
 
 function isFeedbackElement(type: string): boolean {
-  return ["Banner", "Badge", "Spinner", "Dialog"].includes(type);
+  return ["Banner", "Badge", "Spinner", "Dialog", "Popover", "Tooltip"].includes(type);
 }
 
 function isContentElement(type: string): boolean {
@@ -5963,6 +5963,7 @@ function renderElementDescription(element: ReturnType<typeof parseMarkVSpec>["el
     || stringProperty(element.properties["purpose"])
     || firstEntityProseParagraph(element.overview)
     || (element.type === "Tabs" && stringProperty(element.properties["active"]) ? `active tab: ${stringProperty(element.properties["active"])}` : "")
+    || ((element.type === "Popover" || element.type === "Tooltip") && stringProperty(element.properties["anchor"]) ? `anchor: ${stringProperty(element.properties["anchor"])}` : "")
     || "";
   const notes = renderEntityNotes(element.notes);
   return [description ? text(description) : "", notes].filter(Boolean).join("<br>");
@@ -6130,7 +6131,8 @@ function renderElementDisplayValue(
     sample ? `${label(result, "sample")}: ${renderElementSampleDisplayValue(element, sample)}` : "",
     !sample && element.properties["src"] ? `${label(result, "src")}: ${renderSourceSummary(element.properties["src"])}` : "",
     value ? `${label(result, "value")}: ${hasOpaqueExpression(value) ? renderExpressionTokens(value) : text(value)}` : "",
-    format ? `${label(result, "format")}: ${text(format)}` : ""
+    format ? `${label(result, "format")}: ${text(format)}` : "",
+    element.type === "Popover" || element.type === "Tooltip" ? renderAnchoredOverlaySummary(result, element) : ""
   ].filter(Boolean);
 
   if (rows.length === 0) {
@@ -6152,6 +6154,18 @@ function renderElementFixedTextDisplayValue(element: ReturnType<typeof parseMark
   return element.type === "Badge"
     ? renderSemanticChip(value, rawStringProperty(element.properties["tone"]))
     : text(value);
+}
+
+function renderAnchoredOverlaySummary(
+  result: ReturnType<typeof parseMarkVSpec>,
+  element: ReturnType<typeof parseMarkVSpec>["elements"][number]
+): string {
+  const anchor = rawStringProperty(element.properties["anchor"]);
+  const placement = rawStringProperty(element.properties["placement"]);
+  return [
+    anchor ? `anchor: ${referenceForId(result, anchor, "element")}` : "",
+    placement ? `placement: ${text(placement)}` : ""
+  ].filter(Boolean).join("<br>");
 }
 
 function renderContentElementState(

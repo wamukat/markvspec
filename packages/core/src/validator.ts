@@ -354,6 +354,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
     validateDialogActions(element, elementsById, actionIds, diagnostics);
     validateSelectInitialValue(element, diagnostics);
     validateTabsElement(element, targetLayoutIds, actionIds, diagnostics);
+    validateAnchoredOverlayElement(element, elementIds, diagnostics);
 
     for (const param of element.routeParams) {
       const sourceId = requestParamSourceId(param.source);
@@ -3109,6 +3110,44 @@ function validateTabsElement(
         line: item.propertyLocations.action[0]?.line ?? item.location.line
       });
     }
+  }
+}
+
+function validateAnchoredOverlayElement(
+  element: MarkVSpecElement,
+  elementIds: Set<string>,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  if (element.type !== "Popover" && element.type !== "Tooltip") {
+    return;
+  }
+
+  const anchor = stringProperty(element, "anchor").trim();
+  const line = firstPropertyLine(element, "anchor") ?? element.location.line;
+  if (!anchor) {
+    diagnostics.push({
+      severity: "error",
+      message: `Element ${element.id} ${element.type} requires anchor: E-*.`,
+      line
+    });
+    return;
+  }
+
+  if (!new RegExp(String.raw`^${elementIdPattern}$`, "u").test(anchor)) {
+    diagnostics.push({
+      severity: "error",
+      message: `Element ${element.id} anchor must reference an E-* element.`,
+      line
+    });
+    return;
+  }
+
+  if (!elementIds.has(anchor)) {
+    diagnostics.push({
+      severity: "error",
+      message: `Element ${element.id} anchor references missing element ${anchor}.`,
+      line
+    });
   }
 }
 

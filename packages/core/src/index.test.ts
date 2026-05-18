@@ -5461,6 +5461,7 @@ test("parses every release example without diagnostics", () => {
     "03-actions/parallel-initial-load.vspec.md",
     "03-actions/single-field-validation.vspec.md",
     "03-actions/toast-feedback.vspec.md",
+    "04-real-world-screens/anchored-help.vspec.md",
     "04-real-world-screens/login-basic.vspec.md",
     "04-real-world-screens/notice-detail.vspec.md",
     "04-real-world-screens/profile-edit-rich.vspec.md",
@@ -8603,6 +8604,107 @@ title: Tabs Diagnostics
   assert(messages.includes('Element E-SettingsTabs active tab "Security" does not match any items.'));
   assert(messages.includes("Element E-SettingsTabs tab item Profile references missing panel L-MissingPanel."));
   assert(messages.includes("Element E-SettingsTabs tab item Profile references missing action A-MissingAction."));
+});
+
+test("parses validates renders and summarizes Popover and Tooltip elements", () => {
+  const source = `---
+id: SCR-ANCHORED-OVERLAY
+type: screen
+title: Anchored Overlay
+---
+
+# SCR-ANCHORED-OVERLAY Anchored Overlay
+
+## States
+
+- idle*
+- help-open
+
+## Elements
+
+### E-PasswordInput Input
+
+- type: password
+
+### E-PasswordHint Tooltip
+
+- anchor: E-PasswordInput
+- placement: top
+- text: Use at least 12 characters.
+
+### E-HelpButton Button
+
+- label: Help
+
+### E-PasswordHelp Popover
+
+- anchor: E-HelpButton
+- placement: bottom-start
+- text: Password must include a number.
+- visible when: help-open
+`;
+  const result = parseMarkVSpec(source);
+  const rows = buildDisplayContentSpecRows(result.elements);
+  const tooltipRow = rows.find((row) => row.element.id === "E-PasswordHint" && row.location === "overlay");
+  const popoverRow = rows.find((row) => row.element.id === "E-PasswordHelp" && row.location === "overlay");
+  const html = renderMarkVSpecHtml(result, { state: "help-open", includeStyles: false, showIds: true });
+
+  assert.deepEqual(result.diagnostics, []);
+  assert.deepEqual([tooltipRow?.value, tooltipRow?.contentSections], [
+    "Use at least 12 characters.",
+    [{ title: "Overlay", rows: ["anchor: E-PasswordInput", "placement: top", "text: Use at least 12 characters."] }]
+  ]);
+  assert.deepEqual([popoverRow?.value, popoverRow?.contentSections], [
+    "Password must include a number.",
+    [{ title: "Overlay", rows: ["anchor: E-HelpButton", "placement: bottom-start", "text: Password must include a number.", "visible when: help-open"] }]
+  ]);
+  assert.match(html, /<div class="mm-element mm-element-tooltip" data-mm-id="E-PasswordHint" data-mm-anchor="E-PasswordInput" data-mm-placement="top">/);
+  assert.match(html, /<span class="mm-tooltip-bubble">Use at least 12 characters\.<\/span>/);
+  assert.match(html, /<div class="mm-element mm-element-popover" data-mm-id="E-PasswordHelp" data-mm-anchor="E-HelpButton" data-mm-placement="bottom-start">/);
+  assert.match(html, /<div class="mm-popover-panel">Password must include a number\.<\/div>/);
+});
+
+test("diagnoses invalid Popover and Tooltip anchors", () => {
+  const source = `---
+id: SCR-ANCHORED-OVERLAY-DIAGNOSTICS
+type: screen
+title: Anchored Overlay Diagnostics
+---
+
+# SCR-ANCHORED-OVERLAY-DIAGNOSTICS Anchored Overlay Diagnostics
+
+## States
+
+- idle*
+
+## Layout: desktop
+
+### L-HelpPanel Help panel
+
+- stack
+
+## Elements
+
+### E-MissingAnchor Popover
+
+- text: Missing anchor
+
+### E-LayoutAnchor Tooltip
+
+- anchor: L-HelpPanel
+- text: Layout anchors are invalid.
+
+### E-UnknownAnchor Tooltip
+
+- anchor: E-NoSuchElement
+- text: Unknown anchor
+`;
+  const result = parseMarkVSpec(source);
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert(messages.includes("Element E-MissingAnchor Popover requires anchor: E-*."));
+  assert(messages.includes("Element E-LayoutAnchor anchor must reference an E-* element."));
+  assert(messages.includes("Element E-UnknownAnchor anchor references missing element E-NoSuchElement."));
 });
 
 test("warns for unsupported compact Select options property", () => {

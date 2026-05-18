@@ -158,6 +158,8 @@ Mermaid の SVG が利用できる場合はその SVG を印刷します。
 - `Banner`
 - `Dialog`
 - `Badge`
+- `Popover`
+- `Tooltip`
 - `Image`
 - `Icon`
 - `Spinner`

@@ -24,6 +24,7 @@
 | Banner / Badge | 対応済み | `Banner`, `Badge` | `tone` で danger や success などの意味を表現します。 |
 | List / Table | 対応済み | `List`, `Table` | Table は列とサンプル行を Markdown のネストリストで書きます。 |
 | Dialog / Overlay | 対応済み | `Dialog` と target なしの `display.element` | Dialog は既定で modal overlay です。`actions:` で cancel / confirm button を定義し、Preview Scenario または action case から layout target なしで表示します。 |
+| Popover / Tooltip | 対応済み | `Popover`, `Tooltip` | anchored non-modal help です。`anchor` は `E-*` 参照必須で、`placement`、`text`、visibility condition は preview と生成仕様に表示されます。hover / focus runtime behavior と interactive popover content は初期契約の対象外です。 |
 | Toast 通知 | 対応済み | `Toast` と target なしの `display.element` | Toast は non-modal overlay です。`message`、`tone`、`placement`、`duration` を使い、複数表示時は toast region に stack 表示します。 |
 | Spinner / Loading mask | 対応済み | `Spinner` と状態表示 layout | 待機状態や partial loading に使います。 |
 | Divider | 対応済み | `Divider` | フォームや詳細画面内のグループ区切りに使います。 |
@@ -65,7 +66,6 @@ Layout と既存 Element の組み合わせだけではレビューしにくい�
 | 候補 | 分類 | 判断 | 理由 |
 | --- | --- | --- | --- |
 | Menu / DropdownMenu / ActionMenu | 追加候補 | canonical semantics を定義する | item ごとの action と open/closed overlay 状態が Button 群だけでは埋もれる。 |
-| Popover / Tooltip | 追加候補 | anchored overlay として定義する | Dialog より軽い overlay で、anchor と表示条件が必要。 |
 | Accordion / Disclosure | 追加候補 | canonical semantics を定義する | 展開 / 折りたたみ対象を state 名の発明なしでレビューしたい。 |
 | ProgressBar | 追加候補 | canonical semantics を定義する | Spinner では表せない value/max/tone を持つ。 |
 | Stepper | 追加候補 | canonical semantics を定義する | current/completed/error step を持つ複数ステップ画面で必要。 |
@@ -126,12 +126,13 @@ anchored overlay として表示する。
 
 - anchor: E-PasswordHelpButton
 - placement: bottom-start
-- visible when: ${view.isPasswordHelpOpen}
-- content: Password must be at least 12 characters.
+- visible when: help-open
+- text: Password must be at least 12 characters.
 ```
 
-Preview 方針: non-modal anchored overlay として表示し、anchor、placement、visibility、
-content を Display Content Spec で確認できるようにする。
+`Popover` と `Tooltip` は実装済みです。preview では anchored non-modal help として表示し、
+anchor、placement、visibility、text を Display Content Spec で確認できます。
+Tooltip の hover / focus runtime behavior と interactive Popover content は対象外です。
 
 ### Accordion / Disclosure
 
@@ -204,6 +205,7 @@ page 変更 action は Action Summary でも確認できるようにする。
 ## Example 作成方針
 
 - Pagination は row layout 代替表現が生成仕様上うるさくなった段階で、検索一覧 example に追加する。
-- Popover / Tooltip は Dialog / Toast との違いを示す overlay example として設計する。
+- Popover / Tooltip は focused example を追加済みです。Dialog / Toast との比較は、
+  overlay 利用がさらに増えた段階で広げます。
 - Accordion / Stepper はどちらも screen state ではない UI 局所値が必要なので、View Context Samples と合わせて example 化する。
 - Skeleton / Card / Toolbar / SearchBox / EmptyState / Avatar は、当面 canonical Element ではなく Layout/content pattern の example として扱う。

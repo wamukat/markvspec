@@ -487,6 +487,8 @@ Element types:
 - `Dialog`
 - `Toast`
 - `Badge`
+- `Popover`
+- `Tooltip`
 - `Image`
 - `Icon`
 - `Spinner`
@@ -1569,6 +1571,29 @@ under `items:`. `panel` must reference an existing `L-*` layout group, and
 The generated preview marks the active tab and shows the active panel reference.
 Display Content Spec aggregates tab items into one row, and Element Summary
 links the item actions so reviewers can trace tab behavior.
+
+`Popover` and `Tooltip` represent anchored, non-modal help. `anchor` is required
+and must reference an existing `E-*` element. `placement` is optional and is
+shown in preview and generated specs. Use `text` for the initial content. Runtime
+hover/focus behavior and interactive Popover controls are outside this initial
+element contract.
+
+```markdown
+### E-PasswordHelp Popover
+
+- anchor: E-PasswordHelpButton
+- placement: bottom-start
+- text: Password must be at least 12 characters.
+- visible when: help-open
+```
+
+```markdown
+### E-PasswordHint Tooltip
+
+- anchor: E-PasswordInput
+- placement: top
+- text: Use at least 12 characters.
+```
 
 `Checkbox` can also use `initial value` when the initial checked state comes
 from model or cookie data.

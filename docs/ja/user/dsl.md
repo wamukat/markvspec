@@ -469,6 +469,8 @@ Element type です。
 - `Dialog`
 - `Toast`
 - `Badge`
+- `Popover`
+- `Tooltip`
 - `Image`
 - `Icon`
 - `Spinner`
@@ -1222,6 +1224,29 @@ action を任意で指定できます。
 
 生成 preview は active tab を示し、active panel の参照を表示します。Display Content
 Spec では tab item を 1 行に集約し、Element Summary では item action を辿れるようにします。
+
+`Popover` と `Tooltip` は、特定の Element に紐づく non-modal な補助表示です。
+`anchor` は必須で、既存の `E-*` Element を参照します。`placement` は任意で、
+preview と生成仕様に表示されます。初期実装では本文を `text` で書きます。
+hover / focus の runtime interaction や、Popover 内の button / form control などの
+interactive content は対象外です。
+
+```markdown
+### E-PasswordHelp Popover
+
+- anchor: E-PasswordHelpButton
+- placement: bottom-start
+- text: Password must be at least 12 characters.
+- visible when: help-open
+```
+
+```markdown
+### E-PasswordHint Tooltip
+
+- anchor: E-PasswordInput
+- placement: top
+- text: Use at least 12 characters.
+```
 
 scalar な表示値では、property の値そのものが baseline preview sample です。
 表示値ごとの由来や詳細参照先が必要な場合は、その property 配下に

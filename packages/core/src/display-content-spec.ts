@@ -57,6 +57,7 @@ export function buildDisplayContentSpecRows(elements: ParsedElement[], context: 
     pushListItemsRow(rows, element, sourceType, context);
     pushSelectOptionsRow(rows, element, sourceType);
     pushTabsRow(rows, element, sourceType);
+    pushAnchoredOverlayRow(rows, element, sourceType);
     return rows;
   });
 }
@@ -291,6 +292,40 @@ function formatTabItemContentRow(item: ParsedElement["tabs"][number]): string {
     item.action ? `action: ${item.action}` : ""
   ].filter(Boolean);
   return details.length > 0 ? `${item.label} (${details.join("; ")})` : item.label;
+}
+
+function pushAnchoredOverlayRow(
+  rows: DisplayContentSpecRow[],
+  element: ParsedElement,
+  source: MarkVSpecSourceType
+): void {
+  if (element.type !== "Popover" && element.type !== "Tooltip") {
+    return;
+  }
+
+  const text = rawStringProperty(element.properties["text"]) || rawStringProperty(element.properties["content"]);
+  const anchor = rawStringProperty(element.properties["anchor"]);
+  const placement = rawStringProperty(element.properties["placement"]);
+  const visibility = element.visibleWhen.length > 0 ? element.visibleWhen.join(", ") : "";
+  const value = text || anchor || placement || visibility;
+  if (!value) {
+    return;
+  }
+
+  rows.push({
+    element,
+    location: "overlay",
+    value,
+    contentSections: [
+      { title: "Overlay", rows: [
+        anchor ? `anchor: ${anchor}` : "",
+        placement ? `placement: ${placement}` : "",
+        text ? `text: ${text}` : "",
+        visibility ? `visible when: ${visibility}` : ""
+      ].filter(Boolean) }
+    ],
+    source
+  });
 }
 
 function sampleRowsReferenceRow(

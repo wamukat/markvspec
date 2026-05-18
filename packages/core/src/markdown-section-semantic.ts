@@ -3007,6 +3007,14 @@ function addElementBulletDependencies(element: MarkVSpecElement, bullet: ParsedB
       kind: "validates"
     });
   }
+  if ((element.type === "Popover" || element.type === "Tooltip") && normalizedKey === "anchor") {
+    dependencies.push({
+      source: { type: "entity", id: element.id },
+      target: { type: "entity", id: normalizedValue },
+      direction: "source-invalidates-target",
+      kind: "references"
+    });
+  }
   if (normalizedKey === "visible when" || normalizedKey === "hidden when" || normalizedKey === "disabled when") {
     dependencies.push({
       source: { type: "entity", id: element.id },

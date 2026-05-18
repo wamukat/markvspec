@@ -759,6 +759,17 @@ function renderElement(
     return renderAnnotatedElement(markers, element.type, `<div class="${classes}" data-mm-id="${escapeHtml(element.id)}" role="status" data-mm-toast-placement="${escapeHtml(placement)}" data-mm-toast-duration="${escapeHtml(duration)}"><span class="mm-toast-message">${escapeHtml(message)}</span>${actionLabel}</div>`);
   }
 
+  if (element.type === "Popover" || element.type === "Tooltip") {
+    const overlayText = textValue || stringProperty(element, "content") || displayValue || element.id;
+    const anchor = stringProperty(element, "anchor");
+    const placement = stringProperty(element, "placement") || "auto";
+    const meta = [anchor ? `anchor: ${anchor}` : "", placement ? `placement: ${placement}` : ""].filter(Boolean).join(" / ");
+    const body = element.type === "Tooltip"
+      ? `<div class="${classes}" data-mm-id="${escapeHtml(element.id)}" data-mm-anchor="${escapeHtml(anchor)}" data-mm-placement="${escapeHtml(placement)}"><span class="mm-overlay-meta">${escapeHtml(meta)}</span><span class="mm-tooltip-bubble">${escapeHtml(overlayText)}</span></div>`
+      : `<div class="${classes}" data-mm-id="${escapeHtml(element.id)}" data-mm-anchor="${escapeHtml(anchor)}" data-mm-placement="${escapeHtml(placement)}"><div class="mm-overlay-meta">${escapeHtml(meta)}</div><div class="mm-popover-panel">${escapeHtml(overlayText)}</div></div>`;
+    return renderAnnotatedElement(markers, element.type, body);
+  }
+
   if (element.type === "Badge") {
     return renderAnnotatedElement(markers, element.type, `<span class="${classes}" data-mm-id="${escapeHtml(element.id)}">${escapeHtml(displayValue)}</span>`);
   }
@@ -1592,6 +1603,10 @@ function renderDefaultStyles(): string {
 .mm-tab-item{border:1px solid transparent;border-bottom:0;border-radius:5px 5px 0 0;color:#475569;display:inline-flex;font-size:12px;font-weight:600;margin-bottom:-1px;padding:7px 11px}
 .mm-tab-item-active{background:#fff;border-color:#94a3b8;color:#111827;box-shadow:inset 0 2px 0 #2563eb}
 .mm-tabs-panel-note{background:#f8fafc;border:1px dashed #cbd5e1;border-top:0;color:#475569;font-size:12px;padding:8px 10px}
+.mm-element-popover,.mm-element-tooltip{background:#fff;display:inline-flex;flex-direction:column;gap:4px;max-width:min(320px,100%)}
+.mm-overlay-meta{color:#64748b;font-size:11px;font-weight:700;line-height:1.2}
+.mm-popover-panel{background:#fff;border:1px solid #94a3b8;border-radius:6px;box-shadow:0 4px 12px rgba(15,23,42,.12);font-size:13px;padding:10px 12px}
+.mm-tooltip-bubble{background:#f8fafc;border:1px solid #94a3b8;border-radius:5px;color:#1f2937;font-size:12px;line-height:1.35;padding:5px 8px}
 .mm-switch-track{align-items:center;background:#d1d5db;border-radius:999px;display:inline-flex;height:18px;padding:2px;width:34px}
 .mm-switch-thumb{background:#fff;border-radius:50%;box-shadow:0 1px 2px rgba(15,23,42,.28);display:block;height:14px;width:14px}
 .mm-element-switch input:checked + .mm-switch-track{background:#2563eb}.mm-element-switch input:checked + .mm-switch-track .mm-switch-thumb{transform:translateX(16px)}

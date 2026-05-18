@@ -6237,6 +6237,27 @@ test("renders Tabs element summary, wireframe, and display content spec", () => 
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("2", "E-SettingsTabs")}</td><td>tabs</td><td>${specSectionPattern("Tabs", ["Profile \\(panel: L-ProfilePanel; action: A-SelectProfileTab\\)", "Billing \\(panel: L-BillingPanel; action: A-SelectBillingTab\\)"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
 });
 
+test("renders Popover and Tooltip element summary, wireframe, and display content spec", () => {
+  const source = readFileSync(resolve("../../examples/04-real-world-screens/anchored-help.vspec.md"), "utf8");
+  const result = parseMarkVSpec(source);
+  assert.deepEqual(result.diagnostics, []);
+  const html = renderDesignDocumentHtml(result, "");
+  const helpOpenSection = stateSection(html, "help-open");
+  const elementSummary = helpOpenSection.match(/<h6 class="state-screen-detail-heading">Element Summary<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+  const displayContent = helpOpenSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.match(helpOpenSection, /<div class="mm-element mm-element-tooltip" data-mm-id="E-PasswordHint" data-mm-anchor="E-PasswordInput" data-mm-placement="top">/);
+  assert.match(helpOpenSection, /<span class="mm-tooltip-bubble">Use at least 12 characters\.<\/span>/);
+  assert.match(helpOpenSection, /<div class="mm-element mm-element-popover" data-mm-id="E-PasswordHelp" data-mm-anchor="E-PasswordHelpButton" data-mm-placement="bottom-start">/);
+  assert.match(helpOpenSection, /<div class="mm-popover-panel">Password must be at least 12 characters and include a number\.<\/div>/);
+  assert.match(elementSummary, /<td>Tooltip<\/td>/);
+  assert.match(elementSummary, /anchor: E-PasswordInput/);
+  assert.match(elementSummary, /<td>Popover<\/td>/);
+  assert.match(elementSummary, /anchor: E-PasswordHelpButton/);
+  assert.match(displayContent, new RegExp(`<td>overlay</td><td>${specSectionPattern("Overlay", ["anchor: E-PasswordInput", "placement: top", "text: Use at least 12 characters\\."])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>overlay</td><td>${specSectionPattern("Overlay", ["anchor: E-PasswordHelpButton", "placement: bottom-start", "text: Password must be at least 12 characters and include a number\\.", "visible when: help-open"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
+});
+
 test("splits input form values and source metadata into separate columns", () => {
   const result = parseMarkVSpec(`---
 id: SCR-INPUT-SOURCE

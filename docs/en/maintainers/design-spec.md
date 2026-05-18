@@ -220,6 +220,8 @@ Release element types:
 - `Banner`
 - `Dialog`
 - `Badge`
+- `Popover`
+- `Tooltip`
 - `Image`
 - `Icon`
 - `Spinner`
