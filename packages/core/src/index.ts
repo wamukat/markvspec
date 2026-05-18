@@ -319,6 +319,21 @@ function applyCanonicalActionTriggers(result: MarkVSpecParseResult): void {
         event: actionEvent
       };
     }
+    for (const accordionItem of element.accordionItems) {
+      if (!accordionItem.action) {
+        continue;
+      }
+      const action = actionsById.get(accordionItem.action);
+      if (!action || action.triggeredBy) {
+        continue;
+      }
+      action.triggeredBy = `${element.id}.${actionEvent}`;
+      action.triggeredByLocation = accordionItem.propertyLocations.action[0] ?? accordionItem.location;
+      action.trigger = {
+        elementId: element.id,
+        event: actionEvent
+      };
+    }
   }
 
   for (const event of result.events) {

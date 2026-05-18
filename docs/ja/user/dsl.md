@@ -459,6 +459,8 @@ Element type です。
 - `Select`
 - `MultiSelect`
 - `Tabs`
+- `Accordion`
+- `Disclosure`
 - `Checkbox`
 - `CheckboxGroup`
 - `Switch`
@@ -984,6 +986,8 @@ wireframe preview では native `required` attribute や自動の `*` marker と
 - `Select`
 - `MultiSelect`
 - `Tabs`
+- `Accordion`
+- `Disclosure`
 - `Checkbox`
 - `CheckboxGroup`
 - `Switch`
@@ -994,6 +998,8 @@ wireframe preview では native `required` attribute や自動の `*` marker と
 - `Dialog`
 - `Toast`
 - `Badge`
+- `Popover`
+- `Tooltip`
 - `Image`
 - `Icon`
 - `Spinner`
@@ -1224,6 +1230,40 @@ action を任意で指定できます。
 
 生成 preview は active tab を示し、active panel の参照を表示します。Display Content
 Spec では tab item を 1 行に集約し、Element Summary では item action を辿れるようにします。
+
+`Accordion` と `Disclosure` は、画面内の局所的な展開 / 折りたたみ UI を表す
+Element です。`open` は Element の初期表示状態であり、screen state、View Context、
+model value ではありません。
+
+`Accordion` では、`open` がある場合は item label と一致している必要があります。
+各 item は制御対象の `panel: L-*` layout group と、任意の `action: A-*` を持てます。
+
+```markdown
+### E-AdvancedFilters Accordion
+
+- open: Advanced filters
+- items:
+  - Advanced filters
+    - panel: L-AdvancedFilterPanel
+    - action: A-ToggleAdvancedFilters
+  - Saved filters
+    - panel: L-SavedFiltersPanel
+```
+
+`Disclosure` では、`label` が開閉行の表示名、`open` は `true` または `false`、
+`panel` は制御対象の `L-*` layout group、`action` は任意の開閉 action です。
+
+```markdown
+### E-ShippingDetails Disclosure
+
+- label: Shipping details
+- open: true
+- panel: L-ShippingDetailsPanel
+- action: A-ToggleShippingDetails
+```
+
+生成仕様では panel 参照と action link を集約し、展開動作を余計な screen state
+なしで追跡できるようにします。
 
 `Popover` と `Tooltip` は、特定の Element に紐づく non-modal な補助表示です。
 `anchor` は必須で、既存の `E-*` Element を参照します。`placement` は任意で、

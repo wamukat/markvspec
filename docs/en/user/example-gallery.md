@@ -88,6 +88,7 @@ For `F-*` and `V-*` examples that should appear as reference chips, prefer a
 | [Search List](../../../examples/04-real-world-screens/search-list.vspec.md) | Search screen with filters and pagination. | Desktop toolbar, Select options, Table sample rows, empty state, fetch-error state, and display element replacement. |
 | [Tabs Settings](../../../examples/04-real-world-screens/tabs-settings.vspec.md) | Focused Tabs element example. | Active tab, tab panel references, item actions, and Display Content Spec aggregation. |
 | [Anchored Help](../../../examples/04-real-world-screens/anchored-help.vspec.md) | Focused Popover and Tooltip example. | Anchored non-modal help, placement, visibility, wireframe rendering, and Display Content Spec overlay rows. |
+| [Accordion Disclosure](../../../examples/04-real-world-screens/accordion-disclosure.vspec.md) | Focused Accordion and Disclosure element example. | Local open state, panel references, item actions, wireframe rendering, and Display Content Spec aggregation. |
 | [Login Basic](../../../examples/04-real-world-screens/login-basic.vspec.md) | Compact authentication flow with mobile and desktop layouts. | Required inputs, validation/auth/request messages as display scenarios, spinner overlay, disabled controls, request parameters, response cases, screen navigation, and Business Rules. |
 | [Template Shell](../../../examples/05-reuse/template-shell.vspec.md) | Shared template shell. | Template document unit, navigation frame, top bar, language Select, and `content` slot placeholder. |
 | [Basic Slot Page](../../../examples/05-reuse/basic-slot-page.vspec.md) | Smallest screen using a template slot. | Front Matter `template` and viewport-neutral `## Slot: content` without partial or action noise. |
@@ -122,13 +123,15 @@ For `F-*` and `V-*` examples that should appear as reference chips, prefer a
    and confirm the active tab, panel references, and tab actions are traceable.
 12. Open [Anchored Help](../../../examples/04-real-world-screens/anchored-help.vspec.md)
    and confirm Popover and Tooltip anchors, placement, and text are visible.
-13. Open [Basic Slot Page](../../../examples/05-reuse/basic-slot-page.vspec.md),
+13. Open [Accordion Disclosure](../../../examples/04-real-world-screens/accordion-disclosure.vspec.md)
+   and confirm Accordion and Disclosure open states, panel references, and actions are traceable.
+14. Open [Basic Slot Page](../../../examples/05-reuse/basic-slot-page.vspec.md),
    [Responsive Slot Page](../../../examples/05-reuse/responsive-slot-page.vspec.md),
    and [Default Slot Page](../../../examples/05-reuse/default-slot-page.vspec.md)
    to confirm template slot content, viewport-specific slot override, and
    default fallback render.
-12. Open [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md)
+15. Open [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md)
    and confirm template composition and partial references render.
-13. Open [History And Errors](../../../examples/06-structured-sections/history-and-errors.vspec.md)
+16. Open [History And Errors](../../../examples/06-structured-sections/history-and-errors.vspec.md)
    and confirm structured release metadata renders.
-14. Run `npm run test -w @markvspec/core` before changing example syntax.
+17. Run `npm run test -w @markvspec/core` before changing example syntax.

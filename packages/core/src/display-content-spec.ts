@@ -57,6 +57,7 @@ export function buildDisplayContentSpecRows(elements: ParsedElement[], context: 
     pushListItemsRow(rows, element, sourceType, context);
     pushSelectOptionsRow(rows, element, sourceType);
     pushTabsRow(rows, element, sourceType);
+    pushAccordionDisclosureRows(rows, element, sourceType);
     pushAnchoredOverlayRow(rows, element, sourceType);
     return rows;
   });
@@ -287,6 +288,60 @@ function pushTabsRow(
 }
 
 function formatTabItemContentRow(item: ParsedElement["tabs"][number]): string {
+  const details = [
+    item.panel ? `panel: ${item.panel}` : "",
+    item.action ? `action: ${item.action}` : ""
+  ].filter(Boolean);
+  return details.length > 0 ? `${item.label} (${details.join("; ")})` : item.label;
+}
+
+function pushAccordionDisclosureRows(
+  rows: DisplayContentSpecRow[],
+  element: ParsedElement,
+  source: MarkVSpecSourceType
+): void {
+  if (element.type === "Accordion" && element.accordionItems.length > 0) {
+    rows.push({
+      element,
+      location: "accordion",
+      value: element.accordionItems.map((item) => item.label).join(", "),
+      contentSections: [
+        { title: "Accordion", rows: element.accordionItems.map(formatPanelItemContentRow) }
+      ],
+      source
+    });
+    return;
+  }
+
+  if (element.type !== "Disclosure") {
+    return;
+  }
+
+  const label = rawStringProperty(element.properties["label"]);
+  const open = rawStringProperty(element.properties["open"]);
+  const panel = rawStringProperty(element.properties["panel"]);
+  const action = rawStringProperty(element.properties["action"]);
+  const rowsValue = [
+    label ? `label: ${label}` : "",
+    open ? `open: ${open}` : "",
+    panel ? `panel: ${panel}` : "",
+    action ? `action: ${action}` : ""
+  ].filter(Boolean);
+  if (rowsValue.length === 0) {
+    return;
+  }
+  rows.push({
+    element,
+    location: "disclosure",
+    value: label || panel || open || action,
+    contentSections: [
+      { title: "Disclosure", rows: rowsValue }
+    ],
+    source
+  });
+}
+
+function formatPanelItemContentRow(item: ParsedElement["accordionItems"][number]): string {
   const details = [
     item.panel ? `panel: ${item.panel}` : "",
     item.action ? `action: ${item.action}` : ""

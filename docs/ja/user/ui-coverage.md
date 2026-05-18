@@ -25,12 +25,12 @@
 | List / Table | 対応済み | `List`, `Table` | Table は列とサンプル行を Markdown のネストリストで書きます。 |
 | Dialog / Overlay | 対応済み | `Dialog` と target なしの `display.element` | Dialog は既定で modal overlay です。`actions:` で cancel / confirm button を定義し、Preview Scenario または action case から layout target なしで表示します。 |
 | Popover / Tooltip | 対応済み | `Popover`, `Tooltip` | anchored non-modal help です。`anchor` は `E-*` 参照必須で、`placement`、`text`、visibility condition は preview と生成仕様に表示されます。hover / focus runtime behavior と interactive popover content は初期契約の対象外です。 |
+| Accordion / Disclosure | 対応済み | `Accordion`, `Disclosure` | 画面内の局所的な展開 / 折りたたみです。`open` は Element 内の初期表示状態で、panel は `L-*` layout group を参照し、任意 action も追跡できます。 |
 | Toast 通知 | 対応済み | `Toast` と target なしの `display.element` | Toast は non-modal overlay です。`message`、`tone`、`placement`、`duration` を使い、複数表示時は toast region に stack 表示します。 |
 | Spinner / Loading mask | 対応済み | `Spinner` と状態表示 layout | 待機状態や partial loading に使います。 |
 | Divider | 対応済み | `Divider` | フォームや詳細画面内のグループ区切りに使います。 |
 | Empty state | 対応済み | `visible when: empty` を持つ `Paragraph` | 空状態は専用 element ではなく、empty state に紐づく文章として表します。 |
 | Breadcrumb | 代替表現あり | row layout 内の `Link` | 専用セマンティクスは未定義です。 |
-| Accordion | 今後対応 | 未定義 | 展開 / 折りたたみ状態の意味付けが必要です。 |
 | Pagination | 代替表現あり | row layout と paging button / page text | 専用要素はまだ canonical ではありません。 |
 | Stepper | 今後対応 | 未定義 | current / completed / error step の意味付けが必要です。 |
 | Skeleton | 代替表現あり | `Spinner`, `Text`, placeholder layout | 専用セマンティクスは未定義です。 |
@@ -53,9 +53,8 @@
 ## 優先ギャップ
 
 1. ルート階層や現在位置の表現が重要になったら Breadcrumb を canonical 化する。
-2. 展開 / 折りたたみ状態を validation したくなったら Accordion を追加する。
-3. row layout による Pagination 表現が冗長になったら専用要素を追加する。
-4. state-flow 記法が固まった後、複数ステップ申込向けに Stepper を追加する。
+2. row layout による Pagination 表現が冗長になったら専用要素を追加する。
+3. state-flow 記法が固まった後、複数ステップ申込向けに Stepper を追加する。
 
 ## 不足候補の分類
 
@@ -66,7 +65,6 @@ Layout と既存 Element の組み合わせだけではレビューしにくい�
 | 候補 | 分類 | 判断 | 理由 |
 | --- | --- | --- | --- |
 | Menu / DropdownMenu / ActionMenu | 追加候補 | canonical semantics を定義する | item ごとの action と open/closed overlay 状態が Button 群だけでは埋もれる。 |
-| Accordion / Disclosure | 追加候補 | canonical semantics を定義する | 展開 / 折りたたみ対象を state 名の発明なしでレビューしたい。 |
 | ProgressBar | 追加候補 | canonical semantics を定義する | Spinner では表せない value/max/tone を持つ。 |
 | Stepper | 追加候補 | canonical semantics を定義する | current/completed/error step を持つ複数ステップ画面で必要。 |
 | Breadcrumb | 追加候補 | canonical semantics を定義する | 階層ナビゲーションでは current item と遷移先の区別が必要。 |
@@ -139,14 +137,27 @@ Tooltip の hover / focus runtime behavior と interactive Popover content は�
 ```markdown
 ### E-AdvancedFilters Accordion
 
-- value: ${view.expandedSections}
+- open: Advanced filters
 - items:
-  - Advanced filters: filters
+  - Advanced filters
     - panel: L-AdvancedFilterPanel
+    - action: A-ToggleAdvancedFilters
+  - Saved filters
+    - panel: L-SavedFiltersPanel
 ```
 
-Preview 方針: active な View Context に応じて header と expanded panel を表示する。
-展開状態は screen state ではなく UI 局所値として扱う。
+```markdown
+### E-ShippingDetails Disclosure
+
+- label: Shipping details
+- open: true
+- panel: L-ShippingDetailsPanel
+- action: A-ToggleShippingDetails
+```
+
+`Accordion` と `Disclosure` は実装済みです。preview では header と開いている
+panel 参照を表示します。Display Content Spec では panel / action link を集約し、
+局所的な展開動作を screen state と分けて確認できます。
 
 ### ProgressBar
 
@@ -207,5 +218,5 @@ page 変更 action は Action Summary でも確認できるようにする。
 - Pagination は row layout 代替表現が生成仕様上うるさくなった段階で、検索一覧 example に追加する。
 - Popover / Tooltip は focused example を追加済みです。Dialog / Toast との比較は、
   overlay 利用がさらに増えた段階で広げます。
-- Accordion / Stepper はどちらも screen state ではない UI 局所値が必要なので、View Context Samples と合わせて example 化する。
+- Stepper は screen state ではない UI 局所値が必要になり得るので、View Context Samples と合わせて example 化する。
 - Skeleton / Card / Toolbar / SearchBox / EmptyState / Avatar は、当面 canonical Element ではなく Layout/content pattern の example として扱う。

@@ -5461,6 +5461,7 @@ test("parses every release example without diagnostics", () => {
     "03-actions/parallel-initial-load.vspec.md",
     "03-actions/single-field-validation.vspec.md",
     "03-actions/toast-feedback.vspec.md",
+    "04-real-world-screens/accordion-disclosure.vspec.md",
     "04-real-world-screens/anchored-help.vspec.md",
     "04-real-world-screens/login-basic.vspec.md",
     "04-real-world-screens/notice-detail.vspec.md",
@@ -7518,6 +7519,21 @@ title: Action Events
     - panel: L-ProfilePanel
     - action: A-SelectKeyboardProfileTab
 
+### E-AdvancedFilters Accordion
+
+- open: Profile
+- items:
+  - Profile
+    - panel: L-ProfilePanel
+    - action: A-ToggleProfileFilters
+
+### E-ShippingDetails Disclosure
+
+- label: Shipping details
+- open: true
+- panel: L-BillingPanel
+- action: A-ToggleShippingDetails
+
 ## Actions
 
 ### A-MarkChanged Mark changed
@@ -7567,6 +7583,18 @@ title: Action Events
 - Process P1: Immediate
   - Effects
     - state: idle
+
+### A-ToggleProfileFilters Toggle profile filters
+
+- Process P1: Immediate
+  - Effects
+    - state: idle
+
+### A-ToggleShippingDetails Toggle shipping details
+
+- Process P1: Immediate
+  - Effects
+    - state: idle
 `;
   const result = parseMarkVSpec(source);
   const triggers = new Map(result.actions.map((action) => [action.id, action.triggeredBy]));
@@ -7580,6 +7608,8 @@ title: Action Events
   assert.equal(triggers.get("A-SelectProfileTab"), "E-SettingsTabs.click");
   assert.equal(triggers.get("A-SelectBillingTab"), "E-SettingsTabs.click");
   assert.equal(triggers.get("A-SelectKeyboardProfileTab"), "E-KeyboardTabs.change");
+  assert.equal(triggers.get("A-ToggleProfileFilters"), "E-AdvancedFilters.click");
+  assert.equal(triggers.get("A-ToggleShippingDetails"), "E-ShippingDetails.click");
 });
 
 test("validates built-in Events dispatches", () => {
@@ -8705,6 +8735,87 @@ title: Anchored Overlay Diagnostics
   assert(messages.includes("Element E-MissingAnchor Popover requires anchor: E-*."));
   assert(messages.includes("Element E-LayoutAnchor anchor must reference an E-* element."));
   assert(messages.includes("Element E-UnknownAnchor anchor references missing element E-NoSuchElement."));
+});
+
+test("parses validates renders and summarizes Accordion and Disclosure elements", () => {
+  const source = readFileSync(examplePath("04-real-world-screens/accordion-disclosure.vspec.md"), "utf8");
+  const result = parseMarkVSpec(source);
+  const rows = buildDisplayContentSpecRows(result.elements);
+  const accordion = result.elements.find((element) => element.id === "E-AdvancedFilters");
+  const disclosure = result.elements.find((element) => element.id === "E-ShippingDetails");
+  const accordionRow = rows.find((row) => row.element.id === "E-AdvancedFilters" && row.location === "accordion");
+  const disclosureRow = rows.find((row) => row.element.id === "E-ShippingDetails" && row.location === "disclosure");
+  const html = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true });
+  const triggers = new Map(result.actions.map((action) => [action.id, action.triggeredBy]));
+
+  assert.deepEqual(result.diagnostics, []);
+  assert.equal(accordion?.type, "Accordion");
+  assert.equal(accordion?.properties["open"], "Advanced filters");
+  assert.deepEqual(accordion?.accordionItems.map((item) => [item.label, item.panel, item.action]), [
+    ["Advanced filters", "L-AdvancedFilterPanel", "A-ToggleAdvancedFilters"],
+    ["Saved filters", "L-SavedFiltersPanel", undefined]
+  ]);
+  assert.deepEqual([accordionRow?.value, accordionRow?.contentSections], [
+    "Advanced filters, Saved filters",
+    [{ title: "Accordion", rows: ["Advanced filters (panel: L-AdvancedFilterPanel; action: A-ToggleAdvancedFilters)", "Saved filters (panel: L-SavedFiltersPanel)"] }]
+  ]);
+  assert.equal(disclosure?.type, "Disclosure");
+  assert.deepEqual([disclosureRow?.value, disclosureRow?.contentSections], [
+    "Shipping details",
+    [{ title: "Disclosure", rows: ["label: Shipping details", "open: true", "panel: L-ShippingDetailsPanel", "action: A-ToggleShippingDetails"] }]
+  ]);
+  assert.equal(triggers.get("A-ToggleAdvancedFilters"), "E-AdvancedFilters.click");
+  assert.equal(triggers.get("A-ToggleShippingDetails"), "E-ShippingDetails.click");
+  assert.match(html, /<div class="mm-element mm-element-accordion" data-mm-id="E-AdvancedFilters">/);
+  assert.match(html, /<div class="mm-accordion-item mm-accordion-item-open" data-mm-accordion-panel="L-AdvancedFilterPanel" data-mm-accordion-action="A-ToggleAdvancedFilters">/);
+  assert.match(html, /<div class="mm-accordion-panel-note">panel: L-AdvancedFilterPanel<\/div>/);
+  assert.match(html, /<div class="mm-element mm-element-disclosure mm-disclosure-open" data-mm-id="E-ShippingDetails" data-mm-disclosure-panel="L-ShippingDetailsPanel">/);
+  assert.match(html, /<div class="mm-accordion-panel-note">panel: L-ShippingDetailsPanel<\/div>/);
+});
+
+test("diagnoses invalid Accordion and Disclosure references", () => {
+  const source = `---
+id: SCR-ACCORDION-DIAGNOSTICS
+type: screen
+title: Accordion Diagnostics
+---
+
+# SCR-ACCORDION-DIAGNOSTICS Accordion Diagnostics
+
+## States
+
+- idle*
+
+## Elements
+
+### E-AdvancedFilters Accordion
+
+- open: Saved filters
+- items:
+  - Advanced filters
+    - panel: L-MissingPanel
+    - action: A-MissingAction
+
+### E-ShippingDetails Disclosure
+
+- label: Shipping details
+- open: maybe
+- panel: L-MissingShippingPanel
+
+### E-NoPanel Disclosure
+
+- label: No panel
+- open: true
+`;
+  const result = parseMarkVSpec(source);
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert(messages.includes('Element E-AdvancedFilters open item "Saved filters" does not match any items.'));
+  assert(messages.includes("Element E-AdvancedFilters accordion item Advanced filters references missing panel L-MissingPanel."));
+  assert(messages.includes("Element E-AdvancedFilters accordion item Advanced filters references missing action A-MissingAction."));
+  assert(messages.includes("Element E-ShippingDetails Disclosure open must be true or false."));
+  assert(messages.includes("Element E-ShippingDetails references missing panel L-MissingShippingPanel."));
+  assert(messages.includes("Element E-NoPanel Disclosure requires panel: L-*."));
 });
 
 test("warns for unsupported compact Select options property", () => {

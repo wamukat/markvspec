@@ -144,7 +144,7 @@ export interface ActionSemanticResult {
 }
 
 const optionElementTypes = new Set(["Select", "MultiSelect", "RadioGroup", "CheckboxGroup"]);
-const tabItemPropertyKeys = new Set(["panel", "action"]);
+const panelItemPropertyKeys = new Set(["panel", "action"]);
 
 export function parseSmallSectionSemantics(document: MarkdownDocument): SmallSectionSemanticResult {
   const sections = collectSectionAst(document);
@@ -682,6 +682,7 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
   let currentSampleRow: MarkVSpecSampleRow | undefined;
   let currentSelectOption: MarkVSpecElement["selectOptions"][number] | undefined;
   let currentTabItem: MarkVSpecElement["tabs"][number] | undefined;
+  let currentAccordionItem: MarkVSpecElement["accordionItems"][number] | undefined;
   let currentElementHasStructuredContent = false;
   let hasSeenEntity = false;
   let inSectionNotes = false;
@@ -721,6 +722,7 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
         currentSampleRow = undefined;
         currentSelectOption = undefined;
         currentTabItem = undefined;
+        currentAccordionItem = undefined;
         currentElementHasStructuredContent = false;
         continue;
       }
@@ -742,6 +744,7 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
         routeParams: [],
         selectOptions: [],
         tabs: [],
+        accordionItems: [],
         tableColumns: [],
         tableRows: [],
         visibleWhen: [],
@@ -759,6 +762,7 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
       currentTableRow = undefined;
       currentSampleRow = undefined;
       currentTabItem = undefined;
+      currentAccordionItem = undefined;
       currentElementHasStructuredContent = false;
       continue;
     }
@@ -787,8 +791,9 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
         currentTableRow = undefined;
         currentSampleRow = undefined;
         currentTabItem = undefined;
+        currentAccordionItem = undefined;
       }
-      const bulletResult = applyElementSemanticBullet(currentElement, bullet, currentElementNestedProperty, currentTableColumn, currentTableRow, currentSampleRow, currentTabItem, diagnostics, dependencies);
+      const bulletResult = applyElementSemanticBullet(currentElement, bullet, currentElementNestedProperty, currentTableColumn, currentTableRow, currentSampleRow, currentTabItem, currentAccordionItem, diagnostics, dependencies);
       currentElementNestedProperty = bulletResult.nestedProperty;
       if (currentElementNestedProperty === "Columns" && bullet.indent > 0 && !isTableColumnMetadataBullet(bullet)) {
         currentTableColumn = currentElement.tableColumns[currentElement.tableColumns.length - 1];
@@ -811,6 +816,11 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
         currentTabItem = bulletResult.tabItem;
       } else if (currentElementNestedProperty !== "items" || bullet.indent <= 1) {
         currentTabItem = currentElementNestedProperty === "items" ? currentTabItem : undefined;
+      }
+      if (bulletResult.accordionItem) {
+        currentAccordionItem = bulletResult.accordionItem;
+      } else if (currentElementNestedProperty !== "items" || bullet.indent <= 1) {
+        currentAccordionItem = currentElementNestedProperty === "items" ? currentAccordionItem : undefined;
       }
     }
   }
@@ -835,19 +845,33 @@ function applyElementSemanticBullet(
   tableRow: MarkVSpecElement["tableRows"][number] | undefined,
   sampleRow: MarkVSpecSampleRow | undefined,
   tabItem: MarkVSpecElement["tabs"][number] | undefined,
+  accordionItem: MarkVSpecElement["accordionItems"][number] | undefined,
   diagnostics: MarkVSpecDiagnostic[],
   dependencies: SemanticDependency[]
-): { nestedProperty: string | undefined; sampleRow?: MarkVSpecSampleRow; selectOption?: MarkVSpecElement["selectOptions"][number]; tabItem?: MarkVSpecElement["tabs"][number] } {
+): { nestedProperty: string | undefined; sampleRow?: MarkVSpecSampleRow; selectOption?: MarkVSpecElement["selectOptions"][number]; tabItem?: MarkVSpecElement["tabs"][number]; accordionItem?: MarkVSpecElement["accordionItems"][number] } {
   if (bullet.indent > 0) {
     if (element.type === "Tabs" && nestedProperty === "items") {
       if (bullet.indent === 1) {
-        const item = parseTabItem(bullet);
+        const item = parsePanelItem(bullet);
         element.tabs.push(item);
         return { nestedProperty, tabItem: item };
       }
       if (bullet.indent === 2 && tabItem) {
-        applyTabItemProperty(tabItem, bullet, diagnostics, element.id);
-        addTabItemDependency(element, bullet, dependencies);
+        applyPanelItemProperty(tabItem, bullet, diagnostics, element.id, "tab item");
+        addPanelItemDependency(element, bullet, dependencies);
+      }
+      return { nestedProperty };
+    }
+
+    if (element.type === "Accordion" && nestedProperty === "items") {
+      if (bullet.indent === 1) {
+        const item = parsePanelItem(bullet);
+        element.accordionItems.push(item);
+        return { nestedProperty, accordionItem: item };
+      }
+      if (bullet.indent === 2 && accordionItem) {
+        applyPanelItemProperty(accordionItem, bullet, diagnostics, element.id, "accordion item");
+        addPanelItemDependency(element, bullet, dependencies);
       }
       return { nestedProperty };
     }
@@ -954,6 +978,11 @@ function applyElementSemanticBullet(
     return { nestedProperty: nextNestedProperty };
   }
   if (element.type === "Tabs" && isEmptyNestedValue && nextNestedProperty === "items") {
+    element.properties["items"] = true;
+    addPropertyLocation(element.propertyLocations, "items", bullet.location);
+    return { nestedProperty: nextNestedProperty };
+  }
+  if (element.type === "Accordion" && isEmptyNestedValue && nextNestedProperty === "items") {
     element.properties["items"] = true;
     addPropertyLocation(element.propertyLocations, "items", bullet.location);
     return { nestedProperty: nextNestedProperty };
@@ -2750,7 +2779,7 @@ function parseElementOption(bullet: ParsedBullet): MarkVSpecElement["selectOptio
   };
 }
 
-function parseTabItem(bullet: ParsedBullet): MarkVSpecElement["tabs"][number] {
+function parsePanelItem(bullet: ParsedBullet): MarkVSpecElement["tabs"][number] {
   return {
     label: bullet.text.trim(),
     propertyLocations: { panel: [], action: [] },
@@ -2759,18 +2788,19 @@ function parseTabItem(bullet: ParsedBullet): MarkVSpecElement["tabs"][number] {
   };
 }
 
-function applyTabItemProperty(
+function applyPanelItemProperty(
   item: MarkVSpecElement["tabs"][number],
   bullet: ParsedBullet,
   diagnostics: MarkVSpecDiagnostic[],
-  elementId: string
+  elementId: string,
+  itemKind: string
 ): void {
   const [key, value] = splitKeyValue(bullet.text);
   const normalizedKey = key.trim();
-  if (!tabItemPropertyKeys.has(normalizedKey)) {
+  if (!panelItemPropertyKeys.has(normalizedKey)) {
     diagnostics.push({
       severity: "warning",
-      message: `Element ${elementId} tab item ${item.label} has unsupported property ${normalizedKey}. Use panel or action.`,
+      message: `Element ${elementId} ${itemKind} ${item.label} has unsupported property ${normalizedKey}. Use panel or action.`,
       line: bullet.location.line
     });
     return;
@@ -3039,10 +3069,10 @@ function addElementRouteParamDependency(element: MarkVSpecElement, bullet: Parse
   });
 }
 
-function addTabItemDependency(element: MarkVSpecElement, bullet: ParsedBullet, dependencies: SemanticDependency[]): void {
+function addPanelItemDependency(element: MarkVSpecElement, bullet: ParsedBullet, dependencies: SemanticDependency[]): void {
   const [key, value] = splitKeyValue(bullet.text);
   const target = value?.trim();
-  if (!target || !tabItemPropertyKeys.has(key.trim())) {
+  if (!target || !panelItemPropertyKeys.has(key.trim())) {
     return;
   }
   dependencies.push({

@@ -213,6 +213,8 @@ Release element types:
 - `Link`
 - `Select`
 - `Tabs`
+- `Accordion`
+- `Disclosure`
 - `Checkbox`
 - `RadioGroup`
 - `List`

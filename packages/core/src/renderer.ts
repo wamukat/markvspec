@@ -738,6 +738,28 @@ function renderElement(
     return renderAnnotatedElement(markers, element.type, `<div class="${classes}" data-mm-id="${escapeHtml(element.id)}"><div class="mm-tab-strip">${tabs}</div>${panelNote}</div>`);
   }
 
+  if (element.type === "Accordion") {
+    const open = stringProperty(element, "open");
+    const items = element.accordionItems.length > 0 ? element.accordionItems : [{ label: open || displayLabel || "Section", propertyLocations: { panel: [], action: [] }, location: element.location, raw: open || displayLabel || "Section" }];
+    const openLabel = open || items[0]?.label || "";
+    const itemHtml = items.map((item) => {
+      const expanded = item.label === openLabel;
+      const panel = item.panel ? ` data-mm-accordion-panel="${escapeHtml(item.panel)}"` : "";
+      const action = item.action ? ` data-mm-accordion-action="${escapeHtml(item.action)}"` : "";
+      const panelNote = expanded && item.panel ? `<div class="mm-accordion-panel-note">panel: ${escapeHtml(item.panel)}</div>` : "";
+      return `<div class="mm-accordion-item${expanded ? " mm-accordion-item-open" : ""}"${panel}${action}><div class="mm-accordion-header">${expanded ? "v" : ">"} ${escapeHtml(item.label)}</div>${panelNote}</div>`;
+    }).join("");
+    return renderAnnotatedElement(markers, element.type, `<div class="${classes}" data-mm-id="${escapeHtml(element.id)}">${itemHtml}</div>`);
+  }
+
+  if (element.type === "Disclosure") {
+    const open = isTruthyInitialValue(stringProperty(element, "open"));
+    const panel = stringProperty(element, "panel");
+    const panelAttr = panel ? ` data-mm-disclosure-panel="${escapeHtml(panel)}"` : "";
+    const panelNote = open && panel ? `<div class="mm-accordion-panel-note">panel: ${escapeHtml(panel)}</div>` : "";
+    return renderAnnotatedElement(markers, element.type, `<div class="${classes} ${open ? "mm-disclosure-open" : "mm-disclosure-closed"}" data-mm-id="${escapeHtml(element.id)}"${panelAttr}><div class="mm-accordion-header">${open ? "v" : ">"} ${escapeHtml(displayLabel || element.id)}</div>${panelNote}</div>`);
+  }
+
   if (element.type === "Button") {
     return renderAnnotatedElement(markers, element.type, `<button class="${classes}" data-mm-id="${escapeHtml(element.id)}"${disabledAttribute}>${escapeHtml(displayLabel || element.id)}</button>`);
   }
@@ -1603,6 +1625,11 @@ function renderDefaultStyles(): string {
 .mm-tab-item{border:1px solid transparent;border-bottom:0;border-radius:5px 5px 0 0;color:#475569;display:inline-flex;font-size:12px;font-weight:600;margin-bottom:-1px;padding:7px 11px}
 .mm-tab-item-active{background:#fff;border-color:#94a3b8;color:#111827;box-shadow:inset 0 2px 0 #2563eb}
 .mm-tabs-panel-note{background:#f8fafc;border:1px dashed #cbd5e1;border-top:0;color:#475569;font-size:12px;padding:8px 10px}
+.mm-element-accordion,.mm-element-disclosure{background:#fff;display:block;min-width:220px;padding:0}
+.mm-accordion-item + .mm-accordion-item{border-top:1px solid #e2e8f0}
+.mm-accordion-header{color:#111827;font-size:13px;font-weight:650;padding:8px 10px}
+.mm-accordion-item-open .mm-accordion-header,.mm-disclosure-open .mm-accordion-header{background:#f8fafc}
+.mm-accordion-panel-note{background:#fff;border-top:1px dashed #cbd5e1;color:#475569;font-size:12px;padding:8px 10px}
 .mm-element-popover,.mm-element-tooltip{background:#fff;display:inline-flex;flex-direction:column;gap:4px;max-width:min(320px,100%)}
 .mm-overlay-meta{color:#64748b;font-size:11px;font-weight:700;line-height:1.2}
 .mm-popover-panel{background:#fff;border:1px solid #94a3b8;border-radius:6px;box-shadow:0 4px 12px rgba(15,23,42,.12);font-size:13px;padding:10px 12px}

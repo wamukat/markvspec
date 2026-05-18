@@ -477,6 +477,8 @@ Element types:
 - `Select`
 - `MultiSelect`
 - `Tabs`
+- `Accordion`
+- `Disclosure`
 - `Checkbox`
 - `CheckboxGroup`
 - `Switch`
@@ -1180,6 +1182,8 @@ Supported element types:
 - `Select`
 - `MultiSelect`
 - `Tabs`
+- `Accordion`
+- `Disclosure`
 - `Checkbox`
 - `CheckboxGroup`
 - `Switch`
@@ -1190,6 +1194,8 @@ Supported element types:
 - `Dialog`
 - `Toast`
 - `Badge`
+- `Popover`
+- `Tooltip`
 - `Image`
 - `Icon`
 - `Spinner`
@@ -1571,6 +1577,41 @@ under `items:`. `panel` must reference an existing `L-*` layout group, and
 The generated preview marks the active tab and shows the active panel reference.
 Display Content Spec aggregates tab items into one row, and Element Summary
 links the item actions so reviewers can trace tab behavior.
+
+`Accordion` and `Disclosure` represent local expanded/collapsed UI sections.
+`open` is the element's initial display state, not a screen state, View Context
+value, or model value.
+
+For `Accordion`, `open` must match one item label when present. Each item may
+reference a `panel: L-*` layout group and an optional `action: A-*`.
+
+```markdown
+### E-AdvancedFilters Accordion
+
+- open: Advanced filters
+- items:
+  - Advanced filters
+    - panel: L-AdvancedFilterPanel
+    - action: A-ToggleAdvancedFilters
+  - Saved filters
+    - panel: L-SavedFiltersPanel
+```
+
+For `Disclosure`, `label` names the trigger row, `open` is `true` or `false`,
+`panel` references the controlled `L-*` layout group, and `action` optionally
+links the toggle behavior.
+
+```markdown
+### E-ShippingDetails Disclosure
+
+- label: Shipping details
+- open: true
+- panel: L-ShippingDetailsPanel
+- action: A-ToggleShippingDetails
+```
+
+Generated specs aggregate panel references and action links so reviewers can
+trace expansion behavior without inventing extra screen states.
 
 `Popover` and `Tooltip` represent anchored, non-modal help. `anchor` is required
 and must reference an existing `E-*` element. `placement` is optional and is

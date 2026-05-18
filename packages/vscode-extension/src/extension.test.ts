@@ -6258,6 +6258,28 @@ test("renders Popover and Tooltip element summary, wireframe, and display conten
   assert.match(displayContent, new RegExp(`<td>overlay</td><td>${specSectionPattern("Overlay", ["anchor: E-PasswordHelpButton", "placement: bottom-start", "text: Password must be at least 12 characters and include a number\\.", "visible when: help-open"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
 });
 
+test("renders Accordion and Disclosure element summary, wireframe, and display content spec", () => {
+  const source = readFileSync(resolve("../../examples/04-real-world-screens/accordion-disclosure.vspec.md"), "utf8");
+  const result = parseMarkVSpec(source);
+  assert.deepEqual(result.diagnostics, []);
+  const html = renderDesignDocumentHtml(result, "");
+  const idleSection = stateSection(html, "idle");
+  const elementSummary = idleSection.match(/<h6 class="state-screen-detail-heading">Element Summary<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+  const displayContent = idleSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.match(idleSection, /<div class="mm-element mm-element-accordion" data-mm-id="E-AdvancedFilters">/);
+  assert.match(idleSection, /<div class="mm-accordion-item mm-accordion-item-open" data-mm-accordion-panel="L-AdvancedFilterPanel" data-mm-accordion-action="A-ToggleAdvancedFilters">/);
+  assert.match(idleSection, /<div class="mm-element mm-element-disclosure mm-disclosure-open" data-mm-id="E-ShippingDetails" data-mm-disclosure-panel="L-ShippingDetailsPanel">/);
+  assert.match(elementSummary, /<td>Accordion<\/td>/);
+  assert.match(elementSummary, /open item: Advanced filters/);
+  assert.match(elementSummary, /<td>Disclosure<\/td>/);
+  assert.match(elementSummary, /open: true/);
+  assert.match(elementSummary, new RegExp(refActionChip("A-ToggleAdvancedFilters", "A-ToggleAdvancedFilters", "Toggle advanced filters")));
+  assert.match(elementSummary, new RegExp(refActionChip("A-ToggleShippingDetails", "A-ToggleShippingDetails", "Toggle shipping details")));
+  assert.match(displayContent, new RegExp(`<td>accordion</td><td>${specSectionPattern("Accordion", ["Advanced filters \\(panel: L-AdvancedFilterPanel; action: A-ToggleAdvancedFilters\\)", "Saved filters \\(panel: L-SavedFiltersPanel\\)"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>disclosure</td><td>${specSectionPattern("Disclosure", ["label: Shipping details", "open: true", "panel: L-ShippingDetailsPanel", "action: A-ToggleShippingDetails"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
+});
+
 test("splits input form values and source metadata into separate columns", () => {
   const result = parseMarkVSpec(`---
 id: SCR-INPUT-SOURCE

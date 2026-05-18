@@ -157,6 +157,7 @@ export interface MarkVSpecElement {
   routeParams: MarkVSpecRouteParam[];
   selectOptions: MarkVSpecSelectOption[];
   tabs: MarkVSpecTabItem[];
+  accordionItems: MarkVSpecAccordionItem[];
   tableColumns: MarkVSpecTableColumn[];
   tableRows: MarkVSpecTableRow[];
   sampleRows?: MarkVSpecSampleRows;
@@ -211,6 +212,15 @@ export interface MarkVSpecSelectOption {
 }
 
 export interface MarkVSpecTabItem {
+  label: string;
+  panel?: string;
+  action?: string;
+  propertyLocations: Record<"panel" | "action", SourceLocation[]>;
+  location: SourceLocation;
+  raw: string;
+}
+
+export interface MarkVSpecAccordionItem {
   label: string;
   panel?: string;
   action?: string;

@@ -823,6 +823,10 @@ function cloneTemplateElements(elements: MarkVSpecParseResult["elements"]): Mark
       ...item,
       propertyLocations: clonePropertyLocations(item.propertyLocations)
     })),
+    accordionItems: element.accordionItems.map((item) => ({
+      ...item,
+      propertyLocations: clonePropertyLocations(item.propertyLocations)
+    })),
     tableColumns: element.tableColumns.map((column) => ({ ...column })),
     tableRows: element.tableRows.map((row) => ({
       ...row,

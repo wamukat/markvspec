@@ -4208,7 +4208,7 @@ function isFeedbackElement(type: string): boolean {
 }
 
 function isContentElement(type: string): boolean {
-  return ["Heading", "Paragraph", "Text", "Image", "Icon", "List", "Table"].includes(type);
+  return ["Heading", "Paragraph", "Text", "Image", "Icon", "List", "Table", "Accordion", "Disclosure"].includes(type);
 }
 
 function renderActionPartialUpdates(
@@ -5963,6 +5963,8 @@ function renderElementDescription(element: ReturnType<typeof parseMarkVSpec>["el
     || stringProperty(element.properties["purpose"])
     || firstEntityProseParagraph(element.overview)
     || (element.type === "Tabs" && stringProperty(element.properties["active"]) ? `active tab: ${stringProperty(element.properties["active"])}` : "")
+    || (element.type === "Accordion" && stringProperty(element.properties["open"]) ? `open item: ${stringProperty(element.properties["open"])}` : "")
+    || (element.type === "Disclosure" && stringProperty(element.properties["open"]) ? `open: ${stringProperty(element.properties["open"])}` : "")
     || ((element.type === "Popover" || element.type === "Tooltip") && stringProperty(element.properties["anchor"]) ? `anchor: ${stringProperty(element.properties["anchor"])}` : "")
     || "";
   const notes = renderEntityNotes(element.notes);
@@ -6132,6 +6134,8 @@ function renderElementDisplayValue(
     !sample && element.properties["src"] ? `${label(result, "src")}: ${renderSourceSummary(element.properties["src"])}` : "",
     value ? `${label(result, "value")}: ${hasOpaqueExpression(value) ? renderExpressionTokens(value) : text(value)}` : "",
     format ? `${label(result, "format")}: ${text(format)}` : "",
+    element.type === "Accordion" ? renderAccordionSummary(result, element) : "",
+    element.type === "Disclosure" ? renderDisclosureSummary(result, element) : "",
     element.type === "Popover" || element.type === "Tooltip" ? renderAnchoredOverlaySummary(result, element) : ""
   ].filter(Boolean);
 
@@ -6166,6 +6170,52 @@ function renderAnchoredOverlaySummary(
     anchor ? `anchor: ${referenceForId(result, anchor, "element")}` : "",
     placement ? `placement: ${text(placement)}` : ""
   ].filter(Boolean).join("<br>");
+}
+
+function renderLayoutReferenceForId(result: ReturnType<typeof parseMarkVSpec>, id: string): string {
+  const layout = [
+    ...result.layoutGroups,
+    ...result.slotContents.flatMap((slot) => slot.layoutGroups)
+  ].find((group) => group.id === id);
+  if (!layout) {
+    return renderDetailRefId(id);
+  }
+  return renderEntityRefChip({
+    id: layout.id,
+    category: "layout",
+    marker: firstStringProperty(layout.properties["marker"]) || layout.id,
+    label: layout.name || layout.id
+  });
+}
+
+function renderAccordionSummary(
+  result: ReturnType<typeof parseMarkVSpec>,
+  element: ReturnType<typeof parseMarkVSpec>["elements"][number]
+): string {
+  const open = rawStringProperty(element.properties["open"]);
+  const rows = [
+    open ? `open: ${text(open)}` : "",
+    ...element.accordionItems.map((item) => {
+      const details = [
+        item.panel ? `panel: ${renderLayoutReferenceForId(result, item.panel)}` : "",
+        item.action ? `action: ${referenceForId(result, item.action, "action")}` : ""
+      ].filter(Boolean);
+      return details.length > 0 ? `${text(item.label)} (${details.join("; ")})` : text(item.label);
+    })
+  ].filter(Boolean);
+  return rows.length > 0 ? renderSpecSections([{ title: "Accordion", rows }]) : "";
+}
+
+function renderDisclosureSummary(
+  result: ReturnType<typeof parseMarkVSpec>,
+  element: ReturnType<typeof parseMarkVSpec>["elements"][number]
+): string {
+  const rows = [
+    rawStringProperty(element.properties["open"]) ? `open: ${text(rawStringProperty(element.properties["open"]))}` : "",
+    rawStringProperty(element.properties["panel"]) ? `panel: ${renderLayoutReferenceForId(result, rawStringProperty(element.properties["panel"]))}` : "",
+    rawStringProperty(element.properties["action"]) ? `action: ${referenceForId(result, rawStringProperty(element.properties["action"]), "action")}` : ""
+  ].filter(Boolean);
+  return rows.length > 0 ? renderSpecSections([{ title: "Disclosure", rows }]) : "";
 }
 
 function renderContentElementState(
@@ -6293,6 +6343,7 @@ function renderElementActionReferences(
   const actionIds = [
     rawStringProperty(element.properties["action"]),
     ...element.tabs.map((item) => item.action),
+    ...element.accordionItems.map((item) => item.action),
     ...result.actions
       .filter((action) => action.trigger?.elementId === element.id)
       .map((action) => action.id)
@@ -6310,6 +6361,10 @@ function renderContentElementNotes(element: ReturnType<typeof parseMarkVSpec>["e
     stringProperty(element.properties["format"]) ? `format: ${stringProperty(element.properties["format"])}` : "",
     stringProperty(element.properties["items"]) ? `items: ${stringProperty(element.properties["items"])}` : "",
     element.type === "Tabs" && stringProperty(element.properties["active"]) ? `active tab: ${stringProperty(element.properties["active"])}` : "",
+    element.type === "Accordion" && stringProperty(element.properties["open"]) ? `open item: ${stringProperty(element.properties["open"])}` : "",
+    element.type === "Accordion" && element.accordionItems.length > 0 ? `items: ${element.accordionItems.map((item) => item.label).join(", ")}` : "",
+    element.type === "Disclosure" && stringProperty(element.properties["open"]) ? `open: ${stringProperty(element.properties["open"])}` : "",
+    element.type === "Disclosure" && stringProperty(element.properties["panel"]) ? `panel: ${stringProperty(element.properties["panel"])}` : "",
     element.tableColumns.length > 0 ? `columns: ${element.tableColumns.map((column) => column.label).join(", ")}` : "",
     element.tableRows.length > 0 ? `sample rows: ${element.tableRows.length}` : ""
   ].filter(Boolean);

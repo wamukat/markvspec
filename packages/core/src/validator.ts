@@ -355,6 +355,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
     validateSelectInitialValue(element, diagnostics);
     validateTabsElement(element, targetLayoutIds, actionIds, diagnostics);
     validateAnchoredOverlayElement(element, elementIds, diagnostics);
+    validateAccordionDisclosureElement(element, targetLayoutIds, actionIds, diagnostics);
 
     for (const param of element.routeParams) {
       const sourceId = requestParamSourceId(param.source);
@@ -3147,6 +3148,73 @@ function validateAnchoredOverlayElement(
       severity: "error",
       message: `Element ${element.id} anchor references missing element ${anchor}.`,
       line
+    });
+  }
+}
+
+function validateAccordionDisclosureElement(
+  element: MarkVSpecElement,
+  layoutIds: Set<string>,
+  actionIds: Set<string>,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  if (element.type === "Accordion") {
+    const open = stringProperty(element, "open").trim();
+    if (open && !element.accordionItems.some((item) => item.label === open)) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Element ${element.id} open item "${open}" does not match any items.`,
+        line: firstPropertyLine(element, "open") ?? element.location.line
+      });
+    }
+
+    for (const item of element.accordionItems) {
+      if (item.panel && !layoutIds.has(item.panel)) {
+        diagnostics.push({
+          severity: "error",
+          message: `Element ${element.id} accordion item ${item.label} references missing panel ${item.panel}.`,
+          line: item.propertyLocations.panel[0]?.line ?? item.location.line
+        });
+      }
+      if (item.action && !actionIds.has(item.action)) {
+        diagnostics.push({
+          severity: "error",
+          message: `Element ${element.id} accordion item ${item.label} references missing action ${item.action}.`,
+          line: item.propertyLocations.action[0]?.line ?? item.location.line
+        });
+      }
+    }
+    return;
+  }
+
+  if (element.type !== "Disclosure") {
+    return;
+  }
+
+  const open = stringProperty(element, "open").trim();
+  if (open && !["true", "false"].includes(open.toLowerCase())) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Element ${element.id} Disclosure open must be true or false.`,
+      line: firstPropertyLine(element, "open") ?? element.location.line
+    });
+  }
+
+  const panel = stringProperty(element, "panel").trim();
+  if (!panel) {
+    diagnostics.push({
+      severity: "error",
+      message: `Element ${element.id} Disclosure requires panel: L-*.`,
+      line: element.location.line
+    });
+    return;
+  }
+
+  if (!layoutIds.has(panel)) {
+    diagnostics.push({
+      severity: "error",
+      message: `Element ${element.id} references missing panel ${panel}.`,
+      line: firstPropertyLine(element, "panel") ?? element.location.line
     });
   }
 }

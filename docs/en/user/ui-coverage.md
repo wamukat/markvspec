@@ -20,12 +20,12 @@ without falling back to ambiguous prose.
 | List / table | Supported | `List`, `Table` | Table columns and sample rows use nested Markdown lists. |
 | Dialog / overlay | Supported | `Dialog` with targetless `display.element` | Dialogs are modal overlays by default. Define cancel/confirm buttons with `actions:` and show the dialog from a Preview Scenario or action case without a layout target. |
 | Popover / Tooltip | Supported | `Popover`, `Tooltip` | Anchored non-modal help. `anchor` must reference `E-*`; `placement`, `text`, and visibility conditions are shown in preview and generated specs. Runtime hover/focus behavior and interactive popover content are outside the initial contract. |
+| Accordion / Disclosure | Supported | `Accordion`, `Disclosure` | Local expanded/collapsed sections. `open` is element-local initial display state; panels reference `L-*` layout groups and optional actions remain traceable. |
 | Toast notification | Supported | `Toast` with targetless `display.element` | Toasts are non-modal overlays. Use `message`, `tone`, `placement`, and `duration`; multiple displayed toasts stack in a toast region. |
 | Spinner / loading mask | Supported | `Spinner` with state-visible overlay layout | Used for wait states and partial loading states. |
 | Divider | Supported | `Divider` | Separates groups inside forms or detail screens. |
 | Empty state | Supported | `Paragraph` with `visible when: empty` | Empty states are prose content tied to an empty state rather than a dedicated element type. |
 | Breadcrumb | Alternative | `Link` elements in a row layout | Dedicated breadcrumb semantics are not yet defined. |
-| Accordion | Planned | Not yet canonical | Needs expanded/collapsed state semantics. |
 | Pagination | Alternative | Row layout with paging buttons and page text | Dedicated pagination element is not yet canonical. |
 | Stepper | Planned | Not yet canonical | Needs current/completed/error step semantics. |
 | Skeleton | Alternative | `Spinner`, `Text`, or placeholder layouts | Dedicated skeleton semantics are not yet defined. |
@@ -49,9 +49,8 @@ without falling back to ambiguous prose.
 
 1. Add canonical Breadcrumb semantics when route hierarchy and current-page
    handling become important.
-2. Add Accordion when expanded/collapsed state needs to be validated.
-3. Add Pagination only if the row-layout alternative becomes too repetitive.
-4. Add Stepper for multi-step applications after state-flow notation settles.
+2. Add Pagination only if the row-layout alternative becomes too repetitive.
+3. Add Stepper for multi-step applications after state-flow notation settles.
 
 ## Candidate Classification
 
@@ -63,7 +62,6 @@ review from generic Layout and Element combinations.
 | Candidate | Classification | Decision | Reason |
 | --- | --- | --- | --- |
 | Menu / DropdownMenu / ActionMenu | Add candidate | Define canonical semantics | Menu item actions and open/closed overlay state are hard to see from a row of Buttons. |
-| Accordion / Disclosure | Add candidate | Define canonical semantics | Expanded/collapsed sections are common and should be reviewable without inventing state names. |
 | ProgressBar | Add candidate | Define canonical semantics | Determinate progress has value/max/tone semantics that Spinner cannot express. |
 | Stepper | Add candidate | Define canonical semantics | Multi-step flows need current/completed/error step summaries. |
 | Breadcrumb | Add candidate | Define canonical semantics | Hierarchical navigation needs current item and destination summaries. |
@@ -138,14 +136,27 @@ content are intentionally out of scope.
 ```markdown
 ### E-AdvancedFilters Accordion
 
-- value: ${view.expandedSections}
+- open: Advanced filters
 - items:
-  - Advanced filters: filters
+  - Advanced filters
     - panel: L-AdvancedFilterPanel
+    - action: A-ToggleAdvancedFilters
+  - Saved filters
+    - panel: L-SavedFiltersPanel
 ```
 
-Preview policy: render headers and expanded panels for the active View Context.
-Summarize expanded/collapsed state separately from screen state.
+```markdown
+### E-ShippingDetails Disclosure
+
+- label: Shipping details
+- open: true
+- panel: L-ShippingDetailsPanel
+- action: A-ToggleShippingDetails
+```
+
+`Accordion` and `Disclosure` are implemented. Preview renders headers and open
+panel references. Display Content Spec aggregates panel/action links so local
+expansion behavior stays separate from screen state.
 
 ### ProgressBar
 
@@ -209,7 +220,7 @@ page-size information. Keep page-changing actions visible in Action Summary.
   becomes too noisy in generated Input/Display/Action specs.
 - Add a broader overlay example that compares Dialog, Toast, Popover, and
   Tooltip after more overlay usage repeats.
-- Add Accordion and Stepper examples together with View Context samples because
-  both need non-state UI mode values.
+- Add Stepper examples together with View Context samples because step position
+  may need non-state UI mode values.
 - Keep Skeleton, Card, Toolbar, SearchBox, EmptyState, and Avatar as examples of
   Layout/content patterns rather than canonical Element additions for now.
