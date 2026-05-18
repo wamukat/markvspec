@@ -98,6 +98,7 @@ so field-level contracts remain the main topic.
 
 ### F-ValidationFields Validation fields
 
+- marker: F1
 - fields:
   - E-UsernameInput
   - E-EmailInput
@@ -141,6 +142,7 @@ so field-level contracts remain the main topic.
 
 ### V-UsernameRules Username rules
 
+- marker: V1
 - target: E-UsernameInput
 - constraints:
   - required:
@@ -152,6 +154,7 @@ so field-level contracts remain the main topic.
 
 ### V-EmailRules Email rules
 
+- marker: V2
 - target: E-EmailInput
 - constraints:
   - required:
@@ -161,6 +164,7 @@ so field-level contracts remain the main topic.
 
 ### V-AgeRange Age range
 
+- marker: V3
 - target: E-AgeInput
 - constraints:
   - range: element

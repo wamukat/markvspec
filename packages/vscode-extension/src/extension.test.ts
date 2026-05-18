@@ -4254,10 +4254,10 @@ test("keeps validation required distinct from input required in single-field val
   assert.doesNotMatch(formControls, /<th>Input Required<\/th>/);
   assert.match(formControls, new RegExp(`<td>${detailElementRef("3", "E-UsernameInput")}</td><td>Input</td><td>no</td>`));
   assert.match(formControls, new RegExp(`<td>${detailElementRef("4", "E-EmailInput")}</td><td>Input</td><td>no</td>`));
-  assert.match(clientFieldValidations, new RegExp(`<td rowspan="3">${refMessageChip("V-UsernameRules", "V-UsernameRules", "Username rules")}<\\/td><td rowspan="3">${markerBadge("3", "element")}<\\/td>`));
+  assert.match(clientFieldValidations, new RegExp(`<td rowspan="3">${refMessageChip("V1", "V-UsernameRules", "Username rules")}<\\/td><td rowspan="3">${markerBadge("3", "element")}<\\/td>`));
   assert.match(clientFieldValidations, /<td>required<\/td>[\s\S]*<td>length: element <span class="mm-muted">\(min length: 3, max length: 40\)<\/span><\/td>[\s\S]*<td>pattern<\/td>/);
   assert.match(clientFieldValidations, /Username is required\.[\s\S]*Username must be 3 to 40 lowercase letters, numbers, or hyphens\.[\s\S]*Username can contain lowercase letters, numbers, and hyphens\./);
-  assert.match(clientFieldValidations, new RegExp(`<td rowspan="2">${refMessageChip("V-EmailRules", "V-EmailRules", "Email rules")}<\\/td><td rowspan="2">${markerBadge("4", "element")}<\\/td>`));
+  assert.match(clientFieldValidations, new RegExp(`<td rowspan="2">${refMessageChip("V2", "V-EmailRules", "Email rules")}<\\/td><td rowspan="2">${markerBadge("4", "element")}<\\/td>`));
   assert.match(clientFieldValidations, /<td>required<\/td>[\s\S]*<td>email<\/td>/);
   assert.match(clientFieldValidations, new RegExp(`<td>range: element <span class="mm-muted">\\(min: 13, max: 120, step: 1\\)<\\/span><\\/td><td>${markerBadge("5", "element")}\\.value is present<\\/td><td>Age must be between 13 and 120\\.<\\/td>`));
   assert.doesNotMatch(clientFieldValidations, /<th>Result<\/th>|<th>Condition<\/th>/);

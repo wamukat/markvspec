@@ -82,6 +82,7 @@ try to cover non-submit element events.
 
 ### F-SubmitRequest Submit request
 
+- marker: F1
 - fields: E-EmailInput, E-PlanSelect
 
 ## Actions

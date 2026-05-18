@@ -184,6 +184,7 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
 
 ### F-PreferencesForm Preferences form
 
+- marker: F1
 - fields:
   - E-SearchInput
   - E-EmailInput
@@ -346,6 +347,7 @@ such as unsaved notices, help text, validation feedback, and modal dialogs.
 
 ### V-PreferencesForm Required preference fields
 
+- marker: V1
 - target: F-PreferencesForm
 - inputs:
   - E-EmailInput

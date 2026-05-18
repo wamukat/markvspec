@@ -182,6 +182,7 @@ profile fields and reusable templates are left to later examples.
 
 ### F-LoginForm Login form
 
+- marker: F1
 - fields:
   - E-EmailInput
   - E-PasswordInput
@@ -289,6 +290,7 @@ success or failure is handled by `A-HandleLoginResponse`.
 
 ### V-LoginForm Required login fields
 
+- marker: V1
 - target: F-LoginForm
 - inputs:
   - E-EmailInput

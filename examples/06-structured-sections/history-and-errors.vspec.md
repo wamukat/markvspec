@@ -82,6 +82,7 @@ to the main screen examples.
 
 ### F-AccountSettings Account settings form
 
+- marker: F1
 - fields:
   - E-DisplayNameInput
   - E-EmailInput
@@ -151,6 +152,7 @@ referenced from the same flow.
 
 ### V-AccountSettings Required account fields
 
+- marker: V1
 - target: F-AccountSettings
 - inputs:
   - E-DisplayNameInput
