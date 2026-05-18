@@ -1823,7 +1823,12 @@ test("does not render viewport filter controls in the preview shell", () => {
   assert.doesNotMatch(html, /\.state-screen-section \+ \.state-screen-section\{break-before:page;page-break-before:always\}/);
   assert.match(html, /\.spec-table thead\{display:table-header-group\}/);
   assert.match(html, /\.spec-table code:not\(\.mm-id\):not\(\.mm-doc-label\):not\(\.mm-document-ref-id\)\{background:transparent;padding:0\}/);
-  assert.match(html, /\.spec-table \.mm-ref-chip, \.spec-table \.mm-chip, \.spec-table \.mm-detail-ref-id, \.spec-table \.mm-id\{box-sizing:border-box;max-width:100%;min-width:0;overflow-wrap:anywhere;white-space:normal;word-break:break-word\}/);
+  assert.match(html, /\.spec-table\{font-size:8\.5pt;table-layout:auto;width:100%\}/);
+  assert.match(html, /\.spec-table th,\.spec-table td\{overflow-wrap:break-word;padding:4pt 5pt;word-break:normal\}/);
+  assert.match(html, /\.spec-table col\.spec-table-col-marker-id\{width:20%\}/);
+  assert.match(html, /\.spec-table col\.spec-table-col-id\{width:16%\}/);
+  assert.match(html, /\.spec-table \.mm-ref-chip, \.spec-table \.mm-chip, \.spec-table \.mm-detail-ref-id, \.spec-table \.mm-id\{box-sizing:border-box;max-width:100%;min-width:0;overflow-wrap:break-word;white-space:normal;word-break:normal\}/);
+  assert.match(html, /\.spec-table \.mm-ref-chip \.mm-id\{flex:0 0 auto;overflow-wrap:normal;white-space:nowrap;width:auto\}/);
   assert.match(html, /\.spec-table td > \.mm-ref-chip, \.spec-table td > \.mm-chip\{display:flex;margin:0 0 2pt;width:fit-content\}/);
   assert.match(html, /\.mm-marker-element\{background:rgba\(255,255,255,\.72\)!important;border-color:#f59e0b!important;box-shadow:0 1px 2px rgba\(15,23,42,\.12\)!important;color:#92400e!important\}/);
   assert.doesNotMatch(html, /\.state-flow-section\{break-before:page;page-break-before:always\}/);
@@ -4214,6 +4219,7 @@ test("renders input form spec without validation columns", () => {
   const formControls = html.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
 
   assert.match(formControls, /<th>Marker\/ID<\/th><th>Type<\/th><th>Required<\/th><th>Value<\/th><th>Spec<\/th><th>Condition<\/th><th>Enabled When<\/th>/);
+  assert.match(formControls, /<colgroup><col class="spec-table-col spec-table-col-marker-id"><col class="spec-table-col spec-table-col-default"><col class="spec-table-col spec-table-col-default"><col class="spec-table-col spec-table-col-default"><col class="spec-table-col spec-table-col-default"><col class="spec-table-col spec-table-col-default"><col class="spec-table-col spec-table-col-default"><\/colgroup>/);
   assert.doesNotMatch(formControls, /<th>Validation<\/th>/);
   assert.doesNotMatch(formControls, /<th>Error<\/th>/);
   assert.doesNotMatch(formControls, /<th>Label<\/th>/);
@@ -4237,6 +4243,7 @@ test("renders Marker/ID reference chips in State Views summary and spec tables",
 
     assert.doesNotMatch(html, /<th>Marker<\/th><th>ID<\/th>|<th>番号<\/th><th>ID<\/th>/, example);
     assert.match(html, /<th>Marker\/ID<\/th>|<th>番号\/ID<\/th>/, example);
+    assert.match(html, /<colgroup><col class="spec-table-col spec-table-col-marker-id">/, example);
     assert.match(html, /<h6 class="state-screen-detail-heading">(?:Element Summary|画面要素サマリー)<\/h6>[\s\S]*?<span class="mm-ref-chip mm-ref-chip-element"/, example);
     assert.match(html, /<h5 class="state-screen-subheading">(?:Layouts|レイアウト)<\/h5>[\s\S]*?<span class="mm-ref-chip mm-ref-chip-layout"/, example);
     assert.match(html, /<h5 class="state-screen-subheading">(?:Actions|アクション)<\/h5>[\s\S]*?<a class="mm-ref-chip mm-ref-chip-action" href="#action-detail-/, example);
@@ -5221,7 +5228,7 @@ references:
     const screenSection = html.match(/<section class="doc-section screen-spec-section">[\s\S]*?<\/section>/)?.[0] ?? "";
     assert.doesNotMatch(screenSection, /<dt>Locale<\/dt>/);
     assert.doesNotMatch(screenSection, /<dt>Default State<\/dt>/);
-    assert.match(html, /<h3>参照設計書<\/h3>\s*<div class="spec-table-wrap"><table class="spec-table"><thead><tr><th>種別<\/th><th>ID<\/th><th>タイトル<\/th><th>ステータス<\/th><\/tr><\/thead>/);
+    assert.match(html, /<h3>参照設計書<\/h3>\s*<div class="spec-table-wrap"><table class="spec-table"><colgroup><col class="spec-table-col spec-table-col-default"><col class="spec-table-col spec-table-col-id"><col class="spec-table-col spec-table-col-default"><col class="spec-table-col spec-table-col-default"><\/colgroup><thead><tr><th>種別<\/th><th>ID<\/th><th>タイトル<\/th><th>ステータス<\/th><\/tr><\/thead>/);
     assert.doesNotMatch(html, /<th>パス<\/th>/);
     assert.doesNotMatch(html, /screen-reference-list|content:"-&gt;"/);
     assert.match(html, new RegExp(`<tr><td>テンプレート</td><td><a href="file://[^"]+" class="mm-reference-link" data-mm-open-reference="TPL-SHELL" data-mm-reference-path="${escapeRegExp(templatePath)}">${documentRef("TPL-SHELL")}</a></td><td><span class="screen-reference-title">Shell</span></td><td><span class="screen-reference-status">読み込み済み</span></td></tr>`));
@@ -5876,6 +5883,7 @@ test("renders scenario sample values in display content spec", () => {
   const loadedSection = stateSection(html, "loaded");
   const displayContent = loadedSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
 
+  assert.match(displayContent, /<colgroup><col class="spec-table-col spec-table-col-marker-id">/);
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("2", "E-MemberName")}</td><td>sample</td><td>Baseline Member</td><td>-</td><td>${plainCodePattern("data")}</td>`));
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("3", "E-PlanName")}</td><td>sample</td><td>Baseline Plan</td><td>-</td><td>${plainCodePattern("data")}</td>`));
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("4", "E-SeatCount")}</td><td>sample</td><td>1 seat</td><td>-</td><td>${plainCodePattern("data")}</td>`));
@@ -6173,6 +6181,7 @@ route: /users/:id
   assert.doesNotMatch(previewHtml, /\.state-screen-section\[data-viewport\] \.wireframe-section \.mm-wireframe:not\(\.mm-wireframe-empty\)\{max-width:none!important;min-width:0!important;width:var\(--markvspec-viewport-width, 100%\)!important\}/);
   assert.match(previewHtml, /\.state-screen-section\[data-viewport\] \.wireframe-section \.mm-wireframe:not\(\.mm-wireframe-empty\)\{max-width:none!important;min-width:0!important;width:var\(--markvspec-viewport-width, 100%\)!important;zoom:var\(--markvspec-print-scale, 1\)\}/);
   assert.match(previewHtml, /\.wireframe-section \.mm-element-table\{max-width:100%!important;min-width:0!important;table-layout:fixed!important;width:100%!important\}/);
+  assert.match(previewHtml, /\.spec-table\{font-size:8\.5pt;table-layout:auto;width:100%\}/);
   assert.match(previewHtml, /\*\{-webkit-print-color-adjust:exact;print-color-adjust:exact\}/);
   assert.doesNotMatch(previewHtml, /data-print-preview/);
   assert.match(standaloneHtml, /window\.mermaid = \{ initialize\(\) \{\}, render\(\) \{\} \};/);

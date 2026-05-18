@@ -82,9 +82,11 @@ export function standardPrintPolicyCss(options: { spaced?: boolean } = {}): stri
 
 export function printSpecTableChipCss(options: { spaced?: boolean } = {}): string {
   const rules = [
-    [".spec-table .mm-ref-chip, .spec-table .mm-chip, .spec-table .mm-detail-ref-id, .spec-table .mm-id", "box-sizing: border-box; max-width: 100%; min-width: 0; overflow-wrap: anywhere; white-space: normal; word-break: break-word"],
+    [".spec-table col.spec-table-col-marker-id", "width: 20%"],
+    [".spec-table col.spec-table-col-id", "width: 16%"],
+    [".spec-table .mm-ref-chip, .spec-table .mm-chip, .spec-table .mm-detail-ref-id, .spec-table .mm-id", "box-sizing: border-box; max-width: 100%; min-width: 0; overflow-wrap: break-word; white-space: normal; word-break: normal"],
     [".spec-table .mm-ref-chip", "align-items: flex-start; flex-wrap: wrap"],
-    [".spec-table .mm-ref-chip .mm-id, .spec-table .mm-id", "flex: 0 1 auto; width: auto"],
+    [".spec-table .mm-ref-chip .mm-id", "flex: 0 0 auto; overflow-wrap: normal; white-space: nowrap; width: auto"],
     [".spec-table td > .mm-ref-chip, .spec-table td > .mm-chip", "display: flex; margin: 0 0 2pt; width: fit-content"]
   ];
 
@@ -303,7 +305,7 @@ export function renderTable(headers: string[], rows: Array<Array<string | undefi
     return `<p class="spec-empty">${escapeHtml(emptyLabel)}</p>`;
   }
 
-  return `<div class="spec-table-wrap"><table class="spec-table"><thead><tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${renderTableCellHtml(cell)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  return `<div class="spec-table-wrap"><table class="spec-table">${renderSpecTableColgroup(headers)}<thead><tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${renderTableCellHtml(cell)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
 
 export function renderTableWithCells(headers: string[], rows: TableCell[][], emptyLabel = "None."): string {
@@ -311,7 +313,26 @@ export function renderTableWithCells(headers: string[], rows: TableCell[][], emp
     return `<p class="spec-empty">${escapeHtml(emptyLabel)}</p>`;
   }
 
-  return `<div class="spec-table-wrap"><table class="spec-table"><thead><tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map(renderTableCell).join("")}</tr>`).join("")}</tbody></table></div>`;
+  return `<div class="spec-table-wrap"><table class="spec-table">${renderSpecTableColgroup(headers)}<thead><tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map(renderTableCell).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+
+function renderSpecTableColgroup(headers: readonly string[]): string {
+  const kinds = headers.map(specTableColumnKind);
+  if (!kinds.some((kind) => kind !== "default")) {
+    return "";
+  }
+  return `<colgroup>${kinds.map((kind) => `<col class="spec-table-col spec-table-col-${kind}">`).join("")}</colgroup>`;
+}
+
+function specTableColumnKind(header: string): "default" | "id" | "marker-id" {
+  const normalized = header.trim().toLowerCase().replace(/\s+/gu, "");
+  if (normalized === "marker/id" || normalized === "番号/id") {
+    return "marker-id";
+  }
+  if (normalized === "id") {
+    return "id";
+  }
+  return "default";
 }
 
 function renderTableCell(cell: TableCell): string {

@@ -259,10 +259,10 @@ body.hide-marker-action .mm-marker-action{display:none}
     .state-wireframe .mm-layout-row{flex-wrap:wrap}
     .state-wireframe input,.state-wireframe select,.state-wireframe textarea{max-width:100%;min-width:0}
     .spec-table-wrap{overflow:visible}
-    .spec-table{font-size:8.5pt;table-layout:fixed;width:100%}
+    .spec-table{font-size:8.5pt;table-layout:auto;width:100%}
     .spec-table thead{display:table-header-group}
     .spec-table tr{break-inside:avoid;page-break-inside:avoid}
-    .spec-table th,.spec-table td{overflow-wrap:anywhere;padding:4pt 5pt;word-break:break-word}
+    .spec-table th,.spec-table td{overflow-wrap:break-word;padding:4pt 5pt;word-break:normal}
     .spec-table th{white-space:normal}
     .spec-table code:not(.mm-id):not(.mm-doc-label):not(.mm-document-ref-id){background:transparent;padding:0}
     ${printSpecTableChipCss()}
@@ -428,9 +428,9 @@ ${baseWireframeViewportCss()}
     .wireframe-section .mm-element-table{max-width:100%!important;min-width:0!important;table-layout:fixed!important;width:100%!important}
     .wireframe-section .mm-element-table th,.wireframe-section .mm-element-table td{box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word}
     .spec-table-wrap{overflow:visible}
-    .spec-table{font-size:8.5pt;table-layout:fixed;width:100%}
+    .spec-table{font-size:8.5pt;table-layout:auto;width:100%}
     .spec-table thead{display:table-header-group}
-    .spec-table th,.spec-table td{overflow-wrap:anywhere;padding:4pt 5pt;word-break:break-word}
+    .spec-table th,.spec-table td{overflow-wrap:break-word;padding:4pt 5pt;word-break:normal}
     ${printSpecTableChipCss()}
     .mm-inline-token{color:inherit}
     .mermaid-source,.mermaid-render{break-inside:avoid;font-size:8.5pt;max-width:100%;overflow:visible;page-break-inside:avoid;white-space:pre-wrap}

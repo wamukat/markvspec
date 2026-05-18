@@ -8,6 +8,7 @@ import {
   printWireframeViewportCss,
   renderDesignDocumentSections,
   renderTable,
+  renderTableWithCells,
   renderStaticDesignDocumentHtml,
   standardPrintPolicyCss,
   viewportCanvasWidth,
@@ -39,7 +40,10 @@ test("renders shared wireframe print selectors for compact and static HTML CSS",
   assert.match(standardPrintPolicyCss({ spaced: true }), /\.wireframe-print-section, \.action-detail, \.note-block, \.process-card \{ break-inside: avoid; page-break-inside: avoid; \}/);
   assert.doesNotMatch(standardPrintPolicyCss({ spaced: true }), /\.spec-table-wrap, \.spec-table \{ break-inside: avoid/);
   assert.match(standardPrintPolicyCss({ spaced: true }), /\.spec-table tr \{ break-inside: avoid; page-break-inside: avoid; \}/);
-  assert.match(printSpecTableChipCss(), /\.spec-table \.mm-ref-chip, \.spec-table \.mm-chip, \.spec-table \.mm-detail-ref-id, \.spec-table \.mm-id\{box-sizing:border-box;max-width:100%;min-width:0;overflow-wrap:anywhere;white-space:normal;word-break:break-word\}/);
+  assert.match(printSpecTableChipCss(), /\.spec-table col\.spec-table-col-marker-id\{width:20%\}/);
+  assert.match(printSpecTableChipCss(), /\.spec-table col\.spec-table-col-id\{width:16%\}/);
+  assert.match(printSpecTableChipCss(), /\.spec-table \.mm-ref-chip, \.spec-table \.mm-chip, \.spec-table \.mm-detail-ref-id, \.spec-table \.mm-id\{box-sizing:border-box;max-width:100%;min-width:0;overflow-wrap:break-word;white-space:normal;word-break:normal\}/);
+  assert.match(printSpecTableChipCss(), /\.spec-table \.mm-ref-chip \.mm-id\{flex:0 0 auto;overflow-wrap:normal;white-space:nowrap;width:auto\}/);
   assert.match(printSpecTableChipCss(), /\.spec-table td > \.mm-ref-chip, \.spec-table td > \.mm-chip\{display:flex;margin:0 0 2pt;width:fit-content\}/);
   assert.match(printScrollbarSuppressCss(), /html,body,main,\.content,\.preview,\.document,\.spec-table-wrap,\.wireframe-section,\.mermaid-render,\.mermaid-source,\.note-content,\.entity-notes pre,\.entity-overview pre\{overflow:visible!important;scrollbar-width:none!important;-ms-overflow-style:none!important\}/);
   assert.match(printScrollbarSuppressCss(), /html::-webkit-scrollbar,body::-webkit-scrollbar,main::-webkit-scrollbar,\.content::-webkit-scrollbar,\.preview::-webkit-scrollbar,\.document::-webkit-scrollbar,\.spec-table-wrap::-webkit-scrollbar,\.wireframe-section::-webkit-scrollbar,\.mermaid-render::-webkit-scrollbar,\.mermaid-source::-webkit-scrollbar,\.note-content::-webkit-scrollbar,\.entity-notes pre::-webkit-scrollbar,\.entity-overview pre::-webkit-scrollbar\{display:none!important;height:0!important;width:0!important\}/);
@@ -51,6 +55,19 @@ test("renders unspecified table cells as dashes while preserving concrete falsy 
   const html = renderTable(["Unset", "Blank", "Whitespace", "False", "Zero"], [[undefined, "", "   ", "false", "0"]]);
 
   assert.match(html, /<td>-<\/td><td>-<\/td><td>-<\/td><td>false<\/td><td>0<\/td>/);
+});
+
+test("renders semantic spec table columns for marker and id tables", () => {
+  const markerTable = renderTable(["Marker/ID", "Type", "Condition"], [["E1", "Input", "always"]]);
+  const idTable = renderTable(["ID", "Name", "Target"], [["ERR-001", "Error", "E-Input.error"]]);
+  const plainTable = renderTable(["Field", "Value"], [["title", "Profile"]]);
+
+  assert.match(markerTable, /<colgroup><col class="spec-table-col spec-table-col-marker-id"><col class="spec-table-col spec-table-col-default"><col class="spec-table-col spec-table-col-default"><\/colgroup>/);
+  assert.match(idTable, /<colgroup><col class="spec-table-col spec-table-col-id"><col class="spec-table-col spec-table-col-default"><col class="spec-table-col spec-table-col-default"><\/colgroup>/);
+  assert.doesNotMatch(plainTable, /<colgroup>/);
+
+  const localizedMarkerTable = renderTableWithCells(["番号/ID", "種別"], [["E1", "Input"]]);
+  assert.match(localizedMarkerTable, /<colgroup><col class="spec-table-col spec-table-col-marker-id"><col class="spec-table-col spec-table-col-default"><\/colgroup>/);
 });
 
 test("renders empty state placeholders in static state previews", () => {

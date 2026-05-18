@@ -558,10 +558,10 @@ function standaloneHtml(
         .wireframe-section .mm-element-table th,
         .wireframe-section .mm-element-table td { box-sizing: border-box; overflow-wrap: anywhere; word-break: break-word; }
         .spec-table-wrap { overflow: visible; }
-        .spec-table { font-size: 8.5pt; table-layout: fixed; width: 100%; }
+        .spec-table { font-size: 8.5pt; table-layout: auto; width: 100%; }
         .spec-table thead { display: table-header-group; }
         .spec-table th,
-        .spec-table td { box-sizing: border-box; overflow-wrap: anywhere; padding: 4pt 5pt; word-break: break-word; }
+        .spec-table td { box-sizing: border-box; overflow-wrap: break-word; padding: 4pt 5pt; word-break: normal; }
         .spec-table th { white-space: normal; }
         ${printSpecTableChipCss({ spaced: true })}
       }
