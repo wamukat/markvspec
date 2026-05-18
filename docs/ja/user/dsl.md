@@ -189,8 +189,8 @@ MarkVSpec は Markdown 全体を DSL として読むわけではありません�
 | Flow control | case の末尾に `stop` / `continue` | 実装済み | 省略時は `continue` として扱う。 |
 | Display | `display.target` + `element` / `message` / `partial` | 実装済み | `display.content`、`display.elements` は unsupported。 |
 | View Context | `## View Context`、`${view.<name>}`、`view:` effect | 実装済み | 型は `boolean` と `enum`。 |
-| source / samples | `source: data`、`sample`、`sample rows:`、scenario `samples` | 実装済み | 詳細は #1180 で拡充予定。 |
-| Preview Scenarios | `## Preview Scenarios` の `state` / `view` / `cases` / `samples` | 実装済み | 詳細は #1180 で拡充予定。 |
+| source / samples | `source: data`、`sample`、`sample rows:`、scenario `samples` | 実装済み | source は表示値の由来、sample は preview 用の具体値。 |
+| Preview Scenarios | `## Preview Scenarios` の `state` / `view` / `cases` / `samples` | 実装済み | baseline preview に追加する state/view/sample の明示 variant。 |
 | Validation | `## Field Validations` / `## Cross-field Validations` | 実装済み | `## Validations` は legacy-compatible。 |
 | Business Rules | `## Business Rules`、`### [marker:]R-* Name` | 実装済み | サーバ由来の業務制約は validation と分ける。 |
 | Template / Slot | `type: template`、`## Slots`、screen 側 `## Slot:<name>` | 実装済み | 詳細は #1181 で拡充予定。 |
@@ -1199,6 +1199,39 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 アプリ管理下のリソースは `asset`、アプリ管理外のリソースは `external` とします。
 `source: document` や `source: ${model.users.items}` のような旧来の参照パス指定は不許可です。
 
+`source:` と sample の責務は分けます。
+
+- `source:` は表示値の由来分類です。`data` や `route` のようなカテゴリを示し、具体値そのものは持ちません。
+- `sample` / `sample rows:` は preview に渡す代表値です。実装時のデータ取得先や binding ではありません。
+- `source: fixed` または source 未指定の要素は、`label`、`text`、`message`、`hint`、`value` などに表示値そのものを持ちます。この場合 `sample` は書きません。
+- `source: fixed` に `sample` を併記した場合は warning です。preview は固定値を捏造せず、固定表示に必要な property を正として扱います。
+- `sample` は `source: data` の scalar element に使います。`Table` / `List` の複数行データには `sample rows:` または Preview Scenario の `rows:` を使います。
+
+最小例です。
+
+```markdown
+### E-FixedTitle Heading
+
+- level: 1
+- label: お知らせ詳細
+
+### E-NoticeTitle Text
+
+- source: data
+- sample: 緊急メンテナンスのお知らせ
+- src: ${model.notice.title}
+
+### E-NoticeId Text
+
+- source: route
+- src: ${route.noticeId}
+
+### E-ConfirmEmail Text
+
+- source: element
+- value: E-EmailInput.value
+```
+
 `Table` は Markdown table ではなく、ネストした Markdown リストで列とサンプル行を書きます。
 区切り文字を使った文字列操作を避け、設計書として読みやすい形を優先します。データ由来のテーブルは
 由来分類として `source: data` を書き、preview 用の行は `sample rows:` または Preview Scenario の `rows:` に書きます。
@@ -1232,6 +1265,9 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
 `Columns:` では `- key: 表示名` と書くことで、サンプルデータの key と表示ヘッダーを分けられます。
 `sortable: true` は sort 可能な列、`sort: asc` / `sort: desc` は現在の sort 方向を preview に表示します。
 従来の `Sample Rows:` ブロックも互換として利用できますが、新しい例では `sample rows:` を使います。
+`sample rows: []` は baseline preview で意図的に 0 件を表示する指定です。`Table` は列見出しを保持し、
+body に 0 件 fallback 行を表示します。`List` は 0 件 fallback item を表示します。
+`sample rows:` がなく、Preview Scenario にも `rows:` がない `source: data` の `Table` / `List` は warning です。
 
 `Dialog` は既定で modal overlay として扱います。Dialog 表示のためだけに
 通常 Layout へ `L-DialogArea` のような専用領域を置くのは canonical ではありません。
@@ -2020,6 +2056,45 @@ Preview Scenario が `view` を指定しない場合、preview/export はまず
 `## Preview Scenarios` がない場合、preview/export はすべての state を表示します。
 View Context の fallback は、`View Context Samples.default`、View Context のデフォルト値、
 `*` がない View Context 定義の先頭値の順です。
+
+sample の優先順位は次の通りです。
+
+1. Preview Scenario の `samples` が、その scenario の表示値として最優先です。
+2. Preview Scenario に対象 element の `samples` がない場合は、Element 定義の `sample` / `sample rows:` を使います。
+3. `source: fixed` または source 未指定の要素は、`label`、`text`、`message`、`hint`、`value` などの固定値を使います。
+4. どこにも preview 用の値がない `source: data` の scalar element は placeholder 的な表示に留め、値を捏造しません。
+
+```markdown
+## Elements
+
+### E-Title Text
+
+- source: data
+- sample: Baseline title
+- src: ${model.notice.title}
+
+### E-Users Table
+
+- source: data
+- Columns:
+  - name: Name
+- sample rows:
+  - row:
+    - name: Alice
+
+## Preview Scenarios
+
+### loaded-empty
+
+- state: loaded
+- samples:
+  - E-Title: Scenario title
+  - E-Users:
+    - rows: []
+```
+
+この scenario では `E-Title` は `Scenario title` を表示し、`E-Users` は 0 件 fallback を表示します。
+baseline preview では `Baseline title` と `Alice` の行を表示します。
 
 ## 説明文と自由記述セクション
 

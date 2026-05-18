@@ -204,8 +204,8 @@ This document uses these categories when describing syntax:
 | Flow control | `stop` / `continue` at the end of a case | Implemented | Omitted flow is treated as `continue`. |
 | Display | `display.target` plus exactly one of `element`, `message`, or `partial` | Implemented | `display.content` and `display.elements` are unsupported. |
 | View Context | `## View Context`, `${view.<name>}`, and `view:` effects | Implemented | Supported types are `boolean` and `enum`. |
-| source / samples | `source: data`, `sample`, `sample rows:`, scenario `samples` | Implemented | Detailed docs are planned in #1180. |
-| Preview Scenarios | `state` / `view` / `cases` / `samples` in `## Preview Scenarios` | Implemented | Detailed docs are planned in #1180. |
+| source / samples | `source: data`, `sample`, `sample rows:`, scenario `samples` | Implemented | `source` is origin category; samples are concrete preview values. |
+| Preview Scenarios | `state` / `view` / `cases` / `samples` in `## Preview Scenarios` | Implemented | Explicit state/view/sample variants added to baseline previews. |
 | Validation | `## Field Validations` / `## Cross-field Validations` | Implemented | `## Validations` is legacy-compatible. |
 | Business Rules | `## Business Rules`, `### [marker:]R-* Name` | Implemented | Server-side domain constraints stay separate from validation. |
 | Template / Slot | `type: template`, `## Slots`, and screen-side `## Slot:<name>` | Implemented | Detailed docs are planned in #1181. |
@@ -1293,11 +1293,32 @@ Use `asset` for app-managed resources and `external` for resources managed
 outside the app. `source: document` and old reference-path usage such as
 `source: ${model.users.items}` are invalid.
 
+Keep `source:` and samples separate:
+
+- `source:` is the origin category for displayed content. It names a category
+  such as `data` or `route`; it is not the concrete preview value.
+- `sample` / `sample rows:` are concrete values supplied to preview. They are
+  not implementation bindings or data-fetching paths.
+- `source: fixed` and elements without `source` already carry their displayed
+  value in `label`, `text`, `message`, `hint`, `value`, or a similar property.
+  Do not add `sample` for fixed content.
+- `source: fixed` with `sample` is a warning. Preview does not invent a fixed
+  value from the sample; the fixed display property remains authoritative.
+- Use `sample` for scalar `source: data` elements. Use `sample rows:` or
+  Preview Scenario `rows:` for multi-row `Table` and `List` data.
+
+Minimal examples:
+
 ```markdown
 ### E-PageTitle Heading
 
 - label: My Page
 - source: i18n
+
+### E-FixedTitle Heading
+
+- level: 1
+- label: Notice detail
 
 ### E-NoticeTitle Link
 
@@ -1314,6 +1335,16 @@ outside the app. `source: document` and old reference-path usage such as
 - sample: 2026/05/01
 - src: ${model.notice.publishedAt}
 - format: date yyyy/MM/dd
+
+### E-NoticeId Text
+
+- source: route
+- src: ${route.noticeId}
+
+### E-ConfirmEmail Text
+
+- source: element
+- value: E-EmailInput.value
 ```
 
 Wireframes render fixed `text` / `hint` directly and use `sample` only as the
@@ -1551,6 +1582,10 @@ header. Add `sortable: true` to show a sort affordance, or `sort: asc` /
 `sort: desc` to show the current sort direction. The older `Sample Rows:`
 element block remains supported for older static tables, but new examples should
 use `sample rows:`.
+`sample rows: []` intentionally renders an empty baseline preview. A `Table`
+keeps its headers and renders a single empty fallback body row. A `List` renders
+an empty fallback item. A `source: data` `Table` or `List` without `sample rows:`
+and without Preview Scenario `rows:` is a warning.
 
 `Dialog`, `Toast`, `Image`, `Icon`, and `Spinner` use small semantic property sets.
 `Dialog` is a modal overlay by default. Do not place a dedicated
@@ -2337,6 +2372,49 @@ If `## Preview Scenarios` is absent, preview/export renders all states. View
 Context fallback follows the same order: `View Context Samples.default`, then
 View Context default values. View Context definitions without a `*` default fall
 back to their first listed value.
+
+Sample precedence:
+
+1. Preview Scenario `samples` are used first for that scenario.
+2. If the scenario does not override an element, the element's `sample` /
+   `sample rows:` provides the baseline value.
+3. `source: fixed` and elements without `source` use fixed properties such as
+   `label`, `text`, `message`, `hint`, or `value`.
+4. A scalar `source: data` element with no preview value remains a placeholder;
+   MarkVSpec does not invent a value.
+
+```markdown
+## Elements
+
+### E-Title Text
+
+- source: data
+- sample: Baseline title
+- src: ${model.notice.title}
+
+### E-Users Table
+
+- source: data
+- Columns:
+  - name: Name
+- sample rows:
+  - row:
+    - name: Alice
+
+## Preview Scenarios
+
+### loaded-empty
+
+- state: loaded
+- samples:
+  - E-Title: Scenario title
+  - E-Users:
+    - rows: []
+```
+
+In this scenario, `E-Title` renders `Scenario title` and `E-Users` renders the
+empty fallback. The baseline preview still renders `Baseline title` and the
+`Alice` row.
 
 For a section-by-section reference that uses `Section Lead`, `Entity Block`,
 `Structured Body`, and `Entity Notes` terminology, see
