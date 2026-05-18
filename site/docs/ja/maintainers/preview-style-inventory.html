@@ -63,6 +63,24 @@
         margin: 0;
       }
 
+      .site-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .site-nav a {
+        background: #fff;
+        border: 1px solid var(--mm-border);
+        border-radius: 999px;
+        color: #1d5ea8;
+        font-size: 12px;
+        font-weight: 650;
+        padding: 5px 10px;
+        text-decoration: none;
+      }
+
       .catalog-nav {
         background: #fff;
         border-left: 1px solid var(--mm-border);
@@ -1020,6 +1038,14 @@
         <header class="catalog-header">
           <h1>MarkVSpec プレビュースタイル一覧</h1>
           <p>現在の preview / generated design document / wireframe の主要スタイルを、見た目で確認するための HTML カタログです。</p>
+          <nav class="site-nav" aria-label="主要ドキュメント">
+            <a href="../user/authoring-guide.html">ガイド</a>
+            <a href="../user/document-structure.html">文書構造</a>
+            <a href="../user/structured-section-reference.html">セクション</a>
+            <a href="../user/dsl.md">DSL</a>
+            <a href="../user/example-gallery.md">サンプル</a>
+            <a href="../../en/maintainers/preview-style-inventory.html">English</a>
+          </nav>
         </header>
 
         <section class="inventory-section" id="palette">

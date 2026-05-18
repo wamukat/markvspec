@@ -115,6 +115,12 @@
       font-weight: 650;
     }
 
+    .nav a[aria-current="page"] {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
     .callout {
       border: 1px solid var(--line);
       border-left: 4px solid var(--accent);
@@ -379,11 +385,13 @@
         current preview visual language, but they do not execute the production preview engine and
         are not renderer-perfect output.
       </p>
-      <nav class="nav" aria-label="Related documents">
-        <a href="example-gallery.md">Example Gallery</a>
-        <a href="dsl.md">DSL Reference</a>
-        <a href="pdf-export.md">PDF Export</a>
-        <a href="document-structure.html">Document Structure</a>
+      <nav class="nav" aria-label="Primary documentation">
+        <a href="authoring-guide.html" aria-current="page">Guide</a>
+        <a href="document-structure.html">Structure</a>
+        <a href="structured-section-reference.html">Sections</a>
+        <a href="dsl.md">DSL</a>
+        <a href="example-gallery.md">Examples</a>
+        <a href="pdf-export.md">PDF</a>
         <a href="../../ja/user/authoring-guide.html">Japanese</a>
       </nav>
     </header>

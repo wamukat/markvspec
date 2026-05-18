@@ -115,6 +115,12 @@
       font-weight: 650;
     }
 
+    .nav a[aria-current="page"] {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
     .callout {
       border: 1px solid var(--line);
       border-left: 4px solid var(--accent);
@@ -378,11 +384,13 @@
         例は短い source snippet と手書きの静的 HTML mock で示します。mock は現在の preview の見た目に寄せていますが、
         production preview engine は実行せず、renderer と完全一致する出力ではありません。
       </p>
-      <nav class="nav" aria-label="関連ドキュメント">
-        <a href="example-gallery.md">サンプルギャラリー</a>
-        <a href="dsl.md">DSL リファレンス</a>
-        <a href="pdf-export.md">PDF 出力</a>
+      <nav class="nav" aria-label="主要ドキュメント">
+        <a href="authoring-guide.html" aria-current="page">ガイド</a>
         <a href="document-structure.html">文書構造</a>
+        <a href="structured-section-reference.html">セクション</a>
+        <a href="dsl.md">DSL</a>
+        <a href="example-gallery.md">サンプル</a>
+        <a href="pdf-export.md">PDF</a>
         <a href="../../en/user/authoring-guide.html">English</a>
       </nav>
     </header>

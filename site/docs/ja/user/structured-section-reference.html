@@ -20,7 +20,7 @@
     code{border:1px solid var(--soft);border-radius:4px;background:#f8fafc;padding:1px 4px;font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
     pre{margin:0;overflow:auto;border-radius:6px;background:var(--code);color:var(--code-ink);padding:12px;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
     pre code{border:0;background:transparent;color:inherit;padding:0;font:inherit}
-    .nav{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.nav a{border:1px solid var(--line);border-radius:999px;background:var(--paper);padding:5px 10px;text-decoration:none;font-size:12px;font-weight:650}
+    .nav{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.nav a{border:1px solid var(--line);border-radius:999px;background:var(--paper);padding:5px 10px;text-decoration:none;font-size:12px;font-weight:650}.nav a[aria-current="page"]{border-color:var(--accent);background:#edf5ff;color:var(--accent)}
     .panel{border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:18px}
     .matrix{overflow-x:auto}table{border-collapse:collapse;min-width:1120px;width:100%}th,td{border-bottom:1px solid var(--soft);padding:8px 10px;text-align:left;vertical-align:top}th{background:#f8fafc;font-size:12px}
     .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;background:#fbfcfe;padding:2px 7px;font-size:11px;font-weight:700;white-space:nowrap}.semantic{color:var(--semantic)}.prose{color:var(--prose)}.preview{color:var(--accent)}
@@ -33,10 +33,13 @@
   <header>
     <h1>構造化セクションリファレンス</h1>
     <p class="lead">各 recognized <code>Section</code> について、<a href="document-structure.html">文書構造</a>で定義した用語を使い、役割、prose の所有先、parser が解釈する範囲、preview の表示位置、最小例を確認できます。</p>
-    <nav class="nav" aria-label="関連ドキュメント">
+    <nav class="nav" aria-label="主要ドキュメント">
+      <a href="authoring-guide.html">ガイド</a>
       <a href="document-structure.html">文書構造</a>
-      <a href="structured-section-reference.md">Markdown reference</a>
-      <a href="dsl.md#文書構造の用語">DSL の用語定義</a>
+      <a href="structured-section-reference.html" aria-current="page">セクション</a>
+      <a href="dsl.md#文書構造の用語">DSL</a>
+      <a href="example-gallery.md">サンプル</a>
+      <a href="pdf-export.md">PDF</a>
       <a href="../../en/user/structured-section-reference.html">English</a>
     </nav>
   </header>
