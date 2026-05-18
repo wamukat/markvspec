@@ -162,6 +162,13 @@ The webview should show a low-fidelity wireframe and update as the document chan
   受け入れ済みとし、新しい作業を別チケットで管理する。
 - MarkVSpec の Kanbalone チケットのタイトル、本文、コメントは原則として日本語で
   書く。
+- Kanbalone チケットを新規作成、または実装者に渡す前提で本文を大きく更新する
+  場合は、登録前に独立した sub-agent review を受ける。ユーザーが毎回明示しなくても、
+  チケット本文、実装指示、受入条件、関連チケット、blocker の妥当性をレビュー済みに
+  してから Kanbalone に登録または更新する。
+- sub-agent review が利用できない場合は、Kanbalone へ登録せず、レビュー未実施で
+  登録できない旨と暫定案をユーザーに報告する。ただし、ユーザーが明示的に
+  「レビューなしで登録してよい」と指示した場合だけ例外とする。
 
 制約:
 
@@ -250,6 +257,9 @@ Use Kanbalone for project task tracking.
 - Installed skill path: `~/.codex/skills/kanbalone-api`
 - Write MarkVSpec Kanbalone ticket titles, bodies, and comments in Japanese by
   default.
+- Before creating a Kanbalone ticket or substantially updating a ticket body for
+  implementer handoff, obtain an independent sub-agent review of the proposed
+  ticket content. Do not rely on the user to repeat this requirement.
 
 The requested GitHub skill source was:
 
