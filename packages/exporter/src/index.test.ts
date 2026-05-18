@@ -436,6 +436,8 @@ test("exports responsive design document sections for every viewport", () => {
     assert.match(html, /\.wireframe-print-section, \.action-detail, \.note-block, \.process-card \{ break-inside: avoid; page-break-inside: avoid; \}/);
     assert.match(html, /\.spec-table tr \{ break-inside: avoid; page-break-inside: avoid; \}/);
     assert.doesNotMatch(html, /\.spec-table-wrap, \.spec-table \{ break-inside: avoid; page-break-inside: avoid; \}/);
+    assert.match(html, /\.spec-table \.mm-ref-chip, \.spec-table \.mm-chip, \.spec-table \.mm-detail-ref-id, \.spec-table \.mm-id \{ box-sizing: border-box; max-width: 100%; min-width: 0; overflow-wrap: anywhere; white-space: normal; word-break: break-word; \}/);
+    assert.match(html, /\.spec-table td > \.mm-ref-chip, \.spec-table td > \.mm-chip \{ display: flex; margin: 0 0 2pt; width: fit-content; \}/);
     assert.doesNotMatch(html, /\.state-screen-section:first-of-type/);
     assert.doesNotMatch(html, /@page markvspec-landscape/);
     assert.match(html, /\.wireframe-section \{ max-width: 100%; overflow-x: auto; overflow-y: visible; padding-bottom: 4px; scrollbar-color: #9ca3af #f3f4f6; scrollbar-width: thin; \}/);

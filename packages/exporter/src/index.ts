@@ -12,6 +12,7 @@ import {
 } from "@markvspec/core";
 import {
   baseWireframeViewportCss,
+  printSpecTableChipCss,
   printWireframeViewportCss,
   printScrollbarSuppressCss,
   renderStaticDesignDocumentHtml,
@@ -562,6 +563,7 @@ function standaloneHtml(
         .spec-table th,
         .spec-table td { box-sizing: border-box; overflow-wrap: anywhere; padding: 4pt 5pt; word-break: break-word; }
         .spec-table th { white-space: normal; }
+        ${printSpecTableChipCss({ spaced: true })}
       }
     </style>
   </head>

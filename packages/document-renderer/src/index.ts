@@ -80,6 +80,23 @@ export function standardPrintPolicyCss(options: { spaced?: boolean } = {}): stri
     .join("");
 }
 
+export function printSpecTableChipCss(options: { spaced?: boolean } = {}): string {
+  const rules = [
+    [".spec-table .mm-ref-chip, .spec-table .mm-chip, .spec-table .mm-detail-ref-id, .spec-table .mm-id", "box-sizing: border-box; max-width: 100%; min-width: 0; overflow-wrap: anywhere; white-space: normal; word-break: break-word"],
+    [".spec-table .mm-ref-chip", "align-items: flex-start; flex-wrap: wrap"],
+    [".spec-table .mm-ref-chip .mm-id, .spec-table .mm-id", "flex: 0 1 auto; width: auto"],
+    [".spec-table td > .mm-ref-chip, .spec-table td > .mm-chip", "display: flex; margin: 0 0 2pt; width: fit-content"]
+  ];
+
+  if (options.spaced) {
+    return rules.map(([selector, body]) => `${selector} { ${body}; }`).join("\n        ");
+  }
+
+  return rules
+    .map(([selector, body]) => `${selector}{${body.replaceAll(": ", ":").replaceAll("; ", ";")}}`)
+    .join("");
+}
+
 export function printScrollbarSuppressCss(options: { spaced?: boolean } = {}): string {
   const selectors = [
     "html",

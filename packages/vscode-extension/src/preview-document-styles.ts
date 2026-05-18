@@ -1,6 +1,7 @@
 import {
   baseWireframeViewportCss,
   printScrollbarSuppressCss,
+  printSpecTableChipCss,
   printWireframeViewportCss,
   standardPrintPolicyCss,
   wireframePrintSectionCss
@@ -264,6 +265,7 @@ body.hide-marker-action .mm-marker-action{display:none}
     .spec-table th,.spec-table td{overflow-wrap:anywhere;padding:4pt 5pt;word-break:break-word}
     .spec-table th{white-space:normal}
     .spec-table code:not(.mm-id):not(.mm-doc-label):not(.mm-document-ref-id){background:transparent;padding:0}
+    ${printSpecTableChipCss()}
     .mm-inline-token{color:inherit}
     .spec-table code.mm-id{padding:1px 4px}
     .mm-marker-layout{background:#ecfeff!important;border-color:#67e8f9!important;border-left-color:#0891b2!important;color:#155e75!important}
@@ -429,6 +431,7 @@ ${baseWireframeViewportCss()}
     .spec-table{font-size:8.5pt;table-layout:fixed;width:100%}
     .spec-table thead{display:table-header-group}
     .spec-table th,.spec-table td{overflow-wrap:anywhere;padding:4pt 5pt;word-break:break-word}
+    ${printSpecTableChipCss()}
     .mm-inline-token{color:inherit}
     .mermaid-source,.mermaid-render{break-inside:avoid;font-size:8.5pt;max-width:100%;overflow:visible;page-break-inside:avoid;white-space:pre-wrap}
     .mermaid-render svg{display:block;height:auto!important;margin:0 auto;max-height:180mm;max-width:100%;width:auto!important}

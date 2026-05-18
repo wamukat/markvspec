@@ -4,6 +4,7 @@ import { messagesForLocale, parseMarkVSpec } from "@markvspec/core";
 import {
   baseWireframeViewportCss,
   printScrollbarSuppressCss,
+  printSpecTableChipCss,
   printWireframeViewportCss,
   renderDesignDocumentSections,
   renderTable,
@@ -38,6 +39,8 @@ test("renders shared wireframe print selectors for compact and static HTML CSS",
   assert.match(standardPrintPolicyCss({ spaced: true }), /\.wireframe-print-section, \.action-detail, \.note-block, \.process-card \{ break-inside: avoid; page-break-inside: avoid; \}/);
   assert.doesNotMatch(standardPrintPolicyCss({ spaced: true }), /\.spec-table-wrap, \.spec-table \{ break-inside: avoid/);
   assert.match(standardPrintPolicyCss({ spaced: true }), /\.spec-table tr \{ break-inside: avoid; page-break-inside: avoid; \}/);
+  assert.match(printSpecTableChipCss(), /\.spec-table \.mm-ref-chip, \.spec-table \.mm-chip, \.spec-table \.mm-detail-ref-id, \.spec-table \.mm-id\{box-sizing:border-box;max-width:100%;min-width:0;overflow-wrap:anywhere;white-space:normal;word-break:break-word\}/);
+  assert.match(printSpecTableChipCss(), /\.spec-table td > \.mm-ref-chip, \.spec-table td > \.mm-chip\{display:flex;margin:0 0 2pt;width:fit-content\}/);
   assert.match(printScrollbarSuppressCss(), /html,body,main,\.content,\.preview,\.document,\.spec-table-wrap,\.wireframe-section,\.mermaid-render,\.mermaid-source,\.note-content,\.entity-notes pre,\.entity-overview pre\{overflow:visible!important;scrollbar-width:none!important;-ms-overflow-style:none!important\}/);
   assert.match(printScrollbarSuppressCss(), /html::-webkit-scrollbar,body::-webkit-scrollbar,main::-webkit-scrollbar,\.content::-webkit-scrollbar,\.preview::-webkit-scrollbar,\.document::-webkit-scrollbar,\.spec-table-wrap::-webkit-scrollbar,\.wireframe-section::-webkit-scrollbar,\.mermaid-render::-webkit-scrollbar,\.mermaid-source::-webkit-scrollbar,\.note-content::-webkit-scrollbar,\.entity-notes pre::-webkit-scrollbar,\.entity-overview pre::-webkit-scrollbar\{display:none!important;height:0!important;width:0!important\}/);
   assert.match(printScrollbarSuppressCss({ spaced: true }), /html,\n\s+body,\n\s+main,\n\s+\.content,\n\s+\.preview,\n\s+\.document,\n\s+\.spec-table-wrap,/);

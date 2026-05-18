@@ -4135,7 +4135,7 @@ function renderEnabledConditionList(
   element: ParsedElement
 ): string {
   if (element.disabledWhen.length === 0) {
-    return text(label(result, "always"));
+    return renderDefaultAlways(result);
   }
   return `<ul class="spec-list">${element.disabledWhen.map((condition) => `<li>${escapeHtml(conditionLabel(result, "enabled"))}: ${label(result, "conditionNot")} ${renderCondition(result, condition)}</li>`).join("")}</ul>`;
 }
@@ -6098,7 +6098,7 @@ function renderContentElementState(
   return renderConditionList(result, [
     ["visible", element.visibleWhen],
     ["hidden", element.hiddenWhen]
-  ]) || text(label(result, "always"));
+  ]) || renderDefaultAlways(result);
 }
 
 function renderDisplayContentElementState(
@@ -6128,7 +6128,7 @@ function renderActionableElementState(
     ["visible", element.visibleWhen],
     ["hidden", element.hiddenWhen],
     ["disabled", element.disabledWhen]
-  ]);
+  ]) || renderDefaultAlways(result);
 }
 
 function shouldShowFormControlValueSource(
