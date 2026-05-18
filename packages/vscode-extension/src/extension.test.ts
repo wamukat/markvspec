@@ -6704,7 +6704,7 @@ Validations section notes.
 
 Business Rules section overview.
 
-### R-EmailRequired Email required
+### R1:R-EmailRequired Email required
 
 Rule overview.
 
@@ -6720,7 +6720,7 @@ Business Rules section notes.
 
 Error Codes section overview.
 
-### ERR-EMAIL-REQUIRED Email required
+### ER1:ERR-EMAIL-REQUIRED Email required
 
 Error overview.
 
@@ -6752,6 +6752,10 @@ Error Codes section notes.
   assert.match(validations, /Validations section overview\.[\s\S]*<th>Overview<\/th>[\s\S]*Validation overview\.[\s\S]*Validation notes\.[\s\S]*Validations section notes\./);
   assert.match(rules, /Business Rules section overview\.[\s\S]*<th>Overview<\/th>[\s\S]*Rule overview\.[\s\S]*Email is required before submit\.[\s\S]*Rule notes\.[\s\S]*Business Rules section notes\./);
   assert.match(errorCodes, /Error Codes section overview\.[\s\S]*<th>Overview<\/th>[\s\S]*Error overview\.[\s\S]*Error notes\.[\s\S]*Error Codes section notes\./);
+  assert.match(errorCodes, /<th>Marker\/ID<\/th><th>Name<\/th>/);
+  assert.match(errorCodes, /<span class="mm-ref-chip mm-ref-chip-error-code"[^>]*data-mm-ref-id="ERR-EMAIL-REQUIRED"[^>]*><code class="mm-id mm-marker mm-marker-error-code" data-mm-marker-category="error-code">ER1<\/code> Email required<\/span>/);
+  assert.match(errorCodes, /<span class="mm-ref-chip mm-ref-chip-message"[^>]*data-mm-ref-id="R-EmailRequired"[^>]*><code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="R-EmailRequired">R1<\/code> Email required<\/span>/);
+  assert.match(errorCodes, /<span class="mm-ref-chip mm-ref-chip-element"[^>]*data-mm-ref-id="E-EmailInput"[^>]*><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">E-EmailInput<\/code> <span class="mm-detail-ref-id">E-EmailInput<\/span><\/span>/);
 });
 
 test("renders business rule text as safe markdown inside the rule table", () => {
@@ -7747,7 +7751,7 @@ test("creates document symbols for MarkVSpec structure", () => {
   const rules = screen.children.find((child) => child.name === "Business Rules");
   assert(rules);
   assert.deepEqual(rules.children.map((child) => child.name), [
-    "R-AUTH-001"
+    "R1:R-AUTH-001"
   ]);
 });
 
@@ -7807,13 +7811,13 @@ title: 日本語画面
 
 ## Business Rules
 
-### R-日本語業務ルール 業務ルール
+### R1:R-日本語業務ルール 業務ルール
 
 - 日本語の業務ルールを書けること。
 
 ## Error Codes
 
-### ERR-日本語 日本語エラー
+### ER1:ERR-日本語 日本語エラー
 
 - business rule: R-日本語業務ルール
 - target: E-ページヘッダ
@@ -7839,8 +7843,8 @@ title: 日本語画面
   const modelSamples = screen.children.find((child) => child.name === "Model Samples");
   assert.equal(modelSamples?.detail, "Section");
   assert.deepEqual(modelSamples?.children, []);
-  assert.equal(businessRules?.children[0]?.name, "R-日本語業務ルール 業務ルール");
-  assert.equal(errorCodes?.children[0]?.name, "ERR-日本語 日本語エラー");
+  assert.equal(businessRules?.children[0]?.name, "R1:R-日本語業務ルール 業務ルール");
+  assert.equal(errorCodes?.children[0]?.name, "ER1:ERR-日本語 日本語エラー");
 });
 
 test("creates a quick fix for missing action triggers", () => {

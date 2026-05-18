@@ -1225,13 +1225,13 @@ function symbolsForSection(
   if (section.title === "Business Rules") {
     return result.rules
       .filter((rule) => isLineInSection(rule.location.line, section))
-      .map((rule) => createDocumentSymbol(document, `${rule.id}${rule.name ? ` ${rule.name}` : ""}`, "Rule", vscode.SymbolKind.Key, rule.location.line, nextSiblingLineEnd(document, rule.location.line, section.endLine)));
+      .map((rule) => createDocumentSymbol(document, `${formatMarkerPrefix(rule.properties["marker"])}${rule.id}${rule.name ? ` ${rule.name}` : ""}`, "Rule", vscode.SymbolKind.Key, rule.location.line, nextSiblingLineEnd(document, rule.location.line, section.endLine)));
   }
 
   if (section.title === "Error Codes") {
     return result.errorCodes
       .filter((errorCode) => isLineInSection(errorCode.location.line, section))
-      .map((errorCode) => createDocumentSymbol(document, `${errorCode.id}${errorCode.name ? ` ${errorCode.name}` : ""}`, "Error Code", vscode.SymbolKind.Constant, errorCode.location.line, nextSiblingLineEnd(document, errorCode.location.line, section.endLine)));
+      .map((errorCode) => createDocumentSymbol(document, `${formatMarkerPrefix(errorCode.properties["marker"])}${errorCode.id}${errorCode.name ? ` ${errorCode.name}` : ""}`, "Error Code", vscode.SymbolKind.Constant, errorCode.location.line, nextSiblingLineEnd(document, errorCode.location.line, section.endLine)));
   }
 
   return [];
@@ -1290,7 +1290,7 @@ function clampLine(document: vscode.TextDocument, line: number): number {
   return Math.min(Math.max(line, 1), Math.max(document.lineCount, 1));
 }
 
-function formatMarkerPrefix(marker: string | true | undefined): string {
+function formatMarkerPrefix(marker: string | string[] | true | undefined): string {
   return typeof marker === "string" && marker ? `${marker}:` : "";
 }
 
@@ -5024,7 +5024,7 @@ function renderErrorCodesSpec(result: ReturnType<typeof parseMarkVSpec>): string
     ${renderSectionOverview(sectionProse)}
     ${renderLocalizedTable(result,
       [
-        label(result, "id"),
+        markerIdHeader(result),
         label(result, "name"),
         ...(showOverview ? [label(result, "overview")] : []),
         label(result, "businessRule"),
@@ -5034,7 +5034,7 @@ function renderErrorCodesSpec(result: ReturnType<typeof parseMarkVSpec>): string
         ...(showNotes ? [label(result, "notes")] : [])
       ],
       result.errorCodes.map((errorCode) => [
-        renderDetailRefId(errorCode.id),
+        referenceForDetailId(result, errorCode.id),
         text(errorCode.name),
         ...(showOverview ? [renderEntityOverview(errorCode.overview)] : []),
         renderErrorCodeProperty(result, errorCode, "business rule"),
@@ -5060,8 +5060,8 @@ function renderErrorCodeProperty(
   }
 
   return values.length === 1
-    ? renderParamSource(result, values[0] ?? "")
-    : `<ul class="spec-list">${values.map((item) => `<li>${renderParamSource(result, item)}</li>`).join("")}</ul>`;
+    ? renderDetailParamSource(result, values[0] ?? "")
+    : `<ul class="spec-list">${values.map((item) => `<li>${renderDetailParamSource(result, item)}</li>`).join("")}</ul>`;
 }
 
 function renderHistorySpec(result: ReturnType<typeof parseMarkVSpec>): string {
@@ -5263,7 +5263,7 @@ function renderSourceWithReferences(result: ReturnType<typeof parseMarkVSpec>, s
     return escapeHtml(part).replace(/(^|[^\p{L}\p{N}-])((?:ERR|L|E|F|A|R|V)-[\p{L}\p{N}-]+)/gu, (_match, prefix: string, id: string) => {
       const reference = detailedReferences
         ? referenceForDetailId(result, id)
-        : id.startsWith("F-") || id.startsWith("V-") || id.startsWith("R-")
+        : id.startsWith("ERR-") || id.startsWith("F-") || id.startsWith("V-") || id.startsWith("R-")
           ? referenceChipForId(result, id) || renderDetailRefId(id)
           : markerBadgeForId(result, id) || renderDetailRefId(id);
       return `${prefix}${reference}`;

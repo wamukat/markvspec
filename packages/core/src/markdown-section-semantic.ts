@@ -1862,18 +1862,18 @@ function parseErrorCodesSection(section: SectionAst): Pick<SectionSemanticResult
     }
     if (block.type === "heading" && block.depth === 3) {
       hasSeenEntity = true;
-      const match = /^(ERR-[\p{L}\p{N}-]+)(?:\s+(.+?))?\s*$/u.exec(block.text);
+      const match = /^(?:(\S+?):)?(ERR-[\p{L}\p{N}-]+)(?:\s+(.+?))?\s*$/u.exec(block.text);
       if (!match) {
         current = undefined;
         currentHasStructuredContent = false;
         continue;
       }
       current = {
-        id: match[1],
-        name: match[2],
+        id: match[2],
+        name: match[3],
         bullets: [],
-        properties: {},
-        propertyLocations: {},
+        properties: match[1] ? { marker: match[1] } : {},
+        propertyLocations: match[1] ? { marker: [locationFromBlock(block)] } : {},
         location: locationFromBlock(block)
       };
       errorCodes.push(current);
@@ -2236,7 +2236,7 @@ function isRecognizedStructuredHeading(section: SectionAst, block: BlockAst): bo
     return block.depth === 3 && /^(?:\S+?:)?V-[\p{L}\p{N}-]+(?:\s+.+?)?\s*$/u.test(block.text);
   }
   if (section.kind === "ErrorCodes") {
-    return block.depth === 3 && /^ERR-[\p{L}\p{N}-]+(?:\s+.+?)?\s*$/u.test(block.text);
+    return block.depth === 3 && /^(?:\S+?:)?ERR-[\p{L}\p{N}-]+(?:\s+.+?)?\s*$/u.test(block.text);
   }
   if (section.kind === "Layout" || section.kind === "Slot" || section.kind === "Slots") {
     return block.depth === 3 || block.depth === 4;

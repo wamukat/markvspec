@@ -163,25 +163,25 @@ referenced from the same flow.
 
 ## Business Rules
 
-### R-ACCOUNT-REQUIRED Required account fields
+### R1:R-ACCOUNT-REQUIRED Required account fields
 
 - Display name and notification email must be present before sending the save request.
 
-### R-ACCOUNT-SAVE Save failure handling
+### R2:R-ACCOUNT-SAVE Save failure handling
 
 - Save failures must keep the entered values visible.
 - The page must show an inline recovery message instead of navigating away.
 
 ## Error Codes
 
-### ERR-ACCOUNT-REQUIRED Required account fields
+### ER1:ERR-ACCOUNT-REQUIRED Required account fields
 
 - business rule: R-ACCOUNT-REQUIRED
 - target: E-ValidationMessage
 - message: Display name and notification email are required.
 - display: inline
 
-### ERR-ACCOUNT-SAVE-FAILED Save failed
+### ER2:ERR-ACCOUNT-SAVE-FAILED Save failed
 
 - business rule: R-ACCOUNT-SAVE
 - target: E-SaveErrorBanner

@@ -202,6 +202,7 @@ body.hide-repeated-content .repeated-layout-only-message[data-mm-show-repeated-h
 .mm-marker-element{background:rgba(255,255,255,.72);border-color:#f59e0b;border-radius:999px;color:#92400e;box-shadow:0 1px 2px rgba(15,23,42,.12)}
 .mm-marker-action{background:rgba(255,255,255,.78);border-color:#22c55e;border-radius:4px;color:#166534;box-shadow:0 1px 2px rgba(15,23,42,.12)}
 .mm-marker-message{background:#fef2f2;border-color:#fca5a5;border-radius:4px;color:#991b1b;box-shadow:0 1px 2px rgba(15,23,42,.12);margin-right:4px}
+.mm-marker-error-code{background:#fff7ed;border-color:#fdba74;border-radius:4px;color:#9a3412;box-shadow:0 1px 2px rgba(15,23,42,.12);margin-right:4px}
 .mm-marker-link{display:inline-flex;pointer-events:auto;text-decoration:none}
 body.hide-marker-layout .mm-marker-layout{display:none}
 body.hide-marker-layout .mm-marker-form-group{display:none}
@@ -273,6 +274,7 @@ body.hide-marker-action .mm-marker-action{display:none}
     .mm-marker-element{background:rgba(255,255,255,.72)!important;border-color:#f59e0b!important;box-shadow:0 1px 2px rgba(15,23,42,.12)!important;color:#92400e!important}
     .mm-marker-action{background:rgba(255,255,255,.78)!important;border-color:#22c55e!important;box-shadow:0 1px 2px rgba(15,23,42,.12)!important;color:#166534!important}
     .mm-marker-message{background:#fef2f2!important;border-color:#fca5a5!important;box-shadow:0 1px 2px rgba(15,23,42,.12)!important;color:#991b1b!important}
+    .mm-marker-error-code{background:#fff7ed!important;border-color:#fdba74!important;box-shadow:0 1px 2px rgba(15,23,42,.12)!important;color:#9a3412!important}
     .mm-marker-link{display:inline-flex;pointer-events:auto;text-decoration:none}
     body.hide-repeated-content .spec-table tr:has(.mm-repeated-badge){display:table-row}
     body.hide-repeated-content .system-events-box li:has(.mm-repeated-badge){display:list-item}

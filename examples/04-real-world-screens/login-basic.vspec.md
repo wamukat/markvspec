@@ -300,7 +300,7 @@ success or failure is handled by `A-HandleLoginResponse`.
 
 ## Business Rules
 
-### R-AUTH-001
+### R1:R-AUTH-001
 
 - Do not send a login request when required fields are missing.
 - Show request send failures and credential rejection inside the page message area.

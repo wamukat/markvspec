@@ -6602,7 +6602,7 @@ title: Input Contract
 
 ## Error Codes
 
-### ERR-EMAIL-FORMAT Email format
+### ER1:ERR-EMAIL-FORMAT Email format
 
 - business rule: R-EMAIL
 - target: E-メールアドレス入力
@@ -6623,6 +6623,7 @@ title: Input Contract
     messages: "Email format is invalid."
   });
   assert.equal(result.errorCodes[0]?.id, "ERR-EMAIL-FORMAT");
+  assert.equal(result.errorCodes[0]?.properties["marker"], "ER1");
   assert.equal(result.errorCodes[0]?.properties["business rule"], "R-EMAIL");
   assert.equal(result.actions[0]?.processSteps[0]?.details[0]?.value, "V-メール形式.result");
   assert.deepEqual(result.actions[0]?.processSteps.find((step) => step.name === "Immediate")?.outcomes[0]?.errorCodes, ["ERR-EMAIL-FORMAT"]);

@@ -143,13 +143,13 @@ toast stack.
 
 ## Business Rules
 
-### R-SETTINGS-SAVE Save failure feedback
+### R1:R-SETTINGS-SAVE Save failure feedback
 
 - Save failures must keep the form available and show non-modal feedback.
 
 ## Error Codes
 
-### ERR-SETTINGS-SAVE-FAILED Settings save failed
+### ER1:ERR-SETTINGS-SAVE-FAILED Settings save failed
 
 - business rule: R-SETTINGS-SAVE
 - target: E-SaveFailedToast

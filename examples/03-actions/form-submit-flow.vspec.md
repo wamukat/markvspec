@@ -199,7 +199,7 @@ try to cover non-submit element events.
 
 ## Error Codes
 
-### ERR-EMAIL-ALREADY-REGISTERED Email already registered
+### ER1:ERR-EMAIL-ALREADY-REGISTERED Email already registered
 
 - business rule: R-EmailMustBeUnique
 - target: E-EmailInput.error
