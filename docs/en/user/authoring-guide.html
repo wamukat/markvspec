@@ -409,13 +409,13 @@ title: Login
 # Login
 
 ## States
-### idle
+- idle*
 
-## Layout
-### L-LoginForm Login Form
+## Layout: mobile
+### L1:L-LoginForm Login Form
 
 ## Elements
-### E-EmailInput TextField
+### E-EmailInput Input
 ### E-SubmitButton Button
 
 ## Actions
@@ -455,7 +455,7 @@ title: Login
 - text: Email or password is invalid.
 
 ### A-SubmitLogin Submit login
-- Process: HttpResponse
+- Process P1: Handle login response
   - case: failure
     - Effects
       - display:
@@ -481,14 +481,19 @@ title: Login
           <span class="badge">target: E-*.error</span>
         </div>
         <div class="example-grid">
-          <pre><code>### V-EmailRequired Required
-- field: E-EmailInput
-- rule: required
-- messages
-  - Email is required.
+          <pre><code>## Field Validations
+
+### V1:V-EmailRequired Required email
+
+- target: E-EmailInput
+- constraints:
+  - required:
+    - message: Email is required.
 
 ### A-ValidateEmail Validate email
-- Process: Validation
+- Process P1: Check validation
+  - receive:
+    - validation: V-EmailRequired.result
   - case: invalid
     - Effects
       - display:
@@ -523,7 +528,7 @@ title: Login
   - Administrator approval is required.
 
 ### A-RequestAccess Request access
-- Process: BusinessRule
+- Process P1: Check access policy
   - case: blocked
     - Effects
       - display:
@@ -554,7 +559,7 @@ title: Login
 - text: This action cannot be undone.
 
 ### A-OpenDeleteDialog Open delete dialog
-- Process: Immediate
+- Process P1: Open dialog
   - case: open
     - Effects
       - display:
@@ -591,7 +596,7 @@ title: Login
 - text: Saved.
 
 ### A-SaveProfile Save profile
-- Process: HttpResponse
+- Process P1: Handle save response
   - case: success
     - Effects
       - display:
@@ -627,7 +632,7 @@ title: Login
 Review the required email behavior in #{E-EmailInput}
 before changing #{A-SubmitLogin}.
 
-### E-EmailInput TextField
+### E-EmailInput Input
 - label: Email</code></pre>
           <div class="mock stack">
             <p>
