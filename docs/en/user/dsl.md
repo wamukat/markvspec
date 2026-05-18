@@ -208,8 +208,8 @@ This document uses these categories when describing syntax:
 | Preview Scenarios | `state` / `view` / `cases` / `samples` in `## Preview Scenarios` | Implemented | Explicit state/view/sample variants added to baseline previews. |
 | Validation | `## Field Validations` / `## Cross-field Validations` | Implemented | `## Validations` is legacy-compatible. |
 | Business Rules | `## Business Rules`, `### [marker:]R-* Name` | Implemented | Server-side domain constraints stay separate from validation. |
-| Template / Slot | `type: template`, `## Slots`, and screen-side `## Slot:<name>` | Implemented | Detailed docs are planned in #1181. |
-| Partial | `type: partial`, Layout `partial:` hosts, and `display.partial` | Implemented | Detailed docs are planned in #1181. |
+| Template / Slot | `type: template`, `## Slots`, and screen-side `## Slot:<name>` | Implemented | [Templates And Slots](#templates-and-slots) |
+| Partial | `type: partial`, Layout `partial:` hosts, and `display.partial` | Implemented | [Partial Updates](#partial-updates) |
 
 Primary legacy or unsupported forms:
 
@@ -830,6 +830,15 @@ Template composition uses the viewport set from the template's own
 viewport-specific alternatives for those template viewports, but it does not
 create additional composition viewports by itself.
 
+Use [Template Shell](../../../examples/05-reuse/template-shell.vspec.md) and
+[Basic Slot Page](../../../examples/05-reuse/basic-slot-page.vspec.md) as the
+minimum template and slot examples. Use
+[Responsive Template Shell](../../../examples/05-reuse/responsive-template-shell.vspec.md)
+and [Responsive Slot Page](../../../examples/05-reuse/responsive-slot-page.vspec.md)
+for the multi-viewport template and slot override case. The
+[examples/05-reuse README](../../../examples/05-reuse/README.md) lists the role
+of each reuse example.
+
 When a template layout renders `slot: content`, MarkVSpec resolves the slot in
 this order:
 
@@ -846,6 +855,17 @@ content. A `required` slot without screen-provided content and without a valid
 default is a diagnostic target. MarkVSpec does not invent fallback content when
 the default ID is missing or invalid.
 
+Keep `template.id`, `template.src`, and `references` separate:
+
+- `template.id`: the template document ID expected by the screen. It must match
+  the referenced file's Front Matter `id`.
+- `template.src`: the relative path used to load that template document. Missing
+  files, outside-workspace files, ID mismatches, and non-`template` documents are
+  diagnostic targets.
+- `references.partials`: the map from `PRT-*` partial document IDs to file
+  paths. It does not say where the partial is rendered; Layout partial hosts and
+  Action display effects do that.
+
 Defining the same slot name and viewport more than once reports a diagnostic.
 When a screen references a template, top-level `## Layout` and
 `## Layout:<viewport>` sections in that screen are noncanonical and should be
@@ -858,6 +878,20 @@ Template layout IDs and screen slot-content layout IDs are scoped separately
 during template composition, so matching layout IDs across that boundary are not
 reported as duplicates. Element, action, validation, rule, and error-code IDs
 still share the composed screen namespace.
+
+Representative Template / Slot diagnostics:
+
+- A screen `template.src` points to a missing file, outside-workspace file,
+  ID-mismatched file, or a file whose `type` is not `template`.
+- A screen defines `## Slot: content`, but the template `## Slots` section does
+  not declare a `content` contract.
+- A template layout renders `slot: content`, but `## Slots` does not declare
+  `content`.
+- A `required` slot has no screen content and no valid `default: <E-*|L-*>`.
+- `default:` points to a screen-owned ID, a missing ID, or something other than
+  an `E-*` element or `L-*` layout.
+- A screen using a template defines top-level `## Layout:<viewport>`; template
+  content belongs in `## Slot:<name>`.
 
 Layout heading form:
 
@@ -1737,7 +1771,7 @@ screen details without introducing framework-specific widgets.
 - hint: Attach a PDF or image.
 ```
 
-## Partial Updates
+## Display Update Mapping
 
 Partial updates are described semantically in Actions. MarkVSpec records what the
 screen does, not the exact htmx attributes.
@@ -2220,6 +2254,19 @@ modes in the authoring DSL.
 When the update displays content from a `type: partial` document, target an
 existing `L-*` partial host and use `partial:` inside the display effect:
 
+A partial is a standalone `type: partial` document. It is separate from host
+screen and template states; it specifies the server-rendered fragment that can
+be inserted into an `L-*` partial host on the host screen. States inside the
+partial are partial-local states. Map host screen states to partial-local states
+with `partial.states` on the host layout. If no mapping applies, preview chooses
+the partial `default-state`, then the `*` initial state, then the first partial
+state.
+
+Use [Profile Summary Partial](../../../examples/05-reuse/profile-summary.partial.vspec.md)
+as the minimal partial document, and
+[Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md)
+for the host layout and `display.partial` update.
+
 ```markdown
 ### L-ProfileSummaryHost Profile summary host
 
@@ -2252,6 +2299,27 @@ unsupported authoring syntax and is not treated as an alias for
 `display.partial`. Canonical examples keep request-sent cases to effects such as
 `state: loading`; returned partial content is modeled on the response success
 case.
+
+For htmx partial replacement, keep MarkVSpec semantic. `request:` describes the
+endpoint and params, `display.target` describes the replacement host, and
+`display.partial` identifies the returned fragment design. Swap modes and DOM
+attributes belong to implementation code, not the design document.
+
+Representative Partial diagnostics:
+
+- A `partial:` host or `display.partial` references a `PRT-*` ID that is not
+  defined in Front Matter `references.partials`.
+- A `references.partials` file is missing, outside the workspace, ID-mismatched,
+  or not a `type: partial` document.
+- A `P-*` presentation panel is used as a partial host. Use an `L-*` layout for
+  partial hosts.
+- A partial host `partial.states` entry references a missing screen state or a
+  missing partial-local state.
+- `display.partial` targets something other than an `L-*` partial host, targets
+  a host whose `partial.id` differs from the displayed `PRT-*`, or is combined
+  with `element` / `message`.
+- `partial:` is written directly under a Process. Returned fragments belong in
+  response-case `Effects.display.partial`.
 
 `input:` is legacy syntax. Put execution values under `request.params`,
 `server.params`, or `<custom detail>.params` instead:

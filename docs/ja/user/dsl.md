@@ -193,8 +193,8 @@ MarkVSpec は Markdown 全体を DSL として読むわけではありません�
 | Preview Scenarios | `## Preview Scenarios` の `state` / `view` / `cases` / `samples` | 実装済み | baseline preview に追加する state/view/sample の明示 variant。 |
 | Validation | `## Field Validations` / `## Cross-field Validations` | 実装済み | `## Validations` は legacy-compatible。 |
 | Business Rules | `## Business Rules`、`### [marker:]R-* Name` | 実装済み | サーバ由来の業務制約は validation と分ける。 |
-| Template / Slot | `type: template`、`## Slots`、screen 側 `## Slot:<name>` | 実装済み | 詳細は #1181 で拡充予定。 |
-| Partial | `type: partial`、Layout `partial:` host、`display.partial` | 実装済み | 詳細は #1181 で拡充予定。 |
+| Template / Slot | `type: template`、`## Slots`、screen 側 `## Slot:<name>` | 実装済み | [Template と Slot](#template-と-slot) |
+| Partial | `type: partial`、Layout `partial:` host、`display.partial` | 実装済み | [Partial Updates](#部分更新) |
 
 legacy / unsupported として扱う主な構文です。
 
@@ -778,6 +778,14 @@ Template 合成で使う viewport は、template 自身の `## Layout:<viewport>
 viewport 別差し替えを提供できますが、それだけで合成対象 viewport を増やすことは
 ありません。
 
+最小構成は [Template Shell](../../../examples/05-reuse/template-shell.vspec.md) と
+[Basic Slot Page](../../../examples/05-reuse/basic-slot-page.vspec.md) です。
+複数 viewport の template と slot override は
+[Responsive Template Shell](../../../examples/05-reuse/responsive-template-shell.vspec.md) と
+[Responsive Slot Page](../../../examples/05-reuse/responsive-slot-page.vspec.md) を参照してください。
+各 reuse example の役割は [examples/05-reuse README](../../../examples/05-reuse/README.md)
+にもまとめています。
+
 template layout が `slot: content` を描画するとき、MarkVSpec は次の順で slot を
 解決します。
 
@@ -794,6 +802,12 @@ screen 側 content がなく、有効な default もない `required` slot は�
 default ID が存在しない、または無効な場合、MarkVSpec は fallback content を
 捏造しません。
 
+`template.id`、`template.src`、`references` の役割は分けて考えます。
+
+- `template.id`: screen が期待する template 文書 ID。参照先ファイルの Front Matter `id` と一致する必要があります。
+- `template.src`: その template 文書を読み込むための相対パス。存在しない、workspace 外、ID 不一致、`type: template` でない場合は診断対象です。
+- `references.partials`: screen または partial が参照する `PRT-*` 文書 ID とファイルパスの対応表。partial host や `display.partial` がどこに描画されるかは Layout / Action 側に書きます。
+
 同じ slot 名と viewport の slot content を複数定義すると診断が出ます。
 Template を参照する screen に top-level の `## Layout` または `## Layout:<viewport>`
 を書くことは非 canonical であり、warning 対象です。それらは合成 screen preview では
@@ -804,6 +818,15 @@ slot content です。template content は canonical な `## Slot:<name>` また
 template layout ID と screen slot content の layout ID は、template 合成時には別スコープとして扱います。
 この境界をまたいで同じ layout ID があっても重複診断にはしません。Element、Action、Validation、
 Business Rule、Error Code の ID は合成後の画面で同じ名前空間として扱います。
+
+代表的な Template / Slot 診断です。
+
+- screen が `template.src` の存在しないファイル、workspace 外ファイル、ID 不一致ファイル、または `type: template` 以外のファイルを指している。
+- screen が `## Slot: content` を定義しているが、template の `## Slots` に `content` contract がない。
+- template layout が `slot: content` を描画しているが、`## Slots` に `content` contract がない。
+- `required` slot に screen content がなく、有効な `default: <E-*|L-*>` もない。
+- `default:` が screen 側 ID、存在しない ID、または `E-*` / `L-*` 以外を指している。
+- template を使う screen が top-level `## Layout:<viewport>` を書いている。template content は `## Slot:<name>` に書きます。
 
 見出し形式です。
 
@@ -1662,6 +1685,18 @@ Thymeleaf や htmx による部分更新は、実装属性ではなく意味と�
 `type: partial` 文書から返る content を表示する更新は、既存の `L-*` partial host を
 target にし、display effect の中に `partial:` を書きます。
 
+Partial は単独の `type: partial` 文書です。screen や template の state を直接
+操作するものではなく、host screen の `L-*` partial host に差し込まれる
+server-rendered fragment の仕様を書きます。Partial 文書内の `## States` は
+partial-local states です。host screen の state と partial-local state の対応は、
+host layout の `partial.states` に書きます。対応がない場合、partial 側の
+`default-state`、`*` 付き state、先頭 state の順で preview state を選びます。
+
+最小 partial は [Profile Summary Partial](../../../examples/05-reuse/profile-summary.partial.vspec.md)、
+screen 側 host と `display.partial` は
+[Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md)
+から辿れます。
+
 ```markdown
 ### L-ProfileSummaryHost Profile summary host
 
@@ -1693,6 +1728,19 @@ target にし、display effect の中に `partial:` を書きます。
 であり、`display.partial` の互換 alias としては扱いません。canonical では、request
 送信直後の `case: sent` は `state: loading` などに留め、返却 partial content の
 表示は response success 側で表現します。
+
+htmx partial replacement に写像する場合も、MarkVSpec では `hx-*` 属性を書きません。
+`request:` が endpoint と params、`display.target` が置き換え先、`display.partial`
+が返却 fragment の設計対象を表します。swap mode や DOM 属性は実装側の責務です。
+
+代表的な Partial 診断です。
+
+- `partial:` host または `display.partial` が参照する `PRT-*` が Front Matter `references.partials` にない。
+- `references.partials` のファイルが存在しない、workspace 外、ID 不一致、または `type: partial` でない。
+- partial host を `P-*` presentation panel に付けている。partial host は `L-*` Layout に書きます。
+- partial host の `partial.states` が存在しない screen state、または存在しない partial-local state を指している。
+- `display.partial` が `L-*` partial host 以外を target にしている、target host の `partial.id` と異なる `PRT-*` を表示しようとしている、または `element` / `message` と併用している。
+- Process 直下に `partial:` を書いている。返却 fragment の表示は response case の `Effects.display.partial` に書きます。
 
 ## データ由来とサンプル
 
