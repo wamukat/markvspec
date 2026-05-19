@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import test from "node:test";
 import { messagesForLocale, parseMarkVSpec } from "@markvspec/core";
 import {
@@ -265,6 +267,24 @@ Initial \`static\` release.
   assert.match(html, /<section class="doc-section state-screen-section"(?=[^>]*\bdata-state="idle")(?=[^>]*\bdata-viewport="mobile")(?=[^>]*\bstyle="--markvspec-viewport-width:390px;--markvspec-print-scale:1")/);
   assert.match(html, /<h4 class="state-screen-heading">State: idle initial<\/h4>/);
   assert.match(html, /<h5 class="state-screen-subheading">Wireframe<\/h5>/);
+});
+
+test("renders parse coverage sentinel fields in static HTML export", () => {
+  const source = readFileSync(resolve("../core/test-fixtures/parse-output-coverage/screen-sentinel.vspec.md"), "utf8");
+  const result = parseMarkVSpec(source);
+  const html = renderStaticDesignDocumentHtml(result);
+
+  assert(!result.diagnostics.some((diagnostic) => diagnostic.severity === "error"));
+  for (const expected of [
+    "Screen lead sentinel",
+    "coverage validation accepted",
+    "coverage request sent",
+    "Layout entity notes sentinel",
+    "Ada Lovelace",
+    "History entry body sentinel"
+  ]) {
+    assert.match(html, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
 });
 
 test("renders static Layouts table with combined Setting/Items column", () => {

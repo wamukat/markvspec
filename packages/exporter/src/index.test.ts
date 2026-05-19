@@ -477,6 +477,23 @@ title: Alerts
   }
 });
 
+test("exports parse coverage project sentinel in document list", () => {
+  const dir = mkdtempSync(join(tmpdir(), "markvspec-coverage-document-list-"));
+  try {
+    const projectPath = resolve("../core/test-fixtures/parse-output-coverage/project/markvspec.project.md");
+    const outDir = join(dir, "out");
+    const result = exportMarkVSpecDocumentList(projectPath, outDir);
+    const markdown = readFileSync(result.outputPath, "utf8");
+
+    assert.equal(result.diagnostics.length, 0);
+    assert.match(markdown, /SCR-COVERAGE-PROJECT \| Coverage Project Screen \| Project screen summary sentinel for document-list export\. \| \/coverage\/project/);
+    assert.match(markdown, /TPL-COVERAGE-SHELL \| Coverage Shell Template \| Template summary sentinel for document-list export\./);
+    assert.match(markdown, /PRT-COVERAGE-SUMMARY \| Coverage Summary Partial \| Partial summary sentinel for document-list export\. \| \/coverage\/summary/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("includes project load diagnostics in document list rows", () => {
   const dir = mkdtempSync(join(tmpdir(), "markvspec-document-list-diagnostics-"));
   try {

@@ -6783,6 +6783,24 @@ route: /users/:id
   assert.doesNotMatch(standaloneHtml, /event\.preventDefault/);
 });
 
+test("renders parse coverage project sentinel in project preview documents", () => {
+  const projectPath = resolve("../core/test-fixtures/parse-output-coverage/project/markvspec.project.md");
+  const projectSource = readFileSync(projectPath, "utf8");
+  const project = loadMarkVSpecProject(projectSource, {
+    projectPath,
+    readFile: (path) => existsSync(path) ? readFileSync(path, "utf8") : undefined
+  });
+  const html = renderProjectDesignDocumentHtml(project);
+
+  assert.equal(project.diagnostics.filter((diagnostic) => diagnostic.severity === "error").length, 0);
+  assert.match(html, /PRJ-COVERAGE-SENTINEL/);
+  assert.match(html, /Coverage Sentinel Project/);
+  assert.match(html, /TPL-COVERAGE-SHELL[\s\S]*Coverage Shell Template/);
+  assert.match(html, /SCR-COVERAGE-PROJECT[\s\S]*Coverage Project Screen[\s\S]*\/coverage\/project/);
+  assert.match(html, /Project Transition Diagram/);
+  assert.match(html, /SCR_COVERAGE_PROJECT --&gt;\|&quot;A-OpenProject Open project \/ success&quot;\| SCR_COVERAGE_PROJECT/);
+});
+
 test("derives static HTML export names for screens and projects", () => {
   assert.equal(defaultExportHtmlBaseName("/workspace/login.vspec.md"), "login");
   assert.equal(defaultExportHtmlBaseName("/workspace/admin.vspec.project.md"), "admin.project");
@@ -7435,6 +7453,31 @@ Error Codes section notes.
   assert.match(errorCodes, /<span class="mm-ref-chip mm-ref-chip-error-code"[^>]*data-mm-ref-id="ERR-EMAIL-REQUIRED"[^>]*><code class="mm-id mm-marker mm-marker-error-code" data-mm-marker-category="error-code">ER1<\/code> Email required<\/span>/);
   assert.match(errorCodes, /<span class="mm-ref-chip mm-ref-chip-message"[^>]*data-mm-ref-id="R-EmailRequired"[^>]*><code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="R-EmailRequired">R1<\/code> Email required<\/span>/);
   assert.match(errorCodes, /<span class="mm-ref-chip mm-ref-chip-element"[^>]*data-mm-ref-id="E-EmailInput"[^>]*><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">E-EmailInput<\/code> <span class="mm-detail-ref-id">E-EmailInput<\/span><\/span>/);
+});
+
+test("renders parse coverage sentinel fields in generated preview documents", () => {
+  const source = readFileSync(resolve("../core/test-fixtures/parse-output-coverage/screen-sentinel.vspec.md"), "utf8");
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+
+  assert(!result.diagnostics.some((diagnostic) => diagnostic.severity === "error"));
+  for (const expected of [
+    "Screen lead sentinel",
+    "States section overview sentinel",
+    "State loaded message sentinel",
+    "Elements section notes sentinel",
+    "Form group overview sentinel",
+    "Action overview sentinel",
+    "coverage validation accepted",
+    "Validations section overview sentinel",
+    "Validation notes sentinel",
+    "Rule notes sentinel",
+    "Error notes sentinel",
+    "History entry body sentinel",
+    "General note sentinel"
+  ]) {
+    assert.match(html, new RegExp(escapeRegExp(expected)));
+  }
 });
 
 test("renders business rule text as safe markdown inside the rule table", () => {
