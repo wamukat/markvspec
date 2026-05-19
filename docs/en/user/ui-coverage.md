@@ -109,6 +109,10 @@ panel layout. Generated specs aggregate tab items and link item actions from
 Element Summary. If no `active when` matches, preview falls back to legacy
 `active`, then to the first item.
 
+Inactive `panel: L-*` layouts are still controlled by the Tabs element. State
+Views lists them with the controlling element and inactive state instead of
+marking them `not placed in current layout`.
+
 Example: [Tabs Settings](../../../examples/04-real-world-screens/tabs-settings.vspec.md).
 Generated HTML: [tabs-settings.html](https://wamukat.github.io/markvspec/examples/tabs-settings.html).
 
@@ -164,6 +168,11 @@ controlled content inside the open section.
 Preview renders headers and open panel layouts. Display Content Spec
 aggregates panel/action links so local expansion behavior stays separate from
 screen state. If no `open when` matches, preview falls back to legacy `open`.
+
+Closed `panel: L-*` layouts are still controlled content. State Views keeps the
+relationship visible with a controlled-by/inactive marker and reserves
+`not placed in current layout` for layouts with no current placement or
+controlled component reference.
 
 Example: [Accordion Disclosure](../../../examples/04-real-world-screens/accordion-disclosure.vspec.md).
 Generated HTML: [accordion-disclosure.html](https://wamukat.github.io/markvspec/examples/accordion-disclosure.html).

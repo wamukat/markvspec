@@ -22,6 +22,12 @@ export interface RenderedIds {
   elementIds: Set<string>;
 }
 
+export interface ControlledPanelPlacement {
+  readonly layoutId: string;
+  readonly elementId: string;
+  readonly active: boolean;
+}
+
 type ParsedElement = MarkVSpecParseResult["elements"][number];
 type ParsedLayout = MarkVSpecParseResult["layoutGroups"][number];
 type ParsedSlotContent = MarkVSpecParseResult["slotContents"][number];
@@ -834,6 +840,7 @@ function repeatedContentState(
 export function stateScreenLayoutsForModel(result: MarkVSpecParseResult, model: StateScreenReadModel): ParsedLayout[] {
   const seen = new Set<string>();
   const unplacedLayoutIds = stateScreenUnplacedLayoutIdsForModel(result, model);
+  const controlledPanelLayoutIds = new Set(stateScreenControlledPanelPlacementsForModel(result, model).map((placement) => placement.layoutId));
   const visibleLayouts = resolveLayoutGroupsForViewport(result, {
     layoutIds: model.renderedIds.layoutIds,
     viewport: model.viewport,
@@ -843,7 +850,11 @@ export function stateScreenLayoutsForModel(result: MarkVSpecParseResult, model: 
     viewport: model.viewport,
     focusLayoutIds: model.focus?.layoutIds
   }).filter((layout) => unplacedLayoutIds.has(layout.id));
-  return [...visibleLayouts, ...unplacedLayouts].filter((layout) => {
+  const controlledPanelLayouts = resolveLayoutGroupsForViewport(result, {
+    viewport: model.viewport,
+    focusLayoutIds: model.focus?.layoutIds
+  }).filter((layout) => controlledPanelLayoutIds.has(layout.id));
+  return [...visibleLayouts, ...controlledPanelLayouts, ...unplacedLayouts].filter((layout) => {
     if (seen.has(layout.id)) {
       return false;
     }
@@ -855,12 +866,74 @@ export function stateScreenLayoutsForModel(result: MarkVSpecParseResult, model: 
 export function stateScreenUnplacedLayoutIdsForModel(result: MarkVSpecParseResult, model: StateScreenReadModel): Set<string> {
   const placedLayoutIds = stateScreenPlacedLayoutIdsForModel(result, model);
   const defaultLayoutIds = slotDefaultLayoutIds(result);
+  const controlledPanelLayoutIds = new Set(stateScreenControlledPanelPlacementsForModel(result, model).map((placement) => placement.layoutId));
   return new Set(resolveLayoutGroupsForViewport(result, {
     viewport: model.viewport,
     focusLayoutIds: model.focus?.layoutIds
   })
-    .filter((layout) => layout.id.startsWith("L-") && !placedLayoutIds.has(layout.id) && !defaultLayoutIds.has(layout.id))
+    .filter((layout) => layout.id.startsWith("L-") && !placedLayoutIds.has(layout.id) && !defaultLayoutIds.has(layout.id) && !controlledPanelLayoutIds.has(layout.id))
     .map((layout) => layout.id));
+}
+
+export function stateScreenControlledPanelPlacementsForModel(result: MarkVSpecParseResult, model: StateScreenReadModel): ControlledPanelPlacement[] {
+  const activeViewport = stateScreenActiveViewport(result, model.viewport);
+  const layoutGroups = activeViewport ? resolveLayoutGroupsForViewport(result, {
+    viewport: activeViewport,
+    focusLayoutIds: model.focus?.layoutIds
+  }) : [];
+  const layoutById = new Map(layoutGroups.map((group) => [group.id, group]));
+  const stateNames = new Set(result.states.map((state) => state.name));
+  const options = {
+    modelValues: model.modelValues,
+    viewValues: model.viewValues
+  };
+  const placements = new Map<string, ControlledPanelPlacement>();
+
+  const addPlacement = (layoutId: string | undefined, elementId: string, active: boolean) => {
+    if (!layoutId || !layoutById.has(layoutId)) {
+      return;
+    }
+    const key = `${layoutId}\u0000${elementId}`;
+    const existing = placements.get(key);
+    placements.set(key, {
+      layoutId,
+      elementId,
+      active: Boolean(existing?.active || active)
+    });
+  };
+
+  for (const element of result.elements) {
+    if (!model.renderedIds.elementIds.has(element.id)) {
+      continue;
+    }
+    if (model.focus && !model.focus.elementIds.has(element.id)) {
+      continue;
+    }
+
+    if (element.type === "Tabs") {
+      const activeItem = element.tabs.find((item) =>
+        item.activeWhen.some((condition) => isStateScreenActiveCondition(condition, model.stateName, stateNames, options))
+      ) ?? element.tabs.find((item) => item.label === element.properties["active"])
+        ?? element.tabs[0];
+      for (const item of element.tabs) {
+        addPlacement(item.panel, element.id, Boolean(item.panel && activeItem?.panel === item.panel));
+      }
+    } else if (element.type === "Accordion") {
+      const openItem = element.accordionItems.find((item) =>
+        item.openWhen.some((condition) => isStateScreenActiveCondition(condition, model.stateName, stateNames, options))
+      ) ?? element.accordionItems.find((item) => item.label === element.properties["open"]);
+      for (const item of element.accordionItems) {
+        addPlacement(item.panel, element.id, Boolean(item.panel && openItem?.panel === item.panel));
+      }
+    } else if (element.type === "Disclosure") {
+      const panel = typeof element.properties["panel"] === "string" ? element.properties["panel"] : undefined;
+      const openByCondition = element.openWhen.some((condition) => isStateScreenActiveCondition(condition, model.stateName, stateNames, options));
+      const openByLegacyProperty = String(element.properties["open"] ?? "").toLowerCase() === "true";
+      addPlacement(panel, element.id, openByCondition || openByLegacyProperty);
+    }
+  }
+
+  return [...placements.values()];
 }
 
 function stateScreenPlacedLayoutIdsForModel(result: MarkVSpecParseResult, model: StateScreenReadModel): Set<string> {

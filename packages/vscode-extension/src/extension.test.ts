@@ -6270,6 +6270,8 @@ test("renders Tabs element summary, wireframe, and display content spec", () => 
   const billingSection = stateSection(html, "billing-tab");
   const elementSummary = profileSection.match(/<h6 class="state-screen-detail-heading">Element Summary<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
   const displayContent = profileSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+  const profileLayoutRows = profileSection.match(/<tr>[\s\S]*?<\/tr>/g) ?? [];
+  const inactiveBillingPanelRow = profileLayoutRows.find((row) => row.includes(`data-mm-ref-id="L-BillingPanel"`)) ?? "";
 
   assert.match(profileSection, /<div class="mm-element mm-element-tabs" data-mm-id="E-SettingsTabs">/);
   assert.match(profileSection, /<span class="mm-tab-item mm-tab-item-active" aria-selected="true" data-mm-tab-panel="L-ProfilePanel" data-mm-tab-action="A-SelectProfileTab">Profile<\/span>/);
@@ -6279,6 +6281,9 @@ test("renders Tabs element summary, wireframe, and display content spec", () => 
   assert.match(billingSection, /<span class="mm-tab-item mm-tab-item-active" aria-selected="true" data-mm-tab-panel="L-BillingPanel" data-mm-tab-action="A-SelectBillingTab">Billing<\/span>/);
   assert.match(billingSection, /<div class="mm-controlled-panel mm-controlled-panel-tabs" data-mm-controlled-panel="L-BillingPanel">/);
   assert.doesNotMatch(profileSection, /<div class="mm-tabs-panel-note">/);
+  assert.match(inactiveBillingPanelRow, /mm-controlled-panel-badge/);
+  assert.match(inactiveBillingPanelRow, /controlled by[\s\S]*E-SettingsTabs[\s\S]*inactive in this state/);
+  assert.doesNotMatch(inactiveBillingPanelRow, /mm-unplaced-badge/);
   assert.match(elementSummary, new RegExp(`<td>${detailElementRef("2", "E-SettingsTabs")}</td><td>Tabs</td><td><ul class="spec-list"><li>${refActionChip("A1", "A-SelectProfileTab", "Select profile tab")}</li><li>${refActionChip("A2", "A-SelectBillingTab", "Select billing tab")}</li></ul></td><td>-</td>`));
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("2", "E-SettingsTabs")}</td><td>tabs</td><td>${specSectionPattern("Tabs", ["Profile \\(panel: L-ProfilePanel; action: A-SelectProfileTab; active when: profile-tab\\)", "Billing \\(panel: L-BillingPanel; action: A-SelectBillingTab; active when: billing-tab\\)"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
 });
@@ -6313,12 +6318,19 @@ test("renders Accordion and Disclosure element summary, wireframe, and display c
   const shippingSection = stateSection(html, "shipping-details-open");
   const elementSummary = advancedSection.match(/<h6 class="state-screen-detail-heading">Element Summary<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
   const displayContent = advancedSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+  const advancedLayoutRows = advancedSection.match(/<tr>[\s\S]*?<\/tr>/g) ?? [];
+  const inactiveSavedFiltersRow = advancedLayoutRows.find((row) => row.includes(`data-mm-ref-id="L-SavedFiltersPanel"`)) ?? "";
+  const inactiveShippingRow = advancedLayoutRows.find((row) => row.includes(`data-mm-ref-id="L-ShippingDetailsPanel"`)) ?? "";
 
   assert.match(advancedSection, /<div class="mm-element mm-element-accordion" data-mm-id="E-AdvancedFilters">/);
   assert.match(advancedSection, /<div class="mm-accordion-item mm-accordion-item-open" data-mm-accordion-panel="L-AdvancedFilterPanel" data-mm-accordion-action="A-ToggleAdvancedFilters">/);
   assert.match(advancedSection, /<div class="mm-controlled-panel mm-controlled-panel-accordion" data-mm-controlled-panel="L-AdvancedFilterPanel">/);
   assert.match(shippingSection, /<div class="mm-element mm-element-disclosure mm-disclosure-open" data-mm-id="E-ShippingDetails" data-mm-disclosure-panel="L-ShippingDetailsPanel">/);
   assert.match(shippingSection, /<div class="mm-controlled-panel mm-controlled-panel-disclosure" data-mm-controlled-panel="L-ShippingDetailsPanel">/);
+  assert.match(inactiveSavedFiltersRow, /controlled by[\s\S]*E-AdvancedFilters[\s\S]*inactive in this state/);
+  assert.match(inactiveShippingRow, /controlled by[\s\S]*E-ShippingDetails[\s\S]*inactive in this state/);
+  assert.doesNotMatch(inactiveSavedFiltersRow, /mm-unplaced-badge/);
+  assert.doesNotMatch(inactiveShippingRow, /mm-unplaced-badge/);
   assert.match(elementSummary, /<td>Accordion<\/td>/);
   assert.match(elementSummary, /<td>Disclosure<\/td>/);
   assert.match(elementSummary, new RegExp(refActionChip("A1", "A-ToggleAdvancedFilters", "Toggle advanced filters")));

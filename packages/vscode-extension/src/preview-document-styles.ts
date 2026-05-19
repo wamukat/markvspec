@@ -196,6 +196,7 @@ ${baseWireframeViewportCss()}
 .mm-source-chip-computed{background:#f5f3ff;border-color:#c4b5fd;color:#6d28d9}
 .mm-repeated-badge{background:#f8fafc;border-color:#cbd5e1;color:#64748b;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace}
 .mm-unplaced-badge{background:#fff7ed;border-color:#fdba74;color:#9a3412;gap:4px}
+.mm-controlled-panel-badge{background:#eef2ff;border-color:#a5b4fc;color:#3730a3;gap:4px}
 .mm-diagnostic-severity{align-items:center;display:inline-flex;font-weight:650;gap:2px}
 .mm-diagnostic-severity-error{color:#b91c1c}
 .mm-diagnostic-severity-warning{color:#b45309}
@@ -409,6 +410,7 @@ ${baseWireframeViewportCss()}
 .state-transition-axis-labels .from,.state-transition-axis-labels .to{background:#f9fafb;padding:0 2px}
 .mm-repeated-badge{background:#f8fafc;border-color:#cbd5e1;color:#64748b}
 .mm-unplaced-badge{background:#fff7ed;border-color:#fdba74;color:#9a3412}
+.mm-controlled-panel-badge{background:#eef2ff;border-color:#a5b4fc;color:#3730a3}
 .spec-table tr:has(.mm-repeated-badge){background:#f8fafc;color:#64748b}
 .spec-table tr:has(.mm-unplaced-badge){background:#fff7ed}
 .mm-inline-token{color:#0f766e;font-family:inherit;font-weight:650;padding:0 1px}

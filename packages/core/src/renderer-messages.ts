@@ -36,6 +36,9 @@ export type MessageKey =
   | "conditionVisibleShort"
   | "conditionWhenShort"
   | "content"
+  | "controlledActiveInThisState"
+  | "controlledBy"
+  | "controlledInactiveInThisState"
   | "contents"
   | "contentsEmpty"
   | "contentsError"
@@ -270,6 +273,9 @@ const en: Record<MessageKey, string> = {
   conditionVisibleShort: "visible",
   conditionWhenShort: "when",
   content: "Content",
+  controlledActiveInThisState: "active in this state",
+  controlledBy: "controlled by",
+  controlledInactiveInThisState: "inactive in this state",
   contents: "Contents",
   contentsEmpty: "No sections.",
   contentsError: "Unable to build contents.",
@@ -505,6 +511,9 @@ const ja: Record<MessageKey, string> = {
   conditionVisibleShort: "表示",
   conditionWhenShort: "条件",
   content: "コンテンツ",
+  controlledActiveInThisState: "この状態で有効",
+  controlledBy: "制御元",
+  controlledInactiveInThisState: "この状態で非有効",
   contents: "目次",
   contentsEmpty: "表示できる章がありません。",
   contentsError: "目次を生成できませんでした。",

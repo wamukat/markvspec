@@ -7,8 +7,10 @@ import {
 } from "./design-document-renderer.js";
 import {
   stateScreenElementGroups,
+  stateScreenControlledPanelPlacementsForModel,
   stateScreenLayoutsForModel,
   stateScreenUnplacedLayoutIdsForModel,
+  type ControlledPanelPlacement,
   type DisplayContentSpecRow,
   type StateScreenReadModel
 } from "@markvspec/core";
@@ -77,6 +79,10 @@ export function createStateViewSpecTableRenderer(
   const markerIdHeader = () => `${helpers.label("marker")}/${helpers.label("id")}`;
   const renderRepeatedLabel = () => `<span class="mm-chip mm-repeated-badge">${helpers.text(helpers.label("repeated"))}</span>`;
   const renderUnplacedLabel = () => `<span class="mm-chip mm-unplaced-badge" title="${helpers.text(helpers.label("notPlacedInCurrentLayout"))}">${helpers.renderIcon("eye-off")}${helpers.text(helpers.label("notPlacedInCurrentLayout"))}</span>`;
+  const renderControlledPanelLabels = (placements: ControlledPanelPlacement[]): string => placements.map((placement) => {
+    const stateLabel = placement.active ? helpers.label("controlledActiveInThisState") : helpers.label("controlledInactiveInThisState");
+    return `<span class="mm-chip mm-controlled-panel-badge">${helpers.text(helpers.label("controlledBy"))} ${helpers.renderEntityRef(placement.elementId)} / ${helpers.text(stateLabel)}</span>`;
+  }).join(" ");
   const renderRepeatedMarkerCell = (id: string, repeated: boolean): string => {
     const marker = helpers.markerBadgeForId(id);
     return repeated ? `${marker} ${renderRepeatedLabel()}` : marker;
@@ -85,10 +91,11 @@ export function createStateViewSpecTableRenderer(
     const ref = helpers.renderEntityRef(id, linkAction);
     return repeated ? `${ref} ${renderRepeatedLabel()}` : ref;
   };
-  const renderLayoutEntityRefCell = (layout: ParsedLayout, repeated: boolean, unplaced: boolean): string => {
+  const renderLayoutEntityRefCell = (layout: ParsedLayout, repeated: boolean, unplaced: boolean, controlledPlacements: ControlledPanelPlacement[] = []): string => {
     const ref = helpers.renderLayoutRef(layout);
     const withRepeated = repeated ? `${ref} ${renderRepeatedLabel()}` : ref;
-    return unplaced ? `${withRepeated} ${renderUnplacedLabel()}` : withRepeated;
+    const withControlled = controlledPlacements.length > 0 ? `${withRepeated} ${renderControlledPanelLabels(controlledPlacements)}` : withRepeated;
+    return unplaced ? `${withControlled} ${renderUnplacedLabel()}` : withControlled;
   };
   const renderDefaultAlways = (): string =>
     `<span class="spec-default-always">${helpers.text(helpers.label("always"))}</span>`;
@@ -171,8 +178,12 @@ export function createStateViewSpecTableRenderer(
   ): string => {
     const layouts = stateScreenLayoutsForModel(result, model);
     const unplacedLayoutIds = stateScreenUnplacedLayoutIdsForModel(result, model);
+    const controlledPlacementsByLayoutId = new Map<string, ControlledPanelPlacement[]>();
+    for (const placement of stateScreenControlledPanelPlacementsForModel(result, model)) {
+      controlledPlacementsByLayoutId.set(placement.layoutId, [...controlledPlacementsByLayoutId.get(placement.layoutId) ?? [], placement]);
+    }
     const rows = layouts.map((layout) => [
-      renderLayoutEntityRefCell(layout, Boolean(repeatedLayoutIds?.has(layout.id)), unplacedLayoutIds.has(layout.id)),
+      renderLayoutEntityRefCell(layout, Boolean(repeatedLayoutIds?.has(layout.id)), unplacedLayoutIds.has(layout.id), controlledPlacementsByLayoutId.get(layout.id)),
       helpers.text(layout.kind || ""),
       renderLayoutSettingItemsSummary(layout),
       renderLayoutConditionsSummary(layout),

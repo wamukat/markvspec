@@ -120,6 +120,7 @@ export {
   stateScreenActionsForModel,
   stateScreenElementGroups,
   stateScreenElementsForModel,
+  stateScreenControlledPanelPlacementsForModel,
   stateScreenLayoutsForModel,
   stateScreenUnplacedLayoutIdsForModel,
   sampleRowsAnchorId,
@@ -159,6 +160,7 @@ export type {
 } from "./entity-reference.js";
 export type {
   FocusScope,
+  ControlledPanelPlacement,
   RenderedIds,
   StateScreenReadModel,
   StateScreenReadModelOptions,

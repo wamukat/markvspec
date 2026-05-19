@@ -1,5 +1,5 @@
-import { buildViewportStateScreenReadModels, effectiveHistoryFields, isMarkVSpecSourceType, latestHistoryBasicInfo, messagesForLocale, renderMarkVSpecHtml, resolveMarkVSpecEntityReference, sampleRowsAnchorId, scenarioRouteValues, sourceTypeForElement, stateScreenElementGroups, stateScreenElementsForModel, stateScreenLayoutsForModel, stateScreenUnplacedLayoutIdsForModel, tableColumnSampleKeys } from "@markvspec/core";
-import type { DisplayContentSpecRow, DisplayContentSpecSampleRowsRef, MarkVSpecParseResult, RendererMessages, StateScreenReadModel } from "@markvspec/core";
+import { buildViewportStateScreenReadModels, effectiveHistoryFields, isMarkVSpecSourceType, latestHistoryBasicInfo, messagesForLocale, renderMarkVSpecHtml, resolveMarkVSpecEntityReference, sampleRowsAnchorId, scenarioRouteValues, sourceTypeForElement, stateScreenControlledPanelPlacementsForModel, stateScreenElementGroups, stateScreenElementsForModel, stateScreenLayoutsForModel, stateScreenUnplacedLayoutIdsForModel, tableColumnSampleKeys } from "@markvspec/core";
+import type { ControlledPanelPlacement, DisplayContentSpecRow, DisplayContentSpecSampleRowsRef, MarkVSpecParseResult, RendererMessages, StateScreenReadModel } from "@markvspec/core";
 
 export type MarkVSpecDocumentViewport = "mobile" | "tablet" | "desktop" | string;
 
@@ -645,8 +645,12 @@ function renderStaticLayoutsSpecBox(
     return "";
   }
   const unplacedLayoutIds = stateScreenUnplacedLayoutIdsForModel(result, model);
+  const controlledPlacementsByLayoutId = new Map<string, ControlledPanelPlacement[]>();
+  for (const placement of stateScreenControlledPanelPlacementsForModel(result, model)) {
+    controlledPlacementsByLayoutId.set(placement.layoutId, [...controlledPlacementsByLayoutId.get(placement.layoutId) ?? [], placement]);
+  }
   const rows = layouts.map((layout) => [
-    renderStaticLayoutReference(result, layout, unplacedLayoutIds.has(layout.id), messages),
+    renderStaticLayoutReference(result, layout, unplacedLayoutIds.has(layout.id), controlledPlacementsByLayoutId.get(layout.id) ?? [], messages),
     escapeHtml(layout.kind || ""),
     renderStaticLayoutSettingItems(result, layout, messages),
     renderStaticLayoutConditions(layout, messages),
@@ -665,14 +669,19 @@ function renderStaticLayoutReference(
   result: MarkVSpecParseResult,
   layout: StaticParsedLayout,
   unplaced: boolean,
+  controlledPlacements: ControlledPanelPlacement[],
   messages: RendererMessages
 ): string {
   const reference = resolveMarkVSpecEntityReference(result, layout.id);
   const ref = reference ? renderStaticEntityReference(reference) : code(layout.id);
-  if (!unplaced) {
-    return ref;
-  }
-  return `${ref} <span class="mm-chip mm-unplaced-badge">${renderPreviewIcon("eye-off")}${escapeHtml(messages.notPlacedInCurrentLayout)}</span>`;
+  const controlledLabels = controlledPlacements.map((placement) => {
+    const stateLabel = placement.active ? messages.controlledActiveInThisState : messages.controlledInactiveInThisState;
+    const elementReference = resolveMarkVSpecEntityReference(result, placement.elementId);
+    const elementRef = elementReference ? renderStaticEntityReference(elementReference) : code(placement.elementId);
+    return `<span class="mm-chip mm-controlled-panel-badge">${escapeHtml(messages.controlledBy)} ${elementRef} / ${escapeHtml(stateLabel)}</span>`;
+  }).join(" ");
+  const unplacedLabel = unplaced ? `<span class="mm-chip mm-unplaced-badge">${renderPreviewIcon("eye-off")}${escapeHtml(messages.notPlacedInCurrentLayout)}</span>` : "";
+  return [ref, controlledLabels, unplacedLabel].filter(Boolean).join(" ");
 }
 
 function renderStaticLayoutSettingItems(result: MarkVSpecParseResult, layout: StaticParsedLayout, messages: RendererMessages): string {
