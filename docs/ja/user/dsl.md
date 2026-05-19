@@ -2293,13 +2293,40 @@ state の標準表示データを書きたい場合は、state 名を見出し�
 ```markdown
 ## Preview Scenarios
 
+State Views の前に1回だけ表示する Preview Scenario section lead。
+
 ### loaded
+
+loaded state view の見出し直下に表示する baseline scenario lead。
 
 - route:
   - memberId: M-200
 - samples:
   - E-Title: Baseline loaded title
+
+この State View の説明表の後に表示する baseline scenario notes。
+
+### loaded-empty
+
+loaded / loaded-empty の見出し直下に表示する additional scenario lead。
+
+- state: loaded
+- samples:
+  - E-Users:
+    - rows: []
+
+この additional scenario の説明表の後に表示する scenario notes。
+
+### Section Notes
+
+Preview Scenario 由来の State Views の後に1回だけ表示する section notes。
 ```
+
+`## Preview Scenarios` では、Section Lead、Section Notes、Scenario Lead、
+Scenario Notes も有効です。Section Lead / Notes は State Views 全体に対して
+1回だけ表示し、viewport ごとには繰り返しません。Scenario Lead は対象 State View
+の heading 直下、Wireframe 見出しの前に表示します。Scenario Notes はその
+State View の説明表群の後、次の State View の前に表示します。
 
 `route:` は `samples:` とは別の scenario top-level property です。子要素は
 `key: value` 形式で書き、key は Front Matter の `route` にある `:param`

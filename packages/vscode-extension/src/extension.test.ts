@@ -3514,7 +3514,11 @@ title: Scenario Samples
 
 ## Preview Scenarios
 
+Preview Scenarios section lead with \`inline code\`.
+
 ### loaded
+
+Baseline scenario lead mentions E-Title.
 
 - samples:
   - E-Title: Baseline scenario title
@@ -3524,7 +3528,11 @@ title: Scenario Samples
         - name: Bob
         - role: Viewer
 
+Baseline scenario notes.
+
 ### loaded-users
+
+Additional scenario lead.
 
 - state: loaded
 - samples:
@@ -3535,6 +3543,12 @@ title: Scenario Samples
         - role: Owner
   - E-EmptyUsers:
     - rows: []
+
+Additional scenario notes.
+
+### Section Notes
+
+Preview Scenarios section notes.
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -3543,15 +3557,20 @@ title: Scenario Samples
   const baseWireframe = stateWireframeSection(baseSection);
   const scenarioWireframe = stateWireframeSection(scenarioSection);
 
+  assert.match(html, /<h2 id="state-views">[\s\S]*State Views<\/h2>[\s\S]*Preview Scenarios section lead with <span class="mm-inline-token">inline code<\/span>[\s\S]*data-state-view-title="loaded"/);
+  assert.match(html, /data-state-view-title="loaded \/ loaded-users"[\s\S]*Preview Scenarios section notes\./);
   assert.match(baseWireframe, /Baseline scenario title/);
   assert.match(baseWireframe, /<td>Bob<\/td><td>Viewer<\/td>/);
+  assert.match(baseSection, /State: [\s\S]*loaded[\s\S]*Baseline scenario lead mentions[\s\S]*E-Title[\s\S]*<h5 class="state-screen-subheading">Wireframe<\/h5>/);
   assert.match(baseSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
   assert.match(baseSection, /E-Title[\s\S]*Baseline scenario title/);
+  assert.match(baseSection, /Scenario Samples[\s\S]*Baseline scenario notes\./);
   assert.doesNotMatch(html, /data-state-view-title="loaded \/ loaded"/);
   assert.match(scenarioWireframe, /Baseline scenario title/);
   assert.match(scenarioWireframe, /<td>Carol<\/td><td>Owner<\/td>/);
   assert.doesNotMatch(scenarioWireframe, /Fallback title|<td>Alice<\/td><td>Admin<\/td>|<td>Bob<\/td><td>Viewer<\/td>/);
   assert.match(scenarioWireframe, /<td class="mm-table-empty" colspan="1">\(no data\)<\/td>/);
+  assert.match(scenarioSection, /State: [\s\S]*loaded[\s\S]*loaded-users[\s\S]*Additional scenario lead\.[\s\S]*<h5 class="state-screen-subheading">Wireframe<\/h5>/);
   assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
   assert.match(scenarioSection, /E-Title[\s\S]*Baseline scenario title/);
   assert.match(scenarioSection, /E-Users[\s\S]*<code>rows: 1 rows<\/code>/);
@@ -3564,6 +3583,7 @@ title: Scenario Samples
   assert.match(scenarioSection, /E-EmptyUsers[\s\S]*<code>rows: \[\]<\/code>/);
   assert.match(scenarioSection, /<section class="scenario-sample-rows-block" id="sample-rows-default-loaded.20.2F.20loaded-users-E-EmptyUsers">/);
   assert.equal(scenarioSection.match(/<section class="scenario-sample-rows-block"/g)?.length, 2);
+  assert.match(scenarioSection, /Scenario Samples[\s\S]*Additional scenario notes\./);
 });
 
 test("localizes preview scenario sample table labels in generated state views", () => {

@@ -12969,6 +12969,57 @@ title: Baseline Scenario Samples
   ]);
 });
 
+test("keeps Preview Scenario prose on baseline and additional state view models", () => {
+  const source = `---
+id: SCR-SCENARIO-PROSE
+type: screen
+title: Scenario Prose
+---
+# SCR-SCENARIO-PROSE Scenario Prose
+
+## States
+
+- idle*
+- loaded
+
+## Elements
+
+### E-Title Text
+
+- source: data
+- sample: Fallback title
+
+## Preview Scenarios
+
+### loaded
+
+Baseline scenario lead.
+
+- samples:
+  - E-Title: Baseline loaded title
+
+Baseline scenario notes.
+
+### loaded-empty
+
+Additional scenario lead.
+
+- state: loaded
+
+Additional scenario notes.
+`;
+  const result = parseMarkVSpec(source);
+  const models = buildStateScreenReadModels(result, result, undefined);
+  const loaded = models.find((model) => model.stateViewTitle === "loaded");
+  const loadedEmpty = models.find((model) => model.stateViewTitle === "loaded / loaded-empty");
+
+  assert.deepEqual(result.diagnostics, []);
+  assert.deepEqual(loaded?.scenarioOverview, ["Baseline scenario lead."]);
+  assert.deepEqual(loaded?.scenarioNotes, ["Baseline scenario notes."]);
+  assert.deepEqual(loadedEmpty?.scenarioOverview, ["Additional scenario lead."]);
+  assert.deepEqual(loadedEmpty?.scenarioNotes, ["Additional scenario notes."]);
+});
+
 test("validates baseline Preview Scenario state-name blocks", () => {
   const source = `---
 id: SCR-BAD-BASELINE-SCENARIOS

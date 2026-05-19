@@ -26,6 +26,8 @@ export interface StateViewsFormatters {
 
 export interface StateViewsProseProvider {
   sectionProseForKind(kind: string): MarkVSpecParseResult["sectionProse"];
+  renderOverview(lines: readonly string[]): string;
+  renderNotes(lines: readonly string[]): string;
 }
 
 export type StateViewEntityRef = EntityReference;
@@ -59,9 +61,14 @@ export function renderStateViewsSection(context: StateViewsRenderContext, conten
   if (!content) {
     return "";
   }
+  const previewScenarioProse = context.prose.sectionProseForKind("PreviewScenarios");
+  const overview = context.prose.renderOverview(previewScenarioProse.flatMap((candidate) => candidate.overview));
+  const notes = context.prose.renderNotes(previewScenarioProse.flatMap((candidate) => candidate.notes));
   return `<section class="doc-section state-views-section">
     <h2 id="state-views">${context.format.label("stateViews")}</h2>
+    ${overview}
     ${content}
+    ${notes}
   </section>`;
 }
 
@@ -116,6 +123,8 @@ function renderStateScreenSpec(
   const heading = model.stateName ? `${format.label("state")}: ${stateLabel}${scenarioBadge}` : stateLabel;
   const numberedHeading = sectionNumber ? `${format.renderSectionNumber(sectionNumber)} ${heading}` : heading;
   const messageHtml = model.message ? `<p class="spec-empty">${format.text(model.message)}</p>` : "";
+  const scenarioOverviewHtml = context.prose.renderOverview(model.scenarioOverview);
+  const scenarioNotesHtml = context.prose.renderNotes(model.scenarioNotes);
   const layoutsTableHtml = specTables.renderLayoutsTable(model, model.repeatedLayoutIds);
   const layoutsHtml = layoutsTableHtml
     ? specFragments.renderLayoutSpecFragment(format.label("layouts"), layoutsTableHtml, 5, model.repeatedContent.layoutSpecEmptyWhenRepeatedHidden)
@@ -135,6 +144,7 @@ function renderStateScreenSpec(
     <section class="wireframe-print-section">
       <h4 class="state-screen-heading">${numberedHeading}</h4>
       ${messageHtml}
+      ${scenarioOverviewHtml}
       ${renderStateScreenSubheading(context, format.label("wireframe"))}
       <section class="wireframe-section">${annotatedWireframeHtml}</section>
       ${renderScenarioSamplesBox(result, context, model)}
@@ -145,6 +155,7 @@ function renderStateScreenSpec(
     ${layoutsHtml}
     ${elementSpecHtml}
     ${actionSpecHtml}
+    ${scenarioNotesHtml}
   </section>`;
 }
 

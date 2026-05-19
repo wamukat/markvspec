@@ -71,6 +71,8 @@ export interface StateScreenReadModel {
   /** Scenario data explicitly authored on this view, shown as display data rather than a diff. */
   readonly scenarioExplicitRoute: ParsedPreviewScenario["route"];
   readonly scenarioExplicitSamples: ParsedPreviewScenario["samples"];
+  readonly scenarioOverview: string[];
+  readonly scenarioNotes: string[];
   readonly renderedIds: RenderedIds;
   readonly displayEffects: ParsedDisplayEffect[];
   readonly displayExplanations: StateScreenDisplayExplanation[];
@@ -189,6 +191,8 @@ export function buildStateScreenReadModels(
       scenarioSamples: [],
       scenarioExplicitRoute: [],
       scenarioExplicitSamples: [],
+      scenarioOverview: [],
+      scenarioNotes: [],
       renderedIds: ids,
       displayEffects: [],
       displayExplanations: [],
@@ -213,6 +217,8 @@ export function buildStateScreenReadModels(
         scenarioSamples: [],
         scenarioExplicitRoute: [],
         scenarioExplicitSamples: [],
+        scenarioOverview: [],
+        scenarioNotes: [],
         renderedIds: ids,
         displayEffects: [],
         displayExplanations: [],
@@ -226,6 +232,7 @@ export function buildStateScreenReadModels(
   const stateNames = new Set(result.states.map((state) => state.name));
   const baselineScenarioSamplesByState = baselinePreviewScenarioSamplesByState(result);
   const baselineScenarioRouteByState = baselinePreviewScenarioRouteByState(result);
+  const baselineScenarioProseByState = baselinePreviewScenarioProseByState(result);
   const stateRenderings = new Map<string, { ids: RenderedIds; actionIds: Set<string>; modelValues: Record<string, boolean>; viewValues: Record<string, boolean | number | string>; scenarioRoute: ParsedPreviewScenario["route"]; scenarioSamples: ParsedPreviewScenario["samples"]; scenarioExplicitRoute: ParsedPreviewScenario["route"]; scenarioExplicitSamples: ParsedPreviewScenario["samples"]; displayEffects: ParsedDisplayEffect[]; displayExplanations: StateScreenDisplayExplanation[] }>();
   if (displayStateName) {
     const displayScenarioSamples = baselineScenarioSamplesByState.get(displayStateName) ?? [];
@@ -339,6 +346,12 @@ export function buildStateScreenReadModels(
         scenarioSamples: current.scenarioSamples,
         scenarioExplicitRoute: current.scenarioExplicitRoute,
         scenarioExplicitSamples: current.scenarioExplicitSamples,
+        scenarioOverview: display.scenario
+          ? display.scenario.overview ?? []
+          : baselineScenarioProseByState.get(display.state.name)?.overview ?? [],
+        scenarioNotes: display.scenario
+          ? display.scenario.notes ?? []
+          : baselineScenarioProseByState.get(display.state.name)?.notes ?? [],
         renderedIds: current.ids,
         displayEffects: current.displayEffects,
         displayExplanations: current.displayExplanations,
@@ -363,6 +376,12 @@ export function buildStateScreenReadModels(
           scenarioSamples: current.scenarioSamples,
           scenarioExplicitRoute: current.scenarioExplicitRoute,
           scenarioExplicitSamples: current.scenarioExplicitSamples,
+          scenarioOverview: display.scenario
+            ? display.scenario.overview ?? []
+            : baselineScenarioProseByState.get(display.state.name)?.overview ?? [],
+          scenarioNotes: display.scenario
+            ? display.scenario.notes ?? []
+            : baselineScenarioProseByState.get(display.state.name)?.notes ?? [],
           renderedIds: current.ids,
           displayEffects: current.displayEffects,
           displayExplanations: current.displayExplanations,
@@ -466,6 +485,21 @@ function baselinePreviewScenarioRouteByState(result: MarkVSpecParseResult): Map<
     }
   }
   return routeByState;
+}
+
+function baselinePreviewScenarioProseByState(result: MarkVSpecParseResult): Map<string, Pick<ParsedPreviewScenario, "notes" | "overview">> {
+  const stateNames = new Set(result.states.map((state) => state.name));
+  const proseByState = new Map<string, Pick<ParsedPreviewScenario, "notes" | "overview">>();
+  for (const scenario of result.previewScenarios) {
+    if (!scenario.state && stateNames.has(scenario.name)) {
+      const existing = proseByState.get(scenario.name);
+      proseByState.set(scenario.name, {
+        overview: [...(existing?.overview ?? []), ...(scenario.overview ?? [])],
+        notes: [...(existing?.notes ?? []), ...(scenario.notes ?? [])]
+      });
+    }
+  }
+  return proseByState;
 }
 
 function mergeScenarioRoute(

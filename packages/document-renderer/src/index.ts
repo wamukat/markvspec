@@ -179,6 +179,9 @@ function renderDocumentOverviewSection(result: MarkVSpecParseResult, messages: R
 }
 
 function renderStateViewsSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
+  const sectionProse = result.sectionProse.filter((candidate) => candidate.kind === "PreviewScenarios");
+  const overview = renderStaticEntityOverview(result, sectionProse.flatMap((candidate) => candidate.overview));
+  const notes = renderStaticEntityNotes(result, sectionProse.flatMap((candidate) => candidate.notes));
   const viewportSections = buildViewportStateScreenReadModels(result, result, undefined, {
     label: (key) => key === "default" ? messages.default : messages.viewport
   }).map((viewportModel) =>
@@ -192,8 +195,18 @@ function renderStateViewsSection(result: MarkVSpecParseResult, messages: Rendere
   ).join("");
   return `<section class="doc-section state-views-section">
   <h2 id="state-views">${escapeHtml(messages.stateViews)}</h2>
+  ${overview}
   ${viewportSections}
+  ${notes}
 </section>`;
+}
+
+function renderStaticEntityOverview(result: MarkVSpecParseResult, lines: readonly string[]): string {
+  return lines.length > 0 ? `<div class="entity-overview">${renderMarkdownLines([...lines], result)}</div>` : "";
+}
+
+function renderStaticEntityNotes(result: MarkVSpecParseResult, lines: readonly string[]): string {
+  return lines.length > 0 ? `<div class="entity-notes">${renderMarkdownLines([...lines], result)}</div>` : "";
 }
 
 function renderStaticStateFlowSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
@@ -601,6 +614,8 @@ function renderStateScreenSection(
   const stateHeading = model.stateName
     ? `${escapeHtml(messages.state)}: ${escapeHtml(model.stateName)}${initialBadge}${scenarioBadge}`
     : `${escapeHtml(messages.default)} ${escapeHtml(messages.view)}`;
+  const scenarioOverview = renderStaticEntityOverview(result, model.scenarioOverview);
+  const scenarioNotes = renderStaticEntityNotes(result, model.scenarioNotes);
   const wireframe = renderMarkVSpecHtml(result, {
     includeStyles,
     markerVisibility: { layout: true, element: true, action: true },
@@ -616,6 +631,7 @@ function renderStateScreenSection(
   return `<section class="doc-section state-screen-section"${stateViewTitleAttr}${stateAttrs}${viewportAttrs}>
   <section class="wireframe-print-section">
     <h4 class="state-screen-heading">${stateHeading}</h4>
+    ${scenarioOverview}
     <h5 class="state-screen-subheading">${escapeHtml(messages.wireframe)}</h5>
     <section class="wireframe-section">${wireframe}</section>
     ${renderScenarioSamplesBox(result, model, messages)}
@@ -623,6 +639,7 @@ function renderStateScreenSection(
     ${renderDisplayContentSpecBox(result, model, messages)}
   </section>
   ${renderStaticLayoutsSpecBox(result, model, messages)}
+  ${scenarioNotes}
 </section>`;
 }
 

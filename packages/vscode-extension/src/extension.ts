@@ -3815,6 +3815,8 @@ function stateViewsRenderContext(result: ReturnType<typeof parseMarkVSpec>): Sta
     },
     prose: {
       sectionProseForKind: (kind) => sectionProseForKind(result, kind),
+      renderOverview: (lines) => renderEntityOverview([...lines]),
+      renderNotes: (lines) => renderEntityNotes([...lines])
     },
     specFragments: {
       renderLayoutSpecFragment: (heading, content, headingLevel, emptyWhenRepeatedHidden) =>

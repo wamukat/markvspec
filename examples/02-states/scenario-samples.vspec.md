@@ -147,6 +147,10 @@ account data without creating extra states.
 
 ## Preview Scenarios
 
+These scenarios document why each loaded-state preview variant exists. The
+section lead appears once above the State Views output, while each scenario lead
+appears on its own state view.
+
 ### loaded
 
 Defines the standard loaded-state account data. Because the heading matches the
@@ -168,6 +172,8 @@ preview instead of creating an extra `loaded / loaded` scenario.
         - seats: 4
         - renewal: 2026-07-15
 
+These baseline notes appear after the loaded State View details.
+
 ### loaded-empty-account
 
 Shows the same loaded state when the response has no subscription rows. The
@@ -183,6 +189,8 @@ extra empty state.
     - rows: []
 - cases:
   - A-HandleAccountResponse.P1.empty
+
+These empty-account notes appear after the additional scenario details.
 
 ### loaded-renewal-risk
 
@@ -205,3 +213,9 @@ account.
         - product: Analytics
         - seats: 18
         - renewal: 2026-06-07
+
+These renewal-risk notes appear after the additional scenario details.
+
+### Section Notes
+
+These section notes appear once after the Preview Scenario-derived State Views.

@@ -589,7 +589,11 @@ title: Scenario Samples
 
 ## Preview Scenarios
 
+Static Preview Scenarios section lead.
+
 ### loaded
+
+Static baseline scenario lead.
 
 - samples:
   - E-SeatCount: 10 seats
@@ -599,7 +603,11 @@ title: Scenario Samples
         - product: Baseline workspace
         - seats: 10
 
+Static baseline scenario notes.
+
 ### loaded-renewal-risk
+
+Static additional scenario lead.
 
 - state: loaded
 - samples:
@@ -615,6 +623,8 @@ title: Scenario Samples
         - seats: 4
         - renewal: 2026-07-15
 
+Static additional scenario notes.
+
 ### loaded-empty-account
 
 - state: loaded
@@ -622,6 +632,10 @@ title: Scenario Samples
   - E-SeatCount: 0 seats
   - E-SubscriptionTable:
     - rows: []
+
+### Section Notes
+
+Static Preview Scenarios section notes.
 `);
   const html = renderStaticDesignDocumentHtml(result);
   const baselineLoaded = stateViewSection(html, "loaded");
@@ -630,11 +644,16 @@ title: Scenario Samples
 
   assert.match(html, /data-state-view-title="loaded \/ loaded-renewal-risk"/);
   assert.match(html, /data-state-view-title="loaded \/ loaded-empty-account"/);
+  assert.match(html, /<h2 id="state-views">State Views<\/h2>[\s\S]*Static Preview Scenarios section lead\.[\s\S]*data-state-view-title="loading"/);
+  assert.match(html, /data-state-view-title="loaded \/ loaded-empty-account"[\s\S]*Static Preview Scenarios section notes\./);
   assert.doesNotMatch(html, /data-state-view-title="loaded \/ loaded"/);
   assert.match(baselineLoaded, /10 seats/);
   assert.match(baselineLoaded, /<td>Baseline workspace<\/td><td>10<\/td>/);
+  assert.match(baselineLoaded, /State: loaded[\s\S]*Static baseline scenario lead\.[\s\S]*<h5 class="state-screen-subheading">Wireframe<\/h5>/);
   assert.match(baselineLoaded, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
+  assert.match(baselineLoaded, /Scenario Samples[\s\S]*Static baseline scenario notes\./);
   assert.match(loadedScenario, /<span class="state-badge">loaded-renewal-risk<\/span>/);
+  assert.match(loadedScenario, /State: loaded[\s\S]*loaded-renewal-risk[\s\S]*Static additional scenario lead\.[\s\S]*<h5 class="state-screen-subheading">Wireframe<\/h5>/);
   assert.match(loadedScenario, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
   assert.match(loadedScenario, /E-SubscriptionTable/);
   assert.match(loadedScenario, /<code>rows: 2 rows<\/code>/);
@@ -647,6 +666,7 @@ title: Scenario Samples
   assert.match(loadedScenario, /<td>table rows<\/td><td>Sample rows: <a class="mm-ref-chip mm-ref-chip-element" href="#sample-rows-desktop-loaded.20.2F.20loaded-renewal-risk-E-SubscriptionTable"[^>]*data-mm-ref-id="E-SubscriptionTable"[\s\S]*?mm-icon-table[\s\S]*?<\/a><\/td><td>-<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">[\s\S]*?data<\/span><\/td>/);
   assert.doesNotMatch(loadedScenario, /<td>table rows<\/td><td>see wireframe<\/td>/);
   assert(loadedScenario.indexOf('<section class="scenario-sample-rows-block"') > loadedScenario.indexOf("</table></div>"));
+  assert.match(loadedScenario, /Scenario Samples[\s\S]*Static additional scenario notes\./);
   assert.match(emptyScenario, /0 seats/);
   assert.match(emptyScenario, /<code>rows: \[\]<\/code>/);
   assert.match(emptyScenario, /<section class="scenario-sample-rows-block" id="sample-rows-desktop-loaded.20.2F.20loaded-empty-account-E-SubscriptionTable">/);

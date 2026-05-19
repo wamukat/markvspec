@@ -2369,20 +2369,40 @@ a distinct scenario name and explicit `state:` adds an extra variant.
 ```markdown
 ## Preview Scenarios
 
+Preview scenario section lead shown once before State Views.
+
 ### loaded
+
+Baseline scenario lead shown under the loaded State View heading.
 
 - route:
   - memberId: M-200
 - samples:
   - E-Title: Baseline loaded title
 
+Baseline scenario notes shown after that State View's detail tables.
+
 ### loaded-empty
+
+Additional scenario lead shown under the loaded / loaded-empty heading.
 
 - state: loaded
 - samples:
   - E-Users:
     - rows: []
+
+Additional scenario notes shown after that scenario's detail tables.
+
+### Section Notes
+
+Preview scenario section notes shown once after the scenario-derived State Views.
 ```
+
+`## Preview Scenarios` supports Section Lead, Section Notes, Scenario Lead, and
+Scenario Notes. Section Lead / Notes render once for the State Views section,
+not once per viewport. Scenario Lead renders directly below the State View
+heading and before the Wireframe heading. Scenario Notes render after that State
+View's explanation tables and before the next State View.
 
 Use `before:` to insert the scenario before a baseline state preview or another
 preview scenario. Only `before:` is supported for scenario ordering; do not use

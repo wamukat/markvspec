@@ -172,7 +172,9 @@ Elements overview.
       renderEntityRef: ({ marker, label, id }) => [marker, label ?? id].filter(Boolean).join(" ")
     },
     prose: {
-      sectionProseForKind: (kind) => result.sectionProse.filter((candidate) => candidate.kind === kind)
+      sectionProseForKind: (kind) => result.sectionProse.filter((candidate) => candidate.kind === kind),
+      renderOverview: (lines) => lines.length > 0 ? `<div>${lines.join("\n")}</div>` : "",
+      renderNotes: (lines) => lines.length > 0 ? `<div>${lines.join("\n")}</div>` : ""
     },
     specFragments: {
       renderLayoutSpecFragment: () => "",
