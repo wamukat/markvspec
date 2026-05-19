@@ -21,21 +21,12 @@ For non-trivial authoring, read the bundled canonical DSL reference first:
 
 - `references/dsl.md`
 
-Then read the closest bundled example before drafting similar structure:
-
-- `references/examples/01-basics/hello-screen.vspec.md` for minimum file shape
-- `references/examples/02-states/scenario-samples.vspec.md` for Preview Scenarios and sample rows
-- `references/examples/03-actions/form-submit-flow.vspec.md` for validation, request params, cases, and navigation
-- `references/examples/03-actions/display-effects.vspec.md` for `display:` effect shapes
-- `references/examples/04-real-world-screens/login-basic.vspec.md` for a compact real-world authentication screen
-- `references/examples/05-reuse/profile-page-with-template.vspec.md` and `references/examples/05-reuse/profile-summary.partial.vspec.md` for templates, partial references, and `display.partial`
-
 When working from the source repository, those installed references may be absent. In that case, read the source docs before substantial or uncertain edits:
 
 - `docs/en/user/dsl.md`
 - nearby parser-tested examples under `examples/`
 
-Do not rely on older snippets or memory when these docs are present. The CLI installer copies the canonical English DSL doc and a small set of parser-tested examples from the same MarkVSpec release tag into `references/`, so installed skills can consult release-matched material without duplicating a hand-maintained summary.
+Do not rely on older snippets or memory when these docs are present. The CLI installer copies the canonical English DSL doc from the same MarkVSpec release tag into `references/`, so installed skills can consult the release-matched DSL without duplicating a hand-maintained summary.
 
 ## CLI Availability
 
