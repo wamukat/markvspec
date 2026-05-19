@@ -9073,6 +9073,7 @@ test("parses validates renders and summarizes ActionMenu elements", () => {
   const actionMenu = result.elements.find((element) => element.id === "E-RowActions");
   const actionMenuRow = rows.find((row) => row.element.id === "E-RowActions" && row.location === "action menu");
   const html = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true });
+  const openHtml = renderMarkVSpecHtml(result, { state: "menu-open", includeStyles: false, showIds: true });
   const triggers = new Map(result.actions.map((action) => [action.id, action.triggeredBy]));
 
   assert.deepEqual(result.diagnostics, []);
@@ -9088,9 +9089,12 @@ test("parses validates renders and summarizes ActionMenu elements", () => {
   ]);
   assert.equal(triggers.get("A-EditAccount"), "E-RowActions.click");
   assert.equal(triggers.get("A-DisableAccount"), "E-RowActions.click");
-  assert.match(html, /<div class="mm-element mm-element-actionmenu mm-action-menu-open" data-mm-id="E-RowActions" data-mm-placement="bottom-end">/);
+  assert.match(html, /<div class="mm-element mm-element-actionmenu mm-action-menu-closed" data-mm-id="E-RowActions" data-mm-placement="bottom-end">/);
   assert.match(html, /<button class="mm-action-menu-trigger" type="button">More actions \.\.\.<\/button>/);
-  assert.match(html, /<div class="mm-action-menu-item" data-mm-action-menu-action="A-EditAccount">/);
+  assert.doesNotMatch(html, /mm-action-menu-panel/);
+  assert.match(openHtml, /<div class="mm-element mm-element-actionmenu mm-action-menu-open" data-mm-id="E-RowActions" data-mm-placement="bottom-end">/);
+  assert.match(openHtml, /<div class="mm-action-menu-item" data-mm-action-menu-action="A-EditAccount">/);
+  assert.match(openHtml, /mm-action-menu-panel/);
   assert.doesNotMatch(html, /mm-action-menu-item-disabled mm-action-menu-item-danger/);
 
   const lockedHtml = renderMarkVSpecHtml(result, { state: "menu-open-locked", includeStyles: false, showIds: true });

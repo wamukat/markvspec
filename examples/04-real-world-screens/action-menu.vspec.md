@@ -9,12 +9,13 @@ locale: en
 # SCR-ACTION-MENU Action Menu
 
 Focused example for the `ActionMenu` Element. It keeps the screen small so the
-menu trigger, open overlay, item actions, disabled condition, and danger tone can
-be reviewed in open and locked menu states without introducing a generic menu.
+menu trigger, closed baseline, open overlay, item actions, disabled condition,
+and danger tone can be reviewed without introducing a generic menu.
 
 ## States
 
-- menu-open*
+- menu-closed*
+- menu-open
 - menu-open-locked
 
 ## Layout: desktop
@@ -57,6 +58,46 @@ be reviewed in open and locked menu states without introducing a generic menu.
     - disabled when: menu-open-locked
 
 ## Actions
+
+### A3:A-OpenMenu Open action menu
+
+- Triggered
+  - E-RowActions.click
+- From
+  - menu-closed
+- Process P1: Open menu
+  - case: done
+    - description: More actions trigger opens the action menu.
+    - Effects
+      - state: menu-open
+    - stop
+
+### A4:A-CloseMenu Close action menu
+
+- Triggered
+  - E-RowActions.close
+- From
+  - menu-open
+  - menu-open-locked
+- Process P1: Close menu
+  - case: done
+    - description: Outside click or escape closes the open action menu.
+    - Effects
+      - state: menu-closed
+    - stop
+
+### A5:A-LockRow Lock selected row
+
+- Triggered
+  - E-RowActions.click
+- From
+  - menu-open
+- Process P1: Lock row
+  - case: done
+    - description: Selected row becomes locked while the action menu remains open.
+    - Effects
+      - state: menu-open-locked
+    - stop
 
 ### A1:A-EditAccount Edit account
 

@@ -6332,14 +6332,19 @@ test("renders ActionMenu element summary, wireframe, and display content spec", 
   const result = parseMarkVSpec(source);
   assert.deepEqual(result.diagnostics, []);
   const html = renderDesignDocumentHtml(result, "");
+  const closedSection = stateSection(html, "menu-closed");
   const menuOpenSection = stateSection(html, "menu-open");
   const lockedSection = stateSection(html, "menu-open-locked");
-  const elementSummary = menuOpenSection.match(/<h6 class="state-screen-detail-heading">Element Summary<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
-  const displayContent = menuOpenSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+  const elementSummary = closedSection.match(/<h6 class="state-screen-detail-heading">Element Summary<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+  const displayContent = closedSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
 
+  assert.match(closedSection, /<div class="mm-element mm-element-actionmenu mm-action-menu-closed" data-mm-id="E-RowActions" data-mm-placement="bottom-end">/);
+  assert.doesNotMatch(closedSection, /<div class="mm-action-menu-panel">/);
   assert.match(menuOpenSection, /<div class="mm-element mm-element-actionmenu mm-action-menu-open" data-mm-id="E-RowActions" data-mm-placement="bottom-end">/);
+  assert.match(menuOpenSection, /mm-action-menu-panel/);
   assert.match(menuOpenSection, /<div class="mm-action-menu-item" data-mm-action-menu-action="A-EditAccount">/);
   assert.match(menuOpenSection, /<div class="mm-action-menu-item mm-action-menu-item-danger" data-mm-action-menu-action="A-DisableAccount">/);
+  assert.match(lockedSection, /mm-action-menu-panel/);
   assert.match(lockedSection, /<div class="mm-action-menu-item mm-action-menu-item-disabled mm-action-menu-item-danger" data-mm-action-menu-action="A-DisableAccount">/);
   assert.match(elementSummary, /<td>ActionMenu<\/td>/);
   assert.match(elementSummary, new RegExp(refActionChip("A1", "A-EditAccount", "Edit account")));
