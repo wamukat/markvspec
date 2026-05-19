@@ -7,6 +7,7 @@ import { parseMarkdownDocument } from "./markdown-document.js";
 import { buildDisplayContentSpecRows } from "./display-content-spec.js";
 import { sourcePathKey } from "./model-paths.js";
 import { parseProjectDocumentSemantics } from "./project-parser.js";
+import { lineNumber } from "./test-helpers.js";
 import type { MarkVSpecDiagnostic } from "./types.js";
 import * as coreApi from "./index.js";
 import {
@@ -13506,17 +13507,3 @@ Missing #{R-MissingRule}.
   assert(!messages.some((message) => message.includes("E-NameInput")));
   assert(!messages.some((message) => message.includes("L-SlotContent")));
 });
-
-function lineNumber(source: string, needle: string, occurrence = 1): number {
-  let matches = 0;
-  const index = source.split(/\r?\n/).findIndex((line) => {
-    if (line !== needle) {
-      return false;
-    }
-
-    matches += 1;
-    return matches === occurrence;
-  });
-  assert.notEqual(index, -1);
-  return index + 1;
-}

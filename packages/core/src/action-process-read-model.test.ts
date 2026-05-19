@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { buildMarkVSpecProcessStepReadModel, parseMarkVSpec } from "./index.js";
+import { lineNumber } from "./test-helpers.js";
 
 test("keeps each HttpRequest detail on its own process step", () => {
   const source = `---
@@ -213,16 +214,3 @@ title: Server Param Validation
       && diagnostic.line === lineNumber(source, "    - userId: E-Missing.value")
   ));
 });
-function lineNumber(source: string, needle: string, occurrence = 1): number {
-  let matches = 0;
-  const index = source.split(/\r?\n/).findIndex((line) => {
-    if (line !== needle) {
-      return false;
-    }
-
-    matches += 1;
-    return matches === occurrence;
-  });
-  assert.notEqual(index, -1);
-  return index + 1;
-}

@@ -12,6 +12,13 @@ import {
 } from "@markvspec/core";
 import { renderDesignDocumentHtml } from "./extension.js";
 import { renderStateScreenReadModel, type StateViewsRenderContext } from "./state-views-renderer.js";
+import {
+  escapeRegExp,
+  stateSection,
+  stateSectionContaining,
+  stateWireframeSection,
+  viewportStateSection
+} from "./test-helpers.js";
 
 const extensionRoot = resolve(".");
 
@@ -63,10 +70,6 @@ function docLabel(value: string, kind: "state" | "trigger" | "result", extraClas
   return `<code class="${escapeRegExp(classes)}">${escapeRegExp(value)}</code>`;
 }
 
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 function sourceCodePattern(value: string): string {
   return inlineTokenPattern(value);
 }
@@ -89,41 +92,6 @@ function inlineTokenPattern(value: string): string {
 
 function specSectionPattern(title: string, rows: string[]): string {
   return `<div class="spec-section"><strong>${escapeRegExp(title)}</strong><ul class="spec-list">${rows.map((row) => `<li>${row}</li>`).join("")}</ul></div>`;
-}
-
-function stateSection(html: string, state: string): string {
-  const startMatch = new RegExp(`<section class="doc-section state-screen-section"(?=[^>]*\\bdata-state="${escapeRegExp(state)}")[^>]*>`).exec(html);
-  const start = startMatch?.index ?? -1;
-  assert.notEqual(start, -1, `missing state section ${state}`);
-  const next = html.indexOf(`<section class="doc-section state-screen-section"`, start + (startMatch?.[0].length ?? 0));
-  return next === -1 ? html.slice(start) : html.slice(start, next);
-}
-
-function viewportStateSection(html: string, state: string, viewport: string): string {
-  const startMatch = new RegExp(`<section class="doc-section state-screen-section"(?=[^>]*\\bdata-state="${escapeRegExp(state)}")(?=[^>]*\\bdata-viewport="${escapeRegExp(viewport)}")[^>]*>`).exec(html);
-  const start = startMatch?.index ?? -1;
-  assert.notEqual(start, -1, `missing state section ${viewport}:${state}`);
-  const next = html.indexOf(`<section class="doc-section state-screen-section"`, start + (startMatch?.[0].length ?? 0));
-  return next === -1 ? html.slice(start) : html.slice(start, next);
-}
-
-function stateWireframeSection(section: string): string {
-  const startMarker = `<section class="wireframe-section">`;
-  const start = section.indexOf(startMarker);
-  assert.notEqual(start, -1, "missing wireframe section");
-  const nextH3 = section.indexOf("<h3>", start + startMarker.length);
-  const nextH5 = section.indexOf('<h5 class="state-screen-subheading"', start + startMarker.length);
-  const candidates = [nextH3, nextH5].filter((index) => index !== -1);
-  const nextHeading = candidates.length > 0 ? Math.min(...candidates) : -1;
-  return nextHeading === -1 ? section.slice(start) : section.slice(start, nextHeading);
-}
-
-function stateSectionContaining(html: string, state: string, text: string): string {
-  const sectionPattern = new RegExp(`<section class="doc-section state-screen-section"(?=[^>]*\\bdata-state="${escapeRegExp(state)}")[^>]*>[\\s\\S]*?(?=<section class="doc-section state-screen-section"|$)`, "gu");
-  const sections = [...html.matchAll(sectionPattern)].map((match) => match[0]);
-  const section = sections.find((candidate) => candidate.includes(text));
-  assert(section, `missing state section ${state} containing ${text}`);
-  return section;
 }
 
 test("keeps State Views prose lookup separate from spec fragment rendering", () => {

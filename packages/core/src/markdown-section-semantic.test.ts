@@ -4,6 +4,7 @@ import { parseMarkdownDocument } from "./markdown-document.js";
 import { collectSectionAst } from "./markdown-section-ast.js";
 import { parseActionSectionSemantics, parseElementSectionSemantics, parseLayoutSectionSemantics, parseSmallSectionSemantics } from "./markdown-section-semantic.js";
 import { parseMarkVSpec } from "./index.js";
+import { lineNumber } from "./test-helpers.js";
 import type { MarkVSpecDiagnostic } from "./types.js";
 
 test("collects SectionAst and BlockAst without changing parser output", () => {
@@ -1088,16 +1089,3 @@ title: Action AST Diagnostics
     );
   }
 });
-function lineNumber(source: string, needle: string, occurrence = 1): number {
-  let matches = 0;
-  const index = source.split(/\r?\n/).findIndex((line) => {
-    if (line !== needle) {
-      return false;
-    }
-
-    matches += 1;
-    return matches === occurrence;
-  });
-  assert.notEqual(index, -1);
-  return index + 1;
-}
