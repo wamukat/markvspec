@@ -103,6 +103,8 @@ with `isResolved: false`; the user verifies the result before resolving it.
   because no compatible browser is available.
 - [ ] `npm run check:readme-release` passes.
 - [ ] `npm run check:release` passes in the release environment.
+- [ ] GitHub Actions used by `release.yml` and `pages.yml` target Node.js 24
+  action runtimes, or the release notes record why no update is needed.
 - [ ] Root, core, document-renderer, exporter, CLI, and VS Code extension package
   versions match the intended release version.
 - [ ] VS Code Marketplace extension ID is confirmed as `wamukat.markvspec`.

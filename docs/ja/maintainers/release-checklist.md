@@ -105,6 +105,8 @@ Kanbalone の運用では、実装後に独立したサブエージェントレ�
   互換ブラウザがないため skip したことを明示する。
 - [ ] `npm run check:readme-release` が通る。
 - [ ] release 環境で `npm run check:release` が通る。
+- [ ] `release.yml` と `pages.yml` で使っている GitHub Actions が Node.js 24
+  action runtime を使っている。更新不要の場合は release notes に理由を記録する。
 - [ ] root、core、document-renderer、exporter、CLI、VS Code extension の package
   version が意図した release version と一致している。
 - [ ] VS Code Marketplace の extension ID が `wamukat.markvspec` であることを確認する。
