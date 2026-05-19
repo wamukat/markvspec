@@ -91,6 +91,7 @@ import {
   renderTableOfContentsList
 } from "./preview-shell.js";
 import { registerMarkVSpecExportCommands } from "./export-commands.js";
+import { registerMarkVSpecExtension } from "./extension-registration.js";
 import { renderPreviewPrintWireframeOverrideStyle } from "./preview-styles.js";
 import { renderPreviewIcon } from "./preview-icons.js";
 import { renderProjectDesignDocumentHtml as renderProjectDesignDocumentHtmlBase } from "./project-preview-document.js";
@@ -199,26 +200,21 @@ export function activate(context: vscode.ExtensionContext): void {
   extensionRootUri = context.extensionUri;
   outputChannel = vscode.window.createOutputChannel("MarkVSpec");
   diagnosticsCollection = vscode.languages.createDiagnosticCollection("markvspec");
-  const documentSymbols = vscode.languages.registerDocumentSymbolProvider(
-    { language: "markvspec", scheme: "file" },
-    {
-      provideDocumentSymbols(document) {
-        return createMarkVSpecDocumentSymbols(document);
-      }
+  const createDocumentSymbolsProvider = (): vscode.DocumentSymbolProvider => ({
+    provideDocumentSymbols(document: vscode.TextDocument) {
+      return createMarkVSpecDocumentSymbols(document);
     }
-  );
-  const codeActions = vscode.languages.registerCodeActionsProvider(
-    { language: "markvspec", scheme: "file" },
-    {
-      provideCodeActions(document, range, context) {
-        return createMarkVSpecCodeActions(document, context.diagnostics);
-      }
-    },
-    {
-      providedCodeActionKinds: [vscode.CodeActionKind.QuickFix]
+  });
+  const createCodeActionsProvider = (): vscode.CodeActionProvider => ({
+    provideCodeActions(
+      document: vscode.TextDocument,
+      _range: vscode.Range | vscode.Selection,
+      codeActionContext: vscode.CodeActionContext
+    ) {
+      return createMarkVSpecCodeActions(document, codeActionContext.diagnostics);
     }
-  );
-  const formatStructure = vscode.commands.registerCommand("markvspec.formatStructure", async () => {
+  });
+  const formatStructure = async () => {
     const editor = vscode.window.activeTextEditor;
     if (!editor || !isMarkVSpecDocument(editor.document)) {
       void vscode.window.showWarningMessage("Open a MarkVSpec document before formatting structure.");
@@ -239,7 +235,7 @@ export function activate(context: vscode.ExtensionContext): void {
     await editor.edit((editBuilder) => {
       editBuilder.replace(fullRange, formatted);
     });
-  });
+  };
   const exportCommands = registerMarkVSpecExportCommands({
     context,
     isMarkVSpecDocument,
@@ -250,7 +246,7 @@ export function activate(context: vscode.ExtensionContext): void {
     readMermaidScript: () => readMermaidScript(extensionRootUri),
     logDuration
   });
-  const openPreview = vscode.commands.registerCommand("markvspec.openPreview", async (resource?: vscode.Uri) => {
+  const openPreview = async (resource?: vscode.Uri) => {
     const document = resource
       ? await vscode.workspace.openTextDocument(resource)
       : vscode.window.activeTextEditor?.document;
@@ -383,9 +379,9 @@ export function activate(context: vscode.ExtensionContext): void {
     cancelScheduledPreviewUpdate();
     updatePreview(document, reservePreviewGeneration(), { force: true });
     scheduleDiagnostics(document);
-  });
+  };
 
-  const liveUpdate = vscode.workspace.onDidChangeTextDocument((event) => {
+  const onDidChangeTextDocument = (event: vscode.TextDocumentChangeEvent) => {
     invalidateDocumentCaches(event.document);
 
     if (!previewPanel || !previewDocumentUri) {
@@ -404,9 +400,9 @@ export function activate(context: vscode.ExtensionContext): void {
     }
 
     scheduleDiagnostics(event.document);
-  });
+  };
 
-  const activeEditorUpdate = vscode.window.onDidChangeActiveTextEditor((editor) => {
+  const onDidChangeActiveTextEditor = (editor: vscode.TextEditor | undefined) => {
     if (!previewPanel || !editor || !isMarkVSpecDocument(editor.document)) {
       return;
     }
@@ -420,15 +416,13 @@ export function activate(context: vscode.ExtensionContext): void {
     cancelScheduledPreviewUpdate();
     updatePreview(editor.document, reservePreviewGeneration(), { force: true });
     scheduleDiagnostics(editor.document);
-  });
+  };
 
-  const openUpdate = vscode.workspace.onDidOpenTextDocument(updateDiagnostics);
-  const saveUpdate = vscode.workspace.onDidSaveTextDocument((document) => {
+  const onDidSaveTextDocument = (document: vscode.TextDocument) => {
     invalidateDocumentCaches(document);
     updateDiagnostics(document);
-  });
-  const messageFileUpdate = vscode.workspace.createFileSystemWatcher("**/*.{yml,yaml,json}");
-  const refreshForMessageFileChange = () => {
+  };
+  const onMessageFileChange = () => {
     invalidateDocumentCaches();
     if (!previewPanel || !previewDocumentUri) {
       return;
@@ -442,10 +436,7 @@ export function activate(context: vscode.ExtensionContext): void {
       scheduleDiagnostics(document);
     });
   };
-  messageFileUpdate.onDidCreate(refreshForMessageFileChange, undefined, context.subscriptions);
-  messageFileUpdate.onDidChange(refreshForMessageFileChange, undefined, context.subscriptions);
-  messageFileUpdate.onDidDelete(refreshForMessageFileChange, undefined, context.subscriptions);
-  const refreshPreview = vscode.commands.registerCommand("markvspec.refreshPreview", async () => {
+  const refreshPreview = async () => {
     if (!previewPanel || !previewDocumentUri) {
       void vscode.window.showWarningMessage("Open a MarkVSpec preview before refreshing.");
       return;
@@ -454,19 +445,35 @@ export function activate(context: vscode.ExtensionContext): void {
     cancelScheduledPreviewUpdate();
     updatePreview(document, reservePreviewGeneration(), { force: true });
     scheduleDiagnostics(document);
-  });
-  const closeUpdate = vscode.workspace.onDidCloseTextDocument((document) => {
+  };
+  const onDidCloseTextDocument = (document: vscode.TextDocument) => {
     invalidateDocumentCaches(document);
     clearScheduledDiagnostics(document);
     diagnosticsCollection?.delete(document.uri);
-  });
+  };
 
   const activeDocument = vscode.window.activeTextEditor?.document;
   if (activeDocument) {
     updateDiagnostics(activeDocument);
   }
 
-  context.subscriptions.push(formatStructure, exportCommands.exportHtml, exportCommands.exportPdf, codeActions, documentSymbols, openPreview, refreshPreview, liveUpdate, activeEditorUpdate, openUpdate, saveUpdate, closeUpdate, messageFileUpdate, diagnosticsCollection, outputChannel);
+  registerMarkVSpecExtension({
+    context,
+    diagnosticsCollection,
+    outputChannel,
+    createDocumentSymbolsProvider,
+    createCodeActionsProvider,
+    formatStructure,
+    openPreview,
+    refreshPreview,
+    onDidChangeTextDocument,
+    onDidChangeActiveTextEditor,
+    onDidOpenTextDocument: updateDiagnostics,
+    onDidSaveTextDocument,
+    onDidCloseTextDocument,
+    onMessageFileChange,
+    exportCommandDisposables: [exportCommands.exportHtml, exportCommands.exportPdf]
+  });
   logDuration("activate", activationStart);
 }
 
