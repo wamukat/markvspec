@@ -98,10 +98,16 @@ title: Process Read Model
     - Effects
       - state: idle
     - stop
+- Process: Partial Request
+  - GET /profile-panel
+  - partial: PRT-PROFILE-PANEL
+- Process: Immediate
+  - Effects
+    - state: load-error
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions[0];
-  const [validate, request, server, resolveStep] = action?.processSteps ?? [];
+  const [validate, request, server, resolveStep, partialRequest, immediate] = action?.processSteps ?? [];
 
   assert.equal(result.diagnostics.some((diagnostic) => diagnostic.message.includes("references missing validation")), true);
   assert.deepEqual(validate?.details.map((detail) => [detail.key, detail.value]), [["validation", "V-Email.result"]]);
@@ -112,6 +118,8 @@ title: Process Read Model
   const requestReadModel = request ? buildMarkVSpecProcessStepReadModel(request) : undefined;
   const serverReadModel = server ? buildMarkVSpecProcessStepReadModel(server) : undefined;
   const resolveReadModel = resolveStep ? buildMarkVSpecProcessStepReadModel(resolveStep) : undefined;
+  const partialRequestReadModel = partialRequest ? buildMarkVSpecProcessStepReadModel(partialRequest) : undefined;
+  const immediateReadModel = immediate ? buildMarkVSpecProcessStepReadModel(immediate) : undefined;
 
   assert.equal(validateReadModel?.kind, "Validate");
   assert.deepEqual(validateReadModel?.execution.validations.map((detail) => detail.value), ["V-Email.result"]);
@@ -127,6 +135,9 @@ title: Process Read Model
   assert.equal(resolveReadModel?.execution.resolveGroup, "initial-load");
   assert.equal(resolveReadModel?.effects.responses[0]?.definition, "all data ready");
   assert.equal(resolveReadModel?.effects.outcomes[0]?.state, "idle");
+  assert.equal(partialRequestReadModel?.kind, "PartialRequest");
+  assert.equal(immediateReadModel?.kind, "Immediate");
+  assert.equal(immediateReadModel?.effects.state, "load-error");
 });
 
 test("keeps ServerCall params scoped in the action process read model", () => {

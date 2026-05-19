@@ -79,7 +79,8 @@ export type {
 } from "./types.js";
 export {
   buildMarkVSpecProcessStepReadModel,
-  classifyMarkVSpecProcessStep
+  classifyMarkVSpecProcessStep,
+  isMarkVSpecProcessStepKind
 } from "./action-process-read-model.js";
 export type {
   AiInputDiagnosticAxis,

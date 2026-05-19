@@ -615,7 +615,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
         }
       }
 
-      if (isPartialRequestStep(step.name)) {
+      if (processReadModel.kind === "PartialRequest") {
         validatePartialRequestStep(action.id, step, diagnostics);
         const partialDetail = step.details.find((detail) => detail.key === "partial");
         const isSelfPartialRequest = result.screen.type === "partial" && partialDetail?.value === result.screen.id;
@@ -706,6 +706,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
     }
 
     for (const step of action.processSteps) {
+      const processReadModel = buildMarkVSpecProcessStepReadModel(step);
       for (const [key, conditions] of [
         ["when", step.when],
         ["skip when", step.skipWhen]
@@ -788,7 +789,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
           });
         }
 
-        if (isImmediateStep(step.name) && outcome.response && !transitionResults.has(outcome.result)) {
+        if (processReadModel.kind === "Immediate" && outcome.response && !transitionResults.has(outcome.result)) {
           diagnostics.push({
             severity: "warning",
             message: `Action ${action.id} process step ${step.name} defines ${outcome.result} response but has no ${outcome.result} transition.`,
@@ -1465,7 +1466,8 @@ function validateProcessGranularity(actionId: string, step: MarkVSpecProcessStep
 }
 
 function validateUnsupportedProcessLevelPartial(actionId: string, step: MarkVSpecProcessStep, diagnostics: MarkVSpecDiagnostic[]): void {
-  if (isPartialRequestStep(step.name)) {
+  const processReadModel = buildMarkVSpecProcessStepReadModel(step);
+  if (processReadModel.kind === "PartialRequest") {
     return;
   }
 
@@ -2907,15 +2909,6 @@ function layoutKindDiagnostic(group: MarkVSpecLayoutGroup): MarkVSpecDiagnostic 
     message: `Unknown layout kind: ${group.kind}.`,
     line: group.location.line
   };
-}
-
-function isPartialRequestStep(name: string): boolean {
-  const normalized = name.trim().replace(/\s+/g, " ").toLowerCase();
-  return normalized === "partial request" || normalized === "partialrequest";
-}
-
-function isImmediateStep(name: string): boolean {
-  return name.trim().replace(/\s+/g, " ").toLowerCase() === "immediate";
 }
 
 function validateRouteParameterReferences(result: MarkVSpecParseResult, diagnostics: MarkVSpecDiagnostic[]): void {

@@ -7,6 +7,7 @@ import type {
 
 const httpRequestNames = new Set(["httprequest", "http request"]);
 const serverCallNames = new Set(["servercall", "server call"]);
+const partialRequestNames = new Set(["partialrequest", "partial request"]);
 
 export function classifyMarkVSpecProcessStep(step: Pick<MarkVSpecProcessStep, "name">): MarkVSpecProcessStepKind {
   const normalized = normalizeProcessName(step.name);
@@ -22,7 +23,20 @@ export function classifyMarkVSpecProcessStep(step: Pick<MarkVSpecProcessStep, "n
   if (normalized === "resolve" || normalized.startsWith("resolve ")) {
     return "Resolve";
   }
+  if (partialRequestNames.has(normalized)) {
+    return "PartialRequest";
+  }
+  if (normalized === "immediate") {
+    return "Immediate";
+  }
   return "Generic";
+}
+
+export function isMarkVSpecProcessStepKind(
+  step: Pick<MarkVSpecProcessStep, "name">,
+  kind: MarkVSpecProcessStepKind
+): boolean {
+  return classifyMarkVSpecProcessStep(step) === kind;
 }
 
 export function buildMarkVSpecProcessStepReadModel(step: MarkVSpecProcessStep): MarkVSpecProcessStepReadModel {

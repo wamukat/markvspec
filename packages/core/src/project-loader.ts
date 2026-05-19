@@ -1,4 +1,5 @@
 import { parseMarkVSpec } from "./index.js";
+import { isMarkVSpecProcessStepKind, processStepDetail as processStepDetailFromReadModel } from "./action-process-read-model.js";
 import { elementIdPattern, layoutIdPattern } from "./ids.js";
 import { parseMarkVSpecProject } from "./project-parser.js";
 import type {
@@ -477,16 +478,11 @@ function collectPartialId(ids: Set<string>, value: string | undefined): void {
 }
 
 function processStepDetail(step: MarkVSpecProcessStep, key: string): string | undefined {
-  return step.details.find((detail) => detail.key === key)?.value;
+  return processStepDetailFromReadModel(step, key)?.value;
 }
 
 function isSelfPartialRequest(result: MarkVSpecParseResult, step: MarkVSpecProcessStep, partialId: string | undefined): boolean {
-  return result.screen.type === "partial" && result.screen.id === partialId && isPartialRequestStep(step.name);
-}
-
-function isPartialRequestStep(name: string): boolean {
-  const normalized = name.trim().replace(/\s+/g, " ").toLowerCase();
-  return normalized === "partial request" || normalized === "partialrequest";
+  return result.screen.type === "partial" && result.screen.id === partialId && isMarkVSpecProcessStepKind(step, "PartialRequest");
 }
 
 function loadProjectEntries(
