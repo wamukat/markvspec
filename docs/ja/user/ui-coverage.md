@@ -108,9 +108,11 @@ Element Summary から item action を辿れるようにします。どの `acti
 `/settings/tabs#billing` のような direct link scenario では `${route.hash}` で
 tab を選択できます。比較時は先頭の `#` を除きます。
 
-inactive な `panel: L-*` layout も Tabs Element に制御される controlled content です。
-State Views では、制御元 Element とこの状態では inactive であることを表示し、
-`現在のレイアウトに未配置` とは扱いません。
+inactive な `panel: L-*` layout も Tabs Element に制御される controlled content ですが、
+State Views の表には現在の view で active な panel layout だけを表示します。active な
+panel 行の Marker/ID cell には短い `(via: E-*)` 行を表示し、制御元 Element を辿れるようにします。
+inactive な controlled panel は State Views の表からは省略し、`現在のレイアウトに未配置`
+とは扱いません。
 
 例: [Tabs Settings](../../../examples/04-real-world-screens/tabs-settings.vspec.md)。
 生成 HTML: [tabs-settings.html](https://wamukat.github.io/markvspec/examples/tabs-settings.html)。
@@ -167,9 +169,11 @@ preview では header と開いている panel layout を表示します。Displ
 panel / action link を集約し、局所的な展開動作を screen state と分けて確認できます。
 どの `open when` も一致しない場合は、後方互換用の `open` に fallback します。
 
-closed な `panel: L-*` layout も controlled content です。State Views では
-制御元と inactive 状態を表示し、`現在のレイアウトに未配置` は現在の配置も
-controlled component からの参照もない layout に限定します。
+closed な `panel: L-*` layout も controlled content ですが、State Views の表には現在の
+view で open な panel layout だけを表示します。open な panel 行の Marker/ID cell には
+短い `(via: E-*)` 行を表示します。closed な controlled panel は State Views の表からは
+省略し、`現在のレイアウトに未配置` は現在の配置も controlled component からの参照もない
+layout に限定します。
 
 例: [Accordion Disclosure](../../../examples/04-real-world-screens/accordion-disclosure.vspec.md)。
 生成 HTML: [accordion-disclosure.html](https://wamukat.github.io/markvspec/examples/accordion-disclosure.html)。

@@ -79,10 +79,15 @@ export function createStateViewSpecTableRenderer(
   const markerIdHeader = () => `${helpers.label("marker")}/${helpers.label("id")}`;
   const renderRepeatedLabel = () => `<span class="mm-chip mm-repeated-badge">${helpers.text(helpers.label("repeated"))}</span>`;
   const renderUnplacedLabel = () => `<span class="mm-chip mm-unplaced-badge" title="${helpers.text(helpers.label("notPlacedInCurrentLayout"))}">${helpers.renderIcon("eye-off")}${helpers.text(helpers.label("notPlacedInCurrentLayout"))}</span>`;
-  const renderControlledPanelLabels = (placements: ControlledPanelPlacement[]): string => placements.map((placement) => {
-    const stateLabel = placement.active ? helpers.label("controlledActiveInThisState") : helpers.label("controlledInactiveInThisState");
-    return `<span class="mm-chip mm-controlled-panel-badge">${helpers.text(helpers.label("controlledBy"))} ${helpers.renderEntityRef(placement.elementId)} / ${helpers.text(stateLabel)}</span>`;
-  }).join(" ");
+  const renderControlledPanelVia = (placements: ControlledPanelPlacement[]): string => {
+    const refs = placements
+      .filter((placement) => placement.active)
+      .map((placement) => helpers.renderEntityRef(placement.elementId));
+    if (refs.length === 0) {
+      return "";
+    }
+    return `<div class="mm-controlled-panel-via">(via: ${refs.join(" ")})</div>`;
+  };
   const renderRepeatedMarkerCell = (id: string, repeated: boolean): string => {
     const marker = helpers.markerBadgeForId(id);
     return repeated ? `${marker} ${renderRepeatedLabel()}` : marker;
@@ -94,7 +99,7 @@ export function createStateViewSpecTableRenderer(
   const renderLayoutEntityRefCell = (layout: ParsedLayout, repeated: boolean, unplaced: boolean, controlledPlacements: ControlledPanelPlacement[] = []): string => {
     const ref = helpers.renderLayoutRef(layout);
     const withRepeated = repeated ? `${ref} ${renderRepeatedLabel()}` : ref;
-    const withControlled = controlledPlacements.length > 0 ? `${withRepeated} ${renderControlledPanelLabels(controlledPlacements)}` : withRepeated;
+    const withControlled = `${withRepeated}${renderControlledPanelVia(controlledPlacements)}`;
     return unplaced ? `${withControlled} ${renderUnplacedLabel()}` : withControlled;
   };
   const renderDefaultAlways = (): string =>
@@ -180,6 +185,9 @@ export function createStateViewSpecTableRenderer(
     const unplacedLayoutIds = stateScreenUnplacedLayoutIdsForModel(result, model);
     const controlledPlacementsByLayoutId = new Map<string, ControlledPanelPlacement[]>();
     for (const placement of stateScreenControlledPanelPlacementsForModel(result, model)) {
+      if (!placement.active) {
+        continue;
+      }
       controlledPlacementsByLayoutId.set(placement.layoutId, [...controlledPlacementsByLayoutId.get(placement.layoutId) ?? [], placement]);
     }
     const rows = layouts.map((layout) => [

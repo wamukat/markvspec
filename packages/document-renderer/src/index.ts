@@ -647,6 +647,9 @@ function renderStaticLayoutsSpecBox(
   const unplacedLayoutIds = stateScreenUnplacedLayoutIdsForModel(result, model);
   const controlledPlacementsByLayoutId = new Map<string, ControlledPanelPlacement[]>();
   for (const placement of stateScreenControlledPanelPlacementsForModel(result, model)) {
+    if (!placement.active) {
+      continue;
+    }
     controlledPlacementsByLayoutId.set(placement.layoutId, [...controlledPlacementsByLayoutId.get(placement.layoutId) ?? [], placement]);
   }
   const rows = layouts.map((layout) => [
@@ -674,14 +677,23 @@ function renderStaticLayoutReference(
 ): string {
   const reference = resolveMarkVSpecEntityReference(result, layout.id);
   const ref = reference ? renderStaticEntityReference(reference) : code(layout.id);
-  const controlledLabels = controlledPlacements.map((placement) => {
-    const stateLabel = placement.active ? messages.controlledActiveInThisState : messages.controlledInactiveInThisState;
-    const elementReference = resolveMarkVSpecEntityReference(result, placement.elementId);
-    const elementRef = elementReference ? renderStaticEntityReference(elementReference) : code(placement.elementId);
-    return `<span class="mm-chip mm-controlled-panel-badge">${escapeHtml(messages.controlledBy)} ${elementRef} / ${escapeHtml(stateLabel)}</span>`;
-  }).join(" ");
+  const controlledVia = controlledPlacements.length > 0
+    ? `<div class="mm-controlled-panel-via">(via: ${controlledPlacements.map((placement) => {
+      const elementReference = resolveMarkVSpecEntityReference(result, placement.elementId);
+      return elementReference ? renderStaticControlledPanelViaReference(elementReference) : code(placement.elementId);
+    }).join(" ")})</div>`
+    : "";
   const unplacedLabel = unplaced ? `<span class="mm-chip mm-unplaced-badge">${renderPreviewIcon("eye-off")}${escapeHtml(messages.notPlacedInCurrentLayout)}</span>` : "";
-  return [ref, controlledLabels, unplacedLabel].filter(Boolean).join(" ");
+  return [ref + controlledVia, unplacedLabel].filter(Boolean).join(" ");
+}
+
+function renderStaticControlledPanelViaReference(reference: NonNullable<ReturnType<typeof resolveMarkVSpecEntityReference>>): string {
+  if (reference.kind !== "element") {
+    return renderStaticEntityReference(reference);
+  }
+  const marker = reference.marker ?? reference.id;
+  const href = staticEntityReferenceHref(reference);
+  return `<a class="mm-ref-chip mm-ref-chip-element" href="${escapeHtml(href)}" data-mm-ref-id="${escapeHtml(reference.id)}"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">${escapeHtml(marker)}</code> <span class="mm-detail-ref-id">${escapeHtml(reference.id)}</span></a>`;
 }
 
 function renderStaticLayoutSettingItems(result: MarkVSpecParseResult, layout: StaticParsedLayout, messages: RendererMessages): string {

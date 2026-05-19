@@ -877,7 +877,6 @@ function repeatedContentState(
 export function stateScreenLayoutsForModel(result: MarkVSpecParseResult, model: StateScreenReadModel): ParsedLayout[] {
   const seen = new Set<string>();
   const unplacedLayoutIds = stateScreenUnplacedLayoutIdsForModel(result, model);
-  const controlledPanelLayoutIds = new Set(stateScreenControlledPanelPlacementsForModel(result, model).map((placement) => placement.layoutId));
   const visibleLayouts = resolveLayoutGroupsForViewport(result, {
     layoutIds: model.renderedIds.layoutIds,
     viewport: model.viewport,
@@ -887,11 +886,7 @@ export function stateScreenLayoutsForModel(result: MarkVSpecParseResult, model: 
     viewport: model.viewport,
     focusLayoutIds: model.focus?.layoutIds
   }).filter((layout) => unplacedLayoutIds.has(layout.id));
-  const controlledPanelLayouts = resolveLayoutGroupsForViewport(result, {
-    viewport: model.viewport,
-    focusLayoutIds: model.focus?.layoutIds
-  }).filter((layout) => controlledPanelLayoutIds.has(layout.id));
-  return [...visibleLayouts, ...controlledPanelLayouts, ...unplacedLayouts].filter((layout) => {
+  return [...visibleLayouts, ...unplacedLayouts].filter((layout) => {
     if (seen.has(layout.id)) {
       return false;
     }

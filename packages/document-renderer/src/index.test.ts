@@ -113,6 +113,80 @@ locale: ja
   assert.match(html, /data-mm-id="L-Loaded"/);
 });
 
+test("renders static controlled panel rows only for active state view panels", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-STATIC-CONTROLLED-PANELS
+type: screen
+title: Static Controlled Panels
+---
+
+# SCR-STATIC-CONTROLLED-PANELS Static Controlled Panels
+
+## States
+
+- profile-tab*
+- billing-tab
+
+## Layout: desktop
+
+### L1:L-Page Page
+
+- stack
+
+#### Items
+
+- E-SettingsTabs
+
+### L2:L-ProfilePanel Profile panel
+
+- stack
+
+#### Items
+
+- E-ProfileHeading
+
+### L3:L-BillingPanel Billing panel
+
+- stack
+
+#### Items
+
+- E-BillingHeading
+
+## Elements
+
+### 1:E-SettingsTabs Tabs
+
+- items:
+  - Profile
+    - panel: L-ProfilePanel
+    - active when: profile-tab
+  - Billing
+    - panel: L-BillingPanel
+    - active when: billing-tab
+
+### E-ProfileHeading Heading
+
+- sample: Profile
+
+### E-BillingHeading Heading
+
+- sample: Billing
+`);
+  const html = renderStaticDesignDocumentHtml(result);
+  const profileSection = html.match(/<section class="doc-section state-screen-section"(?=[^>]*\bdata-state="profile-tab")[\s\S]*?(?=<section class="doc-section state-screen-section"|$)/)?.[0] ?? "";
+  const billingSection = html.match(/<section class="doc-section state-screen-section"(?=[^>]*\bdata-state="billing-tab")[\s\S]*?(?=<section class="doc-section state-screen-section"|$)/)?.[0] ?? "";
+  const profileRows = profileSection.match(/<tr>[\s\S]*?<\/tr>/g) ?? [];
+  const billingRows = billingSection.match(/<tr>[\s\S]*?<\/tr>/g) ?? [];
+  const profilePanelRow = profileRows.find((row) => row.includes(`data-mm-ref-id="L-ProfilePanel"`)) ?? "";
+  const billingPanelRow = billingRows.find((row) => row.includes(`data-mm-ref-id="L-BillingPanel"`)) ?? "";
+
+  assert.match(profilePanelRow, /<div class="mm-controlled-panel-via">\(via: <a class="mm-ref-chip mm-ref-chip-element"[^>]*data-mm-ref-id="E-SettingsTabs"[\s\S]*?<span class="mm-detail-ref-id">E-SettingsTabs<\/span><\/a>\)<\/div>/);
+  assert.match(billingPanelRow, /<div class="mm-controlled-panel-via">\(via: <a class="mm-ref-chip mm-ref-chip-element"[^>]*data-mm-ref-id="E-SettingsTabs"[\s\S]*?<span class="mm-detail-ref-id">E-SettingsTabs<\/span><\/a>\)<\/div>/);
+  assert.doesNotMatch(profileSection, /mm-controlled-panel-badge|controlled by|inactive in this state|data-mm-ref-id="L-BillingPanel"|data-mm-ref-id="E-BillingHeading"/);
+  assert.doesNotMatch(billingSection, /mm-controlled-panel-badge|controlled by|inactive in this state|data-mm-ref-id="L-ProfilePanel"|data-mm-ref-id="E-ProfileHeading"/);
+});
+
 test("renders reusable design document sections and static state previews", () => {
   assert.equal(renderDesignDocumentSections(["<section>A</section>", ""]), `<article class="document">
     <section>A</section>

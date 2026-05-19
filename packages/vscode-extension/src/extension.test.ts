@@ -72,6 +72,10 @@ function detailLayoutRefById(marker: string, layoutId: string): string {
   return `<span class="mm-ref-chip mm-ref-chip-layout"[^>]*data-mm-ref-id="${escapeRegExp(layoutId)}"[^>]*>${markerBadge(marker, "layout")} [^<]+</span>`;
 }
 
+function controlledPanelVia(elementMarker: string, elementId: string): string {
+  return `<div class="mm-controlled-panel-via">\\(via: ${detailElementRef(elementMarker, elementId)}\\)</div>`;
+}
+
 function detailActionRef(marker: string, actionId: string, actionName: string): string {
   return `(?:<a class="mm-ref-chip mm-ref-chip-action" href="#action-detail-${escapeRegExp(encodeURIComponent(actionId))}"[^>]*>)?${actionBadge(marker, actionId)} ${escapeRegExp(actionName)}(?:</a>)?`;
 }
@@ -6272,7 +6276,11 @@ test("renders Tabs element summary, wireframe, and display content spec", () => 
   const elementSummary = profileSection.match(/<h6 class="state-screen-detail-heading">Element Summary<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
   const displayContent = profileSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
   const profileLayoutRows = profileSection.match(/<tr>[\s\S]*?<\/tr>/g) ?? [];
+  const billingLayoutRows = billingSection.match(/<tr>[\s\S]*?<\/tr>/g) ?? [];
+  const activeProfilePanelRow = profileLayoutRows.find((row) => row.includes(`data-mm-ref-id="L-ProfilePanel"`)) ?? "";
   const inactiveBillingPanelRow = profileLayoutRows.find((row) => row.includes(`data-mm-ref-id="L-BillingPanel"`)) ?? "";
+  const activeBillingPanelRow = billingLayoutRows.find((row) => row.includes(`data-mm-ref-id="L-BillingPanel"`)) ?? "";
+  const inactiveProfilePanelRow = billingLayoutRows.find((row) => row.includes(`data-mm-ref-id="L-ProfilePanel"`)) ?? "";
 
   assert.match(profileSection, /<div class="mm-element mm-element-tabs" data-mm-id="E-SettingsTabs">/);
   assert.match(profileSection, /<span class="mm-tab-item mm-tab-item-active" aria-selected="true" data-mm-tab-panel="L-ProfilePanel" data-mm-tab-action="A-SelectProfileTab">Profile<\/span>/);
@@ -6284,9 +6292,12 @@ test("renders Tabs element summary, wireframe, and display content spec", () => 
   assert.match(directLinkSection, /<span class="mm-tab-item mm-tab-item-active" aria-selected="true" data-mm-tab-panel="L-BillingPanel" data-mm-tab-action="A-SelectBillingTab">Billing<\/span>/);
   assert.match(directLinkSection, /<div class="mm-controlled-panel mm-controlled-panel-tabs" data-mm-controlled-panel="L-BillingPanel">/);
   assert.doesNotMatch(profileSection, /<div class="mm-tabs-panel-note">/);
-  assert.match(inactiveBillingPanelRow, /mm-controlled-panel-badge/);
-  assert.match(inactiveBillingPanelRow, /controlled by[\s\S]*E-SettingsTabs[\s\S]*inactive in this state/);
-  assert.doesNotMatch(inactiveBillingPanelRow, /mm-unplaced-badge/);
+  assert.match(activeProfilePanelRow, new RegExp(`${detailLayoutRefById("L2", "L-ProfilePanel")}${controlledPanelVia("2", "E-SettingsTabs")}`));
+  assert.equal(inactiveBillingPanelRow, "");
+  assert.match(activeBillingPanelRow, new RegExp(`${detailLayoutRefById("L3", "L-BillingPanel")}${controlledPanelVia("2", "E-SettingsTabs")}`));
+  assert.equal(inactiveProfilePanelRow, "");
+  assert.doesNotMatch(profileSection, /mm-controlled-panel-badge|controlled by|inactive in this state|data-mm-ref-id="L-BillingPanel"|data-mm-ref-id="E-BillingHeading"|data-mm-ref-id="E-BillingPlan"/);
+  assert.doesNotMatch(billingSection, /mm-controlled-panel-badge|controlled by|inactive in this state|data-mm-ref-id="L-ProfilePanel"|data-mm-ref-id="E-ProfileHeading"|data-mm-ref-id="E-ProfileEmail"/);
   assert.match(elementSummary, new RegExp(`<td>${detailElementRef("2", "E-SettingsTabs")}</td><td>Tabs</td><td><ul class="spec-list"><li>${refActionChip("A1", "A-SelectProfileTab", "Select profile tab")}</li><li>${refActionChip("A2", "A-SelectBillingTab", "Select billing tab")}</li></ul></td><td>-</td>`));
   assert.match(displayContent, new RegExp(`<td>${detailElementRef("2", "E-SettingsTabs")}</td><td>tabs</td><td>${specSectionPattern("Tabs", [`Profile \\(panel: L-ProfilePanel; action: A-SelectProfileTab; active when: profile-tab; active when: ${inlineTokenPattern("${route.hash}")} = profile\\)`, `Billing \\(panel: L-BillingPanel; action: A-SelectBillingTab; active when: billing-tab; active when: ${inlineTokenPattern("${route.hash}")} = billing\\)`])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
 });
@@ -6322,18 +6333,23 @@ test("renders Accordion and Disclosure element summary, wireframe, and display c
   const elementSummary = advancedSection.match(/<h6 class="state-screen-detail-heading">Element Summary<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
   const displayContent = advancedSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
   const advancedLayoutRows = advancedSection.match(/<tr>[\s\S]*?<\/tr>/g) ?? [];
+  const shippingLayoutRows = shippingSection.match(/<tr>[\s\S]*?<\/tr>/g) ?? [];
+  const activeAdvancedFilterRow = advancedLayoutRows.find((row) => row.includes(`data-mm-ref-id="L-AdvancedFilterPanel"`)) ?? "";
   const inactiveSavedFiltersRow = advancedLayoutRows.find((row) => row.includes(`data-mm-ref-id="L-SavedFiltersPanel"`)) ?? "";
   const inactiveShippingRow = advancedLayoutRows.find((row) => row.includes(`data-mm-ref-id="L-ShippingDetailsPanel"`)) ?? "";
+  const activeShippingRow = shippingLayoutRows.find((row) => row.includes(`data-mm-ref-id="L-ShippingDetailsPanel"`)) ?? "";
 
   assert.match(advancedSection, /<div class="mm-element mm-element-accordion" data-mm-id="E-AdvancedFilters">/);
   assert.match(advancedSection, /<div class="mm-accordion-item mm-accordion-item-open" data-mm-accordion-panel="L-AdvancedFilterPanel" data-mm-accordion-action="A-ToggleAdvancedFilters">/);
   assert.match(advancedSection, /<div class="mm-controlled-panel mm-controlled-panel-accordion" data-mm-controlled-panel="L-AdvancedFilterPanel">/);
   assert.match(shippingSection, /<div class="mm-element mm-element-disclosure mm-disclosure-open" data-mm-id="E-ShippingDetails" data-mm-disclosure-panel="L-ShippingDetailsPanel">/);
   assert.match(shippingSection, /<div class="mm-controlled-panel mm-controlled-panel-disclosure" data-mm-controlled-panel="L-ShippingDetailsPanel">/);
-  assert.match(inactiveSavedFiltersRow, /controlled by[\s\S]*E-AdvancedFilters[\s\S]*inactive in this state/);
-  assert.match(inactiveShippingRow, /controlled by[\s\S]*E-ShippingDetails[\s\S]*inactive in this state/);
-  assert.doesNotMatch(inactiveSavedFiltersRow, /mm-unplaced-badge/);
-  assert.doesNotMatch(inactiveShippingRow, /mm-unplaced-badge/);
+  assert.match(activeAdvancedFilterRow, new RegExp(`${detailLayoutRefById("L2", "L-AdvancedFilterPanel")}${controlledPanelVia("2", "E-AdvancedFilters")}`));
+  assert.equal(inactiveSavedFiltersRow, "");
+  assert.equal(inactiveShippingRow, "");
+  assert.match(activeShippingRow, new RegExp(`${detailLayoutRefById("L4", "L-ShippingDetailsPanel")}${controlledPanelVia("6", "E-ShippingDetails")}`));
+  assert.doesNotMatch(advancedSection, /mm-controlled-panel-badge|controlled by|inactive in this state|data-mm-ref-id="L-SavedFiltersPanel"|data-mm-ref-id="L-ShippingDetailsPanel"|data-mm-ref-id="E-SavedSearchName"|data-mm-ref-id="E-ShippingAddress"/);
+  assert.doesNotMatch(shippingSection, /mm-controlled-panel-badge|controlled by|inactive in this state|data-mm-ref-id="L-AdvancedFilterPanel"|data-mm-ref-id="L-SavedFiltersPanel"|data-mm-ref-id="E-StatusFilter"|data-mm-ref-id="E-SavedSearchName"/);
   assert.match(elementSummary, /<td>Accordion<\/td>/);
   assert.match(elementSummary, /<td>Disclosure<\/td>/);
   assert.match(elementSummary, new RegExp(refActionChip("A1", "A-ToggleAdvancedFilters", "Toggle advanced filters")));
