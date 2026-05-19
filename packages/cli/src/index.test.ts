@@ -308,8 +308,6 @@ test("skill install downloads the version tag archive and installs the authoring
     const archive = createTarGzArchive({
       "markvspec-release-0.5.0/skills/markvspec-authoring/SKILL.md": "# MarkVSpec Authoring\n",
       "markvspec-release-0.5.0/skills/markvspec-authoring/references/workflow.md": "Use the CLI.\n",
-      "markvspec-release-0.5.0/docs/en/user/dsl.md": "# MarkVSpec DSL\n\nEnglish canonical DSL.\n",
-      "markvspec-release-0.5.0/docs/ja/user/dsl.md": "# MarkVSpec DSL\n\nJapanese canonical DSL.\n",
       "markvspec-release-0.5.0/README.md": "Not installed.\n"
     });
 
@@ -326,8 +324,6 @@ test("skill install downloads the version tag archive and installs the authoring
     assert.deepEqual(urls, ["https://github.com/wamukat/markvspec/archive/refs/tags/v0.5.0.tar.gz"]);
     assert.equal(readFileSync(join(installDir, "markvspec-authoring", "SKILL.md"), "utf8"), "# MarkVSpec Authoring\n");
     assert.equal(readFileSync(join(installDir, "markvspec-authoring", "references", "workflow.md"), "utf8"), "Use the CLI.\n");
-    assert.equal(readFileSync(join(installDir, "markvspec-authoring", "references", "dsl.en.md"), "utf8"), "# MarkVSpec DSL\n\nEnglish canonical DSL.\n");
-    assert.equal(readFileSync(join(installDir, "markvspec-authoring", "references", "dsl.ja.md"), "utf8"), "# MarkVSpec DSL\n\nJapanese canonical DSL.\n");
     assert(!existsSync(join(installDir, "README.md")));
     assert.equal(readFileSync(join(dir, "AGENTS.md"), "utf8"), "# Agent Notes\n");
     assert(logs.some((line) => line.includes("Installed markvspec-authoring from v0.5.0")));
@@ -368,33 +364,6 @@ test("skill install reports tag and source URL when the archive has no authoring
     assert(!logs.some((line) => line.includes("Add this to AGENTS.md")));
   } finally {
     console.log = originalLog;
-    console.error = originalError;
-    rmSync(dir, { recursive: true, force: true });
-  }
-});
-
-test("skill install requires release-matched DSL references", async () => {
-  const dir = mkdtempSync(join(tmpdir(), "markvspec-cli-skill-missing-reference-"));
-  const originalError = console.error;
-  const errors: string[] = [];
-  try {
-    console.error = (message?: unknown) => {
-      errors.push(String(message ?? ""));
-    };
-
-    assert.equal(
-      await main(["skill", "install", "--path", join(dir, "skills")], {
-        downloadArchive: async () => createTarGzArchive({
-          "markvspec-release-0.5.0/skills/markvspec-authoring/SKILL.md": "# MarkVSpec Authoring\n"
-        })
-      }),
-      1
-    );
-
-    assert(errors.some((line) => line.includes("required authoring skill reference")));
-    assert(errors.some((line) => line.includes("docs/en/user/dsl.md")));
-    assert(errors.some((line) => line.includes("v0.5.0")));
-  } finally {
     console.error = originalError;
     rmSync(dir, { recursive: true, force: true });
   }

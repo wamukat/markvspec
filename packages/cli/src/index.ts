@@ -28,10 +28,6 @@ interface MainDependencies {
 const MARKVSPEC_REPOSITORY_ARCHIVE_BASE = "https://github.com/wamukat/markvspec/archive/refs/tags";
 const AUTHORING_SKILL_PATH = "skills/markvspec-authoring";
 const AUTHORING_SKILL_NAME = "markvspec-authoring";
-const AUTHORING_SKILL_REFERENCE_SOURCES = [
-  { archivePath: "docs/en/user/dsl.md", installPath: "references/dsl.en.md" },
-  { archivePath: "docs/ja/user/dsl.md", installPath: "references/dsl.ja.md" }
-] as const;
 
 export async function main(argv = process.argv.slice(2), dependencies: MainDependencies = {}): Promise<number> {
   const args = parseArgs(argv);
@@ -232,8 +228,6 @@ function installSkillFromTaggedArchive(archive: Buffer, targetDir: string): void
       writeFileSync(safePath, entry.content);
     }
   }
-
-  installSkillReferencesFromTaggedArchive(entries, targetDir);
 }
 
 interface TarEntry {
@@ -284,26 +278,6 @@ function skillRelativePathFromArchiveEntry(entryName: string): string | undefine
     return undefined;
   }
   return pathAfterRoot.slice(skillPathParts.length).join("/");
-}
-
-function installSkillReferencesFromTaggedArchive(entries: TarEntry[], targetDir: string): void {
-  for (const reference of AUTHORING_SKILL_REFERENCE_SOURCES) {
-    const sourceEntry = entries.find((entry) => archiveRelativePathFromEntry(entry.name) === reference.archivePath);
-    if (!sourceEntry || sourceEntry.type !== "file") {
-      throw new Error(`Archive does not contain required authoring skill reference: ${reference.archivePath}.`);
-    }
-    const safePath = safeJoin(targetDir, reference.installPath);
-    mkdirSync(dirname(safePath), { recursive: true });
-    writeFileSync(safePath, sourceEntry.content);
-  }
-}
-
-function archiveRelativePathFromEntry(entryName: string): string | undefined {
-  const parts = entryName.split("/").filter(Boolean);
-  if (parts.length < 2) {
-    return undefined;
-  }
-  return parts.slice(1).join("/");
 }
 
 function safeJoin(rootDir: string, relativePath: string): string {
