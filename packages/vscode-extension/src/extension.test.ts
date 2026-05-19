@@ -6384,13 +6384,15 @@ title: Input Source
 `);
   const html = renderDesignDocumentHtml(result, "");
   const baselineForm = stateSection(html, "loaded").match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
-  const scenarioForm = stateViewTitleSection(html, "loaded / loaded-override").match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+  const scenarioSection = stateViewTitleSection(html, "loaded / loaded-override");
+  const scenarioForm = scenarioSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
 
   assert.match(baselineForm, /<th>Marker\/ID<\/th><th>Type<\/th><th>Required<\/th><th>Value<\/th><th>Source<\/th><th>Spec<\/th><th>Condition<\/th>/);
   assert.match(baselineForm, new RegExp(`<td>${detailElementRef("E-EmailInput", "E-EmailInput")}</td><td>Input</td><td>no</td><td>morgan@example\\.com</td><td>${sourceTypeChipPattern("data")}</td><td>${specSectionPattern("Input", ["type: email"])}</td><td>${defaultAlwaysPattern()}</td>`));
   assert.match(baselineForm, new RegExp(`<td>${detailElementRef("E-RoleSelect", "E-RoleSelect")}</td><td>Select</td><td>no</td><td>member</td><td>${sourceTypeChipPattern("data")}<br>${sourceCodePattern("${data.member.role}")}</td>`));
-  assert.match(scenarioForm, new RegExp(`<td>${detailElementRef("E-EmailInput", "E-EmailInput")}</td><td>Input</td><td>no</td><td>taylor@example\\.com</td><td>${sourceTypeChipPattern("data")}</td>`));
-  assert.match(scenarioForm, new RegExp(`<td>${detailElementRef("E-RoleSelect", "E-RoleSelect")}</td><td>Select</td><td>no</td><td>administrator</td><td>${sourceTypeChipPattern("data")}<br>${sourceCodePattern("${data.member.role}")}</td>`));
+  assert.equal(scenarioForm, "");
+  assert.match(scenarioSection, new RegExp(`<td>${detailElementRef("E-EmailInput", "E-EmailInput")}</td><td>taylor@example\\.com</td>`));
+  assert.match(scenarioSection, new RegExp(`<td>${detailElementRef("E-RoleSelect", "E-RoleSelect")}</td><td>administrator</td>`));
   assert.doesNotMatch(scenarioForm, /<td>[^<]*(?:Source|Kind|Metadata)[\s\S]*?<\/td><td><span class="mm-chip mm-source-chip/);
 });
 

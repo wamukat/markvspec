@@ -12868,8 +12868,15 @@ title: Baseline Scenario Samples
     ["E-Title", "Baseline loaded title", undefined],
     ["E-Users", undefined, [{ name: "Carol" }]]
   ]);
+  assert.deepEqual(loaded?.scenarioExplicitSamples.map((sample) => [sample.elementId, sample.value, sample.rows?.rows.map((row) => row.fields)]), [
+    ["E-Title", "Baseline loaded title", undefined],
+    ["E-Users", undefined, [{ name: "Carol" }]]
+  ]);
   assert.deepEqual(loadedEmpty?.scenarioSamples.map((sample) => [sample.elementId, sample.value, sample.rows?.explicitEmpty]), [
     ["E-Title", "Baseline loaded title", undefined],
+    ["E-Users", undefined, true]
+  ]);
+  assert.deepEqual(loadedEmpty?.scenarioExplicitSamples.map((sample) => [sample.elementId, sample.value, sample.rows?.explicitEmpty]), [
     ["E-Users", undefined, true]
   ]);
 });

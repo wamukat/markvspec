@@ -910,6 +910,12 @@ title: Scenario Base Selection
 
 - state: loaded
 
+### loaded-sample-value
+
+- state: loaded
+- samples:
+  - E-Shared: Scenario shared
+
 ### submit-loaded
 
 - state: loaded
@@ -922,6 +928,7 @@ title: Scenario Base Selection
     ?.models ?? [];
   const loaded = models.find((model) => model.stateViewTitle === "loaded");
   const overlap = models.find((model) => model.stateViewTitle === "loaded / loaded-overlay");
+  const valueSample = models.find((model) => model.stateViewTitle === "loaded / loaded-sample-value");
   const override = models.find((model) => model.stateViewTitle === "loaded / submit-loaded");
 
   assert.equal(loaded?.viewKind, "baseline");
@@ -936,7 +943,18 @@ title: Scenario Base Selection
   assert.deepEqual(overlap?.scenarioSamples.map((sample) => [sample.elementId, sample.value]), [
     ["E-Shared", "Baseline shared"]
   ]);
-  assert.deepEqual(overlap?.scenarioInputSamples, []);
+  assert.deepEqual(overlap?.scenarioExplicitSamples, []);
+  assert.equal(valueSample?.viewKind, "scenario");
+  assert.equal(valueSample?.sourceStateId, "loaded");
+  assert.equal(valueSample?.displayStateId, "loaded");
+  assert.equal(valueSample?.scenarioMode, "overlap");
+  assert.deepEqual(valueSample?.scenarioSamples.map((sample) => [sample.elementId, sample.value]), [
+    ["E-Shared", "Scenario shared"]
+  ]);
+  assert.deepEqual(valueSample?.scenarioExplicitSamples.map((sample) => [sample.elementId, sample.value]), [
+    ["E-Shared", "Scenario shared"]
+  ]);
+  assert.ok(valueSample?.repeatedElementIds?.has("E-Shared"));
   assert.equal(override?.viewKind, "scenario");
   assert.equal(override?.sourceStateId, "idle");
   assert.equal(override?.displayStateId, "loaded");
@@ -946,6 +964,9 @@ title: Scenario Base Selection
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
   const overlapSection = stateSectionContaining(html, "loaded", "loaded-overlay");
   assert.doesNotMatch(overlapSection, /Scenario Samples/);
+  const valueSampleSection = stateSectionContaining(html, "loaded", "loaded-sample-value");
+  assert.match(valueSampleSection, /Scenario Samples/);
+  assert.match(valueSampleSection, /Scenario shared/);
 });
 
 test("uses source state base for overlap scenario inserted before baseline state view", () => {

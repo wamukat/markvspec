@@ -553,15 +553,15 @@ function renderScenarioSamplesBox(
   model: StateScreenReadModel,
   messages: RendererMessages
 ): string {
-  if (model.scenarioInputSamples.length === 0 && model.scenarioInputRoute.length === 0) {
+  if (model.scenarioExplicitSamples.length === 0 && model.scenarioExplicitRoute.length === 0) {
     return "";
   }
 
   const elementById = new Map(result.elements.map((element) => [element.id, element]));
-  const rows = model.scenarioInputSamples.map((sample) => {
+  const rows = model.scenarioExplicitSamples.map((sample) => {
     return [renderScenarioSampleElementRef(result, sample.elementId), renderScenarioSampleSummary(sample, messages)];
   });
-  const rowBlocks = model.scenarioInputSamples
+  const rowBlocks = model.scenarioExplicitSamples
     .map((sample) => renderScenarioSampleRowsBlock(result, model, sample, elementById.get(sample.elementId), messages))
     .filter(Boolean)
     .join("");
@@ -580,10 +580,10 @@ function renderScenarioRouteTable(
   model: StateScreenReadModel,
   messages: RendererMessages
 ): string {
-  if (model.scenarioInputRoute.length === 0) {
+  if (model.scenarioExplicitRoute.length === 0) {
     return "";
   }
-  const rows = model.scenarioInputRoute.map((sample) => [escapeHtml(sample.key), escapeHtml(sample.value)]);
+  const rows = model.scenarioExplicitRoute.map((sample) => [escapeHtml(sample.key), escapeHtml(sample.value)]);
   return `<div class="spec-section"><strong>${escapeHtml(messages.routeParameters)}</strong>${renderTable([messages.name, messages.value], rows)}</div>`;
 }
 
