@@ -40,7 +40,7 @@ import {
   shouldUseIncrementalPreviewUpdate,
   renderStandaloneProjectHtml
 } from "./extension.js";
-import { renderInlineMarkdown } from "./markdown-renderer.js";
+import { renderEntityNotes, renderInlineMarkdown } from "./markdown-renderer.js";
 import { buildStateScreenReadModels } from "@markvspec/core";
 
 const extensionRoot = resolve(".");
@@ -2543,6 +2543,84 @@ title: Fragment
   );
 });
 
+test("keeps form group fragment markdown references resolved against composed source scope", () => {
+  const template = parseMarkVSpec(`---
+id: TPL-FRAGMENT-SHELL
+type: template
+title: Fragment Shell
+---
+
+# TPL-FRAGMENT-SHELL Fragment Shell
+
+## States
+
+- idle*
+
+## Layout: desktop
+
+### L-TopBar Top bar
+
+- row
+
+#### Items
+
+- slot: content
+`);
+  const screen = parseMarkVSpec(`---
+id: SCR-FORM-FRAGMENT
+type: screen
+title: Form Fragment
+---
+
+# SCR-FORM-FRAGMENT Form Fragment
+
+## States
+
+- idle*
+
+## Slot: content
+
+### L-Form Form
+
+- stack
+
+#### Items
+
+- E-NameInput
+
+## Elements
+
+### E-NameInput Input
+
+- label: Name
+
+## Form Groups
+
+### F-ProfileForm Profile form
+
+- fields:
+  - E-NameInput
+
+Profile form references #{L-TopBar}.
+`);
+  const composed = composeMarkVSpecTemplate(template, screen);
+  const fragments = renderPreviewFragmentUpdates(
+    {
+      result: composed,
+      focus: {
+        layoutIds: new Set(["L-Form"]),
+        elementIds: new Set(["E-NameInput"]),
+        actionIds: new Set()
+      }
+    },
+    { wireframeRenderKeys: [], previewDocumentRenderKeys: ["form-groups:list"] }
+  );
+  const fragmentHtml = fragments[0]?.html.join("") ?? "";
+
+  assert.equal(fragments.length, 1);
+  assert.match(fragmentHtml, /Profile form references <a class="mm-ref-chip mm-ref-chip-layout" href="#state-views"[^>]*data-mm-ref-id="L-TopBar"/);
+});
+
 test("verifies typing-style preview updates choose partial or full render", () => {
   const previousSource = `---
 id: SCR-TYPING-SMOKE
@@ -5025,6 +5103,8 @@ title: Home
 
 ### A1:A-LoadProfile Load profile
 
+Load profile references #{L-TopBar}.
+
 - Triggered
   - screen.load
 - From
@@ -5050,6 +5130,8 @@ title: Home
   assert.match(html, /data-mm-id="E-WelcomeHeading"/);
   assert.doesNotMatch(html, /data-mm-id="E-Brand"/);
   assert.match(html, /PartialRequest/);
+  assert.match(html, /Load profile references <a class="mm-ref-chip mm-ref-chip-layout" href="#state-views"[^>]*data-mm-ref-id="L-TopBar"/);
+  assert.match(html, /data-state-view-title="idle"[\s\S]*Load profile references <a class="mm-ref-chip mm-ref-chip-layout" href="#state-views"[^>]*data-mm-ref-id="L-TopBar"/);
   assert.match(html, /GET \/profile-card/);
   assert.match(html, /partial: PRT-PROFILE-CARD/);
   assert.doesNotMatch(html, new RegExp(`model: ${sourceCodePattern("${model.profile.loaded}")} = true`));
@@ -8372,6 +8454,14 @@ Refer to #{R-Eligibility}; keep \`#{E-NameInput}\`, \`\`#{A-Submit}\`\`, and \`\
   assert.match(actionDetail, /<span class="mm-inline-token">#\{A-Submit\}<\/span>/);
   assert.match(actionDetail, /<span class="mm-inline-token">literal ` #\{ERR-IN-CODE\}<\/span>/);
   assert.match(actionDetail, /<pre><code class="language-markdown">#\{R-Eligibility\}<\/code><\/pre>/);
+});
+
+test("renders markdown entity references through explicit helper options", () => {
+  const html = renderEntityNotes(["See #{E-NameInput}, keep `#{A-Submit}` literal."], {
+    renderEntityReference: (id) => `<a data-test-ref="${id}">${id}</a>`
+  });
+
+  assert.match(html, /See <a data-test-ref="E-NameInput">E-NameInput<\/a>, keep <span class="mm-inline-token">#\{A-Submit\}<\/span> literal\./);
 });
 
 test("blocks external markdown images while preserving external links", () => {

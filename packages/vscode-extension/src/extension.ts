@@ -41,6 +41,7 @@ import {
   renderMarkdownSectionContent as renderMarkdownSectionContentBase,
   trimNoteLines
 } from "./markdown-renderer.js";
+import type { MarkdownRenderOptions } from "./markdown-renderer.js";
 import {
   code,
   escapeHtml,
@@ -1798,7 +1799,7 @@ const previewDesignFragmentRenderers = new Map<string, PreviewDesignFragmentRend
   }],
   ["form-groups:list", ({ result, focus, renderKey }) => {
     const scope = buildDocumentScope(result, focus);
-    return extractRenderKeyFragments(renderFormGroupsSpec(scope.specResult), renderKey);
+    return extractRenderKeyFragments(renderFormGroupsSpec(scope.specResult, scope.sourceResult), renderKey);
   }],
   ["layouts:list", ({ result, focus, renderKey }) => {
     const scope = buildDocumentScope(result, focus);
@@ -2299,9 +2300,7 @@ interface DesignDocumentOptions {
   messages?: RendererMessages;
 }
 
-let activeMarkdownResult: ReturnType<typeof parseMarkVSpec> | undefined;
-
-function markdownRenderOptions(result: ReturnType<typeof parseMarkVSpec>): { renderEntityReference: (id: string) => string | undefined } {
+function markdownRenderOptions(result: ReturnType<typeof parseMarkVSpec>): MarkdownRenderOptions {
   return {
     renderEntityReference: (id) => resolveMarkVSpecEntityReference(result, id)
       ? referenceChipForId(result, id, true, true) || renderDetailRefId(id)
@@ -2309,16 +2308,16 @@ function markdownRenderOptions(result: ReturnType<typeof parseMarkVSpec>): { ren
   };
 }
 
-function renderMarkdownSectionContent(lines: string[]): string {
-  return renderMarkdownSectionContentBase(lines, activeMarkdownResult ? markdownRenderOptions(activeMarkdownResult) : {});
+function renderMarkdownSectionContent(result: ReturnType<typeof parseMarkVSpec>, lines: string[]): string {
+  return renderMarkdownSectionContentBase(lines, markdownRenderOptions(result));
 }
 
-function renderEntityNotes(lines: string[] | undefined): string {
-  return renderEntityNotesBase(lines, activeMarkdownResult ? markdownRenderOptions(activeMarkdownResult) : {});
+function renderEntityNotes(result: ReturnType<typeof parseMarkVSpec>, lines: string[] | undefined): string {
+  return renderEntityNotesBase(lines, markdownRenderOptions(result));
 }
 
-function renderEntityOverview(lines: string[] | undefined): string {
-  return renderEntityOverviewBase(lines, activeMarkdownResult ? markdownRenderOptions(activeMarkdownResult) : {});
+function renderEntityOverview(result: ReturnType<typeof parseMarkVSpec>, lines: string[] | undefined): string {
+  return renderEntityOverviewBase(lines, markdownRenderOptions(result));
 }
 
 function label(result: ReturnType<typeof parseMarkVSpec>, key: MessageKey): string {
@@ -2355,9 +2354,6 @@ function conditionLabel(result: ReturnType<typeof parseMarkVSpec>, key: string):
 }
 
 export function renderDesignDocumentHtml(result: ReturnType<typeof parseMarkVSpec>, _preview: string, options: DesignDocumentOptions = {}): string {
-  const previousMarkdownResult = activeMarkdownResult;
-  activeMarkdownResult = result;
-  try {
   const scope = buildDocumentScope(result, options.focus);
   const detailsResult = scope.specResult;
   const messages = options.messages ?? rendererMessagesForResult(result);
@@ -2391,24 +2387,21 @@ export function renderDesignDocumentHtml(result: ReturnType<typeof parseMarkVSpe
     renderScreenSpec(result),
     renderHistorySpec(result),
     renderInlineTableOfContents(result),
-    numberedSection((number) => withSectionNumber(renderStatesSpec(detailsResult), number)),
+    numberedSection((number) => withSectionNumber(renderStatesSpec(detailsResult, result), number)),
     numberedSection((number) => withSectionNumber(renderStateFlowSpec(detailsResult), number)),
-    numberedSection((number) => withSectionNumber(renderViewContextsSpec(detailsResult), number)),
-    numberedSection((number) => withSectionNumber(renderViewContextSamplesSpec(detailsResult), number)),
+    numberedSection((number) => withSectionNumber(renderViewContextsSpec(detailsResult, result), number)),
+    numberedSection((number) => withSectionNumber(renderViewContextSamplesSpec(detailsResult, result), number)),
     numberedSection((number) => withSectionNumber(renderViewportStateScreensSpec(scope, number), number)),
-    numberedSection((number) => withSectionNumber(renderActionDetailsSpec(detailsResult), number)),
-    numberedSection((number) => withSectionNumber(renderFormGroupsSpec(detailsResult), number)),
-    numberedSection((number) => withSectionNumber(renderValidationRulesSpec(detailsResult), number)),
-    numberedSection((number) => withSectionNumber(renderRulesSpec(detailsResult), number)),
-    numberedSection((number) => withSectionNumber(renderErrorCodesSpec(detailsResult), number)),
+    numberedSection((number) => withSectionNumber(renderActionDetailsSpec(detailsResult, result), number)),
+    numberedSection((number) => withSectionNumber(renderFormGroupsSpec(detailsResult, result), number)),
+    numberedSection((number) => withSectionNumber(renderValidationRulesSpec(detailsResult, result), number)),
+    numberedSection((number) => withSectionNumber(renderRulesSpec(detailsResult, result), number)),
+    numberedSection((number) => withSectionNumber(renderErrorCodesSpec(detailsResult, result), number)),
     numberedSections(renderNotesSpec(result)),
     numberedSection((number) => withSectionNumber(renderScreenTransitionsSpec(detailsResult), number)),
-    numberedSection((number) => withSectionNumber(renderActionTransitionsSpec(detailsResult), number)),
+    numberedSection((number) => withSectionNumber(renderActionTransitionsSpec(detailsResult, result), number)),
     numberedSection((number) => withSectionNumber(renderDiagnosticsSpec(result), number))
   ]);
-  } finally {
-    activeMarkdownResult = previousMarkdownResult;
-  }
 }
 
 function withSectionNumber(html: string, sectionNumber: string): string {
@@ -2447,7 +2440,7 @@ function renderInlineTableOfContents(result: ReturnType<typeof parseMarkVSpec>):
 
 function renderViewportStateScreensSpec(scope: DocumentScope, sectionNumber?: string): string {
   const { specResult: detailsResult, wireframeResult, focus } = scope;
-  const renderContext = stateViewsRenderContext(detailsResult);
+  const renderContext = stateViewsRenderContext(detailsResult, scope.sourceResult);
   const viewportSections = buildViewportStateScreenReadModels(detailsResult, wireframeResult, focus, stateScreenReadModelOptions(detailsResult))
     .map((viewportModel, index) => {
       const viewportNumber = sectionNumber ? `${sectionNumber}.${index + 1}` : undefined;
@@ -2502,7 +2495,10 @@ function renderStateScreenWireframe(
   return renderWireframeFor(wireframeResult, model.viewport, model.stateName, index === 0, model.focus, model.modelValues, model.viewValues, model.displayEffects, model.scenarioSamples, model.scenarioRoute);
 }
 
-function stateViewsRenderContext(result: ReturnType<typeof parseMarkVSpec>): StateViewsRenderContext {
+function stateViewsRenderContext(
+  result: ReturnType<typeof parseMarkVSpec>,
+  markdownResult: ReturnType<typeof parseMarkVSpec> = result
+): StateViewsRenderContext {
   const specTables = createStateViewSpecTableRenderer(result, {
     label: (key) => label(result, key),
     conditionLabel: (key) => conditionLabel(result, key),
@@ -2519,10 +2515,10 @@ function stateViewsRenderContext(result: ReturnType<typeof parseMarkVSpec>): Sta
       label: layout.name || layout.id
     }),
     renderIcon: renderPreviewIcon,
-    renderEntityNotes,
+    renderEntityNotes: (notes) => renderEntityNotes(markdownResult, notes),
     renderElementTypeSummary,
     renderElementActionReferences: (element) => renderElementActionReferences(result, element),
-    renderElementDescription,
+    renderElementDescription: (element) => renderElementDescription(markdownResult, element),
     renderRequiredSpec: (element) => renderRequiredSpec(result, element),
     renderFormControlValue: (element, sampleValue) => renderFormControlValue(element, sampleValue),
     renderFormControlSource: (element) => renderFormControlSource(element),
@@ -2534,7 +2530,7 @@ function stateViewsRenderContext(result: ReturnType<typeof parseMarkVSpec>): Sta
     renderElementLabelSummary,
     renderElementValueSummary,
     renderConditionList: (groups) => renderConditionList(result, groups),
-    renderActionOverview: (action) => renderActionOverview(result, action),
+    renderActionOverview: (action) => renderActionOverview(markdownResult, action),
     renderTrigger: (trigger) => renderTrigger(result, trigger)
   });
 
@@ -2550,15 +2546,16 @@ function stateViewsRenderContext(result: ReturnType<typeof parseMarkVSpec>): Sta
     },
     prose: {
       sectionProseForKind: (kind) => sectionProseForKind(result, kind),
-      renderOverview: (lines) => renderEntityOverview([...lines]),
-      renderNotes: (lines) => renderEntityNotes([...lines])
+      renderOverview: (lines) => renderEntityOverview(markdownResult, [...lines]),
+      renderNotes: (lines) => renderEntityNotes(markdownResult, [...lines])
     },
     specFragments: {
       renderLayoutSpecFragment: (heading, content, headingLevel, emptyWhenRepeatedHidden) =>
         renderLayoutSpecFragment(result, heading, content, headingLevel, emptyWhenRepeatedHidden),
       renderElementSpecFragment: (heading, content, sectionProse, headingLevel, emptyWhenRepeatedHidden) =>
-        renderElementSpecFragment(result, heading, content, sectionProse, headingLevel, emptyWhenRepeatedHidden),
-      renderActionSpecFragment
+        renderElementSpecFragment(markdownResult, heading, content, sectionProse, headingLevel, emptyWhenRepeatedHidden),
+      renderActionSpecFragment: (heading, content, sectionProse, headingLevel, emptyWhenRepeatedHidden) =>
+        renderActionSpecFragment(markdownResult, heading, content, sectionProse, headingLevel, emptyWhenRepeatedHidden)
     },
     specTables
   };
@@ -2640,8 +2637,8 @@ function demoteStateScreenDetailHeadings(content: string): string {
     .replace(/<\/h4>/gu, "</h6>");
 }
 
-function renderFormGroupsSpec(result: ReturnType<typeof parseMarkVSpec>): string {
-  const content = renderFormGroupsSpecFragment(result, result.formGroups);
+function renderFormGroupsSpec(result: ReturnType<typeof parseMarkVSpec>, markdownResult: ReturnType<typeof parseMarkVSpec> = result): string {
+  const content = renderFormGroupsSpecFragment(result, result.formGroups, markdownResult);
   const sectionProse = sectionProseForKind(result, "FormGroups");
   if (!content && sectionProse.length === 0) {
     return "";
@@ -2649,14 +2646,14 @@ function renderFormGroupsSpec(result: ReturnType<typeof parseMarkVSpec>): string
 
   return `<section class="doc-section">
     <h2 id="${formGroupsAnchor()}">${label(result, "formGroups")}</h2>
-    ${renderSectionOverview(sectionProse)}
+    ${renderSectionOverview(markdownResult, sectionProse)}
     ${content || `<p class="spec-empty">${label(result, "none")}</p>`}
-    ${renderSectionNotes(sectionProse)}
+    ${renderSectionNotes(markdownResult, sectionProse)}
   </section>`;
 }
 
-function renderViewContextsSpec(result: ReturnType<typeof parseMarkVSpec>): string {
-  const content = renderViewContextsSpecFragment(result);
+function renderViewContextsSpec(result: ReturnType<typeof parseMarkVSpec>, markdownResult: ReturnType<typeof parseMarkVSpec> = result): string {
+  const content = renderViewContextsSpecFragment(result, markdownResult);
   const sectionProse = sectionProseForKind(result, "ViewContext");
   if (!content && sectionProse.length === 0) {
     return "";
@@ -2664,13 +2661,13 @@ function renderViewContextsSpec(result: ReturnType<typeof parseMarkVSpec>): stri
 
   return `<section class="doc-section view-context-section">
     <h2>${label(result, "viewContexts")}</h2>
-    ${renderSectionOverview(sectionProse)}
+    ${renderSectionOverview(markdownResult, sectionProse)}
     ${content || `<p class="spec-empty">${label(result, "none")}</p>`}
-    ${renderSectionNotes(sectionProse)}
+    ${renderSectionNotes(markdownResult, sectionProse)}
   </section>`;
 }
 
-function renderViewContextsSpecFragment(result: ReturnType<typeof parseMarkVSpec>): string {
+function renderViewContextsSpecFragment(result: ReturnType<typeof parseMarkVSpec>, markdownResult: ReturnType<typeof parseMarkVSpec> = result): string {
   if (result.viewContexts.length === 0) {
     return "";
   }
@@ -2689,18 +2686,18 @@ function renderViewContextsSpecFragment(result: ReturnType<typeof parseMarkVSpec
     ],
     result.viewContexts.map((context) => [
       code(context.name),
-      ...(showOverview ? [renderEntityOverview(context.overview)] : []),
+      ...(showOverview ? [renderEntityOverview(markdownResult, context.overview)] : []),
       context.type ? code(context.type) : "",
       renderViewContextValues(context.values, label(result, "default")),
       context.defaultValue ? code(context.defaultValue) : "",
       renderViewContextProperties(context.properties),
-      ...(showNotes ? [renderEntityNotes(context.notes)] : [])
+      ...(showNotes ? [renderEntityNotes(markdownResult, context.notes)] : [])
     ])
   );
 }
 
-function renderViewContextSamplesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
-  const content = renderViewContextSamplesSpecFragment(result);
+function renderViewContextSamplesSpec(result: ReturnType<typeof parseMarkVSpec>, markdownResult: ReturnType<typeof parseMarkVSpec> = result): string {
+  const content = renderViewContextSamplesSpecFragment(result, markdownResult);
   const sectionProse = sectionProseForKind(result, "ViewContextSamples");
   if (!content && sectionProse.length === 0) {
     return "";
@@ -2708,13 +2705,13 @@ function renderViewContextSamplesSpec(result: ReturnType<typeof parseMarkVSpec>)
 
   return `<section class="doc-section view-context-samples-section">
     <h2>${label(result, "viewContextSamples")}</h2>
-    ${renderSectionOverview(sectionProse)}
+    ${renderSectionOverview(markdownResult, sectionProse)}
     ${content || `<p class="spec-empty">${label(result, "none")}</p>`}
-    ${renderSectionNotes(sectionProse)}
+    ${renderSectionNotes(markdownResult, sectionProse)}
   </section>`;
 }
 
-function renderViewContextSamplesSpecFragment(result: ReturnType<typeof parseMarkVSpec>): string {
+function renderViewContextSamplesSpecFragment(result: ReturnType<typeof parseMarkVSpec>, markdownResult: ReturnType<typeof parseMarkVSpec> = result): string {
   if (result.viewContextSamples.length === 0) {
     return "";
   }
@@ -2730,9 +2727,9 @@ function renderViewContextSamplesSpecFragment(result: ReturnType<typeof parseMar
     ],
     result.viewContextSamples.map((sample) => [
       code(sample.name),
-      ...(showOverview ? [renderEntityOverview(sample.overview)] : []),
+      ...(showOverview ? [renderEntityOverview(markdownResult, sample.overview)] : []),
       renderViewContextSampleValues(sample.values),
-      ...(showNotes ? [renderEntityNotes(sample.notes)] : [])
+      ...(showNotes ? [renderEntityNotes(markdownResult, sample.notes)] : [])
     ])
   );
 }
@@ -2772,13 +2769,14 @@ function renderElementSpecFragment(
   const body = headingLevel === 5 ? demoteStateScreenDetailHeadings(content) : content;
   return `<div class="element-spec-fragment" data-mm-render-key="elements:list"${repeatedHiddenEmptyAttr(emptyWhenRepeatedHidden)}>
     ${headingTag}
-    ${renderSectionOverview(sectionProse)}
+    ${renderSectionOverview(result, sectionProse)}
     ${body}
-    ${renderSectionNotes(sectionProse)}
+    ${renderSectionNotes(result, sectionProse)}
   </div>`;
 }
 
 function renderActionSpecFragment(
+  result: ReturnType<typeof parseMarkVSpec>,
   heading: string,
   content: string,
   sectionProse: ReturnType<typeof parseMarkVSpec>["sectionProse"] = [],
@@ -2788,15 +2786,16 @@ function renderActionSpecFragment(
   const headingTag = headingLevel === 5 ? renderStateScreenSubheading(heading) : `<h3>${escapeHtml(heading)}</h3>`;
   return `<div class="action-spec-fragment"${repeatedHiddenEmptyAttr(emptyWhenRepeatedHidden)}>
     ${headingTag}
-    ${renderSectionOverview(sectionProse)}
+    ${renderSectionOverview(result, sectionProse)}
     ${content}
-    ${renderSectionNotes(sectionProse)}
+    ${renderSectionNotes(result, sectionProse)}
   </div>`;
 }
 
 function renderFormGroupsSpecFragment(
   result: ReturnType<typeof parseMarkVSpec>,
-  formGroups: ReturnType<typeof parseMarkVSpec>["formGroups"]
+  formGroups: ReturnType<typeof parseMarkVSpec>["formGroups"],
+  markdownResult: ReturnType<typeof parseMarkVSpec> = result
 ): string {
   if (formGroups.length === 0) {
     return "";
@@ -2815,10 +2814,10 @@ function renderFormGroupsSpecFragment(
       ],
       formGroups.map((formGroup) => [
         referenceForDetailId(result, formGroup.id),
-        ...(showOverview ? [renderEntityOverview(formGroup.overview)] : []),
+        ...(showOverview ? [renderEntityOverview(markdownResult, formGroup.overview)] : []),
         formGroup.fields.length > 0 ? `<ul class="spec-list">${formGroup.fields.map((field) => `<li>${referenceForDetailId(result, field.elementId)}</li>`).join("")}</ul>` : "",
         formGroup.submit ? referenceForDetailId(result, formGroup.submit.actionId) : "",
-        ...(showNotes ? [renderEntityNotes(formGroup.notes)] : [])
+        ...(showNotes ? [renderEntityNotes(markdownResult, formGroup.notes)] : [])
       ])
     )}
   </div>`;
@@ -2865,7 +2864,7 @@ function renderScreenSpec(result: ReturnType<typeof parseMarkVSpec>): string {
       <div class="screen-overview-main">
         ${screen.id ? `<div class="screen-id">${code(screen.id)}</div>` : ""}
         ${title ? `<div class="screen-title">${text(title)}</div>` : ""}
-        ${screen.description ? `<div class="screen-description">${renderMarkdownSectionContent(screen.description.split(/\r?\n/u))}</div>` : ""}
+        ${screen.description ? `<div class="screen-description">${renderMarkdownSectionContent(result, screen.description.split(/\r?\n/u))}</div>` : ""}
       </div>
     </div>
     ${facts.length > 0 ? `<section class="screen-meta-block"><h3>${label(result, "basicInfo")}</h3>${renderDefinitionList(facts)}</section>` : ""}
@@ -3150,8 +3149,8 @@ function renderPartialUpdateContent(result: ReturnType<typeof parseMarkVSpec>, u
   return renderDetailList(result, items, update.sideEffects ?? []);
 }
 
-function renderActionDetailsSpec(result: ReturnType<typeof parseMarkVSpec>): string {
-  const cards = result.actions.map((action) => renderActionDetail(result, action)).join("");
+function renderActionDetailsSpec(result: ReturnType<typeof parseMarkVSpec>, markdownResult: ReturnType<typeof parseMarkVSpec> = result): string {
+  const cards = result.actions.map((action) => renderActionDetail(result, action, markdownResult)).join("");
   return `<section class="doc-section">
     <h2>${label(result, "actionDetails")}</h2>
     ${cards ? `<div class="action-detail-list">${cards}</div>` : `<p class="spec-empty">${label(result, "none")}</p>`}
@@ -3171,7 +3170,7 @@ function renderStateFlowSpec(result: ReturnType<typeof parseMarkVSpec>): string 
   </section>`;
 }
 
-function renderActionTransitionsSpec(result: ReturnType<typeof parseMarkVSpec>): string {
+function renderActionTransitionsSpec(result: ReturnType<typeof parseMarkVSpec>, markdownResult: ReturnType<typeof parseMarkVSpec> = result): string {
   const sectionProse = sectionProseForKind(result, "States");
   const stateNames = orderedTransitionStateNames(result);
   const matrixStateNames = stateNames;
@@ -3197,9 +3196,9 @@ function renderActionTransitionsSpec(result: ReturnType<typeof parseMarkVSpec>):
 
   return `<section class="doc-section" id="state-transition-table">
     <h2>${label(result, "actionTransitions")}</h2>
-    ${renderSectionOverview(sectionProse)}
+    ${renderSectionOverview(markdownResult, sectionProse)}
     ${renderTransitionMatrixTable(result, matrixStateNames, rows)}
-    ${renderStateTransitionNotes(result, sectionProse)}
+    ${renderStateTransitionNotes(result, sectionProse, markdownResult)}
   </section>`;
 }
 
@@ -3221,9 +3220,10 @@ function renderTransitionMatrixTable(
 
 function renderStateTransitionNotes(
   result: ReturnType<typeof parseMarkVSpec>,
-  sectionProse: ReturnType<typeof parseMarkVSpec>["sectionProse"]
+  sectionProse: ReturnType<typeof parseMarkVSpec>["sectionProse"],
+  markdownResult: ReturnType<typeof parseMarkVSpec> = result
 ): string {
-  const notes = renderSectionNotes(sectionProse);
+  const notes = renderSectionNotes(markdownResult, sectionProse);
   return notes ? `<h3 class="state-transition-context-heading">${label(result, "stateTransitionNotes")}</h3>${notes}` : "";
 }
 
@@ -3433,11 +3433,11 @@ function mermaidLabel(value: string): string {
   return value.replaceAll("\\", "\\\\").replaceAll("\"", "\\\"").replaceAll("\n", " ").replaceAll(";", ",");
 }
 
-function renderStatesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
+function renderStatesSpec(result: ReturnType<typeof parseMarkVSpec>, markdownResult: ReturnType<typeof parseMarkVSpec> = result): string {
   const sectionProse = sectionProseForKind(result, "States");
   return `<section class="doc-section">
     <h2>${label(result, "states")}</h2>
-    ${renderSectionOverview(sectionProse)}
+    ${renderSectionOverview(markdownResult, sectionProse)}
     ${renderLocalizedTable(result,
       [label(result, "state"), label(result, "initial"), label(result, "description")],
       result.states.map((state) => [renderStateLabel(state.name), state.initial ? text(label(result, "requiredYes")) : "-", text(state.message)])
@@ -3445,7 +3445,7 @@ function renderStatesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
   </section>`;
 }
 
-function renderValidationRulesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
+function renderValidationRulesSpec(result: ReturnType<typeof parseMarkVSpec>, markdownResult: ReturnType<typeof parseMarkVSpec> = result): string {
   const sectionProse = sectionProseForKind(result, "Validations");
   const validationSectionProse = [
     ...sectionProse,
@@ -3470,16 +3470,16 @@ function renderValidationRulesSpec(result: ReturnType<typeof parseMarkVSpec>): s
   }
   const content = groups
     .map((group) => group.rules.length > 0
-      ? renderValidationRuleGroup(result, label(result, group.key), group.key.includes("CrossField") ? "cross-field" : "field", group.rules)
+      ? renderValidationRuleGroup(result, label(result, group.key), group.key.includes("CrossField") ? "cross-field" : "field", group.rules, markdownResult)
       : "")
     .filter(Boolean)
     .join("");
 
   return `<section class="doc-section">
     <h2 id="${validationRulesAnchor()}">${label(result, "validationRules")}</h2>
-    ${renderSectionOverview(validationSectionProse)}
+    ${renderSectionOverview(markdownResult, validationSectionProse)}
     ${content || `<p class="spec-empty">${label(result, "none")}</p>`}
-    ${renderSectionNotes(validationSectionProse)}
+    ${renderSectionNotes(markdownResult, validationSectionProse)}
   </section>`;
 }
 
@@ -3487,7 +3487,8 @@ function renderValidationRuleGroup(
   result: ReturnType<typeof parseMarkVSpec>,
   heading: string,
   scope: "field" | "cross-field",
-  validations: ReturnType<typeof parseMarkVSpec>["validations"]
+  validations: ReturnType<typeof parseMarkVSpec>["validations"],
+  markdownResult: ReturnType<typeof parseMarkVSpec> = result
 ): string {
   const showOverview = validations.some((validation) => (validation.overview?.length ?? 0) > 0);
   const showNotes = validations.some((validation) => (validation.notes?.length ?? 0) > 0);
@@ -3514,8 +3515,8 @@ function renderValidationRuleGroup(
       ...(showNotes ? [label(result, "notes")] : [])
     ];
   const rows = scope === "field"
-    ? renderFieldValidationRows(result, validations, showOverview, showNotes)
-    : renderCrossFieldValidationRows(result, validations, showOverview, showNotes);
+    ? renderFieldValidationRows(result, validations, showOverview, showNotes, markdownResult)
+    : renderCrossFieldValidationRows(result, validations, showOverview, showNotes, markdownResult);
   return [
     `<h3>${heading}</h3>`,
     renderLocalizedTableWithCells(result, headers, rows)
@@ -3526,7 +3527,8 @@ function renderFieldValidationRows(
   result: ReturnType<typeof parseMarkVSpec>,
   validations: ReturnType<typeof parseMarkVSpec>["validations"],
   showOverview: boolean,
-  showNotes: boolean
+  showNotes: boolean,
+  markdownResult: ReturnType<typeof parseMarkVSpec> = result
 ): TableCell[][] {
   return validations.flatMap((validation) => {
     const rules = validation.rules.length > 0 ? validation.rules : [undefined];
@@ -3541,7 +3543,7 @@ function renderFieldValidationRows(
     return rules.map((rule, index) => [
       ...rowspanPrefixCells(index === 0 ? rules.length : 0, [
         referenceForDetailId(result, validation.id),
-        ...(showOverview ? [renderEntityOverview(validation.overview)] : []),
+        ...(showOverview ? [renderEntityOverview(markdownResult, validation.overview)] : []),
         renderValidationProperty(result, validation, "target")
       ]),
       rule ? renderValidationRuleEntry(result, validation, rule) : text("-"),
@@ -3550,7 +3552,7 @@ function renderFieldValidationRows(
       renderValidationRuleProperty(result, rule, validation, "message", index, messageValues, !hasRuleMessages),
       renderValidationRuleProperty(result, rule, validation, "error code", index, errorCodeValues, !hasRuleErrorCodes),
       ...rowspanPrefixCells(index === 0 ? rules.length : 0, [
-        ...(showNotes ? [renderEntityNotes(validation.notes)] : [])
+        ...(showNotes ? [renderEntityNotes(markdownResult, validation.notes)] : [])
       ])
     ]);
   });
@@ -3560,18 +3562,19 @@ function renderCrossFieldValidationRows(
   result: ReturnType<typeof parseMarkVSpec>,
   validations: ReturnType<typeof parseMarkVSpec>["validations"],
   showOverview: boolean,
-  showNotes: boolean
+  showNotes: boolean,
+  markdownResult: ReturnType<typeof parseMarkVSpec> = result
 ): TableCell[][] {
   return validations.map((validation) => [
     referenceForDetailId(result, validation.id),
-    ...(showOverview ? [renderEntityOverview(validation.overview)] : []),
+    ...(showOverview ? [renderEntityOverview(markdownResult, validation.overview)] : []),
     renderValidationProperty(result, validation, "target"),
     renderValidationProperty(result, validation, "input") || renderValidationProperty(result, validation, "inputs"),
     renderValidationProperty(result, validation, "check") || renderValidationRules(result, validation),
     renderValidationProperty(result, validation, "when") || renderLegacyValidationCondition(result, validation),
     renderValidationProperty(result, validation, "message"),
     renderValidationProperty(result, validation, "error code") || renderValidationProperty(result, validation, "error codes"),
-    ...(showNotes ? [renderEntityNotes(validation.notes)] : [])
+    ...(showNotes ? [renderEntityNotes(markdownResult, validation.notes)] : [])
   ]);
 }
 
@@ -3808,14 +3811,14 @@ function renderLegacyValidationCondition(
   return `${text(label(result, "legacyCondition"))}: ${renderValidationValues(result, values)}`;
 }
 
-function renderRulesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
+function renderRulesSpec(result: ReturnType<typeof parseMarkVSpec>, markdownResult: ReturnType<typeof parseMarkVSpec> = result): string {
   const sectionProse = sectionProseForKind(result, "BusinessRules");
   const showOverview = result.rules.some((rule) => (rule.overview?.length ?? 0) > 0);
   const showNotes = result.rules.some((rule) => (rule.notes?.length ?? 0) > 0);
   const showMessages = result.rules.some((rule) => businessRulePropertyValues(rule, "messages").length > 0 || businessRulePropertyValues(rule, "message").length > 0);
   return `<section class="doc-section">
     <h2 id="${businessRulesAnchor()}">${label(result, "businessRules")}</h2>
-    ${renderSectionOverview(sectionProse)}
+    ${renderSectionOverview(markdownResult, sectionProse)}
     ${renderLocalizedTable(result,
       [
         markerIdHeader(result),
@@ -3826,29 +3829,29 @@ function renderRulesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
       ],
       result.rules.map((rule) => [
         referenceForDetailId(result, rule.id),
-        ...(showOverview ? [renderEntityOverview(rule.overview)] : []),
-        renderRuleText(rule),
+        ...(showOverview ? [renderEntityOverview(markdownResult, rule.overview)] : []),
+        renderRuleText(markdownResult, rule),
         ...(showMessages ? [renderBusinessRuleProperty(result, rule, "messages") || renderBusinessRuleProperty(result, rule, "message")] : []),
-        ...(showNotes ? [renderEntityNotes(rule.notes)] : [])
+        ...(showNotes ? [renderEntityNotes(markdownResult, rule.notes)] : [])
       ])
     )}
-    ${renderSectionNotes(sectionProse)}
+    ${renderSectionNotes(markdownResult, sectionProse)}
   </section>`;
 }
 
-function renderRuleText(rule: ReturnType<typeof parseMarkVSpec>["rules"][number]): string {
+function renderRuleText(result: ReturnType<typeof parseMarkVSpec>, rule: ReturnType<typeof parseMarkVSpec>["rules"][number]): string {
   const descriptions = businessRulePropertyValues(rule, "description");
   if (descriptions.length > 0) {
-    return renderMarkdownSectionContent(descriptions.length === 1 ? [descriptions[0] ?? ""] : descriptions.map((description) => `- ${description}`));
+    return renderMarkdownSectionContent(result, descriptions.length === 1 ? [descriptions[0] ?? ""] : descriptions.map((description) => `- ${description}`));
   }
 
   const bodyLines = trimNoteLines(rule.bodyLines ?? []);
   if (bodyLines.length > 0) {
-    return renderMarkdownSectionContent(bodyLines);
+    return renderMarkdownSectionContent(result, bodyLines);
   }
 
   return rule.bullets.length > 0
-    ? renderMarkdownSectionContent(rule.bullets.map((bullet) => `- ${bullet.text}`))
+    ? renderMarkdownSectionContent(result, rule.bullets.map((bullet) => `- ${bullet.text}`))
     : "";
 }
 
@@ -3874,13 +3877,13 @@ function businessRulePropertyValues(
   return Array.isArray(value) ? value : value ? [value] : [];
 }
 
-function renderErrorCodesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
+function renderErrorCodesSpec(result: ReturnType<typeof parseMarkVSpec>, markdownResult: ReturnType<typeof parseMarkVSpec> = result): string {
   const sectionProse = sectionProseForKind(result, "ErrorCodes");
   const showOverview = result.errorCodes.some((errorCode) => (errorCode.overview?.length ?? 0) > 0);
   const showNotes = result.errorCodes.some((errorCode) => (errorCode.notes?.length ?? 0) > 0);
   return `<section class="doc-section">
     <h2 id="${errorCodesAnchor()}">${label(result, "errorCodes")}</h2>
-    ${renderSectionOverview(sectionProse)}
+    ${renderSectionOverview(markdownResult, sectionProse)}
     ${renderLocalizedTable(result,
       [
         markerIdHeader(result),
@@ -3895,15 +3898,15 @@ function renderErrorCodesSpec(result: ReturnType<typeof parseMarkVSpec>): string
       result.errorCodes.map((errorCode) => [
         referenceForDetailId(result, errorCode.id),
         text(errorCode.name),
-        ...(showOverview ? [renderEntityOverview(errorCode.overview)] : []),
+        ...(showOverview ? [renderEntityOverview(markdownResult, errorCode.overview)] : []),
         renderErrorCodeProperty(result, errorCode, "business rule"),
         renderErrorCodeProperty(result, errorCode, "target"),
         renderErrorCodeProperty(result, errorCode, "message"),
         renderErrorCodeProperty(result, errorCode, "display"),
-        ...(showNotes ? [renderEntityNotes(errorCode.notes)] : [])
+        ...(showNotes ? [renderEntityNotes(markdownResult, errorCode.notes)] : [])
       ])
     )}
-    ${renderSectionNotes(sectionProse)}
+    ${renderSectionNotes(markdownResult, sectionProse)}
   </section>`;
 }
 
@@ -3934,14 +3937,14 @@ function renderHistorySpec(result: ReturnType<typeof parseMarkVSpec>): string {
   const rows = result.historyEntries.map((entry) => [
     text(entry.version),
     ...fields.map((field) => text(entry.fields[field.key] ?? "")),
-    renderMarkdownSectionContent(entry.bodyLines)
+    renderMarkdownSectionContent(result, entry.bodyLines)
   ]);
 
   return `<section class="doc-section history-section">
     <h2>${label(result, "history")}</h2>
-    ${renderEntityOverview(joinProseLineGroups(sectionProse.map((candidate) => candidate.overview)))}
+    ${renderEntityOverview(result, joinProseLineGroups(sectionProse.map((candidate) => candidate.overview)))}
     ${result.historyEntries.length > 0 ? renderLocalizedTable(result, headers, rows) : `<p class="spec-empty">${label(result, "none")}</p>`}
-    ${renderEntityNotes(joinProseLineGroups(sectionProse.map((candidate) => candidate.notes)))}
+    ${renderEntityNotes(result, joinProseLineGroups(sectionProse.map((candidate) => candidate.notes)))}
   </section>`;
 }
 
@@ -3949,12 +3952,12 @@ function sectionProseForKind(result: ReturnType<typeof parseMarkVSpec>, kind: st
   return result.sectionProse.filter((candidate) => candidate.kind === kind);
 }
 
-function renderSectionOverview(sectionProse: ReturnType<typeof parseMarkVSpec>["sectionProse"]): string {
-  return renderEntityOverview(joinProseLineGroups(sectionProse.map((candidate) => candidate.overview)));
+function renderSectionOverview(result: ReturnType<typeof parseMarkVSpec>, sectionProse: ReturnType<typeof parseMarkVSpec>["sectionProse"]): string {
+  return renderEntityOverview(result, joinProseLineGroups(sectionProse.map((candidate) => candidate.overview)));
 }
 
-function renderSectionNotes(sectionProse: ReturnType<typeof parseMarkVSpec>["sectionProse"]): string {
-  return renderEntityNotes(joinProseLineGroups(sectionProse.map((candidate) => candidate.notes)));
+function renderSectionNotes(result: ReturnType<typeof parseMarkVSpec>, sectionProse: ReturnType<typeof parseMarkVSpec>["sectionProse"]): string {
+  return renderEntityNotes(result, joinProseLineGroups(sectionProse.map((candidate) => candidate.notes)));
 }
 
 function renderNotesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
@@ -3966,7 +3969,7 @@ function renderNotesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
 }
 
 function renderNoteSection(result: ReturnType<typeof parseMarkVSpec>, note: ReturnType<typeof parseMarkVSpec>["notes"][number]): string {
-  const content = renderMarkdownSectionContent(trimNoteLines(note.lines));
+  const content = renderMarkdownSectionContent(result, trimNoteLines(note.lines));
   return `<section class="doc-section note-section">
     <h2>${text(note.title)} <span class="note-line">line ${note.line}</span></h2>
     ${content || `<p class="spec-empty">${label(result, "none")}</p>`}
@@ -4147,10 +4150,11 @@ function renderResponses(responses: ReturnType<typeof parseMarkVSpec>["actions"]
 
 function renderActionDetail(
   result: ReturnType<typeof parseMarkVSpec>,
-  action: ReturnType<typeof parseMarkVSpec>["actions"][number]
+  action: ReturnType<typeof parseMarkVSpec>["actions"][number],
+  markdownResult: ReturnType<typeof parseMarkVSpec> = result
 ): string {
   const rows = [
-    [label(result, "overview"), renderActionOverview(result, action)],
+    [label(result, "overview"), renderActionOverview(markdownResult, action)],
     [label(result, "trigger"), renderActionDetailTrigger(result, action.triggeredBy)],
     [label(result, "from"), renderFromStates(action.fromStates)],
     [label(result, "process"), renderProcessSteps(result, action, true)],
@@ -4161,7 +4165,7 @@ function renderActionDetail(
     [label(result, "stateChanges"), renderActionStateChangeList(result, action)],
     [label(result, "navigation"), renderActionNavigationList(result, action)],
     [label(result, "routeParameters"), renderRouteParams(result, action.routeParams, true)],
-    [label(result, "notes"), renderEntityNotes(action.notes)]
+    [label(result, "notes"), renderEntityNotes(markdownResult, action.notes)]
   ].filter(([, value]) => value);
 
   return `<article class="action-detail">
@@ -4660,10 +4664,10 @@ function renderDetailReferences(result: ReturnType<typeof parseMarkVSpec>, ids: 
 }
 
 function renderActionOverview(
-  _result: ReturnType<typeof parseMarkVSpec>,
+  result: ReturnType<typeof parseMarkVSpec>,
   action: ReturnType<typeof parseMarkVSpec>["actions"][number]
 ): string {
-  return renderEntityOverview(action.overview);
+  return renderEntityOverview(result, action.overview);
 }
 
 function renderFromStates(states: string[]): string {
@@ -4834,7 +4838,7 @@ function renderElementLabelSummary(properties: Record<string, string | true>): s
   return [labelValue, labelSource].filter(Boolean).join("<br>");
 }
 
-function renderElementDescription(element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
+function renderElementDescription(result: ReturnType<typeof parseMarkVSpec>, element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
   const description = stringProperty(element.properties["description"])
     || stringProperty(element.properties["purpose"])
     || firstEntityProseParagraph(element.overview)
@@ -4844,7 +4848,7 @@ function renderElementDescription(element: ReturnType<typeof parseMarkVSpec>["el
     || (element.type === "ActionMenu" && stringProperty(element.properties["open"]) ? `open: ${stringProperty(element.properties["open"])}` : "")
     || ((element.type === "Popover" || element.type === "Tooltip") && stringProperty(element.properties["anchor"]) ? `anchor: ${stringProperty(element.properties["anchor"])}` : "")
     || "";
-  const notes = renderEntityNotes(element.notes);
+  const notes = renderEntityNotes(result, element.notes);
   return [description ? text(description) : "", notes].filter(Boolean).join("<br>");
 }
 
