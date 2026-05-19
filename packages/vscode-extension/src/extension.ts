@@ -5361,7 +5361,7 @@ function renderParallelProcessGroupCard(
   detailedReferences: boolean
 ): string {
   return `<div class="process-card process-parallel-group-card" role="listitem" data-process-group="${escapeHtml(groupName)}">
-    <div class="process-card-header">${renderPreviewIcon("split")}<span class="process-card-title">${escapeHtml(label(result, "processParallelGroup"))}: ${text(groupName)}</span></div>
+    <div class="process-card-header"><span class="process-card-title-group">${renderPreviewIcon("split")}<span class="process-card-title">${escapeHtml(label(result, "processParallelGroup"))}: ${text(groupName)}</span></span></div>
     <div class="process-parallel-children">${steps.map((step) => renderProcessStepCard(result, step, detailedReferences, "child")).join("")}</div>
   </div>`;
 }
@@ -5381,7 +5381,7 @@ function renderProcessStepCard(
   ].filter(Boolean).join(" ");
   const resolveGroup = step.resolveGroup ? `<span class="process-card-meta">${escapeHtml(label(result, "processGroup"))} ${text(step.resolveGroup)}</span>` : "";
   return `<div class="${classes}" role="${variant === "root" ? "listitem" : "group"}"${step.resolveGroup ? ` data-resolve-group="${escapeHtml(step.resolveGroup)}"` : ""}>
-    <div class="process-card-header">${renderProcessStepIcon(step)}<span class="process-card-title">${renderProcessStepLabel(step)}</span>${resolveGroup}</div>
+    <div class="process-card-header"><span class="process-card-title-group">${renderProcessStepIcon(step)}<span class="process-card-title">${renderProcessStepLabel(step)}</span></span>${resolveGroup}</div>
     ${detailList}
   </div>`;
 }

@@ -144,7 +144,8 @@ ${baseWireframeViewportCss()}
 .process-flow{display:grid;gap:8px}
 .process-card{background:#fff;border:1px solid #d1d5db;border-radius:6px;box-sizing:border-box;padding:8px}
 .process-card-header{align-items:center;display:flex;flex-wrap:wrap;gap:6px;justify-content:space-between;margin-bottom:6px}
-.process-card-title{align-items:center;display:inline-flex;flex-wrap:wrap;font-weight:650;gap:5px;min-width:0}
+.process-card-title-group{align-items:center;display:inline-flex;flex:1 1 auto;flex-wrap:wrap;gap:5px;min-width:0}
+.process-card-title{font-weight:650;min-width:0}
 .process-card-meta{background:#f8fafc;border:1px solid #cbd5e1;border-radius:999px;color:#475569;font-size:11px;font-weight:600;line-height:1.2;padding:2px 7px}
 .process-flow-connector{align-items:center;color:#64748b;display:flex;font-size:13px;font-weight:700;justify-content:center;line-height:1;margin:-2px 0}
 .process-flow-connector::before{content:"↓"}
