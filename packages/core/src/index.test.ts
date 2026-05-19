@@ -511,6 +511,36 @@ Custom detail.
     [`section:${lineNumber(source, "## Notes")}:Notes`, [`notes:section:${lineNumber(source, "## Notes")}:Notes`]],
     [`section:${lineNumber(source, "## Custom Section")}:Custom-Section`, [`notes:section:${lineNumber(source, "## Custom Section")}:Custom-Section`]]
   ]);
+  assert.deepEqual(astResult.sectionResults.map((result) => [result.sectionId, result.payload.type]), [
+    ["section:States", "states"],
+    ["section:FormGroups", "formGroups"],
+    ["section:ModelSamples", "modelSamples"],
+    ["section:Validations", "validations"],
+    ["section:BusinessRules", "rules"],
+    ["section:HistoryFields", "historyFields"],
+    ["section:History", "historyEntries"],
+    [`section:${lineNumber(source, "## Notes")}:Notes`, "notes"],
+    [`section:${lineNumber(source, "## Custom Section")}:Custom-Section`, "notes"]
+  ]);
+  assert.deepEqual(astResult.sectionResults.map((result) => [result.metadata.sectionId, result.metadata.kind, result.metadata.renderKeys]), [
+    ["section:States", "States", ["states:list"]],
+    ["section:FormGroups", "FormGroups", ["form-groups:list"]],
+    ["section:ModelSamples", "ModelSamples", ["unsupported:model-samples"]],
+    ["section:Validations", "Validations", ["validations:list"]],
+    ["section:BusinessRules", "BusinessRules", ["rules:list"]],
+    ["section:HistoryFields", "HistoryFields", ["history-fields:list"]],
+    ["section:History", "History", ["history:list"]],
+    [`section:${lineNumber(source, "## Notes")}:Notes`, "Unknown", [`notes:section:${lineNumber(source, "## Notes")}:Notes`]],
+    [`section:${lineNumber(source, "## Custom Section")}:Custom-Section`, "Unknown", [`notes:section:${lineNumber(source, "## Custom Section")}:Custom-Section`]]
+  ]);
+  const statesSection = astResult.sectionResults.find((result) => result.payload.type === "states");
+  assert.equal(statesSection?.payload.type, "states");
+  assert.deepEqual(statesSection.payload.states.map((state) => state.name), ["idle", "invalid"]);
+  assert.deepEqual(statesSection.states.map((state) => state.name), ["idle", "invalid"]);
+  const formGroupsSection = astResult.sectionResults.find((result) => result.payload.type === "formGroups");
+  assert.equal(formGroupsSection?.payload.type, "formGroups");
+  assert.deepEqual(formGroupsSection.payload.formGroups.map((formGroup) => formGroup.id), ["F-ProfileForm"]);
+  assert.deepEqual(formGroupsSection.formGroups.map((formGroup) => formGroup.id), ["F-ProfileForm"]);
   assert.deepEqual(astResult.sectionResults.flatMap((result) => result.dependencies).map((dependency) => [dependency.source, dependency.target, dependency.kind]), [
     [{ type: "section", id: "section:States" }, { type: "render", id: "states:list" }, "renders"],
     [{ type: "section", id: "section:FormGroups" }, { type: "render", id: "form-groups:list" }, "renders"],

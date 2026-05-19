@@ -47,9 +47,34 @@ export interface SemanticDependency {
   kind: "references" | "renders" | "validates" | "derives";
 }
 
-export interface SectionSemanticResult {
+export interface SectionSemanticMetadata {
   sectionId: string;
   kind: SectionKind;
+  sectionProse: MarkVSpecSectionProse[];
+  diagnostics: MarkVSpecDiagnostic[];
+  dependencies: SemanticDependency[];
+  renderKeys: string[];
+}
+
+export type SectionSemanticPayload =
+  | { type: "states"; states: MarkVSpecState[] }
+  | { type: "modelSamples"; modelSamples: MarkVSpecModelSampleSet[]; modelSampleGroups: MarkVSpecModelSampleGroup[] }
+  | { type: "viewContexts"; viewContexts: MarkVSpecViewContextDefinition[] }
+  | { type: "viewContextSamples"; viewContextSamples: MarkVSpecViewContextSample[] }
+  | { type: "previewScenarios"; previewScenarios: MarkVSpecPreviewScenario[] }
+  | { type: "formGroups"; formGroups: MarkVSpecFormGroup[] }
+  | { type: "events"; events: MarkVSpecEventDispatch[] }
+  | { type: "validations"; validations: MarkVSpecValidationRule[] }
+  | { type: "rules"; rules: MarkVSpecRule[] }
+  | { type: "errorCodes"; errorCodes: MarkVSpecErrorCode[] }
+  | { type: "historyFields"; historyFields: MarkVSpecHistoryFieldSchema[] }
+  | { type: "historyEntries"; historyEntries: MarkVSpecHistoryEntry[] }
+  | { type: "notes"; notes: MarkVSpecNoteSection[] }
+  | { type: "empty" };
+
+export interface SectionSemanticResult extends SectionSemanticMetadata {
+  metadata: SectionSemanticMetadata;
+  payload: SectionSemanticPayload;
   states: MarkVSpecState[];
   modelSamples: MarkVSpecModelSampleSet[];
   modelSampleGroups: MarkVSpecModelSampleGroup[];
@@ -64,10 +89,6 @@ export interface SectionSemanticResult {
   historyFields: MarkVSpecHistoryFieldSchema[];
   historyEntries: MarkVSpecHistoryEntry[];
   notes: MarkVSpecNoteSection[];
-  sectionProse: MarkVSpecSectionProse[];
-  diagnostics: MarkVSpecDiagnostic[];
-  dependencies: SemanticDependency[];
-  renderKeys: string[];
 }
 
 export interface SmallSectionSemanticResult {
@@ -155,23 +176,24 @@ export function parseSmallSectionSemantics(document: MarkdownDocument): SmallSec
   const sectionResults = sections
     .filter((section) => isSmallSemanticSection(section.kind))
     .map((section) => parseSmallSection(document, sections, section));
+  const payloads = sectionResults.map((result) => result.payload);
 
   return {
-    states: sectionResults.flatMap((result) => result.states),
-    modelSamples: sectionResults.flatMap((result) => result.modelSamples),
-    modelSampleGroups: sectionResults.flatMap((result) => result.modelSampleGroups),
-    viewContexts: sectionResults.flatMap((result) => result.viewContexts),
-    viewContextSamples: sectionResults.flatMap((result) => result.viewContextSamples),
-    previewScenarios: sectionResults.flatMap((result) => result.previewScenarios),
-    formGroups: sectionResults.flatMap((result) => result.formGroups),
-    events: sectionResults.flatMap((result) => result.events),
-    validations: sectionResults.flatMap((result) => result.validations),
-    rules: sectionResults.flatMap((result) => result.rules),
-    errorCodes: sectionResults.flatMap((result) => result.errorCodes),
-    historyFields: sectionResults.flatMap((result) => result.historyFields),
-    historyEntries: sectionResults.flatMap((result) => result.historyEntries),
+    states: payloads.flatMap((payload) => payload.type === "states" ? payload.states : []),
+    modelSamples: payloads.flatMap((payload) => payload.type === "modelSamples" ? payload.modelSamples : []),
+    modelSampleGroups: payloads.flatMap((payload) => payload.type === "modelSamples" ? payload.modelSampleGroups : []),
+    viewContexts: payloads.flatMap((payload) => payload.type === "viewContexts" ? payload.viewContexts : []),
+    viewContextSamples: payloads.flatMap((payload) => payload.type === "viewContextSamples" ? payload.viewContextSamples : []),
+    previewScenarios: payloads.flatMap((payload) => payload.type === "previewScenarios" ? payload.previewScenarios : []),
+    formGroups: payloads.flatMap((payload) => payload.type === "formGroups" ? payload.formGroups : []),
+    events: payloads.flatMap((payload) => payload.type === "events" ? payload.events : []),
+    validations: payloads.flatMap((payload) => payload.type === "validations" ? payload.validations : []),
+    rules: payloads.flatMap((payload) => payload.type === "rules" ? payload.rules : []),
+    errorCodes: payloads.flatMap((payload) => payload.type === "errorCodes" ? payload.errorCodes : []),
+    historyFields: payloads.flatMap((payload) => payload.type === "historyFields" ? payload.historyFields : []),
+    historyEntries: payloads.flatMap((payload) => payload.type === "historyEntries" ? payload.historyEntries : []),
     sectionProse: sectionResults.flatMap((result) => result.sectionProse),
-    notes: sectionResults.flatMap((result) => result.notes),
+    notes: payloads.flatMap((payload) => payload.type === "notes" ? payload.notes : []),
     diagnostics: [...orderDiagnostics, ...sectionResults.flatMap((result) => result.diagnostics)],
     sectionResults
   };
@@ -311,37 +333,37 @@ function isSmallSemanticSection(kind: SectionKind): boolean {
 function parseSmallSection(document: MarkdownDocument, sections: SectionAst[], section: SectionAst): SectionSemanticResult {
   switch (section.kind) {
     case "States":
-      return resultFor(section, parseStatesSection(section), ["states:list"]);
+      return resultFor(section, "states", parseStatesSection(section), ["states:list"]);
     case "FormGroups":
-      return resultFor(section, parseFormGroupsSection(section), ["form-groups:list"]);
+      return resultFor(section, "formGroups", parseFormGroupsSection(section), ["form-groups:list"]);
     case "Events":
-      return resultFor(section, parseEventsSection(section), ["events:list"]);
+      return resultFor(section, "events", parseEventsSection(section), ["events:list"]);
     case "ModelSamples":
-      return resultFor(section, unsupportedModelSamplesSection(section), ["unsupported:model-samples"]);
+      return resultFor(section, "modelSamples", unsupportedModelSamplesSection(section), ["unsupported:model-samples"]);
     case "ViewContext":
-      return resultFor(section, parseViewContextSection(section), ["view-context"]);
+      return resultFor(section, "viewContexts", parseViewContextSection(section), ["view-context"]);
     case "ViewContextSamples":
-      return resultFor(section, parseViewContextSamplesSection(section), ["view-context-samples"]);
+      return resultFor(section, "viewContextSamples", parseViewContextSamplesSection(section), ["view-context-samples"]);
     case "PreviewScenarios":
-      return resultFor(section, parsePreviewScenariosSection(section), ["preview-scenarios"]);
+      return resultFor(section, "previewScenarios", parsePreviewScenariosSection(section), ["preview-scenarios"]);
     case "Validations":
-      return resultFor(section, parseValidationsSection(section), ["validations:list"]);
+      return resultFor(section, "validations", parseValidationsSection(section), ["validations:list"]);
     case "FieldValidations":
-      return resultFor(section, parseValidationsSection(section), ["validations:list"]);
+      return resultFor(section, "validations", parseValidationsSection(section), ["validations:list"]);
     case "CrossFieldValidations":
-      return resultFor(section, parseValidationsSection(section), ["validations:list"]);
+      return resultFor(section, "validations", parseValidationsSection(section), ["validations:list"]);
     case "BusinessRules":
-      return resultFor(section, parseRulesSection(section), ["rules:list"]);
+      return resultFor(section, "rules", parseRulesSection(section), ["rules:list"]);
     case "ErrorCodes":
-      return resultFor(section, parseErrorCodesSection(section), ["error-codes:list"]);
+      return resultFor(section, "errorCodes", parseErrorCodesSection(section), ["error-codes:list"]);
     case "HistoryFields":
-      return resultFor(section, parseHistoryFieldsSection(document, sections, section), ["history-fields:list"]);
+      return resultFor(section, "historyFields", parseHistoryFieldsSection(document, sections, section), ["history-fields:list"]);
     case "History":
-      return resultFor(section, parseHistorySection(document, sections, section), ["history:list"]);
+      return resultFor(section, "historyEntries", parseHistorySection(document, sections, section), ["history:list"]);
     case "Unknown":
-      return resultFor(section, { notes: [parseNoteSection(document, sections, section)] }, [`notes:${section.id}`]);
+      return resultFor(section, "notes", { notes: [parseNoteSection(document, sections, section)] }, [`notes:${section.id}`]);
     default:
-      return resultFor(section, {}, []);
+      return resultFor(section, "empty", {}, []);
   }
 }
 
@@ -1157,6 +1179,7 @@ function parseActionsSection(section: SectionAst): ActionSectionSemanticResult {
 
 function resultFor(
   section: SectionAst,
+  payloadType: SectionSemanticPayload["type"],
   values: Partial<Pick<SectionSemanticResult, "states" | "modelSamples" | "modelSampleGroups" | "viewContexts" | "viewContextSamples" | "previewScenarios" | "formGroups" | "events" | "validations" | "rules" | "errorCodes" | "historyFields" | "historyEntries" | "notes" | "sectionProse" | "diagnostics" | "dependencies">>,
   renderKeys: string[]
 ): SectionSemanticResult {
@@ -1164,23 +1187,11 @@ function resultFor(
     ...(values.diagnostics ?? []),
     ...structuredSectionOwnershipDiagnostics(section)
   ];
-  return {
+  const payload = sectionPayload(payloadType, values);
+  const compatibility = compatibilityValuesForPayload(payload);
+  const metadata: SectionSemanticMetadata = {
     sectionId: section.id,
     kind: section.kind,
-    states: values.states ?? [],
-    modelSamples: values.modelSamples ?? [],
-    modelSampleGroups: values.modelSampleGroups ?? [],
-    viewContexts: values.viewContexts ?? [],
-    viewContextSamples: values.viewContextSamples ?? [],
-    previewScenarios: values.previewScenarios ?? [],
-    formGroups: values.formGroups ?? [],
-    events: values.events ?? [],
-    validations: values.validations ?? [],
-    rules: values.rules ?? [],
-    errorCodes: values.errorCodes ?? [],
-    historyFields: values.historyFields ?? [],
-    historyEntries: values.historyEntries ?? [],
-    notes: values.notes ?? [],
     sectionProse: values.sectionProse ?? [],
     diagnostics,
     dependencies: renderKeys.map((key): SemanticDependency => ({
@@ -1191,6 +1202,113 @@ function resultFor(
     })).concat(values.dependencies ?? []),
     renderKeys
   };
+  return {
+    ...metadata,
+    metadata,
+    payload,
+    states: compatibility.states,
+    modelSamples: compatibility.modelSamples,
+    modelSampleGroups: compatibility.modelSampleGroups,
+    viewContexts: compatibility.viewContexts,
+    viewContextSamples: compatibility.viewContextSamples,
+    previewScenarios: compatibility.previewScenarios,
+    formGroups: compatibility.formGroups,
+    events: compatibility.events,
+    validations: compatibility.validations,
+    rules: compatibility.rules,
+    errorCodes: compatibility.errorCodes,
+    historyFields: compatibility.historyFields,
+    historyEntries: compatibility.historyEntries,
+    notes: compatibility.notes
+  };
+}
+
+function sectionPayload(
+  type: SectionSemanticPayload["type"],
+  values: Partial<Pick<SectionSemanticResult, "states" | "modelSamples" | "modelSampleGroups" | "viewContexts" | "viewContextSamples" | "previewScenarios" | "formGroups" | "events" | "validations" | "rules" | "errorCodes" | "historyFields" | "historyEntries" | "notes">>
+): SectionSemanticPayload {
+  switch (type) {
+    case "states":
+      return { type, states: values.states ?? [] };
+    case "modelSamples":
+      return { type, modelSamples: values.modelSamples ?? [], modelSampleGroups: values.modelSampleGroups ?? [] };
+    case "viewContexts":
+      return { type, viewContexts: values.viewContexts ?? [] };
+    case "viewContextSamples":
+      return { type, viewContextSamples: values.viewContextSamples ?? [] };
+    case "previewScenarios":
+      return { type, previewScenarios: values.previewScenarios ?? [] };
+    case "formGroups":
+      return { type, formGroups: values.formGroups ?? [] };
+    case "events":
+      return { type, events: values.events ?? [] };
+    case "validations":
+      return { type, validations: values.validations ?? [] };
+    case "rules":
+      return { type, rules: values.rules ?? [] };
+    case "errorCodes":
+      return { type, errorCodes: values.errorCodes ?? [] };
+    case "historyFields":
+      return { type, historyFields: values.historyFields ?? [] };
+    case "historyEntries":
+      return { type, historyEntries: values.historyEntries ?? [] };
+    case "notes":
+      return { type, notes: values.notes ?? [] };
+    case "empty":
+      return { type };
+  }
+}
+
+function compatibilityValuesForPayload(payload: SectionSemanticPayload): Omit<
+  Pick<SectionSemanticResult, "states" | "modelSamples" | "modelSampleGroups" | "viewContexts" | "viewContextSamples" | "previewScenarios" | "formGroups" | "events" | "validations" | "rules" | "errorCodes" | "historyFields" | "historyEntries" | "notes">,
+  never
+> {
+  const empty = {
+    states: [],
+    modelSamples: [],
+    modelSampleGroups: [],
+    viewContexts: [],
+    viewContextSamples: [],
+    previewScenarios: [],
+    formGroups: [],
+    events: [],
+    validations: [],
+    rules: [],
+    errorCodes: [],
+    historyFields: [],
+    historyEntries: [],
+    notes: []
+  };
+  switch (payload.type) {
+    case "states":
+      return { ...empty, states: payload.states };
+    case "modelSamples":
+      return { ...empty, modelSamples: payload.modelSamples, modelSampleGroups: payload.modelSampleGroups };
+    case "viewContexts":
+      return { ...empty, viewContexts: payload.viewContexts };
+    case "viewContextSamples":
+      return { ...empty, viewContextSamples: payload.viewContextSamples };
+    case "previewScenarios":
+      return { ...empty, previewScenarios: payload.previewScenarios };
+    case "formGroups":
+      return { ...empty, formGroups: payload.formGroups };
+    case "events":
+      return { ...empty, events: payload.events };
+    case "validations":
+      return { ...empty, validations: payload.validations };
+    case "rules":
+      return { ...empty, rules: payload.rules };
+    case "errorCodes":
+      return { ...empty, errorCodes: payload.errorCodes };
+    case "historyFields":
+      return { ...empty, historyFields: payload.historyFields };
+    case "historyEntries":
+      return { ...empty, historyEntries: payload.historyEntries };
+    case "notes":
+      return { ...empty, notes: payload.notes };
+    case "empty":
+      return empty;
+  }
 }
 
 function parseStatesSection(section: SectionAst): Pick<SectionSemanticResult, "states" | "sectionProse" | "diagnostics"> {
