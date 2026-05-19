@@ -47,6 +47,7 @@ export type MessageKey =
   | "constraints"
   | "date"
   | "default"
+  | "defaultValue"
   | "definitionContent"
   | "definitionDefinitions"
   | "diagnostics"
@@ -237,6 +238,9 @@ export type MessageKey =
   | "valueModel"
   | "version"
   | "view"
+  | "viewContext"
+  | "viewContexts"
+  | "viewContextSamples"
   | "viewport"
   | "when"
   | "visibleWhen"
@@ -285,6 +289,7 @@ const en: Record<MessageKey, string> = {
   constraints: "Constraints",
   date: "Date",
   default: "Default",
+  defaultValue: "Default Value",
   definitionContent: "Content",
   definitionDefinitions: "Definitions",
   diagnostics: "Diagnostics",
@@ -475,6 +480,9 @@ const en: Record<MessageKey, string> = {
   valueModel: "Value / Source",
   version: "Version",
   view: "View",
+  viewContext: "View Context",
+  viewContexts: "View Context",
+  viewContextSamples: "View Context Samples",
   viewport: "Viewport",
   when: "When",
   visibleWhen: "Condition",
@@ -524,6 +532,7 @@ const ja: Record<MessageKey, string> = {
   constraints: "制約",
   date: "日付",
   default: "デフォルト",
+  defaultValue: "デフォルト値",
   definitionContent: "差し込み内容",
   definitionDefinitions: "定義",
   diagnostics: "診断",
@@ -714,6 +723,9 @@ const ja: Record<MessageKey, string> = {
   valueModel: "値 / 参照元",
   version: "バージョン",
   view: "表示",
+  viewContext: "View Context",
+  viewContexts: "View Context",
+  viewContextSamples: "View Context Samples",
   viewport: "ビューポート",
   when: "条件",
   visibleWhen: "条件",

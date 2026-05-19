@@ -150,6 +150,8 @@ export function renderStaticDesignDocumentHtml(result: MarkVSpecParseResult, opt
     renderStaticStateFlowSection(result, messages),
     renderStaticActionTransitionsSection(result, messages),
     renderStaticActionDetailsSection(result, messages),
+    renderStaticViewContextsSection(result, messages),
+    renderStaticViewContextSamplesSection(result, messages),
     renderStateViewsSection(result, messages)
   ]);
 }
@@ -207,6 +209,103 @@ function renderStaticEntityOverview(result: MarkVSpecParseResult, lines: readonl
 
 function renderStaticEntityNotes(result: MarkVSpecParseResult, lines: readonly string[]): string {
   return lines.length > 0 ? `<div class="entity-notes">${renderMarkdownLines([...lines], result)}</div>` : "";
+}
+
+function renderStaticViewContextsSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
+  const sectionProse = result.sectionProse.filter((candidate) => candidate.kind === "ViewContext");
+  if (result.viewContexts.length === 0 && sectionProse.length === 0) {
+    return "";
+  }
+  const showOverview = result.viewContexts.some((context) => (context.overview?.length ?? 0) > 0);
+  const showNotes = result.viewContexts.some((context) => (context.notes?.length ?? 0) > 0);
+  const table = result.viewContexts.length > 0
+    ? renderTable(
+      [
+        messages.name,
+        ...(showOverview ? [messages.overview] : []),
+        messages.type,
+        messages.value,
+        messages.defaultValue,
+        messages.properties,
+        ...(showNotes ? [messages.notes] : [])
+      ],
+      result.viewContexts.map((context) => [
+        renderStaticCode(context.name),
+        ...(showOverview ? [renderStaticEntityOverview(result, context.overview ?? [])] : []),
+        context.type ? renderStaticCode(context.type) : "",
+        renderStaticViewContextValues(context.values, messages.default),
+        context.defaultValue ? renderStaticCode(context.defaultValue) : "",
+        renderStaticViewContextProperties(context.properties),
+        ...(showNotes ? [renderStaticEntityNotes(result, context.notes ?? [])] : [])
+      ]),
+      messages.none
+    )
+    : `<p class="spec-empty">${escapeHtml(messages.none)}</p>`;
+  return `<section class="doc-section view-context-section">
+  <h2>${escapeHtml(messages.viewContexts)}</h2>
+  ${renderStaticEntityOverview(result, sectionProse.flatMap((candidate) => candidate.overview))}
+  ${table}
+  ${renderStaticEntityNotes(result, sectionProse.flatMap((candidate) => candidate.notes))}
+</section>`;
+}
+
+function renderStaticViewContextSamplesSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
+  const sectionProse = result.sectionProse.filter((candidate) => candidate.kind === "ViewContextSamples");
+  if (result.viewContextSamples.length === 0 && sectionProse.length === 0) {
+    return "";
+  }
+  const showOverview = result.viewContextSamples.some((sample) => (sample.overview?.length ?? 0) > 0);
+  const showNotes = result.viewContextSamples.some((sample) => (sample.notes?.length ?? 0) > 0);
+  const table = result.viewContextSamples.length > 0
+    ? renderTable(
+      [
+        messages.sample,
+        ...(showOverview ? [messages.overview] : []),
+        messages.value,
+        ...(showNotes ? [messages.notes] : [])
+      ],
+      result.viewContextSamples.map((sample) => [
+        renderStaticCode(sample.name),
+        ...(showOverview ? [renderStaticEntityOverview(result, sample.overview ?? [])] : []),
+        renderStaticViewContextSampleValues(sample.values),
+        ...(showNotes ? [renderStaticEntityNotes(result, sample.notes ?? [])] : [])
+      ]),
+      messages.none
+    )
+    : `<p class="spec-empty">${escapeHtml(messages.none)}</p>`;
+  return `<section class="doc-section view-context-samples-section">
+  <h2>${escapeHtml(messages.viewContextSamples)}</h2>
+  ${renderStaticEntityOverview(result, sectionProse.flatMap((candidate) => candidate.overview))}
+  ${table}
+  ${renderStaticEntityNotes(result, sectionProse.flatMap((candidate) => candidate.notes))}
+</section>`;
+}
+
+function renderStaticViewContextValues(values: MarkVSpecParseResult["viewContexts"][number]["values"], defaultLabel: string): string {
+  if (values.length === 0) {
+    return "";
+  }
+  return `<ul class="spec-list">${values.map((value) => `<li>${renderStaticCode(value.value)}${value.isDefault ? ` <span class="state-badge">${escapeHtml(defaultLabel)}</span>` : ""}</li>`).join("")}</ul>`;
+}
+
+function renderStaticViewContextProperties(properties: Record<string, string | true>): string {
+  const entries = Object.entries(properties).filter(([key]) => key !== "type");
+  if (entries.length === 0) {
+    return "";
+  }
+  return `<ul class="spec-list">${entries.map(([key, value]) => `<li>${renderStaticCode(key)}${value === true ? "" : `: ${escapeHtml(value)}`}</li>`).join("")}</ul>`;
+}
+
+function renderStaticViewContextSampleValues(values: Record<string, string>): string {
+  const entries = Object.entries(values);
+  if (entries.length === 0) {
+    return "";
+  }
+  return `<ul class="spec-list">${entries.map(([name, value]) => `<li>${renderStaticCode(`\${view.${name}}`)}: ${escapeHtml(value)}</li>`).join("")}</ul>`;
+}
+
+function renderStaticCode(value: string): string {
+  return `<code>${escapeHtml(value)}</code>`;
 }
 
 function renderStaticStateFlowSection(result: MarkVSpecParseResult, messages: RendererMessages): string {

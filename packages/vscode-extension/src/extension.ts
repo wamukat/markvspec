@@ -3660,6 +3660,8 @@ export function renderDesignDocumentHtml(result: ReturnType<typeof parseMarkVSpe
     renderInlineTableOfContents(result),
     numberedSection((number) => withSectionNumber(renderStatesSpec(detailsResult), number)),
     numberedSection((number) => withSectionNumber(renderStateFlowSpec(detailsResult), number)),
+    numberedSection((number) => withSectionNumber(renderViewContextsSpec(detailsResult), number)),
+    numberedSection((number) => withSectionNumber(renderViewContextSamplesSpec(detailsResult), number)),
     numberedSection((number) => withSectionNumber(renderViewportStateScreensSpec(scope, number), number)),
     numberedSection((number) => withSectionNumber(renderActionDetailsSpec(detailsResult), number)),
     numberedSection((number) => withSectionNumber(renderFormGroupsSpec(detailsResult), number)),
@@ -3918,6 +3920,111 @@ function renderFormGroupsSpec(result: ReturnType<typeof parseMarkVSpec>): string
     ${content || `<p class="spec-empty">${label(result, "none")}</p>`}
     ${renderSectionNotes(sectionProse)}
   </section>`;
+}
+
+function renderViewContextsSpec(result: ReturnType<typeof parseMarkVSpec>): string {
+  const content = renderViewContextsSpecFragment(result);
+  const sectionProse = sectionProseForKind(result, "ViewContext");
+  if (!content && sectionProse.length === 0) {
+    return "";
+  }
+
+  return `<section class="doc-section view-context-section">
+    <h2>${label(result, "viewContexts")}</h2>
+    ${renderSectionOverview(sectionProse)}
+    ${content || `<p class="spec-empty">${label(result, "none")}</p>`}
+    ${renderSectionNotes(sectionProse)}
+  </section>`;
+}
+
+function renderViewContextsSpecFragment(result: ReturnType<typeof parseMarkVSpec>): string {
+  if (result.viewContexts.length === 0) {
+    return "";
+  }
+  const showOverview = result.viewContexts.some((context) => (context.overview?.length ?? 0) > 0);
+  const showNotes = result.viewContexts.some((context) => (context.notes?.length ?? 0) > 0);
+
+  return renderLocalizedTable(result,
+    [
+      label(result, "name"),
+      ...(showOverview ? [label(result, "overview")] : []),
+      label(result, "type"),
+      label(result, "value"),
+      label(result, "defaultValue"),
+      label(result, "properties"),
+      ...(showNotes ? [label(result, "notes")] : [])
+    ],
+    result.viewContexts.map((context) => [
+      code(context.name),
+      ...(showOverview ? [renderEntityOverview(context.overview)] : []),
+      context.type ? code(context.type) : "",
+      renderViewContextValues(context.values, label(result, "default")),
+      context.defaultValue ? code(context.defaultValue) : "",
+      renderViewContextProperties(context.properties),
+      ...(showNotes ? [renderEntityNotes(context.notes)] : [])
+    ])
+  );
+}
+
+function renderViewContextSamplesSpec(result: ReturnType<typeof parseMarkVSpec>): string {
+  const content = renderViewContextSamplesSpecFragment(result);
+  const sectionProse = sectionProseForKind(result, "ViewContextSamples");
+  if (!content && sectionProse.length === 0) {
+    return "";
+  }
+
+  return `<section class="doc-section view-context-samples-section">
+    <h2>${label(result, "viewContextSamples")}</h2>
+    ${renderSectionOverview(sectionProse)}
+    ${content || `<p class="spec-empty">${label(result, "none")}</p>`}
+    ${renderSectionNotes(sectionProse)}
+  </section>`;
+}
+
+function renderViewContextSamplesSpecFragment(result: ReturnType<typeof parseMarkVSpec>): string {
+  if (result.viewContextSamples.length === 0) {
+    return "";
+  }
+  const showOverview = result.viewContextSamples.some((sample) => (sample.overview?.length ?? 0) > 0);
+  const showNotes = result.viewContextSamples.some((sample) => (sample.notes?.length ?? 0) > 0);
+
+  return renderLocalizedTable(result,
+    [
+      label(result, "sample"),
+      ...(showOverview ? [label(result, "overview")] : []),
+      label(result, "value"),
+      ...(showNotes ? [label(result, "notes")] : [])
+    ],
+    result.viewContextSamples.map((sample) => [
+      code(sample.name),
+      ...(showOverview ? [renderEntityOverview(sample.overview)] : []),
+      renderViewContextSampleValues(sample.values),
+      ...(showNotes ? [renderEntityNotes(sample.notes)] : [])
+    ])
+  );
+}
+
+function renderViewContextValues(values: ReturnType<typeof parseMarkVSpec>["viewContexts"][number]["values"], defaultLabel: string): string {
+  if (values.length === 0) {
+    return "";
+  }
+  return `<ul class="spec-list">${values.map((value) => `<li>${code(value.value)}${value.isDefault ? ` <span class="state-badge">${text(defaultLabel)}</span>` : ""}</li>`).join("")}</ul>`;
+}
+
+function renderViewContextProperties(properties: Record<string, string | true>): string {
+  const entries = Object.entries(properties).filter(([key]) => key !== "type");
+  if (entries.length === 0) {
+    return "";
+  }
+  return `<ul class="spec-list">${entries.map(([key, value]) => `<li>${code(key)}${value === true ? "" : `: ${text(value)}`}</li>`).join("")}</ul>`;
+}
+
+function renderViewContextSampleValues(values: Record<string, string>): string {
+  const entries = Object.entries(values);
+  if (entries.length === 0) {
+    return "";
+  }
+  return `<ul class="spec-list">${entries.map(([name, value]) => `<li>${code(`\${view.${name}}`)}: ${text(value)}</li>`).join("")}</ul>`;
 }
 
 function renderElementSpecFragment(

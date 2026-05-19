@@ -2539,6 +2539,8 @@ Use `## View Context` for UI-local display context that changes the view but is
 not a screen state. Examples include the selected tab, current display mode, or
 whether a help panel is open. Keep displayed data in Element samples or Preview
 Scenario samples; use View Context for temporary UI context.
+Section Lead / Notes and each View Context entry's Lead / Notes are rendered in
+generated preview/export documents before State Views.
 
 ```markdown
 ## View Context
@@ -2582,6 +2584,9 @@ Actions update View Context with `view:` effects inside a process case:
 
 Use `## View Context Samples` to name reusable view-context value sets for
 preview/export.
+Section Lead / Notes and each sample's Lead / Notes are rendered in generated
+preview/export documents immediately after the View Context section and before
+State Views.
 
 ```markdown
 ## View Context Samples

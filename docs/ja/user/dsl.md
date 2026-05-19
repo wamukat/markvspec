@@ -2213,6 +2213,8 @@ metadata の後に書いた本文は自由 Markdown として生成設計書に�
 `## View Context` は、画面 state ではないが表示を変える UI ローカルな文脈を定義します。
 例として、選択中のタブ、表示モード、ヘルプパネルの開閉があります。表示データは
 Element samples または Preview Scenario samples に置き、View Context は一時的な UI 文脈に限定します。
+Section Lead / Notes と各 View Context entry の Lead / Notes は、generated preview/export document で
+State Views より前に表示されます。
 
 ```markdown
 ## View Context
@@ -2254,6 +2256,8 @@ Action から View Context を更新するときは、process case の中に `vi
 ## View Context Samples セクション
 
 `## View Context Samples` は、preview/export で利用する View Context の値セットに名前を付けます。
+Section Lead / Notes と各 sample の Lead / Notes は、generated preview/export document で
+View Context section の直後、State Views より前に表示されます。
 
 ```markdown
 ## View Context Samples

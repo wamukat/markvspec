@@ -51,10 +51,8 @@ export. They do not claim full static project-site parity.
 | `notes.title`, `lines` | `rendered-preview`, `follow-up` | Notes section is visible in VS Code preview. Static export parity is not complete. |
 | `sectionProse.overview`, `sectionProse.notes` | `rendered-preview`, `follow-up` | Section lead/notes ownership for structured sections. Static export parity is intentionally recorded as a gap. |
 | `sectionProse.renderKeys` | `internal-metadata` | Routing metadata used by preview fragments. |
-| `viewContexts.name`, `type`, `values`, `defaultValue`, `properties` | `rendered-preview`, `rendered-static-export` | Consumed by state-view evaluation and conditional rendering. |
-| `viewContexts.overview`, `viewContexts.notes` | `follow-up` | View Context prose is parsed but not yet surfaced in generated documents. |
-| `viewContextSamples.name`, `values` | `rendered-preview`, `rendered-static-export` | Consumed by scenario/state-view evaluation. |
-| `viewContextSamples.overview`, `viewContextSamples.notes` | `follow-up` | View Context Sample prose is parsed but not yet surfaced in generated documents. |
+| `viewContexts.name`, `type`, `values`, `defaultValue`, `properties`, `overview`, `notes` | `rendered-preview`, `rendered-static-export` | View Context definition section and state-view evaluation. |
+| `viewContextSamples.name`, `values`, `overview`, `notes` | `rendered-preview`, `rendered-static-export` | View Context Samples section and scenario/state-view evaluation. |
 | `previewScenarios.name`, `state`, `model`, `view`, `before`, `route`, `samples`, `cases`, `properties` | `rendered-preview`, `rendered-static-export` | State-view variants and sample tables. |
 | `previewScenarios.overview`, `previewScenarios.notes` | `follow-up` | Known gap tracked by #1231. |
 | `modelSampleGroups`, `modelSamples` | `unsupported/deprecated` | Legacy Model Samples are intentionally warned and omitted from canonical output. |
@@ -76,8 +74,8 @@ export. They do not claim full static project-site parity.
 ## Follow-Up Log
 
 - #1231: Preview Scenario entity lead/notes must be surfaced consistently.
-- View Context / View Context Samples prose is parsed but not surfaced as a
-  generated-document section yet.
+- #1233: View Context / View Context Samples prose and values are surfaced as
+  generated-document sections.
 - Project document lead/notes are parsed but not surfaced by project preview or
   document-list export yet.
 - Static export omits several structured-section lead/entity prose fields that
