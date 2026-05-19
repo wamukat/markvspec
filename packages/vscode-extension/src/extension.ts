@@ -115,11 +115,36 @@ export {
 } from "./preview-shell.js";
 
 type MarkerCategory = "layout" | "element" | "action";
+type PreviewHtmlTarget = "webview" | "standalone";
 
 interface ScreenDocumentResult {
   result: ReturnType<typeof parseMarkVSpec>;
   focus?: FocusScope;
   messages?: RendererMessages;
+}
+
+interface ScreenPreviewHtmlOptions {
+  target: PreviewHtmlTarget;
+  visibleMarkers: { layout: boolean; element: boolean; action: boolean };
+  sourceLabel?: string;
+  autoUpdate: boolean;
+  interactiveControls: boolean;
+  showRepeatedContent: boolean;
+  nonce?: string;
+  cspSource?: string;
+  mermaidScriptUri?: string;
+  mermaidScript?: string;
+}
+
+interface ProjectPreviewHtmlOptions {
+  target: PreviewHtmlTarget;
+  sourceLabel?: string;
+  autoUpdate: boolean;
+  interactiveControls: boolean;
+  nonce?: string;
+  cspSource?: string;
+  mermaidScriptUri?: string;
+  mermaidScript?: string;
 }
 
 type ParsedElement = ReturnType<typeof parseMarkVSpec>["elements"][number];
@@ -2043,46 +2068,68 @@ export function renderPreviewHtml(
   interactiveControls = true,
   showRepeatedContent = false
 ): string {
+  return renderScreenPreviewHtml(screen, {
+    target: "webview",
+    visibleMarkers,
+    sourceLabel,
+    autoUpdate,
+    interactiveControls,
+    showRepeatedContent,
+    nonce: createNonce(),
+    cspSource: webview.cspSource,
+    mermaidScriptUri: extensionUri ? String(mermaidScriptWebviewUri(webview, extensionUri)) : undefined
+  });
+}
+
+function renderScreenPreviewHtml(
+  screen: ReturnType<typeof parseMarkVSpec> | ScreenDocumentResult,
+  options: ScreenPreviewHtmlOptions
+): string {
   const { result, focus } = normalizeScreenDocumentResult(screen);
   const messages = "messages" in screen && screen.messages ? screen.messages : rendererMessagesForResult(result);
   rendererMessagesByResult.set(result, messages);
-  const nonce = createNonce();
-  const mermaidScriptUri = extensionUri ? mermaidScriptWebviewUri(webview, extensionUri) : undefined;
   const document = renderDesignDocumentHtml(result, "", { focus, messages });
   const title = result.screen.title ?? result.screen.id ?? "Untitled MarkVSpec Screen";
   const resolvedLocale = resolveLocale(result.screen.locale);
   const clientMessages = previewClientMessages(messages);
-  const cspSource = webview.cspSource;
+  const nonce = options.nonce ?? createNonce();
+  const scriptNonce = options.target === "webview" ? ` nonce="${nonce}"` : "";
+  const cspMeta = options.target === "webview" && options.cspSource
+    ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${options.cspSource}; style-src ${options.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}' ${options.cspSource};">`
+    : "";
+  const mermaidScriptTag = renderPreviewMermaidScriptTag(options, scriptNonce);
+  const vscodeApiScript = options.target === "webview" ? renderVscodeApiClientScript() : "";
+  const webviewMessaging = options.target === "webview";
 
   return `<!doctype html>
 <html lang="${escapeHtml(resolvedLocale)}">
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${cspSource}; style-src ${cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}' ${cspSource};">
+    ${cspMeta}
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${escapeHtml(title)}</title>
     <style>
 ${renderScreenPreviewStyles()}
     </style>
   </head>
-  <body class="${previewBodyClasses(visibleMarkers, showRepeatedContent)}">
+  <body class="${previewBodyClasses(options.visibleMarkers, options.showRepeatedContent)}">
     <header class="toolbar">
       <div class="toolbar-controls">
         <div class="control-group marker-actions" role="group" aria-label="${escapeHtml(messages.markerVisibility)}">
           <span class="control-label">${escapeHtml(messages.markers)}</span>
           <span class="segmented">
-          ${renderMarkerToggle("layout", messages.layout, visibleMarkers.layout, messages)}
-          ${renderMarkerToggle("element", messages.element, visibleMarkers.element, messages)}
-          ${renderMarkerToggle("action", messages.action, visibleMarkers.action, messages)}
+          ${renderMarkerToggle("layout", messages.layout, options.visibleMarkers.layout, messages)}
+          ${renderMarkerToggle("element", messages.element, options.visibleMarkers.element, messages)}
+          ${renderMarkerToggle("action", messages.action, options.visibleMarkers.action, messages)}
           </span>
         </div>
         <div class="control-group repeated-actions" role="group" aria-label="${escapeHtml(messages.showRepeatedContent)}">
           <label class="switch-control" title="${escapeHtml(messages.showRepeatedContent)}">
-            <input type="checkbox" data-repeated-toggle role="switch" aria-label="${escapeHtml(messages.showRepeatedContent)}" ${showRepeatedContent ? "checked" : ""}>
+            <input type="checkbox" data-repeated-toggle role="switch" aria-label="${escapeHtml(messages.showRepeatedContent)}" ${options.showRepeatedContent ? "checked" : ""}>
             <span>${escapeHtml(messages.showRepeatedContent)}</span>
           </label>
         </div>
-        ${interactiveControls ? renderPreviewUpdateControls(messages, autoUpdate) : ""}
+        ${options.interactiveControls ? renderPreviewUpdateControls(messages, options.autoUpdate) : ""}
       </div>
     </header>
     <button class="toc-toggle" type="button" aria-label="${escapeHtml(messages.toggleContents)}" aria-expanded="true" title="${escapeHtml(messages.toggleContents)}" data-toc-toggle>
@@ -2096,21 +2143,9 @@ ${renderScreenPreviewStyles()}
       <div class="toc-title">${escapeHtml(messages.contents)}</div>
       ${renderTableOfContentsList(messages)}
     </nav>
-      ${mermaidScriptUri ? `<script nonce="${nonce}" src="${mermaidScriptUri}"></script>` : ""}
-    <script nonce="${nonce}">
-      function markvspecAcquireVscodeApi() {
-        if (window.__markvspecVscodeApi) {
-          return window.__markvspecVscodeApi;
-        }
-        try {
-          window.__markvspecVscodeApi = acquireVsCodeApi();
-          return window.__markvspecVscodeApi;
-        } catch (error) {
-          console.warn("Unable to acquire VS Code API for MarkVSpec preview.", error);
-          return { postMessage() {} };
-        }
-      }
-      const vscode = markvspecAcquireVscodeApi();
+      ${mermaidScriptTag}
+    <script${scriptNonce}>
+      ${vscodeApiScript}
       function serializePreviewClientError(error) {
         if (error instanceof Error) {
           return {
@@ -2125,6 +2160,7 @@ ${renderScreenPreviewStyles()}
       }
       function reportPreviewClientError(phase, error, detail) {
         const serialized = serializePreviewClientError(error);
+        ${webviewMessaging ? `
         try {
           const previewApi = window.__markvspecVscodeApi;
           if (previewApi && typeof previewApi.postMessage === "function") {
@@ -2140,7 +2176,7 @@ ${renderScreenPreviewStyles()}
           console.error("MarkVSpec preview error.", phase, error, detail);
         } catch (postError) {
           console.error("Unable to report MarkVSpec preview error.", postError, phase, error);
-        }
+        }` : `console.error("MarkVSpec preview error.", phase, error, detail, serialized);`}
       }
       window.addEventListener("error", (event) => {
         reportPreviewClientError("window.error", event.error || event.message, {
@@ -2165,7 +2201,7 @@ ${renderScreenPreviewStyles()}
         }
       }
       const markvspecMessages = ${scriptJson(clientMessages)};
-      const markvspecPreviewPositionKey = ${scriptJson(sourceLabel ?? "__markvspec-preview__")};
+      const markvspecPreviewPositionKey = ${scriptJson(options.sourceLabel ?? "__markvspec-preview__")};
       let previewPositionRestorePending = true;
       const pendingRenderCommits = new Map();
       runPreviewInitializer("renderMermaidDiagrams", () => renderMermaidDiagrams());
@@ -2304,10 +2340,11 @@ ${renderScreenPreviewStyles()}
           const nextPressed = toggle.getAttribute("aria-pressed") !== "true";
           toggle.setAttribute("aria-pressed", String(nextPressed));
           document.body.classList.toggle("hide-marker-" + category, !nextPressed);
+          ${webviewMessaging ? `
           vscode.postMessage({
             command: "toggleMarker",
             category
-          });
+          });` : ""}
         });
       });
 
@@ -2319,14 +2356,15 @@ ${renderScreenPreviewStyles()}
         toggle.addEventListener("change", () => {
           const enabled = Boolean(toggle.checked);
           document.body.classList.toggle("hide-repeated-content", !enabled);
+          ${webviewMessaging ? `
           vscode.postMessage({
             command: "toggleRepeatedContent",
             enabled
-          });
+          });` : ""}
         });
       }
 
-      document.querySelectorAll("[data-mm-reference-path]").forEach((link) => {
+      ${webviewMessaging ? `document.querySelectorAll("[data-mm-reference-path]").forEach((link) => {
         link.addEventListener("click", (event) => {
           const path = link.getAttribute("data-mm-reference-path");
           if (!path) {
@@ -2339,9 +2377,10 @@ ${renderScreenPreviewStyles()}
             path
           });
         });
-      });
+      });` : ""}
 
       function initPreviewFragmentUpdates() {
+        ${webviewMessaging ? `
         window.addEventListener("message", async (event) => {
           const message = event.data || {};
           if (message.command === "renderReadyResult") {
@@ -2370,7 +2409,7 @@ ${renderScreenPreviewStyles()}
             updateId,
             webviewPatchMs: result.webviewPatchMs
           });
-        });
+        });` : ""}
       }
 
       async function applyFragmentUpdate(fragments, generationId, updateId) {
@@ -2430,6 +2469,7 @@ ${renderScreenPreviewStyles()}
       }
 
       function requestRenderCommit(generationId, updateId) {
+        ${webviewMessaging ? `
         return new Promise((resolve) => {
           const timer = setTimeout(() => {
             pendingRenderCommits.delete(updateId);
@@ -2444,7 +2484,7 @@ ${renderScreenPreviewStyles()}
             generationId,
             updateId
           });
-        });
+        });` : "return Promise.resolve(false);"}
       }
 
       function cssAttributeEscape(value) {
@@ -2465,7 +2505,9 @@ ${renderScreenPreviewStyles()}
         if (autoUpdate) {
           autoUpdate.addEventListener("change", () => {
             syncRefreshState();
+            ${webviewMessaging ? `
             vscode.postMessage({ command: "setAutoUpdate", enabled: Boolean(autoUpdate.checked) });
+            ` : ""}
           });
         }
         if (refresh) {
@@ -2474,7 +2516,9 @@ ${renderScreenPreviewStyles()}
               return;
             }
             savePreviewPosition(currentActiveSectionId());
+            ${webviewMessaging ? `
             vscode.postMessage({ command: "refreshPreview" });
+            ` : ""}
           });
         }
         syncRefreshState();
@@ -2852,9 +2896,10 @@ ${renderScreenPreviewStyles()}
       }
 
       function previewState() {
+        ${webviewMessaging ? `
         if (typeof vscode !== "undefined" && typeof vscode.getState === "function") {
           return vscode.getState() || {};
-        }
+        }` : ""}
         return {};
       }
 
@@ -2868,9 +2913,10 @@ ${renderScreenPreviewStyles()}
       }
 
       function savePreviewState(state) {
+        ${webviewMessaging ? `
         if (typeof vscode !== "undefined" && typeof vscode.setState === "function") {
           vscode.setState(state);
-        }
+        }` : "(void state);"}
       }
 
       function markerLabel(category) {
@@ -2888,32 +2934,45 @@ export function renderStandaloneHtml(
   mermaidScript: string | undefined,
   sourceLabel?: string
 ): string {
-  const html = renderPreviewHtml(
-    screen,
-    {
-      cspSource: "'self'",
-      asWebviewUri: (uri: vscode.Uri) => uri
-    } as vscode.Webview,
-    { layout: true, element: true, action: true },
-    undefined,
+  return renderScreenPreviewHtml(screen, {
+    target: "standalone",
+    visibleMarkers: { layout: true, element: true, action: true },
     sourceLabel,
-    true,
-    false
-  );
-
-  const inlineMermaid = mermaidScript ? `    <script>\n${mermaidScript}\n    </script>\n` : "";
-  return html
-    .replace(/^\s*<meta http-equiv="Content-Security-Policy"[^>]+>\n/mu, "")
-    .replace(/      function markvspecAcquireVscodeApi\(\) \{[\s\S]*?      const vscode = markvspecAcquireVscodeApi\(\);\n/, "")
-    .replace(/          vscode\.postMessage\(\{\n            command: "toggleMarker",\n            category\n          \}\);\n/mu, "")
-    .replace("          event.preventDefault();\n", "")
-    .replace(/          vscode\.postMessage\(\{\n            command: "openReference",\n            path\n          \}\);\n/mu, "")
-    .replace(/\s+vscode\.postMessage\([\s\S]*?\);\n/gu, "")
-    .replace("    <script nonce=", () => `${inlineMermaid}    <script nonce=`);
+    autoUpdate: true,
+    interactiveControls: false,
+    showRepeatedContent: false,
+    mermaidScript
+  });
 }
 
 function normalizeScreenDocumentResult(screen: ReturnType<typeof parseMarkVSpec> | ScreenDocumentResult): ScreenDocumentResult {
   return "result" in screen ? screen : { result: screen };
+}
+
+function renderPreviewMermaidScriptTag(
+  options: Pick<ScreenPreviewHtmlOptions, "target" | "mermaidScript" | "mermaidScriptUri">,
+  scriptNonce: string
+): string {
+  if (options.target === "standalone") {
+    return options.mermaidScript ? `<script>\n${options.mermaidScript}\n    </script>` : "";
+  }
+  return options.mermaidScriptUri ? `<script${scriptNonce} src="${options.mermaidScriptUri}"></script>` : "";
+}
+
+function renderVscodeApiClientScript(): string {
+  return `function markvspecAcquireVscodeApi() {
+        if (window.__markvspecVscodeApi) {
+          return window.__markvspecVscodeApi;
+        }
+        try {
+          window.__markvspecVscodeApi = acquireVsCodeApi();
+          return window.__markvspecVscodeApi;
+        } catch (error) {
+          console.warn("Unable to acquire VS Code API for MarkVSpec preview.", error);
+          return { postMessage() {} };
+        }
+      }
+      const vscode = markvspecAcquireVscodeApi();`;
 }
 
 export function renderProjectPreviewHtml(
@@ -2924,21 +2983,41 @@ export function renderProjectPreviewHtml(
   autoUpdate = PREVIEW_AUTO_UPDATE_DEFAULT,
   interactiveControls = true
 ): string {
+  return renderProjectPreviewHtmlDocument(project, {
+    target: "webview",
+    sourceLabel,
+    autoUpdate,
+    interactiveControls,
+    nonce: createNonce(),
+    cspSource: webview.cspSource,
+    mermaidScriptUri: extensionUri ? String(mermaidScriptWebviewUri(webview, extensionUri)) : undefined
+  });
+}
+
+function renderProjectPreviewHtmlDocument(
+  project: MarkVSpecProjectLoadResult,
+  options: ProjectPreviewHtmlOptions
+): string {
   const messages = projectRendererMessagesForResult(project);
   const resolvedLocale = resolveLocale(project.project.project.frontMatter["locale"]);
-  const nonce = createNonce();
-  const mermaidScriptUri = extensionUri ? mermaidScriptWebviewUri(webview, extensionUri) : undefined;
+  const nonce = options.nonce ?? createNonce();
   const title = project.project.project.title ?? project.project.project.id ?? "Untitled MarkVSpec Project";
   const clientMessages = previewClientMessages(messages);
-  const metaItems = [sourceLabel].filter((item): item is string => Boolean(item)).map((item) => `<span class="meta-item">${escapeHtml(item)}</span>`);
+  const metaItems = [options.sourceLabel].filter((item): item is string => Boolean(item)).map((item) => `<span class="meta-item">${escapeHtml(item)}</span>`);
   const document = renderProjectDesignDocumentHtml(project, messages);
-  const cspSource = webview.cspSource;
+  const scriptNonce = options.target === "webview" ? ` nonce="${nonce}"` : "";
+  const cspMeta = options.target === "webview" && options.cspSource
+    ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${options.cspSource}; style-src ${options.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}' ${options.cspSource};">`
+    : "";
+  const mermaidScriptTag = renderPreviewMermaidScriptTag(options, scriptNonce);
+  const vscodeApiScript = options.target === "webview" && options.interactiveControls ? renderVscodeApiClientScript() : "";
+  const webviewMessaging = options.target === "webview";
 
   return `<!doctype html>
 <html lang="${escapeHtml(resolvedLocale)}">
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${cspSource}; style-src ${cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}' ${cspSource};">
+    ${cspMeta}
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${escapeHtml(title)}</title>
     <style>
@@ -2951,8 +3030,8 @@ ${renderProjectPreviewStyles()}
         <div class="title">${escapeHtml(title)}</div>
         <div class="meta">${metaItems.join("")}</div>
       </div>
-      ${interactiveControls ? `<div class="toolbar-controls">
-        ${renderPreviewUpdateControls(messages, autoUpdate)}
+      ${options.interactiveControls ? `<div class="toolbar-controls">
+        ${renderPreviewUpdateControls(messages, options.autoUpdate)}
       </div>` : ""}
     </header>
     <button class="toc-toggle" type="button" aria-label="${escapeHtml(messages.toggleContents)}" aria-expanded="true" title="${escapeHtml(messages.toggleContents)}" data-toc-toggle>
@@ -2964,21 +3043,9 @@ ${renderProjectPreviewStyles()}
       <div class="toc-title">${escapeHtml(pLabel(messages, "contents"))}</div>
       ${renderTableOfContentsList(messages)}
     </nav>
-    ${mermaidScriptUri ? `<script nonce="${nonce}" src="${mermaidScriptUri}"></script>` : ""}
-    <script nonce="${nonce}">
-      ${interactiveControls ? `function markvspecAcquireVscodeApi() {
-        if (window.__markvspecVscodeApi) {
-          return window.__markvspecVscodeApi;
-        }
-        try {
-          window.__markvspecVscodeApi = acquireVsCodeApi();
-          return window.__markvspecVscodeApi;
-        } catch (error) {
-          console.warn("Unable to acquire VS Code API for MarkVSpec preview.", error);
-          return { postMessage() {} };
-        }
-      }
-      const vscode = markvspecAcquireVscodeApi();` : ""}
+    ${mermaidScriptTag}
+    <script${scriptNonce}>
+      ${vscodeApiScript}
       function serializePreviewClientError(error) {
         if (error instanceof Error) {
           return {
@@ -2993,6 +3060,7 @@ ${renderProjectPreviewStyles()}
       }
       function reportPreviewClientError(phase, error, detail) {
         const serialized = serializePreviewClientError(error);
+        ${webviewMessaging ? `
         try {
           const previewApi = window.__markvspecVscodeApi;
           if (previewApi && typeof previewApi.postMessage === "function") {
@@ -3008,7 +3076,7 @@ ${renderProjectPreviewStyles()}
           console.error("MarkVSpec preview error.", phase, error, detail);
         } catch (postError) {
           console.error("Unable to report MarkVSpec preview error.", postError, phase, error);
-        }
+        }` : `console.error("MarkVSpec preview error.", phase, error, detail, serialized);`}
       }
       window.addEventListener("error", (event) => {
         reportPreviewClientError("window.error", event.error || event.message, {
@@ -3033,7 +3101,7 @@ ${renderProjectPreviewStyles()}
         }
       }
       const markvspecMessages = ${scriptJson(clientMessages)};
-      const markvspecPreviewPositionKey = ${scriptJson(sourceLabel ?? "__markvspec-project-preview__")};
+      const markvspecPreviewPositionKey = ${scriptJson(options.sourceLabel ?? "__markvspec-project-preview__")};
       let previewPositionRestorePending = true;
       runPreviewInitializer("renderMermaidDiagrams", () => renderMermaidDiagrams());
       runPreviewInitializer("initTableOfContents", () => initTableOfContents());
@@ -3314,7 +3382,9 @@ ${renderProjectPreviewStyles()}
         if (autoUpdate) {
           autoUpdate.addEventListener("change", () => {
             syncRefreshState();
+            ${webviewMessaging ? `
             vscode.postMessage({ command: "setAutoUpdate", enabled: Boolean(autoUpdate.checked) });
+            ` : ""}
           });
         }
         if (refresh) {
@@ -3323,7 +3393,9 @@ ${renderProjectPreviewStyles()}
               return;
             }
             savePreviewPosition(currentActiveSectionId());
+            ${webviewMessaging ? `
             vscode.postMessage({ command: "refreshPreview" });
+            ` : ""}
           });
         }
         syncRefreshState();
@@ -3403,9 +3475,10 @@ ${renderProjectPreviewStyles()}
       }
 
       function previewState() {
+        ${webviewMessaging ? `
         if (typeof vscode !== "undefined" && typeof vscode.getState === "function") {
           return vscode.getState() || {};
-        }
+        }` : ""}
         return {};
       }
 
@@ -3419,9 +3492,10 @@ ${renderProjectPreviewStyles()}
       }
 
       function savePreviewState(state) {
+        ${webviewMessaging ? `
         if (typeof vscode !== "undefined" && typeof vscode.setState === "function") {
           vscode.setState(state);
-        }
+        }` : "(void state);"}
       }
 
     </script>
@@ -3434,22 +3508,13 @@ export function renderStandaloneProjectHtml(
   mermaidScript: string | undefined,
   sourceLabel?: string
 ): string {
-  const html = renderProjectPreviewHtml(
-    project,
-    {
-      cspSource: "'self'",
-      asWebviewUri: (uri: vscode.Uri) => uri
-    } as vscode.Webview,
-    undefined,
+  return renderProjectPreviewHtmlDocument(project, {
+    target: "standalone",
     sourceLabel,
-    true,
-    false
-  );
-  const inlineMermaid = mermaidScript ? `    <script>\n${mermaidScript}\n    </script>\n` : "";
-  return html
-    .replace(/^\s*<meta http-equiv="Content-Security-Policy"[^>]+>\n/mu, "")
-    .replace(/\s+vscode\.postMessage\([\s\S]*?\);\n/gu, "")
-    .replace("    <script nonce=", () => `${inlineMermaid}    <script nonce=`);
+    autoUpdate: true,
+    interactiveControls: false,
+    mermaidScript
+  });
 }
 
 export function renderProjectDesignDocumentHtml(project: MarkVSpecProjectLoadResult, messages: RendererMessages = projectRendererMessagesForResult(project)): string {
