@@ -15,7 +15,15 @@ MarkVSpec is a Markdown-first screen specification format. Keep the document sem
 - Markdown bullets declare properties, rules, conditions, transitions, and effects.
 - Do not use Markdown tables as canonical source.
 - Do not write raw CSS classes, raw colors, dimensions, or htmx attributes into the specification.
-- Model htmx-style behavior with Actions, Process/HttpRequest, Cases, and display/update effects.
+- Model htmx-style behavior with semantic Actions, Process steps, process-local `case:` branches, and `display:` effects.
+
+When the local project has DSL docs, read the current DSL before substantial authoring:
+
+- `docs/en/user/dsl.md`
+- `docs/ja/user/dsl.md`
+- nearby parser-tested examples under `examples/`
+
+Do not rely on older snippets or memory when these docs are present. This skill is still expected to work when installed outside the repository, so the canonical patterns below are the minimum rules to follow.
 
 ## CLI Availability
 
@@ -66,8 +74,10 @@ Follow the project DSL conventions. Prefer these section names when applicable:
 - `## States`
 - `## Layout`
 - `## Elements`
+- `## Events`
 - `## Actions`
 - `## Rules`
+- `## Preview Scenarios`
 - `## Notes`
 - `## Open Questions`
 
@@ -78,6 +88,8 @@ Use stable semantic IDs:
 - `E-*` for elements
 - `A-*` for actions
 - `R-*` for rules
+- `V-*` for validation contracts
+- `PRT-*` for partial documents
 
 When editing an existing `.vspec.md`, preserve the local authoring style unless it conflicts with the DSL:
 
@@ -103,36 +115,132 @@ Element guidance:
 - Use `tone` for semantic intent: `neutral`, `info`, `success`, `warning`, `danger`.
 - Avoid low-level styling properties such as `size`, raw colors, CSS classes, `width`, or `height`.
 
+Action guidance:
+
+- Do not write a `Triggered` block. Connect user-triggered actions from Elements with `action: A-*`; use `action event:` for non-default events such as `change`, `blur`, `submit`, or `close`.
+- Use `## Events` for lifecycle triggers such as `page.load`.
+- Start an Action with `From` and one or more `Process <marker>: <name>` steps.
+- Put result branches directly under the Process as `case: <name>`.
+- Put `Effects` under a `case:` branch, or omit `case:`/`Effects` only for a deterministic immediate Process such as a direct `navigate:`.
+- Put `stop` or `continue` directly under the `case:` branch, after `Effects`.
+- Do not write Action-level `Effects`, Action-level `Cases`, legacy `cases:` blocks, `update:`, or `HttpRequest` process types.
+- Use `request:` with `method`, `path`, and `params` for HTTP contracts. Use `server:`, `sync:`, or `receive:` when those better describe the step.
+
 For server interactions and partial updates, keep the spec semantic:
 
 ```markdown
-### A-SubmitLogin Submit login
+## States
 
-- Triggered
-  - E-SignInButton.click
+- idle*
+- auth-error
+
+## Layout: desktop
+
+### L1:L-Page Login page
+
+- stack
+- gap: md
+
+#### Items
+
+- E-EmailInput
+- E-PasswordInput
+- E-SignInButton
+- L-MessageArea
+
+### L2:L-MessageArea Message area
+
+- stack
+
+## Elements
+
+### E-EmailInput Input
+
+- label: Email
+
+### E-PasswordInput Input
+
+- label: Password
+- type: password
+
+### E-SignInButton Button
+
+- label: Sign in
+- variant: primary
+- action: A-SubmitLogin
+
+### E-AuthErrorBanner Banner
+
+- text: Authentication failed.
+- tone: danger
+
+## Actions
+
+### A1:A-SubmitLogin Submit login
+
 - From
   - idle
-- Process
-  - HttpRequest
-    - POST /login
-    - email: E-EmailInput.value
-    - password: E-PasswordInput.value
-- Effects
-  - state: wait-auth
-- Cases
-  - success:
-    - from: wait-auth
+- Process P1: Submit login request
+  - request:
+    - method: POST
+    - path: /login
+    - params:
+      - email: E-EmailInput.value
+      - password: E-PasswordInput.value
+  - result:
+    - login request result
+  - case: success
     - response: 2xx authenticated user
-    - navigate: SCR-DASHBOARD
-  - failure:
-    - from: wait-auth
+    - Effects
+      - navigate: SCR-DASHBOARD
+    - stop
+  - case: failure
     - response: 401 invalid credentials
-    - state: auth-error
-    - update:
-      - target: L-MessageArea
-      - content: Authentication error message
-      - mode: replace
+    - Effects
+      - state: auth-error
+      - display:
+        - target: L-MessageArea
+        - element: E-AuthErrorBanner
+    - stop
 ```
+
+Use `display:` for visible partial changes. A display effect must use exactly one payload key: `element`, `message`, or `partial`.
+
+```markdown
+- display:
+  - target: L-MessageArea
+  - element: E-AuthErrorBanner
+```
+
+```markdown
+- display:
+  - target: E-EmailInput.error
+  - message: V-LoginForm.messages
+```
+
+```markdown
+- display:
+  - target: L-ProfileSummaryHost
+  - partial: PRT-ProfileSummary
+```
+
+Define the displayed `E-*`, `L-*`, or `PRT-*` elsewhere in the document or referenced files. Do not use `display.content` or `display.elements`. A `Dialog` or `Toast` element may be displayed without a `target`.
+
+Use `## Preview Scenarios` when baseline `## States` previews need explicit sample data, view context, route params, or action/process case combinations. These scenarios help preview/export show important variants without inventing extra product states.
+
+```markdown
+## Preview Scenarios
+
+### auth-error-after-submit
+
+- state: auth-error
+- cases:
+  - A-SubmitLogin.P1.failure
+- samples:
+  - E-EmailInput: test@example.com
+```
+
+If a scenario heading matches a state name and omits `state:`, its samples apply to that normal state preview. If the heading is a distinct scenario name, include `state:` to create an additional preview variant. For tables or lists, put row samples under the element in `samples`.
 
 ## After Editing A Spec
 
