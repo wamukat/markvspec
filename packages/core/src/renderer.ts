@@ -27,9 +27,13 @@ export function renderMarkVSpecHtml(result: MarkVSpecParseResult, options: MarkV
   const containedLayoutIds = new Set<string>();
   const normallyContainedLayoutIds = new Set<string>();
   const controlledPanelLayoutIds = controlledPanelLayoutIdsFor(result.elements, layoutById);
+  const routeValues = {
+    ...routeValuesFromScreenRoute(result.screen.route),
+    ...options.routeValues
+  };
   const context = {
     ...renderContextForState(result, activeState),
-    routeValues: options.routeValues ?? {},
+    routeValues,
     sampleOverrides: options.sampleOverrides ?? {},
     result,
     layoutById,
@@ -42,6 +46,7 @@ export function renderMarkVSpecHtml(result: MarkVSpecParseResult, options: MarkV
   };
   const renderOptions = {
     ...options,
+    routeValues,
     viewValues: options.viewValues ?? defaultViewValues(result)
   };
 
@@ -99,6 +104,10 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
   const slotContentsByName = mapSlotContentsByName(result.slotContents);
   const normallyContainedLayoutIds = normallyContainedLayoutIdsFor(layoutGroups, layoutById, result);
   const controlledPanelLayoutIds = controlledPanelLayoutIdsFor(result.elements, layoutById);
+  const routeValues = {
+    ...routeValuesFromScreenRoute(result.screen.route),
+    ...options.routeValues
+  };
   if (elementMatch) {
     const elementId = elementMatch[1];
     const element = result.elements.find((candidate) => candidate.id === elementId);
@@ -108,9 +117,9 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
 
     return {
       renderKey,
-      html: renderElement(element, actionMarkersByElementId, activeState, stateNames, { ...options, viewValues: options.viewValues ?? defaultViewValues(result) }, false, {
+      html: renderElement(element, actionMarkersByElementId, activeState, stateNames, { ...options, routeValues, viewValues: options.viewValues ?? defaultViewValues(result) }, false, {
         ...renderContextForState(result, activeState),
-        routeValues: options.routeValues ?? {},
+        routeValues,
         sampleOverrides: options.sampleOverrides ?? {},
         result,
         layoutById,
@@ -145,11 +154,11 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
         actionMarkersByElementId,
         activeState,
         stateNames,
-        { ...options, viewValues: options.viewValues ?? defaultViewValues(result) },
+        { ...options, routeValues, viewValues: options.viewValues ?? defaultViewValues(result) },
         new Set(),
         {
           ...renderContextForState(result, activeState),
-          routeValues: options.routeValues ?? {},
+          routeValues,
           sampleOverrides: options.sampleOverrides ?? {},
           result,
           layoutById,
@@ -199,11 +208,11 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
         actionMarkersByElementId,
         activeState,
         stateNames,
-        { ...options, viewValues: options.viewValues ?? defaultViewValues(result) },
+        { ...options, routeValues, viewValues: options.viewValues ?? defaultViewValues(result) },
         new Set(),
         {
           ...renderContextForState(result, activeState),
-          routeValues: options.routeValues ?? {},
+          routeValues,
           sampleOverrides: options.sampleOverrides ?? {},
           elementById,
           actionMarkersByElementId,
@@ -230,10 +239,10 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
     }
 
     const [insertionContext] = insertionContexts;
-    const renderOptions = { ...options, viewValues: options.viewValues ?? defaultViewValues(result) };
+    const renderOptions = { ...options, routeValues, viewValues: options.viewValues ?? defaultViewValues(result) };
     const context = {
       ...renderContextForState(result, activeState),
-      routeValues: options.routeValues ?? {},
+      routeValues,
       sampleOverrides: options.sampleOverrides ?? {},
       elementById,
       actionMarkersByElementId,
@@ -1322,14 +1331,14 @@ function isPreviewEvaluableCondition(condition: string, stateNames: Set<string>)
 }
 
 function isNamespacedCondition(condition: string): boolean {
-  return /^(not\s+)?\$\{(?:model|view|state)\.[^}]+\}(?:\s*=\s*[^=].*)?$/u.test(condition.trim());
+  return /^(not\s+)?\$\{(?:model|view|state|route)\.[^}]+\}(?:\s*=\s*[^=].*)?$/u.test(condition.trim());
 }
 
 function isActiveNamespacedCondition(condition: string, activeState: string | undefined, options: MarkVSpecRenderOptions): boolean {
   const normalized = condition.trim();
   const negated = normalized.startsWith("not ");
   const expression = negated ? normalized.slice(4).trim() : normalized;
-  const equality = /^(\$\{(?:model|view|state)\.[^}]+\})\s*=\s*(.+)$/u.exec(expression);
+  const equality = /^(\$\{(?:model|view|state|route)\.[^}]+\})\s*=\s*(.+)$/u.exec(expression);
   const key = equality?.[1] ?? expression;
   const expected = equality?.[2]?.trim();
   const body = opaqueExpressionBody(key) ?? key;
@@ -1342,6 +1351,9 @@ function isActiveNamespacedCondition(condition: string, activeState: string | un
   } else if (body.startsWith("state.")) {
     const stateName = body.slice("state.".length);
     value = activeState === stateName;
+  } else if (body.startsWith("route.")) {
+    const routeKey = body.slice("route.".length);
+    value = options.routeValues?.[key] ?? options.routeValues?.[body] ?? options.routeValues?.[routeKey];
   }
   const active = expected === undefined
     ? (value === undefined ? false : Boolean(value))
@@ -1397,6 +1409,18 @@ function resolveRouteExpressionValue(value: string, routeValues: Record<string, 
     return value;
   }
   return routeValues[match[1]] ?? value;
+}
+
+function routeValuesFromScreenRoute(route: string | undefined): Record<string, string> {
+  if (!route) {
+    return {};
+  }
+  const hashIndex = route.indexOf("#");
+  if (hashIndex === -1) {
+    return {};
+  }
+  const hash = route.slice(hashIndex + 1).trim().replace(/^#/u, "");
+  return hash ? { hash } : {};
 }
 
 function elementValueFromElementSource(

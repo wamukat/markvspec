@@ -2303,10 +2303,12 @@ state の標準表示データを書きたい場合は、state 名を見出し�
 
 `route:` は `samples:` とは別の scenario top-level property です。子要素は
 `key: value` 形式で書き、key は Front Matter の `route` にある `:param`
-placeholder と一致させます。route sample は `${route.memberId}` のように
-表示値 property に書かれた route 参照を解決します。`source: ${route.memberId}`
-だけを根拠に value を置換することはなく、Element の `samples:` がある場合は
-そちらを優先します。
+placeholder、または URL fragment 用の特別な `hash` と一致させます。route sample は
+`${route.memberId}` のように表示値 property に書かれた route 参照と、
+`${route.hash} = billing` のような preview 評価可能 condition を解決します。
+hash 値は先頭の `#` を除いて比較するため、`hash: #billing` と `hash: billing` は
+同じ意味です。`source: ${route.memberId}` だけを根拠に value を置換することはなく、
+Element の `samples:` がある場合はそちらを優先します。
 
 `before:` を使うと、baseline state preview または別の preview scenario の前に scenario を挿入できます。並び順指定は `before:` だけをサポートします。`after:` は使いません。`before:` を省略した場合、その scenario は base state preview の後に挿入されます。
 

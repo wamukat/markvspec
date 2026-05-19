@@ -6268,6 +6268,7 @@ test("renders Tabs element summary, wireframe, and display content spec", () => 
   const html = renderDesignDocumentHtml(result, "");
   const profileSection = stateSection(html, "profile-tab");
   const billingSection = stateSection(html, "billing-tab");
+  const directLinkSection = stateViewTitleSection(html, "billing-tab / billing-direct-link");
   const elementSummary = profileSection.match(/<h6 class="state-screen-detail-heading">Element Summary<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
   const displayContent = profileSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
   const profileLayoutRows = profileSection.match(/<tr>[\s\S]*?<\/tr>/g) ?? [];
@@ -6280,12 +6281,14 @@ test("renders Tabs element summary, wireframe, and display content spec", () => 
   assert.match(profileSection, /Profile/);
   assert.match(billingSection, /<span class="mm-tab-item mm-tab-item-active" aria-selected="true" data-mm-tab-panel="L-BillingPanel" data-mm-tab-action="A-SelectBillingTab">Billing<\/span>/);
   assert.match(billingSection, /<div class="mm-controlled-panel mm-controlled-panel-tabs" data-mm-controlled-panel="L-BillingPanel">/);
+  assert.match(directLinkSection, /<span class="mm-tab-item mm-tab-item-active" aria-selected="true" data-mm-tab-panel="L-BillingPanel" data-mm-tab-action="A-SelectBillingTab">Billing<\/span>/);
+  assert.match(directLinkSection, /<div class="mm-controlled-panel mm-controlled-panel-tabs" data-mm-controlled-panel="L-BillingPanel">/);
   assert.doesNotMatch(profileSection, /<div class="mm-tabs-panel-note">/);
   assert.match(inactiveBillingPanelRow, /mm-controlled-panel-badge/);
   assert.match(inactiveBillingPanelRow, /controlled by[\s\S]*E-SettingsTabs[\s\S]*inactive in this state/);
   assert.doesNotMatch(inactiveBillingPanelRow, /mm-unplaced-badge/);
   assert.match(elementSummary, new RegExp(`<td>${detailElementRef("2", "E-SettingsTabs")}</td><td>Tabs</td><td><ul class="spec-list"><li>${refActionChip("A1", "A-SelectProfileTab", "Select profile tab")}</li><li>${refActionChip("A2", "A-SelectBillingTab", "Select billing tab")}</li></ul></td><td>-</td>`));
-  assert.match(displayContent, new RegExp(`<td>${detailElementRef("2", "E-SettingsTabs")}</td><td>tabs</td><td>${specSectionPattern("Tabs", ["Profile \\(panel: L-ProfilePanel; action: A-SelectProfileTab; active when: profile-tab\\)", "Billing \\(panel: L-BillingPanel; action: A-SelectBillingTab; active when: billing-tab\\)"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("2", "E-SettingsTabs")}</td><td>tabs</td><td>${specSectionPattern("Tabs", [`Profile \\(panel: L-ProfilePanel; action: A-SelectProfileTab; active when: profile-tab; active when: ${inlineTokenPattern("${route.hash}")} = profile\\)`, `Billing \\(panel: L-BillingPanel; action: A-SelectBillingTab; active when: billing-tab; active when: ${inlineTokenPattern("${route.hash}")} = billing\\)`])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
 });
 
 test("renders Popover and Tooltip element summary, wireframe, and display content spec", () => {

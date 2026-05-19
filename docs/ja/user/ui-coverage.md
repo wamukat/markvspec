@@ -93,16 +93,20 @@ Layout と既存 Element の組み合わせだけではレビューしにくい�
   - Profile
     - panel: L-ProfilePanel
     - active when: profile-tab
+    - active when: ${route.hash} = profile
     - action: A-SelectProfileTab
   - Billing
     - panel: L-BillingPanel
     - active when: billing-tab
+    - active when: ${route.hash} = billing
     - action: A-SelectBillingTab
 ```
 
 preview は tab strip と active item、active panel layout を表示します。生成仕様では tab item を集約し、
 Element Summary から item action を辿れるようにします。どの `active when` も一致しない場合は、
 後方互換用の `active`、それもなければ先頭 item に fallback します。
+`/settings/tabs#billing` のような direct link scenario では `${route.hash}` で
+tab を選択できます。比較時は先頭の `#` を除きます。
 
 inactive な `panel: L-*` layout も Tabs Element に制御される controlled content です。
 State Views では、制御元 Element とこの状態では inactive であることを表示し、

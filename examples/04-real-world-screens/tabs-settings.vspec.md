@@ -61,10 +61,12 @@ changes can switch the active tab and expand exactly one controlled panel.
   - Profile
     - panel: L-ProfilePanel
     - active when: profile-tab
+    - active when: ${route.hash} = profile
     - action: A-SelectProfileTab
   - Billing
     - panel: L-BillingPanel
     - active when: billing-tab
+    - active when: ${route.hash} = billing
     - action: A-SelectBillingTab
 
 ### 3:E-ProfileHeading Heading
@@ -110,3 +112,11 @@ changes can switch the active tab and expand exactly one controlled panel.
     - Effects
       - state: billing-tab
     - stop
+
+## Preview Scenarios
+
+### billing-direct-link
+
+- state: billing-tab
+- route:
+  - hash: billing

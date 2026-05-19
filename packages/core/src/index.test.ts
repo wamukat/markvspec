@@ -8869,7 +8869,7 @@ title: Controlled Panel Diagnostics
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes('Element E-SettingsTabs tab item Profile active when condition "selected profile" cannot be evaluated in preview. Use a state name, state is ..., or a namespaced condition such as ${state.*} or ${view.*}.'));
+  assert(messages.includes('Element E-SettingsTabs tab item Profile active when condition "selected profile" cannot be evaluated in preview. Use a state name, state is ..., or a namespaced condition such as ${state.*}, ${view.*}, or ${route.*}.'));
   assert(messages.includes("Condition references missing view context missingTab."));
   assert(messages.includes("Element E-SettingsTabs tab item Profile has unsupported property open when. Use panel, action, active when."));
   assert(messages.includes("Element E-PanelText of type Text uses unsupported property open when."));
@@ -13334,6 +13334,90 @@ route: /members/:memberId
     ["Source", ["${route.memberId}"]]
   ]);
   assert.equal(sourceOnlyRow?.value, "Baseline source-only value");
+});
+
+test("applies route hash values to preview-evaluable conditions", () => {
+  const source = `---
+id: SCR-ROUTE-HASH-TABS
+type: screen
+title: Route Hash Tabs
+route: /settings/tabs#billing
+---
+# SCR-ROUTE-HASH-TABS Route Hash Tabs
+
+## States
+
+- idle*
+
+## Layout: desktop
+
+### L-Page Stack
+
+#### Items
+
+- E-Tabs
+
+### L-ProfilePanel Stack
+
+#### Items
+
+- E-ProfileText
+
+### L-BillingPanel Stack
+
+#### Items
+
+- E-BillingText
+
+## Elements
+
+### E-Tabs Tabs
+
+- items:
+  - Profile
+    - panel: L-ProfilePanel
+    - active when: \${route.hash} = profile
+  - Billing
+    - panel: L-BillingPanel
+    - active when: \${route.hash} = billing
+
+### E-ProfileText Text
+
+- value: Profile panel
+
+### E-BillingText Text
+
+- value: Billing panel
+
+## Preview Scenarios
+
+### profile-direct-link
+
+- state: idle
+- route:
+  - hash: #profile
+`;
+  const result = parseMarkVSpec(source);
+  assert.deepEqual(result.diagnostics, []);
+
+  const defaultHtml = renderMarkVSpecHtml(result, { includeStyles: false });
+  assert.match(defaultHtml, /data-mm-tab-panel="L-BillingPanel"[^>]*>Billing<\/span>/);
+  assert.match(defaultHtml, /<div class="mm-controlled-panel mm-controlled-panel-tabs" data-mm-controlled-panel="L-BillingPanel">/);
+  assert.doesNotMatch(defaultHtml, /data-mm-controlled-panel="L-ProfilePanel"/);
+
+  const models = buildStateScreenReadModels(result, result, undefined);
+  const direct = models.find((model) => model.stateViewTitle === "idle / profile-direct-link");
+  assert(direct);
+  assert.deepEqual(direct.scenarioRoute.map((sample) => [sample.key, sample.value]), [["hash", "profile"]]);
+
+  const directHtml = renderMarkVSpecHtml(result, {
+    includeStyles: false,
+    state: "idle",
+    routeValues: scenarioRouteValues(direct.scenarioRoute)
+  });
+  assert.match(directHtml, /data-mm-tab-panel="L-ProfilePanel"[^>]*>Profile<\/span>/);
+  assert.match(directHtml, /<div class="mm-controlled-panel mm-controlled-panel-tabs" data-mm-controlled-panel="L-ProfilePanel">/);
+  assert.doesNotMatch(directHtml, /data-mm-controlled-panel="L-BillingPanel"/);
 });
 
 test("warns when Preview Scenario route samples are used without a screen route", () => {

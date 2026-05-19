@@ -1092,7 +1092,8 @@ function validateRouteParams(
 
 function extractRoutePlaceholders(route: string): Set<string> {
   const placeholders = new Set<string>();
-  for (const match of route.matchAll(/:([A-Za-z][A-Za-z0-9_-]*)/gu)) {
+  const path = route.split("#", 1)[0] ?? route;
+  for (const match of path.matchAll(/:([A-Za-z][A-Za-z0-9_-]*)/gu)) {
     placeholders.add(match[1]);
   }
   return placeholders;

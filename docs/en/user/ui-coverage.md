@@ -97,10 +97,12 @@ or action. `panel: L-*` is rendered as controlled content inside the active tab.
   - Profile
     - panel: L-ProfilePanel
     - active when: profile-tab
+    - active when: ${route.hash} = profile
     - action: A-SelectProfileTab
   - Billing
     - panel: L-BillingPanel
     - active when: billing-tab
+    - active when: ${route.hash} = billing
     - action: A-SelectBillingTab
 ```
 
@@ -108,6 +110,8 @@ Preview renders a tab strip, marks the active item, and expands the active
 panel layout. Generated specs aggregate tab items and link item actions from
 Element Summary. If no `active when` matches, preview falls back to legacy
 `active`, then to the first item.
+`${route.hash}` can select a tab for a direct-link scenario such as
+`/settings/tabs#billing`; comparisons omit the leading `#`.
 
 Inactive `panel: L-*` layouts are still controlled by the Tabs element. State
 Views lists them with the controlling element and inactive state instead of

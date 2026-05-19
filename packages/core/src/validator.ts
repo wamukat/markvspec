@@ -2751,7 +2751,7 @@ function validatePreviewScenarioRouteSamples(
 
   const declared = extractRoutePlaceholders(screenRoute);
   for (const routeSample of scenario.route) {
-    if (!declared.has(routeSample.key)) {
+    if (routeSample.key !== "hash" && !declared.has(routeSample.key)) {
       diagnostics.push({
         severity: "warning",
         message: `Preview Scenario ${scenario.name} route sample ${routeSample.key} does not match any :param in screen route.`,
@@ -3122,7 +3122,8 @@ function validateRouteParameterReferences(result: MarkVSpecParseResult, diagnost
 
 function extractRoutePlaceholders(route: string): Set<string> {
   const placeholders = new Set<string>();
-  for (const match of route.matchAll(/:([A-Za-z][A-Za-z0-9_-]*)/gu)) {
+  const path = route.split("#", 1)[0] ?? route;
+  for (const match of path.matchAll(/:([A-Za-z][A-Za-z0-9_-]*)/gu)) {
     placeholders.add(match[1]);
   }
   return placeholders;
@@ -3427,7 +3428,7 @@ function validateControlledConditions(
     if (!isPreviewEvaluableControlledCondition(condition, stateNames)) {
       diagnostics.push({
         severity: "warning",
-        message: `Element ${elementId} ${ownerKind} ${ownerLabel} ${property} condition "${condition}" cannot be evaluated in preview. Use a state name, state is ..., or a namespaced condition such as \${state.*} or \${view.*}.`,
+        message: `Element ${elementId} ${ownerKind} ${ownerLabel} ${property} condition "${condition}" cannot be evaluated in preview. Use a state name, state is ..., or a namespaced condition such as \${state.*}, \${view.*}, or \${route.*}.`,
         line: locations[index]?.line ?? locations[0]?.line
       });
     }
@@ -3455,7 +3456,7 @@ function validateSingleMatchedCondition(
 
 function isPreviewEvaluableControlledCondition(condition: string, stateNames: Set<string>): boolean {
   const normalized = condition.trim();
-  return /^(not\s+)?\$\{(?:model|view|state)\.[^}]+\}(?:\s*=\s*[^=].*)?$/u.test(normalized)
+  return /^(not\s+)?\$\{(?:model|view|state|route)\.[^}]+\}(?:\s*=\s*[^=].*)?$/u.test(normalized)
     || normalized.startsWith("state is ")
     || stateNames.has(normalized);
 }

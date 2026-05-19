@@ -2617,9 +2617,12 @@ heading:
 
 `route:` is a top-level scenario property, separate from `samples:`. Its child
 items must be `key: value` entries whose keys match `:param` placeholders in the
-screen Front Matter `route`. Route samples resolve scalar display values written
-as `${route.memberId}`. They do not replace a value based only on
-`source: ${route.memberId}`, and direct Element `samples:` still take priority.
+screen Front Matter `route`, or the special `hash` key for URL fragments.
+Route samples resolve scalar display values written as `${route.memberId}` and
+preview-evaluable conditions such as `${route.hash} = billing`. Hash values are
+compared without the leading `#`; `hash: #billing` and `hash: billing` are
+equivalent. They do not replace a value based only on `source: ${route.memberId}`,
+and direct Element `samples:` still take priority.
 
 Use `before:` to insert a scenario before a baseline state preview or another
 preview scenario. Only `before:` is supported for scenario ordering. If
