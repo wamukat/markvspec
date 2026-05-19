@@ -38,6 +38,7 @@ export type MessageKey =
   | "content"
   | "controlledActiveInThisState"
   | "controlledBy"
+  | "controlledContent"
   | "controlledInactiveInThisState"
   | "contents"
   | "contentsEmpty"
@@ -275,6 +276,7 @@ const en: Record<MessageKey, string> = {
   content: "Content",
   controlledActiveInThisState: "active in this state",
   controlledBy: "controlled by",
+  controlledContent: "controlled content",
   controlledInactiveInThisState: "inactive in this state",
   contents: "Contents",
   contentsEmpty: "No sections.",
@@ -513,6 +515,7 @@ const ja: Record<MessageKey, string> = {
   content: "コンテンツ",
   controlledActiveInThisState: "この状態で有効",
   controlledBy: "制御元",
+  controlledContent: "制御コンテンツ",
   controlledInactiveInThisState: "この状態で非有効",
   contents: "目次",
   contentsEmpty: "表示できる章がありません。",

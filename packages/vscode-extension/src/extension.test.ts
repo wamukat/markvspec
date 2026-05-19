@@ -6293,8 +6293,12 @@ test("renders Tabs element summary, wireframe, and display content spec", () => 
   assert.match(directLinkSection, /<div class="mm-controlled-panel mm-controlled-panel-tabs" data-mm-controlled-panel="L-BillingPanel">/);
   assert.doesNotMatch(profileSection, /<div class="mm-tabs-panel-note">/);
   assert.match(activeProfilePanelRow, new RegExp(`${detailLayoutRefById("L2", "L-ProfilePanel")}${controlledPanelVia("2", "E-SettingsTabs")}`));
+  assert.match(activeProfilePanelRow, /<td><span class="mm-chip mm-controlled-panel-condition">controlled content<\/span><\/td>/);
+  assert.doesNotMatch(activeProfilePanelRow, /spec-default-always|>always</);
   assert.equal(inactiveBillingPanelRow, "");
   assert.match(activeBillingPanelRow, new RegExp(`${detailLayoutRefById("L3", "L-BillingPanel")}${controlledPanelVia("2", "E-SettingsTabs")}`));
+  assert.match(activeBillingPanelRow, /<td><span class="mm-chip mm-controlled-panel-condition">controlled content<\/span><\/td>/);
+  assert.doesNotMatch(activeBillingPanelRow, /spec-default-always|>always</);
   assert.equal(inactiveProfilePanelRow, "");
   assert.doesNotMatch(profileSection, /mm-controlled-panel-badge|controlled by|inactive in this state|data-mm-ref-id="L-BillingPanel"|data-mm-ref-id="E-BillingHeading"|data-mm-ref-id="E-BillingPlan"/);
   assert.doesNotMatch(billingSection, /mm-controlled-panel-badge|controlled by|inactive in this state|data-mm-ref-id="L-ProfilePanel"|data-mm-ref-id="E-ProfileHeading"|data-mm-ref-id="E-ProfileEmail"/);
@@ -6345,9 +6349,13 @@ test("renders Accordion and Disclosure element summary, wireframe, and display c
   assert.match(shippingSection, /<div class="mm-element mm-element-disclosure mm-disclosure-open" data-mm-id="E-ShippingDetails" data-mm-disclosure-panel="L-ShippingDetailsPanel">/);
   assert.match(shippingSection, /<div class="mm-controlled-panel mm-controlled-panel-disclosure" data-mm-controlled-panel="L-ShippingDetailsPanel">/);
   assert.match(activeAdvancedFilterRow, new RegExp(`${detailLayoutRefById("L2", "L-AdvancedFilterPanel")}${controlledPanelVia("2", "E-AdvancedFilters")}`));
+  assert.match(activeAdvancedFilterRow, /<td><span class="mm-chip mm-controlled-panel-condition">controlled content<\/span><\/td>/);
+  assert.doesNotMatch(activeAdvancedFilterRow, /spec-default-always|>always</);
   assert.equal(inactiveSavedFiltersRow, "");
   assert.equal(inactiveShippingRow, "");
   assert.match(activeShippingRow, new RegExp(`${detailLayoutRefById("L4", "L-ShippingDetailsPanel")}${controlledPanelVia("6", "E-ShippingDetails")}`));
+  assert.match(activeShippingRow, /<td><span class="mm-chip mm-controlled-panel-condition">controlled content<\/span><\/td>/);
+  assert.doesNotMatch(activeShippingRow, /spec-default-always|>always</);
   assert.doesNotMatch(advancedSection, /mm-controlled-panel-badge|controlled by|inactive in this state|data-mm-ref-id="L-SavedFiltersPanel"|data-mm-ref-id="L-ShippingDetailsPanel"|data-mm-ref-id="E-SavedSearchName"|data-mm-ref-id="E-ShippingAddress"/);
   assert.doesNotMatch(shippingSection, /mm-controlled-panel-badge|controlled by|inactive in this state|data-mm-ref-id="L-AdvancedFilterPanel"|data-mm-ref-id="L-SavedFiltersPanel"|data-mm-ref-id="E-StatusFilter"|data-mm-ref-id="E-SavedSearchName"/);
   assert.match(elementSummary, /<td>Accordion<\/td>/);

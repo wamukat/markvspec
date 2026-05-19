@@ -116,7 +116,8 @@ Element Summary. If no `active when` matches, preview falls back to legacy
 Inactive `panel: L-*` layouts are still controlled by the Tabs element, but
 State Views only lists the panel layout that is active in the current view. The
 active panel row shows a compact `(via: E-*)` line in the Marker/ID cell so the
-controlling element remains traceable. Inactive controlled panels are omitted
+controlling element remains traceable, and its Condition cell is shown as
+`controlled content` instead of `always`. Inactive controlled panels are omitted
 from the State View tables and are not marked `not placed in current layout`.
 
 Example: [Tabs Settings](../../../examples/04-real-world-screens/tabs-settings.vspec.md).
@@ -177,10 +178,11 @@ screen state. If no `open when` matches, preview falls back to legacy `open`.
 
 Closed `panel: L-*` layouts are still controlled content, but State Views only
 lists the panel layout that is open in the current view. The open panel row
-shows a compact `(via: E-*)` line in the Marker/ID cell. Closed controlled
-panels are omitted from the State View tables and are not marked `not placed in
-current layout`; that marker is reserved for layouts with no current placement
-or controlled component reference.
+shows a compact `(via: E-*)` line in the Marker/ID cell, and its Condition cell
+is shown as `controlled content` instead of `always`. Closed controlled panels
+are omitted from the State View tables and are not marked `not placed in current
+layout`; that marker is reserved for layouts with no current placement or
+controlled component reference.
 
 Example: [Accordion Disclosure](../../../examples/04-real-world-screens/accordion-disclosure.vspec.md).
 Generated HTML: [accordion-disclosure.html](https://wamukat.github.io/markvspec/examples/accordion-disclosure.html).

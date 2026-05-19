@@ -196,6 +196,7 @@ ${baseWireframeViewportCss()}
 .mm-source-chip-computed{background:#f5f3ff;border-color:#c4b5fd;color:#6d28d9}
 .mm-repeated-badge{background:#f8fafc;border-color:#cbd5e1;color:#64748b;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace}
 .mm-unplaced-badge{background:#fff7ed;border-color:#fdba74;color:#9a3412;gap:4px}
+.mm-controlled-panel-condition{background:#f1f5f9;border-color:#cbd5e1;color:#475569}
 .mm-controlled-panel-via{color:#475569;font-size:11px;font-weight:500;line-height:1.35;margin-top:3px}
 .mm-controlled-panel-via .mm-ref-chip{font-size:11px}
 .mm-diagnostic-severity{align-items:center;display:inline-flex;font-weight:650;gap:2px}
@@ -411,6 +412,7 @@ ${baseWireframeViewportCss()}
 .state-transition-axis-labels .from,.state-transition-axis-labels .to{background:#f9fafb;padding:0 2px}
 .mm-repeated-badge{background:#f8fafc;border-color:#cbd5e1;color:#64748b}
 .mm-unplaced-badge{background:#fff7ed;border-color:#fdba74;color:#9a3412}
+.mm-controlled-panel-condition{background:#f1f5f9;border-color:#cbd5e1;color:#475569}
 .mm-controlled-panel-via{color:#475569;font-size:11px;font-weight:500;line-height:1.35;margin-top:3px}
 .spec-table tr:has(.mm-repeated-badge){background:#f8fafc;color:#64748b}
 .spec-table tr:has(.mm-unplaced-badge){background:#fff7ed}

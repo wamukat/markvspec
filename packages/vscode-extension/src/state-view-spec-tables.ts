@@ -104,6 +104,8 @@ export function createStateViewSpecTableRenderer(
   };
   const renderDefaultAlways = (): string =>
     `<span class="spec-default-always">${helpers.text(helpers.label("always"))}</span>`;
+  const renderControlledPanelCondition = (): string =>
+    `<span class="mm-chip mm-controlled-panel-condition">${helpers.text(helpers.label("controlledContent"))}</span>`;
 
   const renderElementDetailGroup = (title: string, content: string, emptyWhenRepeatedHidden = false): string =>
     `<div class="element-detail-group"${repeatedHiddenEmptyAttr(emptyWhenRepeatedHidden)}><h4>${helpers.text(title)}</h4>${markRepeatedHiddenEmptyHtml(content, emptyWhenRepeatedHidden)}</div>`;
@@ -194,7 +196,7 @@ export function createStateViewSpecTableRenderer(
       renderLayoutEntityRefCell(layout, Boolean(repeatedLayoutIds?.has(layout.id)), unplacedLayoutIds.has(layout.id), controlledPlacementsByLayoutId.get(layout.id)),
       helpers.text(layout.kind || ""),
       renderLayoutSettingItemsSummary(layout),
-      renderLayoutConditionsSummary(layout),
+      renderLayoutConditionsSummary(layout, Boolean(controlledPlacementsByLayoutId.get(layout.id)?.length)),
       renderLayoutNotesSummary(layout)
     ]);
 
@@ -264,7 +266,7 @@ export function createStateViewSpecTableRenderer(
       .filter(([, value]) => value)
       .map(([key, value]) => `${helpers.text(key)}: ${helpers.text(value)}`);
 
-  const renderLayoutConditionsSummary = (layout: ParsedLayout): string => {
+  const renderLayoutConditionsSummary = (layout: ParsedLayout, controlledPanel = false): string => {
     const conditions = [
       [helpers.conditionLabel("visible"), layoutPropertyList(layout, "visible when").join(", ")],
       [helpers.conditionLabel("hidden"), layoutPropertyList(layout, "hidden when").join(", ")],
@@ -275,6 +277,8 @@ export function createStateViewSpecTableRenderer(
     ].filter(([, value]) => value);
     return conditions.length > 0
       ? renderSpecList(conditions.map(([key, value]) => `${helpers.text(key)}: ${helpers.text(value)}`))
+      : controlledPanel
+        ? renderControlledPanelCondition()
       : renderDefaultAlways();
   };
 

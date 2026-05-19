@@ -656,7 +656,7 @@ function renderStaticLayoutsSpecBox(
     renderStaticLayoutReference(result, layout, unplacedLayoutIds.has(layout.id), controlledPlacementsByLayoutId.get(layout.id) ?? [], messages),
     escapeHtml(layout.kind || ""),
     renderStaticLayoutSettingItems(result, layout, messages),
-    renderStaticLayoutConditions(layout, messages),
+    renderStaticLayoutConditions(layout, messages, Boolean(controlledPlacementsByLayoutId.get(layout.id)?.length)),
     renderStaticLayoutNotes(result, layout)
   ]);
 
@@ -736,7 +736,7 @@ function renderStaticEntityReferenceById(result: MarkVSpecParseResult, id: strin
   return reference ? renderStaticEntityReference(reference) : code(id);
 }
 
-function renderStaticLayoutConditions(layout: StaticParsedLayout, messages: RendererMessages): string {
+function renderStaticLayoutConditions(layout: StaticParsedLayout, messages: RendererMessages, controlledPanel = false): string {
   const conditions = [
     [messages.conditionVisibleShort, staticLayoutPropertyList(layout, "visible when").join(", ")],
     [messages.conditionHiddenShort, staticLayoutPropertyList(layout, "hidden when").join(", ")],
@@ -747,6 +747,8 @@ function renderStaticLayoutConditions(layout: StaticParsedLayout, messages: Rend
   ].filter(([, value]) => value);
   return conditions.length > 0
     ? renderStaticSpecList(conditions.map(([key, value]) => `${escapeHtml(key)}: ${escapeHtml(value)}`))
+    : controlledPanel
+      ? `<span class="mm-chip mm-controlled-panel-condition">${escapeHtml(messages.controlledContent)}</span>`
     : `<span class="spec-default-always">${escapeHtml(messages.always)}</span>`;
 }
 

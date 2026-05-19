@@ -183,6 +183,10 @@ title: Static Controlled Panels
 
   assert.match(profilePanelRow, /<div class="mm-controlled-panel-via">\(via: <a class="mm-ref-chip mm-ref-chip-element"[^>]*data-mm-ref-id="E-SettingsTabs"[\s\S]*?<span class="mm-detail-ref-id">E-SettingsTabs<\/span><\/a>\)<\/div>/);
   assert.match(billingPanelRow, /<div class="mm-controlled-panel-via">\(via: <a class="mm-ref-chip mm-ref-chip-element"[^>]*data-mm-ref-id="E-SettingsTabs"[\s\S]*?<span class="mm-detail-ref-id">E-SettingsTabs<\/span><\/a>\)<\/div>/);
+  assert.match(profilePanelRow, /<td><span class="mm-chip mm-controlled-panel-condition">controlled content<\/span><\/td>/);
+  assert.match(billingPanelRow, /<td><span class="mm-chip mm-controlled-panel-condition">controlled content<\/span><\/td>/);
+  assert.doesNotMatch(profilePanelRow, /spec-default-always|>always</);
+  assert.doesNotMatch(billingPanelRow, /spec-default-always|>always</);
   assert.doesNotMatch(profileSection, /mm-controlled-panel-badge|controlled by|inactive in this state|data-mm-ref-id="L-BillingPanel"|data-mm-ref-id="E-BillingHeading"/);
   assert.doesNotMatch(billingSection, /mm-controlled-panel-badge|controlled by|inactive in this state|data-mm-ref-id="L-ProfilePanel"|data-mm-ref-id="E-ProfileHeading"/);
 });
