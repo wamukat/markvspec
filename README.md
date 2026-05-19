@@ -288,7 +288,7 @@ npx @markvspec/cli@latest skill install --path ~/.codex/skills
 ```
 
 The command installs `markvspec-authoring/` under the target directory, copies
-release-matched DSL references into the skill's `references/` directory, and
+the release-matched English DSL reference into the skill's `references/` directory, and
 prints a short `AGENTS.md` snippet. It does not edit `AGENTS.md` automatically.
 
 ## IDs and Markers

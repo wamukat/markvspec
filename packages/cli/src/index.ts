@@ -29,8 +29,7 @@ const MARKVSPEC_REPOSITORY_ARCHIVE_BASE = "https://github.com/wamukat/markvspec/
 const AUTHORING_SKILL_PATH = "skills/markvspec-authoring";
 const AUTHORING_SKILL_NAME = "markvspec-authoring";
 const AUTHORING_SKILL_REFERENCE_SOURCES = [
-  { archivePath: "docs/en/user/dsl.md", installPath: "references/dsl.en.md" },
-  { archivePath: "docs/ja/user/dsl.md", installPath: "references/dsl.ja.md" }
+  { archivePath: "docs/en/user/dsl.md", installPath: "references/dsl.md" }
 ] as const;
 
 export async function main(argv = process.argv.slice(2), dependencies: MainDependencies = {}): Promise<number> {

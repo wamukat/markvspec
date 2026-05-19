@@ -19,16 +19,14 @@ MarkVSpec is a Markdown-first screen specification format. Keep the document sem
 
 For non-trivial authoring, read the bundled canonical DSL reference first:
 
-- `references/dsl.en.md`
-- `references/dsl.ja.md` when writing Japanese specs or when Japanese wording matters
+- `references/dsl.md`
 
 When working from the source repository, those installed references may be absent. In that case, read the source docs before substantial or uncertain edits:
 
 - `docs/en/user/dsl.md`
-- `docs/ja/user/dsl.md`
 - nearby parser-tested examples under `examples/`
 
-Do not rely on older snippets or memory when these docs are present. The CLI installer copies the canonical DSL docs from the same MarkVSpec release tag into `references/`, so installed skills can consult the release-matched DSL without duplicating a hand-maintained summary.
+Do not rely on older snippets or memory when these docs are present. The CLI installer copies the canonical English DSL doc from the same MarkVSpec release tag into `references/`, so installed skills can consult the release-matched DSL without duplicating a hand-maintained summary.
 
 ## CLI Availability
 

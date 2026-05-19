@@ -309,7 +309,6 @@ test("skill install downloads the version tag archive and installs the authoring
       "markvspec-release-0.5.0/skills/markvspec-authoring/SKILL.md": "# MarkVSpec Authoring\n",
       "markvspec-release-0.5.0/skills/markvspec-authoring/references/workflow.md": "Use the CLI.\n",
       "markvspec-release-0.5.0/docs/en/user/dsl.md": "# MarkVSpec DSL\n\nEnglish canonical DSL.\n",
-      "markvspec-release-0.5.0/docs/ja/user/dsl.md": "# MarkVSpec DSL\n\nJapanese canonical DSL.\n",
       "markvspec-release-0.5.0/README.md": "Not installed.\n"
     });
 
@@ -326,8 +325,7 @@ test("skill install downloads the version tag archive and installs the authoring
     assert.deepEqual(urls, ["https://github.com/wamukat/markvspec/archive/refs/tags/v0.5.0.tar.gz"]);
     assert.equal(readFileSync(join(installDir, "markvspec-authoring", "SKILL.md"), "utf8"), "# MarkVSpec Authoring\n");
     assert.equal(readFileSync(join(installDir, "markvspec-authoring", "references", "workflow.md"), "utf8"), "Use the CLI.\n");
-    assert.equal(readFileSync(join(installDir, "markvspec-authoring", "references", "dsl.en.md"), "utf8"), "# MarkVSpec DSL\n\nEnglish canonical DSL.\n");
-    assert.equal(readFileSync(join(installDir, "markvspec-authoring", "references", "dsl.ja.md"), "utf8"), "# MarkVSpec DSL\n\nJapanese canonical DSL.\n");
+    assert.equal(readFileSync(join(installDir, "markvspec-authoring", "references", "dsl.md"), "utf8"), "# MarkVSpec DSL\n\nEnglish canonical DSL.\n");
     assert(!existsSync(join(installDir, "README.md")));
     assert.equal(readFileSync(join(dir, "AGENTS.md"), "utf8"), "# Agent Notes\n");
     assert(logs.some((line) => line.includes("Installed markvspec-authoring from v0.5.0")));
