@@ -11,6 +11,7 @@ Use this reference when writing or editing `.vspec.md` without the full project 
 - Actions and events
 - Display effects and partial updates
 - Preview scenarios
+- Complete example files
 - Legacy forms to avoid
 
 ## File Skeleton
@@ -383,6 +384,17 @@ For table or list rows, put row samples under the element:
 ```
 
 Use `before:` only when scenario ordering matters. Do not use `after:`.
+
+## Complete Example Files
+
+Read these complete `.vspec.md` examples before drafting similar specs:
+
+- `references/examples/hello-world.vspec.md`: minimum screen shape.
+- `references/examples/basic-form.vspec.md`: basic form layout without action complexity.
+- `references/examples/action-request.vspec.md`: validation, HTTP request params, success/failure cases, and navigation.
+- `references/examples/partial-update.vspec.md`: semantic partial update with `display:` and `mode: replace` intent kept out of raw htmx attributes.
+
+These examples are intentionally small and should validate as complete MarkVSpec documents.
 
 ## Legacy Forms To Avoid
 
