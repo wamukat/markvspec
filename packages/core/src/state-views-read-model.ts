@@ -61,6 +61,8 @@ export interface StateScreenReadModel {
   readonly viewValues: Record<string, boolean | number | string>;
   readonly scenarioRoute: ParsedPreviewScenario["route"];
   readonly scenarioSamples: ParsedPreviewScenario["samples"];
+  readonly scenarioInputRoute: ParsedPreviewScenario["route"];
+  readonly scenarioInputSamples: ParsedPreviewScenario["samples"];
   readonly renderedIds: RenderedIds;
   readonly displayEffects: ParsedDisplayEffect[];
   readonly displayExplanations: StateScreenDisplayExplanation[];
@@ -176,6 +178,8 @@ export function buildStateScreenReadModels(
       viewValues: displayViewValues,
       scenarioRoute: [],
       scenarioSamples: [],
+      scenarioInputRoute: [],
+      scenarioInputSamples: [],
       renderedIds: ids,
       displayEffects: [],
       displayExplanations: [],
@@ -198,6 +202,8 @@ export function buildStateScreenReadModels(
         viewValues: displayViewValues,
         scenarioRoute: [],
         scenarioSamples: [],
+        scenarioInputRoute: [],
+        scenarioInputSamples: [],
         renderedIds: ids,
         displayEffects: [],
         displayExplanations: [],
@@ -211,7 +217,7 @@ export function buildStateScreenReadModels(
   const stateNames = new Set(result.states.map((state) => state.name));
   const baselineScenarioSamplesByState = baselinePreviewScenarioSamplesByState(result);
   const baselineScenarioRouteByState = baselinePreviewScenarioRouteByState(result);
-  const stateRenderings = new Map<string, { ids: RenderedIds; actionIds: Set<string>; modelValues: Record<string, boolean>; viewValues: Record<string, boolean | number | string>; scenarioRoute: ParsedPreviewScenario["route"]; scenarioSamples: ParsedPreviewScenario["samples"]; displayEffects: ParsedDisplayEffect[]; displayExplanations: StateScreenDisplayExplanation[] }>();
+  const stateRenderings = new Map<string, { ids: RenderedIds; actionIds: Set<string>; modelValues: Record<string, boolean>; viewValues: Record<string, boolean | number | string>; scenarioRoute: ParsedPreviewScenario["route"]; scenarioSamples: ParsedPreviewScenario["samples"]; scenarioInputRoute: ParsedPreviewScenario["route"]; scenarioInputSamples: ParsedPreviewScenario["samples"]; displayEffects: ParsedDisplayEffect[]; displayExplanations: StateScreenDisplayExplanation[] }>();
   if (displayStateName) {
     const displayScenarioSamples = baselineScenarioSamplesByState.get(displayStateName) ?? [];
     const displayScenarioRoute = baselineScenarioRouteByState.get(displayStateName) ?? [];
@@ -223,6 +229,8 @@ export function buildStateScreenReadModels(
       viewValues: displayViewValues,
       scenarioRoute: displayScenarioRoute,
       scenarioSamples: displayScenarioSamples,
+      scenarioInputRoute: displayScenarioRoute,
+      scenarioInputSamples: displayScenarioSamples,
       displayEffects: [],
       displayExplanations: []
     });
@@ -238,7 +246,7 @@ export function buildStateScreenReadModels(
     const scenarioRoute = baselineScenarioRouteByState.get(stateName) ?? [];
     const ids = stateScreenRenderedIdsFromReadModel(wireframeResult, viewport, stateName, stateModelValues, stateViewValues);
     const actionIds = relevantActionIdsForState(wireframeResult, stateName, ids.elementIds);
-    const rendered = { ids, actionIds, modelValues: stateModelValues, viewValues: stateViewValues, scenarioRoute, scenarioSamples, displayEffects: [], displayExplanations: [] };
+    const rendered = { ids, actionIds, modelValues: stateModelValues, viewValues: stateViewValues, scenarioRoute, scenarioSamples, scenarioInputRoute: scenarioRoute, scenarioInputSamples: scenarioSamples, displayEffects: [], displayExplanations: [] };
     stateRenderings.set(stateName, rendered);
     return rendered;
   };
@@ -254,8 +262,12 @@ export function buildStateScreenReadModels(
   ) => {
     const modelValues = modelValuesForState(scenarioResult, modelName ?? stateName);
     const viewValues = viewValuesForScenario(scenarioResult, viewName);
-    const scenarioRoute = mergeScenarioRoute(baselineScenarioRouteByState.get(stateName) ?? [], route);
-    const scenarioSamples = mergeScenarioSamples(baselineScenarioSamplesByState.get(stateName) ?? [], samples);
+    const baselineRoute = baselineScenarioRouteByState.get(stateName) ?? [];
+    const baselineSamples = baselineScenarioSamplesByState.get(stateName) ?? [];
+    const scenarioRoute = mergeScenarioRoute(baselineRoute, route);
+    const scenarioSamples = mergeScenarioSamples(baselineSamples, samples);
+    const scenarioInputRoute = scenarioRouteDiffs(baselineRoute, route);
+    const scenarioInputSamples = scenarioSampleDiffs(baselineSamples, samples);
     const ids = stateScreenRenderedIdsFromReadModel(scenarioResult, scenarioViewport, stateName, modelValues, viewValues);
     const displayEffects = displayEffectsForScenarioCases(scenarioResult, cases);
     const displayExplanations = displayExplanationsForScenarioCases(scenarioResult, cases);
@@ -267,6 +279,8 @@ export function buildStateScreenReadModels(
       viewValues,
       scenarioRoute,
       scenarioSamples,
+      scenarioInputRoute,
+      scenarioInputSamples,
       displayEffects,
       displayExplanations
     };
@@ -313,6 +327,8 @@ export function buildStateScreenReadModels(
         viewValues: current.viewValues,
         scenarioRoute: current.scenarioRoute,
         scenarioSamples: current.scenarioSamples,
+        scenarioInputRoute: current.scenarioInputRoute,
+        scenarioInputSamples: current.scenarioInputSamples,
         renderedIds: current.ids,
         displayEffects: current.displayEffects,
         displayExplanations: current.displayExplanations,
@@ -335,6 +351,8 @@ export function buildStateScreenReadModels(
           viewValues: current.viewValues,
           scenarioRoute: current.scenarioRoute,
           scenarioSamples: current.scenarioSamples,
+          scenarioInputRoute: current.scenarioInputRoute,
+          scenarioInputSamples: current.scenarioInputSamples,
           renderedIds: current.ids,
           displayEffects: current.displayEffects,
           displayExplanations: current.displayExplanations,
@@ -466,6 +484,57 @@ function mergeScenarioSamples(
     byElementId.set(sample.elementId, sample);
   }
   return [...byElementId.values()];
+}
+
+function scenarioRouteDiffs(
+  baseline: ParsedPreviewScenario["route"],
+  override: ParsedPreviewScenario["route"]
+): ParsedPreviewScenario["route"] {
+  const baselineByKey = new Map(baseline.map((sample) => [sample.key, sample]));
+  return override.filter((sample) => {
+    const baselineSample = baselineByKey.get(sample.key);
+    return !baselineSample || baselineSample.value !== sample.value;
+  });
+}
+
+function scenarioSampleDiffs(
+  baseline: ParsedPreviewScenario["samples"],
+  override: ParsedPreviewScenario["samples"]
+): ParsedPreviewScenario["samples"] {
+  const baselineByElementId = new Map(baseline.map((sample) => [sample.elementId, sample]));
+  return override.filter((sample) => !scenarioSamplesEqual(baselineByElementId.get(sample.elementId), sample));
+}
+
+function scenarioSamplesEqual(
+  baseline: ParsedPreviewScenario["samples"][number] | undefined,
+  override: ParsedPreviewScenario["samples"][number]
+): boolean {
+  if (!baseline) {
+    return false;
+  }
+  return baseline.value === override.value && scenarioSampleRowsEqual(baseline.rows, override.rows);
+}
+
+function scenarioSampleRowsEqual(
+  baseline: ParsedPreviewScenario["samples"][number]["rows"],
+  override: ParsedPreviewScenario["samples"][number]["rows"]
+): boolean {
+  if (!baseline || !override) {
+    return baseline === override;
+  }
+  if (baseline.explicitEmpty !== override.explicitEmpty || baseline.rows.length !== override.rows.length) {
+    return false;
+  }
+  return baseline.rows.every((row, index) => shallowRecordEqual(row.fields, override.rows[index]?.fields));
+}
+
+function shallowRecordEqual(left: Record<string, string>, right: Record<string, string> | undefined): boolean {
+  if (!right) {
+    return false;
+  }
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+  return leftKeys.length === rightKeys.length && leftKeys.every((key) => left[key] === right[key]);
 }
 
 function lastIndexWhere<T>(items: T[], predicate: (item: T) => boolean): number {
@@ -727,7 +796,7 @@ function markRepeatedCurrentStateScreenItems(
     }
   }
   for (const elementId of model.renderedIds.elementIds) {
-    if (model.scenarioRoute.length === 0 && !model.scenarioSamples.some((sample) => sample.elementId === elementId) && seen.current.has(stateScreenCurrentKey(keyResult, model, "element", elementId))) {
+    if (model.scenarioInputRoute.length === 0 && !model.scenarioInputSamples.some((sample) => sample.elementId === elementId) && seen.current.has(stateScreenCurrentKey(keyResult, model, "element", elementId))) {
       repeatedElementIds.add(elementId);
     }
   }

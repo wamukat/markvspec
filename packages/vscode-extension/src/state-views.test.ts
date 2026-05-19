@@ -932,11 +932,20 @@ title: Scenario Base Selection
   assert.equal(overlap?.displayStateId, "loaded");
   assert.equal(overlap?.scenarioMode, "overlap");
   assert.ok(overlap?.repeatedElementIds?.has("E-Loaded"));
+  assert.ok(overlap?.repeatedElementIds?.has("E-Shared"));
+  assert.deepEqual(overlap?.scenarioSamples.map((sample) => [sample.elementId, sample.value]), [
+    ["E-Shared", "Baseline shared"]
+  ]);
+  assert.deepEqual(overlap?.scenarioInputSamples, []);
   assert.equal(override?.viewKind, "scenario");
   assert.equal(override?.sourceStateId, "idle");
   assert.equal(override?.displayStateId, "loaded");
   assert.equal(override?.scenarioMode, "state-override");
   assert.ok(override?.repeatedElementIds?.has("E-Loaded"));
+
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const overlapSection = stateSectionContaining(html, "loaded", "loaded-overlay");
+  assert.doesNotMatch(overlapSection, /Scenario Samples/);
 });
 
 test("uses source state base for overlap scenario inserted before baseline state view", () => {
