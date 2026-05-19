@@ -15,6 +15,11 @@ import type {
 } from "@markvspec/core";
 import { escapeHtml } from "./design-document-renderer.js";
 import {
+  appendHtmlBeforeClosingRootDiv,
+  insertHtmlIntoElementRenderKey,
+  namespacePreviewRenderKeys
+} from "./preview-html-postprocess.js";
+import {
   defaultDisplayState,
   modelValuesForState
 } from "@markvspec/core";
@@ -508,7 +513,7 @@ function embedPartialPreviewsForResult(
 
 function appendModalOverlay(html: string, dialogHtml: string, dialogId: string): string {
   const overlay = `<div class="mm-modal-overlay" data-mm-display-modal="${escapeHtml(dialogId)}"><div class="mm-modal-content">${dialogHtml}</div></div>`;
-  return html.replace(/<\/div>\s*$/u, `${overlay}</div>`);
+  return appendHtmlBeforeClosingRootDiv(html, overlay);
 }
 
 function appendToastOverlays(
@@ -531,7 +536,7 @@ function appendToastOverlays(
       return `<div class="mm-toast-region mm-toast-region-${escapeHtml(placement)}" data-mm-display-toast-region="${escapeHtml(placement)}">${items}</div>`;
     })
     .join("");
-  return html.replace(/<\/div>\s*$/u, `${overlays}</div>`);
+  return appendHtmlBeforeClosingRootDiv(html, overlays);
 }
 
 function normalizeToastPlacement(value: string): string {
@@ -555,9 +560,7 @@ function renderPartialPreviewPlaceholder(message: string): string {
 
 function namespacePartialPreviewRenderKeys(html: string, targetId: string, partialId: string): string {
   const prefix = `partial-content:${targetId}:${partialId}:`;
-  return html
-    .replace(/data-mm-render-key="([^"]+)"/gu, (_match, renderKey: string) => `data-mm-render-key="${escapeHtml(prefix)}${renderKey}"`)
-    .replace(/<!--mm-render-key:([^>]+)-->/gu, (_match, renderKey: string) => `<!--mm-render-key:${prefix}${renderKey}-->`);
+  return namespacePreviewRenderKeys(html, prefix);
 }
 
 function partialTargets(result: MarkVSpecParseResult, viewport?: string, options: PartialTargetOptions = {}): PartialTarget[] {
@@ -673,16 +676,7 @@ function renderDisplayMessageContent(result: MarkVSpecParseResult, reference: st
 }
 
 function insertFieldErrorContent(html: string, elementId: string, content: string): string {
-  const escapedElementId = escapeRegExp(elementId);
-  const pattern = new RegExp(`(<div class="mm-element-wrap[^"]*"[^>]*data-mm-render-key="element:${escapedElementId}"[^>]*>[\\s\\S]*?)(</div>)`, "u");
-  if (!pattern.test(html)) {
-    return html;
-  }
-  return html.replace(pattern, `$1<div class="mm-field-error" data-mm-field-error-for="${escapeHtml(elementId)}">${content}</div>$2`);
-}
-
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return insertHtmlIntoElementRenderKey(html, `element:${elementId}`, `<div class="mm-field-error" data-mm-field-error-for="${escapeHtml(elementId)}">${content}</div>`);
 }
 
 function layoutGroupsForPartialTargets(

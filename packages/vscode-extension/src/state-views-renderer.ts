@@ -12,6 +12,7 @@ import {
 } from "@markvspec/core";
 import { viewportPrintStyle } from "@markvspec/document-renderer";
 import type { EntityReference } from "./entity-reference-presenter.js";
+import { markRepeatedMarkerCodeHtml } from "./preview-html-postprocess.js";
 import type { StateViewSpecTableRenderer } from "./state-view-spec-tables.js";
 
 export interface StateViewsFormatters {
@@ -504,16 +505,10 @@ function markRepeatedWireframeMarkers(
   const repeatedElementMarkers = markersForElements(result, [...(repeatedElementIds ?? [])]);
   const repeatedActionMarkers = markersForActions(result, [...(repeatedActionIds ?? [])]);
 
-  return html.replace(/<code class="mm-id mm-marker mm-marker-(layout|element|action)" data-mm-marker-category="\1">([\s\S]*?)<\/code>/g, (match, category: "layout" | "element" | "action", value: string) => {
-    const marker = unescapeHtml(value.replace(/<[^>]*>/g, ""));
-    const repeatedMarkers = category === "layout" ? repeatedLayoutMarkers : category === "element" ? repeatedElementMarkers : repeatedActionMarkers;
-    if (!repeatedMarkers.has(marker)) {
-      return match;
-    }
-
-    return match
-      .replace("mm-id mm-marker", "mm-id mm-marker mm-marker-repeated")
-      .replace(`data-mm-marker-category="${category}"`, `data-mm-marker-category="${category}" data-mm-repeated-marker="true"`);
+  return markRepeatedMarkerCodeHtml(html, {
+    layout: repeatedLayoutMarkers,
+    element: repeatedElementMarkers,
+    action: repeatedActionMarkers
   });
 }
 
@@ -541,12 +536,4 @@ function escapeHtml(value: string): string {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll("\"", "&quot;");
-}
-
-function unescapeHtml(value: string): string {
-  return value
-    .replaceAll("&quot;", "\"")
-    .replaceAll("&gt;", ">")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&amp;", "&");
 }

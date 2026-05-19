@@ -14,6 +14,7 @@ import {
   type DisplayContentSpecRow,
   type StateScreenReadModel
 } from "@markvspec/core";
+import { markRepeatedHiddenEmptyHtml } from "./preview-html-postprocess.js";
 
 type ParsedElement = MarkVSpecParseResult["elements"][number];
 type ParsedAction = MarkVSpecParseResult["actions"][number];
@@ -324,18 +325,6 @@ function routeResolvedValue(value: string, model: StateScreenReadModel | undefin
 
 function repeatedHiddenEmptyAttr(emptyWhenRepeatedHidden: boolean): string {
   return emptyWhenRepeatedHidden ? ` data-mm-repeated-empty="true"` : "";
-}
-
-function markRepeatedHiddenEmptyHtml(html: string, emptyWhenRepeatedHidden: boolean): string {
-  if (!emptyWhenRepeatedHidden) {
-    return html;
-  }
-  if (html.includes(`data-mm-repeated-empty="true"`)) {
-    return html;
-  }
-  return html
-    .replace(`<div class="spec-table-wrap"`, `<div class="spec-table-wrap" data-mm-repeated-empty="true"`)
-    .replace(`<p class="spec-empty"`, `<p class="spec-empty" data-mm-repeated-empty="true"`);
 }
 
 function renderSpecList(items: string[]): string {

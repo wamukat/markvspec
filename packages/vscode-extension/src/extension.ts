@@ -101,6 +101,12 @@ import {
 } from "./preview-client-script.js";
 import { renderProjectPreviewStyles, renderScreenPreviewStyles } from "./preview-document-styles.js";
 import {
+  addDocumentSectionNumberHtml,
+  demoteHtmlHeadings,
+  numberDocumentSectionsHtml,
+  prependHtmlInsideFirstTag
+} from "./preview-html-postprocess.js";
+import {
   actionDetailAnchor,
   businessRulesAnchor,
   errorCodesAnchor,
@@ -2370,17 +2376,9 @@ export function renderDesignDocumentHtml(result: ReturnType<typeof parseMarkVSpe
     return html;
   };
   const numberedSections = (html: string): string => {
-    if (!html.trim()) {
-      return "";
-    }
-    let localNumber = sectionNumber;
-    const numberedHtml = html.replace(/<section class="doc-section([^"]*)"([^>]*)>\s*<h2([^>]*)>/gu, (_match, classes: string, attributes: string, headingAttributes: string) => {
-      const number = String(localNumber);
-      localNumber += 1;
-      return `<section class="doc-section${classes}" data-section-number="${escapeHtml(number)}"${attributes}>\n    <h2${headingAttributes}>${renderSectionNumber(number)} `;
-    });
-    sectionNumber = localNumber;
-    return numberedHtml;
+    const numbered = numberDocumentSectionsHtml(html, sectionNumber, renderSectionNumber);
+    sectionNumber = numbered.nextNumber;
+    return numbered.html;
   };
 
   return renderDesignDocumentSections([
@@ -2405,12 +2403,7 @@ export function renderDesignDocumentHtml(result: ReturnType<typeof parseMarkVSpe
 }
 
 function withSectionNumber(html: string, sectionNumber: string): string {
-  if (!html.trim()) {
-    return "";
-  }
-  return html
-    .replace(/<section class="doc-section([^"]*)"/u, (_match, classes: string) => `<section class="doc-section${classes}" data-section-number="${escapeHtml(sectionNumber)}"`)
-    .replace(/<h2([^>]*)>/u, (_match, attributes: string) => `<h2${attributes}>${renderSectionNumber(sectionNumber)} `);
+  return addDocumentSectionNumberHtml(html, sectionNumber, renderSectionNumber);
 }
 
 function renderSectionNumber(sectionNumber: string): string {
@@ -2620,21 +2613,7 @@ function repeatedHiddenEmptyAttr(emptyWhenRepeatedHidden: boolean): string {
 }
 
 function demoteStateScreenDetailHeadings(content: string): string {
-  return content
-    .replace(/<h4\b([^>]*)>/gu, (_match, attrs: string) => {
-      const classAttribute = /\sclass=(["'])(.*?)\1/u.exec(attrs);
-      if (!classAttribute) {
-        return `<h6 class="state-screen-detail-heading"${attrs}>`;
-      }
-      const [, quote, classValue] = classAttribute;
-      const classes = classValue.split(/\s+/u).filter(Boolean);
-      if (!classes.includes("state-screen-detail-heading")) {
-        classes.push("state-screen-detail-heading");
-      }
-      const updatedAttrs = attrs.replace(classAttribute[0], ` class=${quote}${classes.join(" ")}${quote}`);
-      return `<h6${updatedAttrs}>`;
-    })
-    .replace(/<\/h4>/gu, "</h6>");
+  return demoteHtmlHeadings(content, 4, 6, "state-screen-detail-heading");
 }
 
 function renderFormGroupsSpec(result: ReturnType<typeof parseMarkVSpec>, markdownResult: ReturnType<typeof parseMarkVSpec> = result): string {
@@ -3008,7 +2987,7 @@ function renderSampleRowsRef(element: ParsedElement, sampleRowsRef: DisplayConte
     label: element.id,
     href: sampleRowsRef.anchorId ? `#${sampleRowsRef.anchorId}` : undefined
   });
-  return ref.replace(">", `>${renderPreviewIcon("table")}`);
+  return prependHtmlInsideFirstTag(ref, renderPreviewIcon("table"));
 }
 
 function renderActionableElementsTable(
