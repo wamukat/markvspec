@@ -17,6 +17,17 @@ MarkVSpec is a Markdown-first screen specification format. Keep the document sem
 - Do not write raw CSS classes, raw colors, dimensions, or htmx attributes into the specification.
 - Model htmx-style behavior with Actions, Process/HttpRequest, Cases, and display/update effects.
 
+## CLI Availability
+
+This skill is normally installed by the MarkVSpec CLI, so assume the `markvspec` command should be available in the user's environment.
+
+If `markvspec` is not available or a required command fails because of environment setup:
+
+- Do not pretend validation or diagnosis passed.
+- Continue only when the requested edit can be made safely from the source text.
+- Report the exact command you tried, the failure summary, and the validation or diagnosis risk that remains.
+- If the task is to create a new `.vspec.md` from underspecified input and `diagnose input` cannot run, ask for either CLI availability or enough missing screen details before producing a confident spec.
+
 ## Before Creating A Spec
 
 When starting from a requirements note, screen idea, meeting note, API note, or other Markdown input that is not yet `.vspec.md`, run:
@@ -38,6 +49,16 @@ The report uses the current `ai-input-diagnostics/v1` schema. Pay attention to:
 
 Treat these as readiness, missing information, confirmation questions, warnings/errors, and evidence for whether the input is specific enough for AI-assisted screen specification work.
 
+Use `readinessLevel` to decide how far to proceed:
+
+- `ready`: proceed with authoring, while still carrying any minor findings into the edit plan.
+- `needs-clarification`: proceed only when the missing points are not blocking the screen structure; otherwise ask targeted questions first. If drafting is useful, keep unresolved items in `## Open Questions`.
+- `high-risk`: do not produce a confident final spec. Ask targeted confirmation questions first, or create only an explicitly marked draft with unresolved items in `## Open Questions`.
+
+If substantial screen states, layout structure, actions, API behavior, validation rules, permissions, errors, or partial update targets are missing, do not silently fill gaps as facts.
+
+When the user already provides a `.vspec.md` file to edit, do not run `diagnose input` by default. Use `diagnose input` only when you are also converting or reinterpreting a separate requirements note, screen idea, meeting note, API note, or other non-`.vspec.md` source.
+
 ## Creating Or Editing `.vspec.md`
 
 Follow the project DSL conventions. Prefer these section names when applicable:
@@ -57,6 +78,21 @@ Use stable semantic IDs:
 - `E-*` for elements
 - `A-*` for actions
 - `R-*` for rules
+
+When editing an existing `.vspec.md`, preserve the local authoring style unless it conflicts with the DSL:
+
+- Keep the existing heading levels, section order, ID naming style, and bullet shape.
+- Keep existing Layout structure such as `### L-*` groups and `#### Items` subsections.
+- Add or change only the screen parts required by the request.
+- Prefer extending existing States, Layout, Elements, Actions, Rules, Notes, and Open Questions sections over creating duplicate sections.
+
+When creating a new `.vspec.md`, choose the output path in this order:
+
+1. Use the path explicitly requested by the user.
+2. If the user names a target directory or existing project convention, follow it.
+3. If converting a nearby requirements file and no convention is visible, place the new `.vspec.md` next to that source file.
+4. If the repository has an obvious examples or specs directory and the task is an example/spec addition, follow that local convention.
+5. If none of the above is safe, ask before creating the file.
 
 Element guidance:
 
@@ -107,6 +143,13 @@ markvspec validate <file-or-glob> --fail-on-warnings
 ```
 
 Use `--fail-on-warnings` for AI-agent work so warnings are treated as failures. Fix diagnostics when they reflect actual DSL, reference, or authoring issues. If a warning is intentionally left unresolved, explain why and keep the remaining risk visible.
+
+Classify validation results before fixing:
+
+- Fix syntax, schema, duplicate ID, broken reference, invalid section structure, and unsupported DSL diagnostics directly when the intended correction is clear.
+- For diagnostics caused by missing product information, do not invent facts; ask a targeted question or record the uncertainty in `## Open Questions`.
+- For intentional warnings that remain, report the warning, the reason it remains, and the user-visible risk.
+- Re-run validation after fixes when the CLI is available.
 
 For a lighter manual check, `markvspec validate <file-or-glob>` is available, but the standard AI-agent workflow should use `--fail-on-warnings`.
 
