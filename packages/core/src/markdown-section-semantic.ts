@@ -39,6 +39,7 @@ import {
 import { filterLinesWithoutStandaloneHtmlComments, isStandaloneHtmlCommentBlock } from "./markdown-html-comments.js";
 import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
 import { isMarkVSpecSourceType } from "./source-types.js";
+import { buildMarkVSpecProcessStepReadModel } from "./action-process-read-model.js";
 
 export interface SemanticDependency {
   source: { type: "entity" | "section" | "render"; id: string };
@@ -3444,10 +3445,9 @@ function actionSemanticDependencies(action: MarkVSpecAction): SemanticDependency
     dependencies.push(referenceDependency(action.id, param.source));
   }
   for (const step of action.processSteps) {
-    if (step.name.toLowerCase().replace(/[\s_-]+/gu, "") === "httprequest") {
-      for (const detail of step.details.filter((detail) => detail.key !== "request")) {
-        dependencies.push(referenceDependency(action.id, detail.value));
-      }
+    const processReadModel = buildMarkVSpecProcessStepReadModel(step);
+    for (const detail of processReadModel.execution.params) {
+      dependencies.push(referenceDependency(action.id, detail.value));
     }
     for (const outcome of step.outcomes) {
       for (const param of outcome.routeParams) {

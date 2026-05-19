@@ -29,9 +29,8 @@ import {
 } from "./entity-reference.js";
 import {
   buildMarkVSpecProcessStepReadModel,
-  classifyMarkVSpecProcessStep,
-  isCanonicalProcessParamDetail as isCanonicalProcessParamDetailFromReadModel,
   processExecutionDetailRoots,
+  processStepDataReferenceDetails,
   processStepDetail as processStepDetailFromReadModel
 } from "./action-process-read-model.js";
 import type {
@@ -43,7 +42,6 @@ import type {
   MarkVSpecLayoutGroup,
   MarkVSpecParseResult,
   MarkVSpecProcessStep,
-  MarkVSpecProcessStepDetail,
   MarkVSpecViewContextDefinition,
   SourceLocation
 } from "./types.js";
@@ -606,15 +604,15 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
           line: step.location.line
         });
       }
-      for (const detail of step.details.filter((detail) => isCanonicalProcessParamDetailFromReadModel(step, detail))) {
-          const sourceId = requestParamSourceId(detail.value);
-          if (sourceId && isLocalId(sourceId) && !layoutIds.has(sourceId) && !elementIds.has(sourceId)) {
-            diagnostics.push({
-              severity: "error",
-              message: `Action ${action.id} process step ${processStepLabel(step)} parameter ${detail.key} references missing source ${sourceId}.`,
-              line: detail.location.line
-            });
-          }
+      for (const detail of processReadModel.execution.params) {
+        const sourceId = requestParamSourceId(detail.value);
+        if (sourceId && isLocalId(sourceId) && !layoutIds.has(sourceId) && !elementIds.has(sourceId)) {
+          diagnostics.push({
+            severity: "error",
+            message: `Action ${action.id} process step ${processStepLabel(step)} parameter ${detail.key} references missing source ${sourceId}.`,
+            line: detail.location.line
+          });
+        }
       }
 
       if (isPartialRequestStep(step.name)) {
@@ -1634,35 +1632,35 @@ function validateProcessStepReferences(
   errorCodeIds: Set<string>,
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
-  for (const detail of step.details) {
-    if (detail.key === "validation" || detail.key === "validate") {
-      for (const validationId of splitReferenceList(detail.value)) {
-        const resultReference = parseValidationResultReference(validationId);
-        const referencedValidationId = resultReference ?? validationId;
-        if (!validationIds.has(referencedValidationId)) {
-          diagnostics.push({
-            severity: "error",
-            message: `Action ${actionId} process step ${step.name} references missing validation ${referencedValidationId}.`,
-            line: detail.location.line
-          });
-        } else if (validationId.startsWith("V-") && !resultReference) {
-          diagnostics.push({
-            severity: "warning",
-            message: `Action ${actionId} process step ${step.name} should reference ${validationId}.result when consuming validation results.`,
-            line: detail.location.line
-          });
-        }
+  const processReadModel = buildMarkVSpecProcessStepReadModel(step);
+  for (const detail of processReadModel.execution.validations) {
+    for (const validationId of splitReferenceList(detail.value)) {
+      const resultReference = parseValidationResultReference(validationId);
+      const referencedValidationId = resultReference ?? validationId;
+      if (!validationIds.has(referencedValidationId)) {
+        diagnostics.push({
+          severity: "error",
+          message: `Action ${actionId} process step ${step.name} references missing validation ${referencedValidationId}.`,
+          line: detail.location.line
+        });
+      } else if (validationId.startsWith("V-") && !resultReference) {
+        diagnostics.push({
+          severity: "warning",
+          message: `Action ${actionId} process step ${step.name} should reference ${validationId}.result when consuming validation results.`,
+          line: detail.location.line
+        });
       }
     }
-    if (detail.key === "error code" || detail.key === "error codes") {
-      for (const errorCode of splitReferenceList(detail.value)) {
-        if (!errorCodeIds.has(errorCode)) {
-          diagnostics.push({
-            severity: "error",
-            message: `Action ${actionId} process step ${step.name} references missing error code ${errorCode}.`,
-            line: detail.location.line
-          });
-        }
+  }
+
+  for (const detail of processReadModel.execution.errorCodes) {
+    for (const errorCode of splitReferenceList(detail.value)) {
+      if (!errorCodeIds.has(errorCode)) {
+        diagnostics.push({
+          severity: "error",
+          message: `Action ${actionId} process step ${step.name} references missing error code ${errorCode}.`,
+          line: detail.location.line
+        });
       }
     }
   }
@@ -1677,7 +1675,7 @@ function validateProcessDataReferences(
   elementIds: Set<string>,
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
-  for (const detail of [...step.inputs, ...step.receives]) {
+  for (const detail of processStepDataReferenceDetails(step)) {
     const sourceId = requestParamSourceId(detail.value);
     if (sourceId && isLocalId(sourceId) && !layoutIds.has(sourceId) && !elementIds.has(sourceId) && !actionIds.has(sourceId)) {
       diagnostics.push({
@@ -1705,10 +1703,6 @@ function validateProcessDataReferences(
       }
     }
   }
-}
-
-function isCanonicalProcessParamDetail(step: MarkVSpecProcessStep, detail: MarkVSpecProcessStepDetail): boolean {
-  return isCanonicalProcessParamDetailFromReadModel(step, detail);
 }
 
 function validateDisplayPartialEffect(
@@ -2915,10 +2909,6 @@ function layoutKindDiagnostic(group: MarkVSpecLayoutGroup): MarkVSpecDiagnostic 
   };
 }
 
-function isHttpRequestStep(name: string): boolean {
-  return classifyMarkVSpecProcessStep({ name }) === "HttpRequest";
-}
-
 function isPartialRequestStep(name: string): boolean {
   const normalized = name.trim().replace(/\s+/g, " ").toLowerCase();
   return normalized === "partial request" || normalized === "partialrequest";
@@ -2926,10 +2916,6 @@ function isPartialRequestStep(name: string): boolean {
 
 function isImmediateStep(name: string): boolean {
   return name.trim().replace(/\s+/g, " ").toLowerCase() === "immediate";
-}
-
-function isResolveStep(name: string): boolean {
-  return classifyMarkVSpecProcessStep({ name }) === "Resolve";
 }
 
 function validateRouteParameterReferences(result: MarkVSpecParseResult, diagnostics: MarkVSpecDiagnostic[]): void {
@@ -3014,8 +3000,9 @@ function validateRouteParameterReferences(result: MarkVSpecParseResult, diagnost
       checkValue(param.source, param.location.line);
     }
     for (const step of action.processSteps) {
-      if (isHttpRequestStep(step.name)) {
-        for (const detail of step.details.filter((detail) => detail.key !== "request")) {
+      const processReadModel = buildMarkVSpecProcessStepReadModel(step);
+      if (processReadModel.kind === "HttpRequest") {
+        for (const detail of processReadModel.execution.params) {
           checkValue(detail.value, detail.location.line);
         }
       }

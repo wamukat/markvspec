@@ -36,6 +36,7 @@ export function buildMarkVSpecProcessStepReadModel(step: MarkVSpecProcessStep): 
       call: processCallDetail(step, kind),
       params: processParamDetails(step, kind),
       validations: step.details.filter((detail) => detail.key === "validation" || detail.key === "validate"),
+      errorCodes: step.details.filter((detail) => detail.key === "error code" || detail.key === "error codes"),
       resolveGroup: step.resolveGroup,
       customDetails: processCustomDetails(step, kind)
     },
@@ -80,6 +81,10 @@ export function buildMarkVSpecProcessStepReadModel(step: MarkVSpecProcessStep): 
 
 export function processStepDetail(step: MarkVSpecProcessStep, key: string): MarkVSpecProcessStepDetail | undefined {
   return step.details.find((detail) => detail.key === key);
+}
+
+export function processStepDataReferenceDetails(step: MarkVSpecProcessStep): MarkVSpecProcessStepDetail[] {
+  return [...step.inputs, ...step.receives];
 }
 
 export function isCanonicalProcessParamDetail(step: MarkVSpecProcessStep, detail: MarkVSpecProcessStepDetail): boolean {
@@ -173,6 +178,9 @@ function processCustomDetails(step: MarkVSpecProcessStep, kind: MarkVSpecProcess
       return false;
     }
     if (detail.key === "validation" || detail.key === "validate") {
+      return false;
+    }
+    if (detail.key === "error code" || detail.key === "error codes") {
       return false;
     }
     if (detail.key === "params" && detail.value === "") {

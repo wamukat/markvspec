@@ -488,6 +488,7 @@ export interface MarkVSpecProcessStepExecutionReadModel {
   call?: MarkVSpecProcessStepDetail;
   params: MarkVSpecProcessStepDetail[];
   validations: MarkVSpecProcessStepDetail[];
+  errorCodes: MarkVSpecProcessStepDetail[];
   resolveGroup?: string;
   customDetails: MarkVSpecProcessStepDetail[];
 }

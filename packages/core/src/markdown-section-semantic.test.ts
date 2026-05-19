@@ -988,6 +988,10 @@ title: Action AST
     - from: idle
     - Effects
       - state: error
+- Process: ServerCall
+  - ProfileService.load()
+  - params:
+    - memberId: E-MemberId.value
 `;
   const diagnostics: MarkVSpecDiagnostic[] = [];
   const document = parseMarkdownDocument(source, diagnostics);
@@ -1003,7 +1007,8 @@ title: Action AST
   assert.deepEqual(action?.trigger, { elementId: "E-SubmitButton", event: "click" });
   assert.deepEqual(action?.fromStates, ["idle"]);
   assert.deepEqual(action?.processSteps.map((step) => [step.name, step.details.map((detail) => [detail.key, detail.value])]), [
-    ["HttpRequest", [["request", "POST /login"], ["email", "E-メールアドレス入力.value"]]]
+    ["HttpRequest", [["request", "POST /login"], ["email", "E-メールアドレス入力.value"]]],
+    ["ServerCall", [["call", "ProfileService.load()"], ["params", ""], ["memberId", "E-MemberId.value"]]]
   ]);
   assert.deepEqual(action?.responses, []);
   assert.deepEqual(action?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
@@ -1037,7 +1042,8 @@ title: Action AST
     [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "L-Message" }, "references"],
     [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "PRT-SUCCESS" }, "references"],
     [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "E-メールアドレス入力.value" }, "references"],
-    [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "E-UserId.value" }, "references"]
+    [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "E-UserId.value" }, "references"],
+    [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "E-MemberId.value" }, "references"]
   ]);
 });
 
