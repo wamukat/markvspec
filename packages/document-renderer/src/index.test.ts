@@ -17,6 +17,10 @@ import {
   wireframePrintSectionCss
 } from "./index.js";
 
+function iconPattern(name: string): RegExp {
+  return new RegExp(`<svg class="mm-icon mm-icon-${name}" aria-hidden="true" viewBox="0 0 24 24">[\\s\\S]*?</svg>`);
+}
+
 test("resolves shared viewport canvas widths and print scale", () => {
   assert.equal(viewportCanvasWidth("mobile"), "390px");
   assert.equal(viewportCanvasWidth("tablet"), "768px");
@@ -685,6 +689,75 @@ title: Static Transitions
   assert.match(html, /page\.load -&gt; A-LoadAccount -&gt; A-LoadAccount\.P1\.response -&gt; A-HandleAccountResponse\.P1\.success/);
   assert.match(html, /page\.load -&gt; A-LoadAccount -&gt; A-LoadAccount\.P1\.response -&gt; A-HandleAccountResponse\.P1\.failure/);
   assert.doesNotMatch(html, /A-LoadAccount\.transitions/);
+});
+
+test("renders selected process kind icons in static action details", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-STATIC-PROCESS-ICONS
+type: screen
+title: Static Process Icons
+---
+
+# SCR-STATIC-PROCESS-ICONS Static Process Icons
+
+## States
+
+- idle*
+- loaded
+
+## Elements
+
+### E-Run Button
+
+- label: Run
+
+### E-Status Text
+
+- value: Ready
+
+## Actions
+
+### A-Run Run
+
+- Triggered
+  - E-Run.click
+- From
+  - idle
+- Process P1: Check validation
+  - validation: V-Email.result
+- Process P2: HttpRequest
+  - request:
+    - method: GET
+    - path: /account
+- Process P3: ServerCall
+  - call: AccountService.load()
+- Process P4: Receive response
+  - receive:
+    - response: A-Run.P2.response
+- Process P5: Show display
+  - display: E-Status = Loaded
+- Process P6: Navigate away
+  - navigate: SCR-NEXT
+- Process P7: Set loaded
+  - state: loaded
+- Process P8: Failure handler
+- Process: ServerCall
+  - group: initial-load
+  - ProfileService.load()
+  - continue
+- Process: Resolve
+  - group: initial-load
+  - case: ready
+    - Effects
+      - state: loaded
+    - stop
+`);
+  const html = renderStaticDesignDocumentHtml(result);
+
+  assert.match(html, /<h2>Action Details<\/h2>/);
+  for (const name of ["square-check-big", "unplug", "cog", "satellite-dish", "panels-top-left", "waypoints", "refresh-cw", "circle-x", "split", "merge"]) {
+    assert.match(html, iconPattern(name), name);
+  }
 });
 
 test("renders property-level display metadata in static display content spec", () => {

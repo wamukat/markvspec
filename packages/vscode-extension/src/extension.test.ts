@@ -165,6 +165,10 @@ function sourceTypeChipPattern(value: string): string {
   return `<span class="mm-chip mm-source-chip mm-source-chip-${escapeRegExp(value)}">(?:<svg class="mm-icon mm-icon-[^"]+" aria-hidden="true" viewBox="0 0 24 24">[\\s\\S]*?</svg>)?${escapeRegExp(value)}</span>`;
 }
 
+function iconPattern(name: string): string {
+  return `<svg class="mm-icon mm-icon-${escapeRegExp(name)}" aria-hidden="true" viewBox="0 0 24 24">[\\s\\S]*?</svg>`;
+}
+
 function defaultAlwaysPattern(value = "always"): string {
   return `<span class="spec-default-always">${escapeRegExp(value)}</span>`;
 }
@@ -3389,7 +3393,7 @@ locale: ja
   assert.doesNotMatch(actionDetailsSection, /<dt>部分更新<\/dt><dd>[\s\S]*<th>結果<\/th>/);
   assert.match(actionDetailsSection, new RegExp(`<dt>部分更新</dt><dd>[\\s\\S]*<ul class="spec-list spec-effect-list"><li>内容 更新後のユーザー一覧</li><li>モード replace</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>レスポンスのユーザー一覧を ${sourceCodePattern("${model.users.items}")} に格納する</li><li>レスポンスのページ番号を ${sourceCodePattern("${model.page}")} に格納する</li><li>${sourceCodePattern("${model.error}")} を空にする</li></ul></li></ul>`));
   assert.doesNotMatch(actionDetailsSection, /side effect レスポンス/);
-  assert.match(actionDetailsSection, new RegExp(`<div class="process-card-header"><span class="process-card-title">PartialRequest</span></div>[\\s\\S]*<ul class="spec-list spec-effect-list"><li>リクエスト: POST /users/search</li><li>更新 ${detailLayoutRef("T1", "User table")}</li><li>モード replace</li><li>内容 更新後のユーザー一覧</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>レスポンスのユーザー一覧を ${sourceCodePattern("${model.users.items}")} に格納する</li><li>レスポンスのページ番号を ${sourceCodePattern("${model.page}")} に格納する</li><li>${sourceCodePattern("${model.error}")} を空にする</li></ul></li></ul>`));
+  assert.match(actionDetailsSection, new RegExp(`<div class="process-card-header">${iconPattern("unplug")}<span class="process-card-title">PartialRequest</span></div>[\\s\\S]*<ul class="spec-list spec-effect-list"><li>リクエスト: POST /users/search</li><li>更新 ${detailLayoutRef("T1", "User table")}</li><li>モード replace</li><li>内容 更新後のユーザー一覧</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>レスポンスのユーザー一覧を ${sourceCodePattern("${model.users.items}")} に格納する</li><li>レスポンスのページ番号を ${sourceCodePattern("${model.page}")} に格納する</li><li>${sourceCodePattern("${model.error}")} を空にする</li></ul></li></ul>`));
   assert.match(actionDetailsSection, new RegExp(`<li>更新 <ul class="spec-list spec-effect-list"><li>${detailLayoutRef("T1", "User table")}</li><li>内容 検索結果を表示する</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>${sourceCodePattern("${model.audit}")} &lt; value &amp; retry</li></ul></li></ul></li>`));
 });
 
@@ -6843,6 +6847,94 @@ title: Direct Process
   assert.match(actionDetail, new RegExp(`<span class="process-card-title">${docLabel("P2", "result")} Set loaded</span>[\\s\\S]*<li>effect set state ${docLabel("loaded", "state")}</li>`));
   assert.match(actionDetail, new RegExp(`<span class="process-card-title">${docLabel("P3", "result")} Label only</span>\\s*</div>\\s*</div>`));
   assert.doesNotMatch(actionDetail, /<strong>success<\/strong>/);
+});
+
+test("renders selected process kind icons in action details", () => {
+  const source = `---
+id: SCR-PROCESS-ICONS
+type: screen
+title: Process Icons
+---
+
+# SCR-PROCESS-ICONS Process Icons
+
+## States
+
+- idle*
+- loaded
+
+## Layout
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- E-Button
+- E-Status
+
+## Elements
+
+### E-Button Button
+
+- label: Run
+
+### E-Status Text
+
+- value: Ready
+
+## Actions
+
+### A1:A-Run Run
+
+- Triggered
+  - E-Button.click
+- From
+  - idle
+- Process P1: Check validation
+  - validation: V-Email.result
+- Process P2: HttpRequest
+  - request:
+    - method: GET
+    - path: /account
+- Process P3: ServerCall
+  - call: AccountService.load()
+- Process P4: Receive response
+  - receive:
+    - response: A-Run.P2.response
+- Process P5: Show display
+  - display: E-Status = Loaded
+- Process P6: Navigate away
+  - navigate: SCR-NEXT
+- Process P7: Set loaded
+  - state: loaded
+- Process P8: Failure handler
+- Process: ServerCall
+  - group: initial-load
+  - ProfileService.load()
+  - continue
+- Process: Resolve
+  - group: initial-load
+  - case: ready
+    - Effects
+      - state: loaded
+    - stop
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
+  const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Run">[\s\S]*?<\/article>/)?.[0] ?? "";
+
+  assert.match(actionDetail, new RegExp(`${iconPattern("square-check-big")}\\s*<span class="process-card-title">${docLabel("P1", "result")} Check validation</span>`));
+  assert.match(actionDetail, new RegExp(`${iconPattern("unplug")}\\s*<span class="process-card-title">${docLabel("P2", "result")} HttpRequest</span>`));
+  assert.match(actionDetail, new RegExp(`${iconPattern("cog")}\\s*<span class="process-card-title">${docLabel("P3", "result")} ServerCall</span>`));
+  assert.match(actionDetail, new RegExp(`${iconPattern("satellite-dish")}\\s*<span class="process-card-title">${docLabel("P4", "result")} Receive response</span>`));
+  assert.match(actionDetail, new RegExp(`${iconPattern("panels-top-left")}\\s*<span class="process-card-title">${docLabel("P5", "result")} Show display</span>`));
+  assert.match(actionDetail, new RegExp(`${iconPattern("waypoints")}\\s*<span class="process-card-title">${docLabel("P6", "result")} Navigate away</span>`));
+  assert.match(actionDetail, new RegExp(`${iconPattern("refresh-cw")}\\s*<span class="process-card-title">${docLabel("P7", "result")} Set loaded</span>`));
+  assert.match(actionDetail, new RegExp(`${iconPattern("circle-x")}\\s*<span class="process-card-title">${docLabel("P8", "result")} Failure handler</span>`));
+  assert.match(actionDetail, new RegExp(`${iconPattern("split")}\\s*<span class="process-card-title">Parallel group: initial-load</span>`));
+  assert.match(actionDetail, new RegExp(`${iconPattern("merge")}\\s*<span class="process-card-title">Resolve initial-load</span>`));
 });
 
 test("localizes generated Japanese action detail process labels without translating author text", () => {
