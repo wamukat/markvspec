@@ -7,8 +7,6 @@ import type {
   MarkVSpecHistoryEntry,
   MarkVSpecHistoryFieldSchema,
   MarkVSpecHistoryFieldType,
-  MarkVSpecLayoutGroup,
-  MarkVSpecLayoutItem,
   MarkVSpecModelSampleRow,
   MarkVSpecModelSampleSet,
   MarkVSpecModelSampleGroup,
@@ -17,8 +15,6 @@ import type {
   MarkVSpecRule,
   MarkVSpecSampleRow,
   MarkVSpecSectionProse,
-  MarkVSpecSlotContent,
-  MarkVSpecSlotDefinition,
   MarkVSpecState,
   MarkVSpecValidationRule,
   MarkVSpecViewContextDefinition,
@@ -31,7 +27,13 @@ import {
   type ActionSemanticResult
 } from "./action-section-semantic.js";
 export type { ActionSectionSemanticResult, ActionSemanticResult } from "./action-section-semantic.js";
-import { actionIdPattern, elementIdPattern, formGroupIdPattern, isLayoutItemId, layoutGroupIdPattern } from "./ids.js";
+import {
+  parseLayoutSectionSemantics as parseLayoutSectionSemanticsWithSupport,
+  type LayoutSectionSemanticResult,
+  type LayoutSemanticResult
+} from "./layout-section-semantic.js";
+export type { LayoutSectionSemanticResult, LayoutSemanticResult } from "./layout-section-semantic.js";
+import { actionIdPattern, elementIdPattern, formGroupIdPattern } from "./ids.js";
 import type { MarkdownDocument } from "./markdown-document.js";
 import {
   collectSectionAst,
@@ -151,27 +153,6 @@ export interface SmallSectionSemanticResult {
   sectionProse: MarkVSpecSectionProse[];
   diagnostics: MarkVSpecDiagnostic[];
   sectionResults: SectionSemanticResult[];
-}
-
-export interface LayoutSectionSemanticResult {
-  sectionId: string;
-  kind: "Layout" | "Slot" | "Slots";
-  layoutGroups: MarkVSpecLayoutGroup[];
-  slotContents: MarkVSpecSlotContent[];
-  slotDefinitions: MarkVSpecSlotDefinition[];
-  sectionProse: MarkVSpecSectionProse[];
-  diagnostics: MarkVSpecDiagnostic[];
-  dependencies: SemanticDependency[];
-  renderKeys: string[];
-}
-
-export interface LayoutSemanticResult {
-  layoutGroups: MarkVSpecLayoutGroup[];
-  slotContents: MarkVSpecSlotContent[];
-  slotDefinitions: MarkVSpecSlotDefinition[];
-  sectionProse: MarkVSpecSectionProse[];
-  diagnostics: MarkVSpecDiagnostic[];
-  sectionResults: LayoutSectionSemanticResult[];
 }
 
 export interface ElementSectionSemanticResult {
@@ -295,19 +276,19 @@ function sectionOrderRank(kind: SectionKind): number {
 }
 
 export function parseLayoutSectionSemantics(document: MarkdownDocument): LayoutSemanticResult {
-  const sections = collectSectionAst(document);
-  const sectionResults = sections
-    .filter((section) => section.kind === "Layout" || section.kind === "Slot" || section.kind === "Slots")
-    .map((section) => parseLayoutSemanticSection(document, sections, section));
-
-  return {
-    layoutGroups: sectionResults.flatMap((result) => result.layoutGroups),
-    slotContents: sectionResults.flatMap((result) => result.slotContents),
-    slotDefinitions: sectionResults.flatMap((result) => result.slotDefinitions),
-    sectionProse: sectionResults.flatMap((result) => result.sectionProse),
-    diagnostics: sectionResults.flatMap((result) => result.diagnostics),
-    sectionResults
-  };
+  return parseLayoutSectionSemanticsWithSupport(document, {
+    isSectionNotesHeading,
+    isEntityNoteBlock,
+    appendEntityProseLines,
+    listItems,
+    parsedBulletFromListItem,
+    locationFromBlock,
+    splitKeyValue,
+    addPropertyLocation,
+    proseForSection,
+    structuredSectionOwnershipDiagnostics,
+    dedupeDependencies
+  });
 }
 
 export function parseElementSectionSemantics(document: MarkdownDocument): ElementSemanticResult {
@@ -393,329 +374,6 @@ function parseSmallSection(document: MarkdownDocument, sections: SectionAst[], s
     default:
       return resultFor(section, "empty", {}, []);
   }
-}
-
-function parseLayoutSemanticSection(document: MarkdownDocument, sections: SectionAst[], section: SectionAst): LayoutSectionSemanticResult {
-  switch (section.kind) {
-    case "Layout":
-      return parseLayoutOrSlotSection(section);
-    case "Slot":
-      return parseLayoutOrSlotSection(section);
-    case "Slots":
-      return parseSlotsSection(section);
-    default:
-      return {
-        sectionId: section.id,
-        kind: "Layout",
-        layoutGroups: [],
-        slotContents: [],
-        slotDefinitions: [],
-        sectionProse: [],
-        diagnostics: [],
-        dependencies: [],
-        renderKeys: []
-      };
-  }
-}
-
-function parseLayoutOrSlotSection(section: SectionAst): LayoutSectionSemanticResult {
-  const diagnostics: MarkVSpecDiagnostic[] = [];
-  const dependencies: SemanticDependency[] = [];
-  const layoutGroups: MarkVSpecLayoutGroup[] = [];
-  const slotContents: MarkVSpecSlotContent[] = [];
-  const isSlotSection = section.kind === "Slot";
-  const viewport = section.viewport;
-  const slotName = section.slotName;
-  const slotContent: MarkVSpecSlotContent | undefined = isSlotSection && slotName
-    ? {
-        name: slotName,
-        ...(viewport ? { viewport } : {}),
-        layoutGroups: [],
-        location: { line: section.heading.range.start.line }
-      }
-    : undefined;
-
-  if (section.kind === "Layout" && !viewport) {
-    diagnostics.push(createMarkVSpecDiagnostic(
-      "warning",
-      "layout.missingViewport",
-      {},
-      section.heading.range.start.line
-    ));
-  }
-  if (isSlotSection && !slotName) {
-    diagnostics.push({
-      severity: "warning",
-      message: "Slot section must specify a slot name, for example ## Slot: content.",
-      line: section.heading.range.start.line
-    });
-  }
-  if (slotContent) {
-    slotContents.push(slotContent);
-  }
-
-  let currentLayout: MarkVSpecLayoutGroup | undefined;
-  let layoutSubsection: string | undefined;
-  let currentLayoutNestedProperty: string | undefined;
-  let currentLayoutHasStructuredContent = false;
-  let hasSeenEntity = false;
-  let inSectionNotes = false;
-  const sectionOverviewBlocks: BlockAst[] = [];
-  const sectionNoteBlocks: BlockAst[] = [];
-  const layoutHeadingRegex = new RegExp(String.raw`^(?:(\S+?):)?(${layoutGroupIdPattern})(?:\s+(.+?))?\s*$`, "u");
-
-  for (const block of section.blocks) {
-    if (isSectionNotesHeading(block)) {
-      currentLayout = undefined;
-      layoutSubsection = undefined;
-      currentLayoutNestedProperty = undefined;
-      currentLayoutHasStructuredContent = false;
-      inSectionNotes = true;
-      hasSeenEntity = true;
-      continue;
-    }
-    if (inSectionNotes) {
-      if (isEntityNoteBlock(block)) {
-        sectionNoteBlocks.push(block);
-      }
-      continue;
-    }
-    if (block.type === "heading" && block.depth === 3) {
-      hasSeenEntity = true;
-      const heading = layoutHeadingRegex.exec(block.text);
-      if (!heading) {
-        diagnostics.push({
-          severity: "warning",
-          message: "Malformed Layout heading. Expected ### [<marker>:]L-* [name] or ### P-* [name].",
-          line: locationFromBlock(block).line
-        });
-        currentLayout = undefined;
-        layoutSubsection = undefined;
-        currentLayoutNestedProperty = undefined;
-        continue;
-      }
-
-      const headingLocation = locationFromBlock(block);
-      if (section.kind === "Layout" && !viewport) {
-        diagnostics.push(createMarkVSpecDiagnostic(
-          "warning",
-          "layout.groupIgnoredWithoutViewport",
-          {},
-          headingLocation.line
-        ));
-        currentLayout = undefined;
-        layoutSubsection = undefined;
-        currentLayoutNestedProperty = undefined;
-        continue;
-      }
-
-      if (isSlotSection && !slotContent) {
-        diagnostics.push({
-          severity: "warning",
-          message: "Slot layout group is ignored because its Slot section has no name.",
-          line: headingLocation.line
-        });
-        currentLayout = undefined;
-        layoutSubsection = undefined;
-        currentLayoutNestedProperty = undefined;
-        continue;
-      }
-
-      layoutSubsection = undefined;
-      currentLayoutNestedProperty = undefined;
-      currentLayout = {
-        id: heading[2],
-        name: heading[3]?.trim() ?? "",
-        viewport: viewport ?? "",
-        notes: [],
-        items: [],
-        properties: heading[1] ? { marker: heading[1] } : {},
-        propertyLocations: heading[1] ? { marker: [headingLocation] } : {},
-        location: headingLocation
-      };
-      if (slotContent) {
-        slotContent.layoutGroups.push(currentLayout);
-      } else {
-        layoutGroups.push(currentLayout);
-      }
-      dependencies.push(...layoutRenderDependencies(section, currentLayout, slotContent?.name));
-      currentLayoutHasStructuredContent = false;
-      continue;
-    }
-
-    if (!currentLayout) {
-      if (!hasSeenEntity && isEntityNoteBlock(block)) {
-        sectionOverviewBlocks.push(block);
-      }
-      continue;
-    }
-
-    if (isEntityNoteBlock(block)) {
-      appendEntityProseLines(currentLayout, block, currentLayoutHasStructuredContent);
-      continue;
-    }
-
-    if (block.type === "heading" && block.depth === 4) {
-      currentLayoutHasStructuredContent = true;
-      layoutSubsection = block.text;
-      currentLayoutNestedProperty = undefined;
-      if (layoutSubsection === "Repeat") {
-        diagnostics.push({
-          severity: "error",
-          message: `Layout ${currentLayout.id} uses removed Repeat subsection. Use Element sample rows or Preview Scenario samples instead.`,
-          line: locationFromBlock(block).line
-        });
-      }
-      continue;
-    }
-
-    if (block.type !== "list") {
-      continue;
-    }
-
-    currentLayoutHasStructuredContent = true;
-    for (const item of listItems([block])) {
-      const bullet = parsedBulletFromListItem(item);
-      if (layoutSubsection === "Repeat") {
-        continue;
-      }
-      if (bullet.indent > 0) {
-        if (layoutSubsection !== "Items" && (currentLayoutNestedProperty === "partial" || currentLayoutNestedProperty === "partial states")) {
-          const partialNestedProperty = currentLayoutNestedProperty === "partial states" && bullet.indent > 1
-            ? "partial states"
-            : "partial";
-          currentLayoutNestedProperty = applyLayoutPartialBullet(currentLayout, bullet, partialNestedProperty);
-          addPartialDependencies(currentLayout, dependencies);
-          continue;
-        }
-        diagnostics.push({
-          severity: "warning",
-          message: `Layout ${currentLayout.id} has indented ${layoutSubsection === "Items" ? "Items" : "metadata"} entry: ${bullet.text}. Use an unindented list item.`,
-          line: bullet.location.line
-        });
-      }
-      if (layoutSubsection === "Items") {
-        applyLayoutItemBullet(currentLayout, bullet);
-        addLayoutItemDependency(currentLayout, currentLayout.items[currentLayout.items.length - 1], dependencies);
-      } else {
-        currentLayoutNestedProperty = applyLayoutMetadataBullet(currentLayout, bullet);
-        addPartialDependencies(currentLayout, dependencies);
-      }
-    }
-  }
-
-  const renderKeys = [
-    ...layoutGroups.map((group) => `layout:${group.viewport}:${group.id}`),
-    ...slotContents.flatMap((slot) => slot.layoutGroups.map((group) => slotContentRenderKey(slot.name, slot.viewport, group.id))),
-    ...slotContents.map((slot) => `slot:${slot.name}`)
-  ];
-
-  return {
-    sectionId: section.id,
-    kind: isSlotSection ? "Slot" : "Layout",
-    layoutGroups,
-    slotContents,
-    slotDefinitions: [],
-    sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, renderKeys),
-    diagnostics: [...diagnostics, ...structuredSectionOwnershipDiagnostics(section, { emitMalformedHeading: false })],
-    dependencies: dedupeDependencies(dependencies),
-    renderKeys
-  };
-}
-
-function parseSlotsSection(section: SectionAst): LayoutSectionSemanticResult {
-  const slotDefinitions: MarkVSpecSlotDefinition[] = [];
-  const dependencies: SemanticDependency[] = [{
-    source: { type: "section", id: section.id },
-    target: { type: "render", id: "slots:list" },
-    direction: "source-invalidates-target",
-    kind: "renders"
-  }];
-  let currentSlotDefinition: MarkVSpecSlotDefinition | undefined;
-  let currentSlotDefinitionHasStructuredContent = false;
-  let hasSeenEntity = false;
-  let inSectionNotes = false;
-  const sectionOverviewBlocks: BlockAst[] = [];
-  const sectionNoteBlocks: BlockAst[] = [];
-
-  for (const block of section.blocks) {
-    if (isSectionNotesHeading(block)) {
-      currentSlotDefinition = undefined;
-      currentSlotDefinitionHasStructuredContent = false;
-      inSectionNotes = true;
-      hasSeenEntity = true;
-      continue;
-    }
-    if (inSectionNotes) {
-      if (isEntityNoteBlock(block)) {
-        sectionNoteBlocks.push(block);
-      }
-      continue;
-    }
-    if (block.type === "heading" && block.depth === 3) {
-      hasSeenEntity = true;
-      const heading = /^(\S+)(?:\s+(.+?))?\s*$/.exec(block.text);
-      if (!heading) {
-        currentSlotDefinition = undefined;
-        currentSlotDefinitionHasStructuredContent = false;
-        continue;
-      }
-      currentSlotDefinition = {
-        name: heading[1],
-        title: heading[2],
-        properties: {},
-        propertyLocations: {},
-        location: locationFromBlock(block)
-      };
-      slotDefinitions.push(currentSlotDefinition);
-      currentSlotDefinitionHasStructuredContent = false;
-      dependencies.push({
-        source: { type: "section", id: section.id },
-        target: { type: "entity", id: `slot:${currentSlotDefinition.name}` },
-        direction: "source-invalidates-target",
-        kind: "derives"
-      });
-      dependencies.push({
-        source: { type: "section", id: section.id },
-        target: { type: "render", id: slotDefinitionRenderKey(currentSlotDefinition.name) },
-        direction: "source-invalidates-target",
-        kind: "renders"
-      });
-      continue;
-    }
-    if (!currentSlotDefinition) {
-      if (!hasSeenEntity && isEntityNoteBlock(block)) {
-        sectionOverviewBlocks.push(block);
-      }
-      continue;
-    }
-    if (isEntityNoteBlock(block)) {
-      appendEntityProseLines(currentSlotDefinition, block, currentSlotDefinitionHasStructuredContent);
-      continue;
-    }
-    if (currentSlotDefinition) {
-      if (block.type === "list") {
-        currentSlotDefinitionHasStructuredContent = true;
-      }
-      for (const bullet of listItems([block]).filter((item) => item.depth === 0)) {
-        applySlotDefinitionBullet(currentSlotDefinition, bullet.text, locationFromBlock(bullet));
-      }
-    }
-  }
-
-  const renderKeys = ["slots:list", ...slotDefinitions.map((slot) => slotDefinitionRenderKey(slot.name))];
-
-  return {
-    sectionId: section.id,
-    kind: "Slots",
-    layoutGroups: [],
-    slotContents: [],
-    slotDefinitions,
-    sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, renderKeys),
-    diagnostics: structuredSectionOwnershipDiagnostics(section),
-    dependencies: dedupeDependencies(dependencies),
-    renderKeys
-  };
 }
 
 function parseElementsSection(section: SectionAst): ElementSectionSemanticResult {
@@ -2525,254 +2183,6 @@ function stripInlineCode(value: string): string {
 
 function isHistoryFieldType(value: string): value is MarkVSpecHistoryFieldType {
   return value === "string" || value === "date";
-}
-
-function applyLayoutMetadataBullet(layout: MarkVSpecLayoutGroup, bullet: ParsedBullet): string | undefined {
-  const [key, value] = splitKeyValue(bullet.text);
-  if (key.trim() === "partial" && value !== undefined && value.trim() === "") {
-    layout.partial = {
-      states: {},
-      propertyLocations: {},
-      location: bullet.location
-    };
-    addPropertyLocation(layout.propertyLocations, "partial", bullet.location);
-    layout.items.push({
-      type: "property",
-      key: "partial",
-      value: "",
-      scope: "metadata",
-      location: bullet.location,
-      raw: bullet.text
-    });
-    return "partial";
-  }
-
-  if (value !== undefined) {
-    const normalizedKey = key.trim();
-    const normalizedValue = value.trim();
-    layout.properties[normalizedKey] = normalizedValue;
-    addPropertyLocation(layout.propertyLocations, normalizedKey, bullet.location);
-    layout.items.push({
-      type: "property",
-      key: normalizedKey,
-      value: normalizedValue,
-      scope: "metadata",
-      location: bullet.location,
-      raw: bullet.text
-    });
-    return undefined;
-  }
-
-  if (!layout.kind) {
-    layout.kind = bullet.text;
-  }
-
-  layout.items.push({
-    type: "flag",
-    value: bullet.text,
-    scope: "metadata",
-    location: bullet.location,
-    raw: bullet.text
-  });
-  return undefined;
-}
-
-function applyLayoutPartialBullet(
-  layout: MarkVSpecLayoutGroup,
-  bullet: ParsedBullet,
-  nestedProperty: "partial" | "partial states"
-): "partial" | "partial states" {
-  const partial = layout.partial ?? {
-    states: {},
-    propertyLocations: {},
-    location: bullet.location
-  };
-  layout.partial = partial;
-
-  const [key, value] = splitKeyValue(bullet.text);
-  const normalizedKey = key.trim();
-  const normalizedValue = value?.trim() ?? "";
-
-  if (nestedProperty === "partial states") {
-    partial.states[normalizedKey] = normalizedValue;
-    addPropertyLocation(partial.propertyLocations, `states ${normalizedKey}`, bullet.location);
-    addPropertyLocation(layout.propertyLocations, `partial states ${normalizedKey}`, bullet.location);
-    layout.items.push({
-      type: "property",
-      key: `partial states ${normalizedKey}`,
-      value: normalizedValue,
-      scope: "metadata",
-      location: bullet.location,
-      raw: bullet.text
-    });
-    return "partial states";
-  }
-
-  if (normalizedKey === "id") {
-    partial.id = normalizedValue;
-    addPropertyLocation(partial.propertyLocations, "id", bullet.location);
-    addPropertyLocation(layout.propertyLocations, "partial id", bullet.location);
-    layout.items.push({
-      type: "property",
-      key: "partial id",
-      value: normalizedValue,
-      scope: "metadata",
-      location: bullet.location,
-      raw: bullet.text
-    });
-    return "partial";
-  }
-
-  if (normalizedKey === "states") {
-    addPropertyLocation(partial.propertyLocations, "states", bullet.location);
-    addPropertyLocation(layout.propertyLocations, "partial states", bullet.location);
-    layout.items.push({
-      type: "property",
-      key: "partial states",
-      value: normalizedValue,
-      scope: "metadata",
-      location: bullet.location,
-      raw: bullet.text
-    });
-    return "partial states";
-  }
-
-  addPropertyLocation(partial.propertyLocations, normalizedKey, bullet.location);
-  addPropertyLocation(layout.propertyLocations, `partial ${normalizedKey}`, bullet.location);
-  layout.items.push({
-    type: "property",
-    key: `partial ${normalizedKey}`,
-    value: normalizedValue,
-    scope: "metadata",
-    location: bullet.location,
-    raw: bullet.text
-  });
-  return "partial";
-}
-
-function applyLayoutItemBullet(layout: MarkVSpecLayoutGroup, bullet: ParsedBullet): void {
-  const [key, value] = splitKeyValue(bullet.text);
-  if (key.trim() === "slot" && value !== undefined) {
-    layout.items.push({
-      type: "slot",
-      name: value.trim(),
-      location: bullet.location,
-      raw: bullet.text
-    });
-    return;
-  }
-
-  const field = new RegExp(String.raw`^"(.+?)":\s*(${elementIdPattern})\s*$`, "u").exec(bullet.text);
-  if (field) {
-    layout.items.push({
-      type: "field",
-      label: field[1],
-      elementId: field[2],
-      location: bullet.location,
-      raw: bullet.text
-    });
-    return;
-  }
-
-  if (isLayoutItemId(bullet.text)) {
-    layout.items.push({
-      type: "contains",
-      targetId: bullet.text,
-      location: bullet.location,
-      raw: bullet.text
-    });
-    return;
-  }
-
-  if (value !== undefined) {
-    layout.items.push({
-      type: "property",
-      key: key.trim(),
-      value: value.trim(),
-      scope: "items",
-      location: bullet.location,
-      raw: bullet.text
-    });
-    return;
-  }
-
-  layout.items.push({
-    type: "flag",
-    value: bullet.text,
-    scope: "items",
-    location: bullet.location,
-    raw: bullet.text
-  });
-}
-
-function applySlotDefinitionBullet(slot: MarkVSpecSlotDefinition, text: string, location: SourceLocation): void {
-  const [key, value] = splitKeyValue(text);
-  if (value === undefined) {
-    slot.properties[text] = true;
-    addPropertyLocation(slot.propertyLocations, text, location);
-    return;
-  }
-
-  const normalizedKey = key.trim();
-  slot.properties[normalizedKey] = value.trim();
-  addPropertyLocation(slot.propertyLocations, normalizedKey, location);
-}
-
-function layoutRenderDependencies(section: SectionAst, layout: MarkVSpecLayoutGroup, slotName?: string): SemanticDependency[] {
-  return [{
-    source: { type: "section", id: section.id },
-    target: { type: "render", id: slotName ? slotContentRenderKey(slotName, section.viewport, layout.id) : `layout:${layout.viewport}:${layout.id}` },
-    direction: "source-invalidates-target",
-    kind: "renders"
-  }];
-}
-
-function slotContentRenderKey(slotName: string, viewport: string | undefined, layoutId: string): string {
-  return `slot-content:${slotName}:${viewport ?? "default"}:${layoutId}`;
-}
-
-function slotDefinitionRenderKey(slotName: string): string {
-  return `slot-definition:${slotName}`;
-}
-
-function addLayoutItemDependency(layout: MarkVSpecLayoutGroup, item: MarkVSpecLayoutItem | undefined, dependencies: SemanticDependency[]): void {
-  if (!item) {
-    return;
-  }
-  if (item.type === "contains") {
-    dependencies.push({
-      source: { type: "entity", id: layout.id },
-      target: { type: "entity", id: item.targetId },
-      direction: "source-invalidates-target",
-      kind: "references"
-    });
-  } else if (item.type === "field") {
-    dependencies.push({
-      source: { type: "entity", id: layout.id },
-      target: { type: "entity", id: item.elementId },
-      direction: "source-invalidates-target",
-      kind: "references"
-    });
-  } else if (item.type === "slot") {
-    dependencies.push({
-      source: { type: "entity", id: layout.id },
-      target: { type: "entity", id: `slot:${item.name}` },
-      direction: "source-invalidates-target",
-      kind: "references"
-    });
-  }
-}
-
-function addPartialDependencies(layout: MarkVSpecLayoutGroup, dependencies: SemanticDependency[]): void {
-  if (!layout.partial?.id) {
-    return;
-  }
-  dependencies.push({
-    source: { type: "entity", id: layout.id },
-    target: { type: "entity", id: layout.partial.id },
-    direction: "source-invalidates-target",
-    kind: "references"
-  });
 }
 
 function dedupeDependencies(dependencies: SemanticDependency[]): SemanticDependency[] {
