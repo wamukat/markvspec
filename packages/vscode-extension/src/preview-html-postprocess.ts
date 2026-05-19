@@ -1,11 +1,12 @@
 import { escapeHtml } from "./design-document-renderer.js";
 
 type MarkerCategory = "action" | "element" | "layout";
+type SectionNumberRenderer = (sectionNumber: string) => string;
 
 export function numberDocumentSectionsHtml(
   html: string,
   startNumber: number,
-  renderSectionNumber: (sectionNumber: string) => string
+  renderSectionNumber: SectionNumberRenderer
 ): { html: string; nextNumber: number } {
   if (!html.trim()) {
     return { html: "", nextNumber: startNumber };
@@ -15,7 +16,7 @@ export function numberDocumentSectionsHtml(
   const numberedHtml = html.replace(/<section class="doc-section([^"]*)"([^>]*)>\s*<h2([^>]*)>/gu, (_match, classes: string, attributes: string, headingAttributes: string) => {
     const number = String(nextNumber);
     nextNumber += 1;
-    return `<section class="doc-section${classes}" data-section-number="${escapeHtml(number)}"${attributes}>\n    <h2${headingAttributes}>${renderSectionNumber(number)} `;
+    return renderNumberedSectionStart(classes, attributes, headingAttributes, number, renderSectionNumber);
   });
 
   return { html: numberedHtml, nextNumber };
@@ -24,31 +25,21 @@ export function numberDocumentSectionsHtml(
 export function addDocumentSectionNumberHtml(
   html: string,
   sectionNumber: string,
-  renderSectionNumber: (sectionNumber: string) => string
+  renderSectionNumber: SectionNumberRenderer
 ): string {
   if (!html.trim()) {
     return "";
   }
 
   return html
-    .replace(/<section class="doc-section([^"]*)"/u, (_match, classes: string) => `<section class="doc-section${classes}" data-section-number="${escapeHtml(sectionNumber)}"`)
-    .replace(/<h2([^>]*)>/u, (_match, attributes: string) => `<h2${attributes}>${renderSectionNumber(sectionNumber)} `);
+    .replace(/<section class="doc-section([^"]*)"/u, (_match, classes: string) => renderSectionWithNumberAttribute(classes, sectionNumber))
+    .replace(/<h2([^>]*)>/u, (_match, attributes: string) => renderHeadingWithSectionNumber(attributes, sectionNumber, renderSectionNumber));
 }
 
 export function demoteHtmlHeadings(html: string, fromLevel: number, toLevel: number, className: string): string {
   return html
     .replace(new RegExp(`<h${fromLevel}\\b([^>]*)>`, "gu"), (_match, attrs: string) => {
-      const classAttribute = /\sclass=(["'])(.*?)\1/u.exec(attrs);
-      if (!classAttribute) {
-        return `<h${toLevel} class="${className}"${attrs}>`;
-      }
-      const [, quote, classValue] = classAttribute;
-      const classes = classValue.split(/\s+/u).filter(Boolean);
-      if (!classes.includes(className)) {
-        classes.push(className);
-      }
-      const updatedAttrs = attrs.replace(classAttribute[0], ` class=${quote}${classes.join(" ")}${quote}`);
-      return `<h${toLevel}${updatedAttrs}>`;
+      return `<h${toLevel}${headingAttributesWithClass(attrs, className)}>`;
     })
     .replace(new RegExp(`</h${fromLevel}>`, "gu"), `</h${toLevel}>`);
 }
@@ -99,6 +90,41 @@ export function insertHtmlIntoElementRenderKey(html: string, renderKey: string, 
     return html;
   }
   return html.replace(pattern, `$1${content}$2`);
+}
+
+function renderNumberedSectionStart(
+  classes: string,
+  sectionAttributes: string,
+  headingAttributes: string,
+  sectionNumber: string,
+  renderSectionNumber: SectionNumberRenderer
+): string {
+  return `${renderSectionWithNumberAttribute(classes, sectionNumber)}${sectionAttributes}>\n    ${renderHeadingWithSectionNumber(headingAttributes, sectionNumber, renderSectionNumber)}`;
+}
+
+function renderSectionWithNumberAttribute(classes: string, sectionNumber: string): string {
+  return `<section class="doc-section${classes}" data-section-number="${escapeHtml(sectionNumber)}"`;
+}
+
+function renderHeadingWithSectionNumber(
+  attributes: string,
+  sectionNumber: string,
+  renderSectionNumber: SectionNumberRenderer
+): string {
+  return `<h2${attributes}>${renderSectionNumber(sectionNumber)} `;
+}
+
+function headingAttributesWithClass(attrs: string, className: string): string {
+  const classAttribute = /\sclass=(["'])(.*?)\1/u.exec(attrs);
+  if (!classAttribute) {
+    return ` class="${className}"${attrs}`;
+  }
+  const [, quote, classValue] = classAttribute;
+  const classes = classValue.split(/\s+/u).filter(Boolean);
+  if (!classes.includes(className)) {
+    classes.push(className);
+  }
+  return attrs.replace(classAttribute[0], ` class=${quote}${classes.join(" ")}${quote}`);
 }
 
 function escapeRegExp(value: string): string {
