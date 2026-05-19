@@ -627,7 +627,7 @@ title: Business Rule Display
   assert.doesNotMatch(html, new RegExp(`message <code class="mm-id mm-marker mm-marker-message" data-mm-marker-category="message" data-mm-display-source="R-EmailMustBeUnique">R1</code> ${refMessageChip("R1", "R-EmailMustBeUnique", "Email must be unique")}`));
 });
 
-test("shows subsequent viewport initial state as current state with repeated rows", () => {
+test("shows subsequent viewport initial state without cross-viewport repeated rows", () => {
   const source = `---
 id: SCR-RESPONSIVE-DIFF
 type: screen
@@ -699,12 +699,12 @@ title: Responsive Diff
   assert.doesNotMatch(desktopSection, new RegExp(`<td>${detailLayoutRefById("L9", "L-MobileOnly")}`));
   assert.match(desktopSection, new RegExp(`<td>${detailLayoutRefById("L8", "L-DesktopOnly")}`));
   assert.match(desktopSection, new RegExp(`<td>${detailElementRef("E-DesktopOnly", "E-DesktopOnly")}</td>`));
-  assert.match(desktopSection, new RegExp(repeatedBadge()));
+  assert.doesNotMatch(desktopSection, new RegExp(repeatedBadge()));
   assert.match(html, /mm-gap-sm/);
   assert.match(html, /mm-gap-lg/);
 });
 
-test("deduplicates repeated current state specs across viewports", () => {
+test("keeps repeated current state specs scoped to each viewport", () => {
   const source = `---
 id: SCR-RESPONSIVE-STATE-DEDUP
 type: screen
@@ -783,16 +783,16 @@ title: Responsive State Dedup
   assert.doesNotMatch(mobileIdleSection, new RegExp(`<td>${detailElementRef("E-CommonInit", "E-CommonInit")}</td>`));
   assert.match(mobileIdleSection, new RegExp(`<td>${detailElementRef("E-CommonIdle", "E-CommonIdle")}</td>`));
   assert.match(desktopInitSection, new RegExp(`<td>${detailElementRef("E-DesktopInit", "E-DesktopInit")}</td>`));
-  assert.match(desktopInitSection, new RegExp(`<td>${detailElementRef("E-CommonInit", "E-CommonInit")} ${repeatedBadge()}</td>`));
+  assert.match(desktopInitSection, new RegExp(`<td>${detailElementRef("E-CommonInit", "E-CommonInit")}</td>`));
   assert.doesNotMatch(desktopInitSection, new RegExp(`<td>${detailElementRef("E-CommonIdle", "E-CommonIdle")}</td>`));
   assert.doesNotMatch(desktopIdleSection, new RegExp(`<td>${detailElementRef("E-CommonInit", "E-CommonInit")}(?: ${repeatedBadge()})?</td>`));
-  assert.match(desktopIdleSection, new RegExp(`<td>${detailElementRef("E-CommonIdle", "E-CommonIdle")} ${repeatedBadge()}</td>`));
+  assert.match(desktopIdleSection, new RegExp(`<td>${detailElementRef("E-CommonIdle", "E-CommonIdle")}</td>`));
   assert.doesNotMatch(desktopIdleSection, new RegExp(`<td>${detailElementRef("E-DesktopInit", "E-DesktopInit")}</td>`));
   assert.match(desktopIdleSection, new RegExp(`<td>${detailElementRef("E-DesktopIdle", "E-DesktopIdle")}</td>`));
   assert.match(stateWireframeSection(mobileIdleSection), />E-CommonIdle<\/code>/);
   assert.match(stateWireframeSection(desktopIdleSection), />E-CommonIdle<\/code>/);
   assert.match(stateWireframeSection(desktopIdleSection), />E-DesktopIdle<\/code>/);
-  assert.match(stateWireframeSection(desktopIdleSection), /class="mm-id mm-marker mm-marker-repeated mm-marker-element" data-mm-marker-category="element" data-mm-repeated-marker="true">E-CommonIdle<\/code>/);
+  assert.doesNotMatch(stateWireframeSection(desktopIdleSection), /class="mm-id mm-marker mm-marker-repeated mm-marker-element" data-mm-marker-category="element" data-mm-repeated-marker="true">E-CommonIdle<\/code>/);
   assert.doesNotMatch(desktopIdleSection, /data-repeated-layout-only-message/);
   assert.doesNotMatch(desktopIdleSection, /<h5 class="state-screen-subheading">Available Actions<\/h5>/);
 });
@@ -848,6 +848,159 @@ title: Same Viewport State Dedup
   assert.match(loadingSection, new RegExp(`<td>${detailElementRef("E-LoadingOnly", "E-LoadingOnly")}</td><td>Text</td>`));
   assert.match(stateWireframeSection(loadingSection), /class="mm-id mm-marker mm-marker-repeated mm-marker-layout" data-mm-marker-category="layout" data-mm-repeated-marker="true">L1<\/code>/);
   assert.match(stateWireframeSection(loadingSection), /class="mm-id mm-marker mm-marker-repeated mm-marker-element" data-mm-marker-category="element" data-mm-repeated-marker="true">E-NameInput<\/code>/);
+});
+
+test("classifies preview scenario views and selects repeated bases from metadata", () => {
+  const source = `---
+id: SCR-SCENARIO-BASE-SELECTION
+type: screen
+title: Scenario Base Selection
+---
+
+# SCR-SCENARIO-BASE-SELECTION Scenario Base Selection
+
+## States
+
+- idle*
+- loaded
+
+## Layout: mobile
+
+### L1:L-Page Page
+
+- stack
+
+#### Items
+
+- E-Shared
+- E-Loaded
+
+## Elements
+
+### E-Shared Text
+
+- value: Shared
+
+### E-Loaded Text
+
+- value: Loaded
+- visible when: loaded
+
+## Actions
+
+### A1:A-Submit Submit
+
+- Triggered
+  - E-Shared.click
+- From
+  - idle
+- Process P1: Immediate
+  - case: success
+    - from: idle
+    - state: loaded
+
+## Preview Scenarios
+
+### loaded
+
+- samples:
+  - E-Shared: Baseline shared
+
+### loaded-overlay
+
+- state: loaded
+
+### submit-loaded
+
+- state: loaded
+- cases:
+  - A-Submit.P1.success
+`;
+  const result = parseMarkVSpec(source);
+  const models = buildViewportStateScreenReadModels(result, result)
+    .find((viewport) => viewport.viewport === "mobile")
+    ?.models ?? [];
+  const loaded = models.find((model) => model.stateViewTitle === "loaded");
+  const overlap = models.find((model) => model.stateViewTitle === "loaded / loaded-overlay");
+  const override = models.find((model) => model.stateViewTitle === "loaded / submit-loaded");
+
+  assert.equal(loaded?.viewKind, "baseline");
+  assert.equal(loaded?.sourceStateId, "loaded");
+  assert.equal(loaded?.displayStateId, "loaded");
+  assert.equal(overlap?.viewKind, "scenario");
+  assert.equal(overlap?.sourceStateId, "loaded");
+  assert.equal(overlap?.displayStateId, "loaded");
+  assert.equal(overlap?.scenarioMode, "overlap");
+  assert.ok(overlap?.repeatedElementIds?.has("E-Loaded"));
+  assert.equal(override?.viewKind, "scenario");
+  assert.equal(override?.sourceStateId, "idle");
+  assert.equal(override?.displayStateId, "loaded");
+  assert.equal(override?.scenarioMode, "state-override");
+  assert.ok(override?.repeatedElementIds?.has("E-Loaded"));
+});
+
+test("uses source state base for overlap scenario inserted before baseline state view", () => {
+  const source = `---
+id: SCR-SCENARIO-BEFORE-BASE
+type: screen
+title: Scenario Before Base
+---
+
+# SCR-SCENARIO-BEFORE-BASE Scenario Before Base
+
+## States
+
+- idle*
+- loaded
+
+## Layout: mobile
+
+### L1:L-Page Page
+
+- stack
+
+#### Items
+
+- E-Shared
+- E-Loaded
+
+## Elements
+
+### E-Shared Text
+
+- value: Shared
+
+### E-Loaded Text
+
+- value: Loaded
+- visible when: loaded
+
+## Preview Scenarios
+
+### loaded
+
+- samples:
+  - E-Shared: Baseline shared
+
+### loaded-before
+
+- state: loaded
+- before: loaded
+`;
+  const result = parseMarkVSpec(source);
+  const models = buildViewportStateScreenReadModels(result, result)
+    .find((viewport) => viewport.viewport === "mobile")
+    ?.models ?? [];
+  const before = models.find((model) => model.stateViewTitle === "loaded / loaded-before");
+  const loaded = models.find((model) => model.stateViewTitle === "loaded");
+
+  assert.ok(before, "expected scenario inserted before the loaded baseline view");
+  assert.ok(loaded, "expected loaded baseline view");
+  assert.ok(models.indexOf(before) < models.indexOf(loaded));
+  assert.equal(before.viewKind, "scenario");
+  assert.equal(before.scenarioMode, "overlap");
+  assert.equal(before.sourceStateId, "loaded");
+  assert.ok(before.repeatedElementIds?.has("E-Loaded"));
 });
 
 test("marks all-repeated state view spec fragments empty when repeated rows are hidden", () => {
@@ -1034,8 +1187,8 @@ title: Wireframe
     .find((viewport) => viewport.viewport === "desktop")
     ?.models.find((model) => model.stateName === "idle");
 
-  assert.ok(desktopModel?.repeatedLayoutIds?.has("L-Shell"));
-  assert.ok(desktopModel?.repeatedElementIds?.has("E-Shell"));
+  assert.equal(desktopModel?.repeatedLayoutIds, undefined);
+  assert.equal(desktopModel?.repeatedElementIds, undefined);
   assert.equal(desktopModel?.repeatedContent.hasSuppressedRepeatedContent, false);
   assert.equal(desktopModel?.repeatedContent.layoutSpecEmptyWhenRepeatedHidden, false);
   assert.equal(desktopModel?.repeatedContent.elementSummaryEmptyWhenRepeatedHidden, false);
@@ -1092,9 +1245,9 @@ title: Empty Detail Categories
   assert.doesNotMatch(desktopIdleSection, /<h6 class="state-screen-detail-heading">Input Form Spec<\/h6>/);
   assert.doesNotMatch(desktopIdleSection, /<div class="element-detail-group" data-mm-repeated-empty="true"><h6 class="state-screen-detail-heading">Input Form Spec<\/h6><p class="spec-empty" data-mm-repeated-empty="true">None\.<\/p><\/div>/);
   assert.equal(desktopModel?.repeatedContent.inputFormSpecEmptyWhenRepeatedHidden, false);
-  assert.equal(desktopModel?.repeatedContent.displayContentSpecEmptyWhenRepeatedHidden, true);
-  assert.match(desktopIdleSection, /<div class="element-detail-group" data-mm-repeated-empty="true"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>/);
-  assert.match(desktopIdleSection, new RegExp(`<td>${detailElementRef("E-OpenButton", "E-OpenButton")} ${repeatedBadge()}</td>`));
+  assert.equal(desktopModel?.repeatedContent.displayContentSpecEmptyWhenRepeatedHidden, false);
+  assert.doesNotMatch(desktopIdleSection, /<div class="element-detail-group" data-mm-repeated-empty="true"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>/);
+  assert.match(desktopIdleSection, new RegExp(`<td>${detailElementRef("E-OpenButton", "E-OpenButton")}</td>`));
 });
 
 test("marks repeated system events in state screens without DOM emptiness inference", () => {
@@ -1143,11 +1296,11 @@ title: Repeated System Events
   const mobileSystemEvents = mobileIdleSection.match(/<aside class="system-events-box"[\s\S]*?<\/aside>/)?.[0] ?? "";
   const desktopSystemEvents = desktopIdleSection.match(/<aside class="system-events-box"[\s\S]*?<\/aside>/)?.[0] ?? "";
 
-  assert.equal(desktopModel?.repeatedContent.systemEventsEmptyWhenRepeatedHidden, true);
+  assert.equal(desktopModel?.repeatedContent.systemEventsEmptyWhenRepeatedHidden, false);
   assert.match(mobileSystemEvents, /<aside class="system-events-box">/);
   assert.match(mobileSystemEvents, new RegExp(`<li>${actionBadge("A1", "A-Load")} Load<span class="system-event-trigger">（Trigger: ${docLabel("screen.load", "trigger")}）</span></li>`));
-  assert.match(desktopSystemEvents, /<aside class="system-events-box" data-mm-repeated-empty="true">/);
-  assert.match(desktopSystemEvents, new RegExp(`<li>${actionBadge("A1", "A-Load")} ${repeatedBadge()} Load<span class="system-event-trigger">（Trigger: ${docLabel("screen.load", "trigger")}）</span></li>`));
+  assert.match(desktopSystemEvents, /<aside class="system-events-box">/);
+  assert.match(desktopSystemEvents, new RegExp(`<li>${actionBadge("A1", "A-Load")} Load<span class="system-event-trigger">（Trigger: ${docLabel("screen.load", "trigger")}）</span></li>`));
 });
 
 test("uses explicit From states for system event relevance", () => {
@@ -1372,11 +1525,11 @@ title: Repeated Diff System Events
 
   assert.match(mobileSystemEvents, /<aside class="system-events-box">/);
   assert.match(mobileSystemEvents, new RegExp(`<li>${actionBadge("A2", "A-HandleSubmitResponse")} Handle submit response<span class="system-event-trigger">（Trigger: ${docLabel("A-Submit.P1.response", "trigger")}）</span></li>`));
-  assert.match(desktopSystemEvents, /<aside class="system-events-box" data-mm-repeated-empty="true">/);
-  assert.match(desktopSystemEvents, new RegExp(`<li>${actionBadge("A2", "A-HandleSubmitResponse")} ${repeatedBadge()} Handle submit response<span class="system-event-trigger">（Trigger: ${docLabel("A-Submit.P1.response", "trigger")}）</span></li>`));
+  assert.match(desktopSystemEvents, /<aside class="system-events-box">/);
+  assert.match(desktopSystemEvents, new RegExp(`<li>${actionBadge("A2", "A-HandleSubmitResponse")} Handle submit response<span class="system-event-trigger">（Trigger: ${docLabel("A-Submit.P1.response", "trigger")}）</span></li>`));
 });
 
-test("keeps viewport-specific current layouts after cross-viewport dedupe", () => {
+test("keeps viewport-specific current layouts without cross-viewport element dedupe", () => {
   const source = `---
 id: SCR-RESPONSIVE-REMOVED-LAYOUT
 type: screen
@@ -1455,7 +1608,7 @@ title: Responsive Removed Layout
   assert.doesNotMatch(mobileIdleSection, new RegExp(`<td>${detailLayoutRefById("L2", "L-ModePanel")}</td><td>stack</td>`));
   assert.doesNotMatch(desktopIdleSection, new RegExp(`<td>${detailLayoutRefById("L2", "L-ModePanel")}</td><td>row</td>`));
   assert.match(mobileIdleSection, new RegExp(`<td>${detailElementRef("E-Idle", "E-Idle")}</td><td>Text</td>`));
-  assert.match(desktopIdleSection, new RegExp(`<td>${detailElementRef("E-Idle", "E-Idle")} ${repeatedBadge()}</td><td>Text</td>`));
+  assert.match(desktopIdleSection, new RegExp(`<td>${detailElementRef("E-Idle", "E-Idle")}</td><td>Text</td>`));
 });
 
 test("limits State Views layout signatures to state-view-affecting properties and child structure", () => {

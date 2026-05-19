@@ -456,9 +456,9 @@ test("renders generated design document sections without launching VS Code", () 
   const desktopAuthErrorWireframe = stateWireframeSection(desktopAuthErrorSection);
   assert.match(desktopAuthErrorSection, /<h5 class="state-screen-subheading">Layouts<\/h5>/);
   assert.match(desktopAuthErrorSection, /<h5 class="state-screen-subheading">Elements<\/h5>/);
-  assert.match(desktopAuthErrorSection, /data-repeated-layout-only-message/);
+  assert.doesNotMatch(desktopAuthErrorSection, /data-repeated-layout-only-message/);
   assert.match(desktopAuthErrorSection, new RegExp(`<td>${detailLayoutRefById("L3", "L-MessageArea")} ${repeatedBadge()}</td>`));
-  assert.match(desktopAuthErrorSection, new RegExp(`<td>${detailElementRef("9", "E-AuthErrorBanner")} ${repeatedBadge()}</td>`));
+  assert.match(desktopAuthErrorSection, new RegExp(`<td>${detailElementRef("9", "E-AuthErrorBanner")}</td>`));
   assert.match(desktopAuthErrorWireframe, />L3<\/code>/);
   assert.match(desktopAuthErrorWireframe, />9<\/code>/);
   const desktopWaitAuthSection = viewportStateSection(html, "authenticating", "desktop");

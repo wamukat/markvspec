@@ -28,6 +28,10 @@ type ParsedSlotContent = MarkVSpecParseResult["slotContents"][number];
 type ParsedDisplayEffect = NonNullable<MarkVSpecParseResult["actions"][number]["processSteps"][number]["outcomes"][number]["display"]>;
 type ParsedPreviewScenario = MarkVSpecParseResult["previewScenarios"][number];
 
+export type StateScreenViewKind = "state" | "baseline" | "scenario";
+
+export type StateScreenScenarioMode = "overlap" | "state-override";
+
 export interface StateScreenRepeatedContent {
   readonly layoutSpecEmptyWhenRepeatedHidden: boolean;
   readonly elementSummaryEmptyWhenRepeatedHidden: boolean;
@@ -46,6 +50,10 @@ export interface StateScreenReadModel {
   readonly title: string;
   readonly stateViewTitle: string;
   readonly scenario: boolean;
+  readonly viewKind: StateScreenViewKind;
+  readonly sourceStateId?: string;
+  readonly displayStateId?: string;
+  readonly scenarioMode?: StateScreenScenarioMode;
   readonly initial: boolean;
   readonly message?: string;
   readonly focus?: FocusScope;
@@ -105,12 +113,11 @@ export function buildViewportStateScreenReadModels(
 ): StateViewportReadModel[] {
   const viewports = layoutViewports(wireframeResult);
   if (viewports.length === 0) {
-    const seenStateScreenKeys = createStateScreenSeenRegistry();
-    const models = buildStateScreenReadModels(result, wireframeResult, undefined, focus, options).map((model) => {
-      const displayModel = markRepeatedCurrentStateScreenItems(wireframeResult, result, model, seenStateScreenKeys);
-      rememberStateScreenKeys(wireframeResult, displayModel, seenStateScreenKeys);
-      return displayModel;
-    });
+    const models = markRepeatedStateScreenItemsForViewport(
+      wireframeResult,
+      result,
+      buildStateScreenReadModels(result, wireframeResult, undefined, focus, options)
+    );
     return [{
       viewport: undefined,
       isDefault: false,
@@ -123,14 +130,13 @@ export function buildViewportStateScreenReadModels(
     baselineViewport,
     ...viewports.filter((viewport) => viewport !== baselineViewport)
   ];
-  const seenStateScreenKeys = createStateScreenSeenRegistry();
 
   return orderedViewports.map((viewport) => {
-    const models = buildStateScreenReadModels(result, wireframeResult, viewport, focus, options).map((model) => {
-      const displayModel = markRepeatedCurrentStateScreenItems(wireframeResult, result, model, seenStateScreenKeys);
-      rememberStateScreenKeys(wireframeResult, displayModel, seenStateScreenKeys);
-      return displayModel;
-    });
+    const models = markRepeatedStateScreenItemsForViewport(
+      wireframeResult,
+      result,
+      buildStateScreenReadModels(result, wireframeResult, viewport, focus, options)
+    );
     return {
       viewport,
       isDefault: viewport === baselineViewport,
@@ -159,6 +165,10 @@ export function buildStateScreenReadModels(
       title: viewport ? `${label("viewport")} ${viewport}` : label("default"),
       stateViewTitle: viewport ? `${label("viewport")} ${viewport}` : label("default"),
       scenario: false,
+      viewKind: "state",
+      sourceStateId: undefined,
+      displayStateId: undefined,
+      scenarioMode: undefined,
       initial: false,
       message: undefined,
       focus,
@@ -177,6 +187,10 @@ export function buildStateScreenReadModels(
         title: viewport ? `${label("viewport")} ${viewport}` : label("default"),
         stateViewTitle: viewport ? `${label("viewport")} ${viewport}` : label("default"),
         scenario: false,
+        viewKind: "state",
+        sourceStateId: undefined,
+        displayStateId: undefined,
+        scenarioMode: undefined,
         initial: false,
         message: undefined,
         focus,
@@ -272,12 +286,26 @@ export function buildStateScreenReadModels(
         ? `${display.state.name} / ${display.scenario.name}`
         : display.state.name;
       const scenario = Boolean(display.scenario);
+      const viewKind: StateScreenViewKind = display.scenario
+        ? "scenario"
+        : baselineScenarioSamplesByState.has(display.state.name) || baselineScenarioRouteByState.has(display.state.name) ? "baseline" : "state";
+      const sourceStateId = display.scenario
+        ? scenarioSourceStateId(wireframeResult, display.scenario, display.state.name)
+        : display.state.name;
+      const displayStateId = display.state.name;
+      const scenarioMode: StateScreenScenarioMode | undefined = display.scenario
+        ? sourceStateId === displayStateId ? "overlap" : "state-override"
+        : undefined;
       return {
         stateName: display.state.name,
         viewport,
         title,
         stateViewTitle,
         scenario,
+        viewKind,
+        sourceStateId,
+        displayStateId,
+        scenarioMode,
         initial: display.state.initial,
         message: display.state.message,
         focus,
@@ -296,6 +324,10 @@ export function buildStateScreenReadModels(
           title,
           stateViewTitle,
           scenario,
+          viewKind,
+          sourceStateId,
+          displayStateId,
+          scenarioMode,
           initial: display.state.initial,
           message: display.state.message,
           focus,
@@ -457,6 +489,33 @@ function displayEffectsForScenarioCases(
   });
 }
 
+function scenarioSourceStateId(
+  result: MarkVSpecParseResult,
+  scenario: ParsedPreviewScenario,
+  displayStateId: string
+): string {
+  const candidates = new Set<string>();
+  for (const caseRef of scenario.cases) {
+    const action = result.actions.find((candidate) => candidate.id === caseRef.actionId);
+    const step = action?.processSteps.find((candidate) => candidate.marker === caseRef.processMarker);
+    const outcome = step?.outcomes.find((candidate) => candidate.result === caseRef.caseName);
+    if (outcome?.from) {
+      candidates.add(outcome.from);
+    }
+    for (const fromState of action?.fromStates ?? []) {
+      candidates.add(fromState);
+    }
+  }
+  const concreteCandidates = [...candidates].filter((candidate) => candidate && candidate !== "*");
+  if (concreteCandidates.length === 1) {
+    return concreteCandidates[0];
+  }
+  if (concreteCandidates.includes(displayStateId)) {
+    return displayStateId;
+  }
+  return concreteCandidates[0] ?? scenario.state ?? displayStateId;
+}
+
 function displayExplanationsForScenarioCases(
   result: MarkVSpecParseResult,
   cases: MarkVSpecParseResult["previewScenarios"][number]["cases"]
@@ -603,6 +662,54 @@ function createStateScreenSeenRegistry(): StateScreenSeenRegistry {
   return {
     current: new Set<string>()
   };
+}
+
+function markRepeatedStateScreenItemsForViewport(
+  keyResult: MarkVSpecParseResult,
+  specResult: MarkVSpecParseResult,
+  models: StateScreenReadModel[]
+): StateScreenReadModel[] {
+  const stateBaseModels = stateScreenBaseModelsByState(models);
+  let previousModel: StateScreenReadModel | undefined;
+
+  return models.map((model) => {
+    const baseModel = model.viewKind === "scenario" && model.scenarioMode === "overlap"
+      ? stateBaseModels.get(model.sourceStateId ?? "")
+      : previousModel;
+    const displayModel = baseModel
+      ? markRepeatedStateScreenItemsAgainstBase(keyResult, specResult, model, baseModel)
+      : {
+          ...model,
+          repeatedContent: repeatedContentState(specResult, model)
+        };
+
+    if ((model.viewKind === "state" || model.viewKind === "baseline") && model.stateName) {
+      stateBaseModels.set(model.stateName, model);
+    }
+    previousModel = model;
+    return displayModel;
+  });
+}
+
+function stateScreenBaseModelsByState(models: StateScreenReadModel[]): Map<string, StateScreenReadModel> {
+  const stateBaseModels = new Map<string, StateScreenReadModel>();
+  for (const model of models) {
+    if ((model.viewKind === "state" || model.viewKind === "baseline") && model.stateName) {
+      stateBaseModels.set(model.stateName, model);
+    }
+  }
+  return stateBaseModels;
+}
+
+function markRepeatedStateScreenItemsAgainstBase(
+  keyResult: MarkVSpecParseResult,
+  specResult: MarkVSpecParseResult,
+  model: StateScreenReadModel,
+  baseModel: StateScreenReadModel
+): StateScreenReadModel {
+  const seen = createStateScreenSeenRegistry();
+  rememberStateScreenKeys(keyResult, baseModel, seen);
+  return markRepeatedCurrentStateScreenItems(keyResult, specResult, model, seen);
 }
 
 function markRepeatedCurrentStateScreenItems(
