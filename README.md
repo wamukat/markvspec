@@ -278,6 +278,18 @@ npx @markvspec/cli@latest export document-list markvspec.project.md --out docs/g
 If you prefer a local install, add `@markvspec/cli` as a development dependency
 and run it through your package manager.
 
+### AI authoring skill
+
+Install the MarkVSpec authoring skill for AI agents from the CLI version's
+matching GitHub tag:
+
+```sh
+npx @markvspec/cli@latest skill install --path ~/.codex/skills
+```
+
+The command installs `markvspec-authoring/` under the target directory and
+prints a short `AGENTS.md` snippet. It does not edit `AGENTS.md` automatically.
+
 ## IDs and Markers
 
 `E-EmailInput` and `A-SubmitLogin` are stable IDs used by reviews,
