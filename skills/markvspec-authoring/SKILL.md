@@ -17,17 +17,18 @@ MarkVSpec is a Markdown-first screen specification format. Keep the document sem
 - Do not write raw CSS classes, raw colors, dimensions, or htmx attributes into the specification.
 - Model htmx-style behavior with semantic Actions, Process steps, process-local `case:` branches, and `display:` effects.
 
-For non-trivial authoring, read the bundled reference first:
+For non-trivial authoring, read the bundled canonical DSL reference first:
 
-- `references/dsl-authoring-reference.md`
+- `references/dsl.en.md`
+- `references/dsl.ja.md` when writing Japanese specs or when Japanese wording matters
 
-When the local project also has DSL docs, use them as the canonical release source before substantial or uncertain edits:
+When working from the source repository, those installed references may be absent. In that case, read the source docs before substantial or uncertain edits:
 
 - `docs/en/user/dsl.md`
 - `docs/ja/user/dsl.md`
 - nearby parser-tested examples under `examples/`
 
-Do not rely on older snippets or memory when these docs are present. This skill is still expected to work when installed outside the repository, so the bundled reference and canonical patterns below must be enough to draft a valid `.vspec.md` without the repository docs.
+Do not rely on older snippets or memory when these docs are present. The CLI installer copies the canonical DSL docs from the same MarkVSpec release tag into `references/`, so installed skills can consult the release-matched DSL without duplicating a hand-maintained summary.
 
 ## CLI Availability
 
