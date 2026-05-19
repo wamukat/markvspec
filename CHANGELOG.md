@@ -1,5 +1,55 @@
 # Changelog
 
+## 0.5.0 - 2026-05-19
+
+### Added
+
+- Added controlled UI behavior for Tabs, Accordion, Disclosure, and ActionMenu
+  panels in State Views, including active/inactive panel handling and focused
+  examples.
+- Added `route.hash` support for Preview Scenario samples and preview-evaluable
+  conditions.
+- Added generated document sections for View Context and View Context Samples,
+  including section lead/notes, entity lead/notes, values, default values,
+  properties, and sample values.
+- Added Preview Scenarios section/scenario lead and notes rendering in VS Code
+  preview and static HTML export.
+- Added parse-output coverage sentinel fixtures and regression tests for
+  preview/export output gaps.
+
+### Changed
+
+- Improved Preview Scenario State View diffing so scenario variants compare
+  against the relevant base state and show scenario sample data as authored
+  display data.
+- Improved controlled panel State View tables by limiting rows to visible panel
+  content and shortening controlled-content explanations.
+- Refined process card icon placement and focused component example marker
+  expectations.
+- Updated authoring docs and coverage docs for View Context, Preview Scenarios,
+  route hash samples, and structured prose output.
+
+### Fixed
+
+- Fixed closed ActionMenu example coverage and controlled panel conditions.
+- Fixed initial-load response examples so response transitions are modeled from
+  the initializing state.
+- Fixed prose output gaps for Preview Scenarios and View Context sections in
+  generated preview/static export documents.
+
+### Migration Guide
+
+- If a Preview Scenario previously used `hash` as ordinary element sample data,
+  move it under `route:` when it represents the URL fragment. Conditions should
+  reference it as `${route.hash}`.
+- Review generated documents that contain `## View Context`,
+  `## View Context Samples`, or `## Preview Scenarios`: their lead/notes prose is
+  now visible in preview/export, so remove duplicated explanatory notes from
+  nearby free-form sections if they were only compensating for missing output.
+- For Tabs, Accordion, Disclosure, and ActionMenu specs, prefer authored
+  controlled panel relationships and state/view conditions over extra duplicate
+  states used only to force panel visibility in previews.
+
 ## 0.4.1 - 2026-05-19
 
 ### Added

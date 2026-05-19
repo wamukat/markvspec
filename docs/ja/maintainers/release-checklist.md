@@ -5,7 +5,7 @@
 この文書は MarkVSpec をリリースする担当者向けのチェックリストです。通常利用者が
 MarkVSpec 設計書を書くための文書ではありません。
 
-このドキュメントは、MarkVSpec `0.4.1` リリースの確認手順を定義します。
+このドキュメントは、MarkVSpec `0.5.0` リリースの確認手順を定義します。
 対象は VS Code Marketplace 向けパッケージと、npm package `@markvspec/cli` です。
 
 ## 初回公開で伝える体験
@@ -111,7 +111,7 @@ Kanbalone の運用では、実装後に独立したサブエージェントレ�
   以前の ID が既に公開済みの場合は、この package の公開前に deprecate、unpublish、
   または移行案内の方針を決めている。
 - [ ] package metadata と VSIX packaging script が、このリリース用の
-  `dist/markvspec-0.4.1.vsix` artifact を生成する。
+  `dist/markvspec-0.5.0.vsix` artifact を生成する。
 - [ ] `npm run package:vsix -w packages/vscode-extension` で期待する
   `dist/markvspec-<version>.vsix` artifact が作成される。
 - [ ] `npm run smoke:vscode-vsix` で、生成済み VSIX を clean な VS Code
