@@ -92,6 +92,8 @@ import {
 } from "./preview-shell.js";
 import { registerMarkVSpecExportCommands } from "./export-commands.js";
 import { registerMarkVSpecExtension } from "./extension-registration.js";
+import { MarkVSpecDiagnosticsController } from "./diagnostics.js";
+import { createMarkVSpecCodeActions } from "./quick-fixes.js";
 import { renderPreviewPrintWireframeOverrideStyle } from "./preview-styles.js";
 import { renderPreviewIcon } from "./preview-icons.js";
 import { renderProjectDesignDocumentHtml as renderProjectDesignDocumentHtmlBase } from "./project-preview-document.js";
@@ -128,6 +130,7 @@ export {
   renderPreviewErrorHtml,
   renderPreviewLoadingHtml
 } from "./preview-shell.js";
+export { createMarkVSpecCodeActions } from "./quick-fixes.js";
 
 type MarkerCategory = "layout" | "element" | "action";
 interface ScreenDocumentResult {
@@ -183,7 +186,6 @@ let previewPanel: vscode.WebviewPanel | undefined;
 let previewDocumentUri: vscode.Uri | undefined;
 let previewGenerationId = 0;
 let previewUpdateTimer: ReturnType<typeof setTimeout> | undefined;
-const diagnosticsUpdateTimers = new Map<string, ReturnType<typeof setTimeout>>();
 let extensionRootUri: vscode.Uri | undefined;
 let markerVisibility = {
   layout: true,
@@ -192,14 +194,23 @@ let markerVisibility = {
 };
 let previewShowRepeatedContent = false;
 let previewAutoUpdate = PREVIEW_AUTO_UPDATE_DEFAULT;
-let diagnosticsCollection: vscode.DiagnosticCollection | undefined;
+let diagnosticsController: MarkVSpecDiagnosticsController | undefined;
 let outputChannel: vscode.OutputChannel | undefined;
 
 export function activate(context: vscode.ExtensionContext): void {
   const activationStart = Date.now();
   extensionRootUri = context.extensionUri;
   outputChannel = vscode.window.createOutputChannel("MarkVSpec");
-  diagnosticsCollection = vscode.languages.createDiagnosticCollection("markvspec");
+  diagnosticsController = new MarkVSpecDiagnosticsController({
+    collection: vscode.languages.createDiagnosticCollection("markvspec"),
+    debounceMs: DIAGNOSTIC_UPDATE_DEBOUNCE_MS,
+    isMarkVSpecDocument,
+    loadResult: (document) => isMarkVSpecProjectDocument(document)
+      ? loadProjectFromDocument(document)
+      : loadScreenDocumentResult(document).result,
+    documentLabel: previewDocumentLabel,
+    logDuration
+  });
   const createDocumentSymbolsProvider = (): vscode.DocumentSymbolProvider => ({
     provideDocumentSymbols(document: vscode.TextDocument) {
       return createMarkVSpecDocumentSymbols(document);
@@ -449,7 +460,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const onDidCloseTextDocument = (document: vscode.TextDocument) => {
     invalidateDocumentCaches(document);
     clearScheduledDiagnostics(document);
-    diagnosticsCollection?.delete(document.uri);
+    diagnosticsController?.delete(document);
   };
 
   const activeDocument = vscode.window.activeTextEditor?.document;
@@ -459,7 +470,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   registerMarkVSpecExtension({
     context,
-    diagnosticsCollection,
+    diagnosticsCollection: diagnosticsController.collection,
     outputChannel,
     createDocumentSymbolsProvider,
     createCodeActionsProvider,
@@ -502,9 +513,8 @@ function formatPreviewClientErrorDetail(detail: unknown): string {
 
 export function deactivate(): void {
   cancelScheduledPreviewUpdate();
-  clearAllScheduledDiagnostics();
   previewPanel?.dispose();
-  diagnosticsCollection?.dispose();
+  diagnosticsController?.dispose();
 }
 
 function schedulePreviewUpdate(document: vscode.TextDocument): void {
@@ -808,63 +818,15 @@ function yieldToWebview(): Promise<void> {
 }
 
 function updateDiagnostics(document: vscode.TextDocument): void {
-  if (!diagnosticsCollection) {
-    return;
-  }
-
-  if (!isMarkVSpecDocument(document)) {
-    diagnosticsCollection.delete(document.uri);
-    return;
-  }
-
-  const started = Date.now();
-  const result = isMarkVSpecProjectDocument(document)
-    ? loadProjectFromDocument(document)
-    : loadScreenDocumentResult(document).result;
-  const locale = diagnosticLocaleForResult(result);
-  const diagnostics = result.diagnostics.map((diagnostic) => {
-    const line = Math.max((diagnostic.line ?? 1) - 1, 0);
-    const textLine = document.lineAt(Math.min(line, Math.max(document.lineCount - 1, 0)));
-    const range = new vscode.Range(line, 0, line, textLine.text.length);
-    const severity = diagnostic.severity === "error"
-      ? vscode.DiagnosticSeverity.Error
-      : vscode.DiagnosticSeverity.Warning;
-    const vscodeDiagnostic = new vscode.Diagnostic(range, renderDiagnosticMessageForLocale(diagnostic, locale), severity);
-    vscodeDiagnostic.source = "MarkVSpec";
-    return vscodeDiagnostic;
-  });
-
-  diagnosticsCollection.set(document.uri, diagnostics);
-  logDuration(`updateDiagnostics ${previewDocumentLabel(document)}`, started);
-}
-
-function diagnosticLocaleForResult(result: ReturnType<typeof parseMarkVSpec> | MarkVSpecProjectLoadResult): string | undefined {
-  return "screen" in result ? result.screen.locale : result.project.project.frontMatter["locale"];
+  diagnosticsController?.update(document);
 }
 
 function scheduleDiagnostics(document: vscode.TextDocument): void {
-  clearScheduledDiagnostics(document);
-  const documentUri = document.uri.toString();
-  const timer = setTimeout(() => {
-    diagnosticsUpdateTimers.delete(documentUri);
-    updateDiagnostics(document);
-  }, DIAGNOSTIC_UPDATE_DEBOUNCE_MS);
-  diagnosticsUpdateTimers.set(documentUri, timer);
+  diagnosticsController?.schedule(document);
 }
 
 function clearScheduledDiagnostics(document: vscode.TextDocument): void {
-  const documentUri = document.uri.toString();
-  const timer = diagnosticsUpdateTimers.get(documentUri);
-  if (!timer) {
-    return;
-  }
-  clearTimeout(timer);
-  diagnosticsUpdateTimers.delete(documentUri);
-}
-
-function clearAllScheduledDiagnostics(): void {
-  diagnosticsUpdateTimers.forEach((timer) => clearTimeout(timer));
-  diagnosticsUpdateTimers.clear();
+  diagnosticsController?.clear(document);
 }
 
 function isMarkVSpecDocument(document: vscode.TextDocument): boolean {
@@ -959,50 +921,6 @@ function createMarkVSpecProjectDocumentSymbols(document: vscode.TextDocument): v
   }
 
   return [projectSymbol];
-}
-
-export function createMarkVSpecCodeActions(
-  document: vscode.TextDocument,
-  diagnostics: readonly vscode.Diagnostic[]
-): vscode.CodeAction[] {
-  if (isMarkVSpecProjectDocument(document)) {
-    return [];
-  }
-
-  const actions: vscode.CodeAction[] = [];
-
-  for (const diagnostic of diagnostics) {
-    if (diagnostic.source !== "MarkVSpec") {
-      continue;
-    }
-
-    const missingTrigger = /^Action (A-[\p{L}\p{N}-]+) has no trigger\./u.exec(diagnostic.message);
-    if (missingTrigger) {
-      const action = createMissingTriggerAction(document, diagnostic, missingTrigger[1]);
-      if (action) {
-        actions.push(action);
-      }
-      continue;
-    }
-
-    if (diagnostic.message === "Layout section must specify a viewport, for example ## Layout: mobile.") {
-      const action = createLayoutViewportAction(document, diagnostic);
-      if (action) {
-        actions.push(action);
-      }
-      continue;
-    }
-
-    const directChild = /^Layout (L-[\p{L}\p{N}-]+) uses a direct child reference; place (L-[\p{L}\p{N}-]+|E-[\p{L}\p{N}-]+) under #### Items\.$/u.exec(diagnostic.message);
-    if (directChild) {
-      const action = createMoveDirectLayoutItemAction(document, diagnostic, directChild[1], directChild[2]);
-      if (action) {
-        actions.push(action);
-      }
-    }
-  }
-
-  return actions;
 }
 
 export function formatMarkVSpecStructure(source: string): string {
@@ -1119,75 +1037,6 @@ function isSemanticSectionHeading(line: string): boolean {
     title === "Slots" ||
     /^Slot(?::\s*.+)?$/u.test(title) ||
     /^Layout(?::\s*.+)?$/u.test(title);
-}
-
-function createMissingTriggerAction(document: vscode.TextDocument, diagnostic: vscode.Diagnostic, actionId: string): vscode.CodeAction | undefined {
-  const line = diagnostic.range.start.line;
-  const heading = new RegExp(String.raw`^###\s+(?:\S+?:)?${escapeRegExpForPattern(actionId)}\s+`, "u");
-  if (!heading.test(document.lineAt(line).text)) {
-    return undefined;
-  }
-
-  const action = new vscode.CodeAction(`Add page.load event for ${actionId}`, vscode.CodeActionKind.QuickFix);
-  action.diagnostics = [diagnostic];
-  const edit = new vscode.WorkspaceEdit();
-  const insertLine = document.lineCount;
-  const prefix = document.lineAt(document.lineCount - 1).text.trim().length > 0 ? "\n\n" : "\n";
-  edit.insert(document.uri, new vscode.Position(insertLine, 0), `${prefix}## Events\n\n- page.load: ${actionId}\n`);
-  action.edit = edit;
-  return action;
-}
-
-function createLayoutViewportAction(document: vscode.TextDocument, diagnostic: vscode.Diagnostic): vscode.CodeAction | undefined {
-  const line = diagnostic.range.start.line;
-  if (document.lineAt(line).text.trim() !== "## Layout") {
-    return undefined;
-  }
-
-  const viewport = inferLayoutViewportCandidate(document, line);
-  if (!viewport) {
-    return undefined;
-  }
-
-  const action = new vscode.CodeAction(`Change to ## Layout: ${viewport}`, vscode.CodeActionKind.QuickFix);
-  action.diagnostics = [diagnostic];
-  action.isPreferred = true;
-  const edit = new vscode.WorkspaceEdit();
-  edit.replace(document.uri, new vscode.Range(line, 0, line, document.lineAt(line).text.length), `## Layout: ${viewport}`);
-  action.edit = edit;
-  return action;
-}
-
-function createMoveDirectLayoutItemAction(
-  document: vscode.TextDocument,
-  diagnostic: vscode.Diagnostic,
-  layoutId: string,
-  itemId: string
-): vscode.CodeAction | undefined {
-  const sourceLine = diagnostic.range.start.line;
-  if (document.lineAt(sourceLine).text.trim() !== `- ${itemId}`) {
-    return undefined;
-  }
-
-  const bounds = findParentLayoutBounds(document, sourceLine, layoutId);
-  if (!bounds) {
-    return undefined;
-  }
-
-  const action = new vscode.CodeAction(`Move ${itemId} under #### Items`, vscode.CodeActionKind.QuickFix);
-  action.diagnostics = [diagnostic];
-  const edit = new vscode.WorkspaceEdit();
-  edit.delete(document.uri, lineRange(document, sourceLine));
-
-  const itemsLine = findItemsSubsectionLine(document, bounds.headingLine, bounds.endLine);
-  if (itemsLine !== undefined) {
-    edit.insert(document.uri, new vscode.Position(itemsLine + 1, 0), `- ${itemId}\n`);
-  } else {
-    edit.insert(document.uri, new vscode.Position(bounds.endLine, 0), `\n#### Items\n\n- ${itemId}\n`);
-  }
-
-  action.edit = edit;
-  return action;
 }
 
 interface SectionHeading {
@@ -1342,78 +1191,8 @@ function formatMarkerPrefix(marker: string | string[] | true | undefined): strin
   return typeof marker === "string" && marker ? `${marker}:` : "";
 }
 
-function inferLayoutViewportCandidate(document: vscode.TextDocument, bareLayoutLine: number): string | undefined {
-  const viewports = new Set<string>();
-  for (let line = 0; line < document.lineCount; line += 1) {
-    if (line === bareLayoutLine) {
-      continue;
-    }
-    const match = /^##\s+Layout:\s*(.+?)\s*$/.exec(document.lineAt(line).text);
-    if (match) {
-      viewports.add(match[1].trim());
-    }
-  }
-
-  return viewports.size === 1 ? [...viewports][0] : undefined;
-}
-
 function escapeRegExpForPattern(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function findParentLayoutBounds(
-  document: vscode.TextDocument,
-  sourceLine: number,
-  layoutId: string
-): { headingLine: number; endLine: number } | undefined {
-  for (let line = sourceLine; line >= 0; line -= 1) {
-    const text = document.lineAt(line).text;
-    if (/^##\s+/u.test(text)) {
-      return undefined;
-    }
-
-    const match = /^###\s+(?:(\S+?):)?(L-[\p{L}\p{N}-]+)\s+/u.exec(text);
-    if (match) {
-      if (match[2] !== layoutId) {
-        return undefined;
-      }
-
-      return {
-        headingLine: line,
-        endLine: findBlockEndLine(document, line)
-      };
-    }
-  }
-
-  return undefined;
-}
-
-function findBlockEndLine(document: vscode.TextDocument, headingLine: number): number {
-  for (let line = headingLine + 1; line < document.lineCount; line += 1) {
-    if (/^#{2,3}\s+/u.test(document.lineAt(line).text)) {
-      return line;
-    }
-  }
-
-  return document.lineCount;
-}
-
-function findItemsSubsectionLine(document: vscode.TextDocument, startLine: number, endLine: number): number | undefined {
-  for (let line = startLine + 1; line < endLine; line += 1) {
-    if (document.lineAt(line).text.trim() === "#### Items") {
-      return line;
-    }
-  }
-
-  return undefined;
-}
-
-function lineRange(document: vscode.TextDocument, line: number): vscode.Range {
-  if (line + 1 < document.lineCount) {
-    return new vscode.Range(line, 0, line + 1, 0);
-  }
-
-  return new vscode.Range(line, 0, line, document.lineAt(line).text.length);
 }
 
 function previewDocumentLabel(document: vscode.TextDocument): string {
