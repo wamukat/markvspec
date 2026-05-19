@@ -5,6 +5,9 @@ import {
   parseElementSectionSemantics,
   parseLayoutSectionSemantics,
   parseSmallSectionSemantics,
+  sectionSemanticPayloadValues,
+  type SectionSemanticMetadata,
+  type SectionSemanticResult,
   type SemanticDependency
 } from "./markdown-section-semantic.js";
 import type { MarkVSpecDiagnostic, MarkVSpecElement, MarkVSpecFormGroup, MarkVSpecLayoutGroup } from "./types.js";
@@ -133,26 +136,40 @@ function renderSemanticsForSource(source: string): {
   ]);
   const layoutSemantics = parseLayoutSectionSemantics(document);
   const smallSemantics = parseSmallSectionSemantics(document);
+  const smallPayloads = smallSemantics.sectionResults.map((result) => result.payload);
   const sectionResults = [
     ...layoutSemantics.sectionResults,
     ...parseActionSectionSemantics(document).sectionResults,
     ...smallSemantics.sectionResults
   ];
   const elementSemantics = parseElementSectionSemantics(document);
+  const sectionRenderSemantics = [
+    ...sectionResults.map(sectionRenderSemanticsForResult),
+    ...elementSemantics.sectionResults.map(sectionRenderSemanticsForResult)
+  ];
 
   return {
     fingerprints,
     screenRenderKey: `screen:${screenIdForDocument(document)}`,
-    sections: [...sectionResults, ...elementSemantics.sectionResults].map((result) => ({
-      sectionId: result.sectionId,
-      renderKeys: result.renderKeys,
-      dependencies: result.dependencies
-    })),
-    dependencies: [...sectionResults, ...elementSemantics.sectionResults].flatMap((result) => result.dependencies),
+    sections: sectionRenderSemantics,
+    dependencies: sectionRenderSemantics.flatMap((result) => result.dependencies),
     elements: elementSemantics.elements,
-    formGroups: smallSemantics.formGroups,
+    formGroups: sectionSemanticPayloadValues(smallPayloads, "formGroups"),
     layoutGroups: layoutSemantics.layoutGroups,
-    states: smallSemantics.states.map((state) => state.name)
+    states: sectionSemanticPayloadValues(smallPayloads, "states").map((state) => state.name)
+  };
+}
+
+function sectionRenderSemanticsForResult(
+  result: SectionRenderSemantics | SectionSemanticResult
+): SectionRenderSemantics {
+  const metadata: SectionRenderSemantics | SectionSemanticMetadata = "metadata" in result
+    ? result.metadata
+    : result;
+  return {
+    sectionId: metadata.sectionId,
+    renderKeys: metadata.renderKeys,
+    dependencies: metadata.dependencies
   };
 }
 

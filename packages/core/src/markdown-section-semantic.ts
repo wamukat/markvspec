@@ -75,28 +75,42 @@ export type SectionSemanticPayload =
 export interface SectionSemanticResult extends SectionSemanticMetadata {
   metadata: SectionSemanticMetadata;
   payload: SectionSemanticPayload;
+  /** @deprecated Use payload when reading section-owned state data. Kept for public compatibility. */
   states: MarkVSpecState[];
+  /** @deprecated Use payload when reading section-owned model sample data. Kept for public compatibility. */
   modelSamples: MarkVSpecModelSampleSet[];
+  /** @deprecated Use payload when reading section-owned model sample group data. Kept for public compatibility. */
   modelSampleGroups: MarkVSpecModelSampleGroup[];
+  /** @deprecated Use payload when reading section-owned view context data. Kept for public compatibility. */
   viewContexts: MarkVSpecViewContextDefinition[];
+  /** @deprecated Use payload when reading section-owned view context sample data. Kept for public compatibility. */
   viewContextSamples: MarkVSpecViewContextSample[];
+  /** @deprecated Use payload when reading section-owned preview scenario data. Kept for public compatibility. */
   previewScenarios: MarkVSpecPreviewScenario[];
+  /** @deprecated Use payload when reading section-owned form group data. Kept for public compatibility. */
   formGroups: MarkVSpecFormGroup[];
+  /** @deprecated Use payload when reading section-owned event data. Kept for public compatibility. */
   events: MarkVSpecEventDispatch[];
+  /** @deprecated Use payload when reading section-owned validation data. Kept for public compatibility. */
   validations: MarkVSpecValidationRule[];
+  /** @deprecated Use payload when reading section-owned business rule data. Kept for public compatibility. */
   rules: MarkVSpecRule[];
+  /** @deprecated Use payload when reading section-owned error code data. Kept for public compatibility. */
   errorCodes: MarkVSpecErrorCode[];
+  /** @deprecated Use payload when reading section-owned history field data. Kept for public compatibility. */
   historyFields: MarkVSpecHistoryFieldSchema[];
+  /** @deprecated Use payload when reading section-owned history entry data. Kept for public compatibility. */
   historyEntries: MarkVSpecHistoryEntry[];
+  /** @deprecated Use payload when reading section-owned note data. Kept for public compatibility. */
   notes: MarkVSpecNoteSection[];
 }
 
-type SectionSemanticCompatibilityValues = Pick<
+export type SectionSemanticCompatibilityValues = Pick<
   SectionSemanticResult,
   "states" | "modelSamples" | "modelSampleGroups" | "viewContexts" | "viewContextSamples" | "previewScenarios" | "formGroups" | "events" | "validations" | "rules" | "errorCodes" | "historyFields" | "historyEntries" | "notes"
 >;
 
-type SectionSemanticValueKey = keyof SectionSemanticCompatibilityValues;
+export type SectionSemanticValueKey = keyof SectionSemanticCompatibilityValues;
 
 const sectionPayloadValueKeys = {
   states: ["states"],
@@ -216,9 +230,9 @@ export function parseSmallSectionSemantics(document: MarkdownDocument): SmallSec
     errorCodes: payloadValues(payloads, "errorCodes"),
     historyFields: payloadValues(payloads, "historyFields"),
     historyEntries: payloadValues(payloads, "historyEntries"),
-    sectionProse: sectionResults.flatMap((result) => result.sectionProse),
+    sectionProse: sectionResults.flatMap((result) => result.metadata.sectionProse),
     notes: payloadValues(payloads, "notes"),
-    diagnostics: [...orderDiagnostics, ...sectionResults.flatMap((result) => result.diagnostics)],
+    diagnostics: [...orderDiagnostics, ...sectionResults.flatMap((result) => result.metadata.diagnostics)],
     sectionResults
   };
 }
@@ -1288,11 +1302,18 @@ function emptySectionSemanticCompatibilityValues(): SectionSemanticCompatibility
   };
 }
 
-function payloadValues<TKey extends SectionSemanticValueKey>(
+export function sectionSemanticPayloadValues<TKey extends SectionSemanticValueKey>(
   payloads: SectionSemanticPayload[],
   key: TKey
 ): SectionSemanticCompatibilityValues[TKey] {
   return payloads.flatMap((payload) => payloadValue(payload, key) as unknown[]) as SectionSemanticCompatibilityValues[TKey];
+}
+
+function payloadValues<TKey extends SectionSemanticValueKey>(
+  payloads: SectionSemanticPayload[],
+  key: TKey
+): SectionSemanticCompatibilityValues[TKey] {
+  return sectionSemanticPayloadValues(payloads, key);
 }
 
 function payloadValue<TKey extends SectionSemanticValueKey>(
