@@ -91,6 +91,8 @@ import {
 } from "./preview-shell.js";
 import { registerMarkVSpecExportCommands } from "./export-commands.js";
 import { renderPreviewPrintWireframeOverrideStyle } from "./preview-styles.js";
+import { renderPreviewIcon } from "./preview-icons.js";
+import { renderProjectDesignDocumentHtml as renderProjectDesignDocumentHtmlBase } from "./project-preview-document.js";
 import {
   renderPreviewClientScript,
   renderPreviewMermaidScriptTag,
@@ -2243,8 +2245,8 @@ ${renderProjectPreviewStyles()}
     </button>
     <main class="content">${document}</main>
     ${renderPreviewPrintWireframeOverrideStyle()}
-    <nav class="toc" aria-label="${escapeHtml(pLabel(messages, "contents"))}">
-      <div class="toc-title">${escapeHtml(pLabel(messages, "contents"))}</div>
+    <nav class="toc" aria-label="${escapeHtml(messages.contents)}">
+      <div class="toc-title">${escapeHtml(messages.contents)}</div>
       ${renderTableOfContentsList(messages)}
     </nav>
     ${mermaidScriptTag}
@@ -2277,104 +2279,11 @@ export function renderStandaloneProjectHtml(
 }
 
 export function renderProjectDesignDocumentHtml(project: MarkVSpecProjectLoadResult, messages: RendererMessages = projectRendererMessagesForResult(project)): string {
-  const graph = buildProjectTransitionGraph(project);
-  const diagram = renderProjectTransitionMermaid(graph);
-  return `<article class="document">
-    ${renderProjectSpec(project, messages)}
-    ${renderProjectTemplatesSpec(project, messages)}
-    ${renderProjectScreensSpec(project, messages)}
-    <section class="doc-section">
-      <h2>${escapeHtml(pLabel(messages, "projectTransitionDiagram"))}</h2>
-      <pre class="mermaid-source" data-mermaid-source><code class="language-mermaid">${escapeHtml(diagram)}</code></pre>
-    </section>
-    ${renderProjectTransitionsSpec(project, messages)}
-    ${renderProjectDiagnosticsSpec(project, messages)}
-  </article>`;
+  return renderProjectDesignDocumentHtmlBase(project, messages);
 }
 
 function projectRendererMessagesForResult(project: MarkVSpecProjectLoadResult): RendererMessages {
   return projectRendererMessagesByResult.get(project) ?? messagesForLocale(undefined);
-}
-
-function pLabel(messages: RendererMessages, key: MessageKey): string {
-  return messages[key];
-}
-
-function renderProjectSpec(project: MarkVSpecProjectLoadResult, messages: RendererMessages): string {
-  const summary = project.project.project;
-  return `<section class="doc-section">
-    <h2>${escapeHtml(pLabel(messages, "project"))}</h2>
-    ${renderProjectKeyValueTable(messages, [
-      [pLabel(messages, "id"), summary.id],
-      [pLabel(messages, "title"), summary.title]
-    ])}
-  </section>`;
-}
-
-function renderProjectTemplatesSpec(project: MarkVSpecProjectLoadResult, messages: RendererMessages): string {
-  if (project.templates.length === 0) {
-    return "";
-  }
-
-  return `<section class="doc-section">
-    <h2>${escapeHtml(pLabel(messages, "templates"))}</h2>
-    ${renderProjectTable(messages,
-      [pLabel(messages, "template"), pLabel(messages, "title"), pLabel(messages, "path"), pLabel(messages, "status")],
-      project.templates.map((template) => [
-        template.index.id ? renderDocumentRefId(template.index.id) : "",
-        text(template.result?.screen.title ?? template.index.title),
-        text(template.resolvedPath ?? template.index.path),
-        text(template.result ? pLabel(messages, "loaded") : pLabel(messages, "missing"))
-      ])
-    )}
-  </section>`;
-}
-
-function renderProjectScreensSpec(project: MarkVSpecProjectLoadResult, messages: RendererMessages): string {
-  return `<section class="doc-section">
-    <h2>${escapeHtml(pLabel(messages, "screens"))}</h2>
-    ${renderProjectTable(messages,
-      [pLabel(messages, "screen"), pLabel(messages, "title"), pLabel(messages, "route"), pLabel(messages, "path")],
-      project.screens.map((screen) => [
-        screen.index.id ? renderDocumentRefId(screen.index.id) : "",
-        text(screen.result?.screen.title ?? screen.index.title),
-        text(screen.result?.screen.route),
-        text(screen.resolvedPath ?? screen.index.path)
-      ])
-    )}
-  </section>`;
-}
-
-function renderProjectTransitionsSpec(project: MarkVSpecProjectLoadResult, messages: RendererMessages): string {
-  const graph = buildProjectTransitionGraph(project);
-  return `<section class="doc-section">
-    <h2>${escapeHtml(pLabel(messages, "projectTransitions"))}</h2>
-    ${renderProjectTable(messages,
-      [pLabel(messages, "src"), pLabel(messages, "action"), pLabel(messages, "from"), pLabel(messages, "result"), pLabel(messages, "targetType"), pLabel(messages, "target")],
-      graph.edges.map((edge) => [
-        renderDocumentRefId(edge.sourceScreenId),
-        text([edge.actionMarker, edge.actionName].filter(Boolean).join(" ")),
-        code(edge.fromState),
-        text(edge.result || "-"),
-        text(edge.targetType),
-        renderNavigationTarget(edge.target)
-      ])
-    )}
-  </section>`;
-}
-
-function renderProjectDiagnosticsSpec(project: MarkVSpecProjectLoadResult, messages: RendererMessages): string {
-  return `<section class="doc-section">
-    <h2>${escapeHtml(pLabel(messages, "diagnostics"))}</h2>
-    ${renderProjectTable(messages,
-      [pLabel(messages, "severity"), pLabel(messages, "line"), pLabel(messages, "message")],
-      project.diagnostics.map((diagnostic) => [
-        renderDiagnosticSeverity(diagnostic.severity),
-        diagnostic.line ? String(diagnostic.line) : "",
-        text(renderDiagnosticMessageForLocale(diagnostic, project.project.project.frontMatter["locale"]))
-      ])
-    )}
-  </section>`;
 }
 
 function readMermaidScript(extensionUri: vscode.Uri | undefined): string | undefined {
@@ -5318,30 +5227,6 @@ function renderSourceSummary(value: string | true | undefined): string {
   return hasOpaqueExpression(source) ? renderExpressionTokens(source) : code(source);
 }
 
-type PreviewIconName = "circle-x" | "cog" | "database" | "eye-off" | "info" | "languages" | "merge" | "panels-top-left" | "refresh-cw" | "route" | "satellite-dish" | "split" | "square-check-big" | "table" | "triangle-alert" | "unplug" | "waypoints";
-
-function renderPreviewIcon(name: PreviewIconName): string {
-  const paths: Record<PreviewIconName, string> = {
-    "circle-x": '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>',
-    cog: '<path d="M11 10.27 7 3.34"/><path d="m11 13.73-4 6.93"/><path d="M12 22v-2"/><path d="M12 2v2"/><path d="M14 12h8"/><path d="m17 20.66-1-1.73"/><path d="m17 3.34-1 1.73"/><path d="M2 12h2"/><path d="m20.66 17-1.73-1"/><path d="m20.66 7-1.73 1"/><path d="m3.34 17 1.73-1"/><path d="m3.34 7 1.73 1"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="8"/>',
-    database: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/>',
-    "eye-off": '<path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61C3.88 8.46 2 12 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><path d="m2 2 20 20"/><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>',
-    info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
-    languages: '<path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>',
-    merge: '<path d="m8 6 4-4 4 4"/><path d="M12 2v10.3a4 4 0 0 1-1.172 2.872L4 22"/><path d="m20 22-5-5"/>',
-    "panels-top-left": '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>',
-    "refresh-cw": '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
-    route: '<circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M6 16V8a3 3 0 0 1 3-3h6"/><path d="M18 8v8a3 3 0 0 1-3 3H9"/>',
-    "satellite-dish": '<path d="M4 10a7.31 7.31 0 0 0 10 10Z"/><path d="m9 15 3-3"/><path d="M17 13a6 6 0 0 0-6-6"/><path d="M21 13A10 10 0 0 0 11 3"/>',
-    split: '<path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3"/><path d="m15 9 6-6"/>',
-    "square-check-big": '<path d="M21 10.656V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12.344"/><path d="m9 11 3 3L22 4"/>',
-    table: '<path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/>',
-    "triangle-alert": '<path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
-    unplug: '<path d="m19 5 3-3"/><path d="m2 22 3-3"/><path d="M6.3 20.3a2.4 2.4 0 0 0 3.4 0L12 18l-6-6-2.3 2.3a2.4 2.4 0 0 0 0 3.4Z"/><path d="M7.5 13.5 10 11"/><path d="M10.5 16.5 13 14"/><path d="m12 6 6 6 2.3-2.3a2.4 2.4 0 0 0 0-3.4l-2.6-2.6a2.4 2.4 0 0 0-3.4 0Z"/>',
-    waypoints: '<path d="m10.586 5.414-5.172 5.172"/><path d="m18.586 13.414-5.172 5.172"/><path d="M6 12h12"/><circle cx="12" cy="20" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="20" cy="12" r="2"/><circle cx="4" cy="12" r="2"/>'
-  };
-  return `<svg class="mm-icon mm-icon-${name}" aria-hidden="true" viewBox="0 0 24 24">${paths[name]}</svg>`;
-}
 
 function renderSourceKindIcon(source: string): string {
   if (source === "data") {
@@ -5405,13 +5290,6 @@ function renderKeyValueTable(rows: Array<[string, string | undefined]>, headers 
   return renderTable(headers, rows.map(([key, value]) => [text(key), text(value)]));
 }
 
-function renderProjectKeyValueTable(messages: RendererMessages, rows: Array<[string, string | undefined]>): string {
-  return renderTable([pLabel(messages, "field"), pLabel(messages, "value")], rows.map(([key, value]) => [text(key), text(value)]), pLabel(messages, "none"));
-}
-
-function renderProjectTable(messages: RendererMessages, headers: string[], rows: Array<Array<string | undefined>>): string {
-  return renderTable(headers, rows, pLabel(messages, "none"));
-}
 
 function renderLocalizedTable(
   result: ReturnType<typeof parseMarkVSpec>,
