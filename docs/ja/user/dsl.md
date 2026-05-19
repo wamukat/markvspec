@@ -1211,11 +1211,17 @@ Markdown のネストリストで書き、初期選択は `{初期値}` で表�
   - オーナー
 ```
 
-`Tabs` は tab strip と、初期表示で選択中の item、各 item が制御する panel を
-表す Element です。`active` はその要素内の初期表示状態であり、screen state、
-View Context、model value ではありません。各 item label は `items:` の下に書きます。
-`panel` は既存の `L-*` layout group を参照し、`action` には tab 選択時の `A-*`
-action を任意で指定できます。
+`Tabs` は tab strip と active item、各 item が制御する panel content を表す
+Element です。各 item label は `items:` の下に書きます。`panel` は既存の
+`L-*` layout group を参照します。参照された layout は active tab panel の内側に
+描画され、通常の Layout `Items` からも参照されていない限り root layout としては
+表示されません。
+
+item 単位の `active when` で、screen state、View Context value、その他 preview
+で評価できる条件を active panel に対応付けます。同じ item に複数の `active when`
+を書いた場合は OR 条件です。MVP preview で評価できる条件は state 名、`state is ...`、
+`${state.loaded}` や `${view.selectedTab} = profile` のような namespaced expression
+です。free text は仕様上保持しますが、preview では評価できないため warning になります。
 
 ```markdown
 ### E-SettingsTabs Tabs
@@ -1224,21 +1230,23 @@ action を任意で指定できます。
 - items:
   - Profile
     - panel: L-ProfilePanel
+    - active when: profile-tab
     - action: A-SelectProfileTab
   - Billing
     - panel: L-BillingPanel
+    - active when: billing-tab
     - action: A-SelectBillingTab
 ```
 
-生成 preview は active tab を示し、active panel の参照を表示します。Display Content
-Spec では tab item を 1 行に集約し、Element Summary では item action を辿れるようにします。
+どの `active when` も一致しない場合、preview は後方互換用の `active` property、
+それもなければ先頭 item に fallback します。Display Content Spec では tab item を
+1 行に集約し、Element Summary では item action を辿れるようにします。
 
-`Accordion` と `Disclosure` は、画面内の局所的な展開 / 折りたたみ UI を表す
-Element です。`open` は Element の初期表示状態であり、screen state、View Context、
-model value ではありません。
+`Accordion` と `Disclosure` は、展開 / 折りたたみ UI を表す Element です。
 
-`Accordion` では、`open` がある場合は item label と一致している必要があります。
-各 item は制御対象の `panel: L-*` layout group と、任意の `action: A-*` を持てます。
+`Accordion` では、各 item が制御対象の `panel: L-*` layout group と、任意の
+`action: A-*` を持てます。item 単位の `open when` で、preview state ごとに
+展開する panel を指定します。同じ item に複数の `open when` を書いた場合は OR 条件です。
 
 ```markdown
 ### E-AdvancedFilters Accordion
@@ -1247,46 +1255,49 @@ model value ではありません。
 - items:
   - Advanced filters
     - panel: L-AdvancedFilterPanel
+    - open when: advanced-filters-open
     - action: A-ToggleAdvancedFilters
   - Saved filters
     - panel: L-SavedFiltersPanel
+    - open when: saved-filters-open
 ```
 
-`Disclosure` では、`label` が開閉行の表示名、`open` は `true` または `false`、
-`panel` は制御対象の `L-*` layout group、`action` は任意の開閉 action です。
+`Disclosure` では、`label` が開閉行の表示名、`panel` は制御対象の `L-*`
+layout group、`action` は任意の開閉 action です。element 単位の `open when` で、
+一致する preview state だけ panel を描画します。
 
 ```markdown
 ### E-ShippingDetails Disclosure
 
 - label: Shipping details
-- open: true
+- open when: shipping-details-open
 - panel: L-ShippingDetailsPanel
 - action: A-ToggleShippingDetails
 ```
 
-生成仕様では panel 参照と action link を集約し、展開動作を余計な screen state
-なしで追跡できるようにします。
+どの `open when` も一致しない場合、preview は後方互換用の `open` property に
+fallback します。生成仕様では panel 参照と action link を集約し、展開動作を追跡できるようにします。
 
 `ActionMenu` は、行アクションメニューや三点メニューのような action 専用 menu を
 表します。汎用 `Menu`、selection menu、nested menu の契約はこの要素では導入しません。
 
-`open` は Element の初期 overlay 表示状態であり、screen state、View Context、
-model value ではありません。各 item は `action: A-*` を必須とし、`tone` と
-`disabled when` を任意で持てます。
+各 item は `action: A-*` を必須とします。element 単位の `open when` で、一致する
+preview state だけ menu overlay を表示します。`tone` と `disabled when` は任意の
+item metadata です。`disabled when` は `open when` と同じ preview 評価可能条件に従います。
 
 ```markdown
 ### E-RowActions ActionMenu
 
 - label: More actions
 - placement: bottom-end
-- open: false
+- open when: menu-open
 - items:
   - Edit
     - action: A-EditRow
   - Disable
     - action: A-DisableRow
     - tone: danger
-    - disabled when: selected-row-locked
+    - disabled when: menu-open-locked
 ```
 
 生成仕様では Element Summary と Display Content Spec から item action を辿れるようにし、

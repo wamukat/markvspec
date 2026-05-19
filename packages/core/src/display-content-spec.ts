@@ -315,7 +315,8 @@ function pushTabsRow(
 function formatTabItemContentRow(item: ParsedElement["tabs"][number]): string {
   const details = [
     item.panel ? `panel: ${item.panel}` : "",
-    item.action ? `action: ${item.action}` : ""
+    item.action ? `action: ${item.action}` : "",
+    ...item.activeWhen.map((condition) => `active when: ${condition}`)
   ].filter(Boolean);
   return details.length > 0 ? `${item.label} (${details.join("; ")})` : item.label;
 }
@@ -349,6 +350,7 @@ function pushAccordionDisclosureRows(
   const rowsValue = [
     label ? `label: ${label}` : "",
     open ? `open: ${open}` : "",
+    ...element.openWhen.map((condition) => `open when: ${condition}`),
     panel ? `panel: ${panel}` : "",
     action ? `action: ${action}` : ""
   ].filter(Boolean);
@@ -369,7 +371,8 @@ function pushAccordionDisclosureRows(
 function formatPanelItemContentRow(item: ParsedElement["accordionItems"][number]): string {
   const details = [
     item.panel ? `panel: ${item.panel}` : "",
-    item.action ? `action: ${item.action}` : ""
+    item.action ? `action: ${item.action}` : "",
+    ...item.openWhen.map((condition) => `open when: ${condition}`)
   ].filter(Boolean);
   return details.length > 0 ? `${item.label} (${details.join("; ")})` : item.label;
 }

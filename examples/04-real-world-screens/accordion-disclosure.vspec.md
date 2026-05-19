@@ -9,12 +9,14 @@ locale: en
 # SCR-ACCORDION-DISCLOSURE Accordion Disclosure
 
 Focused example for `Accordion` and `Disclosure` Elements. It keeps the screen
-small so open sections, panel references, and optional actions are easy to
-review without introducing screen states for local UI expansion.
+small so state changes can open one accordion item or the disclosure panel and
+show the referenced panel content inside the controlling component.
 
 ## States
 
-- idle*
+- advanced-filters-open*
+- saved-filters-open
+- shipping-details-open
 
 ## Layout: desktop
 
@@ -28,20 +30,8 @@ review without introducing screen states for local UI expansion.
 - E-PageTitle
 - E-AdvancedFilters
 - E-ShippingDetails
-- L-PanelReferenceDefinitions
 
-### L2:L-PanelReferenceDefinitions Panel reference definitions
-
-- stack
-- hidden when: idle
-
-#### Items
-
-- L-AdvancedFilterPanel
-- L-SavedFiltersPanel
-- L-ShippingDetailsPanel
-
-### L3:L-AdvancedFilterPanel Advanced filter panel
+### L2:L-AdvancedFilterPanel Advanced filter panel
 
 - stack
 - gap: sm
@@ -51,7 +41,7 @@ review without introducing screen states for local UI expansion.
 - E-StatusFilter
 - E-DateRange
 
-### L4:L-SavedFiltersPanel Saved filters panel
+### L3:L-SavedFiltersPanel Saved filters panel
 
 - stack
 - gap: sm
@@ -60,7 +50,7 @@ review without introducing screen states for local UI expansion.
 
 - E-SavedFilterName
 
-### L5:L-ShippingDetailsPanel Shipping details panel
+### L4:L-ShippingDetailsPanel Shipping details panel
 
 - stack
 - gap: sm
@@ -79,13 +69,15 @@ review without introducing screen states for local UI expansion.
 
 ### 2:E-AdvancedFilters Accordion
 
-- open: Advanced filters
 - items:
   - Advanced filters
     - panel: L-AdvancedFilterPanel
+    - open when: advanced-filters-open
     - action: A-ToggleAdvancedFilters
   - Saved filters
     - panel: L-SavedFiltersPanel
+    - open when: saved-filters-open
+    - action: A-OpenSavedFilters
 
 ### 3:E-StatusFilter Text
 
@@ -105,7 +97,7 @@ review without introducing screen states for local UI expansion.
 ### 6:E-ShippingDetails Disclosure
 
 - label: Shipping details
-- open: true
+- open when: shipping-details-open
 - panel: L-ShippingDetailsPanel
 - action: A-ToggleShippingDetails
 
@@ -124,21 +116,35 @@ review without introducing screen states for local UI expansion.
 ### A1:A-ToggleAdvancedFilters Toggle advanced filters
 
 - From
-  - idle
+  - saved-filters-open
+  - shipping-details-open
 - Process P1: Toggle accordion item
   - case: done
-    - description: Advanced filters item toggles the L-AdvancedFilterPanel panel reference.
+    - description: Advanced filters item opens L-AdvancedFilterPanel inside the accordion.
     - Effects
-      - state: idle
+      - state: advanced-filters-open
     - stop
 
-### A2:A-ToggleShippingDetails Toggle shipping details
+### A2:A-OpenSavedFilters Open saved filters
 
 - From
-  - idle
+  - advanced-filters-open
+  - shipping-details-open
+- Process P1: Toggle accordion item
+  - case: done
+    - description: Saved filters item opens L-SavedFiltersPanel inside the accordion.
+    - Effects
+      - state: saved-filters-open
+    - stop
+
+### A3:A-ToggleShippingDetails Toggle shipping details
+
+- From
+  - advanced-filters-open
+  - saved-filters-open
 - Process P1: Toggle disclosure
   - case: done
-    - description: Shipping details disclosure toggles the L-ShippingDetailsPanel panel reference.
+    - description: Shipping details disclosure opens L-ShippingDetailsPanel inside the disclosure.
     - Effects
-      - state: idle
+      - state: shipping-details-open
     - stop

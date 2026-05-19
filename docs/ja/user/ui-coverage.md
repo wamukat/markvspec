@@ -19,13 +19,13 @@
 | ファイル入力 | 対応済み | `FileInput`, `FileUpload` | `accept`, `multiple`, `label`, `sample` で制約や補助文を表現します。 |
 | ボタン / リンク | 対応済み | `Button`, `Link` | `variant`, `tone`, `action`, `href`, route params を書けます。 |
 | Select / Checkbox / RadioGroup | 対応済み | `Select`, `MultiSelect`, `Checkbox`, `CheckboxGroup`, `Switch`, `RadioGroup` | 選択肢は Markdown のネストリストで書きます。排他的な値域は `RadioGroup`、複数値は `CheckboxGroup` または `MultiSelect`、boolean 設定は `Switch` で表します。 |
-| Tabs | 対応済み | `Tabs` | 画面内の局所的な tab 選択です。`active` で初期選択 tab を示します。各 item は `panel: L-*` と `action: A-*` を参照でき、生成仕様では item label を集約し、action link を辿れます。 |
+| Tabs | 対応済み | `Tabs` | 画面内の局所的な tab 選択です。各 item は `panel: L-*`、`active when`、`action: A-*` を参照でき、preview では active panel layout を Tabs 内に描画します。 |
 | Banner / Badge | 対応済み | `Banner`, `Badge` | `tone` で danger や success などの意味を表現します。 |
 | List / Table | 対応済み | `List`, `Table` | Table は列とサンプル行を Markdown のネストリストで書きます。 |
 | Dialog / Overlay | 対応済み | `Dialog` と target なしの `display.element` | Dialog は既定で modal overlay です。`actions:` で cancel / confirm button を定義し、Preview Scenario または action case から layout target なしで表示します。 |
 | Popover / Tooltip | 対応済み | `Popover`, `Tooltip` | anchored non-modal help です。`anchor` は `E-*` 参照必須で、`placement`、`text`、visibility condition は preview と生成仕様に表示されます。hover / focus runtime behavior と interactive popover content は現行契約の対象外です。 |
-| Accordion / Disclosure | 対応済み | `Accordion`, `Disclosure` | 画面内の局所的な展開 / 折りたたみです。`open` は Element 内の初期表示状態で、panel は `L-*` layout group を参照し、任意 action も追跡できます。 |
-| Action menu | 対応済み | `ActionMenu` | 行アクションや三点メニュー向けの action 専用 menu です。各 item は `action: A-*` 必須で、任意の `tone` と `disabled when` も生成仕様に表示されます。汎用 `Menu`、selection menu、nested menu は対象外です。 |
+| Accordion / Disclosure | 対応済み | `Accordion`, `Disclosure` | 画面内の局所的な展開 / 折りたたみです。`open when` で一致する preview state の panel layout を描画し、任意 action も追跡できます。 |
+| Action menu | 対応済み | `ActionMenu` | 行アクションや三点メニュー向けの action 専用 menu です。`open when` で overlay 表示を制御します。各 item は `action: A-*` 必須で、任意の `tone` と `disabled when` も生成仕様に表示されます。汎用 `Menu`、selection menu、nested menu は対象外です。 |
 | Toast 通知 | 対応済み | `Toast` と target なしの `display.element` | Toast は non-modal overlay です。`message`、`tone`、`placement`、`duration` を使い、複数表示時は toast region に stack 表示します。 |
 | Spinner / Loading mask | 対応済み | `Spinner` と状態表示 layout | 待機状態や partial loading に使います。 |
 | Divider | 対応済み | `Divider` | フォームや詳細画面内のグループ区切りに使います。 |
@@ -84,22 +84,25 @@ Layout と既存 Element の組み合わせだけではレビューしにくい�
 ### Tabs
 
 `Tabs` は、画面内に局所的な tab strip があり、各 tab が panel または action を制御する場合に使います。
+`panel: L-*` は active tab の controlled content として Tabs 内に描画されます。
 
 ```markdown
 ### E-SettingsTabs Tabs
 
-- active: Profile
 - items:
   - Profile
     - panel: L-ProfilePanel
+    - active when: profile-tab
     - action: A-SelectProfileTab
   - Billing
     - panel: L-BillingPanel
+    - active when: billing-tab
     - action: A-SelectBillingTab
 ```
 
-preview は tab strip と active item、active panel 参照を表示します。生成仕様では tab item を集約し、
-Element Summary から item action を辿れるようにします。
+preview は tab strip と active item、active panel layout を表示します。生成仕様では tab item を集約し、
+Element Summary から item action を辿れるようにします。どの `active when` も一致しない場合は、
+後方互換用の `active`、それもなければ先頭 item に fallback します。
 
 例: [Tabs Settings](../../../examples/04-real-world-screens/tabs-settings.vspec.md)。
 生成 HTML: [tabs-settings.html](https://wamukat.github.io/markvspec/examples/tabs-settings.html)。
@@ -127,31 +130,34 @@ interactive Popover content は対象外です。
 ### Accordion / Disclosure
 
 `Accordion` は1つの Element が複数の展開 section を持つ場合に使います。`Disclosure` は1つの
-trigger が1つの panel を制御する場合に使います。
+trigger が1つの panel を制御する場合に使います。`panel: L-*` は open section の
+controlled content として描画されます。
 
 ```markdown
 ### E-AdvancedFilters Accordion
 
-- open: Advanced filters
 - items:
   - Advanced filters
     - panel: L-AdvancedFilterPanel
+    - open when: advanced-filters-open
     - action: A-ToggleAdvancedFilters
   - Saved filters
     - panel: L-SavedFiltersPanel
+    - open when: saved-filters-open
 ```
 
 ```markdown
 ### E-ShippingDetails Disclosure
 
 - label: Shipping details
-- open: true
+- open when: shipping-details-open
 - panel: L-ShippingDetailsPanel
 - action: A-ToggleShippingDetails
 ```
 
-preview では header と開いている panel 参照を表示します。Display Content Spec では
+preview では header と開いている panel layout を表示します。Display Content Spec では
 panel / action link を集約し、局所的な展開動作を screen state と分けて確認できます。
+どの `open when` も一致しない場合は、後方互換用の `open` に fallback します。
 
 例: [Accordion Disclosure](../../../examples/04-real-world-screens/accordion-disclosure.vspec.md)。
 生成 HTML: [accordion-disclosure.html](https://wamukat.github.io/markvspec/examples/accordion-disclosure.html)。
@@ -166,17 +172,17 @@ selection menu、nested navigation menu、汎用 dropdown には使いません�
 
 - label: More actions
 - placement: bottom-end
-- open: false
+- open when: menu-open
 - items:
   - Edit
     - action: A-EditRow
   - Disable
     - action: A-DisableRow
     - tone: danger
-    - disabled when: selected-row-locked
+    - disabled when: menu-open-locked
 ```
 
-preview では trigger を表示し、`open: true` の場合は anchored item list を表示します。
+preview では trigger を表示し、`open when` が一致する場合は anchored item list を表示します。
 Display Content Spec では item label、action link、tone、disabled condition を集約します。
 
 例: [Action Menu](../../../examples/04-real-world-screens/action-menu.vspec.md)。

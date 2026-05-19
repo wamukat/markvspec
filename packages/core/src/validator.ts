@@ -80,6 +80,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
     action.id,
     new Set(action.processSteps.map((step) => step.marker).filter((marker): marker is string => Boolean(marker)))
   ]));
+  validateControlledPanelLayoutUsage(result, targetLayoutIds, diagnostics);
   const referencedPartialIds = new Map<string, SourceLocation>();
   const allLayoutGroups = [...result.layoutGroups, ...result.slotContents.flatMap((slot) => slot.layoutGroups)];
   const layoutsById = new Map(allLayoutGroups.map((group) => [group.id, group]));
@@ -363,10 +364,10 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
     }
     validateDialogActions(element, elementsById, actionIds, diagnostics);
     validateSelectInitialValue(element, diagnostics);
-    validateTabsElement(element, targetLayoutIds, actionIds, diagnostics);
+    validateTabsElement(element, targetLayoutIds, actionIds, stateNames, diagnostics);
     validateAnchoredOverlayElement(element, elementIds, diagnostics);
-    validateAccordionDisclosureElement(element, targetLayoutIds, actionIds, diagnostics);
-    validateActionMenuElement(element, actionIds, diagnostics);
+    validateAccordionDisclosureElement(element, targetLayoutIds, actionIds, stateNames, diagnostics);
+    validateActionMenuElement(element, actionIds, stateNames, diagnostics);
 
     for (const param of element.routeParams) {
       const sourceId = requestParamSourceId(param.source);
@@ -382,7 +383,8 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
     for (const [key, conditions] of [
       ["visible when", element.visibleWhen],
       ["hidden when", element.hiddenWhen],
-      ["disabled when", element.disabledWhen]
+      ["disabled when", element.disabledWhen],
+      ["open when", element.openWhen]
     ] as const) {
       conditions.forEach((condition, index) => {
         checkConditionReferences(
@@ -2815,9 +2817,19 @@ function validateConditionNamespaces(
     for (const [key, conditions] of [
       ["visible when", element.visibleWhen],
       ["hidden when", element.hiddenWhen],
-      ["disabled when", element.disabledWhen]
+      ["disabled when", element.disabledWhen],
+      ["open when", element.openWhen]
     ] as const) {
       conditions.forEach((condition, index) => check(condition, element.propertyLocations[key]?.[index]?.line ?? element.location.line));
+    }
+    for (const item of element.tabs) {
+      item.activeWhen.forEach((condition, index) => check(condition, item.propertyLocations["active when"]?.[index]?.line ?? item.location.line));
+    }
+    for (const item of element.accordionItems) {
+      item.openWhen.forEach((condition, index) => check(condition, item.propertyLocations["open when"]?.[index]?.line ?? item.location.line));
+    }
+    for (const item of element.actionMenuItems) {
+      item.disabledWhen.forEach((condition, index) => check(condition, item.propertyLocations["disabled when"]?.[index]?.line ?? item.location.line));
     }
   }
   for (const layout of [...result.layoutGroups, ...result.slotContents.flatMap((slot) => slot.layoutGroups)]) {
@@ -3163,6 +3175,7 @@ function validateTabsElement(
   element: MarkVSpecElement,
   layoutIds: Set<string>,
   actionIds: Set<string>,
+  stateNames: Set<string>,
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
   if (element.type !== "Tabs") {
@@ -3193,6 +3206,51 @@ function validateTabsElement(
         line: item.propertyLocations.action[0]?.line ?? item.location.line
       });
     }
+    validateControlledConditions(element.id, "tab item", item.label, "active when", item.activeWhen, item.propertyLocations["active when"], stateNames, diagnostics);
+  }
+  validateSingleMatchedCondition(element.id, "Tabs active when", element.tabs.map((item) => ({ label: item.label, conditions: item.activeWhen, locations: item.propertyLocations["active when"] })), stateNames, diagnostics);
+}
+
+function validateControlledPanelLayoutUsage(
+  result: MarkVSpecParseResult,
+  layoutIds: Set<string>,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  const normalLayoutReferences = new Set<string>();
+  for (const group of result.layoutGroups) {
+    for (const item of group.items) {
+      if (item.type === "contains" && layoutIds.has(item.targetId)) {
+        normalLayoutReferences.add(item.targetId);
+      }
+    }
+  }
+  const controlledPanelReferences: Array<{ layoutId: string; elementId: string; line: number }> = [];
+  for (const element of result.elements) {
+    for (const item of element.tabs) {
+      if (item.panel) {
+        controlledPanelReferences.push({ layoutId: item.panel, elementId: element.id, line: item.propertyLocations.panel[0]?.line ?? item.location.line });
+      }
+    }
+    for (const item of element.accordionItems) {
+      if (item.panel) {
+        controlledPanelReferences.push({ layoutId: item.panel, elementId: element.id, line: item.propertyLocations.panel[0]?.line ?? item.location.line });
+      }
+    }
+    const panel = element.type === "Disclosure" ? stringProperty(element, "panel").trim() : "";
+    if (panel) {
+      controlledPanelReferences.push({ layoutId: panel, elementId: element.id, line: firstPropertyLine(element, "panel") ?? element.location.line });
+    }
+  }
+
+  for (const reference of controlledPanelReferences) {
+    if (!normalLayoutReferences.has(reference.layoutId)) {
+      continue;
+    }
+    diagnostics.push({
+      severity: "warning",
+      message: `Layout ${reference.layoutId} is used both as a controlled panel for Element ${reference.elementId} and as a normal layout item. Preview keeps the normal layout display and does not expand it inside the component.`,
+      line: reference.line
+    });
   }
 }
 
@@ -3238,6 +3296,7 @@ function validateAccordionDisclosureElement(
   element: MarkVSpecElement,
   layoutIds: Set<string>,
   actionIds: Set<string>,
+  stateNames: Set<string>,
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
   if (element.type === "Accordion") {
@@ -3265,7 +3324,9 @@ function validateAccordionDisclosureElement(
           line: item.propertyLocations.action[0]?.line ?? item.location.line
         });
       }
+      validateControlledConditions(element.id, "accordion item", item.label, "open when", item.openWhen, item.propertyLocations["open when"], stateNames, diagnostics);
     }
+    validateSingleMatchedCondition(element.id, "Accordion open when", element.accordionItems.map((item) => ({ label: item.label, conditions: item.openWhen, locations: item.propertyLocations["open when"] })), stateNames, diagnostics);
     return;
   }
 
@@ -3299,11 +3360,13 @@ function validateAccordionDisclosureElement(
       line: firstPropertyLine(element, "panel") ?? element.location.line
     });
   }
+  validateControlledConditions(element.id, "Disclosure", element.id, "open when", element.openWhen, element.propertyLocations["open when"] ?? [], stateNames, diagnostics);
 }
 
 function validateActionMenuElement(
   element: MarkVSpecElement,
   actionIds: Set<string>,
+  stateNames: Set<string>,
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
   if (element.type !== "ActionMenu") {
@@ -3345,7 +3408,64 @@ function validateActionMenuElement(
         line: item.propertyLocations.action[0]?.line ?? item.location.line
       });
     }
+    validateControlledConditions(element.id, "action menu item", item.label, "disabled when", item.disabledWhen, item.propertyLocations["disabled when"], stateNames, diagnostics);
   }
+  validateControlledConditions(element.id, "ActionMenu", element.id, "open when", element.openWhen, element.propertyLocations["open when"] ?? [], stateNames, diagnostics);
+}
+
+function validateControlledConditions(
+  elementId: string,
+  ownerKind: string,
+  ownerLabel: string,
+  property: "active when" | "open when" | "disabled when",
+  conditions: string[],
+  locations: SourceLocation[],
+  stateNames: Set<string>,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  conditions.forEach((condition, index) => {
+    if (!isPreviewEvaluableControlledCondition(condition, stateNames)) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Element ${elementId} ${ownerKind} ${ownerLabel} ${property} condition "${condition}" cannot be evaluated in preview. Use a state name, state is ..., or a namespaced condition such as \${state.*} or \${view.*}.`,
+        line: locations[index]?.line ?? locations[0]?.line
+      });
+    }
+  });
+}
+
+function validateSingleMatchedCondition(
+  elementId: string,
+  label: string,
+  items: Array<{ label: string; conditions: string[]; locations: SourceLocation[] }>,
+  stateNames: Set<string>,
+  diagnostics: MarkVSpecDiagnostic[]
+): void {
+  for (const stateName of stateNames) {
+    const matched = items.filter((item) => item.conditions.some((condition) => isActiveControlledStateCondition(condition, stateName, stateNames)));
+    if (matched.length > 1) {
+      diagnostics.push({
+        severity: "warning",
+        message: `Element ${elementId} ${label} matches multiple items for state ${stateName}: ${matched.map((item) => item.label).join(", ")}. Preview uses the first matching item.`,
+        line: matched[1]?.locations[0]?.line ?? matched[0]?.locations[0]?.line
+      });
+    }
+  }
+}
+
+function isPreviewEvaluableControlledCondition(condition: string, stateNames: Set<string>): boolean {
+  const normalized = condition.trim();
+  return /^(not\s+)?\$\{(?:model|view|state)\.[^}]+\}(?:\s*=\s*[^=].*)?$/u.test(normalized)
+    || normalized.startsWith("state is ")
+    || stateNames.has(normalized);
+}
+
+function isActiveControlledStateCondition(condition: string, activeState: string, stateNames: Set<string>): boolean {
+  const normalized = condition.trim();
+  if (!stateNames.has(activeState)) {
+    return false;
+  }
+  return normalized === activeState || normalized === `state is ${activeState}` || normalized === `\${state.${activeState}}`;
 }
 
 function firstPropertyLine(

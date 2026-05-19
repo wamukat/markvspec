@@ -25,13 +25,20 @@ export function renderMarkVSpecHtml(result: MarkVSpecParseResult, options: MarkV
   const actionMarkersByElementId = mapActionMarkersByElementId(result.actions, result.elements, activeState);
   const formGroupMarkersByLayoutId = mapFormGroupMarkersByLayoutId(result.formGroups, layoutGroups, layoutById);
   const containedLayoutIds = new Set<string>();
+  const normallyContainedLayoutIds = new Set<string>();
+  const controlledPanelLayoutIds = controlledPanelLayoutIdsFor(result.elements, layoutById);
   const context = {
     ...renderContextForState(result, activeState),
     routeValues: options.routeValues ?? {},
     sampleOverrides: options.sampleOverrides ?? {},
+    result,
+    layoutById,
+    slotContentsByName,
     elementById,
     actionMarkersByElementId,
-    formGroupMarkersByLayoutId
+    formGroupMarkersByLayoutId,
+    normallyContainedLayoutIds,
+    controlledPanelLayoutIds
   };
   const renderOptions = {
     ...options,
@@ -42,11 +49,18 @@ export function renderMarkVSpecHtml(result: MarkVSpecParseResult, options: MarkV
     for (const item of group.items) {
       if (item.type === "contains" && layoutById.has(item.targetId)) {
         containedLayoutIds.add(item.targetId);
+        normallyContainedLayoutIds.add(item.targetId);
       }
     }
   }
   for (const layoutId of slotDefaultLayoutIds(result)) {
     if (layoutById.has(layoutId)) {
+      containedLayoutIds.add(layoutId);
+      normallyContainedLayoutIds.add(layoutId);
+    }
+  }
+  for (const layoutId of controlledPanelLayoutIds) {
+    if (!normallyContainedLayoutIds.has(layoutId)) {
       containedLayoutIds.add(layoutId);
     }
   }
@@ -79,6 +93,12 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
   const stateNames = new Set(result.states.map((state) => state.name));
   const actionMarkersByElementId = mapActionMarkersByElementId(result.actions, result.elements, activeState);
   const elementById = new Map(result.elements.map((element) => [element.id, element]));
+  const activeViewport = resolveViewport(result, options.viewport);
+  const layoutGroups = activeViewport ? result.layoutGroups.filter((group) => group.viewport === activeViewport) : [];
+  const layoutById = new Map(layoutGroups.map((group) => [group.id, group]));
+  const slotContentsByName = mapSlotContentsByName(result.slotContents);
+  const normallyContainedLayoutIds = normallyContainedLayoutIdsFor(layoutGroups, layoutById, result);
+  const controlledPanelLayoutIds = controlledPanelLayoutIdsFor(result.elements, layoutById);
   if (elementMatch) {
     const elementId = elementMatch[1];
     const element = result.elements.find((candidate) => candidate.id === elementId);
@@ -92,8 +112,13 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
         ...renderContextForState(result, activeState),
         routeValues: options.routeValues ?? {},
         sampleOverrides: options.sampleOverrides ?? {},
+        result,
+        layoutById,
+        slotContentsByName,
         elementById,
-        actionMarkersByElementId
+        actionMarkersByElementId,
+        normallyContainedLayoutIds,
+        controlledPanelLayoutIds
       })
     };
   }
@@ -126,9 +151,14 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
           ...renderContextForState(result, activeState),
           routeValues: options.routeValues ?? {},
           sampleOverrides: options.sampleOverrides ?? {},
+          result,
+          layoutById,
+          slotContentsByName: mapSlotContentsByName(result.slotContents),
           elementById,
           actionMarkersByElementId,
-          formGroupMarkersByLayoutId
+          formGroupMarkersByLayoutId,
+          normallyContainedLayoutIds: normallyContainedLayoutIdsFor(layoutGroups, layoutById, result),
+          controlledPanelLayoutIds: controlledPanelLayoutIdsFor(result.elements, layoutById)
         },
         false,
         undefined,
@@ -242,9 +272,14 @@ interface ActionMarkerReference {
 interface RenderContext {
   sampleOverrides: Record<string, MarkVSpecParseResult["previewScenarios"][number]["samples"][number]>;
   routeValues: Record<string, string>;
+  result?: MarkVSpecParseResult;
+  layoutById?: Map<string, MarkVSpecLayoutGroup>;
+  slotContentsByName?: SlotContentsByName;
   elementById?: Map<string, MarkVSpecElement>;
   actionMarkersByElementId?: Map<string, ActionMarkerReference[]>;
   formGroupMarkersByLayoutId?: Map<string, FormGroupMarkerReference[]>;
+  normallyContainedLayoutIds?: ReadonlySet<string>;
+  controlledPanelLayoutIds?: ReadonlySet<string>;
   suppressMarkers?: boolean;
   slotName?: string;
   slotRenderViewport?: string;
@@ -281,6 +316,44 @@ function slotDefaultLayoutIds(result: MarkVSpecParseResult): Set<string> {
   return new Set(result.slotDefinitions
     .map((slot) => typeof slot.properties["default"] === "string" ? slot.properties["default"].trim() : "")
     .filter((defaultId) => defaultId.startsWith("L-")));
+}
+
+function controlledPanelLayoutIdsFor(elements: MarkVSpecElement[], layoutById: Map<string, MarkVSpecLayoutGroup>): Set<string> {
+  const ids = new Set<string>();
+  for (const element of elements) {
+    for (const item of element.tabs) {
+      if (item.panel && layoutById.has(item.panel)) {
+        ids.add(item.panel);
+      }
+    }
+    for (const item of element.accordionItems) {
+      if (item.panel && layoutById.has(item.panel)) {
+        ids.add(item.panel);
+      }
+    }
+    const disclosurePanel = element.type === "Disclosure" ? stringProperty(element, "panel") : "";
+    if (disclosurePanel && layoutById.has(disclosurePanel)) {
+      ids.add(disclosurePanel);
+    }
+  }
+  return ids;
+}
+
+function normallyContainedLayoutIdsFor(layoutGroups: MarkVSpecLayoutGroup[], layoutById: Map<string, MarkVSpecLayoutGroup>, result: MarkVSpecParseResult): Set<string> {
+  const ids = new Set<string>();
+  for (const group of layoutGroups) {
+    for (const item of group.items) {
+      if (item.type === "contains" && layoutById.has(item.targetId)) {
+        ids.add(item.targetId);
+      }
+    }
+  }
+  for (const layoutId of slotDefaultLayoutIds(result)) {
+    if (layoutById.has(layoutId)) {
+      ids.add(layoutId);
+    }
+  }
+  return ids;
 }
 
 function resolveViewport(result: MarkVSpecParseResult, requestedViewport: string | undefined): string | undefined {
@@ -728,8 +801,9 @@ function renderElement(
 
   if (element.type === "Tabs") {
     const active = stringProperty(element, "active");
-    const items = element.tabs.length > 0 ? element.tabs : [{ label: active || displayLabel || "Tab", propertyLocations: { panel: [], action: [] }, location: element.location, raw: active || displayLabel || "Tab" }];
-    const activeLabel = active || items[0]?.label || "";
+    const items = element.tabs.length > 0 ? element.tabs : [{ label: active || displayLabel || "Tab", activeWhen: [], openWhen: [], propertyLocations: { panel: [], action: [], "active when": [], "open when": [] }, location: element.location, raw: active || displayLabel || "Tab" }];
+    const activeItem = resolveActiveTabItem(items, active, activeState, stateNames, options);
+    const activeLabel = activeItem?.label || "";
     const tabs = items
       .map((item) => {
         const selected = item.label === activeLabel;
@@ -739,41 +813,45 @@ function renderElement(
         return `<span class="${classes}"${selected ? " aria-selected=\"true\"" : ""}${panel}${action}>${escapeHtml(item.label)}</span>`;
       })
       .join("");
-    const panel = items.find((item) => item.label === activeLabel)?.panel;
-    const panelNote = panel ? `<div class="mm-tabs-panel-note">panel: ${escapeHtml(panel)}</div>` : "";
-    return renderAnnotatedElement(markers, element.type, `<div class="${classes}" data-mm-id="${escapeHtml(element.id)}"><div class="mm-tab-strip">${tabs}</div>${panelNote}</div>`);
+    const panel = activeItem?.panel;
+    const panelBody = panel ? renderControlledPanelLayout(panel, activeState, stateNames, options, disabled, context, "tabs") : "";
+    const panelNote = panel && !panelBody ? `<div class="mm-tabs-panel-note">panel: ${escapeHtml(panel)}</div>` : "";
+    return renderAnnotatedElement(markers, element.type, `<div class="${classes}" data-mm-id="${escapeHtml(element.id)}"><div class="mm-tab-strip">${tabs}</div>${panelBody || panelNote}</div>`);
   }
 
   if (element.type === "Accordion") {
     const open = stringProperty(element, "open");
-    const items = element.accordionItems.length > 0 ? element.accordionItems : [{ label: open || displayLabel || "Section", propertyLocations: { panel: [], action: [] }, location: element.location, raw: open || displayLabel || "Section" }];
-    const openLabel = open || items[0]?.label || "";
+    const items = element.accordionItems.length > 0 ? element.accordionItems : [{ label: open || displayLabel || "Section", activeWhen: [], openWhen: [], propertyLocations: { panel: [], action: [], "active when": [], "open when": [] }, location: element.location, raw: open || displayLabel || "Section" }];
+    const openItem = resolveOpenAccordionItem(items, open, activeState, stateNames, options);
+    const openLabel = openItem?.label || "";
     const itemHtml = items.map((item) => {
       const expanded = item.label === openLabel;
       const panel = item.panel ? ` data-mm-accordion-panel="${escapeHtml(item.panel)}"` : "";
       const action = item.action ? ` data-mm-accordion-action="${escapeHtml(item.action)}"` : "";
-      const panelNote = expanded && item.panel ? `<div class="mm-accordion-panel-note">panel: ${escapeHtml(item.panel)}</div>` : "";
-      return `<div class="mm-accordion-item${expanded ? " mm-accordion-item-open" : ""}"${panel}${action}><div class="mm-accordion-header">${expanded ? "v" : ">"} ${escapeHtml(item.label)}</div>${panelNote}</div>`;
+      const panelBody = expanded && item.panel ? renderControlledPanelLayout(item.panel, activeState, stateNames, options, disabled, context, "accordion") : "";
+      const panelNote = expanded && item.panel && !panelBody ? `<div class="mm-accordion-panel-note">panel: ${escapeHtml(item.panel)}</div>` : "";
+      return `<div class="mm-accordion-item${expanded ? " mm-accordion-item-open" : ""}"${panel}${action}><div class="mm-accordion-header">${expanded ? "v" : ">"} ${escapeHtml(item.label)}</div>${panelBody || panelNote}</div>`;
     }).join("");
     return renderAnnotatedElement(markers, element.type, `<div class="${classes}" data-mm-id="${escapeHtml(element.id)}">${itemHtml}</div>`);
   }
 
   if (element.type === "Disclosure") {
-    const open = isTruthyInitialValue(stringProperty(element, "open"));
+    const open = isDisclosureOpen(element, activeState, stateNames, options);
     const panel = stringProperty(element, "panel");
     const panelAttr = panel ? ` data-mm-disclosure-panel="${escapeHtml(panel)}"` : "";
-    const panelNote = open && panel ? `<div class="mm-accordion-panel-note">panel: ${escapeHtml(panel)}</div>` : "";
-    return renderAnnotatedElement(markers, element.type, `<div class="${classes} ${open ? "mm-disclosure-open" : "mm-disclosure-closed"}" data-mm-id="${escapeHtml(element.id)}"${panelAttr}><div class="mm-accordion-header">${open ? "v" : ">"} ${escapeHtml(displayLabel || element.id)}</div>${panelNote}</div>`);
+    const panelBody = open && panel ? renderControlledPanelLayout(panel, activeState, stateNames, options, disabled, context, "disclosure") : "";
+    const panelNote = open && panel && !panelBody ? `<div class="mm-accordion-panel-note">panel: ${escapeHtml(panel)}</div>` : "";
+    return renderAnnotatedElement(markers, element.type, `<div class="${classes} ${open ? "mm-disclosure-open" : "mm-disclosure-closed"}" data-mm-id="${escapeHtml(element.id)}"${panelAttr}><div class="mm-accordion-header">${open ? "v" : ">"} ${escapeHtml(displayLabel || element.id)}</div>${panelBody || panelNote}</div>`);
   }
 
   if (element.type === "ActionMenu") {
-    const open = isTruthyInitialValue(stringProperty(element, "open"));
+    const open = isActionMenuOpen(element, activeState, stateNames, options);
     const placement = stringProperty(element, "placement");
     const placementAttr = placement ? ` data-mm-placement="${escapeHtml(placement)}"` : "";
     const items = open
       ? `<div class="mm-action-menu-panel">${element.actionMenuItems.map((item) => {
         const action = item.action ? ` data-mm-action-menu-action="${escapeHtml(item.action)}"` : "";
-        const disabled = item.disabledWhen.length > 0 ? " mm-action-menu-item-disabled" : "";
+        const disabled = item.disabledWhen.some((condition) => isActiveCondition(condition, activeState, stateNames, options)) ? " mm-action-menu-item-disabled" : "";
         const tone = item.tone ? ` mm-action-menu-item-${sanitizeClassToken(item.tone)}` : "";
         const meta = [
           item.action ? `action: ${escapeHtml(item.action)}` : "",
@@ -1098,6 +1176,70 @@ function isLayoutVisible(group: MarkVSpecLayoutGroup, activeState: string | unde
 
 function isElementDisabled(element: MarkVSpecElement, activeState: string | undefined, stateNames: Set<string>, options: MarkVSpecRenderOptions): boolean {
   return element.disabledWhen.some((condition) => isActiveCondition(condition, activeState, stateNames, options));
+}
+
+function resolveActiveTabItem(
+  items: MarkVSpecElement["tabs"],
+  active: string,
+  activeState: string | undefined,
+  stateNames: Set<string>,
+  options: MarkVSpecRenderOptions
+): MarkVSpecElement["tabs"][number] | undefined {
+  return items.find((item) => item.activeWhen.some((condition) => isActiveCondition(condition, activeState, stateNames, options)))
+    ?? items.find((item) => item.label === active)
+    ?? items[0];
+}
+
+function resolveOpenAccordionItem(
+  items: MarkVSpecElement["accordionItems"],
+  open: string,
+  activeState: string | undefined,
+  stateNames: Set<string>,
+  options: MarkVSpecRenderOptions
+): MarkVSpecElement["accordionItems"][number] | undefined {
+  return items.find((item) => item.openWhen.some((condition) => isActiveCondition(condition, activeState, stateNames, options)))
+    ?? items.find((item) => item.label === open);
+}
+
+function isDisclosureOpen(element: MarkVSpecElement, activeState: string | undefined, stateNames: Set<string>, options: MarkVSpecRenderOptions): boolean {
+  return element.openWhen.some((condition) => isActiveCondition(condition, activeState, stateNames, options))
+    || isTruthyInitialValue(stringProperty(element, "open"));
+}
+
+function isActionMenuOpen(element: MarkVSpecElement, activeState: string | undefined, stateNames: Set<string>, options: MarkVSpecRenderOptions): boolean {
+  return element.openWhen.some((condition) => isActiveCondition(condition, activeState, stateNames, options))
+    || isTruthyInitialValue(stringProperty(element, "open"));
+}
+
+function renderControlledPanelLayout(
+  panelId: string,
+  activeState: string | undefined,
+  stateNames: Set<string>,
+  options: MarkVSpecRenderOptions,
+  parentDisabled: boolean,
+  context: RenderContext,
+  kind: "tabs" | "accordion" | "disclosure"
+): string {
+  if (context.normallyContainedLayoutIds?.has(panelId)) {
+    return "";
+  }
+  const result = context.result;
+  const layoutById = context.layoutById;
+  const slotContentsByName = context.slotContentsByName;
+  const elementById = context.elementById;
+  const actionMarkersByElementId = context.actionMarkersByElementId;
+  if (!result || !layoutById || !slotContentsByName || !elementById || !actionMarkersByElementId) {
+    return "";
+  }
+  const layout = layoutById.get(panelId);
+  if (!layout) {
+    return "";
+  }
+  const panelContext = {
+    ...context,
+    suppressMarkers: context.suppressMarkers
+  };
+  return `<div class="mm-controlled-panel mm-controlled-panel-${kind}" data-mm-controlled-panel="${escapeHtml(panelId)}">${renderLayoutGroup(layout, result, layoutById, slotContentsByName, elementById, actionMarkersByElementId, activeState, stateNames, options, new Set(), panelContext, parentDisabled, undefined, 1)}</div>`;
 }
 
 function isLayoutDisabled(group: MarkVSpecLayoutGroup, activeState: string | undefined, stateNames: Set<string>, options: MarkVSpecRenderOptions): boolean {
@@ -1662,6 +1804,8 @@ function renderDefaultStyles(): string {
 .mm-tab-item{border:1px solid transparent;border-bottom:0;border-radius:5px 5px 0 0;color:#475569;display:inline-flex;font-size:12px;font-weight:600;margin-bottom:-1px;padding:7px 11px}
 .mm-tab-item-active{background:#fff;border-color:#94a3b8;color:#111827;box-shadow:inset 0 2px 0 #2563eb}
 .mm-tabs-panel-note{background:#f8fafc;border:1px dashed #cbd5e1;border-top:0;color:#475569;font-size:12px;padding:8px 10px}
+.mm-controlled-panel{border-top:1px solid #cbd5e1;padding:8px}
+.mm-controlled-panel .mm-layout{margin:0}
 .mm-element-accordion,.mm-element-disclosure{background:#fff;display:block;min-width:220px;padding:0}
 .mm-accordion-item + .mm-accordion-item{border-top:1px solid #e2e8f0}
 .mm-accordion-header{color:#111827;font-size:13px;font-weight:650;padding:8px 10px}

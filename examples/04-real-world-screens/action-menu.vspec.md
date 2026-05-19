@@ -9,12 +9,13 @@ locale: en
 # SCR-ACTION-MENU Action Menu
 
 Focused example for the `ActionMenu` Element. It keeps the screen small so the
-menu trigger, open overlay, item actions, disabled condition, and danger tone are
-easy to review without introducing a generic navigation menu.
+menu trigger, open overlay, item actions, disabled condition, and danger tone can
+be reviewed in open and locked menu states without introducing a generic menu.
 
 ## States
 
-- idle*
+- menu-open*
+- menu-open-locked
 
 ## Layout: desktop
 
@@ -45,40 +46,43 @@ easy to review without introducing a generic navigation menu.
 
 - label: More actions
 - placement: bottom-end
-- open: true
+- open when: menu-open
+- open when: menu-open-locked
 - items:
   - Edit
     - action: A-EditAccount
   - Disable
     - action: A-DisableAccount
     - tone: danger
-    - disabled when: selected-row-locked
+    - disabled when: menu-open-locked
 
 ## Actions
 
 ### A1:A-EditAccount Edit account
 
 - From
-  - idle
+  - menu-open
+  - menu-open-locked
 - Process P1: Select menu item
   - case: done
     - description: Edit action item is selected from the open action menu.
     - Effects
-      - state: idle
+      - state: menu-open
     - stop
 
 ### A2:A-DisableAccount Disable account
 
 - From
-  - idle
+  - menu-open
+  - menu-open-locked
 - Process P1: Select menu item
   - case: blocked
-    - description: Disable action is unavailable when selected-row-locked is true.
+    - description: Disable action is unavailable while the menu is open and the selected row is locked.
     - Effects
-      - state: idle
+      - state: menu-open-locked
     - stop
   - case: done
     - description: Disable action item is selected with danger tone.
     - Effects
-      - state: idle
+      - state: menu-open
     - stop

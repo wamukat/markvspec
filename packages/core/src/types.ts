@@ -166,6 +166,7 @@ export interface MarkVSpecElement {
   visibleWhen: string[];
   hiddenWhen: string[];
   disabledWhen: string[];
+  openWhen: string[];
   validations: string[];
   inputRules: MarkVSpecInputRule[];
   overview?: string[];
@@ -217,7 +218,9 @@ export interface MarkVSpecTabItem {
   label: string;
   panel?: string;
   action?: string;
-  propertyLocations: Record<"panel" | "action", SourceLocation[]>;
+  activeWhen: string[];
+  openWhen: string[];
+  propertyLocations: Record<"panel" | "action" | "active when" | "open when", SourceLocation[]>;
   location: SourceLocation;
   raw: string;
 }
@@ -226,7 +229,9 @@ export interface MarkVSpecAccordionItem {
   label: string;
   panel?: string;
   action?: string;
-  propertyLocations: Record<"panel" | "action", SourceLocation[]>;
+  activeWhen: string[];
+  openWhen: string[];
+  propertyLocations: Record<"panel" | "action" | "active when" | "open when", SourceLocation[]>;
   location: SourceLocation;
   raw: string;
 }

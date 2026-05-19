@@ -1289,6 +1289,12 @@ function stateScreenRenderedIdsFromReadModel(
     if (element.id.startsWith("E-")) {
       elementIds.add(element.id);
     }
+    for (const panelId of stateScreenControlledPanelIdsForElement(element, stateName, stateNames, options)) {
+      const panelLayout = layoutById.get(panelId);
+      if (panelLayout) {
+        visitLayout(panelLayout, layoutById, activeViewport ?? "", new Set());
+      }
+    }
   };
 
   const visitLayout = (
@@ -1347,6 +1353,37 @@ function stateScreenRenderedIdsFromReadModel(
     elementIds,
     layoutIds
   };
+}
+
+function stateScreenControlledPanelIdsForElement(
+  element: ParsedElement,
+  activeState: string | undefined,
+  stateNames: Set<string>,
+  options: StateScreenConditionOptions
+): string[] {
+  if (element.type === "Tabs") {
+    const activeItem = element.tabs.find((item) =>
+      item.activeWhen.some((condition) => isStateScreenActiveCondition(condition, activeState, stateNames, options))
+    ) ?? element.tabs.find((item) => item.label === element.properties["active"])
+      ?? element.tabs[0];
+    return activeItem?.panel ? [activeItem.panel] : [];
+  }
+  if (element.type === "Accordion") {
+    const openItem = element.accordionItems.find((item) =>
+      item.openWhen.some((condition) => isStateScreenActiveCondition(condition, activeState, stateNames, options))
+    ) ?? element.accordionItems.find((item) => item.label === element.properties["open"]);
+    return openItem?.panel ? [openItem.panel] : [];
+  }
+  if (element.type === "Disclosure") {
+    const panel = typeof element.properties["panel"] === "string" ? element.properties["panel"] : undefined;
+    if (!panel) {
+      return [];
+    }
+    const openByCondition = element.openWhen.some((condition) => isStateScreenActiveCondition(condition, activeState, stateNames, options));
+    const openByLegacyProperty = String(element.properties["open"] ?? "").toLowerCase() === "true";
+    return openByCondition || openByLegacyProperty ? [panel] : [];
+  }
+  return [];
 }
 
 function relevantActionIdsForState(result: MarkVSpecParseResult, state: string, visibleElementIds: ReadonlySet<string>): Set<string> {

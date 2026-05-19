@@ -8,12 +8,13 @@ locale: en
 
 # SCR-TABS-SETTINGS Tabs Settings
 
-This example focuses on the `Tabs` element. It keeps the screen small so the
-active tab, controlled panels, and item actions are easy to review.
+This example focuses on the `Tabs` element. It keeps the screen small so state
+changes can switch the active tab and expand exactly one controlled panel.
 
 ## States
 
-- idle*
+- profile-tab*
+- billing-tab
 
 ## Layout: desktop
 
@@ -26,8 +27,6 @@ active tab, controlled panels, and item actions are easy to review.
 
 - E-PageTitle
 - E-SettingsTabs
-- L-ProfilePanel
-- L-BillingPanel
 
 ### L2:L-ProfilePanel Profile panel
 
@@ -58,13 +57,14 @@ active tab, controlled panels, and item actions are easy to review.
 
 ### 2:E-SettingsTabs Tabs
 
-- active: Profile
 - items:
   - Profile
     - panel: L-ProfilePanel
+    - active when: profile-tab
     - action: A-SelectProfileTab
   - Billing
     - panel: L-BillingPanel
+    - active when: billing-tab
     - action: A-SelectBillingTab
 
 ### 3:E-ProfileHeading Heading
@@ -92,21 +92,21 @@ active tab, controlled panels, and item actions are easy to review.
 ### A1:A-SelectProfileTab Select profile tab
 
 - From
-  - idle
+  - billing-tab
 - Process P1: Select tab item
   - case: done
-    - description: Profile tab is selected and L-ProfilePanel remains the active panel.
+    - description: Profile tab is selected and L-ProfilePanel becomes the active panel.
     - Effects
-      - state: idle
+      - state: profile-tab
     - stop
 
 ### A2:A-SelectBillingTab Select billing tab
 
 - From
-  - idle
+  - profile-tab
 - Process P1: Select tab item
   - case: done
     - description: Billing tab is selected and L-BillingPanel becomes the active panel.
     - Effects
-      - state: idle
+      - state: billing-tab
     - stop

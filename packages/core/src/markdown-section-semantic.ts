@@ -144,7 +144,9 @@ export interface ActionSemanticResult {
 }
 
 const optionElementTypes = new Set(["Select", "MultiSelect", "RadioGroup", "CheckboxGroup"]);
-const panelItemPropertyKeys = new Set(["panel", "action"]);
+const tabItemPropertyKeys = new Set(["panel", "action", "active when"]);
+const accordionItemPropertyKeys = new Set(["panel", "action", "open when"]);
+const panelItemPropertyKeys = new Set([...tabItemPropertyKeys, ...accordionItemPropertyKeys]);
 const actionMenuItemPropertyKeys = new Set(["action", "tone", "disabled when"]);
 
 export function parseSmallSectionSemantics(document: MarkdownDocument): SmallSectionSemanticResult {
@@ -754,6 +756,7 @@ function parseElementsSection(section: SectionAst): ElementSectionSemanticResult
         visibleWhen: [],
         hiddenWhen: [],
         disabledWhen: [],
+        openWhen: [],
         validations: [],
         inputRules: [],
         notes: [],
@@ -2809,6 +2812,8 @@ function applyElementBullet(element: MarkVSpecElement, bullet: ParsedBullet, dia
     element.hiddenWhen.push(normalizedValue);
   } else if (normalizedKey === "disabled when") {
     element.disabledWhen.push(normalizedValue);
+  } else if (normalizedKey === "open when") {
+    element.openWhen.push(normalizedValue);
   } else if (normalizedKey === "validation") {
     element.validations.push(normalizedValue);
   } else if (normalizedKey === "input rule") {
@@ -2882,7 +2887,9 @@ function parseElementOption(bullet: ParsedBullet): MarkVSpecElement["selectOptio
 function parsePanelItem(bullet: ParsedBullet): MarkVSpecElement["tabs"][number] {
   return {
     label: bullet.text.trim(),
-    propertyLocations: { panel: [], action: [] },
+    activeWhen: [],
+    openWhen: [],
+    propertyLocations: { panel: [], action: [], "active when": [], "open when": [] },
     location: bullet.location,
     raw: bullet.text
   };
@@ -2907,10 +2914,12 @@ function applyPanelItemProperty(
 ): void {
   const [key, value] = splitKeyValue(bullet.text);
   const normalizedKey = key.trim();
-  if (!panelItemPropertyKeys.has(normalizedKey)) {
+  const allowedKeys = itemKind === "tab item" ? tabItemPropertyKeys : accordionItemPropertyKeys;
+  if (!allowedKeys.has(normalizedKey)) {
+    const allowedText = [...allowedKeys].join(", ");
     diagnostics.push({
       severity: "warning",
-      message: `Element ${elementId} ${itemKind} ${item.label} has unsupported property ${normalizedKey}. Use panel or action.`,
+      message: `Element ${elementId} ${itemKind} ${item.label} has unsupported property ${normalizedKey}. Use ${allowedText}.`,
       line: bullet.location.line
     });
     return;
@@ -2919,13 +2928,19 @@ function applyPanelItemProperty(
   if (!normalizedValue) {
     diagnostics.push({
       severity: "warning",
-      message: `Element ${elementId} tab item ${item.label} property ${normalizedKey} must have a value.`,
+      message: `Element ${elementId} ${itemKind} ${item.label} property ${normalizedKey} must have a value.`,
       line: bullet.location.line
     });
     return;
   }
-  item[normalizedKey as "panel" | "action"] = normalizedValue;
-  item.propertyLocations[normalizedKey as "panel" | "action"].push(bullet.location);
+  if (normalizedKey === "active when") {
+    item.activeWhen.push(normalizedValue);
+  } else if (normalizedKey === "open when") {
+    item.openWhen.push(normalizedValue);
+  } else {
+    item[normalizedKey as "panel" | "action"] = normalizedValue;
+  }
+  item.propertyLocations[normalizedKey as "panel" | "action" | "active when" | "open when"].push(bullet.location);
 }
 
 function applyActionMenuItemProperty(
@@ -3188,7 +3203,7 @@ function addElementBulletDependencies(element: MarkVSpecElement, bullet: ParsedB
       kind: "references"
     });
   }
-  if (normalizedKey === "visible when" || normalizedKey === "hidden when" || normalizedKey === "disabled when") {
+  if (normalizedKey === "visible when" || normalizedKey === "hidden when" || normalizedKey === "disabled when" || normalizedKey === "open when") {
     dependencies.push({
       source: { type: "entity", id: element.id },
       target: { type: "entity", id: normalizedValue },

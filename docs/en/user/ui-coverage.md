@@ -20,13 +20,13 @@ use the [Example Gallery](example-gallery.md).
 | File input | Supported | `FileInput`, `FileUpload` | Use `accept`, `multiple`, `label`, and `sample` for constraints and helper text. |
 | Button / link | Supported | `Button`, `Link` | `variant`, `tone`, `action`, `href`, and route params are supported. |
 | Select / checkbox / radio group | Supported | `Select`, `MultiSelect`, `Checkbox`, `CheckboxGroup`, `Switch`, `RadioGroup` | Choice options use nested Markdown list items. Use `RadioGroup` for mutually exclusive value ranges, `CheckboxGroup` or `MultiSelect` for multiple values, and `Switch` for boolean settings. |
-| Tabs | Supported | `Tabs` | Local tab selection. `active` marks the initial tab. Each item may reference `panel: L-*` and `action: A-*`; generated specs aggregate item labels and keep action links traceable. |
+| Tabs | Supported | `Tabs` | Local tab selection. Each item may reference `panel: L-*`, `active when`, and `action: A-*`; preview renders the active panel layout inside the tab element. |
 | Banner / badge | Supported | `Banner`, `Badge` | Use `tone` for semantic intent such as danger or success. |
 | List / table | Supported | `List`, `Table` | Table columns and sample rows use nested Markdown lists. |
 | Dialog / overlay | Supported | `Dialog` with targetless `display.element` | Dialogs are modal overlays by default. Define cancel/confirm buttons with `actions:` and show the dialog from a Preview Scenario or action case without a layout target. |
 | Popover / Tooltip | Supported | `Popover`, `Tooltip` | Anchored non-modal help. `anchor` must reference `E-*`; `placement`, `text`, and visibility conditions are shown in preview and generated specs. Runtime hover/focus behavior and interactive popover content are outside the current contract. |
-| Accordion / Disclosure | Supported | `Accordion`, `Disclosure` | Local expanded/collapsed sections. `open` is element-local initial display state; panels reference `L-*` layout groups and optional actions remain traceable. |
-| Action menu | Supported | `ActionMenu` | Action-only menu for row actions and three-dot menus. Each item requires `action: A-*`; optional `tone` and `disabled when` stay visible in specs. Generic `Menu`, selection menus, and nested menus are not part of this contract. |
+| Accordion / Disclosure | Supported | `Accordion`, `Disclosure` | Local expanded/collapsed sections. `open when` controls which panel layout is rendered in matching preview states; optional actions remain traceable. |
+| Action menu | Supported | `ActionMenu` | Action-only menu for row actions and three-dot menus. `open when` controls overlay display. Each item requires `action: A-*`; optional `tone` and `disabled when` stay visible in specs. Generic `Menu`, selection menus, and nested menus are not part of this contract. |
 | Toast notification | Supported | `Toast` with targetless `display.element` | Toasts are non-modal overlays. Use `message`, `tone`, `placement`, and `duration`; multiple displayed toasts stack in a toast region. |
 | Spinner / loading mask | Supported | `Spinner` with state-visible overlay layout | Used for wait states and partial loading states. |
 | Divider | Supported | `Divider` | Separates groups inside forms or detail screens. |
@@ -88,24 +88,26 @@ review from generic Layout and Element combinations.
 ### Tabs
 
 Use `Tabs` when the screen has a local tab strip and each tab controls a panel
-or action.
+or action. `panel: L-*` is rendered as controlled content inside the active tab.
 
 ```markdown
 ### E-SettingsTabs Tabs
 
-- active: Profile
 - items:
   - Profile
     - panel: L-ProfilePanel
+    - active when: profile-tab
     - action: A-SelectProfileTab
   - Billing
     - panel: L-BillingPanel
+    - active when: billing-tab
     - action: A-SelectBillingTab
 ```
 
-Preview renders a tab strip, marks the active item, and exposes the active panel
-reference. Generated specs aggregate tab items and link item actions from
-Element Summary.
+Preview renders a tab strip, marks the active item, and expands the active
+panel layout. Generated specs aggregate tab items and link item actions from
+Element Summary. If no `active when` matches, preview falls back to legacy
+`active`, then to the first item.
 
 Example: [Tabs Settings](../../../examples/04-real-world-screens/tabs-settings.vspec.md).
 Generated HTML: [tabs-settings.html](https://wamukat.github.io/markvspec/examples/tabs-settings.html).
@@ -134,32 +136,34 @@ Generated HTML: [anchored-help.html](https://wamukat.github.io/markvspec/example
 ### Accordion / Disclosure
 
 Use `Accordion` when one element owns multiple expandable sections. Use
-`Disclosure` when one trigger controls one panel.
+`Disclosure` when one trigger controls one panel. `panel: L-*` is rendered as
+controlled content inside the open section.
 
 ```markdown
 ### E-AdvancedFilters Accordion
 
-- open: Advanced filters
 - items:
   - Advanced filters
     - panel: L-AdvancedFilterPanel
+    - open when: advanced-filters-open
     - action: A-ToggleAdvancedFilters
   - Saved filters
     - panel: L-SavedFiltersPanel
+    - open when: saved-filters-open
 ```
 
 ```markdown
 ### E-ShippingDetails Disclosure
 
 - label: Shipping details
-- open: true
+- open when: shipping-details-open
 - panel: L-ShippingDetailsPanel
 - action: A-ToggleShippingDetails
 ```
 
-Preview renders headers and open panel references. Display Content Spec
+Preview renders headers and open panel layouts. Display Content Spec
 aggregates panel/action links so local expansion behavior stays separate from
-screen state.
+screen state. If no `open when` matches, preview falls back to legacy `open`.
 
 Example: [Accordion Disclosure](../../../examples/04-real-world-screens/accordion-disclosure.vspec.md).
 Generated HTML: [accordion-disclosure.html](https://wamukat.github.io/markvspec/examples/accordion-disclosure.html).
@@ -175,17 +179,17 @@ dropdowns.
 
 - label: More actions
 - placement: bottom-end
-- open: false
+- open when: menu-open
 - items:
   - Edit
     - action: A-EditRow
   - Disable
     - action: A-DisableRow
     - tone: danger
-    - disabled when: selected-row-locked
+    - disabled when: menu-open-locked
 ```
 
-Preview renders the trigger and, when `open: true`, an anchored item list.
+Preview renders the trigger and, when `open when` matches, an anchored item list.
 Display Content Spec aggregates item labels, action links, tones, and disabled
 conditions.
 

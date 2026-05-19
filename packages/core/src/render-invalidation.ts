@@ -477,7 +477,8 @@ function unsafeElementPartialReasons(previous: MarkVSpecElement, current: MarkVS
   if (
     JSON.stringify(previous.visibleWhen) !== JSON.stringify(current.visibleWhen) ||
     JSON.stringify(previous.hiddenWhen) !== JSON.stringify(current.hiddenWhen) ||
-    JSON.stringify(previous.disabledWhen) !== JSON.stringify(current.disabledWhen)
+    JSON.stringify(previous.disabledWhen) !== JSON.stringify(current.disabledWhen) ||
+    JSON.stringify(previous.openWhen) !== JSON.stringify(current.openWhen)
   ) {
     reasons.push("Element conditional visibility or disabled state changed.");
   }
@@ -580,6 +581,7 @@ function elementPartialFingerprint(element: MarkVSpecElement): string {
     visibleWhen: element.visibleWhen,
     hiddenWhen: element.hiddenWhen,
     disabledWhen: element.disabledWhen,
+    openWhen: element.openWhen,
     validations: element.validations
   });
 }

@@ -6262,16 +6262,21 @@ test("renders Tabs element summary, wireframe, and display content spec", () => 
   const result = parseMarkVSpec(source);
   assert.deepEqual(result.diagnostics, []);
   const html = renderDesignDocumentHtml(result, "");
-  const idleSection = stateSection(html, "idle");
-  const elementSummary = idleSection.match(/<h6 class="state-screen-detail-heading">Element Summary<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
-  const displayContent = idleSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+  const profileSection = stateSection(html, "profile-tab");
+  const billingSection = stateSection(html, "billing-tab");
+  const elementSummary = profileSection.match(/<h6 class="state-screen-detail-heading">Element Summary<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+  const displayContent = profileSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
 
-  assert.match(idleSection, /<div class="mm-element mm-element-tabs" data-mm-id="E-SettingsTabs">/);
-  assert.match(idleSection, /<span class="mm-tab-item mm-tab-item-active" aria-selected="true" data-mm-tab-panel="L-ProfilePanel" data-mm-tab-action="A-SelectProfileTab">Profile<\/span>/);
-  assert.match(idleSection, /<span class="mm-tab-item" data-mm-tab-panel="L-BillingPanel" data-mm-tab-action="A-SelectBillingTab">Billing<\/span>/);
-  assert.match(idleSection, /<div class="mm-tabs-panel-note">panel: L-ProfilePanel<\/div>/);
-  assert.match(elementSummary, new RegExp(`<td>${detailElementRef("2", "E-SettingsTabs")}</td><td>Tabs</td><td><ul class="spec-list"><li>${refActionChip("A1", "A-SelectProfileTab", "Select profile tab")}</li><li>${refActionChip("A2", "A-SelectBillingTab", "Select billing tab")}</li></ul></td><td>active tab: Profile</td>`));
-  assert.match(displayContent, new RegExp(`<td>${detailElementRef("2", "E-SettingsTabs")}</td><td>tabs</td><td>${specSectionPattern("Tabs", ["Profile \\(panel: L-ProfilePanel; action: A-SelectProfileTab\\)", "Billing \\(panel: L-BillingPanel; action: A-SelectBillingTab\\)"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
+  assert.match(profileSection, /<div class="mm-element mm-element-tabs" data-mm-id="E-SettingsTabs">/);
+  assert.match(profileSection, /<span class="mm-tab-item mm-tab-item-active" aria-selected="true" data-mm-tab-panel="L-ProfilePanel" data-mm-tab-action="A-SelectProfileTab">Profile<\/span>/);
+  assert.match(profileSection, /<span class="mm-tab-item" data-mm-tab-panel="L-BillingPanel" data-mm-tab-action="A-SelectBillingTab">Billing<\/span>/);
+  assert.match(profileSection, /<div class="mm-controlled-panel mm-controlled-panel-tabs" data-mm-controlled-panel="L-ProfilePanel">/);
+  assert.match(profileSection, /Profile/);
+  assert.match(billingSection, /<span class="mm-tab-item mm-tab-item-active" aria-selected="true" data-mm-tab-panel="L-BillingPanel" data-mm-tab-action="A-SelectBillingTab">Billing<\/span>/);
+  assert.match(billingSection, /<div class="mm-controlled-panel mm-controlled-panel-tabs" data-mm-controlled-panel="L-BillingPanel">/);
+  assert.doesNotMatch(profileSection, /<div class="mm-tabs-panel-note">/);
+  assert.match(elementSummary, new RegExp(`<td>${detailElementRef("2", "E-SettingsTabs")}</td><td>Tabs</td><td><ul class="spec-list"><li>${refActionChip("A1", "A-SelectProfileTab", "Select profile tab")}</li><li>${refActionChip("A2", "A-SelectBillingTab", "Select billing tab")}</li></ul></td><td>-</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("2", "E-SettingsTabs")}</td><td>tabs</td><td>${specSectionPattern("Tabs", ["Profile \\(panel: L-ProfilePanel; action: A-SelectProfileTab; active when: profile-tab\\)", "Billing \\(panel: L-BillingPanel; action: A-SelectBillingTab; active when: billing-tab\\)"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
 });
 
 test("renders Popover and Tooltip element summary, wireframe, and display content spec", () => {
@@ -6300,21 +6305,22 @@ test("renders Accordion and Disclosure element summary, wireframe, and display c
   const result = parseMarkVSpec(source);
   assert.deepEqual(result.diagnostics, []);
   const html = renderDesignDocumentHtml(result, "");
-  const idleSection = stateSection(html, "idle");
-  const elementSummary = idleSection.match(/<h6 class="state-screen-detail-heading">Element Summary<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
-  const displayContent = idleSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+  const advancedSection = stateSection(html, "advanced-filters-open");
+  const shippingSection = stateSection(html, "shipping-details-open");
+  const elementSummary = advancedSection.match(/<h6 class="state-screen-detail-heading">Element Summary<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+  const displayContent = advancedSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
 
-  assert.match(idleSection, /<div class="mm-element mm-element-accordion" data-mm-id="E-AdvancedFilters">/);
-  assert.match(idleSection, /<div class="mm-accordion-item mm-accordion-item-open" data-mm-accordion-panel="L-AdvancedFilterPanel" data-mm-accordion-action="A-ToggleAdvancedFilters">/);
-  assert.match(idleSection, /<div class="mm-element mm-element-disclosure mm-disclosure-open" data-mm-id="E-ShippingDetails" data-mm-disclosure-panel="L-ShippingDetailsPanel">/);
+  assert.match(advancedSection, /<div class="mm-element mm-element-accordion" data-mm-id="E-AdvancedFilters">/);
+  assert.match(advancedSection, /<div class="mm-accordion-item mm-accordion-item-open" data-mm-accordion-panel="L-AdvancedFilterPanel" data-mm-accordion-action="A-ToggleAdvancedFilters">/);
+  assert.match(advancedSection, /<div class="mm-controlled-panel mm-controlled-panel-accordion" data-mm-controlled-panel="L-AdvancedFilterPanel">/);
+  assert.match(shippingSection, /<div class="mm-element mm-element-disclosure mm-disclosure-open" data-mm-id="E-ShippingDetails" data-mm-disclosure-panel="L-ShippingDetailsPanel">/);
+  assert.match(shippingSection, /<div class="mm-controlled-panel mm-controlled-panel-disclosure" data-mm-controlled-panel="L-ShippingDetailsPanel">/);
   assert.match(elementSummary, /<td>Accordion<\/td>/);
-  assert.match(elementSummary, /open item: Advanced filters/);
   assert.match(elementSummary, /<td>Disclosure<\/td>/);
-  assert.match(elementSummary, /open: true/);
   assert.match(elementSummary, new RegExp(refActionChip("A1", "A-ToggleAdvancedFilters", "Toggle advanced filters")));
-  assert.match(elementSummary, new RegExp(refActionChip("A2", "A-ToggleShippingDetails", "Toggle shipping details")));
-  assert.match(displayContent, new RegExp(`<td>accordion</td><td>${specSectionPattern("Accordion", ["Advanced filters \\(panel: L-AdvancedFilterPanel; action: A-ToggleAdvancedFilters\\)", "Saved filters \\(panel: L-SavedFiltersPanel\\)"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
-  assert.match(displayContent, new RegExp(`<td>disclosure</td><td>${specSectionPattern("Disclosure", ["label: Shipping details", "open: true", "panel: L-ShippingDetailsPanel", "action: A-ToggleShippingDetails"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
+  assert.match(elementSummary, new RegExp(refActionChip("A3", "A-ToggleShippingDetails", "Toggle shipping details")));
+  assert.match(displayContent, new RegExp(`<td>accordion</td><td>${specSectionPattern("Accordion", ["Advanced filters \\(panel: L-AdvancedFilterPanel; action: A-ToggleAdvancedFilters; open when: advanced-filters-open\\)", "Saved filters \\(panel: L-SavedFiltersPanel; action: A-OpenSavedFilters; open when: saved-filters-open\\)"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>disclosure</td><td>${specSectionPattern("Disclosure", ["label: Shipping details", "open when: shipping-details-open", "panel: L-ShippingDetailsPanel", "action: A-ToggleShippingDetails"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
 });
 
 test("renders ActionMenu element summary, wireframe, and display content spec", () => {
@@ -6322,18 +6328,19 @@ test("renders ActionMenu element summary, wireframe, and display content spec", 
   const result = parseMarkVSpec(source);
   assert.deepEqual(result.diagnostics, []);
   const html = renderDesignDocumentHtml(result, "");
-  const idleSection = stateSection(html, "idle");
-  const elementSummary = idleSection.match(/<h6 class="state-screen-detail-heading">Element Summary<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
-  const displayContent = idleSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+  const menuOpenSection = stateSection(html, "menu-open");
+  const lockedSection = stateSection(html, "menu-open-locked");
+  const elementSummary = menuOpenSection.match(/<h6 class="state-screen-detail-heading">Element Summary<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+  const displayContent = menuOpenSection.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
 
-  assert.match(idleSection, /<div class="mm-element mm-element-actionmenu mm-action-menu-open" data-mm-id="E-RowActions" data-mm-placement="bottom-end">/);
-  assert.match(idleSection, /<div class="mm-action-menu-item" data-mm-action-menu-action="A-EditAccount">/);
-  assert.match(idleSection, /<div class="mm-action-menu-item mm-action-menu-item-disabled mm-action-menu-item-danger" data-mm-action-menu-action="A-DisableAccount">/);
+  assert.match(menuOpenSection, /<div class="mm-element mm-element-actionmenu mm-action-menu-open" data-mm-id="E-RowActions" data-mm-placement="bottom-end">/);
+  assert.match(menuOpenSection, /<div class="mm-action-menu-item" data-mm-action-menu-action="A-EditAccount">/);
+  assert.match(menuOpenSection, /<div class="mm-action-menu-item mm-action-menu-item-danger" data-mm-action-menu-action="A-DisableAccount">/);
+  assert.match(lockedSection, /<div class="mm-action-menu-item mm-action-menu-item-disabled mm-action-menu-item-danger" data-mm-action-menu-action="A-DisableAccount">/);
   assert.match(elementSummary, /<td>ActionMenu<\/td>/);
-  assert.match(elementSummary, /open: true/);
   assert.match(elementSummary, new RegExp(refActionChip("A1", "A-EditAccount", "Edit account")));
   assert.match(elementSummary, new RegExp(refActionChip("A2", "A-DisableAccount", "Disable account")));
-  assert.match(displayContent, new RegExp(`<td>action menu</td><td>${specSectionPattern("Action Menu", ["Edit \\(action: A-EditAccount\\)", "Disable \\(action: A-DisableAccount; tone: danger; disabled when: selected-row-locked\\)"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>action menu</td><td>${specSectionPattern("Action Menu", ["Edit \\(action: A-EditAccount\\)", "Disable \\(action: A-DisableAccount; tone: danger; disabled when: menu-open-locked\\)"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
 });
 
 test("splits input form values and source metadata into separate columns", () => {

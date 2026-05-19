@@ -1557,11 +1557,18 @@ source, write it after `:`.
   - Owner
 ```
 
-`Tabs` represents a tab strip with one local active item and explicit tab panel
-references. `active` is the initial display state for the element. It is not a
-screen state, View Context value, or model value. Each item label is written
-under `items:`. `panel` must reference an existing `L-*` layout group, and
-`action` may reference an `A-*` action for the tab selection behavior.
+`Tabs` represents a tab strip with one active item and explicit tab panel
+content. Each item label is written under `items:`. `panel` must reference an
+existing `L-*` layout group. The referenced layout is rendered inside the active
+tab panel and is not treated as a root layout unless it is also referenced from
+ordinary Layout `Items`.
+
+Use item-level `active when` to map screen states, View Context values, or other
+preview-evaluable conditions to active panels. Multiple `active when` entries
+on one item are OR conditions. For MVP preview, conditions must be a state name,
+`state is ...`, or a namespaced expression such as `${state.loaded}` or
+`${view.selectedTab} = profile`. Free text is kept in the spec but warned
+because preview cannot evaluate it.
 
 ```markdown
 ### E-SettingsTabs Tabs
@@ -1570,22 +1577,25 @@ under `items:`. `panel` must reference an existing `L-*` layout group, and
 - items:
   - Profile
     - panel: L-ProfilePanel
+    - active when: profile-tab
     - action: A-SelectProfileTab
   - Billing
     - panel: L-BillingPanel
+    - active when: billing-tab
     - action: A-SelectBillingTab
 ```
 
-The generated preview marks the active tab and shows the active panel reference.
-Display Content Spec aggregates tab items into one row, and Element Summary
-links the item actions so reviewers can trace tab behavior.
+If no `active when` matches, preview falls back to the legacy `active` property
+when present, then to the first item. Display Content Spec aggregates tab items
+into one row, and Element Summary links the item actions so reviewers can trace
+tab behavior.
 
-`Accordion` and `Disclosure` represent local expanded/collapsed UI sections.
-`open` is the element's initial display state, not a screen state, View Context
-value, or model value.
+`Accordion` and `Disclosure` represent expanded/collapsed UI sections.
 
-For `Accordion`, `open` must match one item label when present. Each item may
-reference a `panel: L-*` layout group and an optional `action: A-*`.
+For `Accordion`, each item may reference a `panel: L-*` layout group and an
+optional `action: A-*`. Use item-level `open when` to control which panel is
+expanded for each preview state. Multiple `open when` entries on one item are
+OR conditions.
 
 ```markdown
 ### E-AdvancedFilters Accordion
@@ -1594,48 +1604,53 @@ reference a `panel: L-*` layout group and an optional `action: A-*`.
 - items:
   - Advanced filters
     - panel: L-AdvancedFilterPanel
+    - open when: advanced-filters-open
     - action: A-ToggleAdvancedFilters
   - Saved filters
     - panel: L-SavedFiltersPanel
+    - open when: saved-filters-open
 ```
 
-For `Disclosure`, `label` names the trigger row, `open` is `true` or `false`,
-`panel` references the controlled `L-*` layout group, and `action` optionally
-links the toggle behavior.
+For `Disclosure`, `label` names the trigger row, `panel` references the
+controlled `L-*` layout group, and `action` optionally links the toggle
+behavior. Use element-level `open when` to render the panel in matching preview
+states.
 
 ```markdown
 ### E-ShippingDetails Disclosure
 
 - label: Shipping details
-- open: true
+- open when: shipping-details-open
 - panel: L-ShippingDetailsPanel
 - action: A-ToggleShippingDetails
 ```
 
-Generated specs aggregate panel references and action links so reviewers can
-trace expansion behavior without inventing extra screen states.
+If no `open when` matches, preview falls back to the legacy `open` property
+when present. Generated specs aggregate panel references and action links so
+reviewers can trace expansion behavior.
 
 `ActionMenu` represents an action-only menu such as a row action menu or
 three-dot menu. It intentionally does not introduce a generic `Menu`,
 selection menu, or nested menu contract.
 
-`open` is the element's initial overlay display state, not a screen state, View
-Context value, or model value. Each item requires `action: A-*`. `tone` and
-`disabled when` are optional item-level metadata.
+Each item requires `action: A-*`. Use element-level `open when` to show the menu
+overlay in matching preview states. `tone` and `disabled when` are optional
+item-level metadata; `disabled when` uses the same preview-evaluable condition
+rules as `open when`.
 
 ```markdown
 ### E-RowActions ActionMenu
 
 - label: More actions
 - placement: bottom-end
-- open: false
+- open when: menu-open
 - items:
   - Edit
     - action: A-EditRow
   - Disable
     - action: A-DisableRow
     - tone: danger
-    - disabled when: selected-row-locked
+    - disabled when: menu-open-locked
 ```
 
 Generated specs keep item actions linked from Element Summary and Display

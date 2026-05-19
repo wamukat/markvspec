@@ -821,10 +821,14 @@ function cloneTemplateElements(elements: MarkVSpecParseResult["elements"]): Mark
     })),
     tabs: element.tabs.map((item) => ({
       ...item,
+      activeWhen: item.activeWhen.slice(),
+      openWhen: item.openWhen.slice(),
       propertyLocations: clonePropertyLocations(item.propertyLocations)
     })),
     accordionItems: element.accordionItems.map((item) => ({
       ...item,
+      activeWhen: item.activeWhen.slice(),
+      openWhen: item.openWhen.slice(),
       propertyLocations: clonePropertyLocations(item.propertyLocations)
     })),
     actionMenuItems: element.actionMenuItems.map((item) => ({
@@ -840,6 +844,7 @@ function cloneTemplateElements(elements: MarkVSpecParseResult["elements"]): Mark
     visibleWhen: element.visibleWhen.slice(),
     hiddenWhen: element.hiddenWhen.slice(),
     disabledWhen: element.disabledWhen.slice(),
+    openWhen: element.openWhen.slice(),
     validations: element.validations.slice(),
     inputRules: element.inputRules.map((rule) => ({ ...rule })),
     overview: element.overview?.slice(),

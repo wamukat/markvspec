@@ -8688,7 +8688,8 @@ title: Tabs
 
 ## States
 
-- idle*
+- profile-tab*
+- billing-tab
 
 ## Layout: desktop
 
@@ -8699,8 +8700,6 @@ title: Tabs
 #### Items
 
 - E-SettingsTabs
-- L-ProfilePanel
-- L-BillingPanel
 
 ### L-ProfilePanel Profile panel
 
@@ -8722,13 +8721,14 @@ title: Tabs
 
 ### 12:E-SettingsTabs Tabs
 
-- active: Profile
 - items:
   - Profile
     - panel: L-ProfilePanel
+    - active when: profile-tab
     - action: A-SelectProfileTab
   - Billing
     - panel: L-BillingPanel
+    - active when: billing-tab
     - action: A-SelectBillingTab
 
 ### E-ProfileText Text
@@ -8744,12 +8744,12 @@ title: Tabs
 ### A-SelectProfileTab Select profile tab
 
 - From
-  - idle
+  - billing-tab
 
 ### A-SelectBillingTab Select billing tab
 
 - From
-  - idle
+  - profile-tab
 `;
   const result = parseMarkVSpec(source);
   const tabs = result.elements.find((element) => element.id === "E-SettingsTabs");
@@ -8759,19 +8759,26 @@ title: Tabs
 
   assert.deepEqual(result.diagnostics, []);
   assert.equal(tabs?.type, "Tabs");
-  assert.equal(tabs?.properties["active"], "Profile");
-  assert.deepEqual(tabs?.tabs.map((item) => [item.label, item.panel, item.action]), [
-    ["Profile", "L-ProfilePanel", "A-SelectProfileTab"],
-    ["Billing", "L-BillingPanel", "A-SelectBillingTab"]
+  assert.deepEqual(tabs?.tabs.map((item) => [item.label, item.panel, item.action, item.activeWhen]), [
+    ["Profile", "L-ProfilePanel", "A-SelectProfileTab", ["profile-tab"]],
+    ["Billing", "L-BillingPanel", "A-SelectBillingTab", ["billing-tab"]]
   ]);
   assert.deepEqual([tabsRow?.value, tabsRow?.contentSections], [
     "Profile, Billing",
-    [{ title: "Tabs", rows: ["Profile (panel: L-ProfilePanel; action: A-SelectProfileTab)", "Billing (panel: L-BillingPanel; action: A-SelectBillingTab)"] }]
+    [{ title: "Tabs", rows: ["Profile (panel: L-ProfilePanel; action: A-SelectProfileTab; active when: profile-tab)", "Billing (panel: L-BillingPanel; action: A-SelectBillingTab; active when: billing-tab)"] }]
   ]);
   assert.match(html, /<div class="mm-element mm-element-tabs" data-mm-id="E-SettingsTabs">/);
   assert.match(html, /<span class="mm-tab-item mm-tab-item-active" aria-selected="true" data-mm-tab-panel="L-ProfilePanel" data-mm-tab-action="A-SelectProfileTab">Profile<\/span>/);
   assert.match(html, /<span class="mm-tab-item" data-mm-tab-panel="L-BillingPanel" data-mm-tab-action="A-SelectBillingTab">Billing<\/span>/);
-  assert.match(html, /<div class="mm-tabs-panel-note">panel: L-ProfilePanel<\/div>/);
+  assert.match(html, /<div class="mm-controlled-panel mm-controlled-panel-tabs" data-mm-controlled-panel="L-ProfilePanel">/);
+  assert.match(html, /Profile details/);
+  assert.doesNotMatch(html, /Billing details/);
+  assert.doesNotMatch(html, /mm-tabs-panel-note/);
+
+  const billingHtml = renderMarkVSpecHtml(result, { state: "billing-tab", includeStyles: false, showIds: true });
+  assert.match(billingHtml, /<span class="mm-tab-item mm-tab-item-active" aria-selected="true" data-mm-tab-panel="L-BillingPanel" data-mm-tab-action="A-SelectBillingTab">Billing<\/span>/);
+  assert.match(billingHtml, /Billing details/);
+  assert.doesNotMatch(billingHtml, /Profile details/);
 });
 
 test("warns for invalid Tabs active panel and action references", () => {
@@ -8803,6 +8810,71 @@ title: Tabs Diagnostics
   assert(messages.includes('Element E-SettingsTabs active tab "Security" does not match any items.'));
   assert(messages.includes("Element E-SettingsTabs tab item Profile references missing panel L-MissingPanel."));
   assert(messages.includes("Element E-SettingsTabs tab item Profile references missing action A-MissingAction."));
+});
+
+test("warns for controlled panel layout conflicts and preview-unevaluable conditions", () => {
+  const source = `---
+id: SCR-CONTROLLED-PANEL-DIAGNOSTICS
+type: screen
+title: Controlled Panel Diagnostics
+---
+
+# SCR-CONTROLLED-PANEL-DIAGNOSTICS Controlled Panel Diagnostics
+
+## States
+
+- idle*
+
+## Layout: desktop
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- E-SettingsTabs
+- L-SharedPanel
+
+### L-SharedPanel Shared panel
+
+- stack
+
+#### Items
+
+- E-PanelText
+
+## Elements
+
+### E-SettingsTabs Tabs
+
+- items:
+  - Profile
+    - panel: L-SharedPanel
+    - active when: selected profile
+    - active when: \${view.missingTab} = profile
+    - open when: idle
+  - Billing
+    - panel: L-BillingPanel
+    - active when: idle
+  - Support
+    - panel: L-SupportPanel
+    - active when: idle
+
+### E-PanelText Text
+
+- value: Shared
+- open when: idle
+`;
+  const result = parseMarkVSpec(source);
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert(messages.includes('Element E-SettingsTabs tab item Profile active when condition "selected profile" cannot be evaluated in preview. Use a state name, state is ..., or a namespaced condition such as ${state.*} or ${view.*}.'));
+  assert(messages.includes("Condition references missing view context missingTab."));
+  assert(messages.includes("Element E-SettingsTabs tab item Profile has unsupported property open when. Use panel, action, active when."));
+  assert(messages.includes("Element E-PanelText of type Text uses unsupported property open when."));
+  assert(messages.includes("Layout L-SharedPanel is used both as a controlled panel for Element E-SettingsTabs and as a normal layout item. Preview keeps the normal layout display and does not expand it inside the component."));
+  assert(messages.includes("Element E-SettingsTabs Tabs active when matches multiple items for state idle: Billing, Support. Preview uses the first matching item."));
 });
 
 test("parses validates renders and summarizes Popover and Tooltip elements", () => {
@@ -8919,27 +8991,34 @@ test("parses validates renders and summarizes Accordion and Disclosure elements"
 
   assert.deepEqual(result.diagnostics, []);
   assert.equal(accordion?.type, "Accordion");
-  assert.equal(accordion?.properties["open"], "Advanced filters");
-  assert.deepEqual(accordion?.accordionItems.map((item) => [item.label, item.panel, item.action]), [
-    ["Advanced filters", "L-AdvancedFilterPanel", "A-ToggleAdvancedFilters"],
-    ["Saved filters", "L-SavedFiltersPanel", undefined]
+  assert.deepEqual(accordion?.accordionItems.map((item) => [item.label, item.panel, item.action, item.openWhen]), [
+    ["Advanced filters", "L-AdvancedFilterPanel", "A-ToggleAdvancedFilters", ["advanced-filters-open"]],
+    ["Saved filters", "L-SavedFiltersPanel", "A-OpenSavedFilters", ["saved-filters-open"]]
   ]);
   assert.deepEqual([accordionRow?.value, accordionRow?.contentSections], [
     "Advanced filters, Saved filters",
-    [{ title: "Accordion", rows: ["Advanced filters (panel: L-AdvancedFilterPanel; action: A-ToggleAdvancedFilters)", "Saved filters (panel: L-SavedFiltersPanel)"] }]
+    [{ title: "Accordion", rows: ["Advanced filters (panel: L-AdvancedFilterPanel; action: A-ToggleAdvancedFilters; open when: advanced-filters-open)", "Saved filters (panel: L-SavedFiltersPanel; action: A-OpenSavedFilters; open when: saved-filters-open)"] }]
   ]);
   assert.equal(disclosure?.type, "Disclosure");
   assert.deepEqual([disclosureRow?.value, disclosureRow?.contentSections], [
     "Shipping details",
-    [{ title: "Disclosure", rows: ["label: Shipping details", "open: true", "panel: L-ShippingDetailsPanel", "action: A-ToggleShippingDetails"] }]
+    [{ title: "Disclosure", rows: ["label: Shipping details", "open when: shipping-details-open", "panel: L-ShippingDetailsPanel", "action: A-ToggleShippingDetails"] }]
   ]);
   assert.equal(triggers.get("A-ToggleAdvancedFilters"), "E-AdvancedFilters.click");
+  assert.equal(triggers.get("A-OpenSavedFilters"), "E-AdvancedFilters.click");
   assert.equal(triggers.get("A-ToggleShippingDetails"), "E-ShippingDetails.click");
   assert.match(html, /<div class="mm-element mm-element-accordion" data-mm-id="E-AdvancedFilters">/);
   assert.match(html, /<div class="mm-accordion-item mm-accordion-item-open" data-mm-accordion-panel="L-AdvancedFilterPanel" data-mm-accordion-action="A-ToggleAdvancedFilters">/);
-  assert.match(html, /<div class="mm-accordion-panel-note">panel: L-AdvancedFilterPanel<\/div>/);
-  assert.match(html, /<div class="mm-element mm-element-disclosure mm-disclosure-open" data-mm-id="E-ShippingDetails" data-mm-disclosure-panel="L-ShippingDetailsPanel">/);
-  assert.match(html, /<div class="mm-accordion-panel-note">panel: L-ShippingDetailsPanel<\/div>/);
+  assert.match(html, /<div class="mm-controlled-panel mm-controlled-panel-accordion" data-mm-controlled-panel="L-AdvancedFilterPanel">/);
+  assert.match(html, /Active/);
+  assert.doesNotMatch(html, /Monthly review/);
+  assert.match(html, /<div class="mm-element mm-element-disclosure mm-disclosure-closed" data-mm-id="E-ShippingDetails" data-mm-disclosure-panel="L-ShippingDetailsPanel">/);
+  assert.doesNotMatch(html, /1 Market Street/);
+
+  const disclosureHtml = renderMarkVSpecHtml(result, { state: "shipping-details-open", includeStyles: false, showIds: true });
+  assert.match(disclosureHtml, /<div class="mm-element mm-element-disclosure mm-disclosure-open" data-mm-id="E-ShippingDetails" data-mm-disclosure-panel="L-ShippingDetailsPanel">/);
+  assert.match(disclosureHtml, /<div class="mm-controlled-panel mm-controlled-panel-disclosure" data-mm-controlled-panel="L-ShippingDetailsPanel">/);
+  assert.match(disclosureHtml, /1 Market Street/);
 });
 
 test("diagnoses invalid Accordion and Disclosure references", () => {
@@ -8998,20 +9077,25 @@ test("parses validates renders and summarizes ActionMenu elements", () => {
 
   assert.deepEqual(result.diagnostics, []);
   assert.equal(actionMenu?.type, "ActionMenu");
+  assert.deepEqual(actionMenu?.openWhen, ["menu-open", "menu-open-locked"]);
   assert.deepEqual(actionMenu?.actionMenuItems.map((item) => [item.label, item.action, item.tone, item.disabledWhen]), [
     ["Edit", "A-EditAccount", undefined, []],
-    ["Disable", "A-DisableAccount", "danger", ["selected-row-locked"]]
+    ["Disable", "A-DisableAccount", "danger", ["menu-open-locked"]]
   ]);
   assert.deepEqual([actionMenuRow?.value, actionMenuRow?.contentSections], [
     "Edit, Disable",
-    [{ title: "Action Menu", rows: ["Edit (action: A-EditAccount)", "Disable (action: A-DisableAccount; tone: danger; disabled when: selected-row-locked)"] }]
+    [{ title: "Action Menu", rows: ["Edit (action: A-EditAccount)", "Disable (action: A-DisableAccount; tone: danger; disabled when: menu-open-locked)"] }]
   ]);
   assert.equal(triggers.get("A-EditAccount"), "E-RowActions.click");
   assert.equal(triggers.get("A-DisableAccount"), "E-RowActions.click");
   assert.match(html, /<div class="mm-element mm-element-actionmenu mm-action-menu-open" data-mm-id="E-RowActions" data-mm-placement="bottom-end">/);
   assert.match(html, /<button class="mm-action-menu-trigger" type="button">More actions \.\.\.<\/button>/);
   assert.match(html, /<div class="mm-action-menu-item" data-mm-action-menu-action="A-EditAccount">/);
-  assert.match(html, /<div class="mm-action-menu-item mm-action-menu-item-disabled mm-action-menu-item-danger" data-mm-action-menu-action="A-DisableAccount">/);
+  assert.doesNotMatch(html, /mm-action-menu-item-disabled mm-action-menu-item-danger/);
+
+  const lockedHtml = renderMarkVSpecHtml(result, { state: "menu-open-locked", includeStyles: false, showIds: true });
+  assert.match(lockedHtml, /<div class="mm-element mm-element-actionmenu mm-action-menu-open" data-mm-id="E-RowActions" data-mm-placement="bottom-end">/);
+  assert.match(lockedHtml, /<div class="mm-action-menu-item mm-action-menu-item-disabled mm-action-menu-item-danger" data-mm-action-menu-action="A-DisableAccount">/);
 });
 
 test("diagnoses invalid ActionMenu items", () => {
