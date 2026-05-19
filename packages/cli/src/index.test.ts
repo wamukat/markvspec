@@ -309,6 +309,13 @@ test("skill install downloads the version tag archive and installs the authoring
       "markvspec-release-0.5.0/skills/markvspec-authoring/SKILL.md": "# MarkVSpec Authoring\n",
       "markvspec-release-0.5.0/skills/markvspec-authoring/references/workflow.md": "Use the CLI.\n",
       "markvspec-release-0.5.0/docs/en/user/dsl.md": "# MarkVSpec DSL\n\nEnglish canonical DSL.\n",
+      "markvspec-release-0.5.0/examples/01-basics/hello-screen.vspec.md": "# Hello\n",
+      "markvspec-release-0.5.0/examples/02-states/scenario-samples.vspec.md": "# Scenarios\n",
+      "markvspec-release-0.5.0/examples/03-actions/form-submit-flow.vspec.md": "# Form submit\n",
+      "markvspec-release-0.5.0/examples/03-actions/display-effects.vspec.md": "# Display effects\n",
+      "markvspec-release-0.5.0/examples/04-real-world-screens/login-basic.vspec.md": "# Login\n",
+      "markvspec-release-0.5.0/examples/05-reuse/profile-page-with-template.vspec.md": "# Profile page\n",
+      "markvspec-release-0.5.0/examples/05-reuse/profile-summary.partial.vspec.md": "# Profile partial\n",
       "markvspec-release-0.5.0/README.md": "Not installed.\n"
     });
 
@@ -326,6 +333,9 @@ test("skill install downloads the version tag archive and installs the authoring
     assert.equal(readFileSync(join(installDir, "markvspec-authoring", "SKILL.md"), "utf8"), "# MarkVSpec Authoring\n");
     assert.equal(readFileSync(join(installDir, "markvspec-authoring", "references", "workflow.md"), "utf8"), "Use the CLI.\n");
     assert.equal(readFileSync(join(installDir, "markvspec-authoring", "references", "dsl.md"), "utf8"), "# MarkVSpec DSL\n\nEnglish canonical DSL.\n");
+    assert.equal(readFileSync(join(installDir, "markvspec-authoring", "references", "examples", "01-basics", "hello-screen.vspec.md"), "utf8"), "# Hello\n");
+    assert.equal(readFileSync(join(installDir, "markvspec-authoring", "references", "examples", "03-actions", "form-submit-flow.vspec.md"), "utf8"), "# Form submit\n");
+    assert.equal(readFileSync(join(installDir, "markvspec-authoring", "references", "examples", "05-reuse", "profile-summary.partial.vspec.md"), "utf8"), "# Profile partial\n");
     assert(!existsSync(join(installDir, "README.md")));
     assert.equal(readFileSync(join(dir, "AGENTS.md"), "utf8"), "# Agent Notes\n");
     assert(logs.some((line) => line.includes("Installed markvspec-authoring from v0.5.0")));
@@ -391,6 +401,34 @@ test("skill install requires release-matched DSL references", async () => {
 
     assert(errors.some((line) => line.includes("required authoring skill reference")));
     assert(errors.some((line) => line.includes("docs/en/user/dsl.md")));
+    assert(errors.some((line) => line.includes("v0.5.0")));
+  } finally {
+    console.error = originalError;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("skill install requires release-matched authoring examples", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "markvspec-cli-skill-missing-example-"));
+  const originalError = console.error;
+  const errors: string[] = [];
+  try {
+    console.error = (message?: unknown) => {
+      errors.push(String(message ?? ""));
+    };
+
+    assert.equal(
+      await main(["skill", "install", "--path", join(dir, "skills")], {
+        downloadArchive: async () => createTarGzArchive({
+          "markvspec-release-0.5.0/skills/markvspec-authoring/SKILL.md": "# MarkVSpec Authoring\n",
+          "markvspec-release-0.5.0/docs/en/user/dsl.md": "# MarkVSpec DSL\n"
+        })
+      }),
+      1
+    );
+
+    assert(errors.some((line) => line.includes("required authoring skill example")));
+    assert(errors.some((line) => line.includes("examples/01-basics/hello-screen.vspec.md")));
     assert(errors.some((line) => line.includes("v0.5.0")));
   } finally {
     console.error = originalError;

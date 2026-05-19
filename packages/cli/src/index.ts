@@ -31,6 +31,15 @@ const AUTHORING_SKILL_NAME = "markvspec-authoring";
 const AUTHORING_SKILL_REFERENCE_SOURCES = [
   { archivePath: "docs/en/user/dsl.md", installPath: "references/dsl.md" }
 ] as const;
+const AUTHORING_SKILL_EXAMPLE_SOURCES = [
+  "examples/01-basics/hello-screen.vspec.md",
+  "examples/02-states/scenario-samples.vspec.md",
+  "examples/03-actions/form-submit-flow.vspec.md",
+  "examples/03-actions/display-effects.vspec.md",
+  "examples/04-real-world-screens/login-basic.vspec.md",
+  "examples/05-reuse/profile-page-with-template.vspec.md",
+  "examples/05-reuse/profile-summary.partial.vspec.md"
+] as const;
 
 export async function main(argv = process.argv.slice(2), dependencies: MainDependencies = {}): Promise<number> {
   const args = parseArgs(argv);
@@ -232,7 +241,7 @@ function installSkillFromTaggedArchive(archive: Buffer, targetDir: string): void
     }
   }
 
-  installSkillReferencesFromTaggedArchive(entries, targetDir);
+  installSkillBundledReferencesFromTaggedArchive(entries, targetDir);
 }
 
 interface TarEntry {
@@ -285,13 +294,23 @@ function skillRelativePathFromArchiveEntry(entryName: string): string | undefine
   return pathAfterRoot.slice(skillPathParts.length).join("/");
 }
 
-function installSkillReferencesFromTaggedArchive(entries: TarEntry[], targetDir: string): void {
+function installSkillBundledReferencesFromTaggedArchive(entries: TarEntry[], targetDir: string): void {
   for (const reference of AUTHORING_SKILL_REFERENCE_SOURCES) {
     const sourceEntry = entries.find((entry) => archiveRelativePathFromEntry(entry.name) === reference.archivePath);
     if (!sourceEntry || sourceEntry.type !== "file") {
       throw new Error(`Archive does not contain required authoring skill reference: ${reference.archivePath}.`);
     }
     const safePath = safeJoin(targetDir, reference.installPath);
+    mkdirSync(dirname(safePath), { recursive: true });
+    writeFileSync(safePath, sourceEntry.content);
+  }
+
+  for (const archivePath of AUTHORING_SKILL_EXAMPLE_SOURCES) {
+    const sourceEntry = entries.find((entry) => archiveRelativePathFromEntry(entry.name) === archivePath);
+    if (!sourceEntry || sourceEntry.type !== "file") {
+      throw new Error(`Archive does not contain required authoring skill example: ${archivePath}.`);
+    }
+    const safePath = safeJoin(targetDir, `references/${archivePath}`);
     mkdirSync(dirname(safePath), { recursive: true });
     writeFileSync(safePath, sourceEntry.content);
   }
