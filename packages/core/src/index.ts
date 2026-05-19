@@ -44,6 +44,10 @@ export type {
   MarkVSpecParseResult,
   MarkVSpecProjectLoadResult,
   MarkVSpecProcessStep,
+  MarkVSpecProcessStepEffectsReadModel,
+  MarkVSpecProcessStepExecutionReadModel,
+  MarkVSpecProcessStepKind,
+  MarkVSpecProcessStepReadModel,
   MarkVSpecProjectParseResult,
   MarkVSpecProjectScreen,
   MarkVSpecProjectSummary,
@@ -73,6 +77,10 @@ export type {
   MarkVSpecPreviewScenarioSample,
   SourceLocation
 } from "./types.js";
+export {
+  buildMarkVSpecProcessStepReadModel,
+  classifyMarkVSpecProcessStep
+} from "./action-process-read-model.js";
 export type {
   AiInputDiagnosticAxis,
   AiInputDiagnosticFinding,

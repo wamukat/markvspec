@@ -27,6 +27,13 @@ import {
   findMarkdownEntityReferencesInLines,
   resolveMarkVSpecEntityReference
 } from "./entity-reference.js";
+import {
+  buildMarkVSpecProcessStepReadModel,
+  classifyMarkVSpecProcessStep,
+  isCanonicalProcessParamDetail as isCanonicalProcessParamDetailFromReadModel,
+  processExecutionDetailRoots,
+  processStepDetail as processStepDetailFromReadModel
+} from "./action-process-read-model.js";
 import type {
   MarkVSpecActionOutcome,
   MarkVSpecDiagnostic,
@@ -591,14 +598,15 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
         seenProcessMarkers.add(step.marker);
       }
 
-      if (isHttpRequestStep(step.name) && !processStepDetail(step, "request")) {
+      const processReadModel = buildMarkVSpecProcessStepReadModel(step);
+      if (processReadModel.kind === "HttpRequest" && !processReadModel.execution.request) {
         diagnostics.push({
           severity: "warning",
           message: `Action ${action.id} HttpRequest step has no request line such as POST /path.`,
           line: step.location.line
         });
       }
-      for (const detail of step.details.filter((detail) => isCanonicalProcessParamDetail(step, detail))) {
+      for (const detail of step.details.filter((detail) => isCanonicalProcessParamDetailFromReadModel(step, detail))) {
           const sourceId = requestParamSourceId(detail.value);
           if (sourceId && isLocalId(sourceId) && !layoutIds.has(sourceId) && !elementIds.has(sourceId)) {
             diagnostics.push({
@@ -623,17 +631,17 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
         );
       }
 
-      if (isResolveStep(step.name)) {
-        if (!step.resolveGroup) {
+      if (processReadModel.kind === "Resolve") {
+        if (!processReadModel.execution.resolveGroup) {
           diagnostics.push({
             severity: "warning",
             message: `Action ${action.id} Resolve step must specify a parallel group with group: initial-load.`,
             line: step.location.line
           });
-        } else if (!parallelGroups.has(step.resolveGroup)) {
+        } else if (!parallelGroups.has(processReadModel.execution.resolveGroup)) {
           diagnostics.push({
             severity: "error",
-            message: `Action ${action.id} Resolve step references missing parallel group ${step.resolveGroup}.`,
+            message: `Action ${action.id} Resolve step references missing parallel group ${processReadModel.execution.resolveGroup}.`,
             line: firstPropertyLine(step, "resolve") ?? step.location.line
           });
         }
@@ -1388,7 +1396,7 @@ function validatePartialRequestStep(
   step: MarkVSpecProcessStep,
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
-  const request = step.details.find((detail) => detail.key === "request");
+  const request = processStepDetailFromReadModel(step, "request");
   if (!request || !/^([A-Z]+)\s+.+$/.test(request.value)) {
     diagnostics.push({
       severity: "warning",
@@ -1397,7 +1405,7 @@ function validatePartialRequestStep(
     });
   }
 
-  const partial = step.details.find((detail) => detail.key === "partial");
+  const partial = processStepDetailFromReadModel(step, "partial");
   if (!partial) {
     diagnostics.push({
       severity: "warning",
@@ -1600,63 +1608,7 @@ function processCaseEntryLocations(outcome: MarkVSpecActionOutcome, currentDirec
 }
 
 function processExecutionDetails(step: MarkVSpecProcessStep): { name: string; location: SourceLocation }[] {
-  const details = new Map<string, SourceLocation>();
-  const normalizedStep = normalizeProcessName(step.name);
-
-  if ((normalizedStep === "httprequest" || normalizedStep === "http request") && step.details.some((detail) => detail.key === "request")) {
-    const request = step.details.find((detail) => detail.key === "request");
-    if (request) {
-      details.set("request", request.location);
-    }
-  }
-
-  if ((normalizedStep === "servercall" || normalizedStep === "server call") && step.details.length > 0) {
-    details.set("server", step.details[0]?.location ?? step.location);
-  }
-
-  for (const detail of step.details) {
-    const root = processExecutionDetailRoot(detail.key);
-    if (!root || root === "params") {
-      continue;
-    }
-
-    details.set(root, details.get(root) ?? detail.location);
-  }
-
-  for (const [key, locations] of Object.entries(step.propertyLocations)) {
-    if (!key.startsWith("detail ")) {
-      continue;
-    }
-
-    const name = key.slice("detail ".length).trim();
-    const location = locations[0];
-    if (name && location) {
-      details.set(name, details.get(name) ?? location);
-    }
-  }
-
-  return [...details.entries()].map(([name, location]) => ({ name, location }));
-}
-
-function processExecutionDetailRoot(key: string): string | undefined {
-  const root = key.split(".")[0]?.trim();
-  if (!root) {
-    return undefined;
-  }
-
-  if (["request", "server", "sync", "call"].includes(root)) {
-    return root === "call" ? "server" : root;
-  }
-
-  if (key.includes(".")) {
-    return root;
-  }
-
-  return undefined;
-}
-
-function normalizeProcessName(name: string): string {
-  return name.trim().replace(/\s+/gu, " ").toLowerCase();
+  return processExecutionDetailRoots(step);
 }
 
 function firstDirectProcessEffectLocation(step: MarkVSpecProcessStep): SourceLocation | undefined {
@@ -1756,10 +1708,7 @@ function validateProcessDataReferences(
 }
 
 function isCanonicalProcessParamDetail(step: MarkVSpecProcessStep, detail: MarkVSpecProcessStepDetail): boolean {
-  if (isHttpRequestStep(step.name) && detail.key !== "request") {
-    return true;
-  }
-  return detail.key.includes(".params.");
+  return isCanonicalProcessParamDetailFromReadModel(step, detail);
 }
 
 function validateDisplayPartialEffect(
@@ -2967,8 +2916,7 @@ function layoutKindDiagnostic(group: MarkVSpecLayoutGroup): MarkVSpecDiagnostic 
 }
 
 function isHttpRequestStep(name: string): boolean {
-  const normalized = name.trim().replace(/\s+/g, " ").toLowerCase();
-  return normalized === "http request" || normalized === "httprequest";
+  return classifyMarkVSpecProcessStep({ name }) === "HttpRequest";
 }
 
 function isPartialRequestStep(name: string): boolean {
@@ -2981,7 +2929,7 @@ function isImmediateStep(name: string): boolean {
 }
 
 function isResolveStep(name: string): boolean {
-  return name.trim().replace(/\s+/g, " ").toLowerCase().startsWith("resolve");
+  return classifyMarkVSpecProcessStep({ name }) === "Resolve";
 }
 
 function validateRouteParameterReferences(result: MarkVSpecParseResult, diagnostics: MarkVSpecDiagnostic[]): void {
@@ -3516,5 +3464,5 @@ function hasOutcomeDetailsThatRequireTransition(outcome: MarkVSpecActionOutcome)
 }
 
 function processStepDetail(step: MarkVSpecProcessStep, key: string): string | undefined {
-  return step.details.find((detail) => detail.key === key)?.value;
+  return processStepDetailFromReadModel(step, key)?.value;
 }

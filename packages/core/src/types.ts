@@ -476,7 +476,60 @@ export interface MarkVSpecDisplayEffect {
 export interface MarkVSpecProcessStepDetail {
   key: string;
   value: string;
+  scope?: string;
   location: SourceLocation;
+}
+
+export type MarkVSpecProcessStepKind = "HttpRequest" | "ServerCall" | "Validate" | "Resolve" | "Generic";
+
+export interface MarkVSpecProcessStepExecutionReadModel {
+  kind: MarkVSpecProcessStepKind;
+  request?: MarkVSpecProcessStepDetail;
+  call?: MarkVSpecProcessStepDetail;
+  params: MarkVSpecProcessStepDetail[];
+  validations: MarkVSpecProcessStepDetail[];
+  resolveGroup?: string;
+  customDetails: MarkVSpecProcessStepDetail[];
+}
+
+export interface MarkVSpecProcessStepEffectsReadModel {
+  state?: string;
+  navigate?: string;
+  update?: {
+    target?: string;
+    mode?: string;
+    fragment?: string;
+    content?: string;
+  };
+  display?: MarkVSpecDisplayEffect;
+  responses: Array<{
+    result: string;
+    definition: string;
+    location: SourceLocation;
+  }>;
+  outcomes: Array<{
+    result: string;
+    state?: string;
+    navigate?: string;
+    update?: {
+      target?: string;
+      mode?: string;
+      fragment?: string;
+      content?: string;
+    };
+    display?: MarkVSpecDisplayEffect;
+    response?: {
+      definition: string;
+      location: SourceLocation;
+    };
+  }>;
+}
+
+export interface MarkVSpecProcessStepReadModel {
+  step: MarkVSpecProcessStep;
+  kind: MarkVSpecProcessStepKind;
+  execution: MarkVSpecProcessStepExecutionReadModel;
+  effects: MarkVSpecProcessStepEffectsReadModel;
 }
 
 export interface MarkVSpecAction {
