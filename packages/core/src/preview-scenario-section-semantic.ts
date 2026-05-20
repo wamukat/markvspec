@@ -1,6 +1,7 @@
 import { elementIdPattern } from "./ids.js";
 import type { BlockAst, SectionAst } from "./markdown-section-ast.js";
 import { addPropertyLocation } from "./section-property-accumulator.js";
+import { createUnrepresentedSourceTextDiagnostic } from "./source-text-diagnostics.js";
 import type {
   MarkVSpecDiagnostic,
   MarkVSpecPreviewScenario,
@@ -119,6 +120,7 @@ export function parsePreviewScenariosSection(
               line: bullet.location.line
             });
           }
+          continue;
         }
         if (activeKey === "samples") {
           const sampleResult = applyPreviewScenarioSampleBullet(current, bullet, activeSample, activeSampleRow, diagnostics, support);
@@ -128,10 +130,16 @@ export function parsePreviewScenariosSection(
           if (sampleResult.row) {
             activeSampleRow = sampleResult.row;
           }
+          continue;
         }
         if (activeKey === "route") {
           applyPreviewScenarioRouteBullet(current, bullet, diagnostics, support);
+          continue;
         }
+        diagnostics.push(createUnrepresentedSourceTextDiagnostic({
+          text: bullet.text,
+          location: bullet.location
+        }));
         continue;
       }
 

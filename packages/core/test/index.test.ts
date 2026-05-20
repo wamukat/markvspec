@@ -9948,6 +9948,98 @@ title: Bad Scenario Entry
   assert(messages.includes("Preview Scenario idle route must be a block with key: value entries."));
 });
 
+test("warns when Preview Scenario nested source text is not represented", () => {
+  const source = `---
+id: SCR-SCENARIO-UNREPRESENTED
+type: screen
+title: Scenario Unrepresented
+---
+# SCR-SCENARIO-UNREPRESENTED Scenario Unrepresented
+
+## States
+
+- idle*
+- loaded
+
+## Preview Scenarios
+
+### loaded
+
+- state: loaded
+  - Explain why loaded data is visible here
+`;
+
+  const result = parseMarkVSpec(source);
+  const diagnostic = result.diagnostics.find((item) => item.code === "unrepresented-source-text");
+
+  assert.equal(diagnostic?.severity, "warning");
+  assert.equal(diagnostic?.line, lineNumber(source, "  - Explain why loaded data is visible here"));
+  assert.match(diagnostic?.message ?? "", /Explain why loaded data is visible here/);
+});
+
+test("does not warn for represented Preview Scenario entries or syntax labels", () => {
+  const source = `---
+id: SCR-SCENARIO-REPRESENTED
+type: screen
+title: Scenario Represented
+route: /users/:userId#details
+---
+# SCR-SCENARIO-REPRESENTED Scenario Represented
+
+## States
+
+- idle*
+- loaded
+
+## Elements
+
+### E-Title Text
+
+- text: User
+
+### E-Users Table
+
+- source: data
+- Columns:
+  - name: Name
+
+## Preview Scenarios
+
+### loaded-users
+
+- state: loaded
+- view: detail
+- before: idle
+- route:
+  - userId: U-100
+  - hash: details
+- samples:
+  - E-Title: User detail
+  - E-Users:
+    - rows:
+      - row:
+        - name: Alice
+- cases:
+  - A-Load.P1.success
+
+## Actions
+
+### A-Load Load
+
+- Triggered
+  - page.load
+- From
+  - idle
+- Process P1: Load
+  - case: success
+    - state: loaded
+`;
+
+  const result = parseMarkVSpec(source);
+
+  assert.deepEqual(result.diagnostics.filter((item) => item.code === "unrepresented-source-text"), []);
+});
+
 test("validates Preview Scenario sample targets and data source sample rows", () => {
   const source = `---
 id: SCR-BAD-SCENARIO-SAMPLES
