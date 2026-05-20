@@ -2871,7 +2871,9 @@ function validateControlledPanelLayoutUsage(
   const panelReferences: Array<{ layoutId: string; elementId: string; line: number }> = [];
   for (const element of result.elements) {
     for (const reference of controlledPanelReferences(element)) {
-      panelReferences.push({ layoutId: reference.panelId, elementId: element.id, line: reference.location?.line ?? element.location.line });
+      if (reference.panelId) {
+        panelReferences.push({ layoutId: reference.panelId, elementId: element.id, line: reference.location?.line ?? element.location.line });
+      }
     }
   }
 

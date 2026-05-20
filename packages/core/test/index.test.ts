@@ -11667,6 +11667,7 @@ route: /members/:memberId
 - E-RoutePlaceholder
 - E-RouteToast
 - E-RouteLink
+- E-RouteButton
 - E-SourceOnly
 
 ## Elements
@@ -11690,6 +11691,10 @@ route: /members/:memberId
 ### E-RouteLink Link
 
 - href: \${route.memberId}
+
+### E-RouteButton Button
+
+- label: \${route.memberId}
 
 ### E-SourceOnly Text
 
@@ -11743,6 +11748,7 @@ route: /members/:memberId
   assert.match(loadedHtml, /placeholder="M-200"/);
   assert.match(loadedHtml, /<span class="mm-toast-message">M-200<\/span>/);
   assert.match(loadedHtml, /href="M-200"/);
+  assert.match(loadedHtml, /<button class="mm-element mm-element-button" data-mm-id="E-RouteButton">M-200<\/button>/);
   assert.match(loadedHtml, /Baseline source-only value/);
   assert.doesNotMatch(loadedHtml, /M-300|Direct ID/);
   assert.match(directHtml, /<span class="mm-element mm-element-text" data-mm-id="E-MemberId">Direct ID<\/span>/);

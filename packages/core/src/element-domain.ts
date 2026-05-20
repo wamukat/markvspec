@@ -23,7 +23,7 @@ export interface ElementTypeDefinition {
 export interface ControlledPanelReference {
   kind: "tabs" | "accordion" | "disclosure";
   label: string;
-  panelId: string;
+  panelId?: string;
   actionId?: string;
   activeWhen: readonly string[];
   openWhen: readonly string[];
@@ -185,22 +185,25 @@ export function elementSizePreset(element: MarkVSpecElement): string | undefined
   return size && sizePresets.has(size) ? size : undefined;
 }
 
-export function displayLabelForElement(element: MarkVSpecElement, fallback?: string): string | undefined {
-  return propertyFirstString(element, "label")
-    ?? propertyFirstString(element, "text")
-    ?? propertyFirstString(element, "title")
-    ?? propertyFirstString(element, "value")
+export function displayLabelForElement(
+  element: MarkVSpecElement,
+  fallback?: string,
+  propertyValue: (element: MarkVSpecElement, property: string) => string | undefined = propertyFirstString
+): string | undefined {
+  return propertyValue(element, "label")
+    ?? propertyValue(element, "text")
+    ?? propertyValue(element, "title")
+    ?? propertyValue(element, "value")
     ?? fallback;
 }
 
 export function controlledPanelReferences(element: MarkVSpecElement): ControlledPanelReference[] {
   if (element.type === "Tabs") {
     return element.tabs
-      .filter((item) => Boolean(item.panel))
       .map((item) => ({
         kind: "tabs",
         label: item.label,
-        panelId: item.panel!,
+        panelId: item.panel,
         actionId: item.action,
         activeWhen: item.activeWhen,
         openWhen: item.openWhen,
@@ -210,11 +213,10 @@ export function controlledPanelReferences(element: MarkVSpecElement): Controlled
 
   if (element.type === "Accordion") {
     return element.accordionItems
-      .filter((item) => Boolean(item.panel))
       .map((item) => ({
         kind: "accordion",
         label: item.label,
-        panelId: item.panel!,
+        panelId: item.panel,
         actionId: item.action,
         activeWhen: item.activeWhen,
         openWhen: item.openWhen,

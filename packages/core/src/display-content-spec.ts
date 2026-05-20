@@ -301,13 +301,12 @@ function pushTabsRow(
   if (element.type !== "Tabs" || element.tabs.length === 0) {
     return;
   }
-  const referenceByLabel = new Map(references.map((reference) => [reference.label, reference]));
   rows.push({
     element,
     location: "tabs",
     value: element.tabs.map((item) => item.label).join(", "),
     contentSections: [
-      { title: "Tabs", rows: element.tabs.map((item) => formatTabItemContentRow(item, referenceByLabel.get(item.label))) }
+      { title: "Tabs", rows: element.tabs.map((item, index) => formatTabItemContentRow(item, references[index])) }
     ],
     source
   });
@@ -328,13 +327,13 @@ function pushAccordionDisclosureRows(
   source: MarkVSpecSourceType
 ): void {
   if (element.type === "Accordion" && element.accordionItems.length > 0) {
-    const referenceByLabel = new Map(controlledPanelReferences(element).map((reference) => [reference.label, reference]));
+    const references = controlledPanelReferences(element).filter((reference) => reference.kind === "accordion");
     rows.push({
       element,
       location: "accordion",
       value: element.accordionItems.map((item) => item.label).join(", "),
       contentSections: [
-        { title: "Accordion", rows: element.accordionItems.map((item) => formatPanelItemContentRow(item, referenceByLabel.get(item.label))) }
+        { title: "Accordion", rows: element.accordionItems.map((item, index) => formatPanelItemContentRow(item, references[index])) }
       ],
       source
     });

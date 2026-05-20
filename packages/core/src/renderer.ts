@@ -339,7 +339,7 @@ function controlledPanelLayoutIdsFor(elements: MarkVSpecElement[], layoutById: M
   const ids = new Set<string>();
   for (const element of elements) {
     for (const reference of controlledPanelReferences(element)) {
-      if (layoutById.has(reference.panelId)) {
+      if (reference.panelId && layoutById.has(reference.panelId)) {
         ids.add(reference.panelId);
       }
     }
@@ -699,7 +699,11 @@ function renderElement(
   const textValue = routeResolvedStringProperty(element, "text", context);
   const staticLabel = label || textValue || sample || value;
   const displayValue = sample || textValue || value || label;
-  const displayLabel = displayLabelForElement(element) || sample;
+  const displayLabel = displayLabelForElement(
+    element,
+    undefined,
+    (candidate, property) => property === "title" ? undefined : routeResolvedStringProperty(candidate, property, context)
+  ) || sample;
   const disabled = forceDisabled || isElementDisabled(element, activeState, stateNames, options);
   const disabledAttribute = disabled ? " disabled" : "";
   const ariaDisabled = disabled ? ` aria-disabled="true"` : "";

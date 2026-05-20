@@ -4848,11 +4848,11 @@ function renderAccordionSummary(
   element: ReturnType<typeof parseMarkVSpec>["elements"][number]
 ): string {
   const open = rawStringProperty(element.properties["open"]);
-  const referenceByLabel = new Map(controlledPanelReferences(element).map((reference) => [reference.label, reference]));
+  const references = controlledPanelReferences(element).filter((reference) => reference.kind === "accordion");
   const rows = [
     open ? `open: ${text(open)}` : "",
-    ...element.accordionItems.map((item) => {
-      const reference = referenceByLabel.get(item.label);
+    ...element.accordionItems.map((item, index) => {
+      const reference = references[index];
       const details = [
         reference?.panelId ? `panel: ${renderLayoutReferenceForId(result, reference.panelId)}` : "",
         reference?.actionId ? `action: ${referenceForId(result, reference.actionId, "action")}` : ""

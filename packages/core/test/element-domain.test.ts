@@ -42,6 +42,10 @@ test("element domain resolves display label fallback without treating empty labe
   assert.equal(displayLabelForElement(element("Text", { label: "", text: "Title" })), "Title");
   assert.equal(displayLabelForElement(element("Text", { label: true, value: "Value" })), "Value");
   assert.equal(displayLabelForElement(element("Text"), "E-Example"), "E-Example");
+  assert.equal(
+    displayLabelForElement(element("Text", { label: "${route.title}" }), undefined, () => "Resolved title"),
+    "Resolved title"
+  );
 });
 
 test("element domain exposes controlled panel references", () => {
@@ -56,16 +60,36 @@ test("element domain exposes controlled panel references", () => {
     location: { line: 9 },
     raw: "Details"
   });
-
-  assert.deepEqual(controlledPanelReferences(tabs), [{
-    kind: "tabs",
-    label: "Details",
-    panelId: "L-DetailsPanel",
-    actionId: "A-OpenDetails",
-    activeWhen: ["details"],
+  tabs.tabs.push({
+    label: "No panel action",
+    action: "A-NoPanelAction",
+    activeWhen: [],
     openWhen: [],
-    location: { line: 10 }
-  }]);
+    propertyLocations: { panel: [], action: [{ line: 14 }], "active when": [], "open when": [] },
+    location: { line: 13 },
+    raw: "No panel action"
+  });
+
+  assert.deepEqual(controlledPanelReferences(tabs), [
+    {
+      kind: "tabs",
+      label: "Details",
+      panelId: "L-DetailsPanel",
+      actionId: "A-OpenDetails",
+      activeWhen: ["details"],
+      openWhen: [],
+      location: { line: 10 }
+    },
+    {
+      kind: "tabs",
+      label: "No panel action",
+      panelId: undefined,
+      actionId: "A-NoPanelAction",
+      activeWhen: [],
+      openWhen: [],
+      location: { line: 13 }
+    }
+  ]);
 
   const disclosure = element("Disclosure", { label: "More", panel: "L-MorePanel" });
   assert.deepEqual(elementDomainFor(disclosure).controlledPanelReferences(), [{
