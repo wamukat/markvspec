@@ -89,6 +89,23 @@ locale: ja
   }
 });
 
+test("exports unrepresented source text warnings in diagnostics section", () => {
+  const dir = mkdtempSync(join(tmpdir(), "markvspec-exporter-unrepresented-text-"));
+  try {
+    const sourcePath = join(dir, "unrepresented.vspec.md");
+    writeFileSync(sourcePath, screenWithUnrepresentedProcessText("SCR-EXPORT-UNREPRESENTED", "Export Unrepresented", "Encode request body"));
+
+    const result = renderStandaloneHtmlForFile(sourcePath);
+
+    assert.equal(result.diagnostics.filter((diagnostic) => diagnostic.code === "unrepresented-source-text").length, 1);
+    assert.match(result.html, /<h2>Diagnostics<\/h2>/);
+    assert.match(result.html, /This source line is not represented in MarkVSpec output: Encode request body\./);
+    assert.match(result.html, /<span class="mm-diagnostic-severity mm-diagnostic-severity-warning">/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("validation reports broken standalone template references", () => {
   const dir = mkdtempSync(join(tmpdir(), "markvspec-template-"));
   try {
@@ -854,6 +871,55 @@ title: ${title}
 ### E-Title Heading
 
 - sample: ${title}
+`;
+}
+
+function screenWithUnrepresentedProcessText(id: string, title: string, prose: string): string {
+  return `---
+id: ${id}
+type: screen
+title: ${title}
+---
+
+# ${id} ${title}
+
+## States
+
+- idle*
+- authenticating
+
+## Layout: mobile
+
+### L-Page
+
+- stack
+
+#### Items
+
+- E-SubmitButton
+
+## Elements
+
+### E-SubmitButton Button
+
+- label: Submit
+- action: A-Submit
+
+## Actions
+
+### A-Submit Submit
+
+- From
+  - idle
+- Process P1: Submit login
+  - ${prose}
+  - request:
+    - method: POST
+    - path: /login
+  - result:
+    - login submission request
+  - case: sent
+    - state: authenticating
 `;
 }
 

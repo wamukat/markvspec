@@ -70,8 +70,130 @@ title: Entity Reference
   assert.equal(coreApi.resolveMarkVSpecEntityReference(result, "E-WithoutText")?.label, "E-WithoutText");
 });
 
+test("warns when action process source text is not represented", () => {
+  const source = screenWithUnrepresentedProcessText("SCR-UNREPRESENTED-TEXT", "Unrepresented Text", "Encode request body");
+
+  const result = parseMarkVSpec(source);
+  const diagnostic = result.diagnostics.find((item) => item.code === "unrepresented-source-text");
+
+  assert.equal(diagnostic?.severity, "warning");
+  assert.equal(diagnostic?.line, lineNumber(source, "  - Encode request body"));
+  assert.match(diagnostic?.message ?? "", /Encode request body/);
+});
+
+test("does not warn for represented process details or intentional syntax labels", () => {
+  const source = `---
+id: SCR-REPRESENTED-TEXT
+type: screen
+title: Represented Text
+---
+
+# SCR-REPRESENTED-TEXT Represented Text
+
+## States
+
+- idle*
+- loaded
+
+## Layout: mobile
+
+### L-Page
+
+- stack
+
+#### Items
+
+- E-SubmitButton
+
+## Elements
+
+### E-SubmitButton Button
+
+- label: Submit
+- action: A-Submit
+
+## Actions
+
+### A-Submit Submit
+
+- From
+  - idle
+- Process P1: Submit request
+  - request:
+    - method: POST
+    - path: /submit
+    - params:
+      - email: E-EmailInput.value
+  - result:
+    - submission request
+  - case: sent
+    - state: loaded
+  - case: failed
+    - display:
+      - target: L-Page
+      - content: Submit failed
+
+## Notes
+
+This prose is represented as section prose.
+`;
+
+  const result = parseMarkVSpec(source);
+
+  assert.deepEqual(result.diagnostics.filter((item) => item.code === "unrepresented-source-text"), []);
+});
+
 function examplePath(relativePath: string): string {
   return resolve("../../examples", relativePath);
+}
+
+function screenWithUnrepresentedProcessText(id: string, title: string, prose: string): string {
+  return `---
+id: ${id}
+type: screen
+title: ${title}
+---
+
+# ${id} ${title}
+
+## States
+
+- idle*
+- authenticating
+
+## Layout: mobile
+
+### L-Page
+
+- stack
+
+#### Items
+
+- E-SubmitButton
+
+## Elements
+
+### E-SubmitButton Button
+
+- label: Submit
+- action: A-Submit
+
+## Actions
+
+### A-Submit Submit
+
+- From
+  - idle
+- Process P1: Submit login
+  - ${prose}
+  - request:
+    - method: POST
+    - path: /login
+  - result:
+    - login submission request
+  - case: sent
+    - state: authenticating
+`;
 }
 
 function listExampleVspecFiles(relativeDir = "."): string[] {
@@ -9826,6 +9948,98 @@ title: Bad Scenario Entry
   assert(messages.includes("Preview Scenario idle route must be a block with key: value entries."));
 });
 
+test("warns when Preview Scenario nested source text is not represented", () => {
+  const source = `---
+id: SCR-SCENARIO-UNREPRESENTED
+type: screen
+title: Scenario Unrepresented
+---
+# SCR-SCENARIO-UNREPRESENTED Scenario Unrepresented
+
+## States
+
+- idle*
+- loaded
+
+## Preview Scenarios
+
+### loaded
+
+- state: loaded
+  - Explain why loaded data is visible here
+`;
+
+  const result = parseMarkVSpec(source);
+  const diagnostic = result.diagnostics.find((item) => item.code === "unrepresented-source-text");
+
+  assert.equal(diagnostic?.severity, "warning");
+  assert.equal(diagnostic?.line, lineNumber(source, "  - Explain why loaded data is visible here"));
+  assert.match(diagnostic?.message ?? "", /Explain why loaded data is visible here/);
+});
+
+test("does not warn for represented Preview Scenario entries or syntax labels", () => {
+  const source = `---
+id: SCR-SCENARIO-REPRESENTED
+type: screen
+title: Scenario Represented
+route: /users/:userId#details
+---
+# SCR-SCENARIO-REPRESENTED Scenario Represented
+
+## States
+
+- idle*
+- loaded
+
+## Elements
+
+### E-Title Text
+
+- text: User
+
+### E-Users Table
+
+- source: data
+- Columns:
+  - name: Name
+
+## Preview Scenarios
+
+### loaded-users
+
+- state: loaded
+- view: detail
+- before: idle
+- route:
+  - userId: U-100
+  - hash: details
+- samples:
+  - E-Title: User detail
+  - E-Users:
+    - rows:
+      - row:
+        - name: Alice
+- cases:
+  - A-Load.P1.success
+
+## Actions
+
+### A-Load Load
+
+- Triggered
+  - page.load
+- From
+  - idle
+- Process P1: Load
+  - case: success
+    - state: loaded
+`;
+
+  const result = parseMarkVSpec(source);
+
+  assert.deepEqual(result.diagnostics.filter((item) => item.code === "unrepresented-source-text"), []);
+});
+
 test("validates Preview Scenario sample targets and data source sample rows", () => {
   const source = `---
 id: SCR-BAD-SCENARIO-SAMPLES
@@ -10687,6 +10901,7 @@ locale: ja
       "previewScenario.missingState",
       "previewScenario.samplesMissingElement",
       "section.recommendedOrder",
+      "unrepresented-source-text",
       "validation.ruleMissingElement"
     ].sort()
   );
@@ -10896,6 +11111,38 @@ locale: ja
 - rules:
   - required:
     - E-Missing
+`
+    },
+    {
+      code: "unrepresented-source-text",
+      ja: "MarkVSpec の出力に表現されていません",
+      source: `---
+id: SCR-UNREPRESENTED-LOCALIZED
+type: screen
+title: Unrepresented Localized
+locale: ja
+---
+# SCR-UNREPRESENTED-LOCALIZED Unrepresented Localized
+
+## States
+
+- idle*
+
+## Elements
+
+### E-Submit Button
+
+- label: Submit
+- action: A-Submit
+
+## Actions
+
+### A-Submit Submit
+
+- From
+  - idle
+- Process P1: Prepare request
+  - Encode request body
 `
     },
     {
