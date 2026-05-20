@@ -6514,13 +6514,15 @@ test("parses validates renders and summarizes ActionMenu elements", () => {
   assert.deepEqual(actionMenu?.openWhen, ["menu-open", "menu-open-locked"]);
   assert.deepEqual(actionMenu?.actionMenuItems.map((item) => [item.label, item.action, item.tone, item.disabledWhen]), [
     ["Edit", "A-EditAccount", undefined, []],
+    ["Lock row", "A-LockRow", undefined, []],
     ["Disable", "A-DisableAccount", "danger", ["menu-open-locked"]]
   ]);
   assert.deepEqual([actionMenuRow?.value, actionMenuRow?.contentSections], [
-    "Edit, Disable",
-    [{ title: "Action Menu", rows: ["Edit (action: A-EditAccount)", "Disable (action: A-DisableAccount; tone: danger; disabled when: menu-open-locked)"] }]
+    "Edit, Lock row, Disable",
+    [{ title: "Action Menu", rows: ["Edit (action: A-EditAccount)", "Lock row (action: A-LockRow)", "Disable (action: A-DisableAccount; tone: danger; disabled when: menu-open-locked)"] }]
   ]);
   assert.equal(triggers.get("A-EditAccount"), "E-RowActions.click");
+  assert.equal(triggers.get("A-LockRow"), "E-RowActions.click");
   assert.equal(triggers.get("A-DisableAccount"), "E-RowActions.click");
   assert.match(html, /<div class="mm-element mm-element-actionmenu mm-action-menu-closed" data-mm-id="E-RowActions" data-mm-placement="bottom-end">/);
   assert.match(html, /<button class="mm-action-menu-trigger" type="button">More actions \.\.\.<\/button>/);
