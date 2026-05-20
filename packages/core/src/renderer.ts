@@ -5,13 +5,21 @@ import { propertyFirstString, propertyString } from "./property-accessor.js";
 import { renderElement } from "./element-renderer.js";
 import type { ElementControlledPanelKind, ElementControlledPanelRenderContext, ElementRenderContext } from "./element-renderer.js";
 import {
-  controlledPanelReferences,
-} from "./element-domain.js";
-import {
   layoutConditionValues,
-  layoutDisplaySettings,
-  layoutHasVisibilityConditions
+  layoutDisplaySettings
 } from "./layout-domain.js";
+import {
+  containedLayoutIdsFor,
+  controlledPanelLayoutIdsFor,
+  layoutRenderKey,
+  mapSlotContentsByName,
+  normallyContainedLayoutIdsFor,
+  resolveSlotContent,
+  rootLayoutGroups,
+  slotContentLayoutPlan,
+  slotDefaultId,
+  type SlotContentsByName
+} from "./renderer-slot-orchestration.js";
 import type {
   MarkVSpecAction,
   MarkVSpecElement,
@@ -33,8 +41,8 @@ export function renderMarkVSpecHtml(result: MarkVSpecParseResult, options: MarkV
   const stateNames = new Set(result.states.map((state) => state.name));
   const actionMarkersByElementId = mapActionMarkersByElementId(result.actions, result.elements, activeState);
   const formGroupMarkersByLayoutId = mapFormGroupMarkersByLayoutId(result.formGroups, layoutGroups, layoutById);
-  const containedLayoutIds = new Set<string>();
-  const normallyContainedLayoutIds = new Set<string>();
+  const normallyContainedLayoutIds = normallyContainedLayoutIdsFor(layoutGroups, layoutById, result);
+  const containedLayoutIds = new Set(normallyContainedLayoutIds);
   const controlledPanelLayoutIds = controlledPanelLayoutIdsFor(result.elements, layoutById);
   const routeValues = {
     ...routeValuesFromScreenRoute(result.screen.route),
@@ -59,27 +67,13 @@ export function renderMarkVSpecHtml(result: MarkVSpecParseResult, options: MarkV
     viewValues: options.viewValues ?? defaultViewValues(result)
   };
 
-  for (const group of layoutGroups) {
-    for (const item of group.items) {
-      if (item.type === "contains" && layoutById.has(item.targetId)) {
-        containedLayoutIds.add(item.targetId);
-        normallyContainedLayoutIds.add(item.targetId);
-      }
-    }
-  }
-  for (const layoutId of slotDefaultLayoutIds(result)) {
-    if (layoutById.has(layoutId)) {
-      containedLayoutIds.add(layoutId);
-      normallyContainedLayoutIds.add(layoutId);
-    }
-  }
   for (const layoutId of controlledPanelLayoutIds) {
     if (!normallyContainedLayoutIds.has(layoutId)) {
       containedLayoutIds.add(layoutId);
     }
   }
 
-  const rootGroups = rootLayoutGroups(layoutGroups, layoutById, containedLayoutIds);
+  const rootGroups = rootLayoutGroups(layoutGroups, containedLayoutIds);
   const renderedBody = rootGroups.length > 0
     ? rootGroups.map((group) => renderLayoutGroup(group, result, layoutById, slotContentsByName, elementById, actionMarkersByElementId, activeState, stateNames, renderOptions, new Set(), context)).join("")
     : result.elements.map((element) => renderElement(element, actionMarkersByElementId, activeState, stateNames, renderOptions, false, context)).join("");
@@ -321,9 +315,6 @@ interface FormGroupMarkerReference {
 
 type WireframeSpacingKind = "margin" | "padding" | "gap";
 
-type SlotContent = MarkVSpecParseResult["slotContents"][number];
-type SlotContentsByName = Map<string, SlotContent[]>;
-
 function withElementRendererCallbacks<T extends RenderContext>(context: T): T {
   const controlledPanelContext = controlledPanelRenderContext(context);
   return {
@@ -349,57 +340,6 @@ function controlledPanelRenderContext(context: RenderContext): ElementControlled
   };
 }
 
-function mapSlotContentsByName(slotContents: SlotContent[]): SlotContentsByName {
-  const byName: SlotContentsByName = new Map();
-  for (const slot of slotContents) {
-    const slots = byName.get(slot.name) ?? [];
-    slots.push(slot);
-    byName.set(slot.name, slots);
-  }
-  return byName;
-}
-
-function resolveSlotContent(slotContentsByName: SlotContentsByName, name: string, viewport: string): SlotContent | undefined {
-  const slots = slotContentsByName.get(name) ?? [];
-  return slots.find((slot) => slot.viewport === viewport)
-    ?? slots.find((slot) => !slot.viewport);
-}
-
-function slotDefaultLayoutIds(result: MarkVSpecParseResult): Set<string> {
-  return new Set(result.slotDefinitions
-    .map((slot) => typeof slot.properties["default"] === "string" ? slot.properties["default"].trim() : "")
-    .filter((defaultId) => defaultId.startsWith("L-")));
-}
-
-function controlledPanelLayoutIdsFor(elements: MarkVSpecElement[], layoutById: Map<string, MarkVSpecLayoutGroup>): Set<string> {
-  const ids = new Set<string>();
-  for (const element of elements) {
-    for (const reference of controlledPanelReferences(element)) {
-      if (reference.panelId && layoutById.has(reference.panelId)) {
-        ids.add(reference.panelId);
-      }
-    }
-  }
-  return ids;
-}
-
-function normallyContainedLayoutIdsFor(layoutGroups: MarkVSpecLayoutGroup[], layoutById: Map<string, MarkVSpecLayoutGroup>, result: MarkVSpecParseResult): Set<string> {
-  const ids = new Set<string>();
-  for (const group of layoutGroups) {
-    for (const item of group.items) {
-      if (item.type === "contains" && layoutById.has(item.targetId)) {
-        ids.add(item.targetId);
-      }
-    }
-  }
-  for (const layoutId of slotDefaultLayoutIds(result)) {
-    if (layoutById.has(layoutId)) {
-      ids.add(layoutId);
-    }
-  }
-  return ids;
-}
-
 function resolveViewport(result: MarkVSpecParseResult, requestedViewport: string | undefined): string | undefined {
   const viewports = layoutViewports(result);
   if (requestedViewport && viewports.includes(requestedViewport)) {
@@ -411,20 +351,6 @@ function resolveViewport(result: MarkVSpecParseResult, requestedViewport: string
 
 function layoutViewports(result: MarkVSpecParseResult): string[] {
   return [...new Set(result.layoutGroups.map((group) => group.viewport))];
-}
-
-function rootLayoutGroups(
-  layoutGroups: MarkVSpecLayoutGroup[],
-  _layoutById: Map<string, MarkVSpecLayoutGroup>,
-  containedLayoutIds: ReadonlySet<string>
-): MarkVSpecLayoutGroup[] {
-  const uncontainedGroups = layoutGroups.filter((group) => !containedLayoutIds.has(group.id));
-  const rootGroups = uncontainedGroups.filter((group, index) => index === 0 || isRootLayoutAlternative(group));
-  return rootGroups.length > 0 ? rootGroups : layoutGroups.slice(0, 1);
-}
-
-function isRootLayoutAlternative(group: MarkVSpecLayoutGroup): boolean {
-  return layoutHasVisibilityConditions(group);
 }
 
 function renderLayoutGroup(
@@ -573,16 +499,8 @@ function emptyRenderContext(): RenderContext {
 
 function layoutDepthFor(layoutId: string, layoutGroups: MarkVSpecLayoutGroup[]): number {
   const layoutById = new Map(layoutGroups.map((group) => [group.id, group]));
-  const containedLayoutIds = new Set<string>();
-  for (const group of layoutGroups) {
-    for (const item of group.items) {
-      if (item.type === "contains" && layoutById.has(item.targetId)) {
-        containedLayoutIds.add(item.targetId);
-      }
-    }
-  }
-
-  const rootGroups = rootLayoutGroups(layoutGroups, layoutById, containedLayoutIds);
+  const containedLayoutIds = containedLayoutIdsFor(layoutGroups, layoutById);
+  const rootGroups = rootLayoutGroups(layoutGroups, containedLayoutIds);
   const depths = new Map<string, number>();
   const visit = (group: MarkVSpecLayoutGroup, depth: number, path: Set<string>) => {
     const existingDepth = depths.get(group.id);
@@ -622,16 +540,8 @@ function slotInsertionContextsFor(
   options: MarkVSpecRenderOptions
 ): Array<{ depth: number; parentDisabled: boolean }> {
   const layoutById = new Map(layoutGroups.map((group) => [group.id, group]));
-  const containedLayoutIds = new Set<string>();
-  for (const group of layoutGroups) {
-    for (const item of group.items) {
-      if (item.type === "contains" && layoutById.has(item.targetId)) {
-        containedLayoutIds.add(item.targetId);
-      }
-    }
-  }
-
-  const rootGroups = rootLayoutGroups(layoutGroups, layoutById, containedLayoutIds);
+  const containedLayoutIds = containedLayoutIdsFor(layoutGroups, layoutById);
+  const rootGroups = rootLayoutGroups(layoutGroups, containedLayoutIds);
   const contexts: Array<{ depth: number; parentDisabled: boolean }> = [];
   const visit = (group: MarkVSpecLayoutGroup, depth: number, parentDisabled: boolean, path: Set<string>) => {
     if (!options.includeConditionalContent && !isLayoutVisible(group, activeState, stateNames, options)) {
@@ -744,43 +654,25 @@ function renderSlot(
     return `<!--mm-render-key:${escapeHtml(renderKey)}--><div class="mm-slot-placeholder" data-mm-slot="${escapeHtml(name)}" data-mm-render-key="${escapeHtml(renderKey)}">Slot: ${escapeHtml(name)}</div>`;
   }
 
-  const layoutById = new Map(slotContent.layoutGroups.map((group) => [group.id, group]));
-  const containedLayoutIds = new Set<string>();
-  const normallyContainedLayoutIds = new Set<string>();
-  const controlledPanelLayoutIds = controlledPanelLayoutIdsFor(result.elements, layoutById);
-  for (const group of slotContent.layoutGroups) {
-    for (const item of group.items) {
-      if (item.type === "contains" && layoutById.has(item.targetId)) {
-        containedLayoutIds.add(item.targetId);
-        normallyContainedLayoutIds.add(item.targetId);
-      }
-    }
-  }
-  for (const layoutId of controlledPanelLayoutIds) {
-    if (!normallyContainedLayoutIds.has(layoutId)) {
-      containedLayoutIds.add(layoutId);
-    }
-  }
-
-  const rootGroups = slotContent.layoutGroups.filter((group) => !containedLayoutIds.has(group.id));
+  const slotPlan = slotContentLayoutPlan(slotContent, result.elements);
   const slotContext = withElementRendererCallbacks({
     ...context,
     result,
-    layoutById,
+    layoutById: slotPlan.layoutById,
     slotContentsByName,
     elementById,
     actionMarkersByElementId,
-    normallyContainedLayoutIds,
-    controlledPanelLayoutIds,
+    normallyContainedLayoutIds: slotPlan.normallyContainedLayoutIds,
+    controlledPanelLayoutIds: slotPlan.controlledPanelLayoutIds,
     slotName: name,
     slotRenderViewport: slotContent.viewport ?? "default",
     slotViewport: viewport
   });
-  return rootGroups
+  return slotPlan.rootGroups
     .map((group) => renderLayoutGroup(
       group,
       result,
-      layoutById,
+      slotPlan.layoutById,
       slotContentsByName,
       elementById,
       actionMarkersByElementId,
@@ -841,17 +733,6 @@ function renderSlotDefault(
   }
 
   return "";
-}
-
-function slotDefaultId(result: MarkVSpecParseResult, name: string): string {
-  const slotDefinition = result.slotDefinitions.find((slot) => slot.name === name);
-  return typeof slotDefinition?.properties["default"] === "string" ? slotDefinition.properties["default"].trim() : "";
-}
-
-function layoutRenderKey(group: MarkVSpecLayoutGroup, context: RenderContext): string {
-  return context.slotName
-    ? `slot-content:${context.slotName}:${context.slotRenderViewport ?? context.slotViewport ?? "default"}:${group.id}`
-    : `layout:${group.viewport}:${group.id}`;
 }
 
 function isLayoutVisible(group: MarkVSpecLayoutGroup, activeState: string | undefined, stateNames: Set<string>, options: MarkVSpecRenderOptions): boolean {
