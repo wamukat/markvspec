@@ -3,13 +3,13 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "n
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
-import { parseMarkdownDocument } from "./markdown-document.js";
-import { buildDisplayContentSpecRows } from "./display-content-spec.js";
-import { sourcePathKey } from "./model-paths.js";
-import { parseProjectDocumentSemantics } from "./project-parser.js";
+import { parseMarkdownDocument } from "../src/markdown-document.js";
+import { buildDisplayContentSpecRows } from "../src/display-content-spec.js";
+import { sourcePathKey } from "../src/model-paths.js";
+import { parseProjectDocumentSemantics } from "../src/project-parser.js";
 import { lineNumber } from "./test-helpers.js";
-import type { MarkVSpecDiagnostic } from "./types.js";
-import * as coreApi from "./index.js";
+import type { MarkVSpecDiagnostic } from "../src/types.js";
+import * as coreApi from "../src/index.js";
 import {
   affectedProjectScreenPathsForDocumentChange,
   actionAppliesToState,
@@ -40,7 +40,7 @@ import {
   stateScreenElementGroups,
   stateScreenLayoutsForModel,
   supportedDiagnosticMessageCodes
-} from "./index.js";
+} from "../src/index.js";
 
 test("keeps internal State Views helpers out of the root API", () => {
   assert.equal("actionHasVisibleElementMarker" in coreApi, false);

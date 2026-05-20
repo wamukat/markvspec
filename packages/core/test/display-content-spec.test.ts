@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseMarkVSpec } from "./index.js";
-import { buildDisplayContentSpecRows } from "./display-content-spec.js";
+import { parseMarkVSpec } from "../src/index.js";
+import { buildDisplayContentSpecRows } from "../src/display-content-spec.js";
 
 test("builds Display Content Spec rows for source data and fixed content cases", () => {
   const result = parseMarkVSpec(`---

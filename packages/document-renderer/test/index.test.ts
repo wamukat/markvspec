@@ -17,7 +17,7 @@ import {
   viewportPrintScale,
   viewportPrintStyle,
   wireframePrintSectionCss
-} from "./index.js";
+} from "../src/index.js";
 
 function iconPattern(name: string): RegExp {
   return new RegExp(`<svg class="mm-icon mm-icon-${name}" aria-hidden="true" viewBox="0 0 24 24">[\\s\\S]*?</svg>`);

@@ -6,7 +6,7 @@ import {
   renderMarkVSpecHtml,
   renderMarkVSpecHtmlFragment,
   renderMarkVSpecHtmlWithInvalidation
-} from "./index.js";
+} from "../src/index.js";
 
 test("allows safe element display property changes on partial update", () => {
   const previous = `---

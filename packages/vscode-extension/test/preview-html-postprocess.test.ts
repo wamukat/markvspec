@@ -10,7 +10,7 @@ import {
   namespacePreviewRenderKeys,
   numberDocumentSectionsHtml,
   prependHtmlInsideFirstTag
-} from "./preview-html-postprocess.js";
+} from "../src/preview-html-postprocess.js";
 
 function sectionNumber(value: string): string {
   return `<span>${value}.</span>`;

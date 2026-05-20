@@ -37,8 +37,8 @@ import {
   shouldSkipActiveEditorPreviewUpdate,
   shouldUseIncrementalPreviewUpdate,
   renderStandaloneProjectHtml
-} from "./extension.js";
-import { renderEntityNotes, renderInlineMarkdown } from "./markdown-renderer.js";
+} from "../src/extension.js";
+import { renderEntityNotes, renderInlineMarkdown } from "../src/markdown-renderer.js";
 import {
   escapeRegExp,
   stateSection,

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildMarkVSpecProcessStepReadModel, parseMarkVSpec } from "./index.js";
+import { buildMarkVSpecProcessStepReadModel, parseMarkVSpec } from "../src/index.js";
 import { lineNumber } from "./test-helpers.js";
 
 test("keeps each HttpRequest detail on its own process step", () => {

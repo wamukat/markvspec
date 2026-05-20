@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseMarkVSpec } from "./index.js";
+import { parseMarkVSpec } from "../src/index.js";
 import {
   parseDisplayMessageReference,
   resolveDisplayMessageReference,
   resolveDisplayTarget
-} from "./display-effect.js";
+} from "../src/display-effect.js";
 
 test("parses display.message references for validation and business rule messages", () => {
   assert.deepEqual(parseDisplayMessageReference("V-Required.messages"), {

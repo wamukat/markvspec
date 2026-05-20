@@ -1,0 +1,6 @@
+dist-test/
+test/
+tsconfig.test.json
+*.tsbuildinfo
+src/**/*.test.ts
+src/test-helpers.ts

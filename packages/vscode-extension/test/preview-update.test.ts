@@ -15,7 +15,7 @@ import {
   scheduleCoalescedPreviewUpdate,
   shouldSkipActiveEditorPreviewUpdate,
   shouldUseIncrementalPreviewUpdate
-} from "./extension.js";
+} from "../src/extension.js";
 
 test("builds preview update plans for full, fragment, and fallback paths", () => {
   assert.deepEqual(buildPreviewUpdatePlan({ hasPreviousSource: false }), {

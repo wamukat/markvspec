@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 import { parseMarkVSpec } from "@markvspec/core";
-import { formatMarkVSpecStructure } from "./extension.js";
+import { formatMarkVSpecStructure } from "../src/extension.js";
 
 const extensionRoot = resolve(".");
 

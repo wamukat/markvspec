@@ -10,8 +10,8 @@ import {
   stateViewLayoutSignature,
   STATE_VIEW_AFFECTING_LAYOUT_PROPERTY_KEYS
 } from "@markvspec/core";
-import { renderDesignDocumentHtml } from "./extension.js";
-import { renderStateScreenReadModel, type StateViewsRenderContext } from "./state-views-renderer.js";
+import { renderDesignDocumentHtml } from "../src/extension.js";
+import { renderStateScreenReadModel, type StateViewsRenderContext } from "../src/state-views-renderer.js";
 import {
   escapeRegExp,
   stateSection,

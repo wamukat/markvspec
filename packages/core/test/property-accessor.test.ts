@@ -9,7 +9,7 @@ import {
   propertyMarker,
   propertyString,
   type MarkVSpecPropertyOwner
-} from "./property-accessor.js";
+} from "../src/property-accessor.js";
 
 const owner: MarkVSpecPropertyOwner = {
   properties: {

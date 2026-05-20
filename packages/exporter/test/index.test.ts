@@ -14,7 +14,7 @@ import {
   renderStandaloneHtmlForFile,
   resolvePdfBrowserCommands,
   validateMarkVSpecFiles
-} from "./index.js";
+} from "../src/index.js";
 
 test("expands MarkVSpec file patterns", () => {
   const dir = mkdtempSync(join(tmpdir(), "markvspec-exporter-"));

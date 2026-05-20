@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseMarkdownDocument } from "./markdown-document.js";
-import { collectSectionAst } from "./markdown-section-ast.js";
-import { parseActionSectionSemantics, parseElementSectionSemantics, parseLayoutSectionSemantics, parseSmallSectionSemantics } from "./markdown-section-semantic.js";
-import { parseMarkVSpec } from "./index.js";
+import { parseMarkdownDocument } from "../src/markdown-document.js";
+import { collectSectionAst } from "../src/markdown-section-ast.js";
+import { parseActionSectionSemantics, parseElementSectionSemantics, parseLayoutSectionSemantics, parseSmallSectionSemantics } from "../src/markdown-section-semantic.js";
+import { parseMarkVSpec } from "../src/index.js";
 import { lineNumber } from "./test-helpers.js";
-import type { MarkVSpecDiagnostic } from "./types.js";
+import type { MarkVSpecDiagnostic } from "../src/types.js";
 
 test("collects SectionAst and BlockAst without changing parser output", () => {
   const source = `---

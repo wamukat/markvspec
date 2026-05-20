@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { loadMarkVSpecProject } from "@markvspec/core";
-import { renderProjectDesignDocumentHtml } from "./project-preview-document.js";
+import { renderProjectDesignDocumentHtml } from "../src/project-preview-document.js";
 
 test("renders project document HTML without importing the VS Code extension facade", () => {
   const projectPath = resolve("../../packages/core/test-fixtures/parse-output-coverage/project/markvspec.project.md");

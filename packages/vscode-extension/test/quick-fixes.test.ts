@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import * as vscode from "vscode";
-import { createMarkVSpecCodeActions } from "./quick-fixes.js";
+import { createMarkVSpecCodeActions } from "../src/quick-fixes.js";
 
 function createTextDocument(source: string, filePath = "/workspace/example.vspec.md") {
   const lines = source.split(/\r?\n/);

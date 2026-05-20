@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist-test",
+    "tsBuildInfoFile": "dist-test/tsconfig.test.tsbuildinfo",
+    "paths": {
+      "@markvspec/core": [
+        "packages/core/dist/index.d.ts"
+      ],
+      "@markvspec/document-renderer": [
+        "packages/document-renderer/dist/index.d.ts"
+      ],
+      "@markvspec/exporter": [
+        "packages/exporter/dist/index.d.ts"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts"
+  ]
+}
