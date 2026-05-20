@@ -23,6 +23,34 @@ Examples は次の用途で使います。
 - actions、states、partial updates を組み合わせた書き方を確認する
 - common UI patterns の renderer coverage を確認する
 
+## 学習順
+
+catalog の learning path は、基本構造から実務的な画面へ少しずつ進む順番です。
+
+1. `Hello Screen`: Front Matter、states、layout、elements、actions の最小形。
+2. `Async Fetching`: loading / error state と初期読み込み。
+3. `Responsive Profile`: mobile / desktop layout の切り替え。
+4. `Form Submit Flow`: form submit、request、success / failure cases。
+5. `Single Field Validation`: field validation と error text。
+6. `Display Effects`: action の結果として表示内容を変える例。
+
+途中から読む場合でも、showcase の `What this teaches` と related docs を先に確認すると、
+その example が何を説明しているかを把握しやすくなります。
+
+## 自分の画面に使う
+
+example は copy して終わりではなく、screen spec の書き方を確認する材料です。
+自分の画面へ持ち込むときは、次を先に変えてください。
+
+- Front Matter の `id`、`title`、`route`。
+- `## States` の状態名。
+- `## Layout: mobile` の group 名と `Items`。
+- `## Elements` の label、text、tone、variant。
+- `## Actions` の process、request、case、update。
+
+実装 framework 固有の attribute を example に足すより、MarkVSpec の semantic な
+action / update として表現できるかを先に検討します。
+
 ## 関連ドキュメント
 
 - [Start: First Screen](../start/first-screen.md)

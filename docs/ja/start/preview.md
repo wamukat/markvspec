@@ -29,6 +29,26 @@ preview は source の変更に追従します。Markdown を編集しながら�
 - element は種類、label、variant、tone などの意味情報として表示される。
 - action は trigger、process、case の流れとして表示される。
 
+## preview で確認する判断
+
+preview は pixel-perfect なデザイン確認ではありません。次のような仕様上の抜けや誤解を見つけるために使います。
+
+- 画面の主要な要素が `Elements` にそろっているか。
+- `Layout` の `Items` が、読み手に伝わる順番になっているか。
+- `variant: primary` の action が画面の主操作として妥当か。
+- `tone: danger` や `tone: warning` が、状態やメッセージの意図と合っているか。
+- action の `From`、`Process`、`Cases` が、状態遷移として読めるか。
+
+文言や構造を変えたら、保存して preview を見直します。Markdown の diff と preview の見え方を
+セットで確認すると、reviewer が仕様変更を追いやすくなります。
+
+## preview が期待通りでないとき
+
+- 画面に出ない要素は、`Layout` の `Items` から参照されているか確認する。
+- button の意図が見えない場合は、`action: A-*` と `## Actions` の ID が一致しているか確認する。
+- 状態依存の表示は、`visible when`、`disabled when`、state 名の spelling を確認する。
+- 構文が曖昧な場合は [Reference](../reference/index.md) で正確な書き方を確認する。
+
 ## 次
 
 - [Export](export.md)

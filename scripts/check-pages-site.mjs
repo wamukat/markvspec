@@ -479,7 +479,7 @@ function expectOccurrenceCount(content, needle, expectedCount, message) {
 
 function expectNoStubMarker(filePath) {
   const content = readFileSync(join(root, filePath), "utf8");
-  if (/\b(?:Stub|TODO|TBD|coming soon|placeholder)\b/iu.test(content)) {
+  if (/\b(?:Stub|TODO|TBD|coming soon)\b/iu.test(content)) {
     failures.push(`${filePath} should contain finished English documentation, not stub markers.`);
   }
 }

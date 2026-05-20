@@ -25,6 +25,10 @@ npx @markvspec/cli@latest export html hello.vspec.md --out markvspec-html
 
 This creates `hello-screen.html` in the output directory. Use it as a static artifact for review and sharing.
 
+Use HTML export when you need a lightweight artifact that opens in a browser.
+Keep the source in the pull request and share the HTML artifact with reviewers
+who do not need to read Markdown.
+
 ## PDF
 
 ```bash
@@ -32,6 +36,18 @@ npx @markvspec/cli@latest export pdf hello.vspec.md --out markvspec-pdf
 ```
 
 PDF export needs a Chrome-compatible browser. If the environment has no browser available, use HTML export to inspect the result.
+
+Use PDF export when you need a fixed artifact for issues, specification reviews,
+or non-engineering stakeholders. The exported file is not the source of truth.
+Keep `.vspec.md` as the canonical source and treat HTML / PDF as shareable
+artifacts.
+
+## Before Exporting
+
+- Check in preview that the main states, elements, and actions are readable.
+- Keep the source in a Git-managed location.
+- Share `.vspec.md` when recipients need to edit; share HTML / PDF when they only need to read.
+- For CLI export of multiple files, pass an explicit output directory.
 
 ## Next
 

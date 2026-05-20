@@ -27,6 +27,23 @@ One `.vspec.md` file describes one screen. Componentization can happen in the
 implementation, but the primary authoring model stays screen-oriented so product,
 design, and engineering reviewers can discuss behavior in one place.
 
+Screen-first does not mean components cannot be reused. At the specification
+stage, first collect the screen, states, main actions, and server interaction in
+one file. Whether implementation later splits it into components, partials, or
+templates is an implementation design decision.
+
+## What MarkVSpec Is Not
+
+MarkVSpec is not:
+
+- a pixel-perfect design tool
+- a replacement for CSS, HTML, or framework components
+- a place to define API schemas or database schemas
+- a wrapper for copying implementation attributes into a document
+
+MarkVSpec covers information that belongs in a screen specification: what is on
+the screen, which states exist, and what happens when the user acts.
+
 ## Semantic UI Specs
 
 MarkVSpec describes intent instead of raw CSS or framework attributes.
@@ -39,9 +56,24 @@ MarkVSpec describes intent instead of raw CSS or framework attributes.
 This keeps the document useful across implementation stacks while still being
 structured enough for validation and rendering.
 
+## AI-friendly And Git-friendly
+
+MarkVSpec source is plain text. That makes it practical for both AI assistance
+and Git review:
+
+- Reviewers can read line-level diffs in pull requests.
+- AI tools can use Markdown headings and IDs to edit a bounded section.
+- The source stays canonical instead of a generated preview or export.
+- A local folder and VS Code are enough for authoring and preview.
+
+AI-friendly does not mean prose-only. If everything is vague prose, preview and
+validation become weak. Keep both human-readable explanation and tool-readable
+structured body.
+
 ## Read Next
 
 - [Start](../start/)
+- [Guide: Document Structure](../guide/document-structure.html)
 - [Guide: Markdown Model](../guide/markdown-model.md)
 - [Guide: Actions](../guide/actions.md)
 - [Reference](../reference/)
