@@ -1,6 +1,6 @@
 import { sourceTypeForElement, type MarkVSpecSourceType } from "./source-types.js";
 import { tableColumnSampleKeys } from "./table-columns.js";
-import { anchoredOverlayReference, controlledPanelReferences, isFormControlElement } from "./element-domain.js";
+import { anchoredOverlayReference, controlledPanelReferences, displayValueForElement, elementDomainFor, isFormControlElement } from "./element-domain.js";
 import type { MarkVSpecParseResult } from "./types.js";
 
 type ParsedElement = MarkVSpecParseResult["elements"][number];
@@ -39,7 +39,8 @@ export function buildDisplayContentSpecRows(elements: ParsedElement[], context: 
     const displaySource = properties["src"];
     const sourceType = sourceTypeForElement(element);
     const displaySample = sourceType === "data" ? properties["sample"] : undefined;
-    if (element.type === "Table") {
+    const domain = elementDomainFor(element);
+    if (domain.is("Table")) {
       pushTableRowsReferenceRow(rows, element, sourceType, context);
       pushDisplayPropertyRow(rows, element, "rows", properties["rows"], sourceType, undefined, context);
       pushTableColumnsRow(rows, element, sourceType);
@@ -57,7 +58,7 @@ export function buildDisplayContentSpecRows(elements: ParsedElement[], context: 
     pushDisplayPropertyRow(rows, element, "sample", displaySample, sourceType, rawStringProperty(properties["format"]), context);
     pushDisplayPropertyRow(rows, element, "src", displaySource, sourceType, rawStringProperty(properties["format"]), context);
     pushDisplayPropertyRow(rows, element, "href", properties["href"], sourceType, rawStringProperty(properties["format"]), context);
-    pushDisplayPropertyRow(rows, element, "value", displayValueProperty(element), sourceType, rawStringProperty(properties["format"]), context);
+    pushDisplayPropertyRow(rows, element, "value", displayValueForElement(element), sourceType, rawStringProperty(properties["format"]), context);
     pushDisplayPropertyRow(rows, element, "content", properties["content"], sourceType, undefined, context);
     pushDisplayPropertyRow(rows, element, "text", properties["text"], sourceType, undefined, context);
     pushDisplayPropertyRow(rows, element, "title", properties["title"], sourceType, undefined, context);
@@ -262,7 +263,7 @@ function pushListItemsRow(
   source: MarkVSpecSourceType,
   context: DisplayContentSpecContext
 ): void {
-  if (element.type !== "List") {
+  if (!elementDomainFor(element).is("List")) {
     return;
   }
 
@@ -298,27 +299,28 @@ function pushTabsRow(
   source: MarkVSpecSourceType
 ): void {
   const references = controlledPanelReferences(element).filter((reference) => reference.kind === "tabs");
-  if (element.type !== "Tabs" || element.tabs.length === 0) {
+  if (references.length === 0) {
     return;
   }
   rows.push({
     element,
     location: "tabs",
-    value: element.tabs.map((item) => item.label).join(", "),
+    value: references.map((reference) => reference.label).join(", "),
     contentSections: [
-      { title: "Tabs", rows: element.tabs.map((item, index) => formatTabItemContentRow(item, references[index])) }
+      { title: "Tabs", rows: references.map(formatControlledPanelReferenceContentRow) }
     ],
     source
   });
 }
 
-function formatTabItemContentRow(item: ParsedElement["tabs"][number], reference: ReturnType<typeof controlledPanelReferences>[number] | undefined): string {
+function formatControlledPanelReferenceContentRow(reference: ReturnType<typeof controlledPanelReferences>[number]): string {
   const details = [
-    reference?.panelId ? `panel: ${reference.panelId}` : "",
-    reference?.actionId ? `action: ${reference.actionId}` : "",
-    ...item.activeWhen.map((condition) => `active when: ${condition}`)
+    reference.panelId ? `panel: ${reference.panelId}` : "",
+    reference.actionId ? `action: ${reference.actionId}` : "",
+    ...reference.activeWhen.map((condition) => `active when: ${condition}`),
+    ...reference.openWhen.map((condition) => `open when: ${condition}`)
   ].filter(Boolean);
-  return details.length > 0 ? `${item.label} (${details.join("; ")})` : item.label;
+  return details.length > 0 ? `${reference.label} (${details.join("; ")})` : reference.label;
 }
 
 function pushAccordionDisclosureRows(
@@ -326,33 +328,34 @@ function pushAccordionDisclosureRows(
   element: ParsedElement,
   source: MarkVSpecSourceType
 ): void {
-  if (element.type === "Accordion" && element.accordionItems.length > 0) {
-    const references = controlledPanelReferences(element).filter((reference) => reference.kind === "accordion");
+  const references = controlledPanelReferences(element);
+  const accordionReferences = references.filter((reference) => reference.kind === "accordion");
+  if (accordionReferences.length > 0) {
     rows.push({
       element,
       location: "accordion",
-      value: element.accordionItems.map((item) => item.label).join(", "),
+      value: accordionReferences.map((reference) => reference.label).join(", "),
       contentSections: [
-        { title: "Accordion", rows: element.accordionItems.map((item, index) => formatPanelItemContentRow(item, references[index])) }
+        { title: "Accordion", rows: accordionReferences.map(formatControlledPanelReferenceContentRow) }
       ],
       source
     });
     return;
   }
 
-  if (element.type !== "Disclosure") {
+  const disclosureReference = references.find((reference) => reference.kind === "disclosure");
+  if (!disclosureReference) {
     return;
   }
 
   const label = rawStringProperty(element.properties["label"]);
   const open = rawStringProperty(element.properties["open"]);
-  const reference = controlledPanelReferences(element)[0];
-  const panel = reference?.panelId ?? "";
+  const panel = disclosureReference.panelId ?? "";
   const action = rawStringProperty(element.properties["action"]);
   const rowsValue = [
     label ? `label: ${label}` : "",
     open ? `open: ${open}` : "",
-    ...element.openWhen.map((condition) => `open when: ${condition}`),
+    ...disclosureReference.openWhen.map((condition) => `open when: ${condition}`),
     panel ? `panel: ${panel}` : "",
     action ? `action: ${action}` : ""
   ].filter(Boolean);
@@ -370,21 +373,12 @@ function pushAccordionDisclosureRows(
   });
 }
 
-function formatPanelItemContentRow(item: ParsedElement["accordionItems"][number], reference: ReturnType<typeof controlledPanelReferences>[number] | undefined): string {
-  const details = [
-    reference?.panelId ? `panel: ${reference.panelId}` : "",
-    reference?.actionId ? `action: ${reference.actionId}` : "",
-    ...item.openWhen.map((condition) => `open when: ${condition}`)
-  ].filter(Boolean);
-  return details.length > 0 ? `${item.label} (${details.join("; ")})` : item.label;
-}
-
 function pushActionMenuRows(
   rows: DisplayContentSpecRow[],
   element: ParsedElement,
   source: MarkVSpecSourceType
 ): void {
-  if (element.type !== "ActionMenu" || element.actionMenuItems.length === 0) {
+  if (!elementDomainFor(element).is("ActionMenu") || element.actionMenuItems.length === 0) {
     return;
   }
   rows.push({
@@ -462,14 +456,6 @@ function sampleRowsReferenceRow(
 
 function sampleRowsForElement(context: DisplayContentSpecContext, elementId: string): ScenarioSample["rows"] | undefined {
   return context.scenarioSamples?.find((sample) => sample.elementId === elementId && sample.rows)?.rows;
-}
-
-function displayValueProperty(element: ParsedElement): string | undefined {
-  const value = rawStringProperty(element.properties["value"]);
-  if (!value || isFormControlElement(element.type)) {
-    return undefined;
-  }
-  return value;
 }
 
 function rawStringProperty(value: string | true | undefined): string {

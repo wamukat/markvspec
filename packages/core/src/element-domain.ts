@@ -35,6 +35,10 @@ export interface AnchoredOverlayReference {
   placement?: string;
 }
 
+export interface ActiveControlledPanelOptions {
+  isConditionActive(condition: string): boolean;
+}
+
 const customElementTypeRegex = /^custom:[A-Za-z][A-Za-z0-9_-]*$/u;
 
 export const commonElementProperties = new Set([
@@ -197,6 +201,11 @@ export function displayLabelForElement(
     ?? fallback;
 }
 
+export function displayValueForElement(element: MarkVSpecElement): string | undefined {
+  const value = propertyString(element, "value");
+  return value && !isFormControlElement(element) ? value : undefined;
+}
+
 function nonEmpty(value: string | undefined): string | undefined {
   return value ? value : undefined;
 }
@@ -238,6 +247,39 @@ export function controlledPanelReferences(element: MarkVSpecElement): Controlled
       openWhen: element.openWhen,
       location: element.propertyLocations.panel?.[0] ?? element.location
     }] : [];
+  }
+
+  return [];
+}
+
+export function activeControlledPanelReferences(
+  element: MarkVSpecElement,
+  options: ActiveControlledPanelOptions
+): ControlledPanelReference[] {
+  const references = controlledPanelReferences(element);
+
+  if (element.type === "Tabs") {
+    const activeReference = references.find((reference) =>
+      reference.activeWhen.some((condition) => options.isConditionActive(condition))
+    ) ?? references.find((reference) => reference.label === propertyString(element, "active"))
+      ?? references[0];
+    return activeReference ? [activeReference] : [];
+  }
+
+  if (element.type === "Accordion") {
+    const openReference = references.find((reference) =>
+      reference.openWhen.some((condition) => options.isConditionActive(condition))
+    ) ?? references.find((reference) => reference.label === propertyString(element, "open"));
+    return openReference ? [openReference] : [];
+  }
+
+  if (element.type === "Disclosure") {
+    const reference = references[0];
+    if (!reference) {
+      return [];
+    }
+    const openByCondition = reference.openWhen.some((condition) => options.isConditionActive(condition));
+    return openByCondition || String(element.properties["open"] ?? "").toLowerCase() === "true" ? [reference] : [];
   }
 
   return [];
@@ -306,6 +348,14 @@ export class ElementDomain {
 
   controlledPanelReferences(): ControlledPanelReference[] {
     return controlledPanelReferences(this.element);
+  }
+
+  activeControlledPanelReferences(options: ActiveControlledPanelOptions): ControlledPanelReference[] {
+    return activeControlledPanelReferences(this.element, options);
+  }
+
+  displayValue(): string | undefined {
+    return displayValueForElement(this.element);
   }
 
   anchoredOverlay(): AnchoredOverlayReference | undefined {

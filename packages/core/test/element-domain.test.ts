@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  activeControlledPanelReferences,
   anchoredOverlayReference,
   controlledPanelReferences,
   displayLabelForElement,
+  displayValueForElement,
   elementAllowedProperties,
   elementDomainFor,
   elementSizePreset,
@@ -104,6 +106,61 @@ test("element domain exposes controlled panel references", () => {
     openWhen: [],
     location: { line: 1 }
   }]);
+});
+
+test("element domain resolves active controlled panel references", () => {
+  const tabs = element("Tabs", { active: "Fallback" });
+  tabs.tabs.push({
+    label: "Details",
+    panel: "L-DetailsPanel",
+    activeWhen: ["details"],
+    openWhen: [],
+    propertyLocations: { panel: [{ line: 10 }], action: [], "active when": [{ line: 12 }], "open when": [] },
+    location: { line: 9 },
+    raw: "Details"
+  });
+  tabs.tabs.push({
+    label: "Fallback",
+    panel: "L-FallbackPanel",
+    activeWhen: [],
+    openWhen: [],
+    propertyLocations: { panel: [{ line: 14 }], action: [], "active when": [], "open when": [] },
+    location: { line: 13 },
+    raw: "Fallback"
+  });
+
+  assert.deepEqual(
+    activeControlledPanelReferences(tabs, { isConditionActive: (condition) => condition === "details" }).map((reference) => reference.panelId),
+    ["L-DetailsPanel"]
+  );
+  assert.deepEqual(
+    activeControlledPanelReferences(tabs, { isConditionActive: () => false }).map((reference) => reference.panelId),
+    ["L-FallbackPanel"]
+  );
+
+  const disclosure = element("Disclosure", { panel: "L-MorePanel", open: "true" });
+  assert.deepEqual(
+    elementDomainFor(disclosure).activeControlledPanelReferences({ isConditionActive: () => false }).map((reference) => reference.panelId),
+    ["L-MorePanel"]
+  );
+
+  const nonCanonicalOpen = element("Disclosure", { panel: "L-LegacyPanel", open: "yes" });
+  assert.deepEqual(
+    activeControlledPanelReferences(nonCanonicalOpen, { isConditionActive: () => false }),
+    []
+  );
+
+  const bareOpen = element("Disclosure", { panel: "L-BareOpenPanel", open: true });
+  assert.deepEqual(
+    activeControlledPanelReferences(bareOpen, { isConditionActive: () => false }).map((reference) => reference.panelId),
+    ["L-BareOpenPanel"]
+  );
+});
+
+test("element domain exposes display value for non-form display elements", () => {
+  assert.equal(displayValueForElement(element("Text", { value: "Published" })), "Published");
+  assert.equal(displayValueForElement(element("Input", { value: "Jane" })), undefined);
+  assert.equal(elementDomainFor(element("Badge", { value: "Paid" })).displayValue(), "Paid");
 });
 
 test("element domain exposes anchored overlay references", () => {

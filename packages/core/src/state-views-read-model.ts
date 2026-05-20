@@ -1,5 +1,5 @@
 import { actionAppliesToState } from "./action-applicability.js";
-import { buildDisplayContentSpecRows, isFormControlElement } from "./display-content-spec.js";
+import { buildDisplayContentSpecRows } from "./display-content-spec.js";
 import type { DisplayContentSpecRow } from "./display-content-spec.js";
 import {
   displayMessageExplanationKind,
@@ -7,6 +7,7 @@ import {
   displayMessageTextSummary,
   parseDisplayMessageReference
 } from "./display-effect.js";
+import { activeControlledPanelReferences, controlledPanelReferences, isFormControlElement } from "./element-domain.js";
 import { resolveLayoutGroupsForViewport } from "./layout-resolution.js";
 import { stateViewLayoutSignature } from "./state-view-signatures.js";
 import type { MarkVSpecParseResult } from "./types.js";
@@ -977,26 +978,11 @@ export function stateScreenControlledPanelPlacementsForModel(result: MarkVSpecPa
       continue;
     }
 
-    if (element.type === "Tabs") {
-      const activeItem = element.tabs.find((item) =>
-        item.activeWhen.some((condition) => isStateScreenActiveCondition(condition, model.stateName, stateNames, options))
-      ) ?? element.tabs.find((item) => item.label === element.properties["active"])
-        ?? element.tabs[0];
-      for (const item of element.tabs) {
-        addPlacement(item.panel, element.id, Boolean(item.panel && activeItem?.panel === item.panel));
-      }
-    } else if (element.type === "Accordion") {
-      const openItem = element.accordionItems.find((item) =>
-        item.openWhen.some((condition) => isStateScreenActiveCondition(condition, model.stateName, stateNames, options))
-      ) ?? element.accordionItems.find((item) => item.label === element.properties["open"]);
-      for (const item of element.accordionItems) {
-        addPlacement(item.panel, element.id, Boolean(item.panel && openItem?.panel === item.panel));
-      }
-    } else if (element.type === "Disclosure") {
-      const panel = typeof element.properties["panel"] === "string" ? element.properties["panel"] : undefined;
-      const openByCondition = element.openWhen.some((condition) => isStateScreenActiveCondition(condition, model.stateName, stateNames, options));
-      const openByLegacyProperty = String(element.properties["open"] ?? "").toLowerCase() === "true";
-      addPlacement(panel, element.id, openByCondition || openByLegacyProperty);
+    const activePanelIds = new Set(activeControlledPanelReferences(element, {
+      isConditionActive: (condition) => isStateScreenActiveCondition(condition, model.stateName, stateNames, options)
+    }).flatMap((reference) => reference.panelId ? [reference.panelId] : []));
+    for (const reference of controlledPanelReferences(element)) {
+      addPlacement(reference.panelId, element.id, Boolean(reference.panelId && activePanelIds.has(reference.panelId)));
     }
   }
 
@@ -1075,7 +1061,7 @@ export function stateScreenElementGroups(
   displayContentRows: DisplayContentSpecRow[];
   other: ParsedElement[];
 } {
-  const formControls = elements.filter((element) => isFormControlElement(element.type));
+  const formControls = elements.filter(isFormControlElement);
   const displayContentRows = buildDisplayContentSpecRows(elements, {
     scenarioSamples: model?.scenarioSamples,
     routeValues: scenarioRouteValues(model?.scenarioRoute),
@@ -1505,29 +1491,9 @@ function stateScreenControlledPanelIdsForElement(
   stateNames: Set<string>,
   options: StateScreenConditionOptions
 ): string[] {
-  if (element.type === "Tabs") {
-    const activeItem = element.tabs.find((item) =>
-      item.activeWhen.some((condition) => isStateScreenActiveCondition(condition, activeState, stateNames, options))
-    ) ?? element.tabs.find((item) => item.label === element.properties["active"])
-      ?? element.tabs[0];
-    return activeItem?.panel ? [activeItem.panel] : [];
-  }
-  if (element.type === "Accordion") {
-    const openItem = element.accordionItems.find((item) =>
-      item.openWhen.some((condition) => isStateScreenActiveCondition(condition, activeState, stateNames, options))
-    ) ?? element.accordionItems.find((item) => item.label === element.properties["open"]);
-    return openItem?.panel ? [openItem.panel] : [];
-  }
-  if (element.type === "Disclosure") {
-    const panel = typeof element.properties["panel"] === "string" ? element.properties["panel"] : undefined;
-    if (!panel) {
-      return [];
-    }
-    const openByCondition = element.openWhen.some((condition) => isStateScreenActiveCondition(condition, activeState, stateNames, options));
-    const openByLegacyProperty = String(element.properties["open"] ?? "").toLowerCase() === "true";
-    return openByCondition || openByLegacyProperty ? [panel] : [];
-  }
-  return [];
+  return activeControlledPanelReferences(element, {
+    isConditionActive: (condition) => isStateScreenActiveCondition(condition, activeState, stateNames, options)
+  }).flatMap((reference) => reference.panelId ? [reference.panelId] : []);
 }
 
 function relevantActionIdsForState(result: MarkVSpecParseResult, state: string, visibleElementIds: ReadonlySet<string>): Set<string> {
