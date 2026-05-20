@@ -1,5 +1,6 @@
 import {
   preferredLayoutGroupForViewport,
+  propertyString as corePropertyString,
   sampleRowsAnchorId,
   stateScreenActionsForModel,
   stateScreenElementsForModel,
@@ -219,8 +220,8 @@ function renderScenarioSampleElementRef(
   return format.renderEntityRef({
     id: element.id,
     category: "element",
-    marker: typeof element.properties["marker"] === "string" ? element.properties["marker"] : element.id,
-    label: typeof element.properties["label"] === "string" ? element.properties["label"] : element.id
+    marker: corePropertyString(element, "marker") || element.id,
+    label: corePropertyString(element, "label") || element.id
   });
 }
 
@@ -417,25 +418,25 @@ function renderDisplayUpdateEntityRef(
 ): string {
   if (id.startsWith("L-")) {
     const layout = preferredLayoutGroupForViewport(result, id, model.viewport);
-    const marker = stringPropertyValue(layout?.properties["marker"]) || id;
+    const marker = corePropertyString(layout, "marker") || id;
     const name = layout?.name || fallbackName || id;
     return format.renderEntityRef({ id, category: "layout", marker, label: name });
   }
   if (id.startsWith("E-")) {
     const element = result.elements.find((candidate) => candidate.id === id);
-    const marker = stringPropertyValue(element?.properties["marker"]) || id;
+    const marker = corePropertyString(element, "marker") || id;
     const name = fallbackName || element?.id || id;
     return format.renderEntityRef({ id, category: "element", marker, label: name });
   }
   if (id.startsWith("V-")) {
     const validation = result.validations.find((candidate) => candidate.id === id);
-    const marker = stringPropertyValue(validation?.properties["marker"]) || id;
+    const marker = corePropertyString(validation, "marker") || id;
     const name = fallbackName || validation?.name || id;
     return format.renderEntityRef({ id, category: "message", marker, label: name, displaySource: id });
   }
   if (id.startsWith("R-")) {
     const rule = result.rules.find((candidate) => candidate.id === id);
-    const marker = stringPropertyValue(rule?.properties["marker"]) || id;
+    const marker = corePropertyString(rule, "marker") || id;
     const name = fallbackName || rule?.name || id;
     return format.renderEntityRef({ id, category: "message", marker, label: name, displaySource: id });
   }
@@ -446,11 +447,7 @@ function renderDisplayUpdateEntityRef(
 }
 
 function actionMarker(action: MarkVSpecParseResult["actions"][number]): string {
-  return stringPropertyValue(action.properties["marker"]) || action.id;
-}
-
-function stringPropertyValue(value: string | string[] | true | undefined): string | undefined {
-  return typeof value === "string" && value ? value : undefined;
+  return corePropertyString(action, "marker") || action.id;
 }
 
 function repeatedHiddenEmptyAttr(emptyWhenRepeatedHidden: boolean): string {
@@ -513,21 +510,17 @@ function markRepeatedWireframeMarkers(
 }
 
 function markersForLayouts(result: MarkVSpecParseResult, ids: string[]): Set<string> {
-  return new Set(ids.map((id) => preferredLayoutGroupForViewport(result, id)?.properties["marker"] || id));
+  return new Set(ids.map((id) => corePropertyString(preferredLayoutGroupForViewport(result, id), "marker") || id));
 }
 
 function markersForElements(result: MarkVSpecParseResult, ids: string[]): Set<string> {
   const elementById = new Map(result.elements.map((element) => [element.id, element]));
-  return new Set(ids.map((id) => stringProperty(elementById.get(id)?.properties["marker"]) || id));
+  return new Set(ids.map((id) => corePropertyString(elementById.get(id), "marker") || id));
 }
 
 function markersForActions(result: MarkVSpecParseResult, ids: string[]): Set<string> {
   const actionById = new Map(result.actions.map((action) => [action.id, action]));
-  return new Set(ids.map((id) => actionById.get(id)?.properties["marker"] || id));
-}
-
-function stringProperty(value: string | true | undefined): string {
-  return typeof value === "string" ? escapeHtml(value) : "";
+  return new Set(ids.map((id) => corePropertyString(actionById.get(id), "marker") || id));
 }
 
 function escapeHtml(value: string): string {

@@ -6,6 +6,7 @@ import {
   isLocalId,
   isPresentationPanelId
 } from "./ids.js";
+import { propertyFirstString } from "./property-accessor.js";
 import type { MarkVSpecElement, MarkVSpecParseResult } from "./types.js";
 
 export type DisplayMessageSourceKind = "validation" | "business-rule";
@@ -87,8 +88,8 @@ export function displayMessageMarker(
   rule: MarkVSpecParseResult["rules"][number] | undefined
 ): string {
   const marker = reference.sourceKind === "validation"
-    ? validation?.properties["marker"]
-    : rule?.properties["marker"];
+    ? propertyFirstString(validation, "marker")
+    : propertyFirstString(rule, "marker");
   return typeof marker === "string" && marker ? marker : reference.sourceId;
 }
 
@@ -110,8 +111,8 @@ export function displayMessageExplanationKind(
   rule: MarkVSpecParseResult["rules"][number] | undefined
 ): string {
   if (reference?.sourceKind === "validation" && validation) {
-    const run = firstStringProperty(validation.properties["run"]) || "client";
-    const scope = firstStringProperty(validation.properties["scope"]) || (firstStringProperty(validation.properties["target"])?.startsWith("F-") ? "cross-field" : "field");
+    const run = propertyFirstString(validation, "run") || "client";
+    const scope = propertyFirstString(validation, "scope") || (propertyFirstString(validation, "target")?.startsWith("F-") ? "cross-field" : "field");
     return `${run} ${scope} validation error`;
   }
   if (reference?.sourceKind === "business-rule" && rule) {
@@ -189,11 +190,4 @@ function stringValues(value: string | string[] | undefined): string[] {
     return value;
   }
   return value ? [value] : [];
-}
-
-function firstStringProperty(value: string | string[] | true | undefined): string | undefined {
-  if (typeof value === "string") {
-    return value;
-  }
-  return Array.isArray(value) ? value[0] : undefined;
 }

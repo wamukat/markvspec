@@ -3,6 +3,7 @@ import { tableColumnSampleKeys } from "./table-columns.js";
 import { messagesForLocale } from "./renderer-messages.js";
 import { actionAppliesToState } from "./action-applicability.js";
 import { sourceTypeForElement } from "./source-types.js";
+import { propertyFirstString, propertyString } from "./property-accessor.js";
 import type {
   MarkVSpecAction,
   MarkVSpecElement,
@@ -477,7 +478,7 @@ function renderLayoutGroupOnce(
   );
   const placeholder = children ? "" : `<div class="mm-layout-placeholder">${escapeHtml(group.name || group.id)}</div>`;
   const marker = context.suppressMarkers || group.documentRole === "template" || presentationPanel ? "" : [
-    renderMarker(group.id, group.properties["marker"], "layout", options),
+    renderMarker(group.id, propertyString(group, "marker"), "layout", options),
     ...(context.formGroupMarkersByLayoutId?.get(group.id) ?? []).map((formGroupMarker) => renderMarker(formGroupMarker.id, formGroupMarker.marker, "form-group", options))
   ].join("");
   const renderKey = renderKeyOverride ?? layoutRenderKey(group, context);
@@ -1395,8 +1396,7 @@ function coerceViewValue(value: string, type: string | undefined): boolean | str
 }
 
 function stringProperty(element: MarkVSpecElement, key: string): string {
-  const value = element.properties[key];
-  return typeof value === "string" ? value : "";
+  return propertyString(element, key) ?? "";
 }
 
 function routeResolvedStringProperty(element: MarkVSpecElement, key: string, context: RenderContext): string {
@@ -1624,7 +1624,7 @@ function mapActionMarkersByElementId(actions: MarkVSpecAction[], elements: MarkV
     if (action.documentRole === "template" || !actionMarkerAppliesToState(action, activeState)) {
       continue;
     }
-    const marker = { id: action.id, marker: action.properties["marker"] || action.id };
+    const marker = { id: action.id, marker: propertyString(action, "marker") || action.id };
     const elementIds = new Set<string>();
     if (action.trigger) {
       elementIds.add(action.trigger.elementId);
@@ -1649,7 +1649,7 @@ function mapActionMarkersByElementId(actions: MarkVSpecAction[], elements: MarkV
       continue;
     }
 
-    const marker = { id: action.id, marker: action.properties["marker"] || action.id };
+    const marker = { id: action.id, marker: propertyString(action, "marker") || action.id };
     const existing = markersByElementId.get(element.id) ?? [];
     if (!existing.some((existingMarker) => existingMarker.id === marker.id)) {
       existing.push(marker);
@@ -1684,7 +1684,7 @@ function mapFormGroupMarkersByLayoutId(
       continue;
     }
     const markers = byLayoutId.get(target.id) ?? [];
-    markers.push({ id: formGroup.id, marker: firstStringProperty(formGroup.properties["marker"]) });
+    markers.push({ id: formGroup.id, marker: propertyFirstString(formGroup, "marker") });
     byLayoutId.set(target.id, markers);
   }
   return byLayoutId;
@@ -1755,10 +1755,6 @@ function isMarkerVisible(category: "layout" | "element" | "action" | "form-group
     return options.markerVisibility?.formGroup ?? options.markerVisibility?.layout ?? options.showIds ?? false;
   }
   return options.markerVisibility?.[category] ?? options.showIds ?? false;
-}
-
-function firstStringProperty(value: string | string[] | undefined): string | undefined {
-  return typeof value === "string" ? value : Array.isArray(value) ? value.find((item) => item.length > 0) : undefined;
 }
 
 function cssClass(prefix: string, value: string): string {

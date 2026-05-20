@@ -42,6 +42,12 @@ import {
   validateUnsupportedProcessLevelPartial,
   type ActionProcessValidationSupport
 } from "./action-process-validator.js";
+import {
+  propertyFirstString,
+  propertyList,
+  propertyLocation,
+  propertyString
+} from "./property-accessor.js";
 import type {
   MarkVSpecActionOutcome,
   MarkVSpecDiagnostic,
@@ -121,7 +127,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   checkMarkers(
     allLayoutGroups.filter((group) => !isPresentationPanelId(group.id)).map((group) => ({
       id: group.id,
-      marker: group.properties["marker"],
+      marker: propertyString(group, "marker"),
       location: firstPropertyLine(group, "marker") ? { line: firstPropertyLine(group, "marker") ?? group.location.line } : group.location
     })),
     "layout",
@@ -173,7 +179,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   checkMarkers(
     result.actions.map((action) => ({
       id: action.id,
-      marker: action.properties["marker"],
+      marker: propertyString(action, "marker"),
       location: firstPropertyLine(action, "marker") ? { line: firstPropertyLine(action, "marker") ?? action.location.line } : action.location
     })),
     "action",
@@ -225,7 +231,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   checkDuplicateMarkers(
     result.actions.map((action) => ({
       id: action.id,
-      marker: action.properties["marker"],
+      marker: propertyString(action, "marker"),
       location: firstPropertyLine(action, "marker") ? { line: firstPropertyLine(action, "marker") ?? action.location.line } : action.location
     })),
     "action",
@@ -2094,7 +2100,7 @@ function checkDuplicateLayoutGroups(groups: MarkVSpecLayoutGroup[], diagnostics:
 function checkDuplicateLayoutMarkers(groups: MarkVSpecLayoutGroup[], diagnostics: MarkVSpecDiagnostic[]): void {
   const seen = new Map<string, string>();
   for (const group of groups) {
-    const marker = group.properties["marker"]?.trim();
+    const marker = propertyString(group, "marker")?.trim();
     if (!marker) {
       continue;
     }
@@ -2116,7 +2122,7 @@ function checkDuplicateLayoutMarkers(groups: MarkVSpecLayoutGroup[], diagnostics
 function checkConsistentLayoutMarkers(groups: MarkVSpecLayoutGroup[], diagnostics: MarkVSpecDiagnostic[]): void {
   const markerById = new Map<string, string>();
   for (const group of groups) {
-    const marker = group.properties["marker"]?.trim() || group.id;
+    const marker = propertyString(group, "marker")?.trim() || group.id;
     const existingMarker = markerById.get(group.id);
     if (existingMarker && existingMarker !== marker) {
       diagnostics.push({
@@ -2766,19 +2772,15 @@ function extractRoutePlaceholders(route: string): Set<string> {
 }
 
 function stringProperty(element: MarkVSpecElement, key: string): string {
-  const value = element.properties[key];
-  return typeof value === "string" ? value : "";
+  return propertyString(element, key) ?? "";
 }
 
-function firstStringProperty(value: string | string[] | undefined): string | undefined {
-  return typeof value === "string" ? value : Array.isArray(value) ? value.find((item) => item.length > 0) : undefined;
+function firstStringProperty(value: string | string[] | true | undefined): string | undefined {
+  return propertyFirstString({ properties: { value } }, "value");
 }
 
 function commaListProperty(element: MarkVSpecElement, key: string): string[] {
-  return stringProperty(element, key)
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
+  return propertyList(element, key);
 }
 
 function validateSelectInitialValue(element: MarkVSpecElement, diagnostics: MarkVSpecDiagnostic[]): void {
@@ -3109,14 +3111,14 @@ function firstPropertyLine(
   owner: { propertyLocations: Record<string, SourceLocation[]> },
   key: string
 ): number | undefined {
-  return owner.propertyLocations[key]?.[0]?.line;
+  return propertyLocation(owner, key)?.line;
 }
 
 function firstPropertyLocation(
   owner: { propertyLocations: Record<string, SourceLocation[]> },
   key: string
 ): SourceLocation | undefined {
-  return owner.propertyLocations[key]?.[0];
+  return propertyLocation(owner, key);
 }
 
 function firstOutcomeLine(outcome: MarkVSpecActionOutcome): number | undefined {

@@ -1,6 +1,7 @@
 import { elementIdPattern, opaqueExpressionBody } from "./ids.js";
 import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
 import { isMarkVSpecSourceType } from "./source-types.js";
+import { propertyString } from "./property-accessor.js";
 import type {
   MarkVSpecDiagnostic,
   MarkVSpecElement,
@@ -396,8 +397,7 @@ function elementSourceCycleFor(
 }
 
 function stringProperty(element: MarkVSpecElement, key: string): string {
-  const value = element.properties[key];
-  return typeof value === "string" ? value : "";
+  return propertyString(element, key) ?? "";
 }
 
 function firstPropertyLine(

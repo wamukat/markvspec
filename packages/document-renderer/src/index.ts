@@ -1,4 +1,4 @@
-import { buildViewportStateScreenReadModels, effectiveHistoryFields, isMarkVSpecSourceType, latestHistoryBasicInfo, messagesForLocale, renderMarkVSpecHtml, resolveMarkVSpecEntityReference, sampleRowsAnchorId, scenarioRouteValues, sourceTypeForElement, stateScreenControlledPanelPlacementsForModel, stateScreenElementGroups, stateScreenElementsForModel, stateScreenLayoutsForModel, stateScreenUnplacedLayoutIdsForModel, tableColumnSampleKeys } from "@markvspec/core";
+import { buildViewportStateScreenReadModels, effectiveHistoryFields, isMarkVSpecSourceType, latestHistoryBasicInfo, messagesForLocale, propertyBoolean, propertyString as corePropertyString, renderMarkVSpecHtml, resolveMarkVSpecEntityReference, sampleRowsAnchorId, scenarioRouteValues, sourceTypeForElement, stateScreenControlledPanelPlacementsForModel, stateScreenElementGroups, stateScreenElementsForModel, stateScreenLayoutsForModel, stateScreenUnplacedLayoutIdsForModel, tableColumnSampleKeys } from "@markvspec/core";
 import type { ControlledPanelPlacement, DisplayContentSpecRow, DisplayContentSpecSampleRowsRef, MarkVSpecParseResult, RendererMessages, StateScreenReadModel } from "@markvspec/core";
 
 export type MarkVSpecDocumentViewport = "mobile" | "tablet" | "desktop" | string;
@@ -596,7 +596,7 @@ function staticActionTransitionLabel(
   resultName: string | undefined,
   target: string
 ): string {
-  const actionLabel = [action.properties["marker"], action.name].filter(Boolean).join(" ");
+  const actionLabel = [corePropertyString(action, "marker"), action.name].filter(Boolean).join(" ");
   const lifecycleLabel = isStaticDocumentLifecycleTrigger(action.triggeredBy) ? `${action.triggeredBy} / ${actionLabel}` : actionLabel;
   const resultLabel = resultName ? `${lifecycleLabel} / ${resultName}` : lifecycleLabel;
   return isStaticTerminalTransitionTarget(target) ? `${resultLabel} / navigate` : resultLabel;
@@ -1135,7 +1135,7 @@ function renderStaticValueWithOptionalSource(value: string, source: string | tru
 }
 
 function isRequiredProperty(value: string | true | undefined): boolean {
-  return value === true || rawStringProperty(value).toLowerCase() === "true";
+  return propertyBoolean({ properties: { value } }, "value");
 }
 
 function isRequiredInputRule(rule: MarkVSpecParseResult["elements"][number]["inputRules"][number]): boolean {
@@ -1432,11 +1432,11 @@ export function code(value: string | undefined): string {
 }
 
 export function stringProperty(value: string | true | undefined): string {
-  return typeof value === "string" ? escapeHtml(value) : "";
+  return escapeHtml(rawStringProperty(value));
 }
 
 export function rawStringProperty(value: string | true | undefined): string {
-  return typeof value === "string" ? value : "";
+  return corePropertyString({ properties: { value } }, "value") ?? "";
 }
 
 export function text(value: string | undefined): string {

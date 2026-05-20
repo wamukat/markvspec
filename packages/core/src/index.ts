@@ -108,6 +108,19 @@ export { messagesForLocale, resolveLocale, resolveRendererMessages, supportedRen
 export { createMarkVSpecDiagnostic, renderDiagnosticMessageForLocale, supportedDiagnosticMessageCodes } from "./diagnostic-messages.js";
 export { effectiveHistoryFields, latestHistoryBasicInfo, standardHistoryFields } from "./history.js";
 export { isMarkVSpecSourceType, markVSpecSourceTypes, sourceTypeForElement } from "./source-types.js";
+export {
+  propertyBoolean,
+  propertyFirstString,
+  propertyList,
+  propertyLocation,
+  propertyLocations,
+  propertyMarker,
+  propertyString
+} from "./property-accessor.js";
+export type {
+  MarkVSpecPropertyOwner,
+  MarkVSpecPropertyValue
+} from "./property-accessor.js";
 export { tableColumnSampleKeys } from "./table-columns.js";
 export { renderMarkVSpecHtml };
 export { renderMarkVSpecHtmlFragment, renderMarkVSpecHtmlFragments } from "./renderer.js";

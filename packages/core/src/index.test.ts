@@ -48,6 +48,31 @@ test("keeps internal State Views helpers out of the root API", () => {
   assert.equal("stateScreenRenderedIdsFromReadModel" in coreApi, false);
 });
 
+test("entity references keep empty labels falling back to text or id", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-ENTITY-REF
+type: screen
+title: Entity Reference
+---
+
+# SCR-ENTITY-REF Entity Reference
+
+## Elements
+
+### E-WithText Text
+
+- label:
+- text: Visible text
+
+### E-WithoutText Text
+
+- label:
+`);
+
+  assert.equal(coreApi.resolveMarkVSpecEntityReference(result, "E-WithText")?.label, "Visible text");
+  assert.equal(coreApi.resolveMarkVSpecEntityReference(result, "E-WithoutText")?.label, "E-WithoutText");
+});
+
 function examplePath(relativePath: string): string {
   return resolve("../../examples", relativePath);
 }
