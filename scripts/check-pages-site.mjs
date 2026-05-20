@@ -17,6 +17,8 @@ const requiredFiles = [
   "examples/hello-screen.html",
   "examples/hello-screen.pdf",
   "examples/showcase/hello-screen.html/index.html",
+  "pagefind/pagefind.js",
+  "pagefind/pagefind-entry.json",
   "ja/start/index.html",
   "en/start/index.html",
   "ja/guide/index.html",
@@ -74,6 +76,14 @@ if (generatedHtml.length !== exampleSources.length) {
 }
 if (generatedPdf.length !== exampleSources.length) {
   failures.push(`_site/examples/generated should contain one PDF artifact per example (${exampleSources.length} expected, ${generatedPdf.length} found).`);
+}
+
+const pagefindIndexDir = join(siteDir, "pagefind", "index");
+const pagefindIndexFiles = existsSync(pagefindIndexDir)
+  ? collectFiles(pagefindIndexDir, (filePath) => filePath.endsWith(".pf_index"))
+  : [];
+if (pagefindIndexFiles.length === 0) {
+  failures.push("_site/pagefind/index should contain Pagefind search index artifacts.");
 }
 
 const showcaseFiles = collectFiles(join(siteDir, "examples", "showcase"), (filePath) => filePath.endsWith("index.html"));

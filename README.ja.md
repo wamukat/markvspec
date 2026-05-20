@@ -25,7 +25,7 @@ repository を clone していなくても試せます。
 
 2. VS Code で任意の folder を開き、`hello.vspec.md` を作ります。
 
-3. [Start guide](https://wamukat.github.io/markvspec/docs/ja/start/) の Hello Screen source を貼り付けて保存します。
+3. [Start guide](https://wamukat.github.io/markvspec/ja/start/) の Hello Screen source を貼り付けて保存します。
 
 4. 次のコマンドを実行します。
 
@@ -36,8 +36,8 @@ repository を clone していなくても試せます。
 ## 次に読むもの
 
 - [Website](https://wamukat.github.io/markvspec/)
-- [5分で試す](https://wamukat.github.io/markvspec/docs/ja/start/)
+- [5分で試す](https://wamukat.github.io/markvspec/ja/start/)
 - [Examples](https://wamukat.github.io/markvspec/examples/)
-- [Guide](https://wamukat.github.io/markvspec/docs/ja/guide/)
-- [Reference](https://wamukat.github.io/markvspec/docs/ja/reference/)
-- [Recipes](https://wamukat.github.io/markvspec/docs/ja/recipes/)
+- [Guide](https://wamukat.github.io/markvspec/ja/guide/)
+- [Reference](https://wamukat.github.io/markvspec/ja/reference/)
+- [Recipes](https://wamukat.github.io/markvspec/ja/recipes/)

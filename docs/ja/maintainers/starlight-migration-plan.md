@@ -96,6 +96,8 @@ docs-site/
 
 破棄する旧 URL:
 
+次の path は公開導線ではなく、維持しない旧 URL の記録です。
+
 - `/markvspec/docs/ja/start/`
 - `/markvspec/docs/en/start/`
 - `/markvspec/docs/ja/guide/scenarios.html`
@@ -217,6 +219,17 @@ Starlight build 前に `examples/catalog.yml` を検証する。generated previe
 - Starlight / compose 後の publish directory を upload
 
 publish directory は当面 `_site` のまま維持する。workflow と local preview 手順の変更を小さくするため。
+
+local preview は次の手順で確認する。
+
+```sh
+npm run build:pages
+npm --prefix docs-site run preview -- --host 127.0.0.1
+```
+
+`build:pages` は Starlight build 前に generated examples を `docs-site/public/examples/` に用意し、
+`docs-site/dist` と `_site` を生成する。`astro preview` は `docs-site/dist` を配信するため、
+公開 site と同じ `/markvspec/` base path で docs と examples を確認できる。
 
 ## 検証方針
 

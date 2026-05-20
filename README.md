@@ -26,7 +26,7 @@ You do not need to clone this repository to try MarkVSpec.
 2. Open any folder in VS Code and create `hello.vspec.md`.
 
 3. Paste the Hello Screen source from the
-   [Start guide](https://wamukat.github.io/markvspec/docs/en/start/) and save it.
+   [Start guide](https://wamukat.github.io/markvspec/en/start/) and save it.
 
 4. Run:
 
@@ -37,8 +37,8 @@ You do not need to clone this repository to try MarkVSpec.
 ## Where To Go Next
 
 - [Website](https://wamukat.github.io/markvspec/)
-- [Start in 5 minutes](https://wamukat.github.io/markvspec/docs/en/start/)
+- [Start in 5 minutes](https://wamukat.github.io/markvspec/en/start/)
 - [Examples](https://wamukat.github.io/markvspec/examples/)
-- [Guide](https://wamukat.github.io/markvspec/docs/en/guide/)
-- [Reference](https://wamukat.github.io/markvspec/docs/en/reference/)
-- [Recipes](https://wamukat.github.io/markvspec/docs/en/recipes/)
+- [Guide](https://wamukat.github.io/markvspec/en/guide/)
+- [Reference](https://wamukat.github.io/markvspec/en/reference/)
+- [Recipes](https://wamukat.github.io/markvspec/en/recipes/)
