@@ -52,22 +52,21 @@ Refresh button や filter の変更で server に request し、返ってきた 
     - response: 200 profile summary partial
     - display:
       - target: L-ProfileSummary
-      - content: Profile summary partial
-      - mode: replace
+      - partial: PRT-PROFILE-SUMMARY
   - case: failure
     - response: network error or 5xx
     - display:
       - target: L-MessageArea
-      - content: Summary refresh error message
-      - tone: danger
+      - message: Summary refresh error message
 ```
 
 ## 書き方の要点
 
 - request は `Process Pn:` の `request:` に書く。
 - 差し替え先は `target` に layout ID で書く。
-- 返ってくるものは HTML 断片そのものではなく、`Profile summary partial` のように意味で書く。
-- 差し替え方法は必要に応じて `mode: replace` で明示する。
+- referenced partial document に対応する場合は `partial: PRT-*` を足す。
+- 既存 element を表示する場合だけ `element: E-*` を使う。
+- error feedback や単純な message replacement は `message:` で書く。
 - error case も書き、失敗時に既存 partial がどう扱われるかを読めるようにする。
 
 ## よくある落とし穴
@@ -75,7 +74,7 @@ Refresh button や filter の変更で server に request し、返ってきた 
 - `hx-get`, `hx-target`, `hx-swap` のような raw 属性を書かない。MarkVSpec は実装属性ではなく、screen behavior の仕様です。
 - `target: #summary` のような CSS selector ではなく、`L-ProfileSummary` のような MarkVSpec ID を使います。
 - success だけを書くと、partial 更新に失敗したときの user feedback が未定義になります。
-- `content: HTML` だけでは意味が読めません。何の partial なのかを書きます。
+- raw HTML だけでは意味が読めません。partial document、element、message の意味を参照します。
 - 複数領域を更新する場合は、`display` を複数並べ、どの target に何を表示するかを分けます。
 
 ## 関連 example
@@ -95,7 +94,7 @@ Refresh button や filter の変更で server に request し、返ってきた 
 
 - request method、path、必要な parameter が分かる。
 - 更新対象が MarkVSpec の layout ID で追える。
-- replace される content の意味が分かる。
+- replace される content が `partial`、`element`、`message` として読める。
 - success と failure の user-visible result が分かれている。
 - htmx などの実装属性ではなく、semantic な action / display change として読める。
 - reviewer が、実装属性ではなく `semantic action/display change` として動きを確認できる。

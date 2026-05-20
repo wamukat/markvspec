@@ -39,8 +39,7 @@
     - state: auth-error
     - display:
       - target: L-MessageArea
-      - content: Authentication error message
-      - mode: replace
+      - message: Authentication error message
 ```
 
 ### Action Heading
@@ -85,9 +84,19 @@ Describe server-rendered partial updates with `display` inside a result case, no
     - response: 200 profile partial
     - display:
       - target: L-ProfileSummary
-      - content: Profile summary partial
-      - mode: replace
+      - partial: PRT-PROFILE-SUMMARY
 ```
+
+Use `display` fields consistently:
+
+- `target`: MarkVSpec layout or element ID to update.
+- `message`: semantic message text or message reference.
+- `element`: `E-*` ID when the update shows an existing element.
+- `partial`: `PRT-*` document ID when the update replaces the target with a
+  referenced partial file.
+
+Do not write raw HTML, CSS selectors, or htmx attributes in `display`. Describe
+the user-visible result with MarkVSpec IDs and semantic messages.
 
 ## Small Example
 
@@ -106,7 +115,8 @@ Describe server-rendered partial updates with `display` inside a result case, no
 - Element events such as click are connected with `action: A-*` on the element.
 - Lifecycle events such as page load are written in `## Events`.
 - State names should match names written in `## States`.
-- `mode: replace` describes partial update semantics; it is not an instruction to write `hx-*` attributes.
+- `partial` describes a partial replacement; it is not an instruction to write `hx-*` attributes.
+- Use `message`, `element`, or `partial` as the display payload.
 - Request parameters are easiest to review when written as references to element values.
 - Write result branches as `case:` entries under the relevant `Process Pn:`.
 

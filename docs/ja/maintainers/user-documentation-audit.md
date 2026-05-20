@@ -49,7 +49,7 @@
 | 9 | Form Groups など examples が使う section が Reference に載っているか | 修正済み | `## Form Groups`、`## Events`、`## Preview Scenarios`、`## Field Validations`、`## Cross-field Validations`、`## Slots` / `## Slot: name`、`## Error Codes`、`## History Fields` / `## History` を Sections Reference に追加した。 |
 | 10 | Element type / property が Reference に載っているか | 修正済み | Reference に `Spinner`、`Banner`、`Table`、`Badge`、`Select`、`Dialog`、`Toast`、`Tabs`、`ActionMenu` と showcase の specialized controls を追加した。`Message` は新規 source では使わず、`Banner` / `Text` / `Paragraph` / `Toast` に分ける方針を明記した。 |
 | 11 | Element property の使い方が一貫しているか | 修正済み | `text` は read-only display copy、`label` は control/link 名、`value` は入力値や binding 名として使う方針を Reference に明記した。Heading は新規 source では `level` + `text` を使う。 |
-| 12 | Partial Update が semantic に説明されているか | 一部要修正 | `hx-*` を書かない方針は明確。だが examples / README では `display.partial`、実例では `display` + `partial`、Reference では `content` + `mode: replace` が並び、利用者が canonical syntax を判断しにくい。 |
+| 12 | Partial Update が semantic に説明されているか | 修正済み | canonical syntax は result case の `display` に `target` と `message` / `element` / `partial` のいずれかを書く形に統一した。`display.partial` 表現は examples README から除去した。 |
 | 13 | Guide / Reference / Recipes の役割分担が守られているか | 概ねOK | Guide は概念と最小例、Reference は構文、Recipes は目的別に分かれている。ただし一部 Guide の最小例が説明不足で、Reference に未掲載の構文へ飛ぶ。 |
 | 14 | Examples が利用者向けの学習順になっているか | 要修正 | generated examples の sidebar は改善済み。一方 `examples/README.md` は renderer coverage や内部機能名に近い説明が多く、ユーザーが「どれを真似するか」を判断しづらい。 |
 | 15 | Screenshots がページの目的に合っているか | 概ねOK | Start、Guide、Reference に VS Code / preview screenshot が置かれている。最近差し替えた actions screenshot は source と preview の対応が取れている。今後は全 screenshot を「何を理解させる画像か」で継続監査する。 |
@@ -78,8 +78,8 @@
    - 対応済み: `Spinner`、`Banner`、`Table`、`Badge`、`Select`、`Dialog`、`Toast`、`Tabs`、`ActionMenu`
    - 対応済み: `Message` type の扱い、`text` / `label` / `value` の使い分け
 3. Partial Update の canonical syntax を1つに決めて揃える。
-   - `display` の下で `content` / `element` / `partial` をどう使い分けるかを Reference に書く。
-   - `display.partial` のような曖昧な説明を避ける。
+   - 対応済み: `display` の下で `message` / `element` / `partial` をどう使い分けるかを Reference に書いた。
+   - 対応済み: `display.partial` のような曖昧な説明を避ける。
 
 ### P1: 初回利用体験
 
@@ -127,7 +127,7 @@
 - 対応済み: Reference に marker-prefixed heading syntax を追加し、examples の表記と揃えた。
 - 対応済み: `Form Groups`、`Slots`、`Error Codes` など、examples が使う section を Sections Reference に追加した。
 - 対応済み: Element Reference に showcase element type と `text` / `label` / `value` の使い分けを追加した。
-- Partial update の説明に `display.partial`、`partial`、`content` が混在している。
+- 対応済み: Partial update は `display` + `target` + `message` / `element` / `partial` に揃えた。
 - Japanese examples 導線から generated showcase に進むと、related docs が English に寄る。
 - `document-structure.html` のように、source browsing では存在しない `.html` link が混ざる箇所がある。
 

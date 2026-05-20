@@ -264,7 +264,7 @@ expectContains(guideActionsHtml, "A-SubmitRequest", "_site/docs/ja/guide/actions
 expectContains(guideActionsHtml, "examples/showcase/form-submit-flow.html", "_site/docs/ja/guide/actions.html should link to the form submit showcase.");
 expectContains(guideActionsHtml, "reference/index.html", "_site/docs/ja/guide/actions.html should link to reference.");
 const guidePartialsHtml = readSiteFile("docs/ja/guide/partial-updates.html");
-expectContains(guidePartialsHtml, "mode: replace", "_site/docs/ja/guide/partial-updates.html should include partial update replacement semantics.");
+expectContains(guidePartialsHtml, "partial: PRT-PROFILE-SUMMARY", "_site/docs/ja/guide/partial-updates.html should include partial update replacement semantics.");
 expectContains(guidePartialsHtml, "profile-summary.partial.html", "_site/docs/ja/guide/partial-updates.html should link to the partial showcase.");
 expectContains(readSiteFile("docs/en/guide/actions.html"), "A-SubmitRequest", "_site/docs/en/guide/actions.html should include a minimal action example.");
 const enGuideDocumentStructureHtml = readSiteFile("docs/en/guide/document-structure.html");
@@ -273,7 +273,7 @@ expectContains(enGuideDocumentStructureHtml, 'aria-current="page">MarkVSpec Docu
 expectNotContains(enGuideDocumentStructureHtml, "* { box-sizing: border-box; }", "_site/docs/en/guide/document-structure.html should not override the standard docs shell width model.");
 expectNotContains(enGuideDocumentStructureHtml, "docs/user", "_site/docs/en/guide/document-structure.html should not point readers to the removed user path.");
 expectContains(readSiteFile("docs/en/guide/actions.html"), "examples/showcase/form-submit-flow.html", "_site/docs/en/guide/actions.html should link to the form submit showcase.");
-expectContains(readSiteFile("docs/en/guide/partial-updates.html"), "mode: replace", "_site/docs/en/guide/partial-updates.html should include partial update replacement semantics.");
+expectContains(readSiteFile("docs/en/guide/partial-updates.html"), "partial: PRT-PROFILE-SUMMARY", "_site/docs/en/guide/partial-updates.html should include partial update replacement semantics.");
 expectContains(readSiteFile("docs/en/guide/partial-updates.html"), "profile-summary.partial.html", "_site/docs/en/guide/partial-updates.html should link to the partial showcase.");
 
 const recipeIndexHtml = readSiteFile("docs/ja/recipes/index.html");
@@ -287,7 +287,7 @@ expectContains(loginRecipeHtml, "guide/actions.html", "_site/docs/ja/recipes/log
 expectContains(loginRecipeHtml, "guide/validation.html", "_site/docs/ja/recipes/login-form.html should link to validation guide.");
 const partialRecipeHtml = readSiteFile("docs/ja/recipes/server-partial-update.html");
 expectContains(partialRecipeHtml, "semantic action/display change", "_site/docs/ja/recipes/server-partial-update.html should explain semantic partial updates.");
-expectContains(partialRecipeHtml, "mode: replace", "_site/docs/ja/recipes/server-partial-update.html should include replacement semantics.");
+expectContains(partialRecipeHtml, "partial: PRT-PROFILE-SUMMARY", "_site/docs/ja/recipes/server-partial-update.html should include replacement semantics.");
 expectContains(partialRecipeHtml, "hx-get", "_site/docs/ja/recipes/server-partial-update.html should explicitly avoid raw htmx attributes.");
 expectOrder(
   readSiteFile("docs/ja/recipes/loading-error.html"),
@@ -311,7 +311,7 @@ expectNotContains(referenceIndexHtml, "<p>| Page |", "_site/docs/ja/reference/in
 expectContains(readSiteFile("docs/ja/guide/index.html"), "<ol>", "_site/docs/ja/guide/index.html should render ordered reading steps as an ordered list.");
 const referenceActionsHtml = readSiteFile("docs/ja/reference/actions.html");
 expectContains(referenceActionsHtml, "request:", "_site/docs/ja/reference/actions.html should document request process syntax.");
-expectContains(referenceActionsHtml, "mode: replace", "_site/docs/ja/reference/actions.html should document update replacement semantics.");
+expectContains(referenceActionsHtml, "partial: PRT-PROFILE-SUMMARY", "_site/docs/ja/reference/actions.html should document update replacement semantics.");
 expectContains(referenceActionsHtml, "examples/showcase/form-submit-flow.html", "_site/docs/ja/reference/actions.html should link back to action example.");
 const referenceElementsHtml = readSiteFile("docs/ja/reference/elements.html");
 expectContains(referenceElementsHtml, "variant", "_site/docs/ja/reference/elements.html should document element properties.");

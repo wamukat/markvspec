@@ -16,7 +16,7 @@ references:
 
 This example teaches how a screen fills a template slot and references a partial.
 Read front matter `template`/`references.partials`, `## Slot: content`, route
-parameters, the `L-*` partial host contract, and response-side `display.partial`
+parameters, the `L-*` partial host contract, and response-side `display`
 updates; the reusable shell itself is defined in the template example.
 
 ## States

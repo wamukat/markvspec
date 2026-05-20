@@ -15,8 +15,7 @@ MarkVSpec では `hx-*` や CSS selector は書きません。どの request が
   - case: success
     - display:
       - target: L-ProfileSummary
-      - content: Profile summary partial
-      - mode: replace
+      - partial: PRT-PROFILE-SUMMARY
 ```
 
 preview では、`L-ProfileSummary` が更新対象として読めます。
@@ -27,8 +26,9 @@ preview では、`L-ProfileSummary` が更新対象として読めます。
 
 - `request:`: 取得する request。
 - `target`: 差し替える layout / element。
-- `content`: 表示される内容の意味。
-- `mode: replace`: 対象領域を置き換える。
+- `partial`: referenced partial document で差し替える場合の `PRT-*` ID。
+- `element`: 既存 element を表示する場合の `E-*` ID。
+- `message`: message text または message reference。
 
 ## 書かないもの
 

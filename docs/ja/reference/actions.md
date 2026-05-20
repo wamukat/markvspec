@@ -39,8 +39,7 @@
     - state: auth-error
     - display:
       - target: L-MessageArea
-      - content: Authentication error message
-      - mode: replace
+      - message: Authentication error message
 ```
 
 ### Action Heading
@@ -85,9 +84,18 @@ server-rendered partial update は raw htmx 属性ではなく、結果 case の
     - response: 200 profile partial
     - display:
       - target: L-ProfileSummary
-      - content: Profile summary partial
-      - mode: replace
+      - partial: PRT-PROFILE-SUMMARY
 ```
+
+`display` の field は次のように使い分けます。
+
+- `target`: 更新する MarkVSpec の layout ID または element ID。
+- `message`: semantic message text または message reference。
+- `element`: 既存 element を表示する場合の `E-*` ID。
+- `partial`: referenced partial file で target を置き換える場合の `PRT-*` document ID。
+
+`display` には raw HTML、CSS selector、htmx 属性を書きません。MarkVSpec の ID と
+semantic message で、ユーザーに見える結果を書きます。
 
 ## 小さな例
 
@@ -106,7 +114,8 @@ server-rendered partial update は raw htmx 属性ではなく、結果 case の
 - click などの element event は、対象 element の `action: A-*` で接続します。
 - 画面読み込みなどの lifecycle event は `## Events` に書きます。
 - state 名は `## States` に書いた名前と合わせます。
-- `mode: replace` は partial update の意味であり、`hx-*` 属性を書く指示ではありません。
+- `partial` は partial replacement の意味であり、`hx-*` 属性を書く指示ではありません。
+- display payload は `message`、`element`、`partial` のいずれかで書きます。
 - request の parameter は element value への参照として書くと、AI と reviewer が追いやすくなります。
 - 結果分岐は `Process Pn:` 配下の `case:` として書きます。
 
