@@ -82,6 +82,22 @@ export {
   classifyMarkVSpecProcessStep,
   isMarkVSpecProcessStepKind
 } from "./action-process-read-model.js";
+export {
+  actionOutcomeForTransition,
+  actionOutcomeSummaries,
+  actionTransitionCaseReference,
+  actionTriggerReadModel,
+  buildMarkVSpecActionEnvelopeReadModel,
+  isDocumentLifecycleAction,
+  isSystemEventAction,
+  processLifecycleTriggerSource
+} from "./action-envelope-read-model.js";
+export type {
+  MarkVSpecActionEnvelopeReadModel,
+  MarkVSpecActionOutcomeSummary,
+  MarkVSpecActionTriggerKind,
+  MarkVSpecActionTriggerReadModel
+} from "./action-envelope-read-model.js";
 export type {
   AiInputDiagnosticAxis,
   AiInputDiagnosticFinding,

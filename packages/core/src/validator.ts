@@ -30,7 +30,10 @@ import {
   buildMarkVSpecProcessStepReadModel
 } from "./action-process-read-model.js";
 import {
-  parseProcessOutputReference,
+  buildMarkVSpecActionEnvelopeReadModel,
+  processLifecycleTriggerSource
+} from "./action-envelope-read-model.js";
+import {
   processStepLabel,
   validatePartialRequestStep,
   validateProcessBusinessRulePlacement,
@@ -71,10 +74,7 @@ const layoutKinds = new Set(["stack", "row", "grid", "inline"]);
 const partialIdRegex = /^PRT-[\p{L}\p{N}-]+$/u;
 const actionEvents = new Set(["click", "change", "submit", "focus", "blur", "open", "close"]);
 const actionLifecycleEvents = new Set(["response"]);
-const documentLifecycleTriggers = new Set(["page.load", "partial.render", "screen.load"]);
 const canonicalDocumentLifecycleEvents = new Set(["page.load", "partial.render"]);
-const actionLifecycleTriggerRegex = new RegExp(String.raw`^(${actionIdPattern})\.([A-Za-z][A-Za-z0-9_-]*)$`, "u");
-const actionProcessLifecycleTriggerRegex = new RegExp(String.raw`^(${actionIdPattern})\.([A-Za-z0-9][A-Za-z0-9_-]{0,11})\.([A-Za-z][A-Za-z0-9_-]*)$`, "u");
 const elementIdRegex = new RegExp(String.raw`^${elementIdPattern}$`, "u");
 const formGroupIdRegex = new RegExp(String.raw`^${formGroupIdPattern}$`, "u");
 const markerRegex = /^[A-Za-z0-9][A-Za-z0-9_-]{0,11}$/u;
@@ -454,25 +454,27 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   }
 
   for (const action of result.actions) {
-    const actionLifecycleTrigger = action.triggeredBy ? actionLifecycleTriggerRegex.exec(action.triggeredBy) : undefined;
-    const actionProcessLifecycleTrigger = action.triggeredBy ? actionProcessLifecycleTriggerRegex.exec(action.triggeredBy) : undefined;
-    if (!action.triggeredBy) {
+    const envelope = buildMarkVSpecActionEnvelopeReadModel(action);
+    const trigger = envelope.trigger;
+    if (trigger.kind === "missing") {
       diagnostics.push(createMarkVSpecDiagnostic(
         "warning",
         "action.missingTrigger",
         { actionId: action.id },
         action.location.line
       ));
-    } else if (documentLifecycleTriggers.has(action.triggeredBy)) {
+    } else if (trigger.kind === "document-lifecycle") {
       // Valid document lifecycle trigger.
-    } else if (action.triggeredBy.startsWith("E-") && !action.trigger) {
+    } else if (trigger.kind === "invalid-element") {
       diagnostics.push({
         severity: "error",
-        message: `Action ${action.id} has invalid trigger ${action.triggeredBy}. Expected E-*.event.`,
+        message: `Action ${action.id} has invalid trigger ${trigger.raw}. Expected E-*.event.`,
         line: action.triggeredByLocation?.line ?? action.location.line
       });
-    } else if (actionProcessLifecycleTrigger) {
-      const [, sourceActionId, processMarker, event] = actionProcessLifecycleTrigger;
+    } else if (trigger.kind === "process-lifecycle") {
+      const sourceActionId = trigger.sourceActionId ?? "";
+      const processMarker = trigger.processMarker ?? "";
+      const event = trigger.lifecycleEvent ?? "";
       const sourceAction = result.actions.find((candidate) => candidate.id === sourceActionId);
       if (!sourceAction) {
         diagnostics.push({
@@ -493,8 +495,9 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
           line: action.triggeredByLocation?.line ?? action.location.line
         });
       }
-    } else if (actionLifecycleTrigger) {
-      const [, sourceActionId, event] = actionLifecycleTrigger;
+    } else if (trigger.kind === "action-lifecycle") {
+      const sourceActionId = trigger.sourceActionId ?? "";
+      const event = trigger.lifecycleEvent ?? "";
       if (!actionIds.has(sourceActionId)) {
         diagnostics.push({
           severity: "error",
@@ -514,34 +517,34 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
           line: action.triggeredByLocation?.line ?? action.location.line
         });
       }
-    } else if (action.trigger && !elementIds.has(action.trigger.elementId)) {
+    } else if (trigger.kind === "element" && trigger.elementId && !elementIds.has(trigger.elementId)) {
       diagnostics.push({
         severity: "error",
-        message: `Action ${action.id} trigger references missing element ${action.trigger.elementId}.`,
+        message: `Action ${action.id} trigger references missing element ${trigger.elementId}.`,
         line: action.triggeredByLocation?.line ?? action.location.line
       });
-    } else if (action.trigger && !actionEvents.has(action.trigger.event)) {
+    } else if (trigger.kind === "element" && trigger.elementEvent && !actionEvents.has(trigger.elementEvent)) {
       diagnostics.push({
         severity: "warning",
-        message: `Action ${action.id} uses unsupported event ${action.trigger.event}.`,
+        message: `Action ${action.id} uses unsupported event ${trigger.elementEvent}.`,
         line: action.triggeredByLocation?.line ?? action.location.line
       });
-    } else if (action.triggeredBy && !action.trigger) {
+    } else if (trigger.raw && trigger.kind === "unknown") {
       diagnostics.push(createMarkVSpecDiagnostic(
         "warning",
         "action.invalidTrigger",
-        { actionId: action.id, trigger: action.triggeredBy },
+        { actionId: action.id, trigger: trigger.raw },
         action.triggeredByLocation?.line ?? action.location.line
       ));
     }
 
-    const processResponseTrigger = action.triggeredBy ? parseProcessOutputReference(action.triggeredBy) : undefined;
-    if (processResponseTrigger?.kind === "response") {
-      const receivesTriggeredResponse = action.processSteps.some((step) => step.receives.some((receive) => receive.value === action.triggeredBy));
+    const processResponseTrigger = processLifecycleTriggerSource(action);
+    if (processResponseTrigger?.event === "response") {
+      const receivesTriggeredResponse = action.processSteps.some((step) => step.receives.some((receive) => receive.value === trigger.raw));
       if (!receivesTriggeredResponse) {
         diagnostics.push({
           severity: "warning",
-          message: `Action ${action.id} is triggered by ${action.triggeredBy} but no process receives that response.`,
+          message: `Action ${action.id} is triggered by ${trigger.raw} but no process receives that response.`,
           line: action.triggeredByLocation?.line ?? action.location.line
         });
       }

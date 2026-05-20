@@ -1,4 +1,8 @@
 import { actionAppliesToState } from "./action-applicability.js";
+import {
+  isSystemEventAction,
+  processLifecycleTriggerSource
+} from "./action-envelope-read-model.js";
 import { buildDisplayContentSpecRows } from "./display-content-spec.js";
 import type { DisplayContentSpecRow } from "./display-content-spec.js";
 import {
@@ -1322,9 +1326,9 @@ export function modelValuesForState(result: MarkVSpecParseResult, state: string 
 
     Object.assign(values, literalTrueModelValues(action));
 
-    const processResponseTrigger = action.triggeredBy?.match(/^(A-[\p{L}\p{N}-]+)\.(P[A-Za-z0-9_-]+)\.response$/u);
-    const sourceActionId = processResponseTrigger?.[1];
-    const sourceProcessMarker = processResponseTrigger?.[2];
+    const processResponseTrigger = processLifecycleTriggerSource(action);
+    const sourceActionId = processResponseTrigger?.event === "response" ? processResponseTrigger.actionId : undefined;
+    const sourceProcessMarker = processResponseTrigger?.event === "response" ? processResponseTrigger.processMarker : undefined;
     const sourceAction = sourceActionId ? actionsById.get(sourceActionId) : undefined;
     const sourceProcess = sourceProcessMarker ? sourceAction?.processSteps.find((step) => step.marker === sourceProcessMarker) : undefined;
     if (sourceProcess) {
@@ -1527,18 +1531,10 @@ export function systemEventActionsForState(
 ): MarkVSpecParseResult["actions"] {
   return result.actions.filter((action) =>
     (!focus || focus.actionIds.has(action.id)) &&
-    isSystemEventTrigger(action.triggeredBy) &&
+    isSystemEventAction(action) &&
     !actionHasVisibleElementMarker(result, action, renderedElementIds) &&
     actionAppliesToState(action, stateName, { initial, unscoped: "initial" })
   );
-}
-
-function isSystemEventTrigger(triggeredBy: string | undefined): boolean {
-  if (triggeredBy === "page.load" || triggeredBy === "screen.load" || triggeredBy === "partial.render") {
-    return true;
-  }
-
-  return /^A-[\p{L}\p{N}-]+\.P[A-Za-z0-9_-]+\.response$/u.test(triggeredBy ?? "");
 }
 
 function actionHasVisibleElementMarker(
