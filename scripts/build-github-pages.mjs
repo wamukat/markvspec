@@ -1286,6 +1286,7 @@ function renderMarkdownBody(filePath, markdown) {
   const html = [];
   let paragraph = [];
   let listItems = [];
+  let listTag = "ul";
   let inCode = false;
   let codeLines = [];
 
@@ -1298,16 +1299,18 @@ function renderMarkdownBody(filePath, markdown) {
 
   function flushList() {
     if (listItems.length > 0) {
-      html.push("<ul>");
+      html.push(`<${listTag}>`);
       for (const item of listItems) {
         html.push(`  <li>${renderMarkdownInline(filePath, item)}</li>`);
       }
-      html.push("</ul>");
+      html.push(`</${listTag}>`);
       listItems = [];
+      listTag = "ul";
     }
   }
 
-  for (const line of lines) {
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
     if (line.startsWith("```")) {
       if (inCode) {
         html.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
@@ -1332,6 +1335,35 @@ function renderMarkdownBody(filePath, markdown) {
       continue;
     }
 
+    if (isMarkdownTableStart(lines, index)) {
+      flushParagraph();
+      flushList();
+      const tableLines = [line, lines[index + 1]];
+      index += 1;
+      while (index + 1 < lines.length && lines[index + 1].trim().startsWith("|")) {
+        index += 1;
+        tableLines.push(lines[index]);
+      }
+      html.push(renderMarkdownTable(filePath, tableLines));
+      continue;
+    }
+
+    if (/^<table(?:\s|>)/iu.test(line.trim())) {
+      flushParagraph();
+      flushList();
+      const tableLines = [line];
+      while (index + 1 < lines.length) {
+        index += 1;
+        const nextLine = lines[index];
+        tableLines.push(nextLine);
+        if (/<\/table>/iu.test(nextLine)) {
+          break;
+        }
+      }
+      html.push(tableLines.join("\n"));
+      continue;
+    }
+
     const heading = line.match(/^(#{1,3})\s+(.+)$/u);
     if (heading) {
       flushParagraph();
@@ -1349,10 +1381,25 @@ function renderMarkdownBody(filePath, markdown) {
       continue;
     }
 
-    const listItem = line.match(/^-\s+(.+)$/u);
+    const listItem = line.match(/^\s*-\s+(.+)$/u);
     if (listItem) {
       flushParagraph();
+      if (listItems.length > 0 && listTag !== "ul") {
+        flushList();
+      }
+      listTag = "ul";
       listItems.push(listItem[1]);
+      continue;
+    }
+
+    const orderedListItem = line.match(/^\s*\d+\.\s+(.+)$/u);
+    if (orderedListItem) {
+      flushParagraph();
+      if (listItems.length > 0 && listTag !== "ol") {
+        flushList();
+      }
+      listTag = "ol";
+      listItems.push(orderedListItem[1]);
       continue;
     }
 
@@ -1370,6 +1417,53 @@ function renderMarkdownBody(filePath, markdown) {
   flushParagraph();
   flushList();
   return html.join("\n");
+}
+
+function isMarkdownTableStart(lines, index) {
+  const header = lines[index]?.trim();
+  const separator = lines[index + 1]?.trim();
+  return Boolean(
+    header?.startsWith("|") &&
+      separator?.startsWith("|") &&
+      /^\|\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?$/u.test(separator)
+  );
+}
+
+function renderMarkdownTable(filePath, tableLines) {
+  const [headerLine, _separatorLine, ...bodyLines] = tableLines;
+  const headerCells = splitMarkdownTableRow(headerLine);
+  const bodyRows = bodyLines.map(splitMarkdownTableRow);
+  const html = ["<table>", "  <thead>", "    <tr>"];
+
+  for (const cell of headerCells) {
+    html.push(`      <th>${renderMarkdownInline(filePath, cell)}</th>`);
+  }
+
+  html.push("    </tr>", "  </thead>");
+
+  if (bodyRows.length > 0) {
+    html.push("  <tbody>");
+    for (const row of bodyRows) {
+      html.push("    <tr>");
+      for (const cell of row) {
+        html.push(`      <td>${renderMarkdownInline(filePath, cell)}</td>`);
+      }
+      html.push("    </tr>");
+    }
+    html.push("  </tbody>");
+  }
+
+  html.push("</table>");
+  return html.join("\n");
+}
+
+function splitMarkdownTableRow(row) {
+  return row
+    .trim()
+    .replace(/^\|/u, "")
+    .replace(/\|$/u, "")
+    .split("|")
+    .map((cell) => cell.trim());
 }
 
 function renderMarkdownInline(filePath, value) {

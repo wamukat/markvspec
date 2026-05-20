@@ -299,6 +299,9 @@ const referenceIndexHtml = readSiteFile("docs/ja/reference/index.html");
 expectContains(referenceIndexHtml, "file-format.html", "_site/docs/ja/reference/index.html should link to file format reference.");
 expectContains(referenceIndexHtml, "validations.html", "_site/docs/ja/reference/index.html should link to validations reference.");
 expectContains(referenceIndexHtml, "rules.html", "_site/docs/ja/reference/index.html should link to rules reference.");
+expectContains(referenceIndexHtml, "<table>", "_site/docs/ja/reference/index.html should render reference pages as an HTML table.");
+expectNotContains(referenceIndexHtml, "<p>| Page |", "_site/docs/ja/reference/index.html should not render Markdown table syntax as text.");
+expectContains(readSiteFile("docs/ja/guide/index.html"), "<ol>", "_site/docs/ja/guide/index.html should render ordered reading steps as an ordered list.");
 const referenceActionsHtml = readSiteFile("docs/ja/reference/actions.html");
 expectContains(referenceActionsHtml, "server:", "_site/docs/ja/reference/actions.html should document request process syntax.");
 expectContains(referenceActionsHtml, "mode: replace", "_site/docs/ja/reference/actions.html should document update replacement semantics.");
@@ -442,6 +445,20 @@ for (const readmePath of ["README.md", "README.ja.md"]) {
     if (artifactPath) {
       expectFile(artifactPath, `${readmePath} links to missing Pages artifact: ${url}`);
     }
+  }
+}
+
+for (const htmlPath of collectFiles(siteDir, (filePath) => filePath.endsWith(".html"))) {
+  const relativePath = htmlPath.slice(siteDir.length + 1);
+  const html = readFileSync(htmlPath, "utf8");
+  if (/<p>\s*\|/u.test(html)) {
+    failures.push(`${relativePath} should not render Markdown table syntax as paragraph text.`);
+  }
+  if (/<p>\s*\d+\.\s/u.test(html)) {
+    failures.push(`${relativePath} should not render ordered Markdown list syntax as paragraph text.`);
+  }
+  if (/<p>\s*[-*+]\s/u.test(html)) {
+    failures.push(`${relativePath} should not render unordered Markdown list syntax as paragraph text.`);
   }
 }
 
