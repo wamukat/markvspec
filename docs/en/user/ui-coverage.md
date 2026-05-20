@@ -1,5 +1,9 @@
 # UI Component and Screen Pattern Coverage
 
+> The new element syntax path starts at [Reference / Elements](../reference/elements.md) and
+> [Guide / Elements](../guide/elements.md).
+> This older page remains for compatibility.
+
 ## Position
 
 This page is a user-facing inventory of the UI components and screen patterns

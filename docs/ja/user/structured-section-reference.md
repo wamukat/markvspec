@@ -1,5 +1,8 @@
 # 構造化セクションリファレンス
 
+> 新しい仕様確認の入口は [Reference / Sections](../reference/sections.md) です。
+> この旧ページは互換用に残しています。
+
 このリファレンスは、[DSL](dsl.md#文書構造の用語) で定義した文書構造用語を使って、
 MarkVSpec の各 `Section` の書き方を説明します。対象は現行実装が認識する
 level-2 section です。

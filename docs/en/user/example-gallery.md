@@ -1,5 +1,9 @@
 # Example Gallery
 
+> The new example path starts at [Examples](../examples/index.md) and
+> [Examples showcase](../../../examples/).
+> This older page remains for compatibility.
+
 The active examples are an English sample gallery for learning MarkVSpec by
 feature area.
 

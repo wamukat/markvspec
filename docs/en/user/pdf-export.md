@@ -1,5 +1,9 @@
 # PDF Export Approach
 
+> The new export path starts at [Start / Export](../start/export.md) and
+> [Recipes / PDF Export](../recipes/pdf-export.md).
+> This older page remains for compatibility.
+
 MarkVSpec supports two export paths from the VS Code extension.
 
 ## Commands

@@ -1,5 +1,9 @@
 # PDF 出力と共有
 
+> 新しい export 導線は [Start / Export](../start/export.md) と
+> [Recipes / PDF Export](../recipes/pdf-export.md) です。
+> この旧ページは互換用に残しています。
+
 ## この文書の位置づけ
 
 この文書は、VS Code 拡張や CLI で HTML/PDF を出力し、レビュー相手へ共有する利用者向けです。

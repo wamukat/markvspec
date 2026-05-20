@@ -11,12 +11,24 @@ const requiredFiles = [
   "examples/hello-screen.html",
   "examples/showcase/hello-screen.html",
   "docs/ja/user/authoring-guide.html",
-  "docs/en/user/authoring-guide.html",
+  "docs/ja/user/dsl.html",
   "docs/ja/user/document-structure.html",
-  "docs/en/user/document-structure.html",
+  "docs/ja/user/example-gallery.html",
+  "docs/ja/user/limitations.html",
+  "docs/ja/user/pdf-export.html",
+  "docs/ja/user/renderer-message-dictionary.html",
+  "docs/ja/user/server-partials.html",
   "docs/ja/user/structured-section-reference.html",
-  "docs/en/user/structured-section-reference.html",
   "docs/ja/user/ui-coverage.html",
+  "docs/en/user/authoring-guide.html",
+  "docs/en/user/dsl.html",
+  "docs/en/user/document-structure.html",
+  "docs/en/user/example-gallery.html",
+  "docs/en/user/limitations.html",
+  "docs/en/user/pdf-export.html",
+  "docs/en/user/renderer-message-dictionary.html",
+  "docs/en/user/server-partials.html",
+  "docs/en/user/structured-section-reference.html",
   "docs/en/user/ui-coverage.html",
   "docs/ja/index.html",
   "docs/en/index.html",
@@ -104,6 +116,47 @@ const newIaIndexFiles = [
   "docs/en/concepts/index.html"
 ];
 
+const legacyUserFiles = [
+  "docs/ja/user/authoring-guide.html",
+  "docs/ja/user/dsl.html",
+  "docs/ja/user/document-structure.html",
+  "docs/ja/user/example-gallery.html",
+  "docs/ja/user/limitations.html",
+  "docs/ja/user/pdf-export.html",
+  "docs/ja/user/renderer-message-dictionary.html",
+  "docs/ja/user/server-partials.html",
+  "docs/ja/user/structured-section-reference.html",
+  "docs/ja/user/ui-coverage.html",
+  "docs/en/user/authoring-guide.html",
+  "docs/en/user/dsl.html",
+  "docs/en/user/document-structure.html",
+  "docs/en/user/example-gallery.html",
+  "docs/en/user/limitations.html",
+  "docs/en/user/pdf-export.html",
+  "docs/en/user/renderer-message-dictionary.html",
+  "docs/en/user/server-partials.html",
+  "docs/en/user/structured-section-reference.html",
+  "docs/en/user/ui-coverage.html"
+];
+
+const maintainedPagesUrls = [
+  "https://wamukat.github.io/markvspec/",
+  "https://wamukat.github.io/markvspec/examples/",
+  "https://wamukat.github.io/markvspec/examples/showcase/hello-screen.html",
+  "https://wamukat.github.io/markvspec/examples/showcase/login-basic.html",
+  "https://wamukat.github.io/markvspec/docs/ja/",
+  "https://wamukat.github.io/markvspec/docs/en/",
+  "https://wamukat.github.io/markvspec/docs/ja/start/",
+  "https://wamukat.github.io/markvspec/docs/en/start/",
+  "https://wamukat.github.io/markvspec/docs/ja/guide/",
+  "https://wamukat.github.io/markvspec/docs/en/guide/",
+  "https://wamukat.github.io/markvspec/docs/ja/reference/",
+  "https://wamukat.github.io/markvspec/docs/en/reference/",
+  "https://wamukat.github.io/markvspec/docs/ja/recipes/",
+  "https://wamukat.github.io/markvspec/docs/en/recipes/",
+  ...legacyUserFiles.map((filePath) => `${pagesOrigin}/${filePath}`)
+];
+
 const failures = [];
 
 const catalog = loadExampleCatalog(root);
@@ -118,6 +171,15 @@ for (const warning of catalogWarnings) {
 
 for (const filePath of requiredFiles) {
   expectFile(filePath);
+}
+
+for (const url of maintainedPagesUrls) {
+  const artifactPath = artifactPathForPagesUrl(url);
+  if (!artifactPath) {
+    failures.push(`Maintained Pages URL could not be mapped to an artifact: ${url}`);
+    continue;
+  }
+  expectFile(artifactPath, `Maintained Pages URL points to missing artifact: ${url}`);
 }
 
 const rootHtml = readSiteFile("index.html");
@@ -226,6 +288,17 @@ expectContains(readSiteFile("docs/en/reference/rules.html"), "Validator Diagnost
 expectContains(readSiteFile("docs/ja/user/dsl.html"), "Reference index", "_site/docs/ja/user/dsl.html should route to split reference pages.");
 expectContains(readSiteFile("docs/en/user/dsl.html"), "Reference index", "_site/docs/en/user/dsl.html should route to split reference pages.");
 
+for (const filePath of legacyUserFiles) {
+  const html = readSiteFile(filePath);
+  if (!html.includes("compat") && !html.includes("互換")) {
+    failures.push(`${filePath} should remain explicitly marked as compatibility content.`);
+  }
+}
+expectContains(readSiteFile("docs/ja/user/example-gallery.html"), "../examples/index.html", "_site/docs/ja/user/example-gallery.html should route to the new examples docs.");
+expectContains(readSiteFile("docs/en/user/example-gallery.html"), "../examples/index.html", "_site/docs/en/user/example-gallery.html should route to the new examples docs.");
+expectContains(readSiteFile("docs/ja/user/server-partials.html"), "../recipes/server-partial-update.html", "_site/docs/ja/user/server-partials.html should route to the server partial recipe.");
+expectContains(readSiteFile("docs/en/user/server-partials.html"), "../recipes/server-partial-update.html", "_site/docs/en/user/server-partials.html should route to the server partial recipe.");
+
 const examplesHtml = readSiteFile("examples/index.html");
 expectContains(examplesHtml, "MarkVSpec Examples", "_site/examples/index.html should be the examples index.");
 expectContains(examplesHtml, "hello-screen.html", "_site/examples/index.html should link to Hello Screen.");
@@ -270,7 +343,13 @@ for (const filePath of ["examples/index.html", ...generatedShowcases.map((entry)
   expectLocalLinks(filePath);
 }
 
-for (const filePath of newIaIndexFiles) {
+for (const filePath of [
+  "index.html",
+  "docs/ja/index.html",
+  "docs/en/index.html",
+  ...newIaIndexFiles,
+  ...legacyUserFiles
+]) {
   expectLocalLinks(filePath);
 }
 

@@ -1,5 +1,9 @@
 # Server-Rendered Partial Updates
 
+> The new partial update path starts at [Guide / Partial Updates](../guide/partial-updates.md) and
+> [Recipes / Server Partial Update](../recipes/server-partial-update.md).
+> This older page remains for compatibility.
+
 MarkVSpec models Thymeleaf and htmx-style partial updates as design intent first.
 Implementation details may be attached, but they should not replace the
 semantic description.

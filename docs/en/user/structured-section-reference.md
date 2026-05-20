@@ -1,5 +1,8 @@
 # Structured Section Reference
 
+> The new syntax lookup entry point is [Reference / Sections](../reference/sections.md).
+> This older page remains for compatibility.
+
 This reference describes each MarkVSpec `Section` using the document structure
 terms defined in [DSL](dsl.md#document-structure-terms). It is based on the
 current implementation's recognized level-2 sections.

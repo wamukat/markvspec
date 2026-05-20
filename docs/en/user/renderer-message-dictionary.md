@@ -1,5 +1,8 @@
 # MarkVSpec Renderer Message Dictionary
 
+> The new syntax lookup entry point is [Reference](../reference/index.md).
+> This older page remains for compatibility.
+
 ## Purpose
 
 The renderer message dictionary lets a project override fixed MarkVSpec UI text in preview, HTML export, PDF export, and generated design documents.

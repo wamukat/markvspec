@@ -1,5 +1,8 @@
 # MarkVSpec レンダラーメッセージ辞書
 
+> 新しい仕様確認の入口は [Reference](../reference/index.md) です。
+> この旧ページは互換用に残しています。
+
 ## この文書の位置づけ
 
 この文書は、preview / HTML / PDF に表示される MarkVSpec 固定文言を差し替えるための

@@ -1,5 +1,9 @@
 # UI 部品・画面パターン対応範囲
 
+> 新しい element 仕様の入口は [Reference / Elements](../reference/elements.md) と
+> [Guide / Elements](../guide/elements.md) です。
+> この旧ページは互換用に残しています。
+
 ## この文書の位置づけ
 
 この文書は、MarkVSpec が現行リリースで表現しやすい UI 部品と画面パターンを確認するための

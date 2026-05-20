@@ -1,5 +1,9 @@
 # サーバレンダリング部分更新
 
+> 新しい partial update 導線は [Guide / Partial Updates](../guide/partial-updates.md) と
+> [Recipes / Server Partial Update](../recipes/server-partial-update.md) です。
+> この旧ページは互換用に残しています。
+
 ## この文書の位置づけ
 
 この文書は、サーバから返る partial HTML や htmx 風の部分更新を MarkVSpec で表現する

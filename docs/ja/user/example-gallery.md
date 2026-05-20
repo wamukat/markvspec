@@ -1,5 +1,9 @@
 # サンプルギャラリー
 
+> 新しい example 導線は [Examples](../examples/index.md) と
+> [Examples showcase](../../../examples/) に移行しています。
+> この旧ページは互換用に残しています。
+
 ## この文書の位置づけ
 
 この文書は、`examples/` にある MarkVSpec サンプルを目的別に探すための入口です。

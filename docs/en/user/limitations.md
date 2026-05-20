@@ -1,5 +1,8 @@
 # Known Limitations
 
+> The new limitations entry point is [Reference / Limitations](../reference/limitations.md).
+> This older page remains for compatibility.
+
 This page lists the current limitations that can affect first-time use or
 release evaluation. It is intentionally short; implementation notes and future
 design ideas belong in maintainer documents.
