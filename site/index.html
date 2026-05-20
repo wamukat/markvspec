@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MarkVSpec</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <style>
     :root {
       color: #172033;
@@ -41,9 +42,18 @@
       padding: 14px 24px;
     }
     .brand {
+      align-items: center;
       color: #172033;
+      display: inline-flex;
       font-size: 18px;
       font-weight: 800;
+      gap: 8px;
+    }
+    .brand img {
+      border-radius: 7px;
+      display: block;
+      height: 30px;
+      width: 30px;
     }
     .nav-links {
       display: flex;
@@ -69,6 +79,17 @@
       font-size: 52px;
       line-height: 1.05;
       margin: 0;
+    }
+    .hero-title {
+      align-items: center;
+      display: flex;
+      gap: 14px;
+    }
+    .hero-title img {
+      border-radius: 12px;
+      box-shadow: 0 14px 30px rgb(15 23 42 / 10%);
+      height: 64px;
+      width: 64px;
     }
     .lead {
       color: #475569;
@@ -178,7 +199,7 @@
 <body data-markvspec-home>
   <header>
     <nav aria-label="Primary">
-      <a class="brand" href="./">MarkVSpec</a>
+      <a class="brand" href="./"><img src="assets/markvspec-icon.svg" alt="" width="30" height="30"> MarkVSpec</a>
       <div class="nav-links">
         <a href="https://github.com/wamukat/markvspec">GitHub</a>
       </div>
@@ -187,7 +208,10 @@
   <main>
     <section class="hero" aria-labelledby="hero-title">
       <div>
-        <h1 id="hero-title">MarkVSpec</h1>
+        <div class="hero-title">
+          <img src="assets/markvspec-icon.svg" alt="" width="64" height="64">
+          <h1 id="hero-title">MarkVSpec</h1>
+        </div>
         <p class="lead">
           Write UI specifications in Markdown, preview them in VS Code, and share generated HTML or PDF from the same source.
         </p>

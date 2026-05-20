@@ -8,6 +8,9 @@ const pagesOrigin = "https://wamukat.github.io/markvspec";
 const newIaSourceSections = ["start", "guide", "reference", "recipes", "examples", "concepts"];
 const requiredFiles = [
   "index.html",
+  "favicon.svg",
+  "assets/markvspec-icon.svg",
+  "assets/markvspec-icon.png",
   "examples/index.html",
   "examples/hello-screen.html",
   "examples/showcase/hello-screen.html",
@@ -168,6 +171,8 @@ if (rootHtml.includes("Generated static HTML previews for the shipped MarkVSpec 
 expectContains(rootHtml, 'href="examples/"', "_site/index.html should link to /examples/.");
 expectContains(rootHtml, 'href="docs/ja/"', "_site/index.html should link to the Japanese documentation root.");
 expectContains(rootHtml, 'href="docs/en/"', "_site/index.html should link to the English documentation root.");
+expectContains(rootHtml, 'href="favicon.svg"', "_site/index.html should set the MarkVSpec favicon.");
+expectContains(rootHtml, 'src="assets/markvspec-icon.svg"', "_site/index.html should show the MarkVSpec icon.");
 expectOccurrenceCount(rootHtml, 'href="docs/ja/"', 1, "_site/index.html should expose the Japanese documentation link once.");
 expectOccurrenceCount(rootHtml, 'href="docs/en/"', 1, "_site/index.html should expose the English documentation link once.");
 expectOccurrenceCount(rootHtml, 'href="examples/"', 1, "_site/index.html should expose the examples link once.");
@@ -186,6 +191,8 @@ for (const languageDeepLink of [
 
 const jaStartHtml = readSiteFile("docs/ja/start/index.html");
 expectContains(jaStartHtml, 'class="docs-sidebar"', "_site/docs/ja/start/index.html should show documentation navigation.");
+expectContains(jaStartHtml, 'href="../../../favicon.svg"', "_site/docs/ja/start/index.html should set the MarkVSpec favicon.");
+expectContains(jaStartHtml, 'src="../../../assets/markvspec-icon.svg"', "_site/docs/ja/start/index.html should show the MarkVSpec icon in navigation.");
 expectContains(jaStartHtml, 'href="../guide/index.html"', "_site/docs/ja/start/index.html sidebar should link to guide.");
 expectContains(jaStartHtml, 'href="../reference/index.html"', "_site/docs/ja/start/index.html sidebar should link to reference.");
 expectContains(jaStartHtml, 'aria-current="page">Start</a>', "_site/docs/ja/start/index.html sidebar should mark the current page.");
@@ -311,6 +318,8 @@ for (const removedUserDir of ["docs/ja/user", "docs/en/user"]) {
 
 const examplesHtml = readSiteFile("examples/index.html");
 expectContains(examplesHtml, "MarkVSpec Examples", "_site/examples/index.html should be the examples index.");
+expectContains(examplesHtml, 'href="../favicon.svg"', "_site/examples/index.html should set the MarkVSpec favicon.");
+expectContains(examplesHtml, 'src="../assets/markvspec-icon.svg"', "_site/examples/index.html should show the MarkVSpec icon.");
 expectContains(examplesHtml, "hello-screen.html", "_site/examples/index.html should link to Hello Screen.");
 expectContains(examplesHtml, "showcase/hello-screen.html", "_site/examples/index.html should link to the Hello Screen showcase.");
 expectContains(examplesHtml, "Source + Preview", "_site/examples/index.html should label showcase links.");
@@ -404,6 +413,8 @@ for (const filePath of [
 }
 
 const helloShowcaseHtml = readSiteFile("examples/showcase/hello-screen.html");
+expectContains(helloShowcaseHtml, 'href="../../favicon.svg"', "_site/examples/showcase/hello-screen.html should set the MarkVSpec favicon.");
+expectContains(helloShowcaseHtml, 'src="../../assets/markvspec-icon.svg"', "_site/examples/showcase/hello-screen.html should show the MarkVSpec icon.");
 expectContains(helloShowcaseHtml, 'class="example-sidebar"', "_site/examples/showcase/hello-screen.html should show example navigation.");
 expectContains(helloShowcaseHtml, 'href="login-basic.html"', "_site/examples/showcase/hello-screen.html sidebar should link to other showcases.");
 expectContains(helloShowcaseHtml, 'aria-current="page">Hello Screen</a>', "_site/examples/showcase/hello-screen.html sidebar should mark the current example.");

@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MarkVSpec Document Structure - MarkVSpec Docs</title>
+  <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
   <style>
     :root {
       color: #172033;
@@ -48,11 +49,18 @@
       top: 32px;
     }
     .docs-sidebar-title {
+      align-items: center;
       color: #172033;
-      display: block;
+      display: flex;
       font-size: 15px;
       font-weight: 800;
+      gap: 8px;
       margin-bottom: 14px;
+    }
+    .docs-sidebar-title img {
+      border-radius: 6px;
+      display: block;
+      flex: none;
     }
     .docs-sidebar-section { border-top: 1px solid #e5eaf1; padding: 12px 0; }
     .docs-sidebar-section:first-of-type { border-top: 0; padding-top: 0; }
@@ -149,7 +157,7 @@
 <body>
   <div class="docs-shell">
     <aside class="docs-sidebar" aria-label="Documentation navigation">
-      <a class="docs-sidebar-title" href="../index.html">MarkVSpec Docs</a>
+      <a class="docs-sidebar-title" href="../index.html"><img src="../../../assets/markvspec-icon.svg" alt="" width="26" height="26"> MarkVSpec Docs</a>
       <section class="docs-sidebar-section"><p class="docs-sidebar-heading">Start</p><ul>
         <li><a href="../index.html">MarkVSpec English Documentation</a></li><li><a href="../start/index.html">Start</a></li><li><a href="../start/first-screen.html">First Screen</a></li><li><a href="../start/preview.html">Preview</a></li><li><a href="../start/export.html">Export</a></li>
       </ul></section>
@@ -157,7 +165,7 @@
         <li><a href="index.html">Guide</a></li><li><a href="markdown-model.html">Markdown Model</a></li><li><a href="document-structure.html" aria-current="page">MarkVSpec Document Structure</a></li><li><a href="states.html">States</a></li><li><a href="layout.html">Layout</a></li><li><a href="elements.html">Elements</a></li><li><a href="actions.html">Actions</a></li><li><a href="validation.html">Validation</a></li><li><a href="partial-updates.html">Partial Updates</a></li>
       </ul></section>
       <section class="docs-sidebar-section"><p class="docs-sidebar-heading">Reference</p><ul>
-        <li><a href="../reference/index.html">Reference</a></li><li><a href="../reference/file-format.html">File Format</a></li><li><a href="../reference/sections.html">Sections</a></li><li><a href="../reference/elements.html">Elements</a></li><li><a href="../reference/actions.html">Actions</a></li><li><a href="../reference/validations.html">Validations</a></li><li><a href="../reference/rules.html">Rules</a></li><li><a href="../reference/ids.html">IDs</a></li><li><a href="../reference/cli.html">CLI</a></li><li><a href="../reference/limitations.html">Limitations</a></li>
+        <li><a href="../reference/index.html">Reference</a></li><li><a href="../reference/file-format.html">File Format</a></li><li><a href="../reference/sections.html">Sections</a></li><li><a href="../reference/elements.html">Elements</a></li><li><a href="../reference/actions.html">Actions</a></li><li><a href="../reference/validations.html">Validations</a></li><li><a href="../reference/rules.html">Business Rules</a></li><li><a href="../reference/ids.html">IDs</a></li><li><a href="../reference/cli.html">CLI</a></li><li><a href="../reference/limitations.html">Limitations</a></li>
       </ul></section>
       <section class="docs-sidebar-section"><p class="docs-sidebar-heading">Recipes</p><ul>
         <li><a href="../recipes/index.html">Recipes</a></li><li><a href="../recipes/login-form.html">Login Form</a></li><li><a href="../recipes/loading-error.html">Loading And Error</a></li><li><a href="../recipes/server-partial-update.html">Server Partial Update</a></li><li><a href="../recipes/pdf-export.html">PDF Export</a></li>

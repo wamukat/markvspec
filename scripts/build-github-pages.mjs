@@ -7,11 +7,13 @@ const root = process.cwd();
 const githubBlobBaseUrl = "https://github.com/wamukat/markvspec/blob/main/";
 const outputDir = join(root, "_site");
 const siteSourceDir = join(root, "site");
+const brandAssetsDir = join(root, "assets");
 const examplesDir = join(root, "examples");
 const docsDir = join(root, "docs");
 const docsAssetsDir = join(root, "docs", "assets");
 const examplesOutDir = join(outputDir, "examples");
 const examplesShowcaseOutDir = join(examplesOutDir, "showcase");
+const brandIconPath = join("assets", "markvspec-icon.svg");
 
 function collectVspecFiles(dir) {
   const entries = readdirSync(dir, { withFileTypes: true });
@@ -94,6 +96,10 @@ function toPosixPath(filePath) {
   return filePath.split(/[\\/]/u).join("/");
 }
 
+function outputRelativeHref(fromOutputPath, targetOutputPath) {
+  return toPosixPath(relative(dirname(fromOutputPath), targetOutputPath)) || basename(targetOutputPath);
+}
+
 function renderExamplesIndex(files, catalogIndex) {
   const learningPathFiles = orderLearningPathFiles(files, catalogIndex);
   const learningPathItems = learningPathFiles.map((filePath, index) => renderExampleIndexCard(filePath, catalogIndex, { step: index + 1 })).join("\n");
@@ -124,6 +130,7 @@ ${links}
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MarkVSpec Examples</title>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
   <style>
     :root {
       color: #1f2937;
@@ -142,6 +149,18 @@ ${links}
       font-size: 32px;
       line-height: 1.2;
       margin: 0 0 8px;
+    }
+    .page-title {
+      align-items: center;
+      display: flex;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .page-title img {
+      border-radius: 8px;
+      display: block;
+      height: 38px;
+      width: 38px;
     }
     p {
       color: #4b5563;
@@ -236,7 +255,10 @@ ${links}
 </head>
 <body>
   <main>
-    <h1>MarkVSpec Examples</h1>
+    <div class="page-title">
+      <img src="../assets/markvspec-icon.svg" alt="" width="38" height="38">
+      <h1>MarkVSpec Examples</h1>
+    </div>
     <p>Generated example showcases for the shipped MarkVSpec examples. Open Source + Preview to compare the Markdown source with the generated HTML output, or use Preview when you only need the rendered document.</p>
     <section>
       <h2>Learning Path</h2>
@@ -312,6 +334,7 @@ function renderShowcasePage(filePath, files, catalogIndex) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(metadata.title)} - MarkVSpec Example Showcase</title>
+  <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
   <style>
     :root {
       --page: #f6f7f9;
@@ -350,7 +373,18 @@ function renderShowcasePage(filePath, files, catalogIndex) {
       max-width: 1440px;
       padding: 12px 24px;
     }
-    .brand { display: grid; gap: 2px; }
+    .brand {
+      align-items: center;
+      display: grid;
+      gap: 2px 9px;
+      grid-template-columns: 30px 1fr;
+    }
+    .brand img {
+      border-radius: 7px;
+      grid-row: 1 / span 2;
+      height: 30px;
+      width: 30px;
+    }
     .brand strong { font-size: 15px; }
     .brand span { color: var(--muted); font-size: 12px; }
     .top-nav,
@@ -654,6 +688,7 @@ function renderShowcasePage(filePath, files, catalogIndex) {
   <header class="site-header">
     <div class="site-header-inner">
       <div class="brand">
+        <img src="../../assets/markvspec-icon.svg" alt="" width="30" height="30">
         <strong>MarkVSpec Examples</strong>
         <span>Source and generated preview, side by side</span>
       </div>
@@ -938,6 +973,20 @@ function copyDocsAssets() {
   }
 }
 
+function copyBrandAssets() {
+  const assetFiles = collectFiles(brandAssetsDir, (filePath) => {
+    return filePath.endsWith(".png") || filePath.endsWith(".svg");
+  });
+
+  for (const filePath of assetFiles) {
+    const targetPath = join(outputDir, "assets", relative(brandAssetsDir, filePath));
+    mkdirSync(dirname(targetPath), { recursive: true });
+    copyFileSync(filePath, targetPath);
+  }
+
+  copyFileSync(join(brandAssetsDir, "markvspec-icon.svg"), join(outputDir, "favicon.svg"));
+}
+
 function renderMarkdownDocs() {
   const markdownFiles = collectFiles(docsDir, (filePath) => {
     return filePath.endsWith(".md");
@@ -989,6 +1038,7 @@ function renderDocsSidebar(filePath) {
 
   const currentWithinLang = relativeDocPath.slice(lang.length + 1);
   const sourceOutputPath = join("docs", markdownOutputPath(relative(docsDir, filePath)));
+  const iconHref = outputRelativeHref(sourceOutputPath, brandIconPath);
   const sections = docsNavigation
     .map((section) => {
       const items = section.paths
@@ -1019,7 +1069,7 @@ function renderDocsSidebar(filePath) {
 
   const homeHref = toPosixPath(relative(dirname(sourceOutputPath), join("docs", lang, "index.html"))) || "index.html";
   return `<aside class="docs-sidebar" aria-label="Documentation navigation">
-      <a class="docs-sidebar-title" href="${escapeHtml(homeHref)}">MarkVSpec Docs</a>
+      <a class="docs-sidebar-title" href="${escapeHtml(homeHref)}"><img src="${escapeHtml(iconHref)}" alt="" width="26" height="26"> MarkVSpec Docs</a>
       ${sections}
     </aside>`;
 }
@@ -1040,12 +1090,15 @@ function markdownPageTitle(filePath) {
 function renderMarkdownPage(filePath, markdown) {
   const title = markdown.match(/^#\s+(.+)$/mu)?.[1] ?? basename(filePath, ".md");
   const sidebar = renderDocsSidebar(filePath);
+  const outputPath = join("docs", markdownOutputPath(relative(docsDir, filePath)));
+  const faviconHref = outputRelativeHref(outputPath, "favicon.svg");
   return `<!doctype html>
 <html lang="${filePath.includes(`${docsDir}/ja/`) ? "ja" : "en"}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(stripMarkdownInline(title))} - MarkVSpec Docs</title>
+  <link rel="icon" type="image/svg+xml" href="${escapeHtml(faviconHref)}">
   <style>
     :root {
       color: #172033;
@@ -1075,11 +1128,18 @@ function renderMarkdownPage(filePath, markdown) {
       top: 32px;
     }
     .docs-sidebar-title {
+      align-items: center;
       color: #172033;
-      display: block;
+      display: flex;
       font-size: 15px;
       font-weight: 800;
+      gap: 8px;
       margin-bottom: 14px;
+    }
+    .docs-sidebar-title img {
+      border-radius: 6px;
+      display: block;
+      flex: none;
     }
     .docs-sidebar-section {
       border-top: 1px solid #e5eaf1;
@@ -1391,4 +1451,5 @@ for (const filePath of files) {
 renderMarkdownDocs();
 copySiteFiles();
 copyDocsAssets();
+copyBrandAssets();
 writeFileSync(join(examplesOutDir, "index.html"), renderExamplesIndex(files, catalogIndex));
