@@ -253,6 +253,7 @@ const guideDocumentStructureHtml = readSiteFile("docs/ja/guide/document-structur
 expectContains(guideDocumentStructureHtml, "MarkVSpec 文書構造", "_site/docs/ja/guide/document-structure.html should preserve the visual document structure guide.");
 expectContains(guideDocumentStructureHtml, 'class="docs-sidebar"', "_site/docs/ja/guide/document-structure.html should use the standard docs sidebar.");
 expectContains(guideDocumentStructureHtml, 'aria-current="page">MarkVSpec 文書構造</a>', "_site/docs/ja/guide/document-structure.html sidebar should mark the current page.");
+expectNotContains(guideDocumentStructureHtml, "* { box-sizing: border-box; }", "_site/docs/ja/guide/document-structure.html should not override the standard docs shell width model.");
 expectNotContains(guideDocumentStructureHtml, "旧", "_site/docs/ja/guide/document-structure.html should not describe itself as an old document.");
 expectNotContains(guideDocumentStructureHtml, "docs/user", "_site/docs/ja/guide/document-structure.html should not point readers to the removed user path.");
 const guideActionsHtml = readSiteFile("docs/ja/guide/actions.html");
@@ -266,6 +267,7 @@ expectContains(readSiteFile("docs/en/guide/actions.html"), "A-SubmitLogin", "_si
 const enGuideDocumentStructureHtml = readSiteFile("docs/en/guide/document-structure.html");
 expectContains(enGuideDocumentStructureHtml, "MarkVSpec Document Structure", "_site/docs/en/guide/document-structure.html should preserve the visual document structure guide.");
 expectContains(enGuideDocumentStructureHtml, 'aria-current="page">MarkVSpec Document Structure</a>', "_site/docs/en/guide/document-structure.html sidebar should mark the current page.");
+expectNotContains(enGuideDocumentStructureHtml, "* { box-sizing: border-box; }", "_site/docs/en/guide/document-structure.html should not override the standard docs shell width model.");
 expectNotContains(enGuideDocumentStructureHtml, "docs/user", "_site/docs/en/guide/document-structure.html should not point readers to the removed user path.");
 expectContains(readSiteFile("docs/en/guide/actions.html"), "examples/showcase/form-submit-flow.html", "_site/docs/en/guide/actions.html should link to the form submit showcase.");
 expectContains(readSiteFile("docs/en/guide/partial-updates.html"), "mode: replace", "_site/docs/en/guide/partial-updates.html should include partial update replacement semantics.");
