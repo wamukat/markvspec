@@ -53,6 +53,7 @@ import {
   controlledPanelReferences,
   elementDomainFor
 } from "./element-domain.js";
+import { businessRuleViolationCaseName } from "./validation-domain.js";
 import type {
   MarkVSpecActionOutcome,
   MarkVSpecDiagnostic,
@@ -1435,14 +1436,14 @@ function validateBusinessRuleOutcomeCaseName(
   outcome: MarkVSpecActionOutcome,
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
-  if (outcome.businessRules.length === 0 || outcome.result === "business-rule-violation") {
+  if (outcome.businessRules.length === 0 || outcome.result === businessRuleViolationCaseName) {
     return;
   }
 
   const context = step ? `process step ${processStepLabel(step)} case ${outcome.result}` : `case ${outcome.result}`;
   diagnostics.push({
     severity: "warning",
-    message: `Action ${actionId} ${context} declares business rule ${outcome.businessRules.join(", ")}. Use case: business-rule-violation for business rule violations.`,
+    message: `Action ${actionId} ${context} declares business rule ${outcome.businessRules.join(", ")}. Use case: ${businessRuleViolationCaseName} for business rule violations.`,
     line: firstPropertyLine(outcome, "business rule") ?? firstPropertyLine(outcome, "business rules") ?? outcome.location?.line ?? step?.location.line
   });
 }

@@ -25,7 +25,15 @@ import {
   anchoredOverlayReference,
   controlledPanelReferences,
   displayLabelForElement,
-  elementDomainFor
+  elementDomainFor,
+  businessRuleMessages,
+  validationDomainFor,
+  validationErrorCodes,
+  validationHasRuleProperty,
+  validationMessages,
+  validationRulePropertyValues as validationDomainRulePropertyValues,
+  validationRuleTargets as validationDomainRuleTargets,
+  validationTargets as validationDomainTargets
 } from "@markvspec/core";
 import {
   renderDesignDocumentSections
@@ -3232,9 +3240,10 @@ function renderValidationRulesSpec(result: ReturnType<typeof parseMarkVSpec>, ma
   ];
 
   for (const validation of result.validations) {
-    const groupIndex = validationRunKind(validation) === "server"
-      ? validationScopeKind(validation) === "cross-field" ? 3 : 2
-      : validationScopeKind(validation) === "cross-field" ? 1 : 0;
+    const domain = validationDomainFor(validation);
+    const groupIndex = domain.run() === "server"
+      ? domain.scope() === "cross-field" ? 3 : 2
+      : domain.scope() === "cross-field" ? 1 : 0;
     groups[groupIndex]?.rules.push(validation);
   }
   const content = groups
@@ -3303,17 +3312,14 @@ function renderFieldValidationRows(
     const rules = validation.rules.length > 0 ? validation.rules : [undefined];
     const hasRuleMessages = validationHasRuleProperty(validation, "message");
     const hasRuleErrorCodes = validationHasRuleProperty(validation, "error code");
-    const messageValues = hasRuleMessages ? undefined : validationPropertyValues(validation, "message");
-    const errorCodeValues = hasRuleErrorCodes ? undefined : [
-      ...validationPropertyValues(validation, "error code"),
-      ...validationPropertyValues(validation, "error codes")
-    ];
+    const messageValues = hasRuleMessages ? undefined : validationMessages(validation);
+    const errorCodeValues = hasRuleErrorCodes ? undefined : validationErrorCodes(validation);
 
     return rules.map((rule, index) => [
       ...rowspanPrefixCells(index === 0 ? rules.length : 0, [
         referenceForDetailId(result, validation.id),
         ...(showOverview ? [renderEntityOverview(markdownResult, validation.overview)] : []),
-        renderValidationProperty(result, validation, "target")
+        renderValidationValues(result, validationDomainTargets(validation))
       ]),
       rule ? renderValidationRuleEntry(result, validation, rule) : text("-"),
       renderValidationRuleProperty(result, rule, validation, "when", index)
@@ -3337,7 +3343,7 @@ function renderCrossFieldValidationRows(
   return validations.map((validation) => [
     referenceForDetailId(result, validation.id),
     ...(showOverview ? [renderEntityOverview(markdownResult, validation.overview)] : []),
-    renderValidationProperty(result, validation, "target"),
+    renderValidationValues(result, validationDomainTargets(validation)),
     renderValidationProperty(result, validation, "input") || renderValidationProperty(result, validation, "inputs"),
     renderValidationProperty(result, validation, "check") || renderValidationRules(result, validation),
     renderValidationProperty(result, validation, "when") || renderLegacyValidationCondition(result, validation),
@@ -3359,8 +3365,8 @@ function renderValidationRules(
     return "";
   }
   return `<ul class="spec-list">${validation.rules.map((rule) => {
-    const targets = validationRuleTargets(rule).length > 0
-      ? `: ${validationRuleTargets(rule).map((target) => referenceForId(result, target, "target")).join(", ")}`
+    const targets = validationDomainRuleTargets(rule).length > 0
+      ? `: ${validationDomainRuleTargets(rule).map((target) => referenceForId(result, target, "target")).join(", ")}`
       : "";
     return `<li>${text(rule.name)}${targets}</li>`;
   }).join("")}</ul>`;
@@ -3371,16 +3377,12 @@ function renderValidationRuleEntry(
   validation: ReturnType<typeof parseMarkVSpec>["validations"][number],
   rule: ReturnType<typeof parseMarkVSpec>["validations"][number]["rules"][number]
 ): string {
-  const targets = validationRuleTargets(rule);
+  const targets = validationDomainRuleTargets(rule);
   const ruleText = targets.length > 0
     ? `${text(rule.name)}: ${targets.map((target) => referenceForId(result, target, "target")).join(", ")}`
     : text(rule.name);
   const elementMetadata = renderValidationElementShortcutMetadata(result, validation, rule);
   return elementMetadata ? `${ruleText} <span class="mm-muted">(${elementMetadata})</span>` : ruleText;
-}
-
-function validationRuleTargets(rule: ReturnType<typeof parseMarkVSpec>["validations"][number]["rules"][number]): string[] {
-  return rule.targets.filter((target) => validationRuleChildProperty(target) === undefined);
 }
 
 function renderValidationRuleProperty(
@@ -3392,7 +3394,7 @@ function renderValidationRuleProperty(
   fallbackValues?: string[],
   useValidationFallback = true
 ): string {
-  const ruleValues = rule ? validationRulePropertyValues(validation, rule, key) : [];
+  const ruleValues = rule ? validationDomainRulePropertyValues(validation, rule, key) : [];
   if (ruleValues.length > 0) {
     return renderValidationValues(result, ruleValues);
   }
@@ -3402,56 +3404,9 @@ function renderValidationRuleProperty(
   }
 
   if (key === "error code" && useValidationFallback) {
-    const values = [
-      ...validationPropertyValues(validation, "error code"),
-      ...validationPropertyValues(validation, "error codes")
-    ];
-    return renderValidationValues(result, values);
+    return renderValidationValues(result, validationErrorCodes(validation));
   }
   return useValidationFallback ? renderValidationProperty(result, validation, key) : "";
-}
-
-function validationRulePropertyValues(
-  validation: ReturnType<typeof parseMarkVSpec>["validations"][number],
-  rule: ReturnType<typeof parseMarkVSpec>["validations"][number]["rules"][number],
-  key: string
-): string[] {
-  const normalizedKey = key.toLowerCase();
-  const valuesByLocation = validationPropertyValuesForRule(validation, rule, normalizedKey);
-  if (valuesByLocation.length > 0) {
-    return valuesByLocation;
-  }
-  return rule.targets.flatMap((target) => {
-    const property = validationRuleChildProperty(target);
-    return property?.key === normalizedKey ? [property.value] : [];
-  });
-}
-
-function validationHasRuleProperty(
-  validation: ReturnType<typeof parseMarkVSpec>["validations"][number],
-  key: string
-): boolean {
-  return validation.rules.some((rule) => validationRulePropertyValues(validation, rule, key).length > 0);
-}
-
-function validationPropertyValuesForRule(
-  validation: ReturnType<typeof parseMarkVSpec>["validations"][number],
-  rule: ReturnType<typeof parseMarkVSpec>["validations"][number]["rules"][number],
-  key: string
-): string[] {
-  const values = validationPropertyValues(validation, key);
-  const locations = validation.propertyLocations[key] ?? [];
-  if (values.length === 0 || locations.length === 0) {
-    return [];
-  }
-
-  const sortedRules = [...validation.rules].sort((a, b) => a.location.line - b.location.line);
-  const ruleIndex = sortedRules.indexOf(rule);
-  const nextRuleLine = sortedRules[ruleIndex + 1]?.location.line ?? Number.POSITIVE_INFINITY;
-  return values.filter((_, index) => {
-    const location = locations[index];
-    return location !== undefined && location.line > rule.location.line && location.line < nextRuleLine;
-  });
 }
 
 function renderValidationElementShortcutMetadata(
@@ -3460,7 +3415,7 @@ function renderValidationElementShortcutMetadata(
   rule: ReturnType<typeof parseMarkVSpec>["validations"][number]["rules"][number]
 ): string {
   const normalizedName = rule.name.toLowerCase();
-  const targets = validationRuleTargets(rule).map((target) => target.toLowerCase());
+  const targets = validationDomainRuleTargets(rule).map((target) => target.toLowerCase());
   if ((normalizedName !== "length" && normalizedName !== "range") || !targets.includes("element")) {
     return "";
   }
@@ -3507,40 +3462,6 @@ function elementInputMetadataValue(
   return inputRule?.value ?? "";
 }
 
-function validationRuleChildProperty(value: string): { key: string; value: string } | undefined {
-  const match = value.match(/^([^:]+):\s*(.*)$/u);
-  if (!match) {
-    return undefined;
-  }
-  const key = match[1]?.trim().toLowerCase() ?? "";
-  if (key !== "when" && key !== "message" && key !== "messages" && key !== "error code" && key !== "error codes") {
-    return undefined;
-  }
-  return { key: key === "messages" ? "message" : key === "error codes" ? "error code" : key, value: match[2]?.trim() ?? "" };
-}
-
-function validationRunKind(validation: ReturnType<typeof parseMarkVSpec>["validations"][number]): "client" | "server" {
-  const run = firstValidationProperty(validation, "run").toLowerCase();
-  return run === "server" || run === "server-response" ? "server" : "client";
-}
-
-function validationScopeKind(validation: ReturnType<typeof parseMarkVSpec>["validations"][number]): "field" | "cross-field" {
-  const scope = firstValidationProperty(validation, "scope").toLowerCase();
-  if (scope === "cross-field" || scope === "composite") {
-    return "cross-field";
-  }
-  if (scope === "field" || scope === "single") {
-    return "field";
-  }
-  const target = validation.properties["target"];
-  return Array.isArray(target) && target.length > 1 ? "cross-field" : "field";
-}
-
-function firstValidationProperty(validation: ReturnType<typeof parseMarkVSpec>["validations"][number], key: string): string {
-  const value = validation.properties[key];
-  return Array.isArray(value) ? value[0] ?? "" : value ?? "";
-}
-
 function validationPropertyValues(validation: ReturnType<typeof parseMarkVSpec>["validations"][number], key: string): string[] {
   const value = validation.properties[key];
   return Array.isArray(value) ? value : value ? [value] : [];
@@ -3584,7 +3505,7 @@ function renderRulesSpec(result: ReturnType<typeof parseMarkVSpec>, markdownResu
   const sectionProse = sectionProseForKind(result, "BusinessRules");
   const showOverview = result.rules.some((rule) => (rule.overview?.length ?? 0) > 0);
   const showNotes = result.rules.some((rule) => (rule.notes?.length ?? 0) > 0);
-  const showMessages = result.rules.some((rule) => businessRulePropertyValues(rule, "messages").length > 0 || businessRulePropertyValues(rule, "message").length > 0);
+  const showMessages = result.rules.some((rule) => businessRuleMessages(rule).length > 0);
   return `<section class="doc-section">
     <h2 id="${businessRulesAnchor()}">${label(result, "businessRules")}</h2>
     ${renderSectionOverview(markdownResult, sectionProse)}
@@ -3600,7 +3521,7 @@ function renderRulesSpec(result: ReturnType<typeof parseMarkVSpec>, markdownResu
         referenceForDetailId(result, rule.id),
         ...(showOverview ? [renderEntityOverview(markdownResult, rule.overview)] : []),
         renderRuleText(markdownResult, rule),
-        ...(showMessages ? [renderBusinessRuleProperty(result, rule, "messages") || renderBusinessRuleProperty(result, rule, "message")] : []),
+        ...(showMessages ? [renderBusinessRuleMessages(result, rule)] : []),
         ...(showNotes ? [renderEntityNotes(markdownResult, rule.notes)] : [])
       ])
     )}
@@ -3624,12 +3545,11 @@ function renderRuleText(result: ReturnType<typeof parseMarkVSpec>, rule: ReturnT
     : "";
 }
 
-function renderBusinessRuleProperty(
+function renderBusinessRuleMessages(
   result: ReturnType<typeof parseMarkVSpec>,
-  rule: ReturnType<typeof parseMarkVSpec>["rules"][number],
-  key: string
+  rule: ReturnType<typeof parseMarkVSpec>["rules"][number]
 ): string {
-  const values = businessRulePropertyValues(rule, key);
+  const values = businessRuleMessages(rule);
   if (values.length === 0) {
     return "";
   }

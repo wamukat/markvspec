@@ -6,7 +6,7 @@ import {
   isLocalId,
   isPresentationPanelId
 } from "./ids.js";
-import { propertyFirstString } from "./property-accessor.js";
+import { businessRuleMarker, businessRuleMessages, validationMarker, validationMessages, validationRun, validationScope } from "./validation-domain.js";
 import type { MarkVSpecElement, MarkVSpecParseResult } from "./types.js";
 
 export type DisplayMessageSourceKind = "validation" | "business-rule";
@@ -88,9 +88,9 @@ export function displayMessageMarker(
   rule: MarkVSpecParseResult["rules"][number] | undefined
 ): string {
   const marker = reference.sourceKind === "validation"
-    ? propertyFirstString(validation, "marker")
-    : propertyFirstString(rule, "marker");
-  return typeof marker === "string" && marker ? marker : reference.sourceId;
+    ? validation ? validationMarker(validation) : reference.sourceId
+    : rule ? businessRuleMarker(rule) : reference.sourceId;
+  return marker || reference.sourceId;
 }
 
 export function displayMessageTextSummary(
@@ -99,9 +99,9 @@ export function displayMessageTextSummary(
   rule: MarkVSpecParseResult["rules"][number] | undefined
 ): string[] {
   if (reference.sourceKind === "validation") {
-    return stringValues(validation?.properties["message"]);
+    return validation ? validationMessages(validation) : [];
   }
-  return stringValues(rule?.properties["messages"] ?? rule?.properties["message"]);
+  return rule ? businessRuleMessages(rule) : [];
 }
 
 export function displayMessageExplanationKind(
@@ -111,9 +111,7 @@ export function displayMessageExplanationKind(
   rule: MarkVSpecParseResult["rules"][number] | undefined
 ): string {
   if (reference?.sourceKind === "validation" && validation) {
-    const run = propertyFirstString(validation, "run") || "client";
-    const scope = propertyFirstString(validation, "scope") || (propertyFirstString(validation, "target")?.startsWith("F-") ? "cross-field" : "field");
-    return `${run} ${scope} validation error`;
+    return `${validationRun(validation)} ${validationScope(validation)} validation error`;
   }
   if (reference?.sourceKind === "business-rule" && rule) {
     return "business rule message";
@@ -183,11 +181,4 @@ export function parseFieldErrorTarget(target: string): string | undefined {
 
 export function isInvalidFieldErrorElement(element: MarkVSpecElement | undefined): boolean {
   return Boolean(element && !isInputElementType(element.type));
-}
-
-function stringValues(value: string | string[] | undefined): string[] {
-  if (Array.isArray(value)) {
-    return value;
-  }
-  return value ? [value] : [];
 }

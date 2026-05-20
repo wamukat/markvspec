@@ -134,6 +134,35 @@ export type {
   MarkVSpecElementKind
 } from "./element-domain.js";
 export {
+  businessRuleDomainFor,
+  businessRuleMarker,
+  businessRuleMessages,
+  businessRuleResult,
+  businessRuleViolation,
+  businessRuleViolationCaseName,
+  validationDisplayMessageSource,
+  validationDomainFor,
+  validationErrorCodes,
+  validationHasRuleProperty,
+  validationMarker,
+  validationMessages,
+  validationRuleChildProperty,
+  validationRulePropertyValues,
+  validationRuleTargets,
+  validationRun,
+  validationScope,
+  validationTargets
+} from "./validation-domain.js";
+export type {
+  BusinessRuleDomain,
+  BusinessRuleViolation,
+  ValidationDisplayMessageSource,
+  ValidationDomain,
+  ValidationRuleProperty,
+  ValidationRunKind,
+  ValidationScopeKind
+} from "./validation-domain.js";
+export {
   propertyBoolean,
   propertyFirstString,
   propertyList,
