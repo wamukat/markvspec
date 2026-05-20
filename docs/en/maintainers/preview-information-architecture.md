@@ -61,7 +61,7 @@ Detail sections should answer "exactly what happens?".
   fragment/content, and resulting states or screens in the same action context
   as request, response, and cases.
 - Element samples and Preview Scenario samples show the actual sample values
-  used by wireframes. Scenario overrides appear in a small `Scenario Samples`
+  used by wireframes. Scenario overrides appear in a small `Scenario Preview Data`
   table under the matching wireframe.
 - Action-side `${data.value}` mutation is not canonical and should not be
   summarized as its own preview section. Display-value references remain visible
@@ -74,7 +74,7 @@ Detail sections should answer "exactly what happens?".
 3. Table of Contents
 4. States
 5. State Flow
-6. Viewport / State Wireframes, with Scenario Samples shown under scenario wireframes when present
+6. Viewport / State Wireframes, with Scenario Preview Data shown under scenario wireframes when present
 7. Screen Transitions
 8. State Transitions
 9. Action Details

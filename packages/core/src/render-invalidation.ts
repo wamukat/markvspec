@@ -1,10 +1,14 @@
 import { parseMarkdownDocument, topLevelProseLines } from "./markdown-document.js";
+import { layoutConditionValues } from "./layout-domain.js";
 import { collectSectionAst, type BlockAst, type SectionAst } from "./markdown-section-ast.js";
 import {
   parseActionSectionSemantics,
   parseElementSectionSemantics,
   parseLayoutSectionSemantics,
   parseSmallSectionSemantics,
+  sectionSemanticPayloadValues,
+  type SectionSemanticMetadata,
+  type SectionSemanticResult,
   type SemanticDependency
 } from "./markdown-section-semantic.js";
 import type { MarkVSpecDiagnostic, MarkVSpecElement, MarkVSpecFormGroup, MarkVSpecLayoutGroup } from "./types.js";
@@ -133,26 +137,40 @@ function renderSemanticsForSource(source: string): {
   ]);
   const layoutSemantics = parseLayoutSectionSemantics(document);
   const smallSemantics = parseSmallSectionSemantics(document);
+  const smallPayloads = smallSemantics.sectionResults.map((result) => result.payload);
   const sectionResults = [
     ...layoutSemantics.sectionResults,
     ...parseActionSectionSemantics(document).sectionResults,
     ...smallSemantics.sectionResults
   ];
   const elementSemantics = parseElementSectionSemantics(document);
+  const sectionRenderSemantics = [
+    ...sectionResults.map(sectionRenderSemanticsForResult),
+    ...elementSemantics.sectionResults.map(sectionRenderSemanticsForResult)
+  ];
 
   return {
     fingerprints,
     screenRenderKey: `screen:${screenIdForDocument(document)}`,
-    sections: [...sectionResults, ...elementSemantics.sectionResults].map((result) => ({
-      sectionId: result.sectionId,
-      renderKeys: result.renderKeys,
-      dependencies: result.dependencies
-    })),
-    dependencies: [...sectionResults, ...elementSemantics.sectionResults].flatMap((result) => result.dependencies),
+    sections: sectionRenderSemantics,
+    dependencies: sectionRenderSemantics.flatMap((result) => result.dependencies),
     elements: elementSemantics.elements,
-    formGroups: smallSemantics.formGroups,
+    formGroups: sectionSemanticPayloadValues(smallPayloads, "formGroups"),
     layoutGroups: layoutSemantics.layoutGroups,
-    states: smallSemantics.states.map((state) => state.name)
+    states: sectionSemanticPayloadValues(smallPayloads, "states").map((state) => state.name)
+  };
+}
+
+function sectionRenderSemanticsForResult(
+  result: SectionRenderSemantics | SectionSemanticResult
+): SectionRenderSemantics {
+  const metadata: SectionRenderSemantics | SectionSemanticMetadata = "metadata" in result
+    ? result.metadata
+    : result;
+  return {
+    sectionId: metadata.sectionId,
+    renderKeys: metadata.renderKeys,
+    dependencies: metadata.dependencies
   };
 }
 
@@ -501,11 +519,11 @@ function unsafeLayoutContextReasons(layoutGroups: MarkVSpecLayoutGroup[], elemen
   const contextualLayouts = layoutGroups.filter((group) =>
     parentLayoutIds.has(group.id) &&
     (
-      Boolean(group.properties["visible when"]) ||
-      Boolean(group.properties["hidden when"]) ||
-      Boolean(group.properties["disabled when"]) ||
-      Boolean(group.properties["selected when"]) ||
-      Boolean(group.properties["active when"])
+      layoutConditionValues(group, "visible when").length > 0 ||
+      layoutConditionValues(group, "hidden when").length > 0 ||
+      layoutConditionValues(group, "disabled when").length > 0 ||
+      layoutConditionValues(group, "selected when").length > 0 ||
+      layoutConditionValues(group, "active when").length > 0
     )
   );
   if (contextualLayouts.length === 0) {

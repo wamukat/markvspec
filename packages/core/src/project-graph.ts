@@ -1,3 +1,4 @@
+import { propertyString } from "./property-accessor.js";
 import type {
   MarkVSpecProjectLoadResult,
   MarkVSpecProjectTransitionEdge,
@@ -41,7 +42,7 @@ export function buildProjectTransitionGraph(project: MarkVSpecProjectLoadResult)
           sourceScreenId,
           sourceScreenTitle: screen.result.screen.title,
           actionId: action.id,
-          actionMarker: typeof action.properties["marker"] === "string" ? action.properties["marker"] : undefined,
+          actionMarker: propertyString(action, "marker"),
           actionName: action.name,
           fromState: transition.from,
           result: transition.result,

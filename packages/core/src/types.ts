@@ -50,6 +50,7 @@ export interface MarkVSpecDocumentReferences {
 export interface MarkVSpecProjectSummary {
   id?: string;
   title?: string;
+  description?: string;
   frontMatter: Record<string, string>;
   heading?: string;
   location?: SourceLocation;
@@ -476,7 +477,61 @@ export interface MarkVSpecDisplayEffect {
 export interface MarkVSpecProcessStepDetail {
   key: string;
   value: string;
+  scope?: string;
   location: SourceLocation;
+}
+
+export type MarkVSpecProcessStepKind = "HttpRequest" | "ServerCall" | "Validate" | "Resolve" | "PartialRequest" | "Immediate" | "Generic";
+
+export interface MarkVSpecProcessStepExecutionReadModel {
+  kind: MarkVSpecProcessStepKind;
+  request?: MarkVSpecProcessStepDetail;
+  call?: MarkVSpecProcessStepDetail;
+  params: MarkVSpecProcessStepDetail[];
+  validations: MarkVSpecProcessStepDetail[];
+  errorCodes: MarkVSpecProcessStepDetail[];
+  resolveGroup?: string;
+  customDetails: MarkVSpecProcessStepDetail[];
+}
+
+export interface MarkVSpecProcessStepEffectsReadModel {
+  state?: string;
+  navigate?: string;
+  update?: {
+    target?: string;
+    mode?: string;
+    fragment?: string;
+    content?: string;
+  };
+  display?: MarkVSpecDisplayEffect;
+  responses: Array<{
+    result: string;
+    definition: string;
+    location: SourceLocation;
+  }>;
+  outcomes: Array<{
+    result: string;
+    state?: string;
+    navigate?: string;
+    update?: {
+      target?: string;
+      mode?: string;
+      fragment?: string;
+      content?: string;
+    };
+    display?: MarkVSpecDisplayEffect;
+    response?: {
+      definition: string;
+      location: SourceLocation;
+    };
+  }>;
+}
+
+export interface MarkVSpecProcessStepReadModel {
+  step: MarkVSpecProcessStep;
+  kind: MarkVSpecProcessStepKind;
+  execution: MarkVSpecProcessStepExecutionReadModel;
+  effects: MarkVSpecProcessStepEffectsReadModel;
 }
 
 export interface MarkVSpecAction {

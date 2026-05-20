@@ -44,6 +44,10 @@ export type {
   MarkVSpecParseResult,
   MarkVSpecProjectLoadResult,
   MarkVSpecProcessStep,
+  MarkVSpecProcessStepEffectsReadModel,
+  MarkVSpecProcessStepExecutionReadModel,
+  MarkVSpecProcessStepKind,
+  MarkVSpecProcessStepReadModel,
   MarkVSpecProjectParseResult,
   MarkVSpecProjectScreen,
   MarkVSpecProjectSummary,
@@ -73,6 +77,27 @@ export type {
   MarkVSpecPreviewScenarioSample,
   SourceLocation
 } from "./types.js";
+export {
+  buildMarkVSpecProcessStepReadModel,
+  classifyMarkVSpecProcessStep,
+  isMarkVSpecProcessStepKind
+} from "./action-process-read-model.js";
+export {
+  actionOutcomeForTransition,
+  actionOutcomeSummaries,
+  actionTransitionCaseReference,
+  actionTriggerReadModel,
+  buildMarkVSpecActionEnvelopeReadModel,
+  isDocumentLifecycleAction,
+  isSystemEventAction,
+  processLifecycleTriggerSource
+} from "./action-envelope-read-model.js";
+export type {
+  MarkVSpecActionEnvelopeReadModel,
+  MarkVSpecActionOutcomeSummary,
+  MarkVSpecActionTriggerKind,
+  MarkVSpecActionTriggerReadModel
+} from "./action-envelope-read-model.js";
 export type {
   AiInputDiagnosticAxis,
   AiInputDiagnosticFinding,
@@ -99,6 +124,103 @@ export { messagesForLocale, resolveLocale, resolveRendererMessages, supportedRen
 export { createMarkVSpecDiagnostic, renderDiagnosticMessageForLocale, supportedDiagnosticMessageCodes } from "./diagnostic-messages.js";
 export { effectiveHistoryFields, latestHistoryBasicInfo, standardHistoryFields } from "./history.js";
 export { isMarkVSpecSourceType, markVSpecSourceTypes, sourceTypeForElement } from "./source-types.js";
+export {
+  anchoredOverlayReference,
+  commonElementProperties,
+  controlledPanelReferences,
+  displaySummaryForElement,
+  displaySummaryForElementProperties,
+  displayLabelForElement,
+  elementAcceptsOptions,
+  elementAllowedProperties,
+  elementDomainFor,
+  elementKindForType,
+  elementSizePreset,
+  elementTypeRegistry,
+  elementWidthPreset,
+  formControlDisplayValue,
+  formControlSpecForElement,
+  isChoiceControlElement,
+  isContentDisplayElement,
+  isControlledPanelElement,
+  isElementDisplaySampleValue,
+  isFormControlElement,
+  isKnownElementType,
+  isOverlayElement
+} from "./element-domain.js";
+export type {
+  AnchoredOverlayReference,
+  ControlledPanelReference,
+  ElementDisplaySummary,
+  ElementFormControlSpec,
+  ElementFormControlSpecProperty,
+  ElementTypeDefinition,
+  MarkVSpecElementKind
+} from "./element-domain.js";
+export {
+  businessRuleDomainFor,
+  businessRuleMarker,
+  businessRuleMessages,
+  businessRuleResult,
+  businessRuleViolation,
+  businessRuleViolationCaseName,
+  validationDisplayMessageSource,
+  validationDomainFor,
+  validationErrorCodes,
+  validationHasRuleProperty,
+  validationMarker,
+  validationMessages,
+  validationRuleChildProperty,
+  validationRulePropertyValues,
+  validationRuleTargets,
+  validationRun,
+  validationScope,
+  validationTargets
+} from "./validation-domain.js";
+export type {
+  BusinessRuleDomain,
+  BusinessRuleViolation,
+  ValidationDisplayMessageSource,
+  ValidationDomain,
+  ValidationRuleProperty,
+  ValidationRunKind,
+  ValidationScopeKind
+} from "./validation-domain.js";
+export {
+  propertyBoolean,
+  propertyFirstString,
+  propertyList,
+  propertyLocation,
+  propertyLocations,
+  propertyMarker,
+  propertyString
+} from "./property-accessor.js";
+export {
+  layoutConditionValues,
+  layoutDisplaySettings,
+  layoutDomainFor,
+  layoutHasVisibilityConditions,
+  layoutMetadataPropertyValues,
+  layoutPropertyValue,
+  LayoutDomain
+} from "./layout-domain.js";
+export type {
+  LayoutConditionKey,
+  LayoutDisplaySettingKey,
+  LayoutDisplaySettings
+} from "./layout-domain.js";
+export type {
+  MarkVSpecPropertyOwner,
+  MarkVSpecPropertyValue
+} from "./property-accessor.js";
+export {
+  entityMarkerReadModel,
+  entityMarkerReadModels
+} from "./entity-marker-read-model.js";
+export type {
+  EntityMarkerReadModel,
+  MarkVSpecMarkerEntity
+} from "./entity-marker-read-model.js";
 export { tableColumnSampleKeys } from "./table-columns.js";
 export { renderMarkVSpecHtml };
 export { renderMarkVSpecHtmlFragment, renderMarkVSpecHtmlFragments } from "./renderer.js";

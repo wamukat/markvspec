@@ -157,6 +157,8 @@ export type MessageKey =
   | "processUpdate"
   | "processWhen"
   | "project"
+  | "projectOverview"
+  | "projectNotes"
   | "projectTransitionDiagram"
   | "projectTransitions"
   | "properties"
@@ -400,6 +402,8 @@ const en: Record<MessageKey, string> = {
   processWhen: "when",
   properties: "Properties",
   project: "Project",
+  projectOverview: "Project Overview",
+  projectNotes: "Project Notes",
   projectTransitionDiagram: "Project Transition Diagram",
   projectTransitions: "Project Transitions",
   purpose: "Purpose",
@@ -434,7 +438,7 @@ const en: Record<MessageKey, string> = {
   serverFieldValidations: "Server Field Validations",
   severity: "Severity",
   sample: "Sample",
-  scenarioSamples: "Scenario Samples",
+  scenarioSamples: "Scenario Preview Data",
   scenarioSampleRowsUnit: "rows",
   scope: "Scope",
   sideEffects: "Side effects",
@@ -643,6 +647,8 @@ const ja: Record<MessageKey, string> = {
   processWhen: "実行条件",
   properties: "属性",
   project: "プロジェクト",
+  projectOverview: "プロジェクト概要",
+  projectNotes: "プロジェクト備考",
   projectTransitionDiagram: "プロジェクト遷移図",
   projectTransitions: "プロジェクト遷移",
   purpose: "目的",
@@ -677,7 +683,7 @@ const ja: Record<MessageKey, string> = {
   serverFieldValidations: "サーバ単項目検証",
   severity: "重要度",
   sample: "サンプル",
-  scenarioSamples: "シナリオサンプル",
+  scenarioSamples: "シナリオプレビューデータ",
   scenarioSampleRowsUnit: "行",
   scope: "範囲",
   sideEffects: "副作用",

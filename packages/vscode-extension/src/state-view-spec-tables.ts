@@ -6,6 +6,9 @@ import {
   type TableCell
 } from "./design-document-renderer.js";
 import {
+  formControlSpecForElement,
+  layoutConditionValues,
+  layoutDisplaySettings,
   stateScreenElementGroups,
   stateScreenControlledPanelPlacementsForModel,
   stateScreenLayoutsForModel,
@@ -14,6 +17,7 @@ import {
   type DisplayContentSpecRow,
   type StateScreenReadModel
 } from "@markvspec/core";
+import { markRepeatedHiddenEmptyHtml } from "./preview-html-postprocess.js";
 
 type ParsedElement = MarkVSpecParseResult["elements"][number];
 type ParsedAction = MarkVSpecParseResult["actions"][number];
@@ -149,7 +153,7 @@ export function createStateViewSpecTableRenderer(
       [markerIdHeader(), helpers.label("type"), helpers.label("inputRequired"), helpers.label("initialValueSource"), helpers.label("displaySource"), helpers.label("inputSpec"), helpers.label("condition")],
       elements.map((element) => {
         const sampleValue = model?.scenarioSamples.find((sample) => sample.elementId === element.id && sample.value !== undefined)?.value
-          ?? routeResolvedValue(stringProperty(element.properties["value"]), model);
+          ?? routeResolvedValue(formControlSpecForElement(element).value ?? "", model);
         return [
           renderRepeatedEntityRefCell(element.id, Boolean(repeatedElementIds?.has(element.id))),
           helpers.text(element.type),
@@ -256,24 +260,26 @@ export function createStateViewSpecTableRenderer(
       [helpers.label("items"), layoutItemSummaryItems(layout)]
     ]);
 
-  const layoutSettingSummaryItems = (layout: ParsedLayout): string[] =>
-    [
-      ["align", layout.properties["align"]],
-      ["justify", layout.properties["justify"]],
-      ["overlay", layout.properties["overlay"]],
-      ["gap", layout.properties["gap"]]
+  const layoutSettingSummaryItems = (layout: ParsedLayout): string[] => {
+    const settings = layoutDisplaySettings(layout);
+    return [
+      ["align", settings.align],
+      ["justify", settings.justify],
+      ["overlay", settings.overlay],
+      ["gap", settings.gap]
     ]
       .filter(([, value]) => value)
       .map(([key, value]) => `${helpers.text(key)}: ${helpers.text(value)}`);
+  };
 
   const renderLayoutConditionsSummary = (layout: ParsedLayout, controlledPanel = false): string => {
     const conditions = [
-      [helpers.conditionLabel("visible"), layoutPropertyList(layout, "visible when").join(", ")],
-      [helpers.conditionLabel("hidden"), layoutPropertyList(layout, "hidden when").join(", ")],
-      [helpers.conditionLabel("disabled"), layoutPropertyList(layout, "disabled when").join(", ")],
-      [helpers.conditionLabel("enabled"), layoutPropertyList(layout, "enabled when").join(", ")],
-      [helpers.conditionLabel("selected"), layoutPropertyList(layout, "selected when").join(", ")],
-      [helpers.conditionLabel("active"), layoutPropertyList(layout, "active when").join(", ")]
+      [helpers.conditionLabel("visible"), layoutConditionValues(layout, "visible when").join(", ")],
+      [helpers.conditionLabel("hidden"), layoutConditionValues(layout, "hidden when").join(", ")],
+      [helpers.conditionLabel("disabled"), layoutConditionValues(layout, "disabled when").join(", ")],
+      [helpers.conditionLabel("enabled"), layoutConditionValues(layout, "enabled when").join(", ")],
+      [helpers.conditionLabel("selected"), layoutConditionValues(layout, "selected when").join(", ")],
+      [helpers.conditionLabel("active"), layoutConditionValues(layout, "active when").join(", ")]
     ].filter(([, value]) => value);
     return conditions.length > 0
       ? renderSpecList(conditions.map(([key, value]) => `${helpers.text(key)}: ${helpers.text(value)}`))
@@ -326,18 +332,6 @@ function repeatedHiddenEmptyAttr(emptyWhenRepeatedHidden: boolean): string {
   return emptyWhenRepeatedHidden ? ` data-mm-repeated-empty="true"` : "";
 }
 
-function markRepeatedHiddenEmptyHtml(html: string, emptyWhenRepeatedHidden: boolean): string {
-  if (!emptyWhenRepeatedHidden) {
-    return html;
-  }
-  if (html.includes(`data-mm-repeated-empty="true"`)) {
-    return html;
-  }
-  return html
-    .replace(`<div class="spec-table-wrap"`, `<div class="spec-table-wrap" data-mm-repeated-empty="true"`)
-    .replace(`<p class="spec-empty"`, `<p class="spec-empty" data-mm-repeated-empty="true"`);
-}
-
 function renderSpecList(items: string[]): string {
   return items.length > 0
     ? `<ul class="spec-list">${items.map((item) => `<li>${item}</li>`).join("")}</ul>`
@@ -349,12 +343,6 @@ function renderSpecSections(sections: Array<[string, string[]]>): string {
     .filter(([, items]) => items.length > 0)
     .map(([title, items]) => `<div class="spec-section"><strong>${title}</strong>${renderSpecList(items)}</div>`)
     .join("");
-}
-
-function layoutPropertyList(layout: ParsedLayout, key: string): string[] {
-  return layout.items
-    .filter((item) => item.type === "property" && item.scope === "metadata" && item.key === key)
-    .map((item) => item.type === "property" ? item.value : "");
 }
 
 function isPresentationPanelId(id: string): boolean {

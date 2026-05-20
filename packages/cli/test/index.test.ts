@@ -3,7 +3,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "no
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { main } from "./index.js";
+import { main } from "../src/index.js";
 
 test("validate returns zero for valid files and non-zero for invalid files", async () => {
   const dir = mkdtempSync(join(tmpdir(), "markvspec-cli-"));

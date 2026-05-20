@@ -1,152 +1,32 @@
 import { elementIdPattern, opaqueExpressionBody } from "./ids.js";
 import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
 import { isMarkVSpecSourceType } from "./source-types.js";
+import { propertyString } from "./property-accessor.js";
+import {
+  commonElementProperties,
+  elementAcceptsOptions,
+  elementAllowedProperties,
+  isFormControlElement,
+  isKnownElementType as isKnownElementTypeFromDomain
+} from "./element-domain.js";
 import type {
   MarkVSpecDiagnostic,
   MarkVSpecElement,
   MarkVSpecParseResult
 } from "./types.js";
 
-const customElementTypeRegex = /^custom:[A-Za-z][A-Za-z0-9_-]*$/u;
-const elementTypes = new Set([
-  "Heading",
-  "Paragraph",
-  "Text",
-  "Input",
-  "Textarea",
-  "Button",
-  "Link",
-  "Select",
-  "MultiSelect",
-  "Checkbox",
-  "CheckboxGroup",
-  "Switch",
-  "RadioGroup",
-  "List",
-  "Table",
-  "Banner",
-  "Dialog",
-  "Toast",
-  "Badge",
-  "Popover",
-  "Tooltip",
-  "Image",
-  "Icon",
-  "Spinner",
-  "Tabs",
-  "Accordion",
-  "Disclosure",
-  "ActionMenu",
-  "Divider",
-  "FileUpload",
-  "FileInput",
-  "DatePicker",
-  "DateInput",
-  "TimeInput",
-  "NumberInput"
-]);
-
-const commonElementProperties = new Set([
-  "marker",
-  "label",
-  "label src",
-  "placeholder src",
-  "description",
-  "help",
-  "help src",
-  "hint",
-  "message",
-  "message src",
-  "sample",
-  "source",
-  "purpose",
-  "text",
-  "value",
-  "src",
-  "format",
-  "initial value",
-  "required",
-  "readonly",
-  "optional",
-  "visible when",
-  "hidden when",
-  "disabled when",
-  "variant",
-  "tone",
-  "validation",
-  "input rule",
-  "error text",
-  "action",
-  "action event"
-]);
-
-const elementTypeProperties = new Map<string, Set<string>>([
-  ["Heading", new Set(["level"])],
-  ["Paragraph", new Set()],
-  ["Text", new Set()],
-  ["Input", new Set(["type", "placeholder", "width"])],
-  ["Textarea", new Set(["placeholder", "rows", "width"])],
-  ["Button", new Set(["size"])],
-  ["Link", new Set(["href"])],
-  ["Select", new Set(["width"])],
-  ["MultiSelect", new Set(["width"])],
-  ["Checkbox", new Set(["checked"])],
-  ["CheckboxGroup", new Set(["name"])],
-  ["Switch", new Set(["checked"])],
-  ["RadioGroup", new Set(["name"])],
-  ["List", new Set(["items", "sample rows"])],
-  ["Table", new Set(["rows", "sample rows"])],
-  ["Banner", new Set()],
-  ["Dialog", new Set(["title", "content", "actions"])],
-  ["Toast", new Set(["placement", "duration"])],
-  ["Badge", new Set()],
-  ["Popover", new Set(["anchor", "placement"])],
-  ["Tooltip", new Set(["anchor", "placement"])],
-  ["Image", new Set(["src", "alt"])],
-  ["Icon", new Set(["name"])],
-  ["Spinner", new Set()],
-  ["Tabs", new Set(["active", "items"])],
-  ["Accordion", new Set(["open", "items"])],
-  ["Disclosure", new Set(["open", "open when", "panel"])],
-  ["ActionMenu", new Set(["open", "open when", "placement", "items"])],
-  ["Divider", new Set()],
-  ["FileUpload", new Set(["accept", "multiple", "width"])],
-  ["FileInput", new Set(["accept", "multiple", "width"])],
-  ["DatePicker", new Set(["min", "max", "placeholder", "width"])],
-  ["DateInput", new Set(["min", "max", "placeholder", "width"])],
-  ["TimeInput", new Set(["min", "max", "placeholder", "width"])],
-  ["NumberInput", new Set(["min", "max", "step", "placeholder", "width"])]
-]);
-
 const elementWidthTypes = new Set(["Input", "Textarea", "Select", "MultiSelect", "DatePicker", "DateInput", "TimeInput", "NumberInput", "FileUpload", "FileInput"]);
 const elementWidthPresets = new Set(["short", "medium", "long", "full"]);
 const buttonSizePresets = new Set(["small", "medium", "large"]);
 const toastPlacementPresets = new Set(["top-right", "top-left", "bottom-right", "bottom-left", "top", "bottom"]);
 const toastDurationPresets = new Set(["short", "medium", "long", "manual"]);
-const optionElementTypes = new Set(["Select", "MultiSelect", "RadioGroup", "CheckboxGroup"]);
-const inputElementTypes = new Set([
-  "Input",
-  "Textarea",
-  "Select",
-  "MultiSelect",
-  "Checkbox",
-  "CheckboxGroup",
-  "Switch",
-  "RadioGroup",
-  "FileUpload",
-  "FileInput",
-  "DatePicker",
-  "DateInput",
-  "TimeInput",
-  "NumberInput"
-]);
 
 export function isKnownElementType(type: string): boolean {
-  return elementTypes.has(type) || customElementTypeRegex.test(type);
+  return isKnownElementTypeFromDomain(type);
 }
 
 export function isInputElementType(type: string): boolean {
-  return inputElementTypes.has(type);
+  return isFormControlElement(type);
 }
 
 export function validateElementProperties(
@@ -162,9 +42,9 @@ export function validateElementProperties(
 }
 
 function checkUnsupportedElementProperties(element: MarkVSpecElement, diagnostics: MarkVSpecDiagnostic[]): void {
-  const typeProperties = elementTypeProperties.get(element.type) ?? new Set<string>();
+  const typeProperties = elementAllowedProperties(element.type);
   for (const key of Object.keys(element.properties)) {
-    if (optionElementTypes.has(element.type) && key === "options" && element.properties[key] === true) {
+    if (elementAcceptsOptions(element.type) && key === "options" && element.properties[key] === true) {
       continue;
     }
 
@@ -396,8 +276,7 @@ function elementSourceCycleFor(
 }
 
 function stringProperty(element: MarkVSpecElement, key: string): string {
-  const value = element.properties[key];
-  return typeof value === "string" ? value : "";
+  return propertyString(element, key) ?? "";
 }
 
 function firstPropertyLine(

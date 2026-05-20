@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import * as vscode from "vscode";
 import type { PdfBrowserCommand } from "@markvspec/exporter";
-import { registerMarkVSpecExportCommands } from "./export-commands.js";
+import { registerMarkVSpecExportCommands } from "../src/export-commands.js";
 
 type VscodeMock = {
   commands: Map<string, (resource?: vscode.Uri) => Promise<void>>;

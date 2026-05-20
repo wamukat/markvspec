@@ -3,7 +3,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import test from "node:test";
 import { buildViewportStateScreenReadModels, stateScreenActionsForModel } from "@markvspec/core";
-import { loadScreenDocumentResult, renderDesignDocumentHtml, renderStandaloneHtml } from "./extension.js";
+import { loadScreenDocumentResult, renderDesignDocumentHtml, renderStandaloneHtml } from "../src/extension.js";
 
 interface AuditFinding {
   code: string;

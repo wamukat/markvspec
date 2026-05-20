@@ -1,5 +1,4 @@
 import type {
-  MarkVSpecAction,
   MarkVSpecDiagnostic,
   MarkVSpecElement,
   MarkVSpecEventDispatch,
@@ -8,8 +7,6 @@ import type {
   MarkVSpecHistoryEntry,
   MarkVSpecHistoryFieldSchema,
   MarkVSpecHistoryFieldType,
-  MarkVSpecLayoutGroup,
-  MarkVSpecLayoutItem,
   MarkVSpecModelSampleRow,
   MarkVSpecModelSampleSet,
   MarkVSpecModelSampleGroup,
@@ -18,16 +15,33 @@ import type {
   MarkVSpecRule,
   MarkVSpecSampleRow,
   MarkVSpecSectionProse,
-  MarkVSpecSlotContent,
-  MarkVSpecSlotDefinition,
   MarkVSpecState,
   MarkVSpecValidationRule,
   MarkVSpecViewContextDefinition,
   MarkVSpecViewContextSample,
   SourceLocation
 } from "./types.js";
-import { applyActionBulletToContext, createActionParseContext } from "./action-parser.js";
-import { actionIdPattern, elementIdPattern, formGroupIdPattern, isLayoutItemId, layoutGroupIdPattern } from "./ids.js";
+import {
+  parseActionSectionSemantics as parseActionSectionSemanticsWithSupport,
+  type ActionSectionSemanticResult,
+  type ActionSemanticResult
+} from "./action-section-semantic.js";
+export type { ActionSectionSemanticResult, ActionSemanticResult } from "./action-section-semantic.js";
+import {
+  parseLayoutSectionSemantics as parseLayoutSectionSemanticsWithSupport,
+  type LayoutSectionSemanticResult,
+  type LayoutSemanticResult
+} from "./layout-section-semantic.js";
+export type { LayoutSectionSemanticResult, LayoutSemanticResult } from "./layout-section-semantic.js";
+import {
+  parsePreviewScenariosSection,
+  type PreviewScenarioSectionSemanticSupport
+} from "./preview-scenario-section-semantic.js";
+import {
+  parseValidationsSection,
+  type ValidationSectionSemanticSupport
+} from "./validation-section-semantic.js";
+import { actionIdPattern, elementIdPattern, formGroupIdPattern } from "./ids.js";
 import type { MarkdownDocument } from "./markdown-document.js";
 import {
   collectSectionAst,
@@ -39,6 +53,7 @@ import {
 import { filterLinesWithoutStandaloneHtmlComments, isStandaloneHtmlCommentBlock } from "./markdown-html-comments.js";
 import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
 import { isMarkVSpecSourceType } from "./source-types.js";
+import { addAccumulatedSectionProperty, addPropertyLocation } from "./section-property-accumulator.js";
 
 export interface SemanticDependency {
   source: { type: "entity" | "section" | "render"; id: string };
@@ -47,28 +62,87 @@ export interface SemanticDependency {
   kind: "references" | "renders" | "validates" | "derives";
 }
 
-export interface SectionSemanticResult {
+export interface SectionSemanticMetadata {
   sectionId: string;
   kind: SectionKind;
-  states: MarkVSpecState[];
-  modelSamples: MarkVSpecModelSampleSet[];
-  modelSampleGroups: MarkVSpecModelSampleGroup[];
-  viewContexts: MarkVSpecViewContextDefinition[];
-  viewContextSamples: MarkVSpecViewContextSample[];
-  previewScenarios: MarkVSpecPreviewScenario[];
-  formGroups: MarkVSpecFormGroup[];
-  events: MarkVSpecEventDispatch[];
-  validations: MarkVSpecValidationRule[];
-  rules: MarkVSpecRule[];
-  errorCodes: MarkVSpecErrorCode[];
-  historyFields: MarkVSpecHistoryFieldSchema[];
-  historyEntries: MarkVSpecHistoryEntry[];
-  notes: MarkVSpecNoteSection[];
   sectionProse: MarkVSpecSectionProse[];
   diagnostics: MarkVSpecDiagnostic[];
   dependencies: SemanticDependency[];
   renderKeys: string[];
 }
+
+export type SectionSemanticPayload =
+  | { type: "states"; states: MarkVSpecState[] }
+  | { type: "modelSamples"; modelSamples: MarkVSpecModelSampleSet[]; modelSampleGroups: MarkVSpecModelSampleGroup[] }
+  | { type: "viewContexts"; viewContexts: MarkVSpecViewContextDefinition[] }
+  | { type: "viewContextSamples"; viewContextSamples: MarkVSpecViewContextSample[] }
+  | { type: "previewScenarios"; previewScenarios: MarkVSpecPreviewScenario[] }
+  | { type: "formGroups"; formGroups: MarkVSpecFormGroup[] }
+  | { type: "events"; events: MarkVSpecEventDispatch[] }
+  | { type: "validations"; validations: MarkVSpecValidationRule[] }
+  | { type: "rules"; rules: MarkVSpecRule[] }
+  | { type: "errorCodes"; errorCodes: MarkVSpecErrorCode[] }
+  | { type: "historyFields"; historyFields: MarkVSpecHistoryFieldSchema[] }
+  | { type: "historyEntries"; historyEntries: MarkVSpecHistoryEntry[] }
+  | { type: "notes"; notes: MarkVSpecNoteSection[] }
+  | { type: "empty" };
+
+export interface SectionSemanticResult extends SectionSemanticMetadata {
+  metadata: SectionSemanticMetadata;
+  payload: SectionSemanticPayload;
+  /** @deprecated Use payload when reading section-owned state data. Kept for public compatibility. */
+  states: MarkVSpecState[];
+  /** @deprecated Use payload when reading section-owned model sample data. Kept for public compatibility. */
+  modelSamples: MarkVSpecModelSampleSet[];
+  /** @deprecated Use payload when reading section-owned model sample group data. Kept for public compatibility. */
+  modelSampleGroups: MarkVSpecModelSampleGroup[];
+  /** @deprecated Use payload when reading section-owned view context data. Kept for public compatibility. */
+  viewContexts: MarkVSpecViewContextDefinition[];
+  /** @deprecated Use payload when reading section-owned view context sample data. Kept for public compatibility. */
+  viewContextSamples: MarkVSpecViewContextSample[];
+  /** @deprecated Use payload when reading section-owned preview scenario data. Kept for public compatibility. */
+  previewScenarios: MarkVSpecPreviewScenario[];
+  /** @deprecated Use payload when reading section-owned form group data. Kept for public compatibility. */
+  formGroups: MarkVSpecFormGroup[];
+  /** @deprecated Use payload when reading section-owned event data. Kept for public compatibility. */
+  events: MarkVSpecEventDispatch[];
+  /** @deprecated Use payload when reading section-owned validation data. Kept for public compatibility. */
+  validations: MarkVSpecValidationRule[];
+  /** @deprecated Use payload when reading section-owned business rule data. Kept for public compatibility. */
+  rules: MarkVSpecRule[];
+  /** @deprecated Use payload when reading section-owned error code data. Kept for public compatibility. */
+  errorCodes: MarkVSpecErrorCode[];
+  /** @deprecated Use payload when reading section-owned history field data. Kept for public compatibility. */
+  historyFields: MarkVSpecHistoryFieldSchema[];
+  /** @deprecated Use payload when reading section-owned history entry data. Kept for public compatibility. */
+  historyEntries: MarkVSpecHistoryEntry[];
+  /** @deprecated Use payload when reading section-owned note data. Kept for public compatibility. */
+  notes: MarkVSpecNoteSection[];
+}
+
+export type SectionSemanticCompatibilityValues = Pick<
+  SectionSemanticResult,
+  "states" | "modelSamples" | "modelSampleGroups" | "viewContexts" | "viewContextSamples" | "previewScenarios" | "formGroups" | "events" | "validations" | "rules" | "errorCodes" | "historyFields" | "historyEntries" | "notes"
+>;
+
+export type SectionSemanticValueKey = keyof SectionSemanticCompatibilityValues;
+
+const sectionPayloadValueKeys = {
+  states: ["states"],
+  modelSamples: ["modelSamples", "modelSampleGroups"],
+  viewContexts: ["viewContexts"],
+  viewContextSamples: ["viewContextSamples"],
+  previewScenarios: ["previewScenarios"],
+  formGroups: ["formGroups"],
+  events: ["events"],
+  validations: ["validations"],
+  rules: ["rules"],
+  errorCodes: ["errorCodes"],
+  historyFields: ["historyFields"],
+  historyEntries: ["historyEntries"],
+  notes: ["notes"],
+  empty: []
+} as const satisfies Record<SectionSemanticPayload["type"], readonly SectionSemanticValueKey[]>;
 
 export interface SmallSectionSemanticResult {
   states: MarkVSpecState[];
@@ -90,27 +164,6 @@ export interface SmallSectionSemanticResult {
   sectionResults: SectionSemanticResult[];
 }
 
-export interface LayoutSectionSemanticResult {
-  sectionId: string;
-  kind: "Layout" | "Slot" | "Slots";
-  layoutGroups: MarkVSpecLayoutGroup[];
-  slotContents: MarkVSpecSlotContent[];
-  slotDefinitions: MarkVSpecSlotDefinition[];
-  sectionProse: MarkVSpecSectionProse[];
-  diagnostics: MarkVSpecDiagnostic[];
-  dependencies: SemanticDependency[];
-  renderKeys: string[];
-}
-
-export interface LayoutSemanticResult {
-  layoutGroups: MarkVSpecLayoutGroup[];
-  slotContents: MarkVSpecSlotContent[];
-  slotDefinitions: MarkVSpecSlotDefinition[];
-  sectionProse: MarkVSpecSectionProse[];
-  diagnostics: MarkVSpecDiagnostic[];
-  sectionResults: LayoutSectionSemanticResult[];
-}
-
 export interface ElementSectionSemanticResult {
   sectionId: string;
   elements: MarkVSpecElement[];
@@ -127,27 +180,29 @@ export interface ElementSemanticResult {
   sectionResults: ElementSectionSemanticResult[];
 }
 
-export interface ActionSectionSemanticResult {
-  sectionId: string;
-  actions: MarkVSpecAction[];
-  sectionProse: MarkVSpecSectionProse[];
-  diagnostics: MarkVSpecDiagnostic[];
-  dependencies: SemanticDependency[];
-  renderKeys: string[];
-}
-
-export interface ActionSemanticResult {
-  actions: MarkVSpecAction[];
-  sectionProse: MarkVSpecSectionProse[];
-  diagnostics: MarkVSpecDiagnostic[];
-  sectionResults: ActionSectionSemanticResult[];
-}
-
 const optionElementTypes = new Set(["Select", "MultiSelect", "RadioGroup", "CheckboxGroup"]);
 const tabItemPropertyKeys = new Set(["panel", "action", "active when"]);
 const accordionItemPropertyKeys = new Set(["panel", "action", "open when"]);
 const panelItemPropertyKeys = new Set([...tabItemPropertyKeys, ...accordionItemPropertyKeys]);
 const actionMenuItemPropertyKeys = new Set(["action", "tone", "disabled when"]);
+const previewScenarioSectionSemanticSupport: PreviewScenarioSectionSemanticSupport = {
+  appendEntityProseLines,
+  isEntityNoteBlock,
+  isSectionNotesHeading,
+  listItems,
+  parsedBulletFromListItem,
+  proseForSection,
+  splitKeyValue
+};
+const validationSectionSemanticSupport: ValidationSectionSemanticSupport = {
+  appendEntityProseLines,
+  isEntityNoteBlock,
+  isSectionNotesHeading,
+  listItems,
+  parsedBulletFromListItem,
+  proseForSection,
+  splitKeyValue
+};
 
 export function parseSmallSectionSemantics(document: MarkdownDocument): SmallSectionSemanticResult {
   const sections = collectSectionAst(document);
@@ -155,24 +210,25 @@ export function parseSmallSectionSemantics(document: MarkdownDocument): SmallSec
   const sectionResults = sections
     .filter((section) => isSmallSemanticSection(section.kind))
     .map((section) => parseSmallSection(document, sections, section));
+  const payloads = sectionResults.map((result) => result.payload);
 
   return {
-    states: sectionResults.flatMap((result) => result.states),
-    modelSamples: sectionResults.flatMap((result) => result.modelSamples),
-    modelSampleGroups: sectionResults.flatMap((result) => result.modelSampleGroups),
-    viewContexts: sectionResults.flatMap((result) => result.viewContexts),
-    viewContextSamples: sectionResults.flatMap((result) => result.viewContextSamples),
-    previewScenarios: sectionResults.flatMap((result) => result.previewScenarios),
-    formGroups: sectionResults.flatMap((result) => result.formGroups),
-    events: sectionResults.flatMap((result) => result.events),
-    validations: sectionResults.flatMap((result) => result.validations),
-    rules: sectionResults.flatMap((result) => result.rules),
-    errorCodes: sectionResults.flatMap((result) => result.errorCodes),
-    historyFields: sectionResults.flatMap((result) => result.historyFields),
-    historyEntries: sectionResults.flatMap((result) => result.historyEntries),
-    sectionProse: sectionResults.flatMap((result) => result.sectionProse),
-    notes: sectionResults.flatMap((result) => result.notes),
-    diagnostics: [...orderDiagnostics, ...sectionResults.flatMap((result) => result.diagnostics)],
+    states: payloadValues(payloads, "states"),
+    modelSamples: payloadValues(payloads, "modelSamples"),
+    modelSampleGroups: payloadValues(payloads, "modelSampleGroups"),
+    viewContexts: payloadValues(payloads, "viewContexts"),
+    viewContextSamples: payloadValues(payloads, "viewContextSamples"),
+    previewScenarios: payloadValues(payloads, "previewScenarios"),
+    formGroups: payloadValues(payloads, "formGroups"),
+    events: payloadValues(payloads, "events"),
+    validations: payloadValues(payloads, "validations"),
+    rules: payloadValues(payloads, "rules"),
+    errorCodes: payloadValues(payloads, "errorCodes"),
+    historyFields: payloadValues(payloads, "historyFields"),
+    historyEntries: payloadValues(payloads, "historyEntries"),
+    sectionProse: sectionResults.flatMap((result) => result.metadata.sectionProse),
+    notes: payloadValues(payloads, "notes"),
+    diagnostics: [...orderDiagnostics, ...sectionResults.flatMap((result) => result.metadata.diagnostics)],
     sectionResults
   };
 }
@@ -247,19 +303,19 @@ function sectionOrderRank(kind: SectionKind): number {
 }
 
 export function parseLayoutSectionSemantics(document: MarkdownDocument): LayoutSemanticResult {
-  const sections = collectSectionAst(document);
-  const sectionResults = sections
-    .filter((section) => section.kind === "Layout" || section.kind === "Slot" || section.kind === "Slots")
-    .map((section) => parseLayoutSemanticSection(document, sections, section));
-
-  return {
-    layoutGroups: sectionResults.flatMap((result) => result.layoutGroups),
-    slotContents: sectionResults.flatMap((result) => result.slotContents),
-    slotDefinitions: sectionResults.flatMap((result) => result.slotDefinitions),
-    sectionProse: sectionResults.flatMap((result) => result.sectionProse),
-    diagnostics: sectionResults.flatMap((result) => result.diagnostics),
-    sectionResults
-  };
+  return parseLayoutSectionSemanticsWithSupport(document, {
+    isSectionNotesHeading,
+    isEntityNoteBlock,
+    appendEntityProseLines,
+    listItems,
+    parsedBulletFromListItem,
+    locationFromBlock,
+    splitKeyValue,
+    addPropertyLocation,
+    proseForSection,
+    structuredSectionOwnershipDiagnostics,
+    dedupeDependencies
+  });
 }
 
 export function parseElementSectionSemantics(document: MarkdownDocument): ElementSemanticResult {
@@ -277,17 +333,19 @@ export function parseElementSectionSemantics(document: MarkdownDocument): Elemen
 }
 
 export function parseActionSectionSemantics(document: MarkdownDocument): ActionSemanticResult {
-  const sections = collectSectionAst(document);
-  const sectionResults = sections
-    .filter((section) => section.kind === "Actions")
-    .map((section) => parseActionsSection(section));
-
-  return {
-    actions: sectionResults.flatMap((result) => result.actions),
-    sectionProse: sectionResults.flatMap((result) => result.sectionProse),
-    diagnostics: sectionResults.flatMap((result) => result.diagnostics),
-    sectionResults
-  };
+  return parseActionSectionSemanticsWithSupport(document, {
+    isSectionNotesHeading,
+    isEntityNoteBlock,
+    appendEntityProseLines,
+    appendListProseBeforeLine,
+    listItems,
+    parsedBulletFromListItem,
+    locationFromBlock,
+    looksLikeStructuredProperty,
+    proseForSection,
+    structuredSectionOwnershipDiagnostics,
+    dedupeDependencies
+  });
 }
 
 function isSmallSemanticSection(kind: SectionKind): boolean {
@@ -311,361 +369,43 @@ function isSmallSemanticSection(kind: SectionKind): boolean {
 function parseSmallSection(document: MarkdownDocument, sections: SectionAst[], section: SectionAst): SectionSemanticResult {
   switch (section.kind) {
     case "States":
-      return resultFor(section, parseStatesSection(section), ["states:list"]);
+      return resultFor(section, "states", parseStatesSection(section), ["states:list"]);
     case "FormGroups":
-      return resultFor(section, parseFormGroupsSection(section), ["form-groups:list"]);
+      return resultFor(section, "formGroups", parseFormGroupsSection(section), ["form-groups:list"]);
     case "Events":
-      return resultFor(section, parseEventsSection(section), ["events:list"]);
+      return resultFor(section, "events", parseEventsSection(section), ["events:list"]);
     case "ModelSamples":
-      return resultFor(section, unsupportedModelSamplesSection(section), ["unsupported:model-samples"]);
+      return resultFor(section, "modelSamples", unsupportedModelSamplesSection(section), ["unsupported:model-samples"]);
     case "ViewContext":
-      return resultFor(section, parseViewContextSection(section), ["view-context"]);
+      return resultFor(section, "viewContexts", parseViewContextSection(section), ["view-context"]);
     case "ViewContextSamples":
-      return resultFor(section, parseViewContextSamplesSection(section), ["view-context-samples"]);
+      return resultFor(section, "viewContextSamples", parseViewContextSamplesSection(section), ["view-context-samples"]);
     case "PreviewScenarios":
-      return resultFor(section, parsePreviewScenariosSection(section), ["preview-scenarios"]);
+      return resultFor(
+        section,
+        "previewScenarios",
+        parsePreviewScenariosSection(section, previewScenarioSectionSemanticSupport),
+        ["preview-scenarios"]
+      );
     case "Validations":
-      return resultFor(section, parseValidationsSection(section), ["validations:list"]);
+      return resultFor(section, "validations", parseValidationsSection(section, validationSectionSemanticSupport), ["validations:list"]);
     case "FieldValidations":
-      return resultFor(section, parseValidationsSection(section), ["validations:list"]);
+      return resultFor(section, "validations", parseValidationsSection(section, validationSectionSemanticSupport), ["validations:list"]);
     case "CrossFieldValidations":
-      return resultFor(section, parseValidationsSection(section), ["validations:list"]);
+      return resultFor(section, "validations", parseValidationsSection(section, validationSectionSemanticSupport), ["validations:list"]);
     case "BusinessRules":
-      return resultFor(section, parseRulesSection(section), ["rules:list"]);
+      return resultFor(section, "rules", parseRulesSection(section), ["rules:list"]);
     case "ErrorCodes":
-      return resultFor(section, parseErrorCodesSection(section), ["error-codes:list"]);
+      return resultFor(section, "errorCodes", parseErrorCodesSection(section), ["error-codes:list"]);
     case "HistoryFields":
-      return resultFor(section, parseHistoryFieldsSection(document, sections, section), ["history-fields:list"]);
+      return resultFor(section, "historyFields", parseHistoryFieldsSection(document, sections, section), ["history-fields:list"]);
     case "History":
-      return resultFor(section, parseHistorySection(document, sections, section), ["history:list"]);
+      return resultFor(section, "historyEntries", parseHistorySection(document, sections, section), ["history:list"]);
     case "Unknown":
-      return resultFor(section, { notes: [parseNoteSection(document, sections, section)] }, [`notes:${section.id}`]);
+      return resultFor(section, "notes", { notes: [parseNoteSection(document, sections, section)] }, [`notes:${section.id}`]);
     default:
-      return resultFor(section, {}, []);
+      return resultFor(section, "empty", {}, []);
   }
-}
-
-function parseLayoutSemanticSection(document: MarkdownDocument, sections: SectionAst[], section: SectionAst): LayoutSectionSemanticResult {
-  switch (section.kind) {
-    case "Layout":
-      return parseLayoutOrSlotSection(section);
-    case "Slot":
-      return parseLayoutOrSlotSection(section);
-    case "Slots":
-      return parseSlotsSection(section);
-    default:
-      return {
-        sectionId: section.id,
-        kind: "Layout",
-        layoutGroups: [],
-        slotContents: [],
-        slotDefinitions: [],
-        sectionProse: [],
-        diagnostics: [],
-        dependencies: [],
-        renderKeys: []
-      };
-  }
-}
-
-function parseLayoutOrSlotSection(section: SectionAst): LayoutSectionSemanticResult {
-  const diagnostics: MarkVSpecDiagnostic[] = [];
-  const dependencies: SemanticDependency[] = [];
-  const layoutGroups: MarkVSpecLayoutGroup[] = [];
-  const slotContents: MarkVSpecSlotContent[] = [];
-  const isSlotSection = section.kind === "Slot";
-  const viewport = section.viewport;
-  const slotName = section.slotName;
-  const slotContent: MarkVSpecSlotContent | undefined = isSlotSection && slotName
-    ? {
-        name: slotName,
-        ...(viewport ? { viewport } : {}),
-        layoutGroups: [],
-        location: { line: section.heading.range.start.line }
-      }
-    : undefined;
-
-  if (section.kind === "Layout" && !viewport) {
-    diagnostics.push(createMarkVSpecDiagnostic(
-      "warning",
-      "layout.missingViewport",
-      {},
-      section.heading.range.start.line
-    ));
-  }
-  if (isSlotSection && !slotName) {
-    diagnostics.push({
-      severity: "warning",
-      message: "Slot section must specify a slot name, for example ## Slot: content.",
-      line: section.heading.range.start.line
-    });
-  }
-  if (slotContent) {
-    slotContents.push(slotContent);
-  }
-
-  let currentLayout: MarkVSpecLayoutGroup | undefined;
-  let layoutSubsection: string | undefined;
-  let currentLayoutNestedProperty: string | undefined;
-  let currentLayoutHasStructuredContent = false;
-  let hasSeenEntity = false;
-  let inSectionNotes = false;
-  const sectionOverviewBlocks: BlockAst[] = [];
-  const sectionNoteBlocks: BlockAst[] = [];
-  const layoutHeadingRegex = new RegExp(String.raw`^(?:(\S+?):)?(${layoutGroupIdPattern})(?:\s+(.+?))?\s*$`, "u");
-
-  for (const block of section.blocks) {
-    if (isSectionNotesHeading(block)) {
-      currentLayout = undefined;
-      layoutSubsection = undefined;
-      currentLayoutNestedProperty = undefined;
-      currentLayoutHasStructuredContent = false;
-      inSectionNotes = true;
-      hasSeenEntity = true;
-      continue;
-    }
-    if (inSectionNotes) {
-      if (isEntityNoteBlock(block)) {
-        sectionNoteBlocks.push(block);
-      }
-      continue;
-    }
-    if (block.type === "heading" && block.depth === 3) {
-      hasSeenEntity = true;
-      const heading = layoutHeadingRegex.exec(block.text);
-      if (!heading) {
-        diagnostics.push({
-          severity: "warning",
-          message: "Malformed Layout heading. Expected ### [<marker>:]L-* [name] or ### P-* [name].",
-          line: locationFromBlock(block).line
-        });
-        currentLayout = undefined;
-        layoutSubsection = undefined;
-        currentLayoutNestedProperty = undefined;
-        continue;
-      }
-
-      const headingLocation = locationFromBlock(block);
-      if (section.kind === "Layout" && !viewport) {
-        diagnostics.push(createMarkVSpecDiagnostic(
-          "warning",
-          "layout.groupIgnoredWithoutViewport",
-          {},
-          headingLocation.line
-        ));
-        currentLayout = undefined;
-        layoutSubsection = undefined;
-        currentLayoutNestedProperty = undefined;
-        continue;
-      }
-
-      if (isSlotSection && !slotContent) {
-        diagnostics.push({
-          severity: "warning",
-          message: "Slot layout group is ignored because its Slot section has no name.",
-          line: headingLocation.line
-        });
-        currentLayout = undefined;
-        layoutSubsection = undefined;
-        currentLayoutNestedProperty = undefined;
-        continue;
-      }
-
-      layoutSubsection = undefined;
-      currentLayoutNestedProperty = undefined;
-      currentLayout = {
-        id: heading[2],
-        name: heading[3]?.trim() ?? "",
-        viewport: viewport ?? "",
-        notes: [],
-        items: [],
-        properties: heading[1] ? { marker: heading[1] } : {},
-        propertyLocations: heading[1] ? { marker: [headingLocation] } : {},
-        location: headingLocation
-      };
-      if (slotContent) {
-        slotContent.layoutGroups.push(currentLayout);
-      } else {
-        layoutGroups.push(currentLayout);
-      }
-      dependencies.push(...layoutRenderDependencies(section, currentLayout, slotContent?.name));
-      currentLayoutHasStructuredContent = false;
-      continue;
-    }
-
-    if (!currentLayout) {
-      if (!hasSeenEntity && isEntityNoteBlock(block)) {
-        sectionOverviewBlocks.push(block);
-      }
-      continue;
-    }
-
-    if (isEntityNoteBlock(block)) {
-      appendEntityProseLines(currentLayout, block, currentLayoutHasStructuredContent);
-      continue;
-    }
-
-    if (block.type === "heading" && block.depth === 4) {
-      currentLayoutHasStructuredContent = true;
-      layoutSubsection = block.text;
-      currentLayoutNestedProperty = undefined;
-      if (layoutSubsection === "Repeat") {
-        diagnostics.push({
-          severity: "error",
-          message: `Layout ${currentLayout.id} uses removed Repeat subsection. Use Element sample rows or Preview Scenario samples instead.`,
-          line: locationFromBlock(block).line
-        });
-      }
-      continue;
-    }
-
-    if (block.type !== "list") {
-      continue;
-    }
-
-    currentLayoutHasStructuredContent = true;
-    for (const item of listItems([block])) {
-      const bullet = parsedBulletFromListItem(item);
-      if (layoutSubsection === "Repeat") {
-        continue;
-      }
-      if (bullet.indent > 0) {
-        if (layoutSubsection !== "Items" && (currentLayoutNestedProperty === "partial" || currentLayoutNestedProperty === "partial states")) {
-          const partialNestedProperty = currentLayoutNestedProperty === "partial states" && bullet.indent > 1
-            ? "partial states"
-            : "partial";
-          currentLayoutNestedProperty = applyLayoutPartialBullet(currentLayout, bullet, partialNestedProperty);
-          addPartialDependencies(currentLayout, dependencies);
-          continue;
-        }
-        diagnostics.push({
-          severity: "warning",
-          message: `Layout ${currentLayout.id} has indented ${layoutSubsection === "Items" ? "Items" : "metadata"} entry: ${bullet.text}. Use an unindented list item.`,
-          line: bullet.location.line
-        });
-      }
-      if (layoutSubsection === "Items") {
-        applyLayoutItemBullet(currentLayout, bullet);
-        addLayoutItemDependency(currentLayout, currentLayout.items[currentLayout.items.length - 1], dependencies);
-      } else {
-        currentLayoutNestedProperty = applyLayoutMetadataBullet(currentLayout, bullet);
-        addPartialDependencies(currentLayout, dependencies);
-      }
-    }
-  }
-
-  const renderKeys = [
-    ...layoutGroups.map((group) => `layout:${group.viewport}:${group.id}`),
-    ...slotContents.flatMap((slot) => slot.layoutGroups.map((group) => slotContentRenderKey(slot.name, slot.viewport, group.id))),
-    ...slotContents.map((slot) => `slot:${slot.name}`)
-  ];
-
-  return {
-    sectionId: section.id,
-    kind: isSlotSection ? "Slot" : "Layout",
-    layoutGroups,
-    slotContents,
-    slotDefinitions: [],
-    sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, renderKeys),
-    diagnostics: [...diagnostics, ...structuredSectionOwnershipDiagnostics(section, { emitMalformedHeading: false })],
-    dependencies: dedupeDependencies(dependencies),
-    renderKeys
-  };
-}
-
-function parseSlotsSection(section: SectionAst): LayoutSectionSemanticResult {
-  const slotDefinitions: MarkVSpecSlotDefinition[] = [];
-  const dependencies: SemanticDependency[] = [{
-    source: { type: "section", id: section.id },
-    target: { type: "render", id: "slots:list" },
-    direction: "source-invalidates-target",
-    kind: "renders"
-  }];
-  let currentSlotDefinition: MarkVSpecSlotDefinition | undefined;
-  let currentSlotDefinitionHasStructuredContent = false;
-  let hasSeenEntity = false;
-  let inSectionNotes = false;
-  const sectionOverviewBlocks: BlockAst[] = [];
-  const sectionNoteBlocks: BlockAst[] = [];
-
-  for (const block of section.blocks) {
-    if (isSectionNotesHeading(block)) {
-      currentSlotDefinition = undefined;
-      currentSlotDefinitionHasStructuredContent = false;
-      inSectionNotes = true;
-      hasSeenEntity = true;
-      continue;
-    }
-    if (inSectionNotes) {
-      if (isEntityNoteBlock(block)) {
-        sectionNoteBlocks.push(block);
-      }
-      continue;
-    }
-    if (block.type === "heading" && block.depth === 3) {
-      hasSeenEntity = true;
-      const heading = /^(\S+)(?:\s+(.+?))?\s*$/.exec(block.text);
-      if (!heading) {
-        currentSlotDefinition = undefined;
-        currentSlotDefinitionHasStructuredContent = false;
-        continue;
-      }
-      currentSlotDefinition = {
-        name: heading[1],
-        title: heading[2],
-        properties: {},
-        propertyLocations: {},
-        location: locationFromBlock(block)
-      };
-      slotDefinitions.push(currentSlotDefinition);
-      currentSlotDefinitionHasStructuredContent = false;
-      dependencies.push({
-        source: { type: "section", id: section.id },
-        target: { type: "entity", id: `slot:${currentSlotDefinition.name}` },
-        direction: "source-invalidates-target",
-        kind: "derives"
-      });
-      dependencies.push({
-        source: { type: "section", id: section.id },
-        target: { type: "render", id: slotDefinitionRenderKey(currentSlotDefinition.name) },
-        direction: "source-invalidates-target",
-        kind: "renders"
-      });
-      continue;
-    }
-    if (!currentSlotDefinition) {
-      if (!hasSeenEntity && isEntityNoteBlock(block)) {
-        sectionOverviewBlocks.push(block);
-      }
-      continue;
-    }
-    if (isEntityNoteBlock(block)) {
-      appendEntityProseLines(currentSlotDefinition, block, currentSlotDefinitionHasStructuredContent);
-      continue;
-    }
-    if (currentSlotDefinition) {
-      if (block.type === "list") {
-        currentSlotDefinitionHasStructuredContent = true;
-      }
-      for (const bullet of listItems([block]).filter((item) => item.depth === 0)) {
-        applySlotDefinitionBullet(currentSlotDefinition, bullet.text, locationFromBlock(bullet));
-      }
-    }
-  }
-
-  const renderKeys = ["slots:list", ...slotDefinitions.map((slot) => slotDefinitionRenderKey(slot.name))];
-
-  return {
-    sectionId: section.id,
-    kind: "Slots",
-    layoutGroups: [],
-    slotContents: [],
-    slotDefinitions,
-    sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, renderKeys),
-    diagnostics: structuredSectionOwnershipDiagnostics(section),
-    dependencies: dedupeDependencies(dependencies),
-    renderKeys
-  };
 }
 
 function parseElementsSection(section: SectionAst): ElementSectionSemanticResult {
@@ -1026,161 +766,21 @@ function applyElementSemanticBullet(
   return isDisplayValueProperty(nextNestedProperty) ? { nestedProperty: nextNestedProperty } : { nestedProperty: undefined };
 }
 
-function parseActionsSection(section: SectionAst): ActionSectionSemanticResult {
-  const actions: MarkVSpecAction[] = [];
-  const diagnostics: MarkVSpecDiagnostic[] = [];
-  const dependencies: SemanticDependency[] = [{
-    source: { type: "section", id: section.id },
-    target: { type: "render", id: "actions:list" },
-    direction: "source-invalidates-target",
-    kind: "renders"
-  }];
-  const actionHeadingRegex = new RegExp(String.raw`^(?:(\S+?):)?(${actionIdPattern})\s+(.+?)\s*$`, "u");
-  let currentAction: MarkVSpecAction | undefined;
-  let currentActionContext = createActionParseContext();
-  let currentActionHasStructuredContent = false;
-  let hasSeenEntity = false;
-  let inSectionNotes = false;
-  const sectionOverviewBlocks: BlockAst[] = [];
-  const sectionNoteBlocks: BlockAst[] = [];
-
-  for (const block of section.blocks) {
-    if (isSectionNotesHeading(block)) {
-      currentAction = undefined;
-      currentActionContext = createActionParseContext();
-      currentActionHasStructuredContent = false;
-      inSectionNotes = true;
-      hasSeenEntity = true;
-      continue;
-    }
-    if (inSectionNotes) {
-      if (isEntityNoteBlock(block)) {
-        sectionNoteBlocks.push(block);
-      }
-      continue;
-    }
-    if (currentAction && block.type === "heading" && block.depth > 3) {
-      appendEntityProseLines(currentAction, block, currentActionHasStructuredContent);
-      continue;
-    }
-    if (block.type === "heading" && block.depth === 3) {
-      hasSeenEntity = true;
-      const heading = actionHeadingRegex.exec(block.text);
-      if (!heading) {
-        diagnostics.push({
-          severity: "warning",
-          message: "Malformed Action heading. Expected ### [<marker>:]A-* <name>.",
-          line: locationFromBlock(block).line
-        });
-        currentAction = undefined;
-        currentActionContext = createActionParseContext();
-        currentActionHasStructuredContent = false;
-        continue;
-      }
-
-      const headingLocation = locationFromBlock(block);
-      currentActionContext = createActionParseContext();
-      currentActionHasStructuredContent = false;
-      currentAction = {
-        id: heading[2],
-        name: heading[3],
-        fromStates: [],
-        transitions: [],
-        sideEffects: [],
-        outcomes: [],
-        processSteps: [],
-        routeParams: [],
-        responses: [],
-        properties: heading[1] ? { marker: heading[1] } : {},
-        propertyLocations: heading[1] ? { marker: [headingLocation] } : {},
-        notes: [],
-        location: headingLocation
-      };
-      actions.push(currentAction);
-      dependencies.push(...actionRenderDependencies(section, currentAction));
-      continue;
-    }
-
-    if (currentAction && block.type === "list") {
-      const structuredStartLine = firstActionStructuredListItemLine(block);
-      if (structuredStartLine === undefined) {
-        if (!currentActionHasStructuredContent && isActionMalformedStructuredListBlock(block)) {
-          for (const item of listItems([block])) {
-            const bullet = parsedBulletFromListItem(item);
-            currentActionContext = applyActionBulletToContext(currentAction, bullet, currentActionContext, diagnostics);
-          }
-          continue;
-        }
-        appendEntityProseLines(currentAction, block, currentActionHasStructuredContent);
-        continue;
-      }
-      const splitProsePrefix = isActionProseListPrefix(block, structuredStartLine);
-      if (splitProsePrefix) {
-        appendListProseBeforeLine(currentAction, block, structuredStartLine, currentActionHasStructuredContent);
-      }
-      currentActionHasStructuredContent = true;
-      const actionItems = splitProsePrefix
-        ? listItems([block]).filter((candidate) => (candidate.range?.start.line ?? 1) >= structuredStartLine)
-        : listItems([block]);
-      for (const item of actionItems) {
-        const bullet = parsedBulletFromListItem(item);
-        currentActionContext = applyActionBulletToContext(currentAction, bullet, currentActionContext, diagnostics);
-      }
-      continue;
-    }
-
-    if (!currentAction || block.type !== "list") {
-      if (currentAction && isEntityNoteBlock(block)) {
-        appendEntityProseLines(currentAction, block, currentActionHasStructuredContent);
-      } else if (!currentAction && !hasSeenEntity && isEntityNoteBlock(block)) {
-        sectionOverviewBlocks.push(block);
-      }
-      continue;
-    }
-  }
-
-  for (const action of actions) {
-    dependencies.push(...actionSemanticDependencies(action));
-  }
-
-  const renderKeys = ["actions:list", ...actions.map((action) => actionRenderKey(action.id))];
-
-  return {
-    sectionId: section.id,
-    actions,
-    sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, renderKeys),
-    diagnostics: [...diagnostics, ...structuredSectionOwnershipDiagnostics(section, { emitMalformedHeading: false })],
-    dependencies: dedupeDependencies(dependencies),
-    renderKeys
-  };
-}
-
 function resultFor(
   section: SectionAst,
-  values: Partial<Pick<SectionSemanticResult, "states" | "modelSamples" | "modelSampleGroups" | "viewContexts" | "viewContextSamples" | "previewScenarios" | "formGroups" | "events" | "validations" | "rules" | "errorCodes" | "historyFields" | "historyEntries" | "notes" | "sectionProse" | "diagnostics" | "dependencies">>,
+  payloadType: SectionSemanticPayload["type"],
+  values: Partial<SectionSemanticCompatibilityValues & Pick<SectionSemanticResult, "sectionProse" | "diagnostics" | "dependencies">>,
   renderKeys: string[]
 ): SectionSemanticResult {
   const diagnostics = [
     ...(values.diagnostics ?? []),
     ...structuredSectionOwnershipDiagnostics(section)
   ];
-  return {
+  const payload = sectionPayload(payloadType, values);
+  const compatibility = compatibilityValuesForPayload(payload);
+  const metadata: SectionSemanticMetadata = {
     sectionId: section.id,
     kind: section.kind,
-    states: values.states ?? [],
-    modelSamples: values.modelSamples ?? [],
-    modelSampleGroups: values.modelSampleGroups ?? [],
-    viewContexts: values.viewContexts ?? [],
-    viewContextSamples: values.viewContextSamples ?? [],
-    previewScenarios: values.previewScenarios ?? [],
-    formGroups: values.formGroups ?? [],
-    events: values.events ?? [],
-    validations: values.validations ?? [],
-    rules: values.rules ?? [],
-    errorCodes: values.errorCodes ?? [],
-    historyFields: values.historyFields ?? [],
-    historyEntries: values.historyEntries ?? [],
-    notes: values.notes ?? [],
     sectionProse: values.sectionProse ?? [],
     diagnostics,
     dependencies: renderKeys.map((key): SemanticDependency => ({
@@ -1191,6 +791,90 @@ function resultFor(
     })).concat(values.dependencies ?? []),
     renderKeys
   };
+  return {
+    ...metadata,
+    metadata,
+    payload,
+    states: compatibility.states,
+    modelSamples: compatibility.modelSamples,
+    modelSampleGroups: compatibility.modelSampleGroups,
+    viewContexts: compatibility.viewContexts,
+    viewContextSamples: compatibility.viewContextSamples,
+    previewScenarios: compatibility.previewScenarios,
+    formGroups: compatibility.formGroups,
+    events: compatibility.events,
+    validations: compatibility.validations,
+    rules: compatibility.rules,
+    errorCodes: compatibility.errorCodes,
+    historyFields: compatibility.historyFields,
+    historyEntries: compatibility.historyEntries,
+    notes: compatibility.notes
+  };
+}
+
+function sectionPayload(
+  type: SectionSemanticPayload["type"],
+  values: Partial<SectionSemanticCompatibilityValues>
+): SectionSemanticPayload {
+  const payload = { type } as { type: SectionSemanticPayload["type"] } & Partial<SectionSemanticCompatibilityValues>;
+  const mutablePayload = payload as Record<SectionSemanticValueKey, unknown>;
+  for (const key of sectionPayloadValueKeys[type]) {
+    mutablePayload[key] = values[key] ?? [];
+  }
+  return payload as SectionSemanticPayload;
+}
+
+function compatibilityValuesForPayload(payload: SectionSemanticPayload): SectionSemanticCompatibilityValues {
+  const values = emptySectionSemanticCompatibilityValues();
+  const mutableValues = values as Record<SectionSemanticValueKey, unknown>;
+  const payloadValues = payload as Partial<Record<SectionSemanticValueKey, unknown>>;
+  for (const key of sectionPayloadValueKeys[payload.type]) {
+    mutableValues[key] = payloadValues[key] ?? [];
+  }
+  return values;
+}
+
+function emptySectionSemanticCompatibilityValues(): SectionSemanticCompatibilityValues {
+  return {
+    states: [],
+    modelSamples: [],
+    modelSampleGroups: [],
+    viewContexts: [],
+    viewContextSamples: [],
+    previewScenarios: [],
+    formGroups: [],
+    events: [],
+    validations: [],
+    rules: [],
+    errorCodes: [],
+    historyFields: [],
+    historyEntries: [],
+    notes: []
+  };
+}
+
+export function sectionSemanticPayloadValues<TKey extends SectionSemanticValueKey>(
+  payloads: SectionSemanticPayload[],
+  key: TKey
+): SectionSemanticCompatibilityValues[TKey] {
+  return payloads.flatMap((payload) => payloadValue(payload, key) as unknown[]) as SectionSemanticCompatibilityValues[TKey];
+}
+
+function payloadValues<TKey extends SectionSemanticValueKey>(
+  payloads: SectionSemanticPayload[],
+  key: TKey
+): SectionSemanticCompatibilityValues[TKey] {
+  return sectionSemanticPayloadValues(payloads, key);
+}
+
+function payloadValue<TKey extends SectionSemanticValueKey>(
+  payload: SectionSemanticPayload,
+  key: TKey
+): SectionSemanticCompatibilityValues[TKey] {
+  if (!(sectionPayloadValueKeys[payload.type] as readonly SectionSemanticValueKey[]).includes(key)) {
+    return [] as SectionSemanticCompatibilityValues[TKey];
+  }
+  return ((payload as Partial<Record<SectionSemanticValueKey, unknown>>)[key] ?? []) as SectionSemanticCompatibilityValues[TKey];
 }
 
 function parseStatesSection(section: SectionAst): Pick<SectionSemanticResult, "states" | "sectionProse" | "diagnostics"> {
@@ -1579,415 +1263,6 @@ function parseViewContextSamplesSection(section: SectionAst): Pick<SectionSemant
 function viewContextSampleKey(key: string): string {
   const match = /^\$\{view\.([^}]+)\}$/u.exec(key);
   return match?.[1]?.trim() ?? key;
-}
-
-function parsePreviewScenariosSection(section: SectionAst): Pick<SectionSemanticResult, "previewScenarios" | "sectionProse" | "diagnostics"> {
-  const scenarios: MarkVSpecPreviewScenario[] = [];
-  const diagnostics: MarkVSpecDiagnostic[] = [];
-  let current: MarkVSpecPreviewScenario | undefined;
-  let currentHasStructuredContent = false;
-  let hasSeenEntity = false;
-  let inSectionNotes = false;
-  const sectionOverviewBlocks: BlockAst[] = [];
-  const sectionNoteBlocks: BlockAst[] = [];
-
-  for (const block of section.blocks) {
-    if (isSectionNotesHeading(block)) {
-      current = undefined;
-      currentHasStructuredContent = false;
-      inSectionNotes = true;
-      hasSeenEntity = true;
-      continue;
-    }
-    if (inSectionNotes) {
-      if (isEntityNoteBlock(block)) {
-        sectionNoteBlocks.push(block);
-      }
-      continue;
-    }
-    if (block.type === "heading" && block.depth === 3) {
-      hasSeenEntity = true;
-      current = {
-        name: block.text.trim(),
-        route: [],
-        samples: [],
-        cases: [],
-        properties: {},
-        propertyLocations: {},
-        location: locationFromBlock(block)
-      };
-      scenarios.push(current);
-      currentHasStructuredContent = false;
-      continue;
-    }
-    if (!current) {
-      if (!hasSeenEntity && isEntityNoteBlock(block)) {
-        sectionOverviewBlocks.push(block);
-      }
-      continue;
-    }
-    if (isEntityNoteBlock(block)) {
-      appendEntityProseLines(current, block, currentHasStructuredContent);
-      continue;
-    }
-    if (block.type !== "list") {
-      continue;
-    }
-    currentHasStructuredContent = true;
-    let activeKey: string | undefined;
-    let activeSample: MarkVSpecPreviewScenario["samples"][number] | undefined;
-    let activeSampleRow: MarkVSpecSampleRow | undefined;
-    for (const item of listItems([block])) {
-      const bullet = parsedBulletFromListItem(item);
-      const [keyPart, valuePart] = splitKeyValue(bullet.text);
-      const key = keyPart.trim();
-      const value = valuePart?.trim();
-      if (bullet.indent === 0) {
-        activeSample = undefined;
-        activeSampleRow = undefined;
-      }
-      if (item.depth > 0) {
-        if (activeKey === "cases") {
-          const caseRef = parsePreviewScenarioCaseReference(bullet.text, bullet.location);
-          if (caseRef) {
-            current.cases.push(caseRef);
-          } else {
-            diagnostics.push({
-              severity: "warning",
-              message: `Preview Scenario ${current.name} has malformed case reference: ${bullet.text}. Use A-ActionId.P-marker.case-name.`,
-              line: bullet.location.line
-            });
-          }
-        }
-        if (activeKey === "samples") {
-          const sampleResult = applyPreviewScenarioSampleBullet(current, bullet, activeSample, activeSampleRow, diagnostics);
-          if (sampleResult.sample) {
-            activeSample = sampleResult.sample;
-          }
-          if (sampleResult.row) {
-            activeSampleRow = sampleResult.row;
-          }
-        }
-        if (activeKey === "route") {
-          applyPreviewScenarioRouteBullet(current, bullet, diagnostics);
-        }
-        continue;
-      }
-
-      activeKey = key;
-      if ((key === "cases" || key === "samples" || key === "route") && (value === undefined || value === "")) {
-        continue;
-      }
-      if (value === undefined) {
-        diagnostics.push({
-          severity: "warning",
-          message: `Preview Scenario ${current.name} has malformed entry: ${bullet.text}. Use state, model, view, route, samples, before, or cases.`,
-          line: bullet.location.line
-        });
-        continue;
-      }
-      if (key === "route") {
-        diagnostics.push({
-          severity: "warning",
-          message: `Preview Scenario ${current.name} route must be a block with key: value entries.`,
-          line: bullet.location.line
-        });
-        continue;
-      }
-      current.properties[key] = value;
-      addPropertyLocation(current.propertyLocations, key, bullet.location);
-      if (key === "state") {
-        current.state = value;
-      } else if (key === "model") {
-        current.model = value;
-      } else if (key === "view") {
-        current.view = value;
-      } else if (key === "before") {
-        current.before = value;
-      }
-    }
-  }
-
-  return {
-    previewScenarios: scenarios,
-    sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["preview-scenarios"]),
-    diagnostics
-  };
-}
-
-function applyPreviewScenarioRouteBullet(
-  scenario: MarkVSpecPreviewScenario,
-  bullet: ParsedBullet,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  if (bullet.indent !== 1) {
-    diagnostics.push({
-      severity: "warning",
-      message: `Preview Scenario ${scenario.name} route entry must use key: value entries.`,
-      line: bullet.location.line
-    });
-    return;
-  }
-
-  const [keyPart, valuePart] = splitKeyValue(bullet.text);
-  const key = keyPart.trim();
-  const value = valuePart?.trim();
-  if (!key || value === undefined || value === "") {
-    diagnostics.push({
-      severity: "warning",
-      message: `Preview Scenario ${scenario.name} route entry must use key: value entries.`,
-      line: bullet.location.line
-    });
-    return;
-  }
-
-  scenario.route.push({
-    key,
-    value,
-    location: bullet.location
-  });
-}
-
-function parsePreviewScenarioCaseReference(text: string, location: SourceLocation): MarkVSpecPreviewScenario["cases"][number] | undefined {
-  const match = /^(A-[\p{L}\p{N}-]+)\.(P[A-Za-z0-9_-]*)\.([A-Za-z][A-Za-z0-9_-]*)$/u.exec(text.trim());
-  if (!match) {
-    return undefined;
-  }
-  return {
-    actionId: match[1],
-    processMarker: match[2],
-    caseName: match[3],
-    raw: text,
-    location
-  };
-}
-
-function applyPreviewScenarioSampleBullet(
-  scenario: MarkVSpecPreviewScenario,
-  bullet: ParsedBullet,
-  activeSample: MarkVSpecPreviewScenario["samples"][number] | undefined,
-  activeRow: MarkVSpecSampleRow | undefined,
-  diagnostics: MarkVSpecDiagnostic[]
-): { sample?: MarkVSpecPreviewScenario["samples"][number]; row?: MarkVSpecSampleRow } {
-  const [keyPart, valuePart] = splitKeyValue(bullet.text);
-  const key = keyPart.trim();
-  const value = valuePart?.trim();
-
-  if (bullet.indent === 1) {
-    if (!elementIdRegexForSamples.test(key)) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Preview Scenario ${scenario.name} has malformed sample target: ${bullet.text}. Use E-ElementId or E-ElementId: value.`,
-        line: bullet.location.line
-      });
-      return {};
-    }
-    const sample: MarkVSpecPreviewScenario["samples"][number] = {
-      elementId: key,
-      ...(value !== undefined && value !== "" ? { value } : {}),
-      location: bullet.location
-    };
-    scenario.samples.push(sample);
-    return { sample };
-  }
-
-  if (bullet.indent === 2 && activeSample) {
-    if (key === "rows" && value === "[]") {
-      activeSample.rows = {
-        rows: [],
-        explicitEmpty: true,
-        location: bullet.location
-      };
-      return { sample: activeSample };
-    }
-    if (key === "rows" && (value === undefined || value === "")) {
-      activeSample.rows = {
-        rows: [],
-        explicitEmpty: false,
-        location: bullet.location
-      };
-      return { sample: activeSample };
-    }
-  }
-
-  if (bullet.indent === 3 && activeSample?.rows) {
-    if (key === "row" && (value === undefined || value === "")) {
-      const row: MarkVSpecSampleRow = {
-        fields: {},
-        fieldLocations: {},
-        location: bullet.location,
-        raw: bullet.text
-      };
-      activeSample.rows.rows.push(row);
-      activeSample.rows.explicitEmpty = false;
-      return { sample: activeSample, row };
-    }
-  }
-
-  if (bullet.indent > 3 && activeSample && activeRow) {
-    activeRow.fields[key] = value ?? "";
-    addPropertyLocation(activeRow.fieldLocations, key, bullet.location);
-    activeRow.raw = `${activeRow.raw}\n${bullet.text}`;
-    return { sample: activeSample, row: activeRow };
-  }
-
-  diagnostics.push({
-    severity: "warning",
-    message: `Preview Scenario ${scenario.name} sample entry must use scalar E-* values or rows with row: field entries.`,
-    line: bullet.location.line
-  });
-  return { sample: activeSample, row: activeRow };
-}
-
-const elementIdRegexForSamples = new RegExp(String.raw`^${elementIdPattern}$`, "u");
-
-function parseValidationsSection(section: SectionAst): Pick<SectionSemanticResult, "validations" | "sectionProse" | "dependencies"> {
-  const validations: MarkVSpecValidationRule[] = [];
-  const dependencies: SemanticDependency[] = [];
-  const sectionScope = validationScopeForSection(section.kind);
-  let current: MarkVSpecValidationRule | undefined;
-  let currentHasStructuredContent = false;
-  let hasSeenEntity = false;
-  let inSectionNotes = false;
-  const sectionOverviewBlocks: BlockAst[] = [];
-  const sectionNoteBlocks: BlockAst[] = [];
-  for (const block of section.blocks) {
-    if (isSectionNotesHeading(block)) {
-      current = undefined;
-      currentHasStructuredContent = false;
-      inSectionNotes = true;
-      hasSeenEntity = true;
-      continue;
-    }
-    if (inSectionNotes) {
-      if (isEntityNoteBlock(block)) {
-        sectionNoteBlocks.push(block);
-      }
-      continue;
-    }
-    if (block.type === "heading" && block.depth === 3) {
-      hasSeenEntity = true;
-      const match = /^(?:(?<marker>\S+?):)?(?<id>V-[\p{L}\p{N}-]+)(?:\s+(?<name>.+?))?\s*$/u.exec(block.text);
-      if (!match) {
-        current = undefined;
-        currentHasStructuredContent = false;
-        continue;
-      }
-      const id = match.groups?.id ?? block.text.split(/\s+/u)[0] ?? block.text;
-      const marker = match.groups?.marker;
-      current = {
-        id,
-        name: match.groups?.name,
-        bullets: [],
-        rules: [],
-        properties: {
-          ...(marker ? { marker } : {}),
-          ...(sectionScope ? { scope: sectionScope } : {}),
-          ...(sectionScope ? { run: "client" } : {})
-        },
-        propertyLocations: {
-          ...(marker ? { marker: [locationFromBlock(block)] } : {}),
-          ...(sectionScope ? { scope: [locationFromBlock(block)], run: [locationFromBlock(block)] } : {})
-        },
-        location: locationFromBlock(block)
-      };
-      validations.push(current);
-      currentHasStructuredContent = false;
-      continue;
-    }
-    if (!current) {
-      if (!hasSeenEntity && isEntityNoteBlock(block)) {
-        sectionOverviewBlocks.push(block);
-      }
-      continue;
-    }
-    if (isEntityNoteBlock(block)) {
-      appendEntityProseLines(current, block, currentHasStructuredContent);
-      continue;
-    }
-    if (current) {
-      if (block.type === "list") {
-        currentHasStructuredContent = true;
-      }
-      let activeStructuredKey: string | undefined;
-      let activeRule: MarkVSpecValidationRule["rules"][number] | undefined;
-      for (const item of listItems([block])) {
-        const bullet = parsedBulletFromListItem(item);
-        if (item.depth === 0) {
-          activeRule = undefined;
-          const [key] = splitKeyValue(bullet.text);
-          activeStructuredKey = key.trim();
-          applyValidationBullet(current, bullet.text, bullet.location);
-          continue;
-        }
-
-        if (activeStructuredKey === "rules" || activeStructuredKey === "constraints") {
-          if (item.depth === 1) {
-            const [namePart, valuePart] = splitKeyValue(bullet.text);
-            const name = namePart.trim();
-            const targets = valuePart?.trim() ? [valuePart.trim()] : [];
-            activeRule = {
-              name,
-              targets,
-              location: bullet.location,
-              raw: bullet.text
-            };
-            current.rules.push(activeRule);
-          } else if (activeRule) {
-            const [childKey, childValue] = splitKeyValue(bullet.text);
-            if (childKey.trim() === "message" && childValue !== undefined) {
-              addValidationProperty(current, "message", childValue.trim(), bullet.location);
-            } else if (childKey.trim() === "messages" && childValue !== undefined) {
-              addValidationProperty(current, "message", childValue.trim(), bullet.location);
-            } else {
-              activeRule.targets.push(bullet.text.trim());
-            }
-          }
-        } else if (activeStructuredKey === "inputs") {
-          if (item.depth === 1) {
-            addValidationProperty(current, "input", bullet.text.trim(), bullet.location);
-          }
-        } else if (item.depth === 1 && activeStructuredKey === "messages") {
-          addValidationProperty(current, "message", bullet.text.trim(), bullet.location);
-        } else if (item.depth === 1 && activeStructuredKey === "message") {
-          addValidationProperty(current, "message", bullet.text.trim(), bullet.location);
-        } else if (item.depth === 1 && activeStructuredKey === "target") {
-          addValidationProperty(current, "target", bullet.text.trim(), bullet.location);
-        } else if (item.depth === 1 && activeStructuredKey === "check") {
-          const [childKey, childValue] = splitKeyValue(bullet.text);
-          if (childKey.trim() === "message" && childValue !== undefined) {
-            addValidationProperty(current, "message", childValue.trim(), bullet.location);
-          } else if (activeRule) {
-            activeRule.targets.push(bullet.text.trim());
-          }
-        }
-      }
-      const targets = propertyValues(current.properties["target"]);
-      for (const target of targets) {
-        dependencies.push({
-          source: { type: "entity", id: current.id },
-          target: { type: "entity", id: target },
-          direction: "source-invalidates-target",
-          kind: "references"
-        });
-      }
-    }
-  }
-  return {
-    validations,
-    sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["validations:list", ...validations.map((validation) => validationRenderKey(validation.id))]),
-    dependencies
-  };
-}
-
-function validationScopeForSection(kind: SectionKind): "field" | "cross-field" | undefined {
-  if (kind === "FieldValidations") {
-    return "field";
-  }
-  if (kind === "CrossFieldValidations") {
-    return "cross-field";
-  }
-  return undefined;
 }
 
 function parseFormGroupsSection(section: SectionAst): Pick<SectionSemanticResult, "formGroups" | "sectionProse" | "dependencies"> {
@@ -2533,254 +1808,6 @@ function isHistoryFieldType(value: string): value is MarkVSpecHistoryFieldType {
   return value === "string" || value === "date";
 }
 
-function applyLayoutMetadataBullet(layout: MarkVSpecLayoutGroup, bullet: ParsedBullet): string | undefined {
-  const [key, value] = splitKeyValue(bullet.text);
-  if (key.trim() === "partial" && value !== undefined && value.trim() === "") {
-    layout.partial = {
-      states: {},
-      propertyLocations: {},
-      location: bullet.location
-    };
-    addPropertyLocation(layout.propertyLocations, "partial", bullet.location);
-    layout.items.push({
-      type: "property",
-      key: "partial",
-      value: "",
-      scope: "metadata",
-      location: bullet.location,
-      raw: bullet.text
-    });
-    return "partial";
-  }
-
-  if (value !== undefined) {
-    const normalizedKey = key.trim();
-    const normalizedValue = value.trim();
-    layout.properties[normalizedKey] = normalizedValue;
-    addPropertyLocation(layout.propertyLocations, normalizedKey, bullet.location);
-    layout.items.push({
-      type: "property",
-      key: normalizedKey,
-      value: normalizedValue,
-      scope: "metadata",
-      location: bullet.location,
-      raw: bullet.text
-    });
-    return undefined;
-  }
-
-  if (!layout.kind) {
-    layout.kind = bullet.text;
-  }
-
-  layout.items.push({
-    type: "flag",
-    value: bullet.text,
-    scope: "metadata",
-    location: bullet.location,
-    raw: bullet.text
-  });
-  return undefined;
-}
-
-function applyLayoutPartialBullet(
-  layout: MarkVSpecLayoutGroup,
-  bullet: ParsedBullet,
-  nestedProperty: "partial" | "partial states"
-): "partial" | "partial states" {
-  const partial = layout.partial ?? {
-    states: {},
-    propertyLocations: {},
-    location: bullet.location
-  };
-  layout.partial = partial;
-
-  const [key, value] = splitKeyValue(bullet.text);
-  const normalizedKey = key.trim();
-  const normalizedValue = value?.trim() ?? "";
-
-  if (nestedProperty === "partial states") {
-    partial.states[normalizedKey] = normalizedValue;
-    addPropertyLocation(partial.propertyLocations, `states ${normalizedKey}`, bullet.location);
-    addPropertyLocation(layout.propertyLocations, `partial states ${normalizedKey}`, bullet.location);
-    layout.items.push({
-      type: "property",
-      key: `partial states ${normalizedKey}`,
-      value: normalizedValue,
-      scope: "metadata",
-      location: bullet.location,
-      raw: bullet.text
-    });
-    return "partial states";
-  }
-
-  if (normalizedKey === "id") {
-    partial.id = normalizedValue;
-    addPropertyLocation(partial.propertyLocations, "id", bullet.location);
-    addPropertyLocation(layout.propertyLocations, "partial id", bullet.location);
-    layout.items.push({
-      type: "property",
-      key: "partial id",
-      value: normalizedValue,
-      scope: "metadata",
-      location: bullet.location,
-      raw: bullet.text
-    });
-    return "partial";
-  }
-
-  if (normalizedKey === "states") {
-    addPropertyLocation(partial.propertyLocations, "states", bullet.location);
-    addPropertyLocation(layout.propertyLocations, "partial states", bullet.location);
-    layout.items.push({
-      type: "property",
-      key: "partial states",
-      value: normalizedValue,
-      scope: "metadata",
-      location: bullet.location,
-      raw: bullet.text
-    });
-    return "partial states";
-  }
-
-  addPropertyLocation(partial.propertyLocations, normalizedKey, bullet.location);
-  addPropertyLocation(layout.propertyLocations, `partial ${normalizedKey}`, bullet.location);
-  layout.items.push({
-    type: "property",
-    key: `partial ${normalizedKey}`,
-    value: normalizedValue,
-    scope: "metadata",
-    location: bullet.location,
-    raw: bullet.text
-  });
-  return "partial";
-}
-
-function applyLayoutItemBullet(layout: MarkVSpecLayoutGroup, bullet: ParsedBullet): void {
-  const [key, value] = splitKeyValue(bullet.text);
-  if (key.trim() === "slot" && value !== undefined) {
-    layout.items.push({
-      type: "slot",
-      name: value.trim(),
-      location: bullet.location,
-      raw: bullet.text
-    });
-    return;
-  }
-
-  const field = new RegExp(String.raw`^"(.+?)":\s*(${elementIdPattern})\s*$`, "u").exec(bullet.text);
-  if (field) {
-    layout.items.push({
-      type: "field",
-      label: field[1],
-      elementId: field[2],
-      location: bullet.location,
-      raw: bullet.text
-    });
-    return;
-  }
-
-  if (isLayoutItemId(bullet.text)) {
-    layout.items.push({
-      type: "contains",
-      targetId: bullet.text,
-      location: bullet.location,
-      raw: bullet.text
-    });
-    return;
-  }
-
-  if (value !== undefined) {
-    layout.items.push({
-      type: "property",
-      key: key.trim(),
-      value: value.trim(),
-      scope: "items",
-      location: bullet.location,
-      raw: bullet.text
-    });
-    return;
-  }
-
-  layout.items.push({
-    type: "flag",
-    value: bullet.text,
-    scope: "items",
-    location: bullet.location,
-    raw: bullet.text
-  });
-}
-
-function applySlotDefinitionBullet(slot: MarkVSpecSlotDefinition, text: string, location: SourceLocation): void {
-  const [key, value] = splitKeyValue(text);
-  if (value === undefined) {
-    slot.properties[text] = true;
-    addPropertyLocation(slot.propertyLocations, text, location);
-    return;
-  }
-
-  const normalizedKey = key.trim();
-  slot.properties[normalizedKey] = value.trim();
-  addPropertyLocation(slot.propertyLocations, normalizedKey, location);
-}
-
-function layoutRenderDependencies(section: SectionAst, layout: MarkVSpecLayoutGroup, slotName?: string): SemanticDependency[] {
-  return [{
-    source: { type: "section", id: section.id },
-    target: { type: "render", id: slotName ? slotContentRenderKey(slotName, section.viewport, layout.id) : `layout:${layout.viewport}:${layout.id}` },
-    direction: "source-invalidates-target",
-    kind: "renders"
-  }];
-}
-
-function slotContentRenderKey(slotName: string, viewport: string | undefined, layoutId: string): string {
-  return `slot-content:${slotName}:${viewport ?? "default"}:${layoutId}`;
-}
-
-function slotDefinitionRenderKey(slotName: string): string {
-  return `slot-definition:${slotName}`;
-}
-
-function addLayoutItemDependency(layout: MarkVSpecLayoutGroup, item: MarkVSpecLayoutItem | undefined, dependencies: SemanticDependency[]): void {
-  if (!item) {
-    return;
-  }
-  if (item.type === "contains") {
-    dependencies.push({
-      source: { type: "entity", id: layout.id },
-      target: { type: "entity", id: item.targetId },
-      direction: "source-invalidates-target",
-      kind: "references"
-    });
-  } else if (item.type === "field") {
-    dependencies.push({
-      source: { type: "entity", id: layout.id },
-      target: { type: "entity", id: item.elementId },
-      direction: "source-invalidates-target",
-      kind: "references"
-    });
-  } else if (item.type === "slot") {
-    dependencies.push({
-      source: { type: "entity", id: layout.id },
-      target: { type: "entity", id: `slot:${item.name}` },
-      direction: "source-invalidates-target",
-      kind: "references"
-    });
-  }
-}
-
-function addPartialDependencies(layout: MarkVSpecLayoutGroup, dependencies: SemanticDependency[]): void {
-  if (!layout.partial?.id) {
-    return;
-  }
-  dependencies.push({
-    source: { type: "entity", id: layout.id },
-    target: { type: "entity", id: layout.partial.id },
-    direction: "source-invalidates-target",
-    kind: "references"
-  });
-}
-
 function dedupeDependencies(dependencies: SemanticDependency[]): SemanticDependency[] {
   const seen = new Set<string>();
   const deduped: SemanticDependency[] = [];
@@ -3255,25 +2282,8 @@ function addActionMenuItemDependency(element: MarkVSpecElement, bullet: ParsedBu
   });
 }
 
-function actionRenderDependencies(section: SectionAst, action: MarkVSpecAction): SemanticDependency[] {
-  return [{
-    source: { type: "section", id: section.id },
-    target: { type: "render", id: actionRenderKey(action.id) },
-    direction: "source-invalidates-target",
-    kind: "renders"
-  }];
-}
-
-function actionRenderKey(actionId: string): string {
-  return `action:${actionId}`;
-}
-
 function formGroupRenderKey(formGroupId: string): string {
   return `form-group:${formGroupId}`;
-}
-
-function validationRenderKey(validationId: string): string {
-  return `validation:${validationId}`;
 }
 
 function ruleRenderKey(ruleId: string): string {
@@ -3282,67 +2292,6 @@ function ruleRenderKey(ruleId: string): string {
 
 function errorCodeRenderKey(errorCodeId: string): string {
   return `error-code:${errorCodeId}`;
-}
-
-function actionSemanticDependencies(action: MarkVSpecAction): SemanticDependency[] {
-  const dependencies: SemanticDependency[] = [];
-  if (action.trigger?.elementId) {
-    dependencies.push(referenceDependency(action.id, action.trigger.elementId));
-  }
-  if (action.triggeredBy?.startsWith("A-")) {
-    dependencies.push(referenceDependency(action.id, action.triggeredBy.split(".")[0] ?? action.triggeredBy));
-  }
-  for (const state of action.fromStates) {
-    dependencies.push(referenceDependency(action.id, `state:${state}`));
-  }
-  for (const transition of action.transitions) {
-    dependencies.push({
-      source: { type: "entity", id: action.id },
-      target: { type: "entity", id: `state:${transition.to}` },
-      direction: "source-invalidates-target",
-      kind: "derives"
-    });
-    dependencies.push(referenceDependency(action.id, `state:${transition.from}`));
-  }
-  for (const target of actionUpdateTargets(action)) {
-    dependencies.push(referenceDependency(action.id, target));
-  }
-  for (const param of action.routeParams) {
-    dependencies.push(referenceDependency(action.id, param.source));
-  }
-  for (const step of action.processSteps) {
-    if (step.name.toLowerCase().replace(/[\s_-]+/gu, "") === "httprequest") {
-      for (const detail of step.details.filter((detail) => detail.key !== "request")) {
-        dependencies.push(referenceDependency(action.id, detail.value));
-      }
-    }
-    for (const outcome of step.outcomes) {
-      for (const param of outcome.routeParams) {
-        dependencies.push(referenceDependency(action.id, param.source));
-      }
-      if (outcome.target) {
-        dependencies.push(referenceDependency(action.id, outcome.target));
-      }
-      if (outcome.content) {
-        dependencies.push(referenceDependency(action.id, outcome.content));
-      }
-    }
-  }
-  for (const outcome of action.outcomes) {
-    for (const param of outcome.routeParams) {
-      dependencies.push(referenceDependency(action.id, param.source));
-    }
-  }
-  return dependencies;
-}
-
-function actionUpdateTargets(action: MarkVSpecAction): string[] {
-  return [
-    action.target,
-    ...action.processSteps.flatMap((step) => [step.target, step.content]),
-    ...action.processSteps.flatMap((step) => step.outcomes.flatMap((outcome) => [outcome.target, outcome.content])),
-    ...action.outcomes.flatMap((outcome) => [outcome.target, outcome.content])
-  ].filter((value): value is string => Boolean(value));
 }
 
 function referenceDependency(sourceId: string, targetId: string): SemanticDependency {
@@ -3354,30 +2303,6 @@ function referenceDependency(sourceId: string, targetId: string): SemanticDepend
   };
 }
 
-function applyValidationBullet(validation: MarkVSpecValidationRule, text: string, location: SourceLocation): void {
-  validation.bullets.push({ text, location });
-  const [key, value] = splitKeyValue(text);
-  if (value === undefined) {
-    return;
-  }
-
-  const normalizedKey = key.trim();
-  const normalizedValue = value.trim();
-  addValidationProperty(validation, normalizedKey, normalizedValue, location);
-}
-
-function addValidationProperty(validation: MarkVSpecValidationRule, normalizedKey: string, normalizedValue: string, location: SourceLocation): void {
-  const current = validation.properties[normalizedKey];
-  if (current === undefined) {
-    validation.properties[normalizedKey] = normalizedValue;
-  } else if (Array.isArray(current)) {
-    current.push(normalizedValue);
-  } else {
-    validation.properties[normalizedKey] = [current, normalizedValue];
-  }
-  addPropertyLocation(validation.propertyLocations, normalizedKey, location);
-}
-
 function applyFormGroupBullet(formGroup: MarkVSpecFormGroup, text: string, location: SourceLocation): string | undefined {
   formGroup.bullets.push({ text, location });
   const [key, value] = splitKeyValue(text);
@@ -3387,7 +2312,7 @@ function applyFormGroupBullet(formGroup: MarkVSpecFormGroup, text: string, locat
 
   const normalizedKey = key.trim();
   const normalizedValue = value.trim();
-  addFormGroupProperty(formGroup, normalizedKey, normalizedValue, location);
+  addAccumulatedSectionProperty(formGroup, normalizedKey, normalizedValue, location);
 
   if (normalizedKey === "fields") {
     for (const field of splitReferenceList(normalizedValue)) {
@@ -3418,18 +2343,6 @@ function addFormGroupField(formGroup: MarkVSpecFormGroup, text: string, location
   });
 }
 
-function addFormGroupProperty(formGroup: MarkVSpecFormGroup, key: string, value: string, location: SourceLocation): void {
-  const current = formGroup.properties[key];
-  if (current === undefined) {
-    formGroup.properties[key] = value;
-  } else if (Array.isArray(current)) {
-    current.push(value);
-  } else {
-    formGroup.properties[key] = [current, value];
-  }
-  addPropertyLocation(formGroup.propertyLocations, key, location);
-}
-
 function splitReferenceList(value: string): string[] {
   return value
     .split(/[,、]/u)
@@ -3446,15 +2359,7 @@ function applyErrorCodeBullet(errorCode: MarkVSpecErrorCode, text: string, locat
 
   const normalizedKey = key.trim();
   const normalizedValue = value.trim();
-  const current = errorCode.properties[normalizedKey];
-  if (current === undefined) {
-    errorCode.properties[normalizedKey] = normalizedValue;
-  } else if (Array.isArray(current)) {
-    current.push(normalizedValue);
-  } else {
-    errorCode.properties[normalizedKey] = [current, normalizedValue];
-  }
-  addPropertyLocation(errorCode.propertyLocations, normalizedKey, location);
+  addAccumulatedSectionProperty(errorCode, normalizedKey, normalizedValue, location);
 }
 
 function propertyValues(value: string | string[] | undefined): string[] {
@@ -3569,7 +2474,7 @@ function applyRuleListBlock(rule: MarkVSpecRule, block: BlockAst): void {
       continue;
     }
     for (const child of listItems(item.children)) {
-      addRuleProperty(rule, "messages", child.text, locationFromBlock(child));
+      addAccumulatedSectionProperty(rule, "messages", child.text, locationFromBlock(child));
     }
   }
 }
@@ -3585,19 +2490,7 @@ function applyRuleBullet(rule: MarkVSpecRule, text: string, location: SourceLoca
   if (normalizedKey === "messages" && normalizedValue === "") {
     return;
   }
-  addRuleProperty(rule, normalizedKey, normalizedValue, location);
-}
-
-function addRuleProperty(rule: MarkVSpecRule, key: string, value: string, location: SourceLocation): void {
-  const current = rule.properties[key];
-  if (current === undefined) {
-    rule.properties[key] = value;
-  } else if (Array.isArray(current)) {
-    current.push(value);
-  } else {
-    rule.properties[key] = [current, value];
-  }
-  addPropertyLocation(rule.propertyLocations, key, location);
+  addAccumulatedSectionProperty(rule, normalizedKey, normalizedValue, location);
 }
 
 function appendRuleBodyLines(rule: MarkVSpecRule, block: BlockAst): void {
@@ -3731,23 +2624,6 @@ function isEntityNoteBlock(block: BlockAst): boolean {
     || block.type === "html";
 }
 
-function firstActionStructuredListItemLine(block: BlockAst): number | undefined {
-  const item = listItems([block]).find((candidate) =>
-    candidate.depth === 0 && /^(?:Triggered|From|Process(?:\s*:.*)?|Effects|Otherwise|Cases|When|Effect|Case|Else)\s*$/iu.test(candidate.text)
-  );
-  return item?.range?.start.line;
-}
-
-function isActionMalformedStructuredListBlock(block: BlockAst): boolean {
-  return listItems([block]).some((item) => item.depth === 0 && looksLikeStructuredProperty(item.text));
-}
-
-function isActionProseListPrefix(block: BlockAst, line: number): boolean {
-  return listItems([block])
-    .filter((item) => item.depth === 0 && (item.range?.start.line ?? 1) < line)
-    .every((item) => !looksLikeStructuredProperty(item.text));
-}
-
 function appendListProseBeforeLine(entity: { overview?: string[]; notes?: string[] }, block: BlockAst, line: number, hasStructuredContent: boolean): void {
   if (!block.sourceLines || block.sourceLines.length === 0 || !block.range || line <= block.range.start.line) {
     return;
@@ -3848,10 +2724,4 @@ function parsedBulletFromListItem(item: ListItemView): ParsedBullet {
     indent: item.depth,
     location: locationFromBlock(item)
   };
-}
-
-function addPropertyLocation(locations: Record<string, SourceLocation[]>, key: string, location: SourceLocation): void {
-  const existing = locations[key] ?? [];
-  existing.push(location);
-  locations[key] = existing;
 }

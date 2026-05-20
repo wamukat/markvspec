@@ -6,7 +6,8 @@
 MarkVSpec 設計書を書くための文書ではありません。
 
 このドキュメントは、MarkVSpec `0.5.0` リリースの確認手順を定義します。
-対象は VS Code Marketplace 向けパッケージと、npm package `@markvspec/cli` です。
+対象は VS Code Marketplace 向けパッケージと、CLI package `@markvspec/cli` を含む
+`@markvspec` scope の npm packages です。
 
 ## 初回公開で伝える体験
 
@@ -105,6 +106,8 @@ Kanbalone の運用では、実装後に独立したサブエージェントレ�
   互換ブラウザがないため skip したことを明示する。
 - [ ] `npm run check:readme-release` が通る。
 - [ ] release 環境で `npm run check:release` が通る。
+- [ ] `release.yml` と `pages.yml` で使っている GitHub Actions が Node.js 24
+  action runtime を使っている。更新不要の場合は release notes に理由を記録する。
 - [ ] root、core、document-renderer、exporter、CLI、VS Code extension の package
   version が意図した release version と一致している。
 - [ ] VS Code Marketplace の extension ID が `wamukat.markvspec` であることを確認する。
@@ -119,8 +122,8 @@ Kanbalone の運用では、実装後に独立したサブエージェントレ�
   command registration、preview 起動、diagnostics 発行を確認する。
 - [ ] `@markvspec/cli` の package metadata、`bin.markvspec`、`files`、
   repository、homepage、bugs、`publishConfig.access=public` が公開向けに妥当。
-- [ ] `npm pack --dry-run -w @markvspec/cli` で、公開物が `dist/index.js` と
-  package metadata に絞られている。
+- [ ] `npm pack --dry-run -w @markvspec/cli` で、公開物が `dist/**` と package
+  metadata に絞られている。
 - [ ] CLI package 内容に `.work`、test fixture、不要な source、旧 `MarkMock` /
   `markmock` 名が含まれていない。
 - [ ] pack 済み CLI で `markvspec validate`、`markvspec export html`、
@@ -150,6 +153,27 @@ Kanbalone の運用では、実装後に独立したサブエージェントレ�
   移動し、`isResolved: false` のままユーザー確認を待つ。
 
 ## CLI npm package 手動スモーク手順
+
+### npm workspace package 依存方針
+
+registry に公開する MarkVSpec package 間の依存は、同じ release version の exact
+range で表す。`0.5.0` release では次の順で publish する。
+
+1. `@markvspec/core`
+2. `@markvspec/document-renderer`
+3. `@markvspec/exporter`
+4. `@markvspec/cli`
+
+公開する package manifest では `"@markvspec/core": "0.5.0"` のような exact range
+を使う。npm 公開 package には `file:` dependency を残さない。`file:` は repository
+workspace 内でしか成立しないため。今回の release では `workspace:*` も使わない。
+pack 済み tarball が publish-time manifest 変換なしで registry install 可能な
+dependency range を含む必要があるため。publish manifest 変換は、専用の生成 script
+と検証手順を整備するまでは追加しない。
+
+VS Code extension はこの repository から bundled VSIX として package し、npm library
+として publish しない。そのため、extension 側の local `file:` workspace dependency
+は npm package 依存方針とは分けて扱う。
 
 1. `npm run build -w @markvspec/cli` を実行する。
 2. `npm pack --dry-run -w @markvspec/cli` で package 内容を確認する。

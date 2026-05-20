@@ -1,4 +1,5 @@
 import type { MarkVSpecParseResult } from "./types.js";
+import { propertyFirstString, propertyString } from "./property-accessor.js";
 
 export type MarkVSpecEntityReferenceKind =
   | "screen"
@@ -63,18 +64,18 @@ export function resolveMarkVSpecEntityReference(
     return {
       id,
       kind: "layout",
-      marker: stringProperty(layout.properties["marker"]) ?? id,
+      marker: propertyString(layout, "marker") || id,
       label: layout.name || id
     };
   }
 
   const element = result.elements.find((candidate) => candidate.id === id);
   if (element) {
-    const label = stringProperty(element.properties["label"]) ?? stringProperty(element.properties["text"]);
+    const label = propertyString(element, "label") || propertyString(element, "text");
     return {
       id,
       kind: "element",
-      marker: stringProperty(element.properties["marker"]) ?? id,
+      marker: propertyString(element, "marker") || id,
       label: label ?? id
     };
   }
@@ -84,7 +85,7 @@ export function resolveMarkVSpecEntityReference(
     return {
       id,
       kind: "action",
-      marker: stringProperty(action.properties["marker"]) ?? id,
+      marker: propertyString(action, "marker") || id,
       label: action.name || id
     };
   }
@@ -94,7 +95,7 @@ export function resolveMarkVSpecEntityReference(
     return {
       id,
       kind: "form-group",
-      marker: firstStringProperty(formGroup.properties["marker"]) ?? id,
+      marker: propertyFirstString(formGroup, "marker") ?? id,
       label: formGroup.name || id
     };
   }
@@ -104,7 +105,7 @@ export function resolveMarkVSpecEntityReference(
     return {
       id,
       kind: "validation",
-      marker: firstStringProperty(validation.properties["marker"]) ?? id,
+      marker: propertyFirstString(validation, "marker") ?? id,
       label: validation.name || id
     };
   }
@@ -114,7 +115,7 @@ export function resolveMarkVSpecEntityReference(
     return {
       id,
       kind: "business-rule",
-      marker: firstStringProperty(rule.properties["marker"]) ?? id,
+      marker: propertyFirstString(rule, "marker") ?? id,
       label: rule.name || id
     };
   }
@@ -124,7 +125,7 @@ export function resolveMarkVSpecEntityReference(
     return {
       id,
       kind: "error-code",
-      marker: firstStringProperty(errorCode.properties["marker"]) ?? id,
+      marker: propertyFirstString(errorCode, "marker") ?? id,
       label: errorCode.name || id
     };
   }
@@ -193,15 +194,4 @@ function allLayoutGroups(result: MarkVSpecParseResult): MarkVSpecParseResult["la
     ...result.layoutGroups,
     ...result.slotContents.flatMap((slot) => slot.layoutGroups)
   ];
-}
-
-function stringProperty(value: string | true | undefined): string | undefined {
-  return typeof value === "string" && value ? value : undefined;
-}
-
-function firstStringProperty(value: string | string[] | true | undefined): string | undefined {
-  if (typeof value === "string") {
-    return value || undefined;
-  }
-  return Array.isArray(value) ? value.find((item) => item.length > 0) : undefined;
 }

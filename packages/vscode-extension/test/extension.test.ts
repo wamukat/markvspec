@@ -12,15 +12,12 @@ import {
   resolvePdfBrowserCommands
 } from "@markvspec/exporter";
 import {
-  createMarkVSpecCodeActions,
-  createMarkVSpecDocumentSymbols,
   buildDocumentScope,
   buildPreviewUpdatePlan,
   canOpenPreviewReference,
   defaultExportHtmlBaseName,
   extractRenderKeyFragments,
   formatPreviewUpdateTelemetry,
-  formatMarkVSpecStructure,
   isCurrentPreviewGenerationState,
   normalizePreviewPatchResultState,
   PREVIEW_AUTO_UPDATE_DEFAULT,
@@ -39,8 +36,15 @@ import {
   shouldSkipActiveEditorPreviewUpdate,
   shouldUseIncrementalPreviewUpdate,
   renderStandaloneProjectHtml
-} from "./extension.js";
-import { renderInlineMarkdown } from "./markdown-renderer.js";
+} from "../src/extension.js";
+import { renderEntityNotes, renderInlineMarkdown } from "../src/markdown-renderer.js";
+import {
+  escapeRegExp,
+  stateSection,
+  stateSectionContaining,
+  stateWireframeSection,
+  viewportStateSection
+} from "./test-helpers.js";
 import { buildStateScreenReadModels } from "@markvspec/core";
 
 const extensionRoot = resolve(".");
@@ -153,10 +157,6 @@ function docLabel(value: string, kind: "state" | "trigger" | "result", extraClas
   return `<code class="${escapeRegExp(classes)}">${escapeRegExp(value)}</code>`;
 }
 
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 function sourceCodePattern(value: string): string {
   return inlineTokenPattern(value);
 }
@@ -189,22 +189,6 @@ function specSectionPattern(title: string, rows: string[]): string {
   return `<div class="spec-section"><strong>${escapeRegExp(title)}</strong><ul class="spec-list">${rows.map((row) => `<li>${row}</li>`).join("")}</ul></div>`;
 }
 
-function stateSection(html: string, state: string): string {
-  const startMatch = new RegExp(`<section class="doc-section state-screen-section"(?=[^>]*\\bdata-state="${escapeRegExp(state)}")[^>]*>`).exec(html);
-  const start = startMatch?.index ?? -1;
-  assert.notEqual(start, -1, `missing state section ${state}`);
-  const next = html.indexOf(`<section class="doc-section state-screen-section"`, start + (startMatch?.[0].length ?? 0));
-  return next === -1 ? html.slice(start) : html.slice(start, next);
-}
-
-function viewportStateSection(html: string, state: string, viewport: string): string {
-  const startMatch = new RegExp(`<section class="doc-section state-screen-section"(?=[^>]*\\bdata-state="${escapeRegExp(state)}")(?=[^>]*\\bdata-viewport="${escapeRegExp(viewport)}")[^>]*>`).exec(html);
-  const start = startMatch?.index ?? -1;
-  assert.notEqual(start, -1, `missing state section ${viewport}:${state}`);
-  const next = html.indexOf(`<section class="doc-section state-screen-section"`, start + (startMatch?.[0].length ?? 0));
-  return next === -1 ? html.slice(start) : html.slice(start, next);
-}
-
 function stateViewTitleSection(html: string, title: string): string {
   const startMatch = new RegExp(`<section class="doc-section state-screen-section"(?=[^>]*\\bdata-state-view-title="${escapeRegExp(title)}")[^>]*>`).exec(html);
   const start = startMatch?.index ?? -1;
@@ -219,25 +203,6 @@ function viewportStateViewTitleSection(html: string, title: string, viewport: st
   assert.notEqual(start, -1, `missing state view title section ${viewport}:${title}`);
   const next = html.indexOf(`<section class="doc-section state-screen-section"`, start + (startMatch?.[0].length ?? 0));
   return next === -1 ? html.slice(start) : html.slice(start, next);
-}
-
-function stateWireframeSection(section: string): string {
-  const startMarker = `<section class="wireframe-section">`;
-  const start = section.indexOf(startMarker);
-  assert.notEqual(start, -1, "missing wireframe section");
-  const nextH3 = section.indexOf("<h3>", start + startMarker.length);
-  const nextH5 = section.indexOf('<h5 class="state-screen-subheading"', start + startMarker.length);
-  const candidates = [nextH3, nextH5].filter((index) => index !== -1);
-  const nextHeading = candidates.length > 0 ? Math.min(...candidates) : -1;
-  return nextHeading === -1 ? section.slice(start) : section.slice(start, nextHeading);
-}
-
-function stateSectionContaining(html: string, state: string, text: string): string {
-  const sectionPattern = new RegExp(`<section class="doc-section state-screen-section"(?=[^>]*\\bdata-state="${escapeRegExp(state)}")[^>]*>[\\s\\S]*?(?=<section class="doc-section state-screen-section"|$)`, "gu");
-  const sections = [...html.matchAll(sectionPattern)].map((match) => match[0]);
-  const section = sections.find((candidate) => candidate.includes(text));
-  assert(section, `missing state section ${state} containing ${text}`);
-  return section;
 }
 
 function assertInOrder(source: string, labels: string[]): void {
@@ -278,14 +243,6 @@ function docSectionByHeading(html: string, label: string, nextLabel?: string): s
   return nextMatch ? html.slice(start, start + startMatch[0].length + nextMatch.index) : html.slice(start);
 }
 
-function expandSnippetBody(body: string[]): string {
-  return body.join("\n")
-    .replace(/\$\{\d+\|([^|}]*)\|\}/g, (_match, choices: string) => choices.split(",")[0] ?? "")
-    .replace(/\$\{\d+:([^}]*)\}/g, "$1")
-    .replace(/\$\{\d+\}/g, "")
-    .replace(/\$\d+/g, "");
-}
-
 function createTextDocument(source: string, filePath = "/workspace/example.vspec.md") {
   const lines = source.split(/\r?\n/);
   return {
@@ -296,18 +253,6 @@ function createTextDocument(source: string, filePath = "/workspace/example.vspec
     languageId: "markvspec",
     fileName: filePath
   };
-}
-
-function createDiagnostic(source: string, lineText: string, message: string): vscode.Diagnostic {
-  const line = source.split(/\r?\n/).findIndex((candidate) => candidate === lineText);
-  assert.notEqual(line, -1, lineText);
-  const diagnostic = new vscode.Diagnostic(
-    new vscode.Range(line, 0, line, lineText.length),
-    message,
-    vscode.DiagnosticSeverity.Warning
-  );
-  diagnostic.source = "MarkVSpec";
-  return diagnostic;
 }
 
 test("renders generated design document sections without launching VS Code", () => {
@@ -2543,6 +2488,84 @@ title: Fragment
   );
 });
 
+test("keeps form group fragment markdown references resolved against composed source scope", () => {
+  const template = parseMarkVSpec(`---
+id: TPL-FRAGMENT-SHELL
+type: template
+title: Fragment Shell
+---
+
+# TPL-FRAGMENT-SHELL Fragment Shell
+
+## States
+
+- idle*
+
+## Layout: desktop
+
+### L-TopBar Top bar
+
+- row
+
+#### Items
+
+- slot: content
+`);
+  const screen = parseMarkVSpec(`---
+id: SCR-FORM-FRAGMENT
+type: screen
+title: Form Fragment
+---
+
+# SCR-FORM-FRAGMENT Form Fragment
+
+## States
+
+- idle*
+
+## Slot: content
+
+### L-Form Form
+
+- stack
+
+#### Items
+
+- E-NameInput
+
+## Elements
+
+### E-NameInput Input
+
+- label: Name
+
+## Form Groups
+
+### F-ProfileForm Profile form
+
+- fields:
+  - E-NameInput
+
+Profile form references #{L-TopBar}.
+`);
+  const composed = composeMarkVSpecTemplate(template, screen);
+  const fragments = renderPreviewFragmentUpdates(
+    {
+      result: composed,
+      focus: {
+        layoutIds: new Set(["L-Form"]),
+        elementIds: new Set(["E-NameInput"]),
+        actionIds: new Set()
+      }
+    },
+    { wireframeRenderKeys: [], previewDocumentRenderKeys: ["form-groups:list"] }
+  );
+  const fragmentHtml = fragments[0]?.html.join("") ?? "";
+
+  assert.equal(fragments.length, 1);
+  assert.match(fragmentHtml, /Profile form references <a class="mm-ref-chip mm-ref-chip-layout" href="#state-views"[^>]*data-mm-ref-id="L-TopBar"/);
+});
+
 test("verifies typing-style preview updates choose partial or full render", () => {
   const previousSource = `---
 id: SCR-TYPING-SMOKE
@@ -2755,389 +2778,6 @@ title: Fragment Layout
   });
   assert.match(fragments[0]?.html[0] ?? "", /mm-layout-grid/);
   assert.match(fragments[1]?.html[0] ?? "", /grid/);
-});
-
-test("builds preview update plans for full, fragment, and fallback paths", () => {
-  assert.deepEqual(buildPreviewUpdatePlan({ hasPreviousSource: false }), {
-    kind: "full",
-    reason: "no-previous-source"
-  });
-
-  assert.deepEqual(buildPreviewUpdatePlan({ hasPreviousSource: true, sourceUnchanged: true }), {
-    kind: "noop",
-    reason: "unchanged-source"
-  });
-
-  assert.deepEqual(
-    buildPreviewUpdatePlan({
-      hasPreviousSource: true,
-      invalidation: {
-        requiresFullRender: true,
-        wireframeRenderKeys: [],
-        previewDocumentRenderKeys: []
-      }
-    }),
-    {
-      kind: "full",
-      reason: "requires-full-render"
-    }
-  );
-
-  assert.deepEqual(
-    buildPreviewUpdatePlan({
-      hasPreviousSource: true,
-      invalidation: {
-        requiresFullRender: false,
-        wireframeRenderKeys: ["element:E-Title"],
-        previewDocumentRenderKeys: ["elements:list"]
-      },
-      fragmentGroupCount: 2
-    }),
-    {
-      kind: "fragment",
-      expectedFragmentGroups: 2
-    }
-  );
-
-  assert.deepEqual(
-    buildPreviewUpdatePlan({
-      hasPreviousSource: true,
-      invalidation: {
-        requiresFullRender: false,
-        wireframeRenderKeys: [],
-        previewDocumentRenderKeys: []
-      },
-      fragmentGroupCount: 0
-    }),
-    {
-      kind: "noop",
-      reason: "no-render-keys"
-    }
-  );
-
-  assert.deepEqual(
-    buildPreviewUpdatePlan({
-      hasPreviousSource: true,
-      invalidation: {
-        requiresFullRender: false,
-        wireframeRenderKeys: ["element:E-Title"],
-        previewDocumentRenderKeys: ["elements:list"]
-      },
-      fragmentGroupCount: 1
-    }),
-    {
-      kind: "fallback-full",
-      reason: "fragment-generation-mismatch",
-      expectedFragmentGroups: 2,
-      actualFragmentGroups: 1
-    }
-  );
-});
-
-test("skips active editor preview updates when focus returns to the same document", () => {
-  assert.equal(
-    shouldSkipActiveEditorPreviewUpdate("file:///workspace/screen.vspec.md", "file:///workspace/screen.vspec.md"),
-    true
-  );
-  assert.equal(
-    shouldSkipActiveEditorPreviewUpdate("file:///workspace/screen.vspec.md", "file:///workspace/other.vspec.md"),
-    false
-  );
-  assert.equal(shouldSkipActiveEditorPreviewUpdate(undefined, "file:///workspace/screen.vspec.md"), false);
-  assert.equal(shouldUseIncrementalPreviewUpdate(true, false), true);
-  assert.equal(shouldUseIncrementalPreviewUpdate(true, undefined), true);
-  assert.equal(shouldUseIncrementalPreviewUpdate(true, true), false);
-  assert.equal(shouldUseIncrementalPreviewUpdate(false, false), false);
-});
-
-test("coalesces preview updates and detects stale generations", () => {
-  assert.equal(PREVIEW_AUTO_UPDATE_DEFAULT, true);
-  assert.equal(PREVIEW_UPDATE_DEBOUNCE_MS, 150);
-  assert.equal(PREVIEW_WEBVIEW_UPDATE_TIMEOUT_MS, 3000);
-
-  const callbacks = new Map<number, () => void>();
-  const cleared: number[] = [];
-  const runs: string[] = [];
-  let nextTimer = 1;
-  let currentGenerationId = 0;
-  let timer: number | undefined;
-
-  const schedule = (documentUri: string) => {
-    currentGenerationId += 1;
-    const generationId = currentGenerationId;
-    timer = scheduleCoalescedPreviewUpdate({
-      timer,
-      clearTimeout: (handle) => {
-        cleared.push(handle);
-        callbacks.delete(handle);
-      },
-      setTimeout: (callback, delayMs) => {
-        assert.equal(delayMs, PREVIEW_UPDATE_DEBOUNCE_MS);
-        const handle = nextTimer;
-        nextTimer += 1;
-        callbacks.set(handle, callback);
-        return handle;
-      },
-      delayMs: PREVIEW_UPDATE_DEBOUNCE_MS,
-      document: { uri: documentUri },
-      documentUri,
-      shouldRun: (scheduledDocumentUri) => isCurrentPreviewGenerationState({
-        hasPreviewPanel: true,
-        currentGenerationId,
-        currentDocumentUri: documentUri
-      }, generationId, scheduledDocumentUri),
-      run: (document) => runs.push(document.uri),
-      clearTimer: () => {
-        timer = undefined;
-      }
-    });
-  };
-
-  schedule("file:///first.vspec.md");
-  schedule("file:///second.vspec.md");
-  assert.deepEqual(cleared, [1]);
-  assert.equal(callbacks.has(1), false);
-  callbacks.get(2)?.();
-  assert.deepEqual(runs, ["file:///second.vspec.md"]);
-  assert.equal(timer, undefined);
-
-  schedule("file:///stale.vspec.md");
-  currentGenerationId += 1;
-  callbacks.get(3)?.();
-  assert.deepEqual(runs, ["file:///second.vspec.md"]);
-
-  const current = {
-    hasPreviewPanel: true,
-    currentGenerationId: 4,
-    currentDocumentUri: "file:///second.vspec.md"
-  };
-  assert.equal(isCurrentPreviewGenerationState(current, 4, "file:///second.vspec.md"), true);
-  assert.equal(isCurrentPreviewGenerationState(current, 3, "file:///second.vspec.md"), false);
-  assert.equal(isCurrentPreviewGenerationState(current, 4, "file:///other.vspec.md"), false);
-  assert.equal(isCurrentPreviewGenerationState({ ...current, hasPreviewPanel: false }, 4, "file:///second.vspec.md"), false);
-});
-
-test("keeps only the latest typing generation in coalesced realtime preview updates", () => {
-  const callbacks = new Map<number, () => void>();
-  const cleared: number[] = [];
-  const runs: string[] = [];
-  let nextTimer = 1;
-  let currentGenerationId = 0;
-  let timer: number | undefined;
-  const documentUri = "file:///typing.vspec.md";
-
-  const scheduleTypingUpdate = (sourceVersion: string) => {
-    currentGenerationId += 1;
-    const generationId = currentGenerationId;
-    timer = scheduleCoalescedPreviewUpdate({
-      timer,
-      clearTimeout: (handle) => {
-        cleared.push(handle);
-        callbacks.delete(handle);
-      },
-      setTimeout: (callback, delayMs) => {
-        assert.equal(delayMs, PREVIEW_UPDATE_DEBOUNCE_MS);
-        const handle = nextTimer;
-        nextTimer += 1;
-        callbacks.set(handle, callback);
-        return handle;
-      },
-      delayMs: PREVIEW_UPDATE_DEBOUNCE_MS,
-      document: { uri: documentUri, sourceVersion },
-      documentUri,
-      shouldRun: (scheduledDocumentUri) => isCurrentPreviewGenerationState({
-        hasPreviewPanel: true,
-        currentGenerationId,
-        currentDocumentUri: documentUri
-      }, generationId, scheduledDocumentUri),
-      run: (document) => runs.push(document.sourceVersion),
-      clearTimer: () => {
-        timer = undefined;
-      }
-    });
-  };
-
-  scheduleTypingUpdate("T");
-  scheduleTypingUpdate("Ti");
-  scheduleTypingUpdate("Tit");
-  scheduleTypingUpdate("Title");
-  assert.deepEqual(cleared, [1, 2, 3]);
-  assert.deepEqual([...callbacks.keys()], [4]);
-  callbacks.get(1)?.();
-  callbacks.get(2)?.();
-  callbacks.get(3)?.();
-  assert.deepEqual(runs, []);
-  callbacks.get(4)?.();
-  assert.deepEqual(runs, ["Title"]);
-  assert.equal(timer, undefined);
-
-  scheduleTypingUpdate("Title stale");
-  currentGenerationId += 1;
-  callbacks.get(5)?.();
-  assert.deepEqual(runs, ["Title"]);
-});
-
-test("formats realtime preview update telemetry", () => {
-  assert.equal(
-    formatPreviewUpdateTelemetry({
-      sourceLabel: "login.vspec.md",
-      generationId: 12,
-      phase: "fragment-patch",
-      planKind: "fragment",
-      fragmentGroups: 2,
-      expectedFragmentGroups: 2,
-      patchSuccess: true,
-      patchReason: "applied",
-      elapsedMs: 24,
-      parseMs: 4,
-      invalidationMs: 2,
-      fragmentRenderMs: 8,
-      patchMs: 10,
-      webviewPatchMs: 7
-    }),
-    "[preview-update] login.vspec.md generation=12 phase=fragment-patch plan=fragment fragments=2 expectedFragments=2 patchSuccess=true patchReason=applied elapsedMs=24 parseMs=4 invalidationMs=2 fragmentRenderMs=8 patchMs=10 webviewPatchMs=7"
-  );
-
-  assert.equal(
-    formatPreviewUpdateTelemetry({
-      sourceLabel: "login.vspec.md",
-      generationId: 13,
-      phase: "fallback-full",
-      planKind: "fallback-full",
-      fragmentGroups: 1,
-      expectedFragmentGroups: 2,
-      reason: "fragment-generation-mismatch",
-      elapsedMs: 12
-    }),
-    "[preview-update] login.vspec.md generation=13 phase=fallback-full plan=fallback-full fragments=1 expectedFragments=2 reason=fragment-generation-mismatch elapsedMs=12"
-  );
-
-  assert.equal(
-    formatPreviewUpdateTelemetry({
-      sourceLabel: "login.vspec.md",
-      generationId: 14,
-      phase: "noop",
-      planKind: "noop",
-      reason: "unchanged-source",
-      elapsedMs: 1
-    }),
-    "[preview-update] login.vspec.md generation=14 phase=noop plan=noop reason=unchanged-source elapsedMs=1"
-  );
-
-  assert.equal(
-    formatPreviewUpdateTelemetry({
-      sourceLabel: "login.vspec.md",
-      generationId: 15,
-      phase: "noop",
-      planKind: "noop",
-      fragmentGroups: 0,
-      reason: "no-render-keys",
-      elapsedMs: 2
-    }),
-    "[preview-update] login.vspec.md generation=15 phase=noop plan=noop fragments=0 reason=no-render-keys elapsedMs=2"
-  );
-});
-
-test("normalizes structured preview patch results", () => {
-  const current = {
-    hasPreviewPanel: true,
-    currentGenerationId: 5,
-    currentDocumentUri: "file:///login.vspec.md"
-  };
-
-  assert.deepEqual(
-    normalizePreviewPatchResultState(current, { generationId: 5, success: true }, "file:///login.vspec.md"),
-    { success: true, reason: "applied" }
-  );
-  assert.deepEqual(
-    normalizePreviewPatchResultState(current, { generationId: 5, success: true, webviewPatchMs: 6 }, "file:///login.vspec.md"),
-    { success: true, reason: "applied", webviewPatchMs: 6 }
-  );
-  assert.deepEqual(
-    normalizePreviewPatchResultState(current, { generationId: 5, success: false, reason: "target-count-mismatch:element:E-Title" }, "file:///login.vspec.md"),
-    { success: false, reason: "target-count-mismatch:element:E-Title" }
-  );
-  assert.deepEqual(
-    normalizePreviewPatchResultState(current, { generationId: 5, success: false }, "file:///login.vspec.md"),
-    { success: false, reason: "webview-rejected" }
-  );
-  assert.deepEqual(
-    normalizePreviewPatchResultState(current, { generationId: 4, success: true, reason: "applied" }, "file:///login.vspec.md"),
-    { success: false, reason: "stale-generation-result" }
-  );
-  assert.deepEqual(
-    normalizePreviewPatchResultState(current, { generationId: 5, success: true, reason: "applied" }, "file:///other.vspec.md"),
-    { success: false, reason: "stale-generation-result" }
-  );
-  assert.deepEqual(
-    normalizePreviewPatchResultState(current, { success: true }, "file:///login.vspec.md"),
-    { success: false, reason: "missing-generation" }
-  );
-  assert.deepEqual(
-    normalizePreviewPatchResultState({ ...current, hasPreviewPanel: false }, { generationId: 5, success: true }, "file:///login.vspec.md"),
-    { success: false, reason: "stale-generation-result" }
-  );
-});
-
-test("renders lightweight preview loading and error shells", () => {
-  const webview = {
-    cspSource: "vscode-resource:",
-    asWebviewUri: (uri: unknown) => uri
-  } as never;
-  const loadingHtml = renderPreviewLoadingHtml(webview, "examples/04-real-world-screens/login-basic.vspec.md");
-  const errorHtml = renderPreviewErrorHtml(webview, "examples/04-real-world-screens/login-basic.vspec.md", "Cannot read partial");
-
-  assert.match(loadingHtml, /<title>Generating preview<\/title>/);
-  assert.match(loadingHtml, /プレビューを生成中\.\.\./);
-  assert.match(loadingHtml, /Preview is being generated\.\.\./);
-  assert.match(loadingHtml, /class="status-spinner"/);
-  assert.match(loadingHtml, /examples\/04-real-world-screens\/login-basic\.vspec\.md/);
-  assert.doesNotMatch(loadingHtml, /acquireVsCodeApi/);
-  assert.match(errorHtml, /<title>Preview error<\/title>/);
-  assert.match(errorHtml, /プレビューを生成できませんでした/);
-  assert.match(errorHtml, /Cannot read partial/);
-  assert.doesNotMatch(errorHtml, /class="status-spinner"/);
-});
-
-test("keeps marker controls without viewport filter controls for a single viewport", () => {
-  const source = `---
-id: SCR-SINGLE
-type: screen
-title: Single Viewport
-route: /single
----
-
-# SCR-SINGLE Single Viewport
-
-## States
-
-- idle*
-
-## Layout: mobile
-
-### L-Root Root
-
-- stack
-
-#### Items
-`;
-  const result = parseMarkVSpec(source);
-  const html = renderPreviewHtml(
-    result,
-    {
-      cspSource: "vscode-resource:",
-      asWebviewUri: (uri: unknown) => uri
-    } as never,
-    { layout: true, element: true, action: true },
-    undefined,
-    "single.vspec.md"
-  );
-  const toolbar = html.match(/<header class="toolbar">[\s\S]*?<\/header>/)?.[0] ?? "";
-
-  assert.doesNotMatch(toolbar, /data-viewport-filter/);
-  assert.doesNotMatch(toolbar, />All<\/button>/);
-  assert.doesNotMatch(toolbar, />mobile<\/button>/);
-  assert.match(toolbar, /data-marker-toggle="layout"/);
 });
 
 test("keeps action-level availability out of localized action details", () => {
@@ -3468,10 +3108,10 @@ test("renders preview scenario samples in generated state views", () => {
   const source = `---
 id: SCR-SCENARIO-SAMPLES
 type: screen
-title: Scenario Samples
+title: Scenario Preview Data
 ---
 
-# SCR-SCENARIO-SAMPLES Scenario Samples
+# SCR-SCENARIO-SAMPLES Scenario Preview Data
 
 ## States
 
@@ -3562,16 +3202,16 @@ Preview Scenarios section notes.
   assert.match(baseWireframe, /Baseline scenario title/);
   assert.match(baseWireframe, /<td>Bob<\/td><td>Viewer<\/td>/);
   assert.match(baseSection, /State: [\s\S]*loaded[\s\S]*Baseline scenario lead mentions[\s\S]*E-Title[\s\S]*<h5 class="state-screen-subheading">Wireframe<\/h5>/);
-  assert.match(baseSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
+  assert.match(baseSection, /<h6 class="state-screen-detail-heading">Scenario Preview Data<\/h6>/);
   assert.match(baseSection, /E-Title[\s\S]*Baseline scenario title/);
-  assert.match(baseSection, /Scenario Samples[\s\S]*Baseline scenario notes\./);
+  assert.match(baseSection, /Scenario Preview Data[\s\S]*Baseline scenario notes\./);
   assert.doesNotMatch(html, /data-state-view-title="loaded \/ loaded"/);
   assert.match(scenarioWireframe, /Baseline scenario title/);
   assert.match(scenarioWireframe, /<td>Carol<\/td><td>Owner<\/td>/);
   assert.doesNotMatch(scenarioWireframe, /Fallback title|<td>Alice<\/td><td>Admin<\/td>|<td>Bob<\/td><td>Viewer<\/td>/);
   assert.match(scenarioWireframe, /<td class="mm-table-empty" colspan="1">\(no data\)<\/td>/);
   assert.match(scenarioSection, /State: [\s\S]*loaded[\s\S]*loaded-users[\s\S]*Additional scenario lead\.[\s\S]*<h5 class="state-screen-subheading">Wireframe<\/h5>/);
-  assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
+  assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Preview Data<\/h6>/);
   assert.match(scenarioSection, /E-Title[\s\S]*Baseline scenario title/);
   assert.match(scenarioSection, /E-Users[\s\S]*<code>rows: 1 rows<\/code>/);
   assert.match(scenarioSection, /<section class="scenario-sample-rows-block" id="sample-rows-default-loaded.20.2F.20loaded-users-E-Users">/);
@@ -3583,18 +3223,18 @@ Preview Scenarios section notes.
   assert.match(scenarioSection, /E-EmptyUsers[\s\S]*<code>rows: \[\]<\/code>/);
   assert.match(scenarioSection, /<section class="scenario-sample-rows-block" id="sample-rows-default-loaded.20.2F.20loaded-users-E-EmptyUsers">/);
   assert.equal(scenarioSection.match(/<section class="scenario-sample-rows-block"/g)?.length, 2);
-  assert.match(scenarioSection, /Scenario Samples[\s\S]*Additional scenario notes\./);
+  assert.match(scenarioSection, /Scenario Preview Data[\s\S]*Additional scenario notes\./);
 });
 
 test("localizes preview scenario sample table labels in generated state views", () => {
   const source = `---
 id: SCR-SCENARIO-SAMPLES-JA
 type: screen
-title: シナリオサンプル
+title: シナリオプレビューデータ
 locale: ja
 ---
 
-# SCR-SCENARIO-SAMPLES-JA シナリオサンプル
+# SCR-SCENARIO-SAMPLES-JA シナリオプレビューデータ
 
 ## States
 
@@ -3643,7 +3283,7 @@ locale: ja
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
   const scenarioSection = stateViewTitleSection(html, "loaded / loaded-special");
 
-  assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">シナリオサンプル<\/h6>/);
+  assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">シナリオプレビューデータ<\/h6>/);
   assert.match(scenarioSection, /<th>画面要素<\/th><th>サンプル<\/th>/);
   assert.match(scenarioSection, /<code>rows: 2 行<\/code>/);
   assert.match(scenarioSection, /<h6 class="scenario-sample-rows-heading">サンプル 行数:/);
@@ -3651,7 +3291,7 @@ locale: ja
   assert.match(scenarioSection, /<th>名前<\/th>/);
   assert.match(scenarioSection, /<td>一郎<\/td>/);
   assert.match(scenarioSection, /<td>二郎<\/td>/);
-  assert.doesNotMatch(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>|<th>Sample<\/th>/);
+  assert.doesNotMatch(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Preview Data<\/h6>|<th>Sample<\/th>/);
   assert.doesNotMatch(scenarioSection, /2 rows/);
 });
 
@@ -5025,6 +4665,8 @@ title: Home
 
 ### A1:A-LoadProfile Load profile
 
+Load profile references #{L-TopBar}.
+
 - Triggered
   - screen.load
 - From
@@ -5050,6 +4692,8 @@ title: Home
   assert.match(html, /data-mm-id="E-WelcomeHeading"/);
   assert.doesNotMatch(html, /data-mm-id="E-Brand"/);
   assert.match(html, /PartialRequest/);
+  assert.match(html, /Load profile references <a class="mm-ref-chip mm-ref-chip-layout" href="#state-views"[^>]*data-mm-ref-id="L-TopBar"/);
+  assert.match(html, /data-state-view-title="idle"[\s\S]*Load profile references <a class="mm-ref-chip mm-ref-chip-layout" href="#state-views"[^>]*data-mm-ref-id="L-TopBar"/);
   assert.match(html, /GET \/profile-card/);
   assert.match(html, /partial: PRT-PROFILE-CARD/);
   assert.doesNotMatch(html, new RegExp(`model: ${sourceCodePattern("${model.profile.loaded}")} = true`));
@@ -6815,6 +6459,9 @@ test("renders parse coverage project sentinel in project preview documents", () 
   assert.equal(project.diagnostics.filter((diagnostic) => diagnostic.severity === "error").length, 0);
   assert.match(html, /PRJ-COVERAGE-SENTINEL/);
   assert.match(html, /Coverage Sentinel Project/);
+  assert.match(html, /<h3>Project Overview<\/h3>[\s\S]*Project lead sentinel for project-level preview and export coverage\./);
+  assert.match(html, /<h2>Project Notes<\/h2>[\s\S]*Project notes sentinel for project preview only\.[\s\S]*Project custom note sentinel for project preview only\./);
+  assert(html.indexOf("Project Notes") < html.indexOf("Templates"), "Project Notes should render before Templates");
   assert.match(html, /TPL-COVERAGE-SHELL[\s\S]*Coverage Shell Template/);
   assert.match(html, /SCR-COVERAGE-PROJECT[\s\S]*Coverage Project Screen[\s\S]*\/coverage\/project/);
   assert.match(html, /Project Transition Diagram/);
@@ -8374,6 +8021,14 @@ Refer to #{R-Eligibility}; keep \`#{E-NameInput}\`, \`\`#{A-Submit}\`\`, and \`\
   assert.match(actionDetail, /<pre><code class="language-markdown">#\{R-Eligibility\}<\/code><\/pre>/);
 });
 
+test("renders markdown entity references through explicit helper options", () => {
+  const html = renderEntityNotes(["See #{E-NameInput}, keep `#{A-Submit}` literal."], {
+    renderEntityReference: (id) => `<a data-test-ref="${id}">${id}</a>`
+  });
+
+  assert.match(html, /See <a data-test-ref="E-NameInput">E-NameInput<\/a>, keep <span class="mm-inline-token">#\{A-Submit\}<\/span> literal\./);
+});
+
 test("blocks external markdown images while preserving external links", () => {
   const html = renderInlineMarkdown("![remote](https://example.com/a.png) [help](https://example.com/docs)");
 
@@ -8445,749 +8100,4 @@ History section notes.
   assert.match(html, /<li>Added the login form\.<\/li>/);
   assert.match(html, /<\/table>[\s\S]*<div class="entity-notes"><p class="note-paragraph">History section notes\.<\/p><\/div>/);
   assert.doesNotMatch(html, /<td>Section Notes<\/td>/);
-});
-
-test("creates document symbols for MarkVSpec structure", () => {
-  const source = readFileSync(resolve("../../examples/04-real-world-screens/login-basic.vspec.md"), "utf8");
-  const symbols = createMarkVSpecDocumentSymbols(createTextDocument(source) as never);
-  const screen = symbols[0];
-
-  assert.equal(screen.name, "SCR-LOGIN Login");
-  assert.equal(screen.detail, "Screen");
-  assert.equal(screen.selectionRange.start.line, 8);
-  assert.deepEqual(screen.children.map((child) => child.name), [
-    "States",
-    "Layout: mobile",
-    "Layout: desktop",
-    "Elements",
-    "Form Groups",
-    "Actions",
-    "Preview Scenarios",
-    "Cross-field Validations",
-    "Business Rules"
-  ]);
-
-  const states = screen.children.find((child) => child.name === "States");
-  assert.deepEqual(states?.children.map((child) => `${child.name}:${child.detail}`), [
-    "idle:initial state",
-    "authenticating:state"
-  ]);
-
-  const mobileLayout = screen.children.find((child) => child.name === "Layout: mobile");
-  assert(mobileLayout);
-  assert(mobileLayout.children.some((child) => child.name === "L1:L-Page Login page" && child.detail === "mobile"));
-  assert(mobileLayout.children.some((child) => child.name === "L7:L-AuthProgress Auth progress" && child.detail === "mobile"));
-
-  const desktopLayout = screen.children.find((child) => child.name === "Layout: desktop");
-  assert(desktopLayout);
-  assert(desktopLayout.children.some((child) => child.name === "L8:L-DesktopActions Desktop actions" && child.detail === "desktop"));
-
-  const elements = screen.children.find((child) => child.name === "Elements");
-  assert(elements);
-  assert(elements.children.some((child) => child.name === "1:E-PageTitle" && child.detail === "Heading"));
-  assert(elements.children.some((child) => child.name === "3:E-EmailInput" && child.detail === "Input"));
-
-  const formGroups = screen.children.find((child) => child.name === "Form Groups");
-  assert(formGroups);
-
-  const actions = screen.children.find((child) => child.name === "Actions");
-  assert(actions);
-  assert.deepEqual(actions.children.map((child) => child.name), [
-    "A1:A-SubmitLogin Submit login",
-    "A2:A-HandleLoginResponse Handle login response",
-    "A3:A-ForgotPassword Open password reset"
-  ]);
-
-  const rules = screen.children.find((child) => child.name === "Business Rules");
-  assert(rules);
-  assert.deepEqual(rules.children.map((child) => child.name), [
-    "R1:R-AUTH-001"
-  ]);
-});
-
-test("creates document symbols for Japanese IDs and names", () => {
-  const source = `---
-id: SCR-JA
-type: screen
-title: 日本語画面
----
-
-# SCR-JA 日本語画面
-
-## States
-
-- 初期*
-
-## Layout: mobile
-
-### 1:L-日本語フォーム 日本語フォーム
-
-- stack
-
-#### Items
-
-- E-ページヘッダ
-
-## Elements
-
-### 2:E-ページヘッダ 見出し
-
-- value: ようこそ
-
-## Actions
-
-### A1:A-日本語操作 日本語操作
-
-- Triggered
-  - E-ページヘッダ.click
-
-## Validations
-
-### V-日本語検証 日本語検証
-
-- target: E-ページヘッダ
-- condition: E-ページヘッダ が表示されていること
-- message: 日本語検証メッセージ
-
-## Model Samples
-
-### 初期
-
-#### \${model.お知らせ.items}
-
-| title |
-| --- |
-| お知らせ |
-
-## Business Rules
-
-### R1:R-日本語業務ルール 業務ルール
-
-- 日本語の業務ルールを書けること。
-
-## Error Codes
-
-### ER1:ERR-日本語 日本語エラー
-
-- business rule: R-日本語業務ルール
-- target: E-ページヘッダ
-- message: 日本語エラー
-- display: inline
-`;
-  const screen = createMarkVSpecDocumentSymbols(createTextDocument(source) as never)[0];
-  const states = screen.children.find((child) => child.name === "States");
-  const layout = screen.children.find((child) => child.name === "Layout: mobile");
-  const elements = screen.children.find((child) => child.name === "Elements");
-  const actions = screen.children.find((child) => child.name === "Actions");
-  const validations = screen.children.find((child) => child.name === "Validations");
-  const businessRules = screen.children.find((child) => child.name === "Business Rules");
-  const errorCodes = screen.children.find((child) => child.name === "Error Codes");
-
-  assert.equal(screen.name, "SCR-JA 日本語画面");
-  assert.equal(states?.children[0]?.name, "初期");
-  assert.equal(layout?.children[0]?.name, "1:L-日本語フォーム 日本語フォーム");
-  assert.equal(elements?.children[0]?.name, "2:E-ページヘッダ");
-  assert.equal(elements?.children[0]?.detail, "見出し");
-  assert.equal(actions?.children[0]?.name, "A1:A-日本語操作 日本語操作");
-  assert.equal(validations?.children[0]?.name, "V-日本語検証 日本語検証");
-  const modelSamples = screen.children.find((child) => child.name === "Model Samples");
-  assert.equal(modelSamples?.detail, "Section");
-  assert.deepEqual(modelSamples?.children, []);
-  assert.equal(businessRules?.children[0]?.name, "R1:R-日本語業務ルール 業務ルール");
-  assert.equal(errorCodes?.children[0]?.name, "ER1:ERR-日本語 日本語エラー");
-});
-
-test("creates a quick fix for missing action triggers", () => {
-  const source = `---
-id: SCR-QUICKFIX
-type: screen
-title: Quick Fix
----
-
-# SCR-QUICKFIX Quick Fix
-
-## States
-
-- idle*
-
-## Actions
-
-### A-Submit Submit
-
-- From
-  - idle
-`;
-  const document = createTextDocument(source) as never;
-  const diagnostic = createDiagnostic(
-    source,
-    "### A-Submit Submit",
-    "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response."
-  );
-  const actions = createMarkVSpecCodeActions(document, [diagnostic]);
-  const edits = actions[0]?.edit as unknown as { edits: Array<{ kind: string; newText?: string; position?: { line: number; character: number }; uri?: unknown }> };
-
-  assert.equal(actions.length, 1);
-  assert.equal(actions[0]?.title, "Add page.load event for A-Submit");
-  assert.equal(actions[0]?.isPreferred, undefined);
-  assert.equal(edits.edits.length, 1);
-  assert.equal(edits.edits[0]?.kind, "insert");
-  assert.deepEqual(edits.edits[0]?.uri, (document as { uri: unknown }).uri);
-  assert.equal(edits.edits[0]?.position?.line, 19);
-  assert.equal(edits.edits[0]?.position?.character, 0);
-  assert.equal(edits.edits[0]?.newText, "\n## Events\n\n- page.load: A-Submit\n");
-});
-
-test("does not create a missing trigger quick fix when the diagnostic range is stale", () => {
-  const source = `---
-id: SCR-STALE
-type: screen
-title: Stale
----
-
-# SCR-STALE Stale
-
-## Actions
-
-Not an action heading
-`;
-  const diagnostic = createDiagnostic(
-    source,
-    "Not an action heading",
-    "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response."
-  );
-
-  assert.deepEqual(createMarkVSpecCodeActions(createTextDocument(source) as never, [diagnostic]), []);
-});
-
-test("creates a quick fix for bare Layout sections when a default viewport is known", () => {
-  const source = `---
-id: SCR-LAYOUT-FIX
-type: screen
-title: Layout Fix
----
-
-# SCR-LAYOUT-FIX Layout Fix
-
-## Layout: mobile
-
-### L-Existing Existing
-
-- stack
-
-## Layout
-`;
-  const document = createTextDocument(source) as never;
-  const diagnostic = createDiagnostic(
-    source,
-    "## Layout",
-    "Layout section must specify a viewport, for example ## Layout: mobile."
-  );
-  const actions = createMarkVSpecCodeActions(document, [diagnostic]);
-  const edits = actions[0]?.edit as unknown as { edits: Array<{ kind: string; newText?: string; range?: vscode.Range }> };
-
-  assert.equal(actions.length, 1);
-  assert.equal(actions[0]?.title, "Change to ## Layout: mobile");
-  assert.equal(edits.edits[0]?.kind, "replace");
-  assert.equal(edits.edits[0]?.newText, "## Layout: mobile");
-  assert.deepEqual(edits.edits[0]?.range?.start, { line: 14, character: 0 });
-  assert.deepEqual(edits.edits[0]?.range?.end, { line: 14, character: 9 });
-});
-
-test("does not create a Layout viewport quick fix without a known default viewport", () => {
-  const source = `---
-id: SCR-LAYOUT-NO-FIX
-type: screen
-title: Layout No Fix
----
-
-# SCR-LAYOUT-NO-FIX Layout No Fix
-
-## Layout
-`;
-  const diagnostic = createDiagnostic(
-    source,
-    "## Layout",
-    "Layout section must specify a viewport, for example ## Layout: mobile."
-  );
-
-  assert.deepEqual(createMarkVSpecCodeActions(createTextDocument(source) as never, [diagnostic]), []);
-});
-
-test("creates a quick fix to move direct layout child references under Items", () => {
-  const source = `---
-id: SCR-ITEM-FIX
-type: screen
-title: Item Fix
----
-
-# SCR-ITEM-FIX Item Fix
-
-## Layout: mobile
-
-### L-Page Page
-
-- stack
-- E-Title
-- gap: md
-
-## Elements
-
-### E-Title Heading
-
-- value: Title
-`;
-  const document = createTextDocument(source) as never;
-  const diagnostic = createDiagnostic(
-    source,
-    "- E-Title",
-    "Layout L-Page uses a direct child reference; place E-Title under #### Items."
-  );
-  const actions = createMarkVSpecCodeActions(document, [diagnostic]);
-  const edits = actions[0]?.edit as unknown as { edits: Array<{ kind: string; newText?: string; range?: vscode.Range; position?: { line: number; character: number }; uri?: unknown }> };
-
-  assert.equal(actions.length, 1);
-  assert.equal(actions[0]?.title, "Move E-Title under #### Items");
-  assert.equal(edits.edits[0]?.kind, "delete");
-  assert.deepEqual(edits.edits[0]?.range?.start, { line: 13, character: 0 });
-  assert.deepEqual(edits.edits[0]?.range?.end, { line: 14, character: 0 });
-  assert.equal(edits.edits[1]?.kind, "insert");
-  assert.deepEqual(edits.edits[1]?.uri, (document as { uri: unknown }).uri);
-  assert.equal(edits.edits[1]?.position?.line, 16);
-  assert.equal(edits.edits[1]?.position?.character, 0);
-  assert.equal(edits.edits[1]?.newText, "\n#### Items\n\n- E-Title\n");
-});
-
-test("moves direct layout child references before existing Items without merging lines", () => {
-  const source = `---
-id: SCR-ITEM-FIX-EXISTING
-type: screen
-title: Item Fix Existing
----
-
-# SCR-ITEM-FIX-EXISTING Item Fix Existing
-
-## Layout: mobile
-
-### L-Page Page
-
-- stack
-- E-Moved
-
-#### Items
-- E-Existing
-
-## Elements
-
-### E-Moved Heading
-
-- value: Moved
-
-### E-Existing Heading
-
-- value: Existing
-`;
-  const document = createTextDocument(source) as never;
-  const diagnostic = createDiagnostic(
-    source,
-    "- E-Moved",
-    "Layout L-Page uses a direct child reference; place E-Moved under #### Items."
-  );
-  const actions = createMarkVSpecCodeActions(document, [diagnostic]);
-  const edits = actions[0]?.edit as unknown as { edits: Array<{ kind: string; newText?: string; range?: vscode.Range; position?: { line: number; character: number }; uri?: unknown }> };
-
-  assert.equal(actions.length, 1);
-  assert.equal(edits.edits[1]?.kind, "insert");
-  assert.equal(edits.edits[1]?.position?.line, 16);
-  assert.equal(edits.edits[1]?.position?.character, 0);
-  assert.equal(edits.edits[1]?.newText, "- E-Moved\n");
-});
-
-test("removes direct layout child references at end of file", () => {
-  const source = `---
-id: SCR-ITEM-FIX-EOF
-type: screen
-title: Item Fix EOF
----
-
-# SCR-ITEM-FIX-EOF Item Fix EOF
-
-## Layout: mobile
-
-### L-Page Page
-
-- stack
-- E-Title`;
-  const document = createTextDocument(source) as never;
-  const diagnostic = createDiagnostic(
-    source,
-    "- E-Title",
-    "Layout L-Page uses a direct child reference; place E-Title under #### Items."
-  );
-  const actions = createMarkVSpecCodeActions(document, [diagnostic]);
-  const edits = actions[0]?.edit as unknown as { edits: Array<{ kind: string; newText?: string; range?: vscode.Range; position?: { line: number; character: number } }> };
-
-  assert.equal(actions.length, 1);
-  assert.equal(edits.edits[0]?.kind, "delete");
-  assert.deepEqual(edits.edits[0]?.range?.start, { line: 13, character: 0 });
-  assert.deepEqual(edits.edits[0]?.range?.end, { line: 13, character: 9 });
-  assert.equal(edits.edits[1]?.kind, "insert");
-  assert.equal(edits.edits[1]?.position?.line, 14);
-  assert.equal(edits.edits[1]?.position?.character, 0);
-  assert.equal(edits.edits[1]?.newText, "\n#### Items\n\n- E-Title\n");
-});
-
-test("formats recognized MarkVSpec sections conservatively", () => {
-  const spaces = "   ";
-  const source = `---
-id: SCR-FORMAT
-type: screen
-title: Format
----
-
-# SCR-FORMAT Format
-
-## States
-
-
-- idle*${spaces}
-
-
-## Layout: mobile
-### L-Page Page${spaces}
-
-- stack${spaces}
-
-#### Items
-- E-Title${spaces}
-
-## Elements
-### E-Title Heading${spaces}
-- value: Title${spaces}
-
-## Actions
-### A-Submit Submit
-- Triggered
-  - E-Title.click
-- From
-  - idle${spaces}
-`;
-
-  assert.equal(formatMarkVSpecStructure(source), `---
-id: SCR-FORMAT
-type: screen
-title: Format
----
-
-# SCR-FORMAT Format
-
-## States
-
-- idle*
-
-## Layout: mobile
-
-### L-Page Page
-
-- stack
-
-#### Items
-
-- E-Title
-
-## Elements
-
-### E-Title Heading
-
-- value: Title
-
-## Actions
-
-### A-Submit Submit
-
-- Triggered
-  - E-Title.click
-
-- From
-  - idle
-`);
-});
-
-test("preserves unknown sections while formatting recognized sections", () => {
-  const spaces = "   ";
-  const source = `---
-id: SCR-FORMAT-UNKNOWN
-type: screen
-title: Format Unknown
----
-
-# SCR-FORMAT-UNKNOWN Format Unknown
-
-## States
-
-
-- idle*${spaces}
-
-## Draft Notes
-
-This prose keeps trailing spaces.${spaces}
-
-
-| A | B |
-|---|---|
-| 1 | 2 |
-
-## Elements
-### E-Title Heading${spaces}
-- value: Title${spaces}
-`;
-
-  assert.equal(formatMarkVSpecStructure(source), `---
-id: SCR-FORMAT-UNKNOWN
-type: screen
-title: Format Unknown
----
-
-# SCR-FORMAT-UNKNOWN Format Unknown
-
-## States
-
-- idle*
-
-## Draft Notes
-
-This prose keeps trailing spaces.${spaces}
-
-
-| A | B |
-|---|---|
-| 1 | 2 |
-
-## Elements
-
-### E-Title Heading
-
-- value: Title
-`);
-});
-
-test("declares MarkVSpec syntax highlighting contributions", () => {
-  const packageJsonPath = resolve(extensionRoot, "package.json");
-  const grammarPath = resolve(extensionRoot, "syntaxes/markvspec.tmLanguage.json");
-  const languageConfigurationPath = resolve(extensionRoot, "language-configuration/markvspec.configuration.json");
-  const snippetsPath = resolve(extensionRoot, "snippets/markvspec.code-snippets");
-  const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8")) as {
-    capabilities?: {
-      untrustedWorkspaces?: { supported?: string; description?: string };
-    };
-    contributes?: {
-      commands?: Array<{ command?: string; title?: string; category?: string; icon?: string }>;
-      grammars?: Array<{ language?: string; scopeName?: string; path?: string }>;
-      languages?: Array<{ id?: string; configuration?: string; extensions?: string[] }>;
-      menus?: Record<string, Array<{ command?: string; when?: string; group?: string }>>;
-      snippets?: Array<{ language?: string; path?: string }>;
-    };
-  };
-  const grammar = JSON.parse(readFileSync(grammarPath, "utf8")) as {
-    scopeName?: string;
-    repository?: Record<string, {
-      patterns?: Array<{
-        match?: string;
-        name?: string;
-      }>;
-    }>;
-  };
-  const languageConfiguration = JSON.parse(readFileSync(languageConfigurationPath, "utf8")) as {
-    wordPattern?: string;
-  };
-  const snippets = JSON.parse(readFileSync(snippetsPath, "utf8")) as Record<string, {
-    body?: string[];
-    description?: string;
-    prefix?: string;
-  }>;
-
-  assert(existsSync(languageConfigurationPath));
-  assert(existsSync(snippetsPath));
-  assert.deepEqual(packageJson.contributes?.grammars?.[0], {
-    language: "markvspec",
-    scopeName: "source.markvspec",
-    path: "./syntaxes/markvspec.tmLanguage.json"
-  });
-  assert.equal(packageJson.contributes?.languages?.[0]?.configuration, "./language-configuration/markvspec.configuration.json");
-  assert(packageJson.contributes?.languages?.[0]?.extensions?.includes(".vspec.md"));
-  assert(packageJson.contributes?.languages?.[0]?.extensions?.includes(".vspec.project.md"));
-  assert.equal(packageJson.capabilities?.untrustedWorkspaces?.supported, "limited");
-  assert.match(packageJson.capabilities?.untrustedWorkspaces?.description ?? "", /opening referenced local files from the webview is blocked/);
-  assert((packageJson as { activationEvents?: string[] }).activationEvents?.includes("onLanguage:markvspec"));
-  assert((packageJson as { activationEvents?: string[] }).activationEvents?.includes("onCommand:markvspec.openPreview"));
-  assert((packageJson as { activationEvents?: string[] }).activationEvents?.includes("onCommand:markvspec.formatStructure"));
-  assert((packageJson as { activationEvents?: string[] }).activationEvents?.includes("onCommand:markvspec.exportHtml"));
-  assert((packageJson as { activationEvents?: string[] }).activationEvents?.includes("onCommand:markvspec.exportPdf"));
-  assert((packageJson as { activationEvents?: string[] }).activationEvents?.includes("onCommand:markvspec.refreshPreview"));
-  assert.deepEqual(packageJson.contributes?.commands?.[0], {
-    command: "markvspec.openPreview",
-    title: "Open Preview",
-    category: "MarkVSpec",
-    icon: "$(open-preview)"
-  });
-  assert.deepEqual(packageJson.contributes?.commands?.[1], {
-    command: "markvspec.formatStructure",
-    title: "Format Structure",
-    category: "MarkVSpec",
-    icon: "$(symbol-structure)"
-  });
-  assert.deepEqual(packageJson.contributes?.commands?.[2], {
-    command: "markvspec.exportHtml",
-    title: "Export Static HTML",
-    category: "MarkVSpec",
-    icon: "$(file-code)"
-  });
-  assert.deepEqual(packageJson.contributes?.commands?.[3], {
-    command: "markvspec.exportPdf",
-    title: "Export PDF",
-    category: "MarkVSpec",
-    icon: "$(file-pdf)"
-  });
-  assert.deepEqual(packageJson.contributes?.commands?.[4], {
-    command: "markvspec.refreshPreview",
-    title: "Refresh Preview",
-    category: "MarkVSpec",
-    icon: "$(refresh)"
-  });
-  assert.deepEqual(packageJson.contributes?.menus?.["editor/title"]?.[0], {
-    command: "markvspec.openPreview",
-    when: "resourceFilename =~ /(^|\\.)vspec(\\.project)?\\.md$/",
-    group: "navigation"
-  });
-  assert.deepEqual(packageJson.contributes?.menus?.["editor/title"]?.[1], {
-    command: "markvspec.exportHtml",
-    when: "resourceFilename =~ /(^|\\.)vspec(\\.project)?\\.md$/",
-    group: "navigation@2"
-  });
-  assert.deepEqual(packageJson.contributes?.menus?.["editor/title"]?.[2], {
-    command: "markvspec.exportPdf",
-    when: "resourceFilename =~ /(^|\\.)vspec(\\.project)?\\.md$/",
-    group: "navigation@3"
-  });
-  assert.deepEqual(packageJson.contributes?.menus?.["explorer/context"]?.[0], {
-    command: "markvspec.openPreview",
-    when: "resourceFilename =~ /(^|\\.)vspec(\\.project)?\\.md$/",
-    group: "navigation"
-  });
-  assert.deepEqual(packageJson.contributes?.menus?.["explorer/context"]?.[1], {
-    command: "markvspec.exportHtml",
-    when: "resourceFilename =~ /(^|\\.)vspec(\\.project)?\\.md$/",
-    group: "navigation@2"
-  });
-  assert.deepEqual(packageJson.contributes?.menus?.["explorer/context"]?.[2], {
-    command: "markvspec.exportPdf",
-    when: "resourceFilename =~ /(^|\\.)vspec(\\.project)?\\.md$/",
-    group: "navigation@3"
-  });
-  assert.deepEqual(packageJson.contributes?.snippets?.[0], {
-    language: "markvspec",
-    path: "./snippets/markvspec.code-snippets"
-  });
-  assert.equal(grammar.scopeName, "source.markvspec");
-  assert(grammar.repository?.["front-matter"]);
-  assert(grammar.repository?.["headings"]);
-  assert(grammar.repository?.["action-groups"]);
-  assert(grammar.repository?.["references"]);
-  assert(grammar.repository?.["properties"]?.patterns?.some((pattern) => pattern.name === "meta.property.marker.markvspec"));
-  assert(!grammar.repository?.["references"]?.patterns?.some((pattern) => pattern.name === "constant.other.marker.markvspec"));
-
-  const grammarSource = readFileSync(grammarPath, "utf8");
-  for (const token of ["SCR|TPL|PRT", "L|P|E|F|A|V|R", "L|P", "E-", "F-", "A-", "V-", "R-", "Slot", "Events", "Process", "View Context", "View Context Samples", "Preview Scenarios", "Form Groups", "Business Rules", "Error Codes", "History Fields", "History", "HttpRequest", "PartialRequest", "ServerCall", "Resolve", "params", "group", "stop|continue"]) {
-    assert.match(grammarSource, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-  }
-  const headingPatterns = grammar.repository?.["headings"]?.patterns ?? [];
-  const sectionHeadingPatterns = headingPatterns
-    .filter((pattern) => pattern.name === "markup.heading.section.markvspec")
-    .map((pattern) => new RegExp(pattern.match ?? "$.", "u"));
-  assert(sectionHeadingPatterns.some((pattern) => pattern.test("## Layout")));
-  assert(sectionHeadingPatterns.some((pattern) => pattern.test("## Layout: mobile")));
-  assert(sectionHeadingPatterns.some((pattern) => pattern.test("## Form Groups")));
-  assert(sectionHeadingPatterns.some((pattern) => pattern.test("## View Context")));
-  assert(sectionHeadingPatterns.some((pattern) => pattern.test("## Preview Scenarios")));
-  assert(headingPatterns.some((pattern) => pattern.name === "markup.heading.object.markvspec" && new RegExp(pattern.match ?? "$.", "u").test("### P-Fields Fields")));
-  assert(headingPatterns.some((pattern) => pattern.name === "markup.heading.object.markvspec" && new RegExp(pattern.match ?? "$.", "u").test("### F-LoginForm Login form")));
-  assert(headingPatterns.some((pattern) => pattern.name === "markup.heading.object.markvspec" && new RegExp(pattern.match ?? "$.", "u").test("### V-LoginForm Login form validation")));
-  assert(headingPatterns.some((pattern) => pattern.name === "markup.heading.object.markvspec" && new RegExp(pattern.match ?? "$.", "u").test("### loaded")));
-  assert(headingPatterns.some((pattern) => pattern.name === "markup.heading.subsection.markvspec" && new RegExp(pattern.match ?? "$.", "u").test("#### \${model.noticeList.items}")));
-
-  assert(languageConfiguration.wordPattern);
-  assert(!languageConfiguration.wordPattern.includes("\\p"));
-  const wordPattern = new RegExp(languageConfiguration.wordPattern);
-  for (const token of ["SCR-DASHBOARD", "L-メッセージ表示", "E-メールアドレス入力", "A-SubmitLogin", "R-RequiredFields", "E-ページヘッダ"]) {
-    assert.equal(wordPattern.exec(token)?.[0], token);
-  }
-
-  for (const snippetName of [
-    "MarkVSpec Screen",
-    "MarkVSpec States",
-    "MarkVSpec Partial",
-    "MarkVSpec Responsive Layouts",
-    "MarkVSpec Layout Group",
-    "MarkVSpec Input Element",
-    "MarkVSpec Button Element",
-    "MarkVSpec Select Element",
-    "MarkVSpec Action"
-  ]) {
-    assert(snippets[snippetName]?.prefix);
-    assert(snippets[snippetName]?.description);
-    assert(snippets[snippetName]?.body?.length);
-  }
-  assert(snippets["MarkVSpec Screen"].body?.includes("## States"));
-  assert(snippets["MarkVSpec Partial"].body?.includes("type: partial"));
-  assert(snippets["MarkVSpec Partial"].body?.includes("- partial.render: ${11:A-BuildPartial}"));
-  assert(snippets["MarkVSpec Screen"].body?.includes("## Layout: ${4:mobile}"));
-  assert(snippets["MarkVSpec Responsive Layouts"].body?.includes("## Layout: desktop"));
-  assert(snippets["MarkVSpec Layout Group"].body?.includes("#### Items"));
-  assert(snippets["MarkVSpec Input Element"].body?.includes("### ${1:1}:${2:E-Input} Input"));
-  assert(!snippets["MarkVSpec Input Element"].body?.includes("Input*"));
-  assert(snippets["MarkVSpec Button Element"].body?.includes("- variant: ${4|primary,secondary,tertiary|}"));
-  assert(snippets["MarkVSpec Button Element"].body?.includes("- tone: ${5|neutral,info,success,warning,danger|}"));
-  assert(snippets["MarkVSpec Select Element"].body?.includes("- options:"));
-  assert(snippets["MarkVSpec Select Element"].body?.includes("  - ${4:Active}"));
-  assert(!snippets["MarkVSpec Action"].body?.includes("- Triggered"));
-  assert(snippets["MarkVSpec Action"].body?.includes("- Process ${5:P1}: ${6:Submit request}"));
-  assert(snippets["MarkVSpec Action"].body?.includes("  - case: ${11:sent}"));
-  assert(!snippets["MarkVSpec Action"].body?.includes("- Effects"));
-  assert(!snippets["MarkVSpec Action"].body?.includes("- Cases"));
-
-  const expandedScreenSnippet = expandSnippetBody(snippets["MarkVSpec Screen"].body ?? []);
-  assert.deepEqual(parseMarkVSpec(expandedScreenSnippet).diagnostics, []);
-
-  const expandedPartialSnippet = expandSnippetBody(snippets["MarkVSpec Partial"].body ?? []);
-  assert.deepEqual(parseMarkVSpec(expandedPartialSnippet).diagnostics, []);
-
-  const expandedSelectSnippet = expandSnippetBody(snippets["MarkVSpec Select Element"].body ?? []);
-  const selectSource = `---
-id: SCR-SNIPPET
-type: screen
-title: Snippet
----
-
-# SCR-SNIPPET Snippet
-
-## States
-
-- idle*
-
-## Layout: mobile
-
-### L1:L-Page Page
-
-- stack
-
-#### Items
-
-- E-Select
-
-## Elements
-
-${expandedSelectSnippet}
-`;
-  const selectResult = parseMarkVSpec(selectSource);
-  assert.deepEqual(selectResult.diagnostics, []);
-  assert.deepEqual(selectResult.elements[0]?.selectOptions.map((option) => option.label), ["Active", "Inactive"]);
 });

@@ -3,7 +3,6 @@ import {
   conditionReferenceRegex,
   elementIdPattern,
   formGroupIdPattern,
-  idNamePattern,
   isLayoutItemId,
   isLocalId,
   isOpaqueExpression,
@@ -19,14 +18,66 @@ import {
   validateElementProperties
 } from "./element-validator.js";
 import {
-  isInvalidFieldErrorElement,
-  parseDisplayMessageReference,
-  resolveDisplayTarget
+  parseDisplayMessageReference
 } from "./display-effect.js";
+import {
+  formGroupUpdateTargetDiagnostic,
+  presentationPanelTargetDiagnostic,
+  validateDisplayEffectTarget,
+  type DisplayEffectTargetValidationSupport
+} from "./display-effect-validator.js";
+import {
+  validateViewContextsAndPreviewScenarios,
+  type PreviewScenarioValidationSupport
+} from "./preview-scenario-validator.js";
 import {
   findMarkdownEntityReferencesInLines,
   resolveMarkVSpecEntityReference
 } from "./entity-reference.js";
+import {
+  buildMarkVSpecProcessStepReadModel
+} from "./action-process-read-model.js";
+import {
+  buildMarkVSpecActionEnvelopeReadModel,
+  processLifecycleTriggerSource
+} from "./action-envelope-read-model.js";
+import {
+  processStepLabel,
+  validatePartialRequestStep,
+  validateProcessBusinessRulePlacement,
+  validateProcessCaseFlowPlacement,
+  validateProcessDataReferences,
+  validateProcessGranularity,
+  validateProcessStepReferences,
+  validateSuspiciousProcessCaseResponse,
+  validateUnsupportedProcessLevelPartial,
+  type ActionProcessValidationSupport
+} from "./action-process-validator.js";
+import {
+  splitReferenceList,
+  validateBusinessRuleOutcomeCaseName,
+  validateValidationErrorCodes,
+  validateValidationRules,
+  validateValidationScopeAndRun,
+  validateValidationTargets,
+  validateValidationTrigger,
+  validationPropertyValues,
+  type BusinessRuleOutcomeDiagnosticSupport,
+  type ValidationRuleDiagnosticContext,
+  type ValidationTargetDiagnosticContext
+} from "./validation-diagnostics-validator.js";
+import {
+  propertyFirstString,
+  propertyList,
+  propertyLocation,
+  propertyString
+} from "./property-accessor.js";
+import { entityMarkerReadModels } from "./entity-marker-read-model.js";
+import {
+  anchoredOverlayReference,
+  controlledPanelReferences,
+  elementDomainFor
+} from "./element-domain.js";
 import type {
   MarkVSpecActionOutcome,
   MarkVSpecDiagnostic,
@@ -36,8 +87,6 @@ import type {
   MarkVSpecLayoutGroup,
   MarkVSpecParseResult,
   MarkVSpecProcessStep,
-  MarkVSpecProcessStepDetail,
-  MarkVSpecViewContextDefinition,
   SourceLocation
 } from "./types.js";
 
@@ -45,15 +94,29 @@ const layoutKinds = new Set(["stack", "row", "grid", "inline"]);
 const partialIdRegex = /^PRT-[\p{L}\p{N}-]+$/u;
 const actionEvents = new Set(["click", "change", "submit", "focus", "blur", "open", "close"]);
 const actionLifecycleEvents = new Set(["response"]);
-const documentLifecycleTriggers = new Set(["page.load", "partial.render", "screen.load"]);
 const canonicalDocumentLifecycleEvents = new Set(["page.load", "partial.render"]);
-const actionLifecycleTriggerRegex = new RegExp(String.raw`^(${actionIdPattern})\.([A-Za-z][A-Za-z0-9_-]*)$`, "u");
-const actionProcessLifecycleTriggerRegex = new RegExp(String.raw`^(${actionIdPattern})\.([A-Za-z0-9][A-Za-z0-9_-]{0,11})\.([A-Za-z][A-Za-z0-9_-]*)$`, "u");
 const elementIdRegex = new RegExp(String.raw`^${elementIdPattern}$`, "u");
 const formGroupIdRegex = new RegExp(String.raw`^${formGroupIdPattern}$`, "u");
-const validationResultReferenceRegex = new RegExp(String.raw`^(V-${idNamePattern})\.result$`, "u");
 const markerRegex = /^[A-Za-z0-9][A-Za-z0-9_-]{0,11}$/u;
 const multiInitialValueOptionElementTypes = new Set(["MultiSelect", "CheckboxGroup"]);
+const actionProcessValidationSupport: ActionProcessValidationSupport = {
+  firstPropertyLocation,
+  requestParamSourceId,
+  splitReferenceList
+};
+const displayEffectTargetValidationSupport: DisplayEffectTargetValidationSupport = {
+  firstPropertyLine,
+  checkLayoutTargetViewportCoverage
+};
+const previewScenarioValidationSupport: PreviewScenarioValidationSupport = {
+  extractRoutePlaceholders,
+  firstPropertyLine,
+  isExternalTransitionTarget
+};
+const businessRuleOutcomeDiagnosticSupport: BusinessRuleOutcomeDiagnosticSupport = {
+  firstPropertyLine,
+  processStepLabel
+};
 
 export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagnostic[] {
   const diagnostics = result.diagnostics;
@@ -66,6 +129,16 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   const elementIds = new Set(result.elements.map((element) => element.id));
   const elementsById = new Map(result.elements.map((element) => [element.id, element]));
   const formGroupIds = new Set(result.formGroups.map((formGroup) => formGroup.id));
+  const validationTargetDiagnosticContext: ValidationTargetDiagnosticContext = {
+    layoutIds: targetLayoutIds,
+    elementIds,
+    formGroupIds
+  };
+  const validationRuleDiagnosticContext: ValidationRuleDiagnosticContext = {
+    elementIds,
+    elementsById,
+    formGroupIds
+  };
   const actionIds = new Set(result.actions.map((action) => action.id));
   const ruleIds = new Set(result.rules.map((rule) => rule.id));
   const validationIds = new Set(result.validations.map((validation) => validation.id));
@@ -97,119 +170,75 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   checkDuplicates(result.viewContexts.map((context) => ({ id: context.name, location: context.location })), "view context", diagnostics);
   checkDuplicates(result.viewContextSamples.map((sample) => ({ id: sample.name, location: sample.location })), "view context sample", diagnostics);
   checkDuplicates(result.previewScenarios.map((scenario) => ({ id: scenario.name, location: scenario.location })), "preview scenario", diagnostics);
-  validateViewContexts(result, viewContextNames, viewContextSampleNames, stateNames, elementsById, diagnostics);
+  validateViewContextsAndPreviewScenarios({
+    result,
+    viewContextNames,
+    viewContextSampleNames,
+    stateNames,
+    elementsById,
+    diagnostics,
+    support: previewScenarioValidationSupport
+  });
   checkDuplicateLayoutMarkers(result.layoutGroups.filter((group) => !isPresentationPanelId(group.id)), diagnostics);
   checkConsistentLayoutMarkers(result.layoutGroups.filter((group) => !isPresentationPanelId(group.id)), diagnostics);
   checkMarkers(
-    allLayoutGroups.filter((group) => !isPresentationPanelId(group.id)).map((group) => ({
-      id: group.id,
-      marker: group.properties["marker"],
-      location: firstPropertyLine(group, "marker") ? { line: firstPropertyLine(group, "marker") ?? group.location.line } : group.location
-    })),
+    entityMarkerReadModels(allLayoutGroups.filter((group) => !isPresentationPanelId(group.id))),
     "layout",
     diagnostics
   );
   checkMarkers(
-    result.formGroups.map((formGroup) => ({
-      id: formGroup.id,
-      marker: firstStringProperty(formGroup.properties["marker"]),
-      location: firstPropertyLine(formGroup, "marker") ? { line: firstPropertyLine(formGroup, "marker") ?? formGroup.location.line } : formGroup.location
-    })),
+    entityMarkerReadModels(result.formGroups),
     "form group",
     diagnostics
   );
   checkMarkers(
     [
-      ...result.validations.map((validation) => ({
-        id: validation.id,
-        marker: firstStringProperty(validation.properties["marker"]),
-        location: firstPropertyLine(validation, "marker") ? { line: firstPropertyLine(validation, "marker") ?? validation.location.line } : validation.location
-      })),
-      ...result.rules.map((rule) => ({
-        id: rule.id,
-        marker: firstStringProperty(rule.properties["marker"]),
-        location: firstPropertyLine(rule, "marker") ? { line: firstPropertyLine(rule, "marker") ?? rule.location.line } : rule.location
-      }))
+      ...entityMarkerReadModels(result.validations),
+      ...entityMarkerReadModels(result.rules)
     ],
     "message",
     diagnostics
   );
   checkMarkers(
-    result.errorCodes.map((errorCode) => ({
-      id: errorCode.id,
-      marker: firstStringProperty(errorCode.properties["marker"]),
-      location: firstPropertyLine(errorCode, "marker") ? { line: firstPropertyLine(errorCode, "marker") ?? errorCode.location.line } : errorCode.location
-    })),
+    entityMarkerReadModels(result.errorCodes),
     "error code",
     diagnostics
   );
   checkMarkers(
-    result.elements.map((element) => ({
-      id: element.id,
-      marker: stringProperty(element, "marker"),
-      location: firstPropertyLine(element, "marker") ? { line: firstPropertyLine(element, "marker") ?? element.location.line } : element.location
-    })),
+    entityMarkerReadModels(result.elements),
     "element",
     diagnostics
   );
   checkMarkers(
-    result.actions.map((action) => ({
-      id: action.id,
-      marker: action.properties["marker"],
-      location: firstPropertyLine(action, "marker") ? { line: firstPropertyLine(action, "marker") ?? action.location.line } : action.location
-    })),
+    entityMarkerReadModels(result.actions),
     "action",
     diagnostics
   );
   checkDuplicateMarkers(
-    result.formGroups.map((formGroup) => ({
-      id: formGroup.id,
-      marker: firstStringProperty(formGroup.properties["marker"]),
-      location: firstPropertyLine(formGroup, "marker") ? { line: firstPropertyLine(formGroup, "marker") ?? formGroup.location.line } : formGroup.location
-    })),
+    entityMarkerReadModels(result.formGroups),
     "form group",
     diagnostics
   );
   checkDuplicateMarkers(
     [
-      ...result.validations.map((validation) => ({
-        id: validation.id,
-        marker: firstStringProperty(validation.properties["marker"]),
-        location: firstPropertyLine(validation, "marker") ? { line: firstPropertyLine(validation, "marker") ?? validation.location.line } : validation.location
-      })),
-      ...result.rules.map((rule) => ({
-        id: rule.id,
-        marker: firstStringProperty(rule.properties["marker"]),
-        location: firstPropertyLine(rule, "marker") ? { line: firstPropertyLine(rule, "marker") ?? rule.location.line } : rule.location
-      }))
+      ...entityMarkerReadModels(result.validations),
+      ...entityMarkerReadModels(result.rules)
     ],
     "message",
     diagnostics
   );
   checkDuplicateMarkers(
-    result.errorCodes.map((errorCode) => ({
-      id: errorCode.id,
-      marker: firstStringProperty(errorCode.properties["marker"]),
-      location: firstPropertyLine(errorCode, "marker") ? { line: firstPropertyLine(errorCode, "marker") ?? errorCode.location.line } : errorCode.location
-    })),
+    entityMarkerReadModels(result.errorCodes),
     "error code",
     diagnostics
   );
   checkDuplicateMarkers(
-    result.elements.map((element) => ({
-      id: element.id,
-      marker: stringProperty(element, "marker"),
-      location: firstPropertyLine(element, "marker") ? { line: firstPropertyLine(element, "marker") ?? element.location.line } : element.location
-    })),
+    entityMarkerReadModels(result.elements),
     "element",
     diagnostics
   );
   checkDuplicateMarkers(
-    result.actions.map((action) => ({
-      id: action.id,
-      marker: action.properties["marker"],
-      location: firstPropertyLine(action, "marker") ? { line: firstPropertyLine(action, "marker") ?? action.location.line } : action.location
-    })),
+    entityMarkerReadModels(result.actions),
     "action",
     diagnostics
   );
@@ -424,25 +453,27 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   }
 
   for (const action of result.actions) {
-    const actionLifecycleTrigger = action.triggeredBy ? actionLifecycleTriggerRegex.exec(action.triggeredBy) : undefined;
-    const actionProcessLifecycleTrigger = action.triggeredBy ? actionProcessLifecycleTriggerRegex.exec(action.triggeredBy) : undefined;
-    if (!action.triggeredBy) {
+    const envelope = buildMarkVSpecActionEnvelopeReadModel(action);
+    const trigger = envelope.trigger;
+    if (trigger.kind === "missing") {
       diagnostics.push(createMarkVSpecDiagnostic(
         "warning",
         "action.missingTrigger",
         { actionId: action.id },
         action.location.line
       ));
-    } else if (documentLifecycleTriggers.has(action.triggeredBy)) {
+    } else if (trigger.kind === "document-lifecycle") {
       // Valid document lifecycle trigger.
-    } else if (action.triggeredBy.startsWith("E-") && !action.trigger) {
+    } else if (trigger.kind === "invalid-element") {
       diagnostics.push({
         severity: "error",
-        message: `Action ${action.id} has invalid trigger ${action.triggeredBy}. Expected E-*.event.`,
+        message: `Action ${action.id} has invalid trigger ${trigger.raw}. Expected E-*.event.`,
         line: action.triggeredByLocation?.line ?? action.location.line
       });
-    } else if (actionProcessLifecycleTrigger) {
-      const [, sourceActionId, processMarker, event] = actionProcessLifecycleTrigger;
+    } else if (trigger.kind === "process-lifecycle") {
+      const sourceActionId = trigger.sourceActionId ?? "";
+      const processMarker = trigger.processMarker ?? "";
+      const event = trigger.lifecycleEvent ?? "";
       const sourceAction = result.actions.find((candidate) => candidate.id === sourceActionId);
       if (!sourceAction) {
         diagnostics.push({
@@ -463,8 +494,9 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
           line: action.triggeredByLocation?.line ?? action.location.line
         });
       }
-    } else if (actionLifecycleTrigger) {
-      const [, sourceActionId, event] = actionLifecycleTrigger;
+    } else if (trigger.kind === "action-lifecycle") {
+      const sourceActionId = trigger.sourceActionId ?? "";
+      const event = trigger.lifecycleEvent ?? "";
       if (!actionIds.has(sourceActionId)) {
         diagnostics.push({
           severity: "error",
@@ -484,34 +516,34 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
           line: action.triggeredByLocation?.line ?? action.location.line
         });
       }
-    } else if (action.trigger && !elementIds.has(action.trigger.elementId)) {
+    } else if (trigger.kind === "element" && trigger.elementId && !elementIds.has(trigger.elementId)) {
       diagnostics.push({
         severity: "error",
-        message: `Action ${action.id} trigger references missing element ${action.trigger.elementId}.`,
+        message: `Action ${action.id} trigger references missing element ${trigger.elementId}.`,
         line: action.triggeredByLocation?.line ?? action.location.line
       });
-    } else if (action.trigger && !actionEvents.has(action.trigger.event)) {
+    } else if (trigger.kind === "element" && trigger.elementEvent && !actionEvents.has(trigger.elementEvent)) {
       diagnostics.push({
         severity: "warning",
-        message: `Action ${action.id} uses unsupported event ${action.trigger.event}.`,
+        message: `Action ${action.id} uses unsupported event ${trigger.elementEvent}.`,
         line: action.triggeredByLocation?.line ?? action.location.line
       });
-    } else if (action.triggeredBy && !action.trigger) {
+    } else if (trigger.raw && trigger.kind === "unknown") {
       diagnostics.push(createMarkVSpecDiagnostic(
         "warning",
         "action.invalidTrigger",
-        { actionId: action.id, trigger: action.triggeredBy },
+        { actionId: action.id, trigger: trigger.raw },
         action.triggeredByLocation?.line ?? action.location.line
       ));
     }
 
-    const processResponseTrigger = action.triggeredBy ? parseProcessOutputReference(action.triggeredBy) : undefined;
-    if (processResponseTrigger?.kind === "response") {
-      const receivesTriggeredResponse = action.processSteps.some((step) => step.receives.some((receive) => receive.value === action.triggeredBy));
+    const processResponseTrigger = processLifecycleTriggerSource(action);
+    if (processResponseTrigger?.event === "response") {
+      const receivesTriggeredResponse = action.processSteps.some((step) => step.receives.some((receive) => receive.value === trigger.raw));
       if (!receivesTriggeredResponse) {
         diagnostics.push({
           severity: "warning",
-          message: `Action ${action.id} is triggered by ${action.triggeredBy} but no process receives that response.`,
+          message: `Action ${action.id} is triggered by ${trigger.raw} but no process receives that response.`,
           line: action.triggeredByLocation?.line ?? action.location.line
         });
       }
@@ -591,25 +623,26 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
         seenProcessMarkers.add(step.marker);
       }
 
-      if (isHttpRequestStep(step.name) && !processStepDetail(step, "request")) {
+      const processReadModel = buildMarkVSpecProcessStepReadModel(step);
+      if (processReadModel.kind === "HttpRequest" && !processReadModel.execution.request) {
         diagnostics.push({
           severity: "warning",
           message: `Action ${action.id} HttpRequest step has no request line such as POST /path.`,
           line: step.location.line
         });
       }
-      for (const detail of step.details.filter((detail) => isCanonicalProcessParamDetail(step, detail))) {
-          const sourceId = requestParamSourceId(detail.value);
-          if (sourceId && isLocalId(sourceId) && !layoutIds.has(sourceId) && !elementIds.has(sourceId)) {
-            diagnostics.push({
-              severity: "error",
-              message: `Action ${action.id} process step ${processStepLabel(step)} parameter ${detail.key} references missing source ${sourceId}.`,
-              line: detail.location.line
-            });
-          }
+      for (const detail of processReadModel.execution.params) {
+        const sourceId = requestParamSourceId(detail.value);
+        if (sourceId && isLocalId(sourceId) && !layoutIds.has(sourceId) && !elementIds.has(sourceId)) {
+          diagnostics.push({
+            severity: "error",
+            message: `Action ${action.id} process step ${processStepLabel(step)} parameter ${detail.key} references missing source ${sourceId}.`,
+            line: detail.location.line
+          });
+        }
       }
 
-      if (isPartialRequestStep(step.name)) {
+      if (processReadModel.kind === "PartialRequest") {
         validatePartialRequestStep(action.id, step, diagnostics);
         const partialDetail = step.details.find((detail) => detail.key === "partial");
         const isSelfPartialRequest = result.screen.type === "partial" && partialDetail?.value === result.screen.id;
@@ -623,17 +656,17 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
         );
       }
 
-      if (isResolveStep(step.name)) {
-        if (!step.resolveGroup) {
+      if (processReadModel.kind === "Resolve") {
+        if (!processReadModel.execution.resolveGroup) {
           diagnostics.push({
             severity: "warning",
             message: `Action ${action.id} Resolve step must specify a parallel group with group: initial-load.`,
             line: step.location.line
           });
-        } else if (!parallelGroups.has(step.resolveGroup)) {
+        } else if (!parallelGroups.has(processReadModel.execution.resolveGroup)) {
           diagnostics.push({
             severity: "error",
-            message: `Action ${action.id} Resolve step references missing parallel group ${step.resolveGroup}.`,
+            message: `Action ${action.id} Resolve step references missing parallel group ${processReadModel.execution.resolveGroup}.`,
             line: firstPropertyLine(step, "resolve") ?? step.location.line
           });
         }
@@ -653,7 +686,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
     }
 
     for (const outcome of action.outcomes) {
-      validateBusinessRuleOutcomeCaseName(action.id, undefined, outcome, diagnostics);
+      validateBusinessRuleOutcomeCaseName(action.id, undefined, outcome, diagnostics, businessRuleOutcomeDiagnosticSupport);
 
       if (!hasActionOutcomeDetails(outcome) && !outcome.to && !transitionResults.has(outcome.result) && !responseResults.has(outcome.result)) {
         diagnostics.push({
@@ -700,6 +733,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
     }
 
     for (const step of action.processSteps) {
+      const processReadModel = buildMarkVSpecProcessStepReadModel(step);
       for (const [key, conditions] of [
         ["when", step.when],
         ["skip when", step.skipWhen]
@@ -736,16 +770,16 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
       }
 
       validateUpdateMode(action.id, step, diagnostics, `process step ${step.name}`);
-      validateProcessStepReferences(action.id, step, validationIds, errorCodeIds, diagnostics);
-      validateProcessGranularity(action.id, step, diagnostics);
+      validateProcessStepReferences(action.id, step, validationIds, errorCodeIds, diagnostics, actionProcessValidationSupport);
+      validateProcessGranularity(action.id, step, diagnostics, actionProcessValidationSupport);
       validateUnsupportedProcessLevelPartial(action.id, step, diagnostics);
       validateProcessBusinessRulePlacement(action.id, step, diagnostics);
-      validateProcessDataReferences(action.id, step, actionIds, processMarkersByAction, layoutIds, elementIds, diagnostics);
+      validateProcessDataReferences(action.id, step, actionIds, processMarkersByAction, layoutIds, elementIds, diagnostics, actionProcessValidationSupport);
       collectPartialReference(step.content, firstPropertyLocation(step, "content") ?? step.location, referencedPartialIds);
       validateDisplayEffect(action.id, `process step ${processStepLabel(step)}`, step.display, targetLayoutIds, elementIds, layoutsById, elementsById, validationsById, rulesById, layoutIdsByViewport, diagnostics, referencedPartialIds);
 
       for (const outcome of step.outcomes) {
-        validateBusinessRuleOutcomeCaseName(action.id, step, outcome, diagnostics);
+        validateBusinessRuleOutcomeCaseName(action.id, step, outcome, diagnostics, businessRuleOutcomeDiagnosticSupport);
         validateProcessCaseFlowPlacement(action.id, step, outcome, diagnostics);
         validateSuspiciousProcessCaseResponse(action.id, step, outcome, diagnostics);
 
@@ -782,7 +816,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
           });
         }
 
-        if (isImmediateStep(step.name) && outcome.response && !transitionResults.has(outcome.result)) {
+        if (processReadModel.kind === "Immediate" && outcome.response && !transitionResults.has(outcome.result)) {
           diagnostics.push({
             severity: "warning",
             message: `Action ${action.id} process step ${step.name} defines ${outcome.result} response but has no ${outcome.result} transition.`,
@@ -841,9 +875,9 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   validateFormGroups(result, elementsById, actionIds, diagnostics);
 
   for (const validation of result.validations) {
-    validateValidationTargets(validation, targetLayoutIds, elementIds, formGroupIds, diagnostics);
+    validateValidationTargets(validation, validationTargetDiagnosticContext, diagnostics);
     validateValidationTrigger(validation, diagnostics);
-    validateValidationRules(validation, elementIds, elementsById, formGroupIds, diagnostics);
+    validateValidationRules(validation, validationRuleDiagnosticContext, diagnostics);
     validateValidationCondition(validation, localIds, diagnostics);
     validateValidationErrorCodes(validation, errorCodeIds, diagnostics);
     validateValidationScopeAndRun(validation, diagnostics);
@@ -1003,7 +1037,7 @@ function validateFormGroups(
         });
         continue;
       }
-      if (!isInputElementType(element.type)) {
+      if (!elementDomainFor(element).isFormControl()) {
         diagnostics.push({
           severity: "warning",
           message: `FormGroup ${formGroup.id} field ${field.elementId} is ${element.type}, which is not an input element.`,
@@ -1068,209 +1102,6 @@ function layoutElementIds(
     }
   }
   return elementIds;
-}
-
-function validateValidationTargets(
-  validation: MarkVSpecParseResult["validations"][number],
-  layoutIds: Set<string>,
-  elementIds: Set<string>,
-  formGroupIds: Set<string>,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  if (validationPropertyValues(validation, "target").length === 0) {
-    diagnostics.push({
-      severity: "error",
-      message: `Validation ${validation.id} must specify target.`,
-      line: validation.location.line
-    });
-  }
-
-  validationPropertyValues(validation, "target").forEach((target, index) => {
-    const line = validation.propertyLocations["target"]?.[index]?.line ?? validation.location.line;
-    if (isPresentationPanelId(target)) {
-      diagnostics.push(presentationPanelTargetDiagnostic(`Validation ${validation.id}`, target, line));
-    } else if (formGroupIdRegex.test(target)) {
-      if (!formGroupIds.has(target)) {
-        diagnostics.push({
-          severity: "error",
-          message: `Validation ${validation.id} targets missing form group ${target}.`,
-          line
-        });
-      }
-    } else if (layoutIds.has(target) && validationIsComposite(validation)) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Validation ${validation.id} targets layout ${target} for composite validation. Use a FormGroup target such as F-${target.replace(/^L-/u, "")} instead.`,
-        line
-      });
-    } else if (isLocalId(target) && !layoutIds.has(target) && !elementIds.has(target)) {
-      const targetKind = target.startsWith("E-") ? "element" : target.startsWith("L-") ? "layout" : "layout or element";
-      diagnostics.push({
-        severity: "error",
-        message: `Validation ${validation.id} targets missing ${targetKind} ${target}.`,
-        line
-      });
-    }
-  });
-}
-
-function validationIsComposite(validation: MarkVSpecParseResult["validations"][number]): boolean {
-  const scopes = validationPropertyValues(validation, "scope").map((scope) => scope.toLowerCase());
-  if (scopes.some((scope) => scope === "composite" || scope === "cross-field")) {
-    return true;
-  }
-  return validationPropertyValues(validation, "target").length > 1;
-}
-
-function validateValidationTrigger(
-  validation: MarkVSpecParseResult["validations"][number],
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  validationPropertyValues(validation, "trigger").forEach((trigger, index) => {
-    const line = validation.propertyLocations["trigger"]?.[index]?.line ?? validation.location.line;
-    diagnostics.push({
-      severity: "warning",
-      message: `Validation ${validation.id} trigger is not canonical. Actions should consume ${validation.id}.result instead of defining validation triggers.`,
-      line
-    });
-  });
-}
-
-function validateValidationRules(
-  validation: MarkVSpecParseResult["validations"][number],
-  elementIds: Set<string>,
-  elementsById: Map<string, MarkVSpecElement>,
-  formGroupIds: Set<string>,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  if (validation.rules.length === 0 && validationPropertyValues(validation, "condition").length === 0 && validationPropertyValues(validation, "check").length === 0) {
-    diagnostics.push({
-      severity: "warning",
-      message: `Validation ${validation.id} has no rules. Define rules or migrate legacy condition-only validation.`,
-      line: validation.location.line
-    });
-    return;
-  }
-
-  for (const rule of validation.rules) {
-    for (const target of rule.targets) {
-      if (elementIdRegex.test(target) && !elementIds.has(target)) {
-        diagnostics.push(createMarkVSpecDiagnostic(
-          "error",
-          "validation.ruleMissingElement",
-          { validationId: validation.id, ruleName: rule.name, elementId: target },
-          rule.location.line
-        ));
-      } else if (formGroupIdRegex.test(target) && !formGroupIds.has(target)) {
-        diagnostics.push({
-          severity: "error",
-          message: `Validation ${validation.id} rule ${rule.name} references missing form group ${target}.`,
-          line: rule.location.line
-        });
-      }
-    }
-    validateElementBackedConstraint(validation, rule, elementsById, diagnostics);
-  }
-}
-
-function validateElementBackedConstraint(
-  validation: MarkVSpecParseResult["validations"][number],
-  rule: MarkVSpecParseResult["validations"][number]["rules"][number],
-  elementsById: Map<string, MarkVSpecElement>,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  const normalizedName = rule.name.toLowerCase();
-  if (normalizedName !== "length" && normalizedName !== "range") {
-    return;
-  }
-  if (!rule.targets.some((target) => target.toLowerCase() === "element")) {
-    return;
-  }
-
-  const targetElementIds = validationPropertyValues(validation, "target").filter((target) => elementIdRegex.test(target));
-  if (targetElementIds.length !== 1) {
-    return;
-  }
-
-  const element = elementsById.get(targetElementIds[0] ?? "");
-  if (!element) {
-    return;
-  }
-
-  const hasNeededMetadata = normalizedName === "length"
-    ? elementHasAnyInputMetadata(element, ["min length", "max length", "min-length", "max-length", "minlength", "maxlength"])
-    : elementHasAnyInputMetadata(element, ["min", "max"]);
-  if (!hasNeededMetadata) {
-    diagnostics.push({
-      severity: "warning",
-      message: `Validation ${validation.id} uses ${rule.name}: element, but target ${element.id} does not define matching ${rule.name} input metadata.`,
-      line: rule.location.line
-    });
-  }
-}
-
-function elementHasAnyInputMetadata(element: MarkVSpecElement, keys: string[]): boolean {
-  const normalizedKeys = new Set(keys.map((key) => key.toLowerCase()));
-  for (const key of Object.keys(element.properties)) {
-    if (normalizedKeys.has(key.toLowerCase())) {
-      return true;
-    }
-  }
-  return element.inputRules.some((rule) => normalizedKeys.has(rule.key.toLowerCase()));
-}
-
-function validateValidationErrorCodes(
-  validation: MarkVSpecParseResult["validations"][number],
-  errorCodeIds: Set<string>,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  for (const key of ["error code", "error codes"]) {
-    validationPropertyValues(validation, key).forEach((value, index) => {
-      for (const errorCode of splitReferenceList(value)) {
-        if (!errorCodeIds.has(errorCode)) {
-          diagnostics.push({
-            severity: "error",
-            message: `Validation ${validation.id} references missing error code ${errorCode}.`,
-            line: validation.propertyLocations[key]?.[index]?.line ?? validation.location.line
-          });
-        }
-      }
-    });
-  }
-}
-
-function validateValidationScopeAndRun(
-  validation: MarkVSpecParseResult["validations"][number],
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  const scopes = new Set(["single", "field", "composite", "cross-field"]);
-  validationPropertyValues(validation, "scope").forEach((scope, index) => {
-    const line = validation.propertyLocations["scope"]?.[index]?.line ?? validation.location.line;
-    if (line !== validation.location.line) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Validation ${validation.id} must not define scope; use Field Validations or Cross-field Validations section instead.`,
-        line
-      });
-    }
-    if (!scopes.has(scope)) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Validation ${validation.id} scope ${scope} is not recognized. Use single, field, composite, or cross-field.`,
-        line
-      });
-    }
-  });
-
-  validationPropertyValues(validation, "run").forEach((run, index) => {
-    if (run !== "client") {
-      diagnostics.push({
-        severity: "warning",
-        message: `Validation ${validation.id} run ${run} is not supported. Use client.`,
-        line: validation.propertyLocations["run"]?.[index]?.line ?? validation.location.line
-      });
-    }
-  });
 }
 
 function validateErrorCode(
@@ -1340,18 +1171,6 @@ function validateValidationCondition(
   });
 }
 
-function validationPropertyValues(owner: { properties: Record<string, string | string[]> }, key: string): string[] {
-  const value = owner.properties[key];
-  if (Array.isArray(value)) {
-    return value;
-  }
-  return value ? [value] : [];
-}
-
-function splitReferenceList(value: string): string[] {
-  return value.split(/[,、]/u).map((item) => item.trim()).filter(Boolean);
-}
-
 function collectPartialReference(
   value: string | undefined,
   location: SourceLocation | undefined,
@@ -1383,36 +1202,6 @@ function validateReferencedPartialIds(
   }
 }
 
-function validatePartialRequestStep(
-  actionId: string,
-  step: MarkVSpecProcessStep,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  const request = step.details.find((detail) => detail.key === "request");
-  if (!request || !/^([A-Z]+)\s+.+$/.test(request.value)) {
-    diagnostics.push({
-      severity: "warning",
-      message: `Action ${actionId} PartialRequest step should define request such as GET /path.`,
-      line: request?.location.line ?? step.location.line
-    });
-  }
-
-  const partial = step.details.find((detail) => detail.key === "partial");
-  if (!partial) {
-    diagnostics.push({
-      severity: "warning",
-      message: `Action ${actionId} PartialRequest step should define partial PRT-* ID.`,
-      line: step.location.line
-    });
-  } else if (!partialIdRegex.test(partial.value)) {
-    diagnostics.push({
-      severity: "error",
-      message: `Action ${actionId} PartialRequest partial must use a PRT-* partial ID.`,
-      line: partial.location.line
-    });
-  }
-}
-
 function validateUpdateMode(
   actionId: string,
   owner: Pick<MarkVSpecActionOutcome | MarkVSpecProcessStep, "mode" | "propertyLocations">,
@@ -1426,340 +1215,6 @@ function validateUpdateMode(
       line: firstPropertyLine(owner, "mode")
     });
   }
-}
-
-function validateProcessGranularity(actionId: string, step: MarkVSpecProcessStep, diagnostics: MarkVSpecDiagnostic[]): void {
-  const executionDetails = processExecutionDetails(step);
-  if (executionDetails.length > 1) {
-    diagnostics.push(createMarkVSpecDiagnostic(
-      "warning",
-      "action.process.multipleExecutionDetails",
-      { actionId, stepLabel: processStepLabel(step), details: executionDetails.map((detail) => detail.name).join(", ") },
-      executionDetails[1]?.location.line ?? step.location.line
-    ));
-  }
-
-  const directEffectLocation = firstDirectProcessEffectLocation(step);
-  const hasClassification = step.outcomes.length > 0 || step.receives.length > 0 || step.results.length > 0;
-  if (directEffectLocation && executionDetails.length > 0) {
-    diagnostics.push(createMarkVSpecDiagnostic(
-      "warning",
-      "action.process.mixesExecutionDetailAndImmediateEffects",
-      { actionId, stepLabel: processStepLabel(step) },
-      directEffectLocation.line
-    ));
-  } else if (directEffectLocation && hasClassification) {
-    diagnostics.push(createMarkVSpecDiagnostic(
-      "warning",
-      "action.process.mixesResultClassificationAndImmediateEffects",
-      { actionId, stepLabel: processStepLabel(step) },
-      directEffectLocation.line
-    ));
-  }
-}
-
-function validateUnsupportedProcessLevelPartial(actionId: string, step: MarkVSpecProcessStep, diagnostics: MarkVSpecDiagnostic[]): void {
-  if (isPartialRequestStep(step.name)) {
-    return;
-  }
-
-  for (const detail of step.details.filter((candidate) => candidate.key === "partial")) {
-    diagnostics.push({
-      severity: "warning",
-      message: `Action ${actionId} process step ${processStepLabel(step)} has unsupported process-level partial ${detail.value}. Put returned partial content under Effects display.partial on the response case.`,
-      line: detail.location.line
-    });
-  }
-}
-
-function validateProcessBusinessRulePlacement(actionId: string, step: MarkVSpecProcessStep, diagnostics: MarkVSpecDiagnostic[]): void {
-  for (const detail of step.receives) {
-    if (isBusinessRuleDetailKey(detail.key)) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Action ${actionId} process step ${processStepLabel(step)} receive entry ${detail.key}: ${detail.value} is not allowed. Put business rule: under case: business-rule-violation.`,
-        line: detail.location.line
-      });
-    }
-  }
-
-  for (const detail of step.results) {
-    if (isBusinessRuleDetailKey(detail.key)) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Action ${actionId} process step ${processStepLabel(step)} result entry ${detail.key}: ${detail.value} is not allowed. Put business rule: under case: business-rule-violation.`,
-        line: detail.location.line
-      });
-    }
-  }
-}
-
-function validateBusinessRuleOutcomeCaseName(
-  actionId: string,
-  step: MarkVSpecProcessStep | undefined,
-  outcome: MarkVSpecActionOutcome,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  if (outcome.businessRules.length === 0 || outcome.result === "business-rule-violation") {
-    return;
-  }
-
-  const context = step ? `process step ${processStepLabel(step)} case ${outcome.result}` : `case ${outcome.result}`;
-  diagnostics.push({
-    severity: "warning",
-    message: `Action ${actionId} ${context} declares business rule ${outcome.businessRules.join(", ")}. Use case: business-rule-violation for business rule violations.`,
-    line: firstPropertyLine(outcome, "business rule") ?? firstPropertyLine(outcome, "business rules") ?? outcome.location?.line ?? step?.location.line
-  });
-}
-
-function isBusinessRuleDetailKey(key: string): boolean {
-  return key === "business rule" || key === "business rules";
-}
-
-function validateProcessCaseFlowPlacement(
-  actionId: string,
-  step: MarkVSpecProcessStep,
-  outcome: MarkVSpecActionOutcome,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  if (outcome.flowDirectives.length === 0) {
-    return;
-  }
-
-  for (const directive of outcome.flowDirectives) {
-    if (directive.underEffects) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Action ${actionId} process step ${step.name} case ${outcome.result} has ${directive.value} under Effects. Put ${directive.value} directly under the case as the final entry.`,
-        line: directive.location.line
-      });
-    }
-  }
-
-  const flowValues = new Set(outcome.flowDirectives.map((directive) => directive.value));
-  if (flowValues.size > 1) {
-    diagnostics.push({
-      severity: "warning",
-      message: `Action ${actionId} process step ${step.name} case ${outcome.result} has both stop and continue. Use only one flow directive.`,
-      line: outcome.flowDirectives[1]?.location.line ?? outcome.flowDirectives[0]?.location.line ?? outcome.location?.line ?? step.location.line
-    });
-  }
-
-  for (const directive of outcome.flowDirectives) {
-    const laterEntry = processCaseEntryLocations(outcome, directive)
-      .filter((location) => location.line > directive.location.line)
-      .sort((left, right) => left.line - right.line)[0];
-    if (laterEntry) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Action ${actionId} process step ${step.name} case ${outcome.result} has entries after ${directive.value}. Put ${directive.value} as the final entry in the case.`,
-        line: laterEntry.line
-      });
-    }
-  }
-}
-
-function validateSuspiciousProcessCaseResponse(
-  actionId: string,
-  step: MarkVSpecProcessStep,
-  outcome: MarkVSpecActionOutcome,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  if (!outcome.response || step.receives.some((detail) => detail.key === "response")) {
-    return;
-  }
-
-  diagnostics.push(createMarkVSpecDiagnostic(
-    "warning",
-    "action.process.caseResponseWithoutReceive",
-    { actionId, stepLabel: processStepLabel(step), result: outcome.result },
-    outcome.response.location.line
-  ));
-}
-
-function processCaseEntryLocations(outcome: MarkVSpecActionOutcome, currentDirective: { location: SourceLocation }): SourceLocation[] {
-  const locations: SourceLocation[] = [];
-  for (const [key, entries] of Object.entries(outcome.propertyLocations)) {
-    if (key !== "flow") {
-      locations.push(...entries);
-    }
-  }
-  locations.push(...outcome.flowDirectives
-    .filter((directive) => directive.location !== currentDirective.location)
-    .map((directive) => directive.location));
-  if (outcome.display) {
-    locations.push(outcome.display.location);
-    for (const entries of Object.values(outcome.display.propertyLocations)) {
-      locations.push(...entries);
-    }
-  }
-  for (const routeParam of outcome.routeParams) {
-    locations.push(routeParam.location);
-  }
-  return locations;
-}
-
-function processExecutionDetails(step: MarkVSpecProcessStep): { name: string; location: SourceLocation }[] {
-  const details = new Map<string, SourceLocation>();
-  const normalizedStep = normalizeProcessName(step.name);
-
-  if ((normalizedStep === "httprequest" || normalizedStep === "http request") && step.details.some((detail) => detail.key === "request")) {
-    const request = step.details.find((detail) => detail.key === "request");
-    if (request) {
-      details.set("request", request.location);
-    }
-  }
-
-  if ((normalizedStep === "servercall" || normalizedStep === "server call") && step.details.length > 0) {
-    details.set("server", step.details[0]?.location ?? step.location);
-  }
-
-  for (const detail of step.details) {
-    const root = processExecutionDetailRoot(detail.key);
-    if (!root || root === "params") {
-      continue;
-    }
-
-    details.set(root, details.get(root) ?? detail.location);
-  }
-
-  for (const [key, locations] of Object.entries(step.propertyLocations)) {
-    if (!key.startsWith("detail ")) {
-      continue;
-    }
-
-    const name = key.slice("detail ".length).trim();
-    const location = locations[0];
-    if (name && location) {
-      details.set(name, details.get(name) ?? location);
-    }
-  }
-
-  return [...details.entries()].map(([name, location]) => ({ name, location }));
-}
-
-function processExecutionDetailRoot(key: string): string | undefined {
-  const root = key.split(".")[0]?.trim();
-  if (!root) {
-    return undefined;
-  }
-
-  if (["request", "server", "sync", "call"].includes(root)) {
-    return root === "call" ? "server" : root;
-  }
-
-  if (key.includes(".")) {
-    return root;
-  }
-
-  return undefined;
-}
-
-function normalizeProcessName(name: string): string {
-  return name.trim().replace(/\s+/gu, " ").toLowerCase();
-}
-
-function firstDirectProcessEffectLocation(step: MarkVSpecProcessStep): SourceLocation | undefined {
-  return [
-    firstPropertyLocation(step, "state"),
-    firstPropertyLocation(step, "navigate"),
-    firstPropertyLocation(step, "model"),
-    firstPropertyLocation(step, "view"),
-    firstPropertyLocation(step, "target"),
-    firstPropertyLocation(step, "mode"),
-    firstPropertyLocation(step, "fragment"),
-    firstPropertyLocation(step, "content"),
-    step.display?.location
-  ]
-    .filter((location): location is SourceLocation => Boolean(location))
-    .sort((a, b) => a.line - b.line)[0];
-}
-
-function validateProcessStepReferences(
-  actionId: string,
-  step: MarkVSpecProcessStep,
-  validationIds: Set<string>,
-  errorCodeIds: Set<string>,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  for (const detail of step.details) {
-    if (detail.key === "validation" || detail.key === "validate") {
-      for (const validationId of splitReferenceList(detail.value)) {
-        const resultReference = parseValidationResultReference(validationId);
-        const referencedValidationId = resultReference ?? validationId;
-        if (!validationIds.has(referencedValidationId)) {
-          diagnostics.push({
-            severity: "error",
-            message: `Action ${actionId} process step ${step.name} references missing validation ${referencedValidationId}.`,
-            line: detail.location.line
-          });
-        } else if (validationId.startsWith("V-") && !resultReference) {
-          diagnostics.push({
-            severity: "warning",
-            message: `Action ${actionId} process step ${step.name} should reference ${validationId}.result when consuming validation results.`,
-            line: detail.location.line
-          });
-        }
-      }
-    }
-    if (detail.key === "error code" || detail.key === "error codes") {
-      for (const errorCode of splitReferenceList(detail.value)) {
-        if (!errorCodeIds.has(errorCode)) {
-          diagnostics.push({
-            severity: "error",
-            message: `Action ${actionId} process step ${step.name} references missing error code ${errorCode}.`,
-            line: detail.location.line
-          });
-        }
-      }
-    }
-  }
-}
-
-function validateProcessDataReferences(
-  actionId: string,
-  step: MarkVSpecProcessStep,
-  actionIds: Set<string>,
-  processMarkersByAction: Map<string, Set<string>>,
-  layoutIds: Set<string>,
-  elementIds: Set<string>,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  for (const detail of [...step.inputs, ...step.receives]) {
-    const sourceId = requestParamSourceId(detail.value);
-    if (sourceId && isLocalId(sourceId) && !layoutIds.has(sourceId) && !elementIds.has(sourceId) && !actionIds.has(sourceId)) {
-      diagnostics.push({
-        severity: "error",
-        message: `Action ${actionId} process step ${processStepLabel(step)} ${detail.key} references missing source ${sourceId}.`,
-        line: detail.location.line
-      });
-      continue;
-    }
-
-    const processOutput = parseProcessOutputReference(detail.value);
-    if (processOutput) {
-      if (!actionIds.has(processOutput.actionId)) {
-        diagnostics.push({
-          severity: "error",
-          message: `Action ${actionId} process step ${processStepLabel(step)} references missing action ${processOutput.actionId}.`,
-          line: detail.location.line
-        });
-      } else if (!processMarkersByAction.get(processOutput.actionId)?.has(processOutput.marker)) {
-        diagnostics.push({
-          severity: "error",
-          message: `Action ${actionId} process step ${processStepLabel(step)} references missing process marker ${processOutput.marker}.`,
-          line: detail.location.line
-        });
-      }
-    }
-  }
-}
-
-function isCanonicalProcessParamDetail(step: MarkVSpecProcessStep, detail: MarkVSpecProcessStepDetail): boolean {
-  if (isHttpRequestStep(step.name) && detail.key !== "request") {
-    return true;
-  }
-  return detail.key.includes(".params.");
 }
 
 function validateDisplayPartialEffect(
@@ -1855,49 +1310,17 @@ function validateDisplayEffect(
   if (!display) {
     return;
   }
-  const targetResolution = resolveDisplayTarget(display, { layoutIds, elementIds, elementsById });
-  const target = display.target;
-  if (targetResolution.kind === "none") {
-    diagnostics.push({
-      severity: "error",
-      message: `Action ${actionId} ${context} display effect must define target.`,
-      line: display.location.line
-    });
-  } else if (targetResolution.kind === "presentation-panel" && target) {
-    diagnostics.push(presentationPanelTargetDiagnostic(`Action ${actionId} ${context} display effect`, target, firstPropertyLine(display, "target") ?? display.location.line));
-  } else if (targetResolution.kind === "field-error") {
-    const elementId = targetResolution.fieldErrorElementId;
-    const element = targetResolution.fieldErrorElement;
-    if (!elementId || !element) {
-      diagnostics.push({
-        severity: "error",
-        message: `Action ${actionId} ${context} display effect targets missing field error element ${elementId ?? target}.`,
-        line: firstPropertyLine(display, "target") ?? display.location.line
-      });
-    } else if (isInvalidFieldErrorElement(element)) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Action ${actionId} ${context} display effect targets ${target}, but ${elementId} is ${element.type}. Field error targets should use input elements.`,
-        line: firstPropertyLine(display, "target") ?? display.location.line
-      });
-    }
-  } else if (targetResolution.kind === "form-group" && target) {
-    diagnostics.push(formGroupUpdateTargetDiagnostic(`Action ${actionId} ${context} display effect`, target, firstPropertyLine(display, "target") ?? display.location.line));
-  } else if (targetResolution.kind === "missing-local" && target) {
-    diagnostics.push({
-      severity: "error",
-      message: `Action ${actionId} ${context} display effect targets missing layout or element ${target}.`,
-      line: firstPropertyLine(display, "target") ?? display.location.line
-    });
-  } else if (targetResolution.kind === "layout" && target) {
-    checkLayoutTargetViewportCoverage(
-      target,
-      layoutIdsByViewport,
-      diagnostics,
-      firstPropertyLine(display, "target") ?? display.location.line,
-      `Action ${actionId} ${context} display effect targets layout`
-    );
-  }
+  validateDisplayEffectTarget({
+    actionId,
+    context,
+    display,
+    layoutIds,
+    elementIds,
+    elementsById,
+    layoutIdsByViewport,
+    diagnostics,
+    support: displayEffectTargetValidationSupport
+  });
 
   if (!display.element && !display.message && !display.partial) {
     diagnostics.push({
@@ -2126,70 +1549,6 @@ function validateDialogActions(
   }
 }
 
-function validatePreviewScenarioCases(
-  scenario: MarkVSpecParseResult["previewScenarios"][number],
-  result: MarkVSpecParseResult,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  for (const caseRef of scenario.cases) {
-    const action = result.actions.find((candidate) => candidate.id === caseRef.actionId);
-    if (!action) {
-      diagnostics.push({
-        severity: "error",
-        message: `Preview Scenario ${scenario.name} references missing action ${caseRef.actionId}.`,
-        line: caseRef.location.line
-      });
-      continue;
-    }
-    const step = action.processSteps.find((candidate) => candidate.marker === caseRef.processMarker);
-    if (!step) {
-      diagnostics.push({
-        severity: "error",
-        message: `Preview Scenario ${scenario.name} references missing process marker ${caseRef.processMarker} on action ${caseRef.actionId}.`,
-        line: caseRef.location.line
-      });
-      continue;
-    }
-    const outcome = step.outcomes.find((candidate) => candidate.result === caseRef.caseName);
-    if (!outcome) {
-      diagnostics.push({
-        severity: "error",
-        message: `Preview Scenario ${scenario.name} references missing case ${caseRef.raw}.`,
-        line: caseRef.location.line
-      });
-      continue;
-    }
-    if (scenario.state && outcome.to && !isExternalTransitionTarget(outcome.to) && outcome.to !== scenario.state) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Preview Scenario ${scenario.name} state ${scenario.state} does not match case ${caseRef.raw} state effect ${outcome.to}.`,
-        line: caseRef.location.line
-      });
-    }
-  }
-}
-
-function processStepLabel(step: MarkVSpecProcessStep): string {
-  return step.marker ? `${step.marker} ${step.name}` : step.name;
-}
-
-function parseProcessOutputReference(value: string): { actionId: string; marker: string; kind: "result" | "response" } | undefined {
-  const match = /^(A-[\p{L}\p{N}-]+)\.(P[A-Za-z0-9_-]*)\.(result|response)$/u.exec(value.trim());
-  if (!match) {
-    return undefined;
-  }
-  return {
-    actionId: match[1],
-    marker: match[2],
-    kind: match[3] as "result" | "response"
-  };
-}
-
-function parseValidationResultReference(value: string): string | undefined {
-  const match = validationResultReferenceRegex.exec(value.trim());
-  return match?.[1];
-}
-
 function validateOutcomeErrorCodes(
   actionId: string,
   outcome: MarkVSpecActionOutcome,
@@ -2318,22 +1677,6 @@ function validatePresentationPanelProperties(
   }
 }
 
-function presentationPanelTargetDiagnostic(context: string, target: string, line: number | undefined): MarkVSpecDiagnostic {
-  return {
-    severity: "error",
-    message: `${context} cannot target presentation panel ${target}. Use an L-* Layout when a targetable layout is needed.`,
-    line
-  };
-}
-
-function formGroupUpdateTargetDiagnostic(context: string, target: string, line: number | undefined): MarkVSpecDiagnostic {
-  return {
-    severity: "error",
-    message: `${context} cannot target FormGroup ${target}. Use an L-* layout target for updates.`,
-    line
-  };
-}
-
 function validateLayoutPartialProperties(
   group: MarkVSpecLayoutGroup,
   stateNames: Set<string>,
@@ -2441,7 +1784,7 @@ function checkDuplicateLayoutGroups(groups: MarkVSpecLayoutGroup[], diagnostics:
 function checkDuplicateLayoutMarkers(groups: MarkVSpecLayoutGroup[], diagnostics: MarkVSpecDiagnostic[]): void {
   const seen = new Map<string, string>();
   for (const group of groups) {
-    const marker = group.properties["marker"]?.trim();
+    const marker = propertyString(group, "marker")?.trim();
     if (!marker) {
       continue;
     }
@@ -2463,7 +1806,7 @@ function checkDuplicateLayoutMarkers(groups: MarkVSpecLayoutGroup[], diagnostics
 function checkConsistentLayoutMarkers(groups: MarkVSpecLayoutGroup[], diagnostics: MarkVSpecDiagnostic[]): void {
   const markerById = new Map<string, string>();
   for (const group of groups) {
-    const marker = group.properties["marker"]?.trim() || group.id;
+    const marker = propertyString(group, "marker")?.trim() || group.id;
     const existingMarker = markerById.get(group.id);
     if (existingMarker && existingMarker !== marker) {
       diagnostics.push({
@@ -2561,129 +1904,6 @@ function checkConditionReferences(
   }
 }
 
-function validateViewContexts(
-  result: MarkVSpecParseResult,
-  viewContextNames: Set<string>,
-  viewContextSampleNames: Set<string>,
-  stateNames: Set<string>,
-  elementsById: Map<string, MarkVSpecElement>,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  const viewContextByName = new Map(result.viewContexts.map((context) => [context.name, context]));
-
-  for (const sample of result.viewContextSamples) {
-    for (const [name, value] of Object.entries(sample.values)) {
-      const definition = viewContextByName.get(name);
-      if (!definition) {
-        diagnostics.push({
-          severity: "error",
-          message: `View Context Sample ${sample.name} references missing view context ${name}.`,
-          line: sample.valueLocations[name]?.[0]?.line ?? sample.location.line
-        });
-        continue;
-      }
-
-      if (!definition.values.some((candidate) => candidate.value === value)) {
-        diagnostics.push({
-          severity: "error",
-          message: `View Context Sample ${sample.name} sets ${name} to unsupported value ${value}.`,
-          line: sample.valueLocations[name]?.[0]?.line ?? sample.location.line
-        });
-      }
-    }
-  }
-
-  if (result.previewScenarios.length > 0) {
-    const scenarioNames = new Set(result.previewScenarios.map((scenario) => scenario.name));
-    for (const scenario of result.previewScenarios) {
-      const scenarioNameIsStateName = stateNames.has(scenario.name);
-      const isBaselineStateSample = scenarioNameIsStateName && !scenario.state;
-      if (isBaselineStateSample) {
-        validateBaselinePreviewScenario(scenario, diagnostics);
-      } else if (!scenario.state) {
-        diagnostics.push(createMarkVSpecDiagnostic(
-          "error",
-          "previewScenario.missingState",
-          { scenario: scenario.name },
-          scenario.location.line
-        ));
-      } else if (!stateNames.has(scenario.state)) {
-        diagnostics.push({
-          severity: "error",
-          message: `Preview Scenario ${scenario.name} references missing state ${scenario.state}.`,
-          line: firstPropertyLine(scenario, "state") ?? scenario.location.line
-        });
-      } else if (scenarioNameIsStateName && scenario.state === scenario.name) {
-        diagnostics.push({
-          severity: "warning",
-          message: `Preview Scenario ${scenario.name} matches a state name and repeats state: ${scenario.state}. Omit state: to define baseline state samples.`,
-          line: firstPropertyLine(scenario, "state") ?? scenario.location.line
-        });
-      } else if (scenarioNameIsStateName && scenario.state !== scenario.name) {
-        diagnostics.push({
-          severity: "error",
-          message: `Preview Scenario ${scenario.name} matches a state name but references state ${scenario.state}. Use a different scenario name or omit state: for baseline state samples.`,
-          line: firstPropertyLine(scenario, "state") ?? scenario.location.line
-        });
-      }
-
-      if (scenario.view && !viewContextSampleNames.has(scenario.view)) {
-        diagnostics.push({
-          severity: "error",
-          message: `Preview Scenario ${scenario.name} references missing view context sample ${scenario.view}.`,
-          line: firstPropertyLine(scenario, "view") ?? scenario.location.line
-        });
-      }
-
-      if (scenario.before) {
-        if (scenario.before === scenario.name) {
-          diagnostics.push({
-            severity: "error",
-            message: `Preview Scenario ${scenario.name} before target cannot reference itself.`,
-            line: firstPropertyLine(scenario, "before") ?? scenario.location.line
-          });
-        } else if (!stateNames.has(scenario.before) && !scenarioNames.has(scenario.before)) {
-          diagnostics.push({
-            severity: "error",
-            message: `Preview Scenario ${scenario.name} references missing before target ${scenario.before}.`,
-            line: firstPropertyLine(scenario, "before") ?? scenario.location.line
-          });
-        }
-      }
-
-      validatePreviewScenarioCases(scenario, result, diagnostics);
-      validatePreviewScenarioSamples(scenario, elementsById, diagnostics);
-      validatePreviewScenarioRouteSamples(scenario, result.screen.route, diagnostics);
-    }
-  }
-
-  validateDataSourceSampleRows(result, diagnostics);
-  validateConditionNamespaces(result, viewContextNames, stateNames, diagnostics);
-  validateViewContextActionEffects(result, viewContextByName, diagnostics);
-}
-
-function validateBaselinePreviewScenario(
-  scenario: MarkVSpecParseResult["previewScenarios"][number],
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  const disallowedProperties = Object.keys(scenario.properties).filter((key) => key !== "samples" && key !== "route");
-  for (const key of disallowedProperties) {
-    diagnostics.push({
-      severity: "error",
-      message: `Preview Scenario ${scenario.name} is a baseline state sample and cannot define ${key}. Use samples or route only, or add state: with a distinct scenario name for an additional preview variant.`,
-      line: firstPropertyLine(scenario, key) ?? scenario.location.line
-    });
-  }
-
-  if (scenario.cases.length > 0) {
-    diagnostics.push({
-      severity: "error",
-      message: `Preview Scenario ${scenario.name} is a baseline state sample and cannot define cases. Use samples or route only, or add state: with a distinct scenario name for an additional preview variant.`,
-      line: scenario.cases[0]?.location.line ?? scenario.location.line
-    });
-  }
-}
-
 function validateTemplateScreenTopLevelLayouts(result: MarkVSpecParseResult, diagnostics: MarkVSpecDiagnostic[]): void {
   if (result.screen.type !== "screen" || (!result.screen.template && !result.screen.templateSrc)) {
     return;
@@ -2697,157 +1917,6 @@ function validateTemplateScreenTopLevelLayouts(result: MarkVSpecParseResult, dia
       line: group.location.line
     });
   }
-}
-
-function validatePreviewScenarioSamples(
-  scenario: MarkVSpecParseResult["previewScenarios"][number],
-  elementsById: Map<string, MarkVSpecElement>,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  for (const sample of scenario.samples) {
-    const element = elementsById.get(sample.elementId);
-    if (!element) {
-      diagnostics.push(createMarkVSpecDiagnostic(
-        "error",
-        "previewScenario.samplesMissingElement",
-        { scenario: scenario.name, elementId: sample.elementId },
-        sample.location.line
-      ));
-      continue;
-    }
-    if (sample.rows && element.type !== "Table" && element.type !== "List") {
-      diagnostics.push({
-        severity: "warning",
-        message: `Preview Scenario ${scenario.name} rows sample target ${sample.elementId} must be a Table or List element.`,
-        line: sample.rows.location.line
-      });
-    }
-    if (sample.value !== undefined && (element.type === "Table" || element.type === "List")) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Preview Scenario ${scenario.name} scalar sample target ${sample.elementId} should not be a Table or List element. Use rows instead.`,
-        line: sample.location.line
-      });
-    }
-  }
-}
-
-function validatePreviewScenarioRouteSamples(
-  scenario: MarkVSpecParseResult["previewScenarios"][number],
-  screenRoute: string | undefined,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  if (scenario.route.length === 0) {
-    return;
-  }
-  if (!screenRoute) {
-    diagnostics.push({
-      severity: "warning",
-      message: `Preview Scenario ${scenario.name} defines route samples, but screen route is not defined.`,
-      line: scenario.route[0]?.location.line ?? scenario.location.line
-    });
-    return;
-  }
-
-  const declared = extractRoutePlaceholders(screenRoute);
-  for (const routeSample of scenario.route) {
-    if (routeSample.key !== "hash" && !declared.has(routeSample.key)) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Preview Scenario ${scenario.name} route sample ${routeSample.key} does not match any :param in screen route.`,
-        line: routeSample.location.line
-      });
-    }
-  }
-}
-
-function validateDataSourceSampleRows(
-  result: MarkVSpecParseResult,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  const scenarioRowElementIds = new Set(
-    result.previewScenarios.flatMap((scenario) => scenario.samples.filter((sample) => sample.rows).map((sample) => sample.elementId))
-  );
-  for (const element of result.elements) {
-    if (element.type !== "Table" && element.type !== "List") {
-      continue;
-    }
-    if (element.properties["source"] !== "data") {
-      continue;
-    }
-    if (element.sampleRows || scenarioRowElementIds.has(element.id)) {
-      continue;
-    }
-    diagnostics.push({
-      severity: "warning",
-      message: `Element ${element.id} source data should define sample rows or Preview Scenario rows.`,
-      line: firstPropertyLine(element, "source") ?? element.location.line
-    });
-  }
-}
-
-function validateConditionNamespaces(
-  result: MarkVSpecParseResult,
-  viewContextNames: Set<string>,
-  stateNames: Set<string>,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  const check = (condition: string, line: number): void => {
-    for (const reference of condition.matchAll(/\$\{(state|view)\.([^}]+)\}/gu)) {
-      const [, namespace, name] = reference;
-      const trimmed = name.trim();
-      if (namespace === "state" && !stateNames.has(trimmed)) {
-        diagnostics.push({
-          severity: "error",
-          message: `Condition references missing state ${trimmed}.`,
-          line
-        });
-      }
-      if (namespace === "view" && !viewContextNames.has(trimmed)) {
-        diagnostics.push({
-          severity: "error",
-          message: `Condition references missing view context ${trimmed}.`,
-          line
-        });
-      }
-    }
-  };
-
-  for (const element of result.elements) {
-    for (const [key, conditions] of [
-      ["visible when", element.visibleWhen],
-      ["hidden when", element.hiddenWhen],
-      ["disabled when", element.disabledWhen],
-      ["open when", element.openWhen]
-    ] as const) {
-      conditions.forEach((condition, index) => check(condition, element.propertyLocations[key]?.[index]?.line ?? element.location.line));
-    }
-    for (const item of element.tabs) {
-      item.activeWhen.forEach((condition, index) => check(condition, item.propertyLocations["active when"]?.[index]?.line ?? item.location.line));
-    }
-    for (const item of element.accordionItems) {
-      item.openWhen.forEach((condition, index) => check(condition, item.propertyLocations["open when"]?.[index]?.line ?? item.location.line));
-    }
-    for (const item of element.actionMenuItems) {
-      item.disabledWhen.forEach((condition, index) => check(condition, item.propertyLocations["disabled when"]?.[index]?.line ?? item.location.line));
-    }
-  }
-  for (const layout of [...result.layoutGroups, ...result.slotContents.flatMap((slot) => slot.layoutGroups)]) {
-    for (const key of ["visible when", "hidden when", "disabled when", "enabled when", "selected when", "active when"]) {
-      layoutPropertyValues(layout, key).forEach((value, index) => check(value, layout.propertyLocations[key]?.[index]?.line ?? layout.location.line));
-    }
-  }
-}
-
-function layoutPropertyValues(group: MarkVSpecLayoutGroup, key: string): string[] {
-  const values = group.items
-    .filter((item) => item.type === "property" && item.scope === "metadata" && item.key === key)
-    .map((item) => item.type === "property" ? item.value : "");
-  if (values.length > 0) {
-    return values;
-  }
-  const value = group.properties[key];
-  return typeof value === "string" ? [value] : [];
 }
 
 function validatePageLoadPreInitialState(result: MarkVSpecParseResult, diagnostics: MarkVSpecDiagnostic[]): void {
@@ -2891,57 +1960,6 @@ function validatePageLoadPreInitialState(result: MarkVSpecParseResult, diagnosti
   }
 }
 
-function validateViewContextActionEffects(
-  result: MarkVSpecParseResult,
-  viewContextByName: Map<string, MarkVSpecViewContextDefinition>,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  const check = (sideEffect: string, line: number | undefined): void => {
-    const match = /^view:\s*\$\{view\.([^}]+)\}\s*=\s*(.+)$/u.exec(sideEffect.trim());
-    if (!match) {
-      return;
-    }
-
-    const [, name, rawValue] = match;
-    const value = rawValue.trim();
-    const definition = viewContextByName.get(name.trim());
-    if (!definition) {
-      diagnostics.push({
-        severity: "error",
-        message: `View effect references missing view context ${name.trim()}.`,
-        line
-      });
-      return;
-    }
-
-    if (!definition.values.some((candidate) => candidate.value === value)) {
-      diagnostics.push({
-        severity: "error",
-        message: `View effect sets ${name.trim()} to unsupported value ${value}.`,
-        line
-      });
-    }
-  };
-
-  for (const action of result.actions) {
-    for (const outcome of action.outcomes) {
-      outcome.sideEffects.forEach((sideEffect, index) => {
-        check(sideEffect, outcome.propertyLocations["view"]?.[index]?.line ?? outcome.location?.line);
-      });
-    }
-    for (const step of action.processSteps) {
-      step.sideEffects.forEach((sideEffect, index) => {
-        check(sideEffect, step.propertyLocations["view"]?.[index]?.line ?? step.location.line);
-      });
-      for (const outcome of step.outcomes) {
-        outcome.sideEffects.forEach((sideEffect, index) => {
-          check(sideEffect, outcome.propertyLocations["view"]?.[index]?.line ?? outcome.location?.line);
-        });
-      }
-    }
-  }
-}
-
 function isConditionProperty(key: string): boolean {
   return key === "visible when" || key === "hidden when" || key === "disabled when" || key === "enabled when";
 }
@@ -2964,24 +1982,6 @@ function layoutKindDiagnostic(group: MarkVSpecLayoutGroup): MarkVSpecDiagnostic 
     message: `Unknown layout kind: ${group.kind}.`,
     line: group.location.line
   };
-}
-
-function isHttpRequestStep(name: string): boolean {
-  const normalized = name.trim().replace(/\s+/g, " ").toLowerCase();
-  return normalized === "http request" || normalized === "httprequest";
-}
-
-function isPartialRequestStep(name: string): boolean {
-  const normalized = name.trim().replace(/\s+/g, " ").toLowerCase();
-  return normalized === "partial request" || normalized === "partialrequest";
-}
-
-function isImmediateStep(name: string): boolean {
-  return name.trim().replace(/\s+/g, " ").toLowerCase() === "immediate";
-}
-
-function isResolveStep(name: string): boolean {
-  return name.trim().replace(/\s+/g, " ").toLowerCase().startsWith("resolve");
 }
 
 function validateRouteParameterReferences(result: MarkVSpecParseResult, diagnostics: MarkVSpecDiagnostic[]): void {
@@ -3066,8 +2066,9 @@ function validateRouteParameterReferences(result: MarkVSpecParseResult, diagnost
       checkValue(param.source, param.location.line);
     }
     for (const step of action.processSteps) {
-      if (isHttpRequestStep(step.name)) {
-        for (const detail of step.details.filter((detail) => detail.key !== "request")) {
+      const processReadModel = buildMarkVSpecProcessStepReadModel(step);
+      if (processReadModel.kind === "HttpRequest") {
+        for (const detail of processReadModel.execution.params) {
           checkValue(detail.value, detail.location.line);
         }
       }
@@ -3130,19 +2131,15 @@ function extractRoutePlaceholders(route: string): Set<string> {
 }
 
 function stringProperty(element: MarkVSpecElement, key: string): string {
-  const value = element.properties[key];
-  return typeof value === "string" ? value : "";
+  return propertyString(element, key) ?? "";
 }
 
-function firstStringProperty(value: string | string[] | undefined): string | undefined {
-  return typeof value === "string" ? value : Array.isArray(value) ? value.find((item) => item.length > 0) : undefined;
+function firstStringProperty(value: string | string[] | true | undefined): string | undefined {
+  return propertyFirstString({ properties: { value } }, "value");
 }
 
 function commaListProperty(element: MarkVSpecElement, key: string): string[] {
-  return stringProperty(element, key)
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
+  return propertyList(element, key);
 }
 
 function validateSelectInitialValue(element: MarkVSpecElement, diagnostics: MarkVSpecDiagnostic[]): void {
@@ -3225,25 +2222,16 @@ function validateControlledPanelLayoutUsage(
       }
     }
   }
-  const controlledPanelReferences: Array<{ layoutId: string; elementId: string; line: number }> = [];
+  const panelReferences: Array<{ layoutId: string; elementId: string; line: number }> = [];
   for (const element of result.elements) {
-    for (const item of element.tabs) {
-      if (item.panel) {
-        controlledPanelReferences.push({ layoutId: item.panel, elementId: element.id, line: item.propertyLocations.panel[0]?.line ?? item.location.line });
+    for (const reference of controlledPanelReferences(element)) {
+      if (reference.panelId) {
+        panelReferences.push({ layoutId: reference.panelId, elementId: element.id, line: reference.location?.line ?? element.location.line });
       }
-    }
-    for (const item of element.accordionItems) {
-      if (item.panel) {
-        controlledPanelReferences.push({ layoutId: item.panel, elementId: element.id, line: item.propertyLocations.panel[0]?.line ?? item.location.line });
-      }
-    }
-    const panel = element.type === "Disclosure" ? stringProperty(element, "panel").trim() : "";
-    if (panel) {
-      controlledPanelReferences.push({ layoutId: panel, elementId: element.id, line: firstPropertyLine(element, "panel") ?? element.location.line });
     }
   }
 
-  for (const reference of controlledPanelReferences) {
+  for (const reference of panelReferences) {
     if (!normalLayoutReferences.has(reference.layoutId)) {
       continue;
     }
@@ -3260,11 +2248,12 @@ function validateAnchoredOverlayElement(
   elementIds: Set<string>,
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
-  if (element.type !== "Popover" && element.type !== "Tooltip") {
+  const overlay = anchoredOverlayReference(element);
+  if (!overlay) {
     return;
   }
 
-  const anchor = stringProperty(element, "anchor").trim();
+  const anchor = overlay.anchorId?.trim() ?? "";
   const line = firstPropertyLine(element, "anchor") ?? element.location.line;
   if (!anchor) {
     diagnostics.push({
@@ -3473,14 +2462,14 @@ function firstPropertyLine(
   owner: { propertyLocations: Record<string, SourceLocation[]> },
   key: string
 ): number | undefined {
-  return owner.propertyLocations[key]?.[0]?.line;
+  return propertyLocation(owner, key)?.line;
 }
 
 function firstPropertyLocation(
   owner: { propertyLocations: Record<string, SourceLocation[]> },
   key: string
 ): SourceLocation | undefined {
-  return owner.propertyLocations[key]?.[0];
+  return propertyLocation(owner, key);
 }
 
 function firstOutcomeLine(outcome: MarkVSpecActionOutcome): number | undefined {
@@ -3513,8 +2502,4 @@ function hasOutcomeDetailsThatRequireTransition(outcome: MarkVSpecActionOutcome)
       outcome.fragment ??
       outcome.content
   ) || outcome.sideEffects.length > 0 || outcome.errorCodes.length > 0 || outcome.routeParams.length > 0;
-}
-
-function processStepDetail(step: MarkVSpecProcessStep, key: string): string | undefined {
-  return step.details.find((detail) => detail.key === key)?.value;
 }

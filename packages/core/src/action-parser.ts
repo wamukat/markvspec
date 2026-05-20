@@ -526,6 +526,7 @@ function applyProcessStepBullet(
     step.details.push({
       key,
       value,
+      scope: currentNestedBlock,
       location: bullet.location
     });
     addPropertyLocation(step.propertyLocations, key, bullet.location);

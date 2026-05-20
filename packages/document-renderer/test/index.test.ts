@@ -17,7 +17,7 @@ import {
   viewportPrintScale,
   viewportPrintStyle,
   wireframePrintSectionCss
-} from "./index.js";
+} from "../src/index.js";
 
 function iconPattern(name: string): RegExp {
   return new RegExp(`<svg class="mm-icon mm-icon-${name}" aria-hidden="true" viewBox="0 0 24 24">[\\s\\S]*?</svg>`);
@@ -289,12 +289,48 @@ test("renders parse coverage sentinel fields in static HTML export", () => {
     "View Context Samples section notes sentinel",
     "<code>false</code>",
     "<code>${view.isHelpOpen}</code>: false",
+    "State idle message sentinel",
+    "State loaded message sentinel",
+    "Layout section overview sentinel",
+    "Layout entity overview sentinel",
     "Layout entity notes sentinel",
+    "Form Groups section overview sentinel",
+    "Form group overview sentinel",
+    "Coverage form purpose sentinel",
+    "Form group notes sentinel",
+    "Form Groups section notes sentinel",
+    "Actions section overview sentinel",
+    "Action overview sentinel",
+    "Action notes sentinel",
+    "Actions section notes sentinel",
+    "Validations section overview sentinel",
+    "Validation overview sentinel",
+    "Validation notes sentinel",
+    "Validations section notes sentinel",
+    "Business Rules section overview sentinel",
+    "Rule overview sentinel",
+    "Coverage name must be readable",
+    "Rule notes sentinel",
+    "Business Rules section notes sentinel",
+    "Error Codes section overview sentinel",
+    "Error overview sentinel",
+    "Coverage name error sentinel",
+    "Error notes sentinel",
+    "Error Codes section notes sentinel",
+    "General note sentinel",
     "Ada Lovelace",
     "History entry body sentinel"
   ]) {
     assert.match(html, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
+  const stateFlow = html.match(/<section class="doc-section state-flow-section">[\s\S]*?<\/section>/)?.[0] ?? "";
+  const transitionTable = html.match(/<section class="doc-section" id="state-transition-table">[\s\S]*?<\/section>/)?.[0] ?? "";
+  const wireframes = html.match(/<section class="wireframe-section">[\s\S]*?<\/section>/g)?.join("\n") ?? "";
+
+  assert.match(stateFlow, /State idle message sentinel/);
+  assert.match(transitionTable, /State idle message sentinel/);
+  assert.doesNotMatch(wireframes, /State idle message sentinel|Layout entity overview sentinel/);
+  assert((html.match(/State idle message sentinel/g) ?? []).length >= 3);
 });
 
 test("renders static Layouts table with combined Setting/Items column", () => {
@@ -556,10 +592,10 @@ test("renders preview scenarios and scenario samples in static state views", () 
   const result = parseMarkVSpec(`---
 id: SCR-SCENARIO-SAMPLES
 type: screen
-title: Scenario Samples
+title: Scenario Preview Data
 ---
 
-# SCR-SCENARIO-SAMPLES Scenario Samples
+# SCR-SCENARIO-SAMPLES Scenario Preview Data
 
 ## States
 
@@ -660,11 +696,11 @@ Static Preview Scenarios section notes.
   assert.match(baselineLoaded, /10 seats/);
   assert.match(baselineLoaded, /<td>Baseline workspace<\/td><td>10<\/td>/);
   assert.match(baselineLoaded, /State: loaded[\s\S]*Static baseline scenario lead\.[\s\S]*<h5 class="state-screen-subheading">Wireframe<\/h5>/);
-  assert.match(baselineLoaded, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
-  assert.match(baselineLoaded, /Scenario Samples[\s\S]*Static baseline scenario notes\./);
+  assert.match(baselineLoaded, /<h6 class="state-screen-detail-heading">Scenario Preview Data<\/h6>/);
+  assert.match(baselineLoaded, /Scenario Preview Data[\s\S]*Static baseline scenario notes\./);
   assert.match(loadedScenario, /<span class="state-badge">loaded-renewal-risk<\/span>/);
   assert.match(loadedScenario, /State: loaded[\s\S]*loaded-renewal-risk[\s\S]*Static additional scenario lead\.[\s\S]*<h5 class="state-screen-subheading">Wireframe<\/h5>/);
-  assert.match(loadedScenario, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
+  assert.match(loadedScenario, /<h6 class="state-screen-detail-heading">Scenario Preview Data<\/h6>/);
   assert.match(loadedScenario, /E-SubscriptionTable/);
   assert.match(loadedScenario, /<code>rows: 2 rows<\/code>/);
   assert.match(loadedScenario, /<section class="scenario-sample-rows-block" id="sample-rows-desktop-loaded.20.2F.20loaded-renewal-risk-E-SubscriptionTable">/);
@@ -676,7 +712,7 @@ Static Preview Scenarios section notes.
   assert.match(loadedScenario, /<td>table rows<\/td><td>Sample rows: <a class="mm-ref-chip mm-ref-chip-element" href="#sample-rows-desktop-loaded.20.2F.20loaded-renewal-risk-E-SubscriptionTable"[^>]*data-mm-ref-id="E-SubscriptionTable"[\s\S]*?mm-icon-table[\s\S]*?<\/a><\/td><td>-<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">[\s\S]*?data<\/span><\/td>/);
   assert.doesNotMatch(loadedScenario, /<td>table rows<\/td><td>see wireframe<\/td>/);
   assert(loadedScenario.indexOf('<section class="scenario-sample-rows-block"') > loadedScenario.indexOf("</table></div>"));
-  assert.match(loadedScenario, /Scenario Samples[\s\S]*Static additional scenario notes\./);
+  assert.match(loadedScenario, /Scenario Preview Data[\s\S]*Static additional scenario notes\./);
   assert.match(emptyScenario, /0 seats/);
   assert.match(emptyScenario, /<code>rows: \[\]<\/code>/);
   assert.match(emptyScenario, /<section class="scenario-sample-rows-block" id="sample-rows-desktop-loaded.20.2F.20loaded-empty-account-E-SubscriptionTable">/);
@@ -1198,11 +1234,11 @@ test("localizes scenario samples labels in static state views", () => {
   const result = parseMarkVSpec(`---
 id: SCR-SCENARIO-SAMPLES-JA
 type: screen
-title: シナリオサンプル
+title: シナリオプレビューデータ
 locale: ja
 ---
 
-# SCR-SCENARIO-SAMPLES-JA シナリオサンプル
+# SCR-SCENARIO-SAMPLES-JA シナリオプレビューデータ
 
 ## States
 
@@ -1248,7 +1284,7 @@ locale: ja
   const html = renderStaticDesignDocumentHtml(result);
   const scenarioSection = stateViewSection(html, "loaded / loaded-special");
 
-  assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">シナリオサンプル<\/h6>/);
+  assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">シナリオプレビューデータ<\/h6>/);
   assert.match(scenarioSection, /<th>画面要素<\/th>/);
   assert.match(scenarioSection, /<th>サンプル<\/th>/);
   assert.match(scenarioSection, /<code>rows: 2 行<\/code>/);
@@ -1257,7 +1293,7 @@ locale: ja
   assert.match(scenarioSection, /<th>名前<\/th>/);
   assert.match(scenarioSection, /<td>一郎<\/td>/);
   assert.match(scenarioSection, /<td>二郎<\/td>/);
-  assert.doesNotMatch(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>|<th>Sample<\/th>/);
+  assert.doesNotMatch(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Preview Data<\/h6>|<th>Sample<\/th>/);
 });
 
 function stateViewSection(html: string, title: string): string {

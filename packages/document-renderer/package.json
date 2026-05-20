@@ -5,6 +5,9 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist/**"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -13,10 +16,10 @@
   },
   "scripts": {
     "build": "tsc -b tsconfig.json",
-    "test": "npm run build && node --test dist/**/*.test.js",
+    "test": "npm run build && rm -rf dist-test && tsc -p tsconfig.test.json && node --test dist-test/test/**/*.test.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@markvspec/core": "file:../core"
+    "@markvspec/core": "0.5.0"
   }
 }

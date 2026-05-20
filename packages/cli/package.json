@@ -4,11 +4,12 @@
   "description": "Command line tools for validating and exporting MarkVSpec screen specifications.",
   "license": "MIT",
   "type": "module",
+  "types": "./dist/index.d.ts",
   "bin": {
     "markvspec": "dist/index.js"
   },
   "files": [
-    "dist/index.js"
+    "dist/**"
   ],
   "repository": {
     "type": "git",
@@ -29,12 +30,12 @@
     "build": "tsc -b tsconfig.json",
     "bundle": "npm run build && esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dist/index.js --banner:js='import { createRequire } from \"node:module\";const require = createRequire(import.meta.url);'",
     "prepack": "npm run bundle",
-    "test": "npm run build && node --test dist/**/*.test.js",
+    "test": "npm run build && rm -rf dist-test && tsc -p tsconfig.test.json && cp package.json dist-test/package.json && node --test dist-test/test/**/*.test.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
-    "@markvspec/core": "file:../core",
-    "@markvspec/exporter": "file:../exporter",
+    "@markvspec/core": "0.5.0",
+    "@markvspec/exporter": "0.5.0",
     "esbuild": "^0.28.0"
   }
 }
