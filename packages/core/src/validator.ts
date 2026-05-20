@@ -54,6 +54,19 @@ import {
   type ActionProcessValidationSupport
 } from "./action-process-validator.js";
 import {
+  splitReferenceList,
+  validateBusinessRuleOutcomeCaseName,
+  validateValidationErrorCodes,
+  validateValidationRules,
+  validateValidationScopeAndRun,
+  validateValidationTargets,
+  validateValidationTrigger,
+  validationPropertyValues,
+  type BusinessRuleOutcomeDiagnosticSupport,
+  type ValidationRuleDiagnosticContext,
+  type ValidationTargetDiagnosticContext
+} from "./validation-diagnostics-validator.js";
+import {
   propertyFirstString,
   propertyList,
   propertyLocation,
@@ -65,7 +78,6 @@ import {
   controlledPanelReferences,
   elementDomainFor
 } from "./element-domain.js";
-import { businessRuleViolationCaseName } from "./validation-domain.js";
 import type {
   MarkVSpecActionOutcome,
   MarkVSpecDiagnostic,
@@ -101,6 +113,10 @@ const previewScenarioValidationSupport: PreviewScenarioValidationSupport = {
   firstPropertyLine,
   isExternalTransitionTarget
 };
+const businessRuleOutcomeDiagnosticSupport: BusinessRuleOutcomeDiagnosticSupport = {
+  firstPropertyLine,
+  processStepLabel
+};
 
 export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagnostic[] {
   const diagnostics = result.diagnostics;
@@ -113,6 +129,16 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   const elementIds = new Set(result.elements.map((element) => element.id));
   const elementsById = new Map(result.elements.map((element) => [element.id, element]));
   const formGroupIds = new Set(result.formGroups.map((formGroup) => formGroup.id));
+  const validationTargetDiagnosticContext: ValidationTargetDiagnosticContext = {
+    layoutIds: targetLayoutIds,
+    elementIds,
+    formGroupIds
+  };
+  const validationRuleDiagnosticContext: ValidationRuleDiagnosticContext = {
+    elementIds,
+    elementsById,
+    formGroupIds
+  };
   const actionIds = new Set(result.actions.map((action) => action.id));
   const ruleIds = new Set(result.rules.map((rule) => rule.id));
   const validationIds = new Set(result.validations.map((validation) => validation.id));
@@ -660,7 +686,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
     }
 
     for (const outcome of action.outcomes) {
-      validateBusinessRuleOutcomeCaseName(action.id, undefined, outcome, diagnostics);
+      validateBusinessRuleOutcomeCaseName(action.id, undefined, outcome, diagnostics, businessRuleOutcomeDiagnosticSupport);
 
       if (!hasActionOutcomeDetails(outcome) && !outcome.to && !transitionResults.has(outcome.result) && !responseResults.has(outcome.result)) {
         diagnostics.push({
@@ -753,7 +779,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
       validateDisplayEffect(action.id, `process step ${processStepLabel(step)}`, step.display, targetLayoutIds, elementIds, layoutsById, elementsById, validationsById, rulesById, layoutIdsByViewport, diagnostics, referencedPartialIds);
 
       for (const outcome of step.outcomes) {
-        validateBusinessRuleOutcomeCaseName(action.id, step, outcome, diagnostics);
+        validateBusinessRuleOutcomeCaseName(action.id, step, outcome, diagnostics, businessRuleOutcomeDiagnosticSupport);
         validateProcessCaseFlowPlacement(action.id, step, outcome, diagnostics);
         validateSuspiciousProcessCaseResponse(action.id, step, outcome, diagnostics);
 
@@ -849,9 +875,9 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   validateFormGroups(result, elementsById, actionIds, diagnostics);
 
   for (const validation of result.validations) {
-    validateValidationTargets(validation, targetLayoutIds, elementIds, formGroupIds, diagnostics);
+    validateValidationTargets(validation, validationTargetDiagnosticContext, diagnostics);
     validateValidationTrigger(validation, diagnostics);
-    validateValidationRules(validation, elementIds, elementsById, formGroupIds, diagnostics);
+    validateValidationRules(validation, validationRuleDiagnosticContext, diagnostics);
     validateValidationCondition(validation, localIds, diagnostics);
     validateValidationErrorCodes(validation, errorCodeIds, diagnostics);
     validateValidationScopeAndRun(validation, diagnostics);
@@ -1078,209 +1104,6 @@ function layoutElementIds(
   return elementIds;
 }
 
-function validateValidationTargets(
-  validation: MarkVSpecParseResult["validations"][number],
-  layoutIds: Set<string>,
-  elementIds: Set<string>,
-  formGroupIds: Set<string>,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  if (validationPropertyValues(validation, "target").length === 0) {
-    diagnostics.push({
-      severity: "error",
-      message: `Validation ${validation.id} must specify target.`,
-      line: validation.location.line
-    });
-  }
-
-  validationPropertyValues(validation, "target").forEach((target, index) => {
-    const line = validation.propertyLocations["target"]?.[index]?.line ?? validation.location.line;
-    if (isPresentationPanelId(target)) {
-      diagnostics.push(presentationPanelTargetDiagnostic(`Validation ${validation.id}`, target, line));
-    } else if (formGroupIdRegex.test(target)) {
-      if (!formGroupIds.has(target)) {
-        diagnostics.push({
-          severity: "error",
-          message: `Validation ${validation.id} targets missing form group ${target}.`,
-          line
-        });
-      }
-    } else if (layoutIds.has(target) && validationIsComposite(validation)) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Validation ${validation.id} targets layout ${target} for composite validation. Use a FormGroup target such as F-${target.replace(/^L-/u, "")} instead.`,
-        line
-      });
-    } else if (isLocalId(target) && !layoutIds.has(target) && !elementIds.has(target)) {
-      const targetKind = target.startsWith("E-") ? "element" : target.startsWith("L-") ? "layout" : "layout or element";
-      diagnostics.push({
-        severity: "error",
-        message: `Validation ${validation.id} targets missing ${targetKind} ${target}.`,
-        line
-      });
-    }
-  });
-}
-
-function validationIsComposite(validation: MarkVSpecParseResult["validations"][number]): boolean {
-  const scopes = validationPropertyValues(validation, "scope").map((scope) => scope.toLowerCase());
-  if (scopes.some((scope) => scope === "composite" || scope === "cross-field")) {
-    return true;
-  }
-  return validationPropertyValues(validation, "target").length > 1;
-}
-
-function validateValidationTrigger(
-  validation: MarkVSpecParseResult["validations"][number],
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  validationPropertyValues(validation, "trigger").forEach((trigger, index) => {
-    const line = validation.propertyLocations["trigger"]?.[index]?.line ?? validation.location.line;
-    diagnostics.push({
-      severity: "warning",
-      message: `Validation ${validation.id} trigger is not canonical. Actions should consume ${validation.id}.result instead of defining validation triggers.`,
-      line
-    });
-  });
-}
-
-function validateValidationRules(
-  validation: MarkVSpecParseResult["validations"][number],
-  elementIds: Set<string>,
-  elementsById: Map<string, MarkVSpecElement>,
-  formGroupIds: Set<string>,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  if (validation.rules.length === 0 && validationPropertyValues(validation, "condition").length === 0 && validationPropertyValues(validation, "check").length === 0) {
-    diagnostics.push({
-      severity: "warning",
-      message: `Validation ${validation.id} has no rules. Define rules or migrate legacy condition-only validation.`,
-      line: validation.location.line
-    });
-    return;
-  }
-
-  for (const rule of validation.rules) {
-    for (const target of rule.targets) {
-      if (elementIdRegex.test(target) && !elementIds.has(target)) {
-        diagnostics.push(createMarkVSpecDiagnostic(
-          "error",
-          "validation.ruleMissingElement",
-          { validationId: validation.id, ruleName: rule.name, elementId: target },
-          rule.location.line
-        ));
-      } else if (formGroupIdRegex.test(target) && !formGroupIds.has(target)) {
-        diagnostics.push({
-          severity: "error",
-          message: `Validation ${validation.id} rule ${rule.name} references missing form group ${target}.`,
-          line: rule.location.line
-        });
-      }
-    }
-    validateElementBackedConstraint(validation, rule, elementsById, diagnostics);
-  }
-}
-
-function validateElementBackedConstraint(
-  validation: MarkVSpecParseResult["validations"][number],
-  rule: MarkVSpecParseResult["validations"][number]["rules"][number],
-  elementsById: Map<string, MarkVSpecElement>,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  const normalizedName = rule.name.toLowerCase();
-  if (normalizedName !== "length" && normalizedName !== "range") {
-    return;
-  }
-  if (!rule.targets.some((target) => target.toLowerCase() === "element")) {
-    return;
-  }
-
-  const targetElementIds = validationPropertyValues(validation, "target").filter((target) => elementIdRegex.test(target));
-  if (targetElementIds.length !== 1) {
-    return;
-  }
-
-  const element = elementsById.get(targetElementIds[0] ?? "");
-  if (!element) {
-    return;
-  }
-
-  const hasNeededMetadata = normalizedName === "length"
-    ? elementHasAnyInputMetadata(element, ["min length", "max length", "min-length", "max-length", "minlength", "maxlength"])
-    : elementHasAnyInputMetadata(element, ["min", "max"]);
-  if (!hasNeededMetadata) {
-    diagnostics.push({
-      severity: "warning",
-      message: `Validation ${validation.id} uses ${rule.name}: element, but target ${element.id} does not define matching ${rule.name} input metadata.`,
-      line: rule.location.line
-    });
-  }
-}
-
-function elementHasAnyInputMetadata(element: MarkVSpecElement, keys: string[]): boolean {
-  const normalizedKeys = new Set(keys.map((key) => key.toLowerCase()));
-  for (const key of Object.keys(element.properties)) {
-    if (normalizedKeys.has(key.toLowerCase())) {
-      return true;
-    }
-  }
-  return element.inputRules.some((rule) => normalizedKeys.has(rule.key.toLowerCase()));
-}
-
-function validateValidationErrorCodes(
-  validation: MarkVSpecParseResult["validations"][number],
-  errorCodeIds: Set<string>,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  for (const key of ["error code", "error codes"]) {
-    validationPropertyValues(validation, key).forEach((value, index) => {
-      for (const errorCode of splitReferenceList(value)) {
-        if (!errorCodeIds.has(errorCode)) {
-          diagnostics.push({
-            severity: "error",
-            message: `Validation ${validation.id} references missing error code ${errorCode}.`,
-            line: validation.propertyLocations[key]?.[index]?.line ?? validation.location.line
-          });
-        }
-      }
-    });
-  }
-}
-
-function validateValidationScopeAndRun(
-  validation: MarkVSpecParseResult["validations"][number],
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  const scopes = new Set(["single", "field", "composite", "cross-field"]);
-  validationPropertyValues(validation, "scope").forEach((scope, index) => {
-    const line = validation.propertyLocations["scope"]?.[index]?.line ?? validation.location.line;
-    if (line !== validation.location.line) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Validation ${validation.id} must not define scope; use Field Validations or Cross-field Validations section instead.`,
-        line
-      });
-    }
-    if (!scopes.has(scope)) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Validation ${validation.id} scope ${scope} is not recognized. Use single, field, composite, or cross-field.`,
-        line
-      });
-    }
-  });
-
-  validationPropertyValues(validation, "run").forEach((run, index) => {
-    if (run !== "client") {
-      diagnostics.push({
-        severity: "warning",
-        message: `Validation ${validation.id} run ${run} is not supported. Use client.`,
-        line: validation.propertyLocations["run"]?.[index]?.line ?? validation.location.line
-      });
-    }
-  });
-}
-
 function validateErrorCode(
   errorCode: MarkVSpecParseResult["errorCodes"][number],
   ruleIds: Set<string>,
@@ -1348,18 +1171,6 @@ function validateValidationCondition(
   });
 }
 
-function validationPropertyValues(owner: { properties: Record<string, string | string[]> }, key: string): string[] {
-  const value = owner.properties[key];
-  if (Array.isArray(value)) {
-    return value;
-  }
-  return value ? [value] : [];
-}
-
-function splitReferenceList(value: string): string[] {
-  return value.split(/[,、]/u).map((item) => item.trim()).filter(Boolean);
-}
-
 function collectPartialReference(
   value: string | undefined,
   location: SourceLocation | undefined,
@@ -1404,24 +1215,6 @@ function validateUpdateMode(
       line: firstPropertyLine(owner, "mode")
     });
   }
-}
-
-function validateBusinessRuleOutcomeCaseName(
-  actionId: string,
-  step: MarkVSpecProcessStep | undefined,
-  outcome: MarkVSpecActionOutcome,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  if (outcome.businessRules.length === 0 || outcome.result === businessRuleViolationCaseName) {
-    return;
-  }
-
-  const context = step ? `process step ${processStepLabel(step)} case ${outcome.result}` : `case ${outcome.result}`;
-  diagnostics.push({
-    severity: "warning",
-    message: `Action ${actionId} ${context} declares business rule ${outcome.businessRules.join(", ")}. Use case: ${businessRuleViolationCaseName} for business rule violations.`,
-    line: firstPropertyLine(outcome, "business rule") ?? firstPropertyLine(outcome, "business rules") ?? outcome.location?.line ?? step?.location.line
-  });
 }
 
 function validateDisplayPartialEffect(
