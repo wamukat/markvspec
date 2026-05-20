@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { gzipSync } from "node:zlib";
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -293,82 +292,6 @@ Let users buy items.
   }
 });
 
-test("skill install downloads the version tag archive and installs the authoring skill", async () => {
-  const dir = mkdtempSync(join(tmpdir(), "markvspec-cli-skill-install-"));
-  const originalLog = console.log;
-  const logs: string[] = [];
-  const urls: string[] = [];
-  try {
-    const installDir = join(dir, "skills");
-    writeFileSync(join(dir, "AGENTS.md"), "# Agent Notes\n");
-    console.log = (message?: unknown) => {
-      logs.push(String(message ?? ""));
-    };
-
-    const archive = createTarGzArchive({
-      "markvspec-release-0.5.0/skills/markvspec-authoring/SKILL.md": "# MarkVSpec Authoring\n",
-      "markvspec-release-0.5.0/skills/markvspec-authoring/references/workflow.md": "Use the CLI.\n",
-      "markvspec-release-0.5.0/README.md": "Not installed.\n"
-    });
-
-    assert.equal(
-      await main(["skill", "install", "--path", installDir], {
-        downloadArchive: async (url) => {
-          urls.push(url);
-          return archive;
-        }
-      }),
-      0
-    );
-
-    assert.deepEqual(urls, ["https://github.com/wamukat/markvspec/archive/refs/tags/v0.5.0.tar.gz"]);
-    assert.equal(readFileSync(join(installDir, "markvspec-authoring", "SKILL.md"), "utf8"), "# MarkVSpec Authoring\n");
-    assert.equal(readFileSync(join(installDir, "markvspec-authoring", "references", "workflow.md"), "utf8"), "Use the CLI.\n");
-    assert(!existsSync(join(installDir, "README.md")));
-    assert.equal(readFileSync(join(dir, "AGENTS.md"), "utf8"), "# Agent Notes\n");
-    assert(logs.some((line) => line.includes("Installed markvspec-authoring from v0.5.0")));
-    assert(logs.some((line) => line.includes("markvspec diagnose input <markdown-file>")));
-    assert(logs.some((line) => line.includes("markvspec validate <file-or-glob> --fail-on-warnings")));
-  } finally {
-    console.log = originalLog;
-    rmSync(dir, { recursive: true, force: true });
-  }
-});
-
-test("skill install reports tag and source URL when the archive has no authoring skill", async () => {
-  const dir = mkdtempSync(join(tmpdir(), "markvspec-cli-skill-missing-"));
-  const originalLog = console.log;
-  const originalError = console.error;
-  const logs: string[] = [];
-  const errors: string[] = [];
-  try {
-    console.log = (message?: unknown) => {
-      logs.push(String(message ?? ""));
-    };
-    console.error = (message?: unknown) => {
-      errors.push(String(message ?? ""));
-    };
-
-    assert.equal(
-      await main(["skill", "install", "--path", join(dir, "skills")], {
-        downloadArchive: async () => createTarGzArchive({
-          "markvspec-release-0.5.0/README.md": "No skill here.\n"
-        })
-      }),
-      1
-    );
-
-    assert(errors.some((line) => line.includes("v0.5.0")));
-    assert(errors.some((line) => line.includes("https://github.com/wamukat/markvspec/archive/refs/tags/v0.5.0.tar.gz")));
-    assert(errors.some((line) => line.includes("skills/markvspec-authoring")));
-    assert(!logs.some((line) => line.includes("Add this to AGENTS.md")));
-  } finally {
-    console.log = originalLog;
-    console.error = originalError;
-    rmSync(dir, { recursive: true, force: true });
-  }
-});
-
 function validScreen(id: string, title: string): string {
   return `---
 id: ${id}
@@ -388,33 +311,4 @@ title: ${title}
 
 - text: ${title}
 `;
-}
-
-function createTarGzArchive(files: Record<string, string>): Buffer {
-  const chunks: Buffer[] = [];
-  for (const [name, content] of Object.entries(files)) {
-    const body = Buffer.from(content, "utf8");
-    chunks.push(createTarHeader(name, body.length));
-    chunks.push(body);
-    chunks.push(Buffer.alloc((512 - (body.length % 512)) % 512));
-  }
-  chunks.push(Buffer.alloc(1024));
-  return gzipSync(Buffer.concat(chunks));
-}
-
-function createTarHeader(name: string, size: number): Buffer {
-  const header = Buffer.alloc(512);
-  header.write(name, 0, 100, "utf8");
-  header.write("0000644\0", 100, 8, "ascii");
-  header.write("0000000\0", 108, 8, "ascii");
-  header.write("0000000\0", 116, 8, "ascii");
-  header.write(size.toString(8).padStart(11, "0") + "\0", 124, 12, "ascii");
-  header.write("00000000000\0", 136, 12, "ascii");
-  header.fill(" ", 148, 156);
-  header.write("0", 156, 1, "ascii");
-  header.write("ustar\0", 257, 6, "ascii");
-  header.write("00", 263, 2, "ascii");
-  const checksum = header.reduce((sum, byte) => sum + byte, 0);
-  header.write(checksum.toString(8).padStart(6, "0") + "\0 ", 148, 8, "ascii");
-  return header;
 }

@@ -266,18 +266,6 @@ npx @markvspec/cli@latest export document-list markvspec.project.md --out docs/g
 ローカルに固定したい場合は、`@markvspec/cli` を dev dependency として追加し、
 利用している package manager 経由で実行してください。
 
-### AI authoring skill
-
-CLI version に対応する GitHub tag から、AI agent 向け MarkVSpec authoring skill
-をインストールできます。
-
-```sh
-npx @markvspec/cli@latest skill install --path ~/.codex/skills
-```
-
-指定した directory に `markvspec-authoring/` を展開し、`AGENTS.md` へ追記する
-短い snippet を表示します。`AGENTS.md` は自動編集しません。
-
 ## ID と marker
 
 `E-EmailInput` や `A-SubmitLogin` は、レビューや実装タスクから参照するための
