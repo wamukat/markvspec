@@ -1,14 +1,23 @@
 # Validation
 
-Validation は入力条件とエラー表示を source に残すための書き方です。field の constraints と action の failure case を分けて書くと、仕様の抜けを見つけやすくなります。
+Validation は「入力を受け付けてよいか」と「エラーをどう見せるか」を書くための章です。
 
-## 考え方
+まず、判定場所と対象を分けて考えます。
 
-Validation では、入力項目そのものの制約と、処理結果として起きるエラーを分けて書きます。required、format、minLength のような field constraint は element の近くに置くと読みやすくなります。一方で、重複 email、権限不足、在庫不足のような business rule は `R-*` rule や action case として分けると、API や業務仕様との対応が review しやすくなります。
+## 4つに分ける
 
-エラーは制約だけでなく、表示方法まで書きます。どの state で、どの message area に、どの tone の message が出るかを残しておくと、VS Code preview と HTML/PDF export の両方で仕様を共有できます。
+| 種類 | 例 | 書く場所 |
+| --- | --- | --- |
+| クライアント単項目チェック | 必須、email形式、文字数、数値範囲 | `## Elements` の input |
+| クライアント複合項目チェック | password確認、開始日 <= 終了日 | `## Business Rules` または submit前 action |
+| サーバ単項目チェック | email重複、商品コード不存在 | `## Actions` の response case と対象 field |
+| サーバ複合項目チェック | 在庫不足、権限不足、契約状態による不可 | `## Actions` の response case と `## Business Rules` |
 
-## 最小例
+Business Rule は、入力形式そのものではなく、画面や業務の判断条件を表します。
+
+## クライアント単項目チェック
+
+input 自体に閉じる条件は、element の近くに書きます。
 
 ```markdown
 ## Elements
@@ -19,56 +28,37 @@ Validation では、入力項目そのものの制約と、処理結果として
 - required
 - constraints
   - format: email
-
-## Business Rules
-
-### R-EmailRequired Rule
-
-- target: E-EmailInput
-- message: Email is required
+- error:
+  - required: Email is required.
+  - format: Enter a valid email address.
 ```
 
-この例では、field の基本制約を element に置き、review したい rule を `R-*` として分けています。最小の画面では element だけでも始められますが、複数 field や business rule が増えたら `Business Rules` を使うと見通しがよくなります。
+preview や review では、「この field には何を入力できるか」がその場で読めます。
 
-## よくある書き方
+## クライアント複合項目チェック
 
-- field 単位の制約は element に近い場所へ置く。
-- business rule は `R-*` として分ける。
-- action failure case からエラー state や message area を更新する。
-- message はユーザーに表示する文言として書く。実装内部の error code だけにしない。
-- 複数 field にまたがる rule は、対象 field を明示する。
-- submit 前の client-side validation と submit 後の server-side validation を action case で区別する。
-- error 表示用の element や message area を layout に含める。
-
-## 例: server-side validation
+複数 field を見る条件は、単一 element に押し込まず、rule として分けます。
 
 ```markdown
-## Elements
-
-### E-NameInput Input
-
-- label: Name
-- required
-
-### E-EmailInput Input
-
-- label: Email
-- required
-- constraints
-  - format: email
-
-### E-FormMessage Message
-
-- tone: danger
-- visible when: input-error
-
 ## Business Rules
 
-### R-UniqueEmail Rule
+### R-PasswordMatches Password matches
 
-- target: E-EmailInput
-- message: This email address is already used.
+- when:
+  - E-PasswordInput.value is present
+  - E-PasswordConfirmInput.value differs from E-PasswordInput.value
+- appliesTo:
+  - E-PasswordConfirmInput
+- message: Password confirmation does not match.
+```
 
+「どの field を見て、どこへ表示するか」を明示すると、実装者にも AI にも伝わります。
+
+## サーバ単項目チェック
+
+サーバに送って初めて分かる field error は、request の response case として書きます。
+
+```markdown
 ## Actions
 
 ### A-SubmitProfile Submit profile
@@ -77,21 +67,70 @@ Validation では、入力項目そのものの制約と、処理結果として
   - server:
     - POST /profile
     - params:
-      - name: E-NameInput.value
       - email: E-EmailInput.value
-  - case: validation-error
+  - case: email-duplicated
     - state: input-error
     - display:
-      - target: E-FormMessage
-      - content: Validation error summary
+      - target: E-EmailError
+      - content: This email address is already used.
+      - mode: replace
 ```
 
-field の制約、業務 rule、submit 後の error case を分けると、仕様漏れを見つけやすくなります。特に AI に修正を依頼するときは、`R-UniqueEmail` や `A-SubmitProfile` のように ID で対象を指定できます。
+これは `format: email` とは別物です。email の形式は client で見られますが、重複は server response で決まります。
+
+## サーバ複合項目チェック
+
+在庫、権限、契約状態、予約枠の空きなど、複数条件で決まるものは response case と business rule を対応させます。
+
+```markdown
+## Business Rules
+
+### R-PlanAllowsExport Plan allows export
+
+- when: current plan does not allow PDF export
+- appliesTo: A-ExportPdf
+- message: Your current plan cannot export PDF.
+
+## Actions
+
+### A-ExportPdf Export PDF
+
+- Process P1: Request PDF export
+  - server:
+    - POST /exports/pdf
+  - case: plan-not-allowed
+    - state: export-error
+    - display:
+      - target: E-ExportMessage
+      - content: Your current plan cannot export PDF.
+      - mode: replace
+```
+
+Business Rule は「なぜ不可なのか」を説明し、Action case は「その結果、画面で何が起きるか」を書きます。
+
+## エラー表示を書く
+
+validation は判定だけでは不十分です。ユーザーに見える表示先も書きます。
+
+- field の直下に出す: `E-EmailError`
+- form 全体に出す: `E-FormMessage`
+- action 結果として出す: `display` で target と content を指定する
+- error state を持つ: `state: input-error` や `state: submit-error`
+
+表示用 element は `tone: danger` の `Text` や `Paragraph` として `## Elements` に置きます。
+
+## 迷ったとき
+
+- 1つの field だけで判定できるなら `## Elements`。
+- 複数 field や業務条件を見るなら `## Business Rules`。
+- server response で決まるなら `## Actions` の `case:`。
+- ユーザーに何を見せるかは `display` と error element で書く。
 
 ## 次に読むもの
 
 - [Elements](elements.md)
 - [Actions](actions.md)
+- [Business Rules](../reference/rules.md)
+- [Validation Reference](../reference/validations.md)
 - [Single Field Validation](../../../examples/showcase/single-field-validation.html)
 - [Login](../../../examples/showcase/login-basic.html)
-- [Reference](../reference/index.md)
