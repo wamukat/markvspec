@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
-import { loadExampleCatalog, validateExampleCatalog } from "./example-catalog.mjs";
+import { loadExampleCatalog, resolveDocKey, validateExampleCatalog } from "./example-catalog.mjs";
 
 const root = process.cwd();
 const githubBlobBaseUrl = "https://github.com/wamukat/markvspec/blob/main/";
@@ -94,29 +94,26 @@ function toPosixPath(filePath) {
   return filePath.split(/[\\/]/u).join("/");
 }
 
-function renderExamplesIndex(files) {
-  const groups = groupExampleFiles(files);
-  const sections = groups
-    .map(({ label, files: groupFiles }) => {
-      const links = groupFiles
-        .map((filePath) => {
-          const repoPath = toPosixPath(relative(root, filePath));
-          const title = titleFromFile(filePath);
-          const href = htmlFileName(filePath);
-          const showcaseHref = `showcase/${href}`;
-          const pdfHref = pdfFileName(filePath);
-          const pdfLink = existsSync(join(examplesOutDir, pdfHref))
-            ? `<a class="source" href="${escapeHtml(pdfHref)}">PDF</a>`
-            : "";
-          return `<li><a href="${escapeHtml(showcaseHref)}">${escapeHtml(title)}</a><span>${escapeHtml(repoPath)}</span><div class="actions"><a class="source primary" href="${escapeHtml(showcaseHref)}">Source + Preview</a><a class="source" href="${escapeHtml(href)}">Preview</a>${pdfLink}<a class="source" href="${githubBlobBaseUrl}${escapeHtml(repoPath)}">Source</a></div></li>`;
+function renderExamplesIndex(files, catalogIndex) {
+  const learningPathFiles = orderLearningPathFiles(files, catalogIndex);
+  const learningPathItems = learningPathFiles.map((filePath, index) => renderExampleIndexCard(filePath, catalogIndex, { step: index + 1 })).join("\n");
+  const stageSections = groupExampleFilesByStage(files, catalogIndex)
+    .map(({ label, files: stageFiles }) => {
+      const kindGroups = groupFilesByKind(stageFiles, catalogIndex)
+        .map(({ label: kindLabel, files: kindFiles }) => {
+          const links = kindFiles.map((filePath) => renderExampleIndexCard(filePath, catalogIndex)).join("\n");
+          return `<div class="kind-group">
+        <h3>${escapeHtml(kindLabel)}</h3>
+        <ul>
+${links}
+        </ul>
+      </div>`;
         })
         .join("\n");
 
       return `<section>
       <h2>${escapeHtml(label)}</h2>
-      <ul>
-${links}
-      </ul>
+      ${kindGroups}
     </section>`;
     })
     .join("\n");
@@ -160,6 +157,13 @@ ${links}
       margin: 0 0 12px;
       padding-bottom: 8px;
     }
+    h3 {
+      color: #374151;
+      font-size: 13px;
+      letter-spacing: .02em;
+      margin: 16px 0 8px;
+      text-transform: uppercase;
+    }
     ul {
       display: grid;
       gap: 10px;
@@ -175,6 +179,31 @@ ${links}
       gap: 6px;
       grid-template-columns: 1fr;
       padding: 14px 16px;
+    }
+    .card-title {
+      align-items: baseline;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .summary {
+      color: #4b5563;
+      font-size: 13px;
+      margin: 0;
+    }
+    .teaches {
+      color: #6b7280;
+      font-size: 12px;
+      margin: 0;
+    }
+    .pill {
+      background: #eef2ff;
+      border: 1px solid #c7d2fe;
+      border-radius: 999px;
+      color: #3730a3;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
     }
     a {
       color: #0f766e;
@@ -209,22 +238,55 @@ ${links}
   <main>
     <h1>MarkVSpec Examples</h1>
     <p>Generated example showcases for the shipped MarkVSpec examples. Open Source + Preview to compare the Markdown source with the generated HTML output, or use Preview when you only need the rendered document.</p>
-    ${sections}
+    <section>
+      <h2>Learning Path</h2>
+      <ul>
+${learningPathItems}
+      </ul>
+    </section>
+    ${stageSections}
   </main>
 </body>
 </html>
 `;
 }
 
+function renderExampleIndexCard(filePath, catalogIndex, { step } = {}) {
+  const repoPath = toPosixPath(relative(root, filePath));
+  const entry = catalogEntryForFile(catalogIndex, filePath);
+  const title = entry?.title ?? titleFromFile(filePath);
+  const href = htmlFileName(filePath);
+  const showcaseHref = `showcase/${href}`;
+  const pdfHref = pdfFileName(filePath);
+  const pdfLink = existsSync(join(examplesOutDir, pdfHref))
+    ? `<a class="source" href="${escapeHtml(pdfHref)}">PDF</a>`
+    : "";
+  const stepPill = step ? `<span class="pill">Step ${step}</span>` : "";
+  const kindPill = entry?.kind ? `<span class="pill">${escapeHtml(entry.kind)}</span>` : "";
+  const summary = entry?.summary ? `<p class="summary">${escapeHtml(entry.summary)}</p>` : "";
+  const teaches = entry?.teaches?.length
+    ? `<p class="teaches">Teaches: ${escapeHtml(entry.teaches.join(", "))}</p>`
+    : "";
+
+  return `<li>
+        <div class="card-title"><a href="${escapeHtml(showcaseHref)}">${escapeHtml(title)}</a>${stepPill}${kindPill}</div>
+        ${summary}
+        ${teaches}
+        <span>${escapeHtml(repoPath)}</span>
+        <div class="actions"><a class="source primary" href="${escapeHtml(showcaseHref)}">Source + Preview</a><a class="source" href="${escapeHtml(href)}">Preview</a>${pdfLink}<a class="source" href="${githubBlobBaseUrl}${escapeHtml(repoPath)}">Source</a></div>
+      </li>`;
+}
+
 function pdfFileName(filePath) {
   return `${basename(filePath, ".vspec.md")}.pdf`;
 }
 
-function renderShowcasePage(filePath) {
+function renderShowcasePage(filePath, catalogIndex) {
   const markdown = readFileSync(filePath, "utf8");
   const repoPath = toPosixPath(relative(root, filePath));
   const relativeExamplePath = toPosixPath(relative(examplesDir, filePath));
   const metadata = exampleMetadata(filePath);
+  const catalogEntry = catalogEntryForFile(catalogIndex, filePath);
   const previewHref = `../${htmlFileName(filePath)}`;
   const pdfHref = `../${pdfFileName(filePath)}`;
   const pdfLink = existsSync(join(examplesOutDir, pdfFileName(filePath)))
@@ -233,12 +295,15 @@ function renderShowcasePage(filePath) {
   const metaPills = [
     metadata.id,
     metadata.type,
+    catalogEntry?.kind ? `kind ${catalogEntry.kind}` : "",
+    catalogEntry?.stage ? `stage ${catalogEntry.stage}` : "",
     metadata.route ? `route ${metadata.route}` : "",
     metadata.locale ? `locale ${metadata.locale}` : ""
   ]
     .filter(Boolean)
-    .map((value) => `<span class="pill">${escapeHtml(value)}</span>`)
-    .join("\n          ");
+      .map((value) => `<span class="pill">${escapeHtml(value)}</span>`)
+      .join("\n          ");
+  const learningPanel = renderShowcaseLearningPanel(catalogEntry, catalogIndex);
 
   return `<!doctype html>
 <html lang="en">
@@ -374,6 +439,33 @@ function renderShowcasePage(filePath) {
       grid-template-columns: minmax(360px, .9fr) minmax(520px, 1.1fr);
       min-height: calc(100vh - 185px);
     }
+    .learning-panel {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-bottom: 18px;
+    }
+    .learning-card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .learning-card h2 {
+      font-size: 13px;
+      margin: 0 0 8px;
+    }
+    .learning-card ul {
+      display: grid;
+      gap: 6px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .learning-card li {
+      color: var(--muted);
+      font-size: 13px;
+    }
     .pane {
       background: var(--paper);
       border: 1px solid var(--line);
@@ -480,6 +572,7 @@ function renderShowcasePage(filePath) {
         grid-template-columns: 1fr;
       }
       .example-actions { justify-content: flex-start; }
+      .learning-panel { grid-template-columns: 1fr; }
       .split { grid-template-columns: 1fr; }
       .source-wrap,
       .preview-frame-wrap {
@@ -509,7 +602,7 @@ function renderShowcasePage(filePath) {
       <div>
         <div class="breadcrumb">Examples / ${escapeHtml(relativeExamplePath)}</div>
         <h1>${escapeHtml(metadata.title)}</h1>
-        <p class="subtitle">Compare the MarkVSpec Markdown source on the left with the generated HTML preview on the right.</p>
+        <p class="subtitle">${escapeHtml(catalogEntry?.summary ?? "Compare the MarkVSpec Markdown source on the left with the generated HTML preview on the right.")}</p>
         <div class="meta-row" aria-label="Example metadata">
           ${metaPills}
         </div>
@@ -520,6 +613,8 @@ function renderShowcasePage(filePath) {
         <a class="nav-link" href="${githubBlobBaseUrl}${escapeHtml(repoPath)}">View on GitHub</a>
       </div>
     </section>
+
+    ${learningPanel}
 
     <section class="split" aria-label="Source and generated preview">
       <article class="pane" aria-label="VSpec source">
@@ -558,6 +653,74 @@ function renderShowcasePage(filePath) {
 `;
 }
 
+function renderShowcaseLearningPanel(entry, catalogIndex) {
+  if (!entry) {
+    return "";
+  }
+
+  const teaches = entry.teaches?.length
+    ? entry.teaches.map((item) => `<li>${escapeHtml(item)}</li>`).join("\n          ")
+    : `<li>No catalog teaches metadata.</li>`;
+  const docs = renderRelatedDocLinks(entry, "../../");
+  const next = renderNextExampleLinks(entry, catalogIndex);
+
+  return `<section class="learning-panel" aria-label="Learning links">
+      <article class="learning-card">
+        <h2>What this teaches</h2>
+        <ul>
+          ${teaches}
+        </ul>
+      </article>
+      <article class="learning-card">
+        <h2>Related docs</h2>
+        <ul>
+          ${docs || "<li>No related docs.</li>"}
+        </ul>
+      </article>
+      <article class="learning-card">
+        <h2>Next examples</h2>
+        <ul>
+          ${next || "<li>No next example.</li>"}
+        </ul>
+      </article>
+    </section>`;
+}
+
+function renderRelatedDocLinks(entry, prefix) {
+  if (!entry.docs) {
+    return "";
+  }
+
+  const links = [];
+  for (const [group, keys] of Object.entries(entry.docs)) {
+    for (const key of keys) {
+      const resolved = resolveDocKey(root, "en", group, key);
+      if (!resolved) {
+        continue;
+      }
+      const relativeDocPath = toPosixPath(relative(docsDir, resolved.path));
+      const href = `${prefix}docs/${toPosixPath(markdownOutputPath(relativeDocPath))}`;
+      links.push(`<li><a href="${escapeHtml(href)}">${escapeHtml(`${titleize(group)}: ${titleize(key)}`)}</a></li>`);
+    }
+  }
+  return links.join("\n          ");
+}
+
+function renderNextExampleLinks(entry, catalogIndex) {
+  if (!entry.next?.length) {
+    return "";
+  }
+
+  return entry.next
+    .map((nextPath) => {
+      const nextEntry = catalogIndex.get(nextPath);
+      const href = htmlFileName(nextPath);
+      const title = nextEntry?.title ?? basename(nextPath, ".vspec.md");
+      return `<li><a href="${escapeHtml(href)}">${escapeHtml(title)}</a></li>`;
+    })
+    .join("\n          ");
+}
+
 function renderSourceLines(markdown) {
   return markdown
     .split(/\r?\n/u)
@@ -568,18 +731,77 @@ function renderSourceLines(markdown) {
     .join("");
 }
 
-function groupExampleFiles(files) {
+function buildCatalogIndex(catalog) {
+  return new Map(catalog.examples.map((entry) => [entry.path, entry]));
+}
+
+function catalogEntryForFile(catalogIndex, filePath) {
+  return catalogIndex.get(toPosixPath(relative(root, filePath)));
+}
+
+function orderLearningPathFiles(files, catalogIndex) {
+  const filesByRepoPath = new Map(files.map((filePath) => [toPosixPath(relative(root, filePath)), filePath]));
+  const learningPathEntries = [...catalogIndex.values()].filter((entry) => entry.learningPath && filesByRepoPath.has(entry.path));
+  const learningPathPaths = new Set(learningPathEntries.map((entry) => entry.path));
+  const pointedTo = new Set();
+  for (const entry of learningPathEntries) {
+    for (const nextPath of entry.next ?? []) {
+      if (learningPathPaths.has(nextPath)) {
+        pointedTo.add(nextPath);
+      }
+    }
+  }
+
+  const orderedPaths = [];
+  const visited = new Set();
+  const starts = learningPathEntries.filter((entry) => !pointedTo.has(entry.path));
+  for (const start of starts) {
+    let current = start;
+    while (current && !visited.has(current.path)) {
+      orderedPaths.push(current.path);
+      visited.add(current.path);
+      const nextPath = (current.next ?? []).find((path) => learningPathPaths.has(path) && !visited.has(path));
+      current = nextPath ? catalogIndex.get(nextPath) : undefined;
+    }
+  }
+
+  for (const entry of learningPathEntries) {
+    if (!visited.has(entry.path)) {
+      orderedPaths.push(entry.path);
+    }
+  }
+
+  return orderedPaths.map((repoPath) => filesByRepoPath.get(repoPath)).filter(Boolean);
+}
+
+function groupExampleFilesByStage(files, catalogIndex) {
   const groups = new Map();
   for (const filePath of files) {
+    const entry = catalogEntryForFile(catalogIndex, filePath);
     const relativeExamplePath = toPosixPath(relative(examplesDir, filePath));
     const [folder = "examples"] = relativeExamplePath.split("/");
-    const label = folder.replace(/^\d+-/u, "").replaceAll("-", " ").replace(/\b\w/gu, (match) => match.toUpperCase());
+    const label = titleize(entry?.stage ?? folder.replace(/^\d+-/u, ""));
     const group = groups.get(label) ?? [];
     group.push(filePath);
     groups.set(label, group);
   }
 
   return [...groups.entries()].map(([label, groupFiles]) => ({ label, files: groupFiles }));
+}
+
+function groupFilesByKind(files, catalogIndex) {
+  const groups = new Map();
+  for (const filePath of files) {
+    const label = catalogEntryForFile(catalogIndex, filePath)?.kind ?? "screen";
+    const group = groups.get(label) ?? [];
+    group.push(filePath);
+    groups.set(label, group);
+  }
+  return [...groups.entries()].map(([label, groupFiles]) => ({ label, files: groupFiles }));
+}
+
+function titleize(value) {
+  return value.replaceAll("-", " ").replace(/\b\w/gu, (match) => match.toUpperCase());
 }
 
 function copySiteFiles() {
@@ -887,13 +1109,14 @@ for (const warning of catalogWarnings) {
   console.warn(`Example catalog warning: ${warning}`);
 }
 console.log(`Loaded ${catalog.examples.length} example catalog entries.`);
+const catalogIndex = buildCatalogIndex(catalog);
 execFileSync("node", ["packages/cli/dist/index.js", "export", "html", "examples/**/*.vspec.md", "--out", examplesOutDir], {
   stdio: "inherit"
 });
 for (const filePath of files) {
-  writeFileSync(join(examplesShowcaseOutDir, htmlFileName(filePath)), renderShowcasePage(filePath), "utf8");
+  writeFileSync(join(examplesShowcaseOutDir, htmlFileName(filePath)), renderShowcasePage(filePath, catalogIndex), "utf8");
 }
 renderMarkdownDocs();
 copySiteFiles();
 copyDocsAssets();
-writeFileSync(join(examplesOutDir, "index.html"), renderExamplesIndex(files));
+writeFileSync(join(examplesOutDir, "index.html"), renderExamplesIndex(files, catalogIndex));

@@ -92,6 +92,21 @@ expectContains(examplesHtml, "showcase/hello-screen.html", "_site/examples/index
 expectContains(examplesHtml, "Source + Preview", "_site/examples/index.html should label showcase links.");
 expectContains(examplesHtml, ">Preview<", "_site/examples/index.html should keep preview-only links.");
 expectContains(examplesHtml, "examples/01-basics/hello-screen.vspec.md", "_site/examples/index.html should show the source path.");
+expectContains(examplesHtml, "Learning Path", "_site/examples/index.html should expose the catalog learning path.");
+expectContains(examplesHtml, "Step 1", "_site/examples/index.html should number learning path examples.");
+expectOrder(
+  examplesHtml,
+  ["Hello Screen", "Step 1", "Async Fetching", "Step 2", "Responsive Profile", "Step 3", "Form Submit Flow", "Step 4", "Single Field Validation", "Step 5", "Display Effects", "Step 6"],
+  "_site/examples/index.html should order the learning path from catalog next links."
+);
+expectOrder(
+  examplesHtml,
+  ["Search List", "Step 8", "Account Shell", "Step 9", "Basic Slot Page", "Step 10"],
+  "_site/examples/index.html should not fall back to alphabetical order inside the learning path."
+);
+expectContains(examplesHtml, "Teaches: Front Matter", "_site/examples/index.html should show teaches metadata.");
+expectContains(examplesHtml, '<span class="pill">template</span>', "_site/examples/index.html should identify template examples.");
+expectContains(examplesHtml, '<span class="pill">partial</span>', "_site/examples/index.html should identify partial examples.");
 
 for (const coveragePath of ["docs/ja/user/ui-coverage.html", "docs/en/user/ui-coverage.html"]) {
   const coverageHtml = readSiteFile(coveragePath);
@@ -124,6 +139,14 @@ expectContains(helloShowcaseHtml, '<iframe src="../hello-screen.html"', "_site/e
 expectContains(helloShowcaseHtml, '<span class="line-no">1</span>', "_site/examples/showcase/hello-screen.html should show source line numbers.");
 expectContains(helloShowcaseHtml, "SCR-HELLO", "_site/examples/showcase/hello-screen.html should render escaped source lines as HTML elements.");
 expectContains(helloShowcaseHtml, "Open preview only", "_site/examples/showcase/hello-screen.html should keep a preview-only link.");
+expectContains(helloShowcaseHtml, "What this teaches", "_site/examples/showcase/hello-screen.html should show teaches metadata.");
+expectContains(helloShowcaseHtml, "Guide: Markdown Model", "_site/examples/showcase/hello-screen.html should link to related guide docs.");
+expectContains(helloShowcaseHtml, "Reference: File Format", "_site/examples/showcase/hello-screen.html should link to related reference docs.");
+expectContains(helloShowcaseHtml, "Async Fetching", "_site/examples/showcase/hello-screen.html should link to the next example.");
+
+const loginShowcaseHtml = readSiteFile("examples/showcase/login-basic.html");
+expectContains(loginShowcaseHtml, "Recipes: Login Form", "_site/examples/showcase/login-basic.html should link to the login recipe.");
+expectContains(loginShowcaseHtml, '<span class="pill">kind screen</span>', "_site/examples/showcase/login-basic.html should show the example kind.");
 
 for (const readmePath of ["README.md", "README.ja.md"]) {
   const readme = readFileSync(join(root, readmePath), "utf8");
@@ -162,6 +185,18 @@ function readSiteFile(filePath) {
 function expectContains(content, needle, message) {
   if (!content.includes(needle)) {
     failures.push(message);
+  }
+}
+
+function expectOrder(content, needles, message) {
+  let offset = -1;
+  for (const needle of needles) {
+    const nextOffset = content.indexOf(needle, offset + 1);
+    if (nextOffset === -1) {
+      failures.push(`${message} Missing or out of order: ${needle}`);
+      return;
+    }
+    offset = nextOffset;
   }
 }
 
