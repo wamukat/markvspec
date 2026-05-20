@@ -18,10 +18,14 @@ import {
   validateElementProperties
 } from "./element-validator.js";
 import {
-  isInvalidFieldErrorElement,
-  parseDisplayMessageReference,
-  resolveDisplayTarget
+  parseDisplayMessageReference
 } from "./display-effect.js";
+import {
+  formGroupUpdateTargetDiagnostic,
+  presentationPanelTargetDiagnostic,
+  validateDisplayEffectTarget,
+  type DisplayEffectTargetValidationSupport
+} from "./display-effect-validator.js";
 import {
   findMarkdownEntityReferencesInLines,
   resolveMarkVSpecEntityReference
@@ -84,6 +88,10 @@ const actionProcessValidationSupport: ActionProcessValidationSupport = {
   firstPropertyLocation,
   requestParamSourceId,
   splitReferenceList
+};
+const displayEffectTargetValidationSupport: DisplayEffectTargetValidationSupport = {
+  firstPropertyLine,
+  checkLayoutTargetViewportCoverage
 };
 
 export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagnostic[] {
@@ -1493,49 +1501,17 @@ function validateDisplayEffect(
   if (!display) {
     return;
   }
-  const targetResolution = resolveDisplayTarget(display, { layoutIds, elementIds, elementsById });
-  const target = display.target;
-  if (targetResolution.kind === "none") {
-    diagnostics.push({
-      severity: "error",
-      message: `Action ${actionId} ${context} display effect must define target.`,
-      line: display.location.line
-    });
-  } else if (targetResolution.kind === "presentation-panel" && target) {
-    diagnostics.push(presentationPanelTargetDiagnostic(`Action ${actionId} ${context} display effect`, target, firstPropertyLine(display, "target") ?? display.location.line));
-  } else if (targetResolution.kind === "field-error") {
-    const elementId = targetResolution.fieldErrorElementId;
-    const element = targetResolution.fieldErrorElement;
-    if (!elementId || !element) {
-      diagnostics.push({
-        severity: "error",
-        message: `Action ${actionId} ${context} display effect targets missing field error element ${elementId ?? target}.`,
-        line: firstPropertyLine(display, "target") ?? display.location.line
-      });
-    } else if (isInvalidFieldErrorElement(element)) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Action ${actionId} ${context} display effect targets ${target}, but ${elementId} is ${element.type}. Field error targets should use input elements.`,
-        line: firstPropertyLine(display, "target") ?? display.location.line
-      });
-    }
-  } else if (targetResolution.kind === "form-group" && target) {
-    diagnostics.push(formGroupUpdateTargetDiagnostic(`Action ${actionId} ${context} display effect`, target, firstPropertyLine(display, "target") ?? display.location.line));
-  } else if (targetResolution.kind === "missing-local" && target) {
-    diagnostics.push({
-      severity: "error",
-      message: `Action ${actionId} ${context} display effect targets missing layout or element ${target}.`,
-      line: firstPropertyLine(display, "target") ?? display.location.line
-    });
-  } else if (targetResolution.kind === "layout" && target) {
-    checkLayoutTargetViewportCoverage(
-      target,
-      layoutIdsByViewport,
-      diagnostics,
-      firstPropertyLine(display, "target") ?? display.location.line,
-      `Action ${actionId} ${context} display effect targets layout`
-    );
-  }
+  validateDisplayEffectTarget({
+    actionId,
+    context,
+    display,
+    layoutIds,
+    elementIds,
+    elementsById,
+    layoutIdsByViewport,
+    diagnostics,
+    support: displayEffectTargetValidationSupport
+  });
 
   if (!display.element && !display.message && !display.partial) {
     diagnostics.push({
@@ -1933,22 +1909,6 @@ function validatePresentationPanelProperties(
       });
     }
   }
-}
-
-function presentationPanelTargetDiagnostic(context: string, target: string, line: number | undefined): MarkVSpecDiagnostic {
-  return {
-    severity: "error",
-    message: `${context} cannot target presentation panel ${target}. Use an L-* Layout when a targetable layout is needed.`,
-    line
-  };
-}
-
-function formGroupUpdateTargetDiagnostic(context: string, target: string, line: number | undefined): MarkVSpecDiagnostic {
-  return {
-    severity: "error",
-    message: `${context} cannot target FormGroup ${target}. Use an L-* layout target for updates.`,
-    line
-  };
 }
 
 function validateLayoutPartialProperties(
