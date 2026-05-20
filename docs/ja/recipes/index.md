@@ -1,29 +1,46 @@
 # Recipes
 
-よくある画面から書き方を選びます。
+Recipes は、よくある UI 仕様パターンを目的から選ぶ入口です。
 
-Recipe は詳細解説ではありません。近い画面を選び、DSL と preview を見て、必要な部分だけ自分の画面に移してください。
+MarkVSpec は screen state、elements、actions、outcome を semantic に書くための形式です。実装 code や framework 固有 attribute を書く場所ではありません。迷ったときは、近い recipe を開き、最小形から自分の画面に置き換えてください。
 
 ## 目的別
 
-- ログイン form: [Login Form](login-form.md)
-- loading / empty / error のある一覧: [Loading And Error](loading-error.md)
-- 一部だけ差し替える画面: [Server Partial Update](server-partial-update.md)
-- HTML / PDF として共有する: [PDF Export](pdf-export.md)
+| 目的 | Recipe | 主な概念 |
+| --- | --- | --- |
+| login、validation、authentication request を1画面に書く | [Login Form](login-form.md) | `Elements`, `Business Rules`, `Actions`, `case:` |
+| initial loading、loading、empty、error、success を扱う | [Loading And Error](loading-error.md) | `States`, `page.load`, `case:` |
+| server-rendered partial replacement を指定する | [Server Partial Update](server-partial-update.md) | `request`, `display`, `target`, `partial` |
+| `.vspec.md` を HTML / PDF として共有する | [PDF Export](pdf-export.md) | VS Code export, CLI export |
+
+## 読む順番
+
+1. 画面の目的に近い recipe を選ぶ。
+2. `Minimal Shape` をそのまま写さず、ID、label、path、state name を自分の画面の言葉に置き換える。
+3. `Common Pitfalls` を確認し、implementation detail や CSS が spec に漏れていないか見る。
+4. 関連 example を開き、preview の見え方を確認する。
+5. 追加の detail が必要なときだけ guide / reference を引く。
 
 ## Example で見る
 
-- 最小画面: [Hello Screen](../../../examples/showcase/hello-screen.html)
-- form submit: [Form Submit Flow](../../../examples/showcase/form-submit-flow.html)
-- loading / empty / error: [Async Fetching](../../../examples/showcase/async-loading.html)
-- message / toast / dialog: [Display Updates](../../../examples/showcase/display-effects.html)
-- partial refresh: [Profile Home](../../../examples/showcase/profile-page-with-template.html)
+- [Hello Screen](../../../examples/showcase/hello-screen.html): 最小 document structure。
+- [Login](../../../examples/showcase/login-basic.html): form、validation、authentication flow。
+- [Async Fetching](../../../examples/showcase/async-loading.html): loading / empty / error state transitions。
+- [Display Updates](../../../examples/showcase/display-effects.html): messages、toasts、dialogs、field feedback。
+- [Profile Home](../../../examples/showcase/profile-page-with-template.html): template と partial refresh behavior。
 
-## Recipe の読み方
+## Reference で引く
 
-1. 「完成イメージ」を見る。
-2. DSL を見る。
-3. preview example を開く。
-4. 詳細は Reference で引く。
+- [Guide](../guide/index.md): authoring flow を学ぶ。
+- [Actions Guide](../guide/actions.md): requests、cases、effects。
+- [Partial Updates Guide](../guide/partial-updates.md): server-rendered partial update model。
+- [CLI Reference](../reference/cli.md): CLI からの HTML / PDF export。
+- [Reference](../reference/index.md): sections、IDs、elements、rules。
 
-長い説明より、DSL と preview を優先します。
+## Recipe の使い方
+
+- screen specification の粒度で書く。implementation code、CSS classes、raw framework attributes は書かない。
+- `SCR-*`、`L-*`、`E-*`、`A-*`、`R-*` IDs を使い、screen、layout、element、action、rule を追跡できるようにする。
+- state を変える behavior は `Actions` と `case:` に置く。
+- user-visible result は `state`、`update`、`display`、`navigate` で明示する。
+- preview と export の source of truth は、1つの `.vspec.md` にする。

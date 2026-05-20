@@ -434,15 +434,18 @@ expectContains(helloShowcaseHtml, '<span class="line-no">1</span>', "_site/examp
 expectContains(helloShowcaseHtml, "SCR-HELLO", "_site/examples/showcase/hello-screen.html should render escaped source lines as HTML elements.");
 expectContains(helloShowcaseHtml, "Open preview only", "_site/examples/showcase/hello-screen.html should keep a preview-only link.");
 expectContains(helloShowcaseHtml, "What this teaches", "_site/examples/showcase/hello-screen.html should show teaches metadata.");
-expectContains(helloShowcaseHtml, "Guide: Markdown Model", "_site/examples/showcase/hello-screen.html should link to related guide docs.");
-expectContains(helloShowcaseHtml, "Reference: File Format", "_site/examples/showcase/hello-screen.html should link to related reference docs.");
+expectContains(helloShowcaseHtml, "English: Guide / Markdown Model", "_site/examples/showcase/hello-screen.html should link to related English guide docs.");
+expectContains(helloShowcaseHtml, "Japanese: Guide / Markdown Model", "_site/examples/showcase/hello-screen.html should link to related Japanese guide docs.");
+expectContains(helloShowcaseHtml, "English: Reference / File Format", "_site/examples/showcase/hello-screen.html should link to related English reference docs.");
+expectContains(helloShowcaseHtml, "Japanese: Reference / File Format", "_site/examples/showcase/hello-screen.html should link to related Japanese reference docs.");
 expectContains(helloShowcaseHtml, "Async Fetching", "_site/examples/showcase/hello-screen.html should link to the next example.");
 
 const loginShowcaseHtml = readSiteFile("examples/showcase/login-basic.html");
 expectContains(loginShowcaseHtml, 'class="example-sidebar"', "_site/examples/showcase/login-basic.html should show example navigation.");
 expectContains(loginShowcaseHtml, 'href="hello-screen.html"', "_site/examples/showcase/login-basic.html sidebar should link back to other showcases.");
 expectContains(loginShowcaseHtml, 'aria-current="page">Login</a>', "_site/examples/showcase/login-basic.html sidebar should mark the current example.");
-expectContains(loginShowcaseHtml, "Recipes: Login Form", "_site/examples/showcase/login-basic.html should link to the login recipe.");
+expectContains(loginShowcaseHtml, "English: Recipes / Login Form", "_site/examples/showcase/login-basic.html should link to the English login recipe.");
+expectContains(loginShowcaseHtml, "Japanese: Recipes / Login Form", "_site/examples/showcase/login-basic.html should link to the Japanese login recipe.");
 expectContains(loginShowcaseHtml, '<span class="pill">kind screen</span>', "_site/examples/showcase/login-basic.html should show the example kind.");
 
 for (const readmePath of ["README.md", "README.ja.md"]) {

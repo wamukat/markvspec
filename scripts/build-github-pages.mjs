@@ -768,7 +768,7 @@ function renderShowcaseLearningPanel(entry, catalogIndex) {
   const teaches = entry.teaches?.length
     ? entry.teaches.map((item) => `<li>${escapeHtml(item)}</li>`).join("\n          ")
     : `<li>No catalog teaches metadata.</li>`;
-  const docs = renderRelatedDocLinks(entry, "../../");
+  const docs = renderRelatedDocLinks(entry, "../../", ["en", "ja"]);
   const next = renderNextExampleLinks(entry, catalogIndex);
 
   return `<section class="learning-panel" aria-label="Learning links">
@@ -820,7 +820,7 @@ function renderExampleSidebar(currentFilePath, files, catalogIndex) {
     </aside>`;
 }
 
-function renderRelatedDocLinks(entry, prefix) {
+function renderRelatedDocLinks(entry, prefix, languages = ["en"]) {
   if (!entry.docs) {
     return "";
   }
@@ -828,13 +828,16 @@ function renderRelatedDocLinks(entry, prefix) {
   const links = [];
   for (const [group, keys] of Object.entries(entry.docs)) {
     for (const key of keys) {
-      const resolved = resolveDocKey(root, "en", group, key);
-      if (!resolved) {
-        continue;
+      for (const lang of languages) {
+        const resolved = resolveDocKey(root, lang, group, key);
+        if (!resolved) {
+          continue;
+        }
+        const relativeDocPath = toPosixPath(relative(docsDir, resolved.path));
+        const href = `${prefix}docs/${toPosixPath(markdownOutputPath(relativeDocPath))}`;
+        const languageLabel = lang === "ja" ? "Japanese" : "English";
+        links.push(`<li><a href="${escapeHtml(href)}">${escapeHtml(`${languageLabel}: ${titleize(group)} / ${titleize(key)}`)}</a></li>`);
       }
-      const relativeDocPath = toPosixPath(relative(docsDir, resolved.path));
-      const href = `${prefix}docs/${toPosixPath(markdownOutputPath(relativeDocPath))}`;
-      links.push(`<li><a href="${escapeHtml(href)}">${escapeHtml(`${titleize(group)}: ${titleize(key)}`)}</a></li>`);
     }
   }
   return links.join("\n          ");
