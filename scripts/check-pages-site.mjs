@@ -279,7 +279,7 @@ expectContains(loginRecipeHtml, "examples/showcase/login-basic.html", "_site/doc
 expectContains(loginRecipeHtml, "guide/actions.html", "_site/docs/ja/recipes/login-form.html should link to actions guide.");
 expectContains(loginRecipeHtml, "guide/validation.html", "_site/docs/ja/recipes/login-form.html should link to validation guide.");
 const partialRecipeHtml = readSiteFile("docs/ja/recipes/server-partial-update.html");
-expectContains(partialRecipeHtml, "semantic action/update", "_site/docs/ja/recipes/server-partial-update.html should explain semantic partial updates.");
+expectContains(partialRecipeHtml, "semantic action/display change", "_site/docs/ja/recipes/server-partial-update.html should explain semantic partial updates.");
 expectContains(partialRecipeHtml, "mode: replace", "_site/docs/ja/recipes/server-partial-update.html should include replacement semantics.");
 expectContains(partialRecipeHtml, "hx-get", "_site/docs/ja/recipes/server-partial-update.html should explicitly avoid raw htmx attributes.");
 expectOrder(
@@ -288,7 +288,7 @@ expectOrder(
   "_site/docs/ja/recipes/loading-error.html should place loading action under Actions."
 );
 expectContains(readSiteFile("docs/en/recipes/login-form.html"), "examples/showcase/login-basic.html", "_site/docs/en/recipes/login-form.html should link to Login Basic showcase.");
-expectContains(readSiteFile("docs/en/recipes/server-partial-update.html"), "semantic action/update", "_site/docs/en/recipes/server-partial-update.html should explain semantic partial updates.");
+expectContains(readSiteFile("docs/en/recipes/server-partial-update.html"), "semantic action/display change", "_site/docs/en/recipes/server-partial-update.html should explain semantic partial updates.");
 expectOrder(
   readSiteFile("docs/en/recipes/loading-error.html"),
   ["## States", "### error", "## Actions", "### A-LoadItems Load items"],
@@ -300,7 +300,7 @@ expectContains(referenceIndexHtml, "file-format.html", "_site/docs/ja/reference/
 expectContains(referenceIndexHtml, "validations.html", "_site/docs/ja/reference/index.html should link to validations reference.");
 expectContains(referenceIndexHtml, "rules.html", "_site/docs/ja/reference/index.html should link to rules reference.");
 const referenceActionsHtml = readSiteFile("docs/ja/reference/actions.html");
-expectContains(referenceActionsHtml, "HttpRequest", "_site/docs/ja/reference/actions.html should document request process syntax.");
+expectContains(referenceActionsHtml, "server:", "_site/docs/ja/reference/actions.html should document request process syntax.");
 expectContains(referenceActionsHtml, "mode: replace", "_site/docs/ja/reference/actions.html should document update replacement semantics.");
 expectContains(referenceActionsHtml, "examples/showcase/form-submit-flow.html", "_site/docs/ja/reference/actions.html should link back to action example.");
 const referenceElementsHtml = readSiteFile("docs/ja/reference/elements.html");
@@ -308,7 +308,7 @@ expectContains(referenceElementsHtml, "variant", "_site/docs/ja/reference/elemen
 expectContains(referenceElementsHtml, "raw color", "_site/docs/ja/reference/elements.html should discourage low-level visual styling.");
 const referenceRulesHtml = readSiteFile("docs/ja/reference/rules.html");
 expectContains(referenceRulesHtml, "Validator Diagnostics", "_site/docs/ja/reference/rules.html should separate rules from validator diagnostics.");
-expectContains(readSiteFile("docs/en/reference/actions.html"), "HttpRequest", "_site/docs/en/reference/actions.html should document request process syntax.");
+expectContains(readSiteFile("docs/en/reference/actions.html"), "server:", "_site/docs/en/reference/actions.html should document request process syntax.");
 expectContains(readSiteFile("docs/en/reference/rules.html"), "Validator Diagnostics", "_site/docs/en/reference/rules.html should separate rules from validator diagnostics.");
 for (const removedUserDir of ["docs/ja/user", "docs/en/user"]) {
   if (existsSync(join(siteDir, removedUserDir))) {
@@ -329,7 +329,7 @@ expectContains(examplesHtml, "Learning Path", "_site/examples/index.html should 
 expectContains(examplesHtml, "Step 1", "_site/examples/index.html should number learning path examples.");
 expectOrder(
   examplesHtml,
-  ["Hello Screen", "Step 1", "Async Fetching", "Step 2", "Responsive Profile", "Step 3", "Form Submit Flow", "Step 4", "Single Field Validation", "Step 5", "Display Effects", "Step 6"],
+  ["Hello Screen", "Step 1", "Async Fetching", "Step 2", "Responsive Profile", "Step 3", "Form Submit Flow", "Step 4", "Single Field Validation", "Step 5", "Display Updates", "Step 6"],
   "_site/examples/index.html should order the learning path from catalog next links."
 );
 expectOrder(

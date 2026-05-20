@@ -51,26 +51,34 @@
 - label: Retry
 - action: A-LoadItems
 
+## Events
+
+- page.load: A-LoadItems
+
 ## Actions
 
 ### A-LoadItems Load items
 
-- Triggered
-  - screen.load
-  - E-RetryButton.click
-- Process
-  - HttpRequest
+- Process P1: Request items
+  - server:
     - GET /items
-- Effects
-  - state: loading
-- Cases
-  - success:
+  - case: sent
+    - state: loading
+
+### A-HandleItemsResponse Handle items response
+
+- From
+  - loading
+- Process P1: Apply items response
+  - receive:
+    - response: A-LoadItems.P1.response
+  - case: success
     - response: 200 item list
     - state: loaded
-  - empty:
+  - case: empty
     - response: 200 empty list
     - state: empty
-  - failure:
+  - case: failure
     - response: network error or 5xx
     - state: error
 ```
@@ -78,10 +86,10 @@
 ## 書き方の要点
 
 - `loading` は request 前後の一時状態として明示する。
-- empty は failure ではありません。data がない正常系として別 case にします。
+- empty は failure ではありません。data がない正常系として別 `case:` にします。
 - error message、empty message、retry button は element として置き場所を分かるようにします。
-- retry がある場合は、`Triggered` に retry button の click を追加します。
-- 初期表示で読み込む場合は `screen.load` を trigger にします。
+- retry がある場合は、Retry button の `action: A-*` で同じ load action に接続します。
+- 初期表示で読み込む場合は `## Events` に `page.load` を書きます。
 
 ## よくある落とし穴
 
@@ -94,7 +102,7 @@
 ## 関連 example
 
 - [Async Fetching](../../../examples/showcase/async-loading.html): request、loading、loaded、empty、error の state を一通り確認する例。
-- [Display Effects](../../../examples/showcase/display-effects.html): message、toast、dialog などの user-visible feedback を確認する例。
+- [Display Updates](../../../examples/showcase/display-effects.html): message、toast、dialog などの user-visible feedback を確認する例。
 
 ## 関連 reference
 

@@ -102,12 +102,11 @@ referenced from the same flow.
     - validation: V-AccountSettings.result
   - case: invalid
     - description: required field missing
-    - Effects
-      - error code: ERR-ACCOUNT-REQUIRED
-      - state: idle
-      - display:
-        - target: L-MessageArea
-        - element: E-ValidationMessage
+    - error code: ERR-ACCOUNT-REQUIRED
+    - state: idle
+    - display:
+      - target: L-MessageArea
+      - element: E-ValidationMessage
     - stop
   - case: valid
     - description: all required fields are present
@@ -121,16 +120,14 @@ referenced from the same flow.
   - result:
     - account settings save request
   - case: sent
-    - Effects
-      - state: idle
+    - state: idle
   - case: send-failed
     - description: network error
-    - Effects
-      - error code: ERR-ACCOUNT-SAVE-FAILED
-      - state: idle
-      - display:
-        - target: L-MessageArea
-        - element: E-SaveErrorBanner
+    - error code: ERR-ACCOUNT-SAVE-FAILED
+    - state: idle
+    - display:
+      - target: L-MessageArea
+      - element: E-SaveErrorBanner
 
 ## Preview Scenarios
 

@@ -141,7 +141,7 @@ examples:
     next:
       - examples/03-actions/display-effects.vspec.md
   - path: examples/03-actions/display-effects.vspec.md
-    title: Display Effects
+    title: Display Updates
     kind: screen
     stage: actions
     summary: Display effect shapes for messages, dialogs, toasts, and layout insertion.

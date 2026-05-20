@@ -23,7 +23,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 | [File Format](file-format.md) | `.vspec.md`、Front Matter、document type、本文の基本形 |
 | [Sections](sections.md) | 認識される top-level section と Markdown 見出しの役割 |
 | [Elements](elements.md) | `Heading`、`Paragraph`、`Text`、`Input`、`Button` などの element |
-| [Actions](actions.md) | `Triggered`、`Process`、`HttpRequest`、`Cases`、`Effects`、`update` |
+| [Actions](actions.md) | `action: A-*`、`## Events`、`Process Pn:`、`server`、`receive`、`case:`、`display` |
 | [Validations](validations.md) | `required`、`constraints`、format/range、error message |
 | [Business Rules](rules.md) | `## Business Rules` に書く business rule と画面固有条件 |
 | [IDs](ids.md) | `SCR-*`、`L-*`、`E-*`、`A-*`、`R-*` の使い分け |
@@ -82,9 +82,7 @@ route: /hello
 
 ### A-Continue Continue
 
-- Triggered
-  - E-Continue.click
-- Effects
+- Process P1: Navigate to next screen
   - navigate: SCR-NEXT
 ```
 

@@ -203,10 +203,9 @@ not decide whether credentials are correct.
     - validation: V-LoginForm.result
   - case: invalid
     - description: required field missing
-    - Effects
-      - display:
-        - target: L-MessageArea
-        - element: E-ValidationMessage
+    - display:
+      - target: L-MessageArea
+      - element: E-ValidationMessage
     - stop
   - case: valid
     - description: all required fields are valid
@@ -222,14 +221,12 @@ not decide whether credentials are correct.
   - result:
     - login submission request
   - case: sent
-    - Effects
-      - state: authenticating
+    - state: authenticating
   - case: send-failed
-    - Effects
-      - state: idle
-      - display:
-        - target: L-MessageArea
-        - element: E-RequestErrorBanner
+    - state: idle
+    - display:
+      - target: L-MessageArea
+      - element: E-RequestErrorBanner
 
 The `sent` case means only that the browser submitted the request. Authentication
 success or failure is handled by `A-HandleLoginResponse`.
@@ -243,15 +240,13 @@ success or failure is handled by `A-HandleLoginResponse`.
     - response: A-SubmitLogin.P2.response
   - case: success
     - response: 200 authenticated
-    - Effects
-      - navigate: SCR-HOME
+    - navigate: SCR-HOME
   - case: failure
     - response: 401 invalid credentials
-    - Effects
-      - state: idle
-      - display:
-        - target: L-MessageArea
-        - element: E-AuthErrorBanner
+    - state: idle
+    - display:
+      - target: L-MessageArea
+      - element: E-AuthErrorBanner
 
 ### A3:A-ForgotPassword Open password reset
 

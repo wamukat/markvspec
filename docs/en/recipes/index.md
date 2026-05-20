@@ -8,9 +8,9 @@ MarkVSpec describes screen states, elements, actions, and outcomes semantically.
 
 | Goal | Recipe | Main Concepts |
 | --- | --- | --- |
-| Describe login, validation, and authentication request in one screen | [Login Form](login-form.md) | `Elements`, `Business Rules`, `Actions`, `Cases` |
-| Model initial loading, loading, empty, error, and success | [Loading And Error](loading-error.md) | `States`, `screen.load`, `Cases` |
-| Specify server-rendered partial replacement | [Server Partial Update](server-partial-update.md) | `HttpRequest`, `update`, `mode: replace` |
+| Describe login, validation, and authentication request in one screen | [Login Form](login-form.md) | `Elements`, `Business Rules`, `Actions`, `case:` |
+| Model initial loading, loading, empty, error, and success | [Loading And Error](loading-error.md) | `States`, `page.load`, `case:` |
+| Specify server-rendered partial replacement | [Server Partial Update](server-partial-update.md) | `server`, `display`, `mode: replace` |
 | Share `.vspec.md` as HTML / PDF | [PDF Export](pdf-export.md) | VS Code export, CLI export |
 
 ## Reading Order
@@ -26,7 +26,7 @@ MarkVSpec describes screen states, elements, actions, and outcomes semantically.
 - [Hello Screen](../../../examples/showcase/hello-screen.html): Minimal document structure.
 - [Login](../../../examples/showcase/login-basic.html): Form, validation, and authentication flow.
 - [Async Fetching](../../../examples/showcase/async-loading.html): Loading / empty / error state transitions.
-- [Display Effects](../../../examples/showcase/display-effects.html): Messages, toasts, dialogs, and field feedback.
+- [Display Updates](../../../examples/showcase/display-effects.html): Messages, toasts, dialogs, and field feedback.
 - [Profile Home](../../../examples/showcase/profile-page-with-template.html): Template and partial refresh behavior.
 
 ## Browse By Reference
@@ -41,6 +41,6 @@ MarkVSpec describes screen states, elements, actions, and outcomes semantically.
 
 - Write at screen-specification level. Do not write implementation code, CSS classes, or raw framework attributes.
 - Use `SCR-*`, `L-*`, `E-*`, `A-*`, and `R-*` IDs so screens, layouts, elements, actions, and rules are traceable.
-- Put behavior that changes state under `Actions` and `Cases`.
+- Put behavior that changes state under `Actions` and `case:` entries.
 - Make the user-visible result explicit with `state`, `update`, `display`, or `navigate`.
 - Keep one `.vspec.md` as the source of truth for preview and export.

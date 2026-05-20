@@ -51,26 +51,34 @@ The screen starts a request when it loads. It shows a loading state while waitin
 - label: Retry
 - action: A-LoadItems
 
+## Events
+
+- page.load: A-LoadItems
+
 ## Actions
 
 ### A-LoadItems Load items
 
-- Triggered
-  - screen.load
-  - E-RetryButton.click
-- Process
-  - HttpRequest
+- Process P1: Request items
+  - server:
     - GET /items
-- Effects
-  - state: loading
-- Cases
-  - success:
+  - case: sent
+    - state: loading
+
+### A-HandleItemsResponse Handle items response
+
+- From
+  - loading
+- Process P1: Apply items response
+  - receive:
+    - response: A-LoadItems.P1.response
+  - case: success
     - response: 200 item list
     - state: loaded
-  - empty:
+  - case: empty
     - response: 200 empty list
     - state: empty
-  - failure:
+  - case: failure
     - response: network error or 5xx
     - state: error
 ```
@@ -78,10 +86,10 @@ The screen starts a request when it loads. It shows a loading state while waitin
 ## Authoring Notes
 
 - Make `loading` explicit as the temporary state around the request.
-- Empty is not failure. Model it as a valid response with a separate case.
+- Empty is not failure. Model it as a valid response with a separate `case:`.
 - Put error messages, empty messages, and retry buttons in elements so their placement is clear.
-- If retry exists, add the retry button click to `Triggered`.
-- For initial data loading, use `screen.load` as the trigger.
+- If retry exists, connect the Retry button to the same load action with `action: A-*`.
+- For initial data loading, write `page.load` in `## Events`.
 
 ## Common Pitfalls
 
@@ -94,7 +102,7 @@ The screen starts a request when it loads. It shows a loading state while waitin
 ## Related Example
 
 - [Async Fetching](../../../examples/showcase/async-loading.html): Request, loading, loaded, empty, and error states.
-- [Display Effects](../../../examples/showcase/display-effects.html): User-visible feedback such as messages, toasts, and dialogs.
+- [Display Updates](../../../examples/showcase/display-effects.html): User-visible feedback such as messages, toasts, and dialogs.
 
 ## Related Reference
 

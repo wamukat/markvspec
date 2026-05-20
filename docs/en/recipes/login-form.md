@@ -44,27 +44,33 @@ The user enters email and password, then selects Sign in. Missing input shows fi
 
 ### A-SubmitLogin Submit login
 
-- Triggered
-  - E-SignInButton.click
 - From
   - idle
-- Process
-  - HttpRequest
+- Process P1: Send login request
+  - server:
     - POST /login
-    - email: E-EmailInput.value
-    - password: E-PasswordInput.value
-- Effects
-  - state: submitting
-- Cases
-  - success:
+    - params:
+      - email: E-EmailInput.value
+      - password: E-PasswordInput.value
+  - case: sent
+    - state: submitting
+
+### A-HandleLoginResponse Handle login response
+
+- From
+  - submitting
+- Process P1: Apply login response
+  - receive:
+    - response: A-SubmitLogin.P1.response
+  - case: success
     - from: submitting
     - response: 2xx authenticated user
     - navigate: SCR-DASHBOARD
-  - failure:
+  - case: failure
     - from: submitting
     - response: 401 invalid credentials
     - state: auth-error
-    - update:
+    - display:
       - target: L-MessageArea
       - content: Authentication error message
 ```
@@ -72,10 +78,10 @@ The user enters email and password, then selects Sign in. Missing input shows fi
 ## Authoring Notes
 
 - Give each `Input` a user-visible label and input type when needed.
-- Put the event source under `Triggered`, and connect the button with `action`.
+- Connect the submit source with `action: A-*` on the button.
 - Write request parameters as element values, such as `E-EmailInput.value`.
-- Separate in-flight, success, and failure behavior with states and cases.
-- For failure feedback, make the target and content explicit under `update`.
+- Separate in-flight, success, and failure behavior with states and `case:` entries.
+- For failure feedback, make the target and content explicit under `display`.
 
 ## Common Pitfalls
 

@@ -51,8 +51,8 @@ title: Login
 
 ### A-ToggleRememberMe Toggle remember me
 
-- Triggered
-  - E-RememberMe.change
+- Process P1: Toggle remembered state
+  - state: idle
 ```
 
 ## 注意点

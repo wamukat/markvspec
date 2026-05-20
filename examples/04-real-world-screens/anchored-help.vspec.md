@@ -68,5 +68,4 @@ modeling hover, focus, or interactive popover controls.
 - From
   - idle
 - Process P1: Immediate
-  - Effects
-    - state: help-open
+  - state: help-open

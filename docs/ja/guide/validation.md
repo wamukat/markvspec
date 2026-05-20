@@ -73,17 +73,15 @@ Validation では、入力項目そのものの制約と、処理結果として
 
 ### A-SubmitProfile Submit profile
 
-- Triggered
-  - E-SaveButton.click
-- Process
-  - HttpRequest
+- Process P1: Submit profile
+  - server:
     - POST /profile
-    - name: E-NameInput.value
-    - email: E-EmailInput.value
-- Cases
-  - validation-error:
+    - params:
+      - name: E-NameInput.value
+      - email: E-EmailInput.value
+  - case: validation-error
     - state: input-error
-    - update:
+    - display:
       - target: E-FormMessage
       - content: Validation error summary
 ```

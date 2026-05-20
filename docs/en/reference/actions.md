@@ -1,6 +1,6 @@
 # Actions
 
-`## Actions` connects user interaction, server requests, state changes, navigation, and partial updates. Elements refer to actions with `action: A-*`.
+`## Actions` connects user interaction, server requests, state changes, navigation, and partial updates. Buttons and links refer to actions with `action: A-*`; lifecycle events such as page load are connected in `## Events`.
 
 ## Syntax You Can Write
 
@@ -9,27 +9,35 @@
 
 ### A-SubmitLogin Submit login
 
-- Triggered
-  - E-SignInButton.click
 - From
   - idle
-- Process
-  - HttpRequest
+- Process P1: Send login request
+  - server:
     - POST /login
-    - email: E-EmailInput.value
-    - password: E-PasswordInput.value
-- Effects
-  - state: wait-auth
-- Cases
-  - success:
+    - params:
+      - email: E-EmailInput.value
+      - password: E-PasswordInput.value
+  - case: sent
+    - state: wait-auth
+  - case: send-failed
+    - state: auth-error
+
+### A-HandleLoginResponse Handle login response
+
+- From
+  - wait-auth
+- Process P1: Apply login response
+  - receive:
+    - response: A-SubmitLogin.P1.response
+  - case: success
     - from: wait-auth
     - response: 2xx authenticated user
     - navigate: SCR-DASHBOARD
-  - failure:
+  - case: failure
     - from: wait-auth
     - response: 401 invalid credentials
     - state: auth-error
-    - update:
+    - display:
       - target: L-MessageArea
       - content: Authentication error message
       - mode: replace
@@ -47,32 +55,32 @@ Declare an action with the `### A-* Name` form.
 
 | Block | Use |
 | --- | --- |
-| `Triggered` | Event that starts the action, such as `E-Button.click` |
 | `From` | State where the action is available |
-| `Process` | Request, calculation, or local process |
-| `Effects` | Immediate state changes or navigation |
-| `Cases` | Result-specific behavior such as success, failure, or empty |
+| `Process Pn: ...` | Request, calculation, local process, or response handling |
+| `server` / `sync` / `receive` | Process input or execution detail |
+| `case: ...` | Result-specific behavior such as success, failure, or empty |
 
-### HttpRequest
+### Server Request
 
-Put `HttpRequest` under `Process`, then write the method/path and request parameters.
+Put request details under `server:` or `sync:` inside `Process Pn:`, then write the method/path and request parameters.
 
 ```markdown
-- Process
-  - HttpRequest
+- Process P1: Load profile
+  - server:
     - GET /profile
-    - userId: E-UserId.value
+    - params:
+      - userId: route.userId
 ```
 
 ### Partial Update
 
-Describe server-rendered partial updates with `update` inside a result case, not raw htmx attributes.
+Describe server-rendered partial updates with `display` inside a result case, not raw htmx attributes.
 
 ```markdown
-- Cases
-  - success:
+- Process P1: Apply profile response
+  - case: success
     - response: 200 profile partial
-    - update:
+    - display:
       - target: L-ProfileSummary
       - content: Profile summary partial
       - mode: replace
@@ -83,20 +91,19 @@ Describe server-rendered partial updates with `update` inside a result case, not
 ```markdown
 ### A-OpenSettings Open settings
 
-- Triggered
-  - E-SettingsLink.click
-- Effects
+- Process P1: Navigate to settings
   - navigate: SCR-SETTINGS
 ```
 
 ## Notes
 
 - Use the `A-*` prefix for action IDs.
-- Trigger targets should refer to `E-*` elements defined in `## Elements`.
+- Element events such as click are connected with `action: A-*` on the element.
+- Lifecycle events such as page load are written in `## Events`.
 - State names should match names written in `## States`.
 - `mode: replace` describes partial update semantics; it is not an instruction to write `hx-*` attributes.
 - Request parameters are easiest to review when written as references to element values.
-- Use `Cases` when server responses, validation failures, or empty results branch behavior.
+- Write result branches as `case:` entries under the relevant `Process Pn:`.
 
 ## Related Pages
 

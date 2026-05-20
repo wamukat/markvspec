@@ -64,7 +64,7 @@ Error messages can be written in a shape that matches constraints.
 - `## Business Rules` covers business rules and screen-specific conditions.
 - Validator diagnostics are tool output, separate from validation requirements written in the source.
 - Error display elements can be written in `## Elements` as `Paragraph` or `Text` with `tone: danger`.
-- Server response errors are clearest when written in `## Actions` with `Cases` and `update`.
+- Server response errors are clearest when written in `## Actions` with `case:` and `display`.
 
 ## Related Pages
 

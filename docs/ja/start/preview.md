@@ -37,7 +37,7 @@ preview は pixel-perfect なデザイン確認ではありません。次のよ
 - `Layout` の `Items` が、読み手に伝わる順番になっているか。
 - `variant: primary` の action が画面の主操作として妥当か。
 - `tone: danger` や `tone: warning` が、状態やメッセージの意図と合っているか。
-- action の `From`、`Process`、`Cases` が、状態遷移として読めるか。
+- action の `From`、`Process Pn:`、`case:` が、状態遷移として読めるか。
 
 文言や構造を変えたら、保存して preview を見直します。Markdown の diff と preview の見え方を
 セットで確認すると、reviewer が仕様変更を追いやすくなります。

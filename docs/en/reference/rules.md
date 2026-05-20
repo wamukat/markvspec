@@ -56,7 +56,7 @@ Validator Diagnostics are tool output from parser / validator checks. `## Busine
 ## Notes
 
 - Put required fields and formats in [Validations](validations.md).
-- Put request/response branches in `Cases` under [Actions](actions.md).
+- Put request/response branches in `case:` entries under [Actions](actions.md).
 - `## Business Rules` is human-authored specification content. It is not where Validator Diagnostics are written.
 - Use stable IDs such as `E-*` and `A-*` when a rule refers to elements or actions.
 - Write conditions that matter to the screen specification, not CSS or implementation branches.

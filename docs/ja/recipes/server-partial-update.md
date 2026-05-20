@@ -33,24 +33,30 @@ Refresh button や filter の変更で server に request し、返ってきた 
 
 ### A-RefreshSummary Refresh summary
 
-- Triggered
-  - E-RefreshButton.click
-- Process
-  - HttpRequest
+- Process P1: Request profile summary
+  - server:
     - GET /profile/summary
-    - userId: route.userId
-- Effects
-  - state: refreshing-summary
-- Cases
-  - success:
+    - params:
+      - userId: route.userId
+  - case: sent
+    - state: refreshing-summary
+
+### A-HandleSummaryResponse Handle summary response
+
+- From
+  - refreshing-summary
+- Process P1: Apply profile summary response
+  - receive:
+    - response: A-RefreshSummary.P1.response
+  - case: success
     - response: 200 profile summary partial
-    - update:
+    - display:
       - target: L-ProfileSummary
       - content: Profile summary partial
       - mode: replace
-  - failure:
+  - case: failure
     - response: network error or 5xx
-    - update:
+    - display:
       - target: L-MessageArea
       - content: Summary refresh error message
       - tone: danger
@@ -58,7 +64,7 @@ Refresh button や filter の変更で server に request し、返ってきた 
 
 ## 書き方の要点
 
-- request は `Process` / `HttpRequest` に書く。
+- request は `Process Pn:` の `server:` に書く。
 - 差し替え先は `target` に layout ID で書く。
 - 返ってくるものは HTML 断片そのものではなく、`Profile summary partial` のように意味で書く。
 - 差し替え方法は必要に応じて `mode: replace` で明示する。
@@ -70,7 +76,7 @@ Refresh button や filter の変更で server に request し、返ってきた 
 - `target: #summary` のような CSS selector ではなく、`L-ProfileSummary` のような MarkVSpec ID を使います。
 - success だけを書くと、partial 更新に失敗したときの user feedback が未定義になります。
 - `content: HTML` だけでは意味が読めません。何の partial なのかを書きます。
-- 複数領域を更新する場合は、`update` を複数並べ、どの target に何を表示するかを分けます。
+- 複数領域を更新する場合は、`display` を複数並べ、どの target に何を表示するかを分けます。
 
 ## 関連 example
 
@@ -91,5 +97,5 @@ Refresh button や filter の変更で server に request し、返ってきた 
 - 更新対象が MarkVSpec の layout ID で追える。
 - replace される content の意味が分かる。
 - success と failure の user-visible result が分かれている。
-- htmx などの実装属性ではなく、semantic な action / update として読める。
-- reviewer が、実装属性ではなく `semantic action/update` として動きを確認できる。
+- htmx などの実装属性ではなく、semantic な action / display change として読める。
+- reviewer が、実装属性ではなく `semantic action/display change` として動きを確認できる。

@@ -364,10 +364,9 @@ opaque expressions such as `${data.value}` for screen data, and `navigate` for s
   - auth-error
 - Process P1: Clear stale message
   - when: ${state.auth-error}
-  - Effects
-    - display:
-      - target: L-MessageArea
-      - element: E-EmptyMessage
+  - display:
+    - target: L-MessageArea
+    - element: E-EmptyMessage
 - Process P2: Send login request
   - request:
     - method: POST
@@ -376,8 +375,7 @@ opaque expressions such as `${data.value}` for screen data, and `navigate` for s
       - email: E-SignInEmail.value
       - password: E-SignInPassword.value
   - case: sent
-    - Effects
-      - state: wait-auth
+    - state: wait-auth
 
 ### A2:A-AuthResponse Handle auth response
 
@@ -388,36 +386,32 @@ opaque expressions such as `${data.value}` for screen data, and `navigate` for s
     - response: A-SubmitLogin.P2.response
   - case: success
     - response: 2xx authenticated user
-    - Effects
-      - navigate: SCR-DASHBOARD
+    - navigate: SCR-DASHBOARD
   - case: failure
     - response: 401 invalid credentials
-    - Effects
-      - state: auth-error
-      - display:
-        - target: L-MessageArea
-        - element: E-AuthenticationErrorMessage
+    - state: auth-error
+    - display:
+      - target: L-MessageArea
+      - element: E-AuthenticationErrorMessage
 
 ### A4:A-ValidateEmail Validate email
 
 - Process P1: Validate email field
   - case: empty
     - description: empty email in idle state
-    - Effects
-      - state: validation-error
-      - display:
-        - target: L-EmailValidation
-        - element: E-EmailRequiredMessage
+    - state: validation-error
+    - display:
+      - target: L-EmailValidation
+      - element: E-EmailRequiredMessage
   - case: valid
     - description: valid email after validation error
-    - Effects
-      - state: idle
-      - display:
-        - target: L-EmailValidation
-        - element: E-EmptyEmailValidation
+    - state: idle
+    - display:
+      - target: L-EmailValidation
+      - element: E-EmptyEmailValidation
 ```
 
-Client-side validation actions omit `HttpRequest`. The trigger and result-scoped
+Client-side validation actions omit server request details. The trigger and result-scoped
 effects describe local validation behavior, while server-side authentication
 errors remain modeled as auth response outcomes. Keep the top-level state
 abstract, such as `validation-error`, and put field-specific details in result
@@ -437,21 +431,19 @@ input checks in `Validations` plus process-scoped `receive: V-....result` steps.
       - email: E-EmailInput.value
   - case: success
     - response: 2xx authenticated user
-    - Effects
-      - navigate: SCR-DASHBOARD
+    - navigate: SCR-DASHBOARD
   - case: failure
-    - Effects
-      - state: auth-error
-      - display:
-        - target: L-MessageArea
-        - element: E-AuthenticationErrorMessage
+    - state: auth-error
+    - display:
+      - target: L-MessageArea
+      - element: E-AuthenticationErrorMessage
 ```
 
 Request parameter bullets describe how request payload values are built. Use
 element sources such as `E-EmailInput.value` when the submitted value comes from
 a visible input.
 
-Response bullets under `Cases` describe how response outcomes are classified.
+Response bullets under `case:` describe how response outcomes are classified.
 
 Transition interpretation:
 
@@ -496,7 +488,7 @@ attribute names.
 Use structured action groups:
 
 - Screen-side `Process` / `PartialRequest` for partial HTML method, path, and parameters.
-- `Cases` / `update` for result-specific partial updates.
+- `case:` / `display` for result-specific partial updates.
 - `target`, `mode`, and `content` under `update` for semantic update details.
 
 Example mapping:
@@ -567,14 +559,11 @@ route: /mypage/partials/notices
   - server:
     - NoticeQueryService.findLatest()
   - case: success
-    - Effects
-      - state: loaded
+    - state: loaded
   - case: empty
-    - Effects
-      - state: empty
+    - state: empty
   - case: failure
-    - Effects
-      - state: fetch-error
+    - state: fetch-error
 ```
 
 `partial.render` is the lifecycle trigger for rendering the partial document on
@@ -747,10 +736,9 @@ route: /login
   - auth-error
 - Process P1: Clear stale message
   - when: ${state.auth-error}
-  - Effects
-    - display:
-      - target: L-MessageArea
-      - element: E-EmptyMessage
+  - display:
+    - target: L-MessageArea
+    - element: E-EmptyMessage
 - Process P2: Send login request
   - request:
     - method: POST
@@ -759,8 +747,7 @@ route: /login
       - email: E-SignInEmail.value
       - password: E-SignInPassword.value
   - case: sent
-    - Effects
-      - state: wait-auth
+    - state: wait-auth
 
 ### A2:A-AuthResponse Handle auth response
 
@@ -771,33 +758,29 @@ route: /login
     - response: A-SubmitLogin.P2.response
   - case: success
     - response: 2xx authenticated user
-    - Effects
-      - navigate: SCR-DASHBOARD
+    - navigate: SCR-DASHBOARD
   - case: failure
     - response: 401 invalid credentials
-    - Effects
-      - state: auth-error
-      - display:
-        - target: L-MessageArea
-        - element: E-AuthenticationErrorMessage
+    - state: auth-error
+    - display:
+      - target: L-MessageArea
+      - element: E-AuthenticationErrorMessage
 
 ### A4:A-ValidateEmail Validate email
 
 - Process P1: Validate email field
   - case: empty
     - description: empty email in idle state
-    - Effects
-      - state: validation-error
-      - display:
-        - target: L-EmailValidation
-        - element: E-EmailRequiredMessage
+    - state: validation-error
+    - display:
+      - target: L-EmailValidation
+      - element: E-EmailRequiredMessage
   - case: valid
     - description: valid email after validation error
-    - Effects
-      - state: idle
-      - display:
-        - target: L-EmailValidation
-        - element: E-EmptyEmailValidation
+    - state: idle
+    - display:
+      - target: L-EmailValidation
+      - element: E-EmptyEmailValidation
 ```
 
 ## Parser Responsibilities

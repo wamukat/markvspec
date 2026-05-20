@@ -118,15 +118,13 @@ so field-level contracts remain the main topic.
     - validation: V-AgeRange.result
   - case: invalid
     - description: one or more single-field validation results are invalid
-    - Effects
-      - display:
-        - target: L-MessageArea
-        - element: E-ValidationMessage
+    - display:
+      - target: L-MessageArea
+      - element: E-ValidationMessage
     - stop
   - case: valid
     - description: all single-field validation results are valid
-    - Effects
-      - state: idle
+    - state: idle
 
 ## Preview Scenarios
 

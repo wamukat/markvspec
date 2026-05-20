@@ -35,7 +35,7 @@ screens:
 3. `Responsive Profile`: mobile / desktop layout variants.
 4. `Form Submit Flow`: form submit, request, success / failure cases.
 5. `Single Field Validation`: field validation and error text.
-6. `Display Effects`: changing displayed content as an action outcome.
+6. `Display Updates`: changing displayed content as an action outcome.
 
 If you jump into the middle, read `What this teaches` and the related docs on
 the showcase page first. They explain what the example is meant to demonstrate.

@@ -64,7 +64,7 @@ error message は constraint と対応する形で書けます。
 - `## Business Rules` は business rule や画面固有条件を扱います。
 - validator diagnostics は tool output であり、source に書く validation 仕様とは別です。
 - error 表示用の element がある場合は、`tone: danger` の `Paragraph` や `Text` として `## Elements` に書けます。
-- server response による error 表示は `## Actions` の `Cases` と `update` で書くと、request との関係が明確になります。
+- server response による error 表示は `## Actions` の `case:` と `display` で書くと、request との関係が明確になります。
 
 ## 関連ページ
 

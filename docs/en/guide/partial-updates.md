@@ -15,14 +15,11 @@ This keeps the UI specification reviewable whether the implementation uses Thyme
 
 ### A-RefreshProfile Refresh profile
 
-- Triggered
-  - E-RefreshButton.click
-- Process
-  - HttpRequest
+- Process P1: Request profile summary
+  - server:
     - GET /profile/summary
-- Cases
-  - success:
-    - update:
+  - case: success
+    - display:
       - target: L-ProfileSummary
       - content: Profile summary partial
       - mode: replace
@@ -32,8 +29,8 @@ This example says that clicking a refresh button fetches a summary partial and r
 
 ## Common Patterns
 
-- Put requests under `Process` / `HttpRequest`.
-- Put result-specific partial changes under `Cases` / `update`.
+- Put requests under `server:` inside `Process Pn:`.
+- Put result-specific partial changes under process `case:` entries with `display`.
 - Keep `target` and `content` semantic.
 - Use the ID of the updated layout group or message element as `target`.
 - Describe the meaning of the partial in `content`; do not rely only on template paths or implementation details.
@@ -59,30 +56,28 @@ This example says that clicking a refresh button fetches a summary partial and r
 
 ### A-SearchProducts Search products
 
-- Triggered
-  - E-SearchInput.change
-- Process
-  - HttpRequest
+- Process P1: Search products
+  - server:
     - GET /products/search
-    - q: E-SearchInput.value
-- Effects
-  - state: searching
-- Cases
-  - success:
+    - params:
+      - q: E-SearchInput.value
+  - case: sent
+    - state: searching
+  - case: success
     - state: results
-    - update:
+    - display:
       - target: L-ResultList
       - content: Product result list partial
       - mode: replace
-  - empty:
+  - case: empty
     - state: empty
-    - update:
+    - display:
       - target: L-ResultList
       - content: Empty result partial
       - mode: replace
-  - failure:
+  - case: failure
     - state: error
-    - update:
+    - display:
       - target: E-SearchMessage
       - content: Search error message
 ```

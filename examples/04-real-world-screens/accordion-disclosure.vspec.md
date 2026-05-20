@@ -121,8 +121,7 @@ show the referenced panel content inside the controlling component.
 - Process P1: Toggle accordion item
   - case: done
     - description: Advanced filters item opens L-AdvancedFilterPanel inside the accordion.
-    - Effects
-      - state: advanced-filters-open
+    - state: advanced-filters-open
     - stop
 
 ### A2:A-OpenSavedFilters Open saved filters
@@ -133,8 +132,7 @@ show the referenced panel content inside the controlling component.
 - Process P1: Toggle accordion item
   - case: done
     - description: Saved filters item opens L-SavedFiltersPanel inside the accordion.
-    - Effects
-      - state: saved-filters-open
+    - state: saved-filters-open
     - stop
 
 ### A3:A-ToggleShippingDetails Toggle shipping details
@@ -145,6 +143,5 @@ show the referenced panel content inside the controlling component.
 - Process P1: Toggle disclosure
   - case: done
     - description: Shipping details disclosure opens L-ShippingDetailsPanel inside the disclosure.
-    - Effects
-      - state: shipping-details-open
+    - state: shipping-details-open
     - stop

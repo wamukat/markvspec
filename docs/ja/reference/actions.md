@@ -1,6 +1,6 @@
 # Actions
 
-`## Actions` は user interaction、server request、state change、navigation、partial update を結びます。element の `action: A-*` から参照される処理をここに書きます。
+`## Actions` は user interaction、server request、state change、navigation、partial update を結びます。button や link は element の `action: A-*` から参照し、画面読み込みなどの lifecycle event は `## Events` で接続します。
 
 ## 書ける構文
 
@@ -9,27 +9,35 @@
 
 ### A-SubmitLogin Submit login
 
-- Triggered
-  - E-SignInButton.click
 - From
   - idle
-- Process
-  - HttpRequest
+- Process P1: Send login request
+  - server:
     - POST /login
-    - email: E-EmailInput.value
-    - password: E-PasswordInput.value
-- Effects
-  - state: wait-auth
-- Cases
-  - success:
+    - params:
+      - email: E-EmailInput.value
+      - password: E-PasswordInput.value
+  - case: sent
+    - state: wait-auth
+  - case: send-failed
+    - state: auth-error
+
+### A-HandleLoginResponse Handle login response
+
+- From
+  - wait-auth
+- Process P1: Apply login response
+  - receive:
+    - response: A-SubmitLogin.P1.response
+  - case: success
     - from: wait-auth
     - response: 2xx authenticated user
     - navigate: SCR-DASHBOARD
-  - failure:
+  - case: failure
     - from: wait-auth
     - response: 401 invalid credentials
     - state: auth-error
-    - update:
+    - display:
       - target: L-MessageArea
       - content: Authentication error message
       - mode: replace
@@ -47,32 +55,32 @@ Action は `### A-* Name` の形で宣言します。
 
 | Block | 用途 |
 | --- | --- |
-| `Triggered` | action を開始する event。例: `E-Button.click` |
 | `From` | action が有効な state |
-| `Process` | request、calculation、local process |
-| `Effects` | immediate state change や navigation |
-| `Cases` | success/failure/empty など、結果別の挙動 |
+| `Process Pn: ...` | request、calculation、local process、response handling |
+| `server` / `sync` / `receive` | process の入力や実行内容 |
+| `case: ...` | success/failure/empty など、process result 別の挙動 |
 
-### HttpRequest
+### Server Request
 
-`Process` の下に `HttpRequest` を置き、method/path と request parameter を書きます。
+request は `Process Pn:` の `server:` または `sync:` の下に置き、method/path と request parameter を書きます。
 
 ```markdown
-- Process
-  - HttpRequest
+- Process P1: Load profile
+  - server:
     - GET /profile
-    - userId: E-UserId.value
+    - params:
+      - userId: route.userId
 ```
 
 ### Partial Update
 
-server-rendered partial update は raw htmx 属性ではなく、結果 case の `update` で意味を書きます。
+server-rendered partial update は raw htmx 属性ではなく、結果 case の `display` で意味を書きます。
 
 ```markdown
-- Cases
-  - success:
+- Process P1: Apply profile response
+  - case: success
     - response: 200 profile partial
-    - update:
+    - display:
       - target: L-ProfileSummary
       - content: Profile summary partial
       - mode: replace
@@ -83,20 +91,19 @@ server-rendered partial update は raw htmx 属性ではなく、結果 case の
 ```markdown
 ### A-OpenSettings Open settings
 
-- Triggered
-  - E-SettingsLink.click
-- Effects
+- Process P1: Navigate to settings
   - navigate: SCR-SETTINGS
 ```
 
 ## 注意点
 
 - action の ID は `A-*` を使います。
-- trigger の対象 element は `## Elements` に存在する `E-*` を参照します。
+- click などの element event は、対象 element の `action: A-*` で接続します。
+- 画面読み込みなどの lifecycle event は `## Events` に書きます。
 - state 名は `## States` に書いた名前と合わせます。
 - `mode: replace` は partial update の意味であり、`hx-*` 属性を書く指示ではありません。
 - request の parameter は element value への参照として書くと、AI と reviewer が追いやすくなります。
-- `Cases` は server response、validation failure、empty result など結果が分岐する場合に使います。
+- 結果分岐は `Process Pn:` 配下の `case:` として書きます。
 
 ## 関連ページ
 

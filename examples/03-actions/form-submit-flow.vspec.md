@@ -96,10 +96,9 @@ try to cover non-submit element events.
     - validation: V-SubmitRequest.result
   - case: invalid
     - description: required field missing
-    - Effects
-      - display:
-        - target: E-EmailInput.error
-        - message: V-SubmitRequest.messages
+    - display:
+      - target: E-EmailInput.error
+      - message: V-SubmitRequest.messages
     - stop
   - case: valid
     - description: all required fields are valid
@@ -113,14 +112,12 @@ try to cover non-submit element events.
   - result:
     - subscription creation request
   - case: sent
-    - Effects
-      - state: submitting
+    - state: submitting
   - case: send-failed
-    - Effects
-      - state: idle
-      - display:
-        - target: L-MessageArea
-        - element: E-SubmitError
+    - state: idle
+    - display:
+      - target: L-MessageArea
+      - element: E-SubmitError
 
 ### A2:A-HandleSubmitResponse Handle submit response
 
@@ -131,24 +128,21 @@ try to cover non-submit element events.
     - response: A-SubmitRequest.P2.response
   - case: success
     - response: 201 created
-    - Effects
-      - navigate: SCR-THANK-YOU
+    - navigate: SCR-THANK-YOU
   - case: failure
     - response: 4xx or 5xx
-    - Effects
-      - state: idle
-      - display:
-        - target: L-MessageArea
-        - element: E-SubmitError
+    - state: idle
+    - display:
+      - target: L-MessageArea
+      - element: E-SubmitError
   - case: business-rule-violation
     - response: 409 duplicate email
     - business rule: R-EmailMustBeUnique
     - error code: ERR-EMAIL-ALREADY-REGISTERED
-    - Effects
-      - state: idle
-      - display:
-        - target: E-EmailInput.error
-        - message: R-EmailMustBeUnique.messages
+    - state: idle
+    - display:
+      - target: E-EmailInput.error
+      - message: R-EmailMustBeUnique.messages
 
 ## Preview Scenarios
 

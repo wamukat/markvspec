@@ -32,7 +32,7 @@ catalog の learning path は、基本構造から実務的な画面へ少しず
 3. `Responsive Profile`: mobile / desktop layout の切り替え。
 4. `Form Submit Flow`: form submit、request、success / failure cases。
 5. `Single Field Validation`: field validation と error text。
-6. `Display Effects`: action の結果として表示内容を変える例。
+6. `Display Updates`: action の結果として表示内容を変える例。
 
 途中から読む場合でも、showcase の `What this teaches` と related docs を先に確認すると、
 その example が何を説明しているかを把握しやすくなります。

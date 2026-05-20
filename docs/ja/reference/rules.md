@@ -56,7 +56,7 @@ Validator Diagnostics は parser / validator が source の不足や矛盾を見
 ## 注意点
 
 - field の必須や format は [Validations](validations.md) に書きます。
-- action の request/response 分岐は [Actions](actions.md) の `Cases` に書きます。
+- action の request/response 分岐は [Actions](actions.md) の `case:` に書きます。
 - `## Business Rules` は人が読む仕様です。Validator Diagnostics の出力先ではありません。
 - rule から element や action を参照するときは `E-*`、`A-*` などの stable ID を使います。
 - CSS や implementation branch の詳細ではなく、画面仕様として意味のある条件を書きます。

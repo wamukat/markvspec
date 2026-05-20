@@ -1,12 +1,12 @@
 # Actions
 
-Actions describe what happens when users interact with a screen or when the screen loads. Splitting trigger, process, and cases makes UI and API behavior easier to review.
+Actions describe what happens when users interact with a screen or when the screen loads. Splitting callers, processes, and result cases makes UI and API behavior easier to review.
 
 ## Concept
 
-An action describes one flow: what triggers it, what work runs, and how the screen changes as a result. Put events such as button click, link click, form submit, screen load, timer, and selection change under `Triggered`.
+An action describes one flow: where it is called from, what work runs, and how the screen changes as a result. Connect button and link clicks with `action: A-*` on the element. Put lifecycle events such as page load under `## Events`.
 
-Put the work under `Process`. For an API request, use `HttpRequest`; for screen-local work, describe the calculation. Put result branches under `Cases`, such as success, failure, empty, and validation-error, then describe state changes, navigation, updates, or messages for each case.
+Put the work under `Process Pn:`. For a server request, use `server:`; for screen-local calculation or validation, use `sync:` or `receive:`. Put result branches under the process as `case:` entries, such as success, failure, empty, and validation-error, then describe state changes, navigation, display updates, or messages for each case.
 
 ## Minimal Example
 
@@ -15,27 +15,22 @@ Put the work under `Process`. For an API request, use `HttpRequest`; for screen-
 
 ### A-SubmitLogin Submit login
 
-- Triggered
-  - E-SignInButton.click
-- Process
-  - HttpRequest
+- Process P1: Send login request
+  - server:
     - POST /login
-- Cases
-  - success:
-    - navigate: SCR-DASHBOARD
-  - failure:
-    - state: auth-error
+  - case: sent
+    - state: submitting
 ```
 
-This example says that a button click sends a `/login` request, success navigates to the dashboard, and failure changes the screen to `auth-error`. It records the flow that needs review without depending on implementation function names.
+The button connection lives on `E-SignInButton` with `action: A-SubmitLogin`. This example records the request start flow that needs review without depending on implementation function names.
 
 ## Common Patterns
 
-- Connect triggers to an element and event.
-- Put requests or calculations in process.
-- Use cases for success, failure, empty, and other branches.
+- Connect user events with `action: A-*` on elements and lifecycle events with `## Events`.
+- Put requests, calculations, and response handling in `Process Pn:`.
+- Put success, failure, empty, and other branches under the relevant process as `case:`.
 - Reference element values as request parameters, such as `email: E-EmailInput.value`.
-- If work starts a loading view, put `state: loading` under `Effects`.
+- If work starts a loading view, put `state: loading` under the sending process `case: sent`.
 - Split navigation, state changes, partial updates, and messages by result case.
 - Do not overload one action with unrelated responsibilities. If the user operation is different, create a separate action.
 
@@ -46,29 +41,35 @@ This example says that a button click sends a `/login` request, success navigate
 
 ### A-SubmitProfile Submit profile
 
-- Triggered
-  - E-SaveButton.click
 - From
   - idle
-- Process
-  - HttpRequest
+- Process P1: Send profile request
+  - server:
     - POST /profile
-    - name: E-NameInput.value
-    - email: E-EmailInput.value
-- Effects
-  - state: submitting
-- Cases
-  - success:
+    - params:
+      - name: E-NameInput.value
+      - email: E-EmailInput.value
+  - case: sent
+    - state: submitting
+
+### A-HandleProfileResponse Handle profile response
+
+- From
+  - submitting
+- Process P1: Apply profile response
+  - receive:
+    - response: A-SubmitProfile.P1.response
+  - case: success
     - state: saved
-    - update:
+    - display:
       - target: L-MessageArea
       - content: Saved message
-  - validation-error:
+  - case: validation-error
     - state: input-error
-    - update:
+    - display:
       - target: L-MessageArea
       - content: Validation error message
-  - failure:
+  - case: failure
     - state: error
 ```
 

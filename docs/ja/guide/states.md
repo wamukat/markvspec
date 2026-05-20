@@ -38,25 +38,22 @@ State は実装の boolean 名ではなく、ユーザーから見た画面の�
 
 ### A-LoadOrders Load orders
 
-- Triggered
-  - screen.load
 - From
   - idle
-- Process
-  - HttpRequest
+- Process P1: Request orders
+  - server:
     - GET /orders
-- Effects
-  - state: loading
-- Cases
-  - success:
+  - case: sent
+    - state: loading
+  - case: success
     - state: success
-  - empty:
+  - case: empty
     - state: empty
-  - failure:
+  - case: failure
     - state: error
 ```
 
-`Effects` には処理開始時の状態変化を、`Cases` には結果ごとの状態変化を書きます。これにより、preview と review の両方で「どの操作がどの state を作るのか」を追いやすくなります。
+状態変化は `Process Pn:` 配下の `case:` に書きます。これにより、preview と review の両方で「どの操作がどの state を作るのか」を追いやすくなります。
 
 ## 次に読むもの
 

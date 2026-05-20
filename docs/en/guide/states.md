@@ -38,25 +38,22 @@ This minimal example defines only the normal, loading, and error states. Even be
 
 ### A-LoadOrders Load orders
 
-- Triggered
-  - screen.load
 - From
   - idle
-- Process
-  - HttpRequest
+- Process P1: Request orders
+  - server:
     - GET /orders
-- Effects
-  - state: loading
-- Cases
-  - success:
+  - case: sent
+    - state: loading
+  - case: success
     - state: success
-  - empty:
+  - case: empty
     - state: empty
-  - failure:
+  - case: failure
     - state: error
 ```
 
-Use `Effects` for the state change that happens when work starts, and `Cases` for result-specific state changes. This makes it easy to trace which operation creates each state in both preview and review.
+Write state changes under `case:` entries inside `Process Pn:`. This makes it easy to trace which operation creates each state in both preview and review.
 
 ## Next Reading
 

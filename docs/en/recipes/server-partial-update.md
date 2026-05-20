@@ -33,24 +33,30 @@ A Refresh button or filter change sends a server request. The returned summary p
 
 ### A-RefreshSummary Refresh summary
 
-- Triggered
-  - E-RefreshButton.click
-- Process
-  - HttpRequest
+- Process P1: Request profile summary
+  - server:
     - GET /profile/summary
-    - userId: route.userId
-- Effects
-  - state: refreshing-summary
-- Cases
-  - success:
+    - params:
+      - userId: route.userId
+  - case: sent
+    - state: refreshing-summary
+
+### A-HandleSummaryResponse Handle summary response
+
+- From
+  - refreshing-summary
+- Process P1: Apply profile summary response
+  - receive:
+    - response: A-RefreshSummary.P1.response
+  - case: success
     - response: 200 profile summary partial
-    - update:
+    - display:
       - target: L-ProfileSummary
       - content: Profile summary partial
       - mode: replace
-  - failure:
+  - case: failure
     - response: network error or 5xx
-    - update:
+    - display:
       - target: L-MessageArea
       - content: Summary refresh error message
       - tone: danger
@@ -58,7 +64,7 @@ A Refresh button or filter change sends a server request. The returned summary p
 
 ## Authoring Notes
 
-- Put the request under `Process` / `HttpRequest`.
+- Put the request under `server:` inside `Process Pn:`.
 - Use a layout ID as the `target`.
 - Describe the returned content by meaning, such as `Profile summary partial`, rather than embedding an HTML fragment.
 - Add `mode: replace` when replacement semantics matter.
@@ -70,7 +76,7 @@ A Refresh button or filter change sends a server request. The returned summary p
 - Do not use CSS selectors such as `target: #summary`. Use a MarkVSpec ID such as `L-ProfileSummary`.
 - Success-only partial updates leave failure feedback undefined.
 - `content: HTML` is too vague. Name what the partial means.
-- If one action updates multiple regions, write multiple `update` entries and keep each target/content pair explicit.
+- If one action updates multiple regions, write multiple `display` entries and keep each target/content pair explicit.
 
 ## Related Example
 
@@ -91,5 +97,5 @@ A Refresh button or filter change sends a server request. The returned summary p
 - The update target is traceable through a MarkVSpec layout ID.
 - Replacement content is described by meaning.
 - Success and failure have separate user-visible results.
-- The spec reads as semantic action / update, not as htmx or framework attributes.
-- Reviewers can check the behavior as a `semantic action/update`, not as implementation attributes.
+- The spec reads as semantic action / display change, not as htmx or framework attributes.
+- Reviewers can check the behavior as a `semantic action/display change`, not as implementation attributes.

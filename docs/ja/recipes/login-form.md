@@ -44,27 +44,33 @@ Email と password を入力し、Sign in を押す。入力不足なら field m
 
 ### A-SubmitLogin Submit login
 
-- Triggered
-  - E-SignInButton.click
 - From
   - idle
-- Process
-  - HttpRequest
+- Process P1: Send login request
+  - server:
     - POST /login
-    - email: E-EmailInput.value
-    - password: E-PasswordInput.value
-- Effects
-  - state: submitting
-- Cases
-  - success:
+    - params:
+      - email: E-EmailInput.value
+      - password: E-PasswordInput.value
+  - case: sent
+    - state: submitting
+
+### A-HandleLoginResponse Handle login response
+
+- From
+  - submitting
+- Process P1: Apply login response
+  - receive:
+    - response: A-SubmitLogin.P1.response
+  - case: success
     - from: submitting
     - response: 2xx authenticated user
     - navigate: SCR-DASHBOARD
-  - failure:
+  - case: failure
     - from: submitting
     - response: 401 invalid credentials
     - state: auth-error
-    - update:
+    - display:
       - target: L-MessageArea
       - content: Authentication error message
 ```
@@ -72,10 +78,10 @@ Email と password を入力し、Sign in を押す。入力不足なら field m
 ## 書き方の要点
 
 - `Input` には user に見える label と入力種別を書く。
-- submit の発火元は `Triggered` に書き、button 側にも `action` を付ける。
+- submit の発火元は button 側の `action: A-*` で接続する。
 - request parameter は `E-EmailInput.value` のように element の値として書く。
-- request 中、成功、失敗を state と case で分ける。
-- 失敗時にどこへ何を表示するかは `update` の `target` と `content` で明示する。
+- request 中、成功、失敗を state と `case:` で分ける。
+- 失敗時にどこへ何を表示するかは `display` の `target` と `content` で明示する。
 
 ## よくある落とし穴
 

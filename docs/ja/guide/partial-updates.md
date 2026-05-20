@@ -15,14 +15,11 @@ Partial update は、画面全体を遷移させずに一部の領域だけを�
 
 ### A-RefreshProfile Refresh profile
 
-- Triggered
-  - E-RefreshButton.click
-- Process
-  - HttpRequest
+- Process P1: Request profile summary
+  - server:
     - GET /profile/summary
-- Cases
-  - success:
-    - update:
+  - case: success
+    - display:
       - target: L-ProfileSummary
       - content: Profile summary partial
       - mode: replace
@@ -32,8 +29,8 @@ Partial update は、画面全体を遷移させずに一部の領域だけを�
 
 ## よくある書き方
 
-- request は `Process` / `HttpRequest` に書く。
-- 結果別の部分更新は `Cases` / `update` に書く。
+- request は `Process Pn:` の `server:` に書く。
+- 結果別の部分更新は process 配下の `case:` と `display` に書く。
 - `target` と `content` は semantic な説明にする。
 - `target` には更新される layout group や message element の ID を置く。
 - `content` には partial の意味を書く。template path や implementation detail だけにしない。
@@ -59,30 +56,28 @@ Partial update は、画面全体を遷移させずに一部の領域だけを�
 
 ### A-SearchProducts Search products
 
-- Triggered
-  - E-SearchInput.change
-- Process
-  - HttpRequest
+- Process P1: Search products
+  - server:
     - GET /products/search
-    - q: E-SearchInput.value
-- Effects
-  - state: searching
-- Cases
-  - success:
+    - params:
+      - q: E-SearchInput.value
+  - case: sent
+    - state: searching
+  - case: success
     - state: results
-    - update:
+    - display:
       - target: L-ResultList
       - content: Product result list partial
       - mode: replace
-  - empty:
+  - case: empty
     - state: empty
-    - update:
+    - display:
       - target: L-ResultList
       - content: Empty result partial
       - mode: replace
-  - failure:
+  - case: failure
     - state: error
-    - update:
+    - display:
       - target: E-SearchMessage
       - content: Search error message
 ```

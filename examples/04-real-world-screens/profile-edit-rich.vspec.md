@@ -252,9 +252,8 @@ the primary purpose.
   - idle
 - Process P1: Apply immediate effect
   - case: done
-    - Effects
-      - display:
-        - element: E-DiscardDialog
+    - display:
+      - element: E-DiscardDialog
     - stop
 
 ### A2:A-CloseDiscardDialog Close discard dialog

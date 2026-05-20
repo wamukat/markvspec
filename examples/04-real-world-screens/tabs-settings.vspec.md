@@ -98,8 +98,7 @@ changes can switch the active tab and expand exactly one controlled panel.
 - Process P1: Select tab item
   - case: done
     - description: Profile tab is selected and L-ProfilePanel becomes the active panel.
-    - Effects
-      - state: profile-tab
+    - state: profile-tab
     - stop
 
 ### A2:A-SelectBillingTab Select billing tab
@@ -109,8 +108,7 @@ changes can switch the active tab and expand exactly one controlled panel.
 - Process P1: Select tab item
   - case: done
     - description: Billing tab is selected and L-BillingPanel becomes the active panel.
-    - Effects
-      - state: billing-tab
+    - state: billing-tab
     - stop
 
 ## Preview Scenarios

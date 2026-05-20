@@ -23,7 +23,7 @@ Learning-oriented explanations live in [Guide](../guide/index.md). Reference is 
 | [File Format](file-format.md) | `.vspec.md`, Front Matter, document type, and body shape |
 | [Sections](sections.md) | Recognized top-level sections and Markdown heading roles |
 | [Elements](elements.md) | Elements such as `Heading`, `Paragraph`, `Text`, `Input`, and `Button` |
-| [Actions](actions.md) | `Triggered`, `Process`, `HttpRequest`, `Cases`, `Effects`, and `update` |
+| [Actions](actions.md) | `action: A-*`, `## Events`, `Process Pn:`, `server`, `receive`, `case:`, and `display` |
 | [Validations](validations.md) | `required`, `constraints`, format/range, and error messages |
 | [Business Rules](rules.md) | Business rules and screen-specific conditions in `## Business Rules` |
 | [IDs](ids.md) | How to use `SCR-*`, `L-*`, `E-*`, `A-*`, and `R-*` |
@@ -82,9 +82,7 @@ route: /hello
 
 ### A-Continue Continue
 
-- Triggered
-  - E-Continue.click
-- Effects
+- Process P1: Navigate to next screen
   - navigate: SCR-NEXT
 ```
 
