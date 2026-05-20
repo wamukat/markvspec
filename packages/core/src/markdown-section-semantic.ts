@@ -33,6 +33,10 @@ import {
   type LayoutSemanticResult
 } from "./layout-section-semantic.js";
 export type { LayoutSectionSemanticResult, LayoutSemanticResult } from "./layout-section-semantic.js";
+import {
+  parsePreviewScenariosSection,
+  type PreviewScenarioSectionSemanticSupport
+} from "./preview-scenario-section-semantic.js";
 import { actionIdPattern, elementIdPattern, formGroupIdPattern } from "./ids.js";
 import type { MarkdownDocument } from "./markdown-document.js";
 import {
@@ -177,6 +181,15 @@ const tabItemPropertyKeys = new Set(["panel", "action", "active when"]);
 const accordionItemPropertyKeys = new Set(["panel", "action", "open when"]);
 const panelItemPropertyKeys = new Set([...tabItemPropertyKeys, ...accordionItemPropertyKeys]);
 const actionMenuItemPropertyKeys = new Set(["action", "tone", "disabled when"]);
+const previewScenarioSectionSemanticSupport: PreviewScenarioSectionSemanticSupport = {
+  appendEntityProseLines,
+  isEntityNoteBlock,
+  isSectionNotesHeading,
+  listItems,
+  parsedBulletFromListItem,
+  proseForSection,
+  splitKeyValue
+};
 
 export function parseSmallSectionSemantics(document: MarkdownDocument): SmallSectionSemanticResult {
   const sections = collectSectionAst(document);
@@ -355,7 +368,12 @@ function parseSmallSection(document: MarkdownDocument, sections: SectionAst[], s
     case "ViewContextSamples":
       return resultFor(section, "viewContextSamples", parseViewContextSamplesSection(section), ["view-context-samples"]);
     case "PreviewScenarios":
-      return resultFor(section, "previewScenarios", parsePreviewScenariosSection(section), ["preview-scenarios"]);
+      return resultFor(
+        section,
+        "previewScenarios",
+        parsePreviewScenariosSection(section, previewScenarioSectionSemanticSupport),
+        ["preview-scenarios"]
+      );
     case "Validations":
       return resultFor(section, "validations", parseValidationsSection(section), ["validations:list"]);
     case "FieldValidations":
@@ -1233,266 +1251,6 @@ function viewContextSampleKey(key: string): string {
   const match = /^\$\{view\.([^}]+)\}$/u.exec(key);
   return match?.[1]?.trim() ?? key;
 }
-
-function parsePreviewScenariosSection(section: SectionAst): Pick<SectionSemanticResult, "previewScenarios" | "sectionProse" | "diagnostics"> {
-  const scenarios: MarkVSpecPreviewScenario[] = [];
-  const diagnostics: MarkVSpecDiagnostic[] = [];
-  let current: MarkVSpecPreviewScenario | undefined;
-  let currentHasStructuredContent = false;
-  let hasSeenEntity = false;
-  let inSectionNotes = false;
-  const sectionOverviewBlocks: BlockAst[] = [];
-  const sectionNoteBlocks: BlockAst[] = [];
-
-  for (const block of section.blocks) {
-    if (isSectionNotesHeading(block)) {
-      current = undefined;
-      currentHasStructuredContent = false;
-      inSectionNotes = true;
-      hasSeenEntity = true;
-      continue;
-    }
-    if (inSectionNotes) {
-      if (isEntityNoteBlock(block)) {
-        sectionNoteBlocks.push(block);
-      }
-      continue;
-    }
-    if (block.type === "heading" && block.depth === 3) {
-      hasSeenEntity = true;
-      current = {
-        name: block.text.trim(),
-        route: [],
-        samples: [],
-        cases: [],
-        properties: {},
-        propertyLocations: {},
-        location: locationFromBlock(block)
-      };
-      scenarios.push(current);
-      currentHasStructuredContent = false;
-      continue;
-    }
-    if (!current) {
-      if (!hasSeenEntity && isEntityNoteBlock(block)) {
-        sectionOverviewBlocks.push(block);
-      }
-      continue;
-    }
-    if (isEntityNoteBlock(block)) {
-      appendEntityProseLines(current, block, currentHasStructuredContent);
-      continue;
-    }
-    if (block.type !== "list") {
-      continue;
-    }
-    currentHasStructuredContent = true;
-    let activeKey: string | undefined;
-    let activeSample: MarkVSpecPreviewScenario["samples"][number] | undefined;
-    let activeSampleRow: MarkVSpecSampleRow | undefined;
-    for (const item of listItems([block])) {
-      const bullet = parsedBulletFromListItem(item);
-      const [keyPart, valuePart] = splitKeyValue(bullet.text);
-      const key = keyPart.trim();
-      const value = valuePart?.trim();
-      if (bullet.indent === 0) {
-        activeSample = undefined;
-        activeSampleRow = undefined;
-      }
-      if (item.depth > 0) {
-        if (activeKey === "cases") {
-          const caseRef = parsePreviewScenarioCaseReference(bullet.text, bullet.location);
-          if (caseRef) {
-            current.cases.push(caseRef);
-          } else {
-            diagnostics.push({
-              severity: "warning",
-              message: `Preview Scenario ${current.name} has malformed case reference: ${bullet.text}. Use A-ActionId.P-marker.case-name.`,
-              line: bullet.location.line
-            });
-          }
-        }
-        if (activeKey === "samples") {
-          const sampleResult = applyPreviewScenarioSampleBullet(current, bullet, activeSample, activeSampleRow, diagnostics);
-          if (sampleResult.sample) {
-            activeSample = sampleResult.sample;
-          }
-          if (sampleResult.row) {
-            activeSampleRow = sampleResult.row;
-          }
-        }
-        if (activeKey === "route") {
-          applyPreviewScenarioRouteBullet(current, bullet, diagnostics);
-        }
-        continue;
-      }
-
-      activeKey = key;
-      if ((key === "cases" || key === "samples" || key === "route") && (value === undefined || value === "")) {
-        continue;
-      }
-      if (value === undefined) {
-        diagnostics.push({
-          severity: "warning",
-          message: `Preview Scenario ${current.name} has malformed entry: ${bullet.text}. Use state, model, view, route, samples, before, or cases.`,
-          line: bullet.location.line
-        });
-        continue;
-      }
-      if (key === "route") {
-        diagnostics.push({
-          severity: "warning",
-          message: `Preview Scenario ${current.name} route must be a block with key: value entries.`,
-          line: bullet.location.line
-        });
-        continue;
-      }
-      current.properties[key] = value;
-      addPropertyLocation(current.propertyLocations, key, bullet.location);
-      if (key === "state") {
-        current.state = value;
-      } else if (key === "model") {
-        current.model = value;
-      } else if (key === "view") {
-        current.view = value;
-      } else if (key === "before") {
-        current.before = value;
-      }
-    }
-  }
-
-  return {
-    previewScenarios: scenarios,
-    sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["preview-scenarios"]),
-    diagnostics
-  };
-}
-
-function applyPreviewScenarioRouteBullet(
-  scenario: MarkVSpecPreviewScenario,
-  bullet: ParsedBullet,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  if (bullet.indent !== 1) {
-    diagnostics.push({
-      severity: "warning",
-      message: `Preview Scenario ${scenario.name} route entry must use key: value entries.`,
-      line: bullet.location.line
-    });
-    return;
-  }
-
-  const [keyPart, valuePart] = splitKeyValue(bullet.text);
-  const key = keyPart.trim();
-  const value = valuePart?.trim();
-  if (!key || value === undefined || value === "") {
-    diagnostics.push({
-      severity: "warning",
-      message: `Preview Scenario ${scenario.name} route entry must use key: value entries.`,
-      line: bullet.location.line
-    });
-    return;
-  }
-
-  scenario.route.push({
-    key,
-    value,
-    location: bullet.location
-  });
-}
-
-function parsePreviewScenarioCaseReference(text: string, location: SourceLocation): MarkVSpecPreviewScenario["cases"][number] | undefined {
-  const match = /^(A-[\p{L}\p{N}-]+)\.(P[A-Za-z0-9_-]*)\.([A-Za-z][A-Za-z0-9_-]*)$/u.exec(text.trim());
-  if (!match) {
-    return undefined;
-  }
-  return {
-    actionId: match[1],
-    processMarker: match[2],
-    caseName: match[3],
-    raw: text,
-    location
-  };
-}
-
-function applyPreviewScenarioSampleBullet(
-  scenario: MarkVSpecPreviewScenario,
-  bullet: ParsedBullet,
-  activeSample: MarkVSpecPreviewScenario["samples"][number] | undefined,
-  activeRow: MarkVSpecSampleRow | undefined,
-  diagnostics: MarkVSpecDiagnostic[]
-): { sample?: MarkVSpecPreviewScenario["samples"][number]; row?: MarkVSpecSampleRow } {
-  const [keyPart, valuePart] = splitKeyValue(bullet.text);
-  const key = keyPart.trim();
-  const value = valuePart?.trim();
-
-  if (bullet.indent === 1) {
-    if (!elementIdRegexForSamples.test(key)) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Preview Scenario ${scenario.name} has malformed sample target: ${bullet.text}. Use E-ElementId or E-ElementId: value.`,
-        line: bullet.location.line
-      });
-      return {};
-    }
-    const sample: MarkVSpecPreviewScenario["samples"][number] = {
-      elementId: key,
-      ...(value !== undefined && value !== "" ? { value } : {}),
-      location: bullet.location
-    };
-    scenario.samples.push(sample);
-    return { sample };
-  }
-
-  if (bullet.indent === 2 && activeSample) {
-    if (key === "rows" && value === "[]") {
-      activeSample.rows = {
-        rows: [],
-        explicitEmpty: true,
-        location: bullet.location
-      };
-      return { sample: activeSample };
-    }
-    if (key === "rows" && (value === undefined || value === "")) {
-      activeSample.rows = {
-        rows: [],
-        explicitEmpty: false,
-        location: bullet.location
-      };
-      return { sample: activeSample };
-    }
-  }
-
-  if (bullet.indent === 3 && activeSample?.rows) {
-    if (key === "row" && (value === undefined || value === "")) {
-      const row: MarkVSpecSampleRow = {
-        fields: {},
-        fieldLocations: {},
-        location: bullet.location,
-        raw: bullet.text
-      };
-      activeSample.rows.rows.push(row);
-      activeSample.rows.explicitEmpty = false;
-      return { sample: activeSample, row };
-    }
-  }
-
-  if (bullet.indent > 3 && activeSample && activeRow) {
-    activeRow.fields[key] = value ?? "";
-    addPropertyLocation(activeRow.fieldLocations, key, bullet.location);
-    activeRow.raw = `${activeRow.raw}\n${bullet.text}`;
-    return { sample: activeSample, row: activeRow };
-  }
-
-  diagnostics.push({
-    severity: "warning",
-    message: `Preview Scenario ${scenario.name} sample entry must use scalar E-* values or rows with row: field entries.`,
-    line: bullet.location.line
-  });
-  return { sample: activeSample, row: activeRow };
-}
-
-const elementIdRegexForSamples = new RegExp(String.raw`^${elementIdPattern}$`, "u");
 
 function parseValidationsSection(section: SectionAst): Pick<SectionSemanticResult, "validations" | "sectionProse" | "dependencies"> {
   const validations: MarkVSpecValidationRule[] = [];
