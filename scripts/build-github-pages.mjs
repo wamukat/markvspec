@@ -1211,6 +1211,31 @@ function renderMarkdownPage(filePath, markdown) {
     a:hover {
       text-decoration: underline;
     }
+    .docs-cta {
+      margin: 18px 0 24px;
+    }
+    .docs-cta a {
+      align-items: center;
+      background: #0f766e;
+      border: 1px solid #0f766e;
+      border-radius: 8px;
+      color: #fff;
+      display: inline-flex;
+      gap: 9px;
+      line-height: 1.35;
+      padding: 10px 14px;
+      text-decoration: none;
+    }
+    .docs-cta a:hover {
+      background: #115e59;
+      border-color: #115e59;
+      text-decoration: none;
+    }
+    .docs-cta svg {
+      flex: none;
+      height: 18px;
+      width: 18px;
+    }
     blockquote {
       background: #f1f5f9;
       border-left: 4px solid #0f766e;
@@ -1292,7 +1317,7 @@ function renderMarkdownBody(filePath, markdown) {
 
   function flushParagraph() {
     if (paragraph.length > 0) {
-      html.push(`<p>${renderMarkdownInline(filePath, paragraph.join(" "))}</p>`);
+      html.push(renderMarkdownParagraph(filePath, paragraph.join(" ")));
       paragraph = [];
     }
   }
@@ -1417,6 +1442,23 @@ function renderMarkdownBody(filePath, markdown) {
   flushParagraph();
   flushList();
   return html.join("\n");
+}
+
+function renderMarkdownParagraph(filePath, value) {
+  const standaloneLink = value.match(/^\[([^\]]+)\]\(([^)]+)\)$/u);
+  if (standaloneLink) {
+    const [_match, label, href] = standaloneLink;
+    const resolvedHref = resolveMarkdownHref(filePath, href);
+    if (resolvedHref.includes("examples/showcase/")) {
+      return `<p class="docs-cta"><a href="${escapeHtml(resolvedHref)}">${lucideExternalLinkIcon()}<span>${escapeHtml(label)}</span></a></p>`;
+    }
+  }
+
+  return `<p>${renderMarkdownInline(filePath, value)}</p>`;
+}
+
+function lucideExternalLinkIcon() {
+  return `<svg class="lucide lucide-external-link" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg>`;
 }
 
 function isMarkdownTableStart(lines, index) {

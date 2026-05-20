@@ -279,6 +279,8 @@ expectContains(recipeIndexHtml, "login-form.html", "_site/docs/ja/recipes/index.
 expectContains(recipeIndexHtml, "server-partial-update.html", "_site/docs/ja/recipes/index.html should link to server partial update recipe.");
 const loginRecipeHtml = readSiteFile("docs/ja/recipes/login-form.html");
 expectContains(loginRecipeHtml, "examples/showcase/login-basic.html", "_site/docs/ja/recipes/login-form.html should link to Login Basic showcase.");
+expectContains(loginRecipeHtml, 'class="docs-cta"', "_site/docs/ja/recipes/login-form.html should render the primary example link as a CTA.");
+expectContains(loginRecipeHtml, 'class="lucide lucide-external-link"', "_site/docs/ja/recipes/login-form.html CTA should use the Lucide external-link icon.");
 expectContains(loginRecipeHtml, "guide/actions.html", "_site/docs/ja/recipes/login-form.html should link to actions guide.");
 expectContains(loginRecipeHtml, "guide/validation.html", "_site/docs/ja/recipes/login-form.html should link to validation guide.");
 const partialRecipeHtml = readSiteFile("docs/ja/recipes/server-partial-update.html");
