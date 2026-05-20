@@ -40,7 +40,7 @@
 | --- | --- | --- | --- |
 | 1 | README と docs root が OSS 利用者向けの入口になっているか | 要修正 | `README.md` / `README.ja.md` に contributor command と maintainer directory へのリンクが残っている。`docs/en/README.md` / `docs/ja/README.md` も maintainer links を前面に出している。通常の利用者にはノイズ。 |
 | 2 | clone 不要の初回体験が成立しているか | 概ねOK | Start は Marketplace install、任意 folder、`hello.vspec.md`、preview、export の流れになっている。README も clone 不要を明記している。 |
-| 3 | 最初のサンプルが警告や未定義参照を出さないか | 要確認 | Start の Hello Screen は `navigate: SCR-NEXT` を含むが、同一 file に `SCR-NEXT` はない。初回 preview で診断や不安を生む可能性がある。 |
+| 3 | 最初のサンプルが警告や未定義参照を出さないか | 修正済み | Start の Hello Screen と `examples/01-basics/hello-screen.vspec.md` は外部 screen ID を参照せず、同じ `idle` state に留まる最小 action に揃えた。 |
 | 4 | Canonical DSL が README / Guide / Reference / Examples で一致しているか | 要修正 | Reference は `### E-Title Heading` / `### A-SubmitLogin Submit login` を示す一方、examples は `### 1:E-Title`、`### L1:L-Page`、`### A1:A-Continue` の marker 付き見出しを多用する。marker 付き見出しをユーザー構文として文書化するか、examples から外す必要がある。 |
 | 5 | State の書き方が一貫しているか | 要修正 | `- idle*`、`- idle`、`### idle` が混在している。初期 state の表現と、箇条書き state / 見出し state の使い分けを Reference で明確にする必要がある。 |
 | 6 | Action / HTTP request syntax が正確か | 概ねOK | ユーザー向け docs は HTTP method/path を `request:` に統一済み。`server:` は HTTP そのものではない server-side service call の説明としてだけ残っている。 |
@@ -85,7 +85,7 @@
    - 必要なら末尾に短い `Contributing` link だけ置く。
    - maintainer directory への直接リンクは user README から外す。
 5. Start の Hello Screen が未定義参照で不安を生まないようにする。
-   - `SCR-NEXT` を使わない最小例にするか、未定義遷移を意図として説明する。
+   - 対応済み: `SCR-NEXT` を使わない最小 action に変更した。
 6. CLI 例を clone 不要の利用者向けと repository checkout 向けに分ける。
 
 ### P2: 情報設計

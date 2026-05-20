@@ -72,8 +72,8 @@ locale: en
 
 - From
   - idle
-- Process P1: Apply immediate effect
-  - navigate: SCR-NEXT
+- Process P1: Stay on the current screen
+  - state: idle
 ```
 
 ### Step 3: Open Preview
