@@ -1,5 +1,19 @@
 # MarkVSpec DSL リファレンス
 
+> 新しい Reference は分割済みです。仕様を項目別に確認する場合は
+> [Reference index](../reference/index.md) から
+> [File Format](../reference/file-format.md)、
+> [Sections](../reference/sections.md)、
+> [Elements](../reference/elements.md)、
+> [Actions](../reference/actions.md)、
+> [Validations](../reference/validations.md)、
+> [Rules](../reference/rules.md)、
+> [IDs](../reference/ids.md)、
+> [CLI](../reference/cli.md)、
+> [Limitations](../reference/limitations.md) へ進んでください。
+>
+> この旧文書は互換用に残しています。
+
 ## この文書の位置づけ
 
 この文書は、MarkVSpec の記法を確認するための主リファレンスです。設計書を書き始める人、

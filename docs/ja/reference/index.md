@@ -1,28 +1,27 @@
 # Reference
 
-このセクションは、MarkVSpec の正確な記法を引くための入口です。
+MarkVSpec の正確な記法を引くための入口です。
 
-> Stub: このページ群は後続チケットで分割・本文化します。現時点では巨大な
-> `docs/ja/user/dsl.md` から段階移行するための受け皿です。
+学習用の説明は [Guide](../guide/index.md) に置き、Reference は仕様確認と実装時の確認に使います。
 
-## 今後の構成
+## 仕様項目
 
-- `file-format.md`: Front Matter とファイル単位。
-- `sections.md`: recognized section と section body。
-- `elements.md`: Element type と property。
-- `actions.md`: Action、Process、Cases、Effects。
-- `validations.md`: Field Validations。
-- `rules.md`: Business Rules と `## Rules`。
-- `ids.md`: screen/layout/element/action/rule ID。
-- `cli.md`: CLI command。
-- `limitations.md`: 現在の制限。
+- [File Format](file-format.md): `.vspec.md`、Front Matter、document type。
+- [Sections](sections.md): recognized section と見出し構造。
+- [Elements](elements.md): element type と property。
+- [Actions](actions.md): Triggered、Process、Cases、update。
+- [Validations](validations.md): field validation と input constraints。
+- [Rules](rules.md): `## Rules` と business rule。
+- [IDs](ids.md): screen/layout/element/action/rule ID。
+- [CLI](cli.md): validate / export command。
+- [Limitations](limitations.md): 現時点の制限。
 
-## 既存文書
+## 互換文書
 
-- [DSL リファレンス](../user/dsl.md)
-- [UI 部品・画面パターン対応範囲](../user/ui-coverage.md)
-- [既知の制限](../user/limitations.md)
+- [旧 DSL リファレンス](../user/dsl.md)
 
 ## Examples
 
-- [examples/](../../../examples/)
+- [Hello Screen](../../../examples/showcase/hello-screen.html)
+- [Form Submit Flow](../../../examples/showcase/form-submit-flow.html)
+- [Profile Home](../../../examples/showcase/profile-page-with-template.html)

@@ -1,5 +1,19 @@
 # MarkVSpec DSL
 
+> The new Reference is now split by topic. For focused syntax lookup, start at
+> [Reference index](../reference/index.md), then open
+> [File Format](../reference/file-format.md),
+> [Sections](../reference/sections.md),
+> [Elements](../reference/elements.md),
+> [Actions](../reference/actions.md),
+> [Validations](../reference/validations.md),
+> [Rules](../reference/rules.md),
+> [IDs](../reference/ids.md),
+> [CLI](../reference/cli.md), or
+> [Limitations](../reference/limitations.md).
+>
+> This older document remains for compatibility.
+
 MarkVSpec DSL is a constrained interpretation of ordinary Markdown.
 Authors write Markdown. Tools read the parts that follow these rules.
 

@@ -45,7 +45,25 @@ const requiredFiles = [
   "docs/en/guide/validation.html",
   "docs/en/guide/partial-updates.html",
   "docs/ja/reference/index.html",
+  "docs/ja/reference/file-format.html",
+  "docs/ja/reference/sections.html",
+  "docs/ja/reference/elements.html",
+  "docs/ja/reference/actions.html",
+  "docs/ja/reference/validations.html",
+  "docs/ja/reference/rules.html",
+  "docs/ja/reference/ids.html",
+  "docs/ja/reference/cli.html",
+  "docs/ja/reference/limitations.html",
   "docs/en/reference/index.html",
+  "docs/en/reference/file-format.html",
+  "docs/en/reference/sections.html",
+  "docs/en/reference/elements.html",
+  "docs/en/reference/actions.html",
+  "docs/en/reference/validations.html",
+  "docs/en/reference/rules.html",
+  "docs/en/reference/ids.html",
+  "docs/en/reference/cli.html",
+  "docs/en/reference/limitations.html",
   "docs/ja/recipes/index.html",
   "docs/ja/recipes/login-form.html",
   "docs/ja/recipes/loading-error.html",
@@ -189,6 +207,24 @@ expectOrder(
   ["## States", "### error", "## Actions", "### A-LoadItems Load items"],
   "_site/docs/en/recipes/loading-error.html should place loading action under Actions."
 );
+
+const referenceIndexHtml = readSiteFile("docs/ja/reference/index.html");
+expectContains(referenceIndexHtml, "file-format.html", "_site/docs/ja/reference/index.html should link to file format reference.");
+expectContains(referenceIndexHtml, "validations.html", "_site/docs/ja/reference/index.html should link to validations reference.");
+expectContains(referenceIndexHtml, "rules.html", "_site/docs/ja/reference/index.html should link to rules reference.");
+const referenceActionsHtml = readSiteFile("docs/ja/reference/actions.html");
+expectContains(referenceActionsHtml, "HttpRequest", "_site/docs/ja/reference/actions.html should document request process syntax.");
+expectContains(referenceActionsHtml, "mode: replace", "_site/docs/ja/reference/actions.html should document update replacement semantics.");
+expectContains(referenceActionsHtml, "examples/showcase/form-submit-flow.html", "_site/docs/ja/reference/actions.html should link back to action example.");
+const referenceElementsHtml = readSiteFile("docs/ja/reference/elements.html");
+expectContains(referenceElementsHtml, "variant", "_site/docs/ja/reference/elements.html should document element properties.");
+expectContains(referenceElementsHtml, "raw color", "_site/docs/ja/reference/elements.html should discourage low-level visual styling.");
+const referenceRulesHtml = readSiteFile("docs/ja/reference/rules.html");
+expectContains(referenceRulesHtml, "Validator Diagnostics", "_site/docs/ja/reference/rules.html should separate rules from validator diagnostics.");
+expectContains(readSiteFile("docs/en/reference/actions.html"), "HttpRequest", "_site/docs/en/reference/actions.html should document request process syntax.");
+expectContains(readSiteFile("docs/en/reference/rules.html"), "Validator Diagnostics", "_site/docs/en/reference/rules.html should separate rules from validator diagnostics.");
+expectContains(readSiteFile("docs/ja/user/dsl.html"), "Reference index", "_site/docs/ja/user/dsl.html should route to split reference pages.");
+expectContains(readSiteFile("docs/en/user/dsl.html"), "Reference index", "_site/docs/en/user/dsl.html should route to split reference pages.");
 
 const examplesHtml = readSiteFile("examples/index.html");
 expectContains(examplesHtml, "MarkVSpec Examples", "_site/examples/index.html should be the examples index.");

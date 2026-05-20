@@ -1,0 +1,29 @@
+# CLI
+
+## Validate
+
+```bash
+npx @markvspec/cli@latest validate examples/01-basics/hello-screen.vspec.md
+```
+
+## Export HTML
+
+```bash
+npx @markvspec/cli@latest export html examples/01-basics/hello-screen.vspec.md --out markvspec-html
+```
+
+## Export PDF
+
+```bash
+npx @markvspec/cli@latest export pdf examples/01-basics/hello-screen.vspec.md --out markvspec-pdf
+```
+
+PDF export needs a Chrome-compatible browser.
+
+## Related Example
+
+- [Hello Screen](../../../examples/showcase/hello-screen.html)
+
+## Old Document
+
+- [Export Start](../start/export.md)

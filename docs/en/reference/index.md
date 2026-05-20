@@ -1,29 +1,27 @@
 # Reference
 
-This section is the entry point for looking up the exact MarkVSpec syntax.
+Use Reference to look up exact MarkVSpec syntax.
 
-> Stub: These pages will be split and expanded in follow-up tickets. For now,
-> they are the target structure for gradually moving content out of
-> `docs/en/user/dsl.md`.
+Learning-oriented explanations live in [Guide](../guide/index.md). Reference is for checking syntax while authoring or implementing.
 
-## Planned Pages
+## Topics
 
-- `file-format.md`: Front Matter and file units.
-- `sections.md`: Recognized sections and section bodies.
-- `elements.md`: Element types and properties.
-- `actions.md`: Actions, processes, cases, and effects.
-- `validations.md`: Field validations.
-- `rules.md`: Business rules and `## Rules`.
-- `ids.md`: Screen, layout, element, action, and rule IDs.
-- `cli.md`: CLI commands.
-- `limitations.md`: Current limitations.
+- [File Format](file-format.md): `.vspec.md`, Front Matter, and document type.
+- [Sections](sections.md): Recognized sections and heading structure.
+- [Elements](elements.md): Element types and properties.
+- [Actions](actions.md): Triggered, Process, Cases, and update.
+- [Validations](validations.md): Field validation and input constraints.
+- [Rules](rules.md): `## Rules` and business rules.
+- [IDs](ids.md): Screen, layout, element, action, and rule IDs.
+- [CLI](cli.md): Validate and export commands.
+- [Limitations](limitations.md): Current limitations.
 
-## Existing Documents
+## Compatibility
 
-- [DSL reference](../user/dsl.md)
-- [UI coverage](../user/ui-coverage.md)
-- [Known limitations](../user/limitations.md)
+- [Old DSL reference](../user/dsl.md)
 
 ## Examples
 
-- [examples/](../../../examples/)
+- [Hello Screen](../../../examples/showcase/hello-screen.html)
+- [Form Submit Flow](../../../examples/showcase/form-submit-flow.html)
+- [Profile Home](../../../examples/showcase/profile-page-with-template.html)
