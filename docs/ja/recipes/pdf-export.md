@@ -33,7 +33,16 @@ CLI は次の場面に向いています。
 - release artifact として PDF を作る。
 - local preview を使わずに出力だけ確認する。
 
-詳細は [CLI Reference](../reference/cli.md) を参照してください。
+CI では先に validate し、入力は明示します。
+
+```bash
+npx @markvspec/cli@latest validate "screens/**/*.vspec.md" --fail-on-warnings
+npx @markvspec/cli@latest export html "screens/**/*.vspec.md" --out markvspec-html
+```
+
+export 画面の label に custom message file が必要な場合は `--messages <path>` を使います。
+`diagnose input`、input pattern、message file、出力名、PDF browser の詳細は
+[CLI Reference](../reference/cli.md) を参照してください。
 
 MarkVSpec repository を checkout している場合は `examples/` 配下の path も渡せます。通常の利用では、自分の workspace にある `.vspec.md` を指定してください。
 
@@ -41,9 +50,10 @@ MarkVSpec repository を checkout している場合は `examples/` 配下の pa
 
 - PDF だけを確認すると、layout 崩れの原因を追いにくくなります。まず HTML export を確認します。
 - source と export を別々に修正しない。修正は `.vspec.md` に戻してから再 export します。
-- PDF export には Chrome 互換ブラウザが必要です。CI では browser dependency を事前に用意します。
+- PDF export には Chrome、Edge、Brave、Chromium のいずれかが必要です。CI では browser dependency を事前に用意します。
 - export artifact はレビュー用です。canonical source は `.vspec.md` です。
 - file path や output directory を README に固定で書く場合は、その workspace に実在する file と一致させます。
+- 2つの source が同じ export base name になる場合は、出力先を分けるか source 名を変えます。
 
 ## 関連 example
 

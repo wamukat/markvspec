@@ -33,7 +33,16 @@ The CLI is useful when you need to:
 - create PDF release artifacts;
 - export without using local preview.
 
-See [CLI Reference](../reference/cli.md) for details.
+For CI, validate first and choose explicit inputs:
+
+```bash
+npx @markvspec/cli@latest validate "screens/**/*.vspec.md" --fail-on-warnings
+npx @markvspec/cli@latest export html "screens/**/*.vspec.md" --out markvspec-html
+```
+
+Use `--messages <path>` when exported labels need a custom message file. See
+[CLI Reference](../reference/cli.md) for `diagnose input`, input patterns,
+message files, output names, and PDF browser details.
 
 If you are working inside a checkout of the MarkVSpec repository, you can also pass paths under `examples/`. For normal product work, pass the `.vspec.md` file in your own workspace.
 
@@ -41,9 +50,10 @@ If you are working inside a checkout of the MarkVSpec repository, you can also p
 
 - Checking only PDF makes layout issues harder to debug. Verify HTML export first.
 - Do not edit source and export artifacts separately. Change `.vspec.md`, then export again.
-- PDF export needs a Chrome-compatible browser. Prepare the browser dependency in CI.
+- PDF export needs Chrome, Edge, Brave, or Chromium. Prepare the browser dependency in CI.
 - Export artifacts are for review and distribution. The canonical source remains `.vspec.md`.
 - If README or scripts include fixed paths, make sure they match files that exist in that workspace.
+- If two source files have the same export base name, choose separate output directories or rename one source.
 
 ## Related Example
 
