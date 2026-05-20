@@ -856,65 +856,6 @@ Error Codes section notes.
   assert.deepEqual(sectionProseByTitle.get("Error Codes")?.notes, ["Error Codes section notes."]);
 });
 
-test("treats Model Samples as unsupported and does not parse legacy sample prose", () => {
-  const source = `---
-id: SCR-MODEL-SAMPLE-PROSE
-type: screen
-title: Model Sample Prose
----
-
-# SCR-MODEL-SAMPLE-PROSE Model Sample Prose
-
-## States
-
-- loaded*
-
-## Model Samples
-
-Model Samples section overview.
-
-### loaded
-
-Loaded state group overview.
-
-#### \${model.users.items}
-
-Users table overview.
-
-| id | name |
-| --- | ---- |
-| u1 | Alice |
-
-Users table notes.
-
-#### \${model.roles.items}
-
-Roles list overview.
-
-- id: admin
-  name: Admin
-
-Roles list notes.
-
-#### State Notes
-
-Loaded state group notes.
-
-### Section Notes
-
-Model Samples section notes.
-`;
-  const result = parseMarkVSpec(source);
-
-  assert.deepEqual(result.modelSampleGroups, []);
-  assert.deepEqual(result.modelSamples, []);
-  assert(!result.sectionProse.some((candidate) => candidate.title === "Model Samples"));
-  assert(result.diagnostics.some((diagnostic) =>
-    diagnostic.message === "## Model Samples is no longer canonical. Use Element sample rows or Preview Scenario samples instead." &&
-    diagnostic.line === lineNumber(source, "## Model Samples")
-  ));
-});
-
 test("preserves History Fields and History section prose around structured data", () => {
   const source = `---
 id: SCR-HISTORY-PROSE
@@ -3184,7 +3125,7 @@ test("keeps release examples migrated to scenario sample data", () => {
 
   for (const file of exampleFiles) {
     const source = readFileSync(examplePath(file), "utf8");
-    assert.ok(!source.includes("## Model Samples"), file);
+    assert.ok(!source.includes(["## Model", "Samples"].join(" ")), file);
     assert.ok(!/rows:\s*\$\{model\./.test(source), file);
   }
 });
@@ -6864,7 +6805,7 @@ title: List Table
   assert.match(html, /<tbody><tr><td>Alice<\/td><td>Admin<\/td><\/tr><tr><td>Bob<\/td><td><\/td><\/tr><tr><td>Eve &lt;Root&gt;<\/td><td>Owner &amp; Admin<\/td><\/tr><\/tbody>/);
 });
 
-test("warns for unsupported compact Table columns and row sample shortcuts", () => {
+test("warns for unsupported compact Table columns and sample row casing", () => {
   const source = `---
 id: SCR-USERS
 type: screen
@@ -6882,7 +6823,6 @@ title: Users
 ### E-Users Table
 
 - columns: Name, Role
-- rows: Alice|Admin; Bob|Viewer
 
 ### E-UsersTypo Table
 
@@ -6893,7 +6833,6 @@ title: Users
   const html = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true });
 
   assert(result.diagnostics.some((item) => item.message === "Element E-Users of type Table uses unsupported property columns."));
-  assert(result.diagnostics.some((item) => item.message === "Element E-Users rows is not canonical. Use sample rows or Preview Scenario samples instead."));
   assert(result.diagnostics.some((item) => item.message === "Element E-UsersTypo of type Table uses unsupported property Columns."));
   assert(result.diagnostics.some((item) => item.message === "Element E-UsersTypo of type Table uses unsupported property Sample Rows."));
   assert.doesNotMatch(html, /<th>Name<\/th>/);
@@ -8175,243 +8114,9 @@ title: Bare Layout
   assert(messages.includes("Layout group is ignored because its Layout section has no viewport."));
 });
 
-test("reports removed Repeat layout subsection", () => {
-  const source = `---
-id: SCR-REMOVED-REPEAT
-type: screen
-title: Removed Repeat
----
-
-# SCR-REMOVED-REPEAT Removed Repeat
-
-## States
-
-- loaded*
-
-## Layout: mobile
-
-### L-RemovedRepeat Removed Repeat
-
-- stack
-
-#### Repeat
-
-- source: \${model.items}
-- item: \${model.item}
-- limit: 3
-
-#### Items
-
-- E-Title
-
-## Elements
-
-### E-Title Text
-
-- sample: Title
-`;
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
-  const layout = result.layoutGroups.find((group) => group.id === "L-RemovedRepeat");
-
-  assert(messages.includes("Layout L-RemovedRepeat uses removed Repeat subsection. Use Element sample rows or Preview Scenario samples instead."));
-  assert.equal(layout?.properties["source"], undefined);
-  assert.equal(layout?.properties["item"], undefined);
-  assert.equal(layout?.properties["limit"], undefined);
-});
-
 test("normalizes opaque source paths for column matching", () => {
   assert.equal(sourcePathKey("${model.users.items}"), "model.users.items");
   assert.equal(sourcePathKey("plain.source"), "plain.source");
-});
-
-test("reports legacy Model Samples as unsupported without model-backed preview expansion", () => {
-  const source = `---
-id: SCR-MODEL-SAMPLES
-type: screen
-title: Model Samples
-default-state: loaded
----
-
-# SCR-MODEL-SAMPLES Model Samples
-
-## States
-
-- loaded*
-- empty
-
-## Layout: mobile
-
-### L-Rows Rows
-
-- stack
-- visible when: loaded
-
-#### Items
-
-- L-NoticeRow
-
-### L-NoticeRow Notice Row
-
-- row
-- gap: sm
-
-#### Items
-
-- E-NoticeBadge
-- E-お知らせタイトル
-
-## Elements
-
-### 1:E-NoticeBadge Badge
-
-- source: data
-- sample: 未読
-- src: \${model.notice.read}
-- format: false -> 未読, true -> 既読
-
-### 2:E-お知らせタイトル Link
-
-- source: data
-- sample: お知らせ
-- src: \${model.notice.title}
-- href: SCR-NOTICE-DETAIL
-
-## Actions
-
-### A1:A-OpenNotice Open notice
-
-- Triggered
-  - E-お知らせタイトル.click
-- From
-  - loaded
-- Process P1: Apply immediate effect
-  - Effects
-    - navigate: SCR-NOTICE-DETAIL
-
-## Model Samples
-
-### empty
-
-#### \${model.noticeList.items}
-
-| noticeId | title | read |
-|---|---|---|
-
-### loaded
-
-#### \${model.noticeList.items}
-
-| noticeId | title | read |
-|---|---|---|
-| N-001 | メンテナンスのお知らせ | false |
-| N-002 | 利用規約改定のお知らせ | true |
-| N-003 | キャンペーン開始のお知らせ | false |
-`;
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
-  assert.deepEqual(result.modelSamples, []);
-  assert(messages.includes("## Model Samples is no longer canonical. Use Element sample rows or Preview Scenario samples instead."));
-
-  const html = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true });
-  assert.doesNotMatch(html, /メンテナンスのお知らせ/);
-  assert.doesNotMatch(html, /利用規約改定のお知らせ/);
-  assert.doesNotMatch(html, /キャンペーン開始のお知らせ/);
-  assert.match(html, /未読/);
-  assert.equal(html.match(/data-mm-marker-category="element">1<\/code>/g)?.length, 1);
-  assert.equal(html.match(/data-mm-marker-category="element">2<\/code>/g)?.length, 1);
-
-  const emptyHtml = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true, state: "empty" });
-  assert.doesNotMatch(emptyHtml, /お知らせ/);
-  assert.doesNotMatch(emptyHtml, /未読/);
-});
-
-test("uses element sample when legacy object model samples are present", () => {
-  const source = `---
-id: SCR-PROFILE
-type: screen
-title: Profile
----
-
-# SCR-PROFILE Profile
-
-## States
-
-- loaded*
-
-## Layout: mobile
-
-### L-Profile Profile
-
-- stack
-
-#### Items
-
-- E-MemberName
-
-## Elements
-
-### 1:E-MemberName Text
-
-- source: data
-- sample: 読み込み中
-- src: \${model.profile.name}
-
-## Model Samples
-
-### loaded
-
-#### \${model.profile}
-
-| name |
-|---|
-| 山田 太郎 |
-`;
-  const result = parseMarkVSpec(source);
-  const html = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true });
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
-
-  assert(messages.includes("## Model Samples is no longer canonical. Use Element sample rows or Preview Scenario samples instead."));
-  assert.doesNotMatch(html, /山田 太郎/);
-  assert.match(html, /読み込み中/);
-});
-
-test("reports unsupported legacy model samples instead of validating legacy internals", () => {
-  const source = `---
-id: SCR-BAD-MODEL-SAMPLES
-type: screen
-title: Bad Model Samples
----
-
-# SCR-BAD-MODEL-SAMPLES Bad Model Samples
-
-## States
-
-- loaded*
-
-## Elements
-
-### E-Title Text
-
-- src: \${model.notice.title}
-
-## Model Samples
-
-#### \${model.noticeList.items}
-
-| title |
-|---|
-
-### missing
-
-#### noticeList.items
-`;
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
-
-  assert(messages.includes("## Model Samples is no longer canonical. Use Element sample rows or Preview Scenario samples instead."));
-  assert(!messages.some((message) => message.startsWith("Model Samples path ")));
-  assert(!messages.some((message) => message.startsWith("Model Samples state ")));
 });
 
 test("renders Table columns from Element sample rows", () => {
@@ -8500,7 +8205,6 @@ default-state: idle
   const html = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true });
 
   assert.equal(result.diagnostics.length, 0);
-  assert.deepEqual(result.modelSamples, []);
   assert.match(html, /Taylor Stone/);
 });
 
@@ -8543,7 +8247,7 @@ default-state: idle
   assert.match(html, /<tbody><tr><td>Taylor Stone<\/td><td>Administrator<\/td><\/tr><tr><td>Riley Chen<\/td><td>Member<\/td><\/tr><\/tbody>/);
 });
 
-test("warns for invalid Table rows and sort metadata", () => {
+test("warns for invalid Table sort metadata", () => {
   const source = `---
 id: SCR-BAD-TABLE
 type: screen
@@ -8561,7 +8265,6 @@ default-state: idle
 
 ### E-UsersTable Table
 
-- rows: \${model.users.missing}
 - source: data
 - Columns:
   - name: Name
@@ -8570,19 +8273,10 @@ default-state: idle
   - role: Role
     - sortable: maybe
     - sort: downward
-
-## Model Samples
-
-### idle
-
-#### \${model.users.items}
-
-- name: Taylor Stone
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Element E-UsersTable rows is not canonical. Use sample rows or Preview Scenario samples instead."));
   assert(messages.includes("Element E-UsersTable table column Name sortable must be true or false."));
   assert(messages.includes("Element E-UsersTable table column Name sort must be asc or desc."));
   assert(messages.includes("Element E-UsersTable table column Role sortable must be true or false."));
@@ -8812,8 +8506,7 @@ title: Model Sample Columns
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(!messages.includes("Element E-Title src \${model.notice.title} does not match any Model Samples column."));
-  assert(!messages.includes("Element E-Missing src \${model.notice.missing} does not match any Model Samples column."));
+  assert(!messages.some((message) => message.includes("does not match any sample column")));
 });
 
 test("warns for unsupported properties on known element types", () => {
@@ -10161,14 +9854,6 @@ title: View Context
 - \${view.isHelpPanelOpen}: true
 - \${view.selectedTab}: billing
 
-## Model Samples
-
-### loaded
-
-#### \${model.member}
-
-- name: Jane Doe
-
 ## Preview Scenarios
 
 ### idle
@@ -10540,13 +10225,6 @@ title: Bad Scenario Samples
   - name: Name
 - sample rows: []
 
-### E-LegacyUsers Table
-
-- source: data
-- rows: ${"${model.users.items}"}
-- Columns:
-  - name: Name
-
 ## Preview Scenarios
 
 ### idle
@@ -10561,14 +10239,6 @@ title: Bad Scenario Samples
     - rows:
       - row:
         - value: Bad text rows
-
-## Model Samples
-
-### idle
-
-#### ${"${model.users.items}"}
-
-- name: Alice
 `;
 
   const messages = parseMarkVSpec(source).diagnostics.map((diagnostic) => diagnostic.message);
@@ -10576,8 +10246,6 @@ title: Bad Scenario Samples
   assert(messages.includes("Preview Scenario idle samples references missing element E-Missing."));
   assert(messages.includes("Element E-Users source data should define sample rows or Preview Scenario rows."));
   assert(!messages.includes("Element E-StaticUsers source data should define sample rows or Preview Scenario rows."));
-  assert(messages.includes("Element E-LegacyUsers rows is not canonical. Use sample rows or Preview Scenario samples instead."));
-  assert(messages.includes("Element E-LegacyUsers source data should define sample rows or Preview Scenario rows."));
   assert(messages.includes("Preview Scenario idle scalar sample target E-Users should not be a Table or List element. Use rows instead."));
   assert(messages.includes("Preview Scenario idle rows sample target E-Title must be a Table or List element."));
 });

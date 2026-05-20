@@ -588,8 +588,6 @@ export function composeMarkVSpecTemplate(template: MarkVSpecParseResult, screen:
     errorCodes: [...template.errorCodes, ...screen.errorCodes],
     historyFields: [...template.historyFields, ...screen.historyFields],
     historyEntries: [...template.historyEntries, ...screen.historyEntries],
-    modelSampleGroups: [],
-    modelSamples: [],
     viewContexts: [...template.viewContexts, ...screen.viewContexts],
     viewContextSamples: [...template.viewContextSamples, ...screen.viewContextSamples],
     previewScenarios: [...template.previewScenarios, ...screen.previewScenarios],

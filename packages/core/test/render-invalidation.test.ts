@@ -386,17 +386,6 @@ title: Invalidation Source
 
 - src: \${model.card.title}
 - value: Fallback
-
-## Model Samples
-
-### idle
-
-#### \${model.cards.items}
-
-| title |
-| --- |
-| Alpha |
-| Beta |
 `;
   const current = previous.replace("- src: \${model.card.title}", "- src: \${model.account.title}");
   const invalidation = computeMarkVSpecRenderInvalidation(previous, current);
@@ -438,16 +427,6 @@ title: Invalidation Source Safe
 
 - src: \${model.profile.name}
 - value: Fallback
-
-## Model Samples
-
-### idle
-
-#### \${model.profile}
-
-| name | display |
-| --- | --- |
-| Alpha | Beta |
 `;
   const current = previous.replace("- src: \${model.profile.name}", "- src: \${model.profile.display}");
   const invalidation = computeMarkVSpecRenderInvalidation(previous, current);

@@ -161,6 +161,30 @@ title: Sample Rows
   assert.equal(unknownRows, undefined);
 });
 
+test("does not build Display Content Spec rows from unsupported Table rows property", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-UNSUPPORTED-TABLE-ROWS
+type: screen
+title: Unsupported Table Rows
+---
+
+## Elements
+
+### E-Users Table
+
+- source: data
+- rows: \${model.users.items}
+- Columns:
+  - name: Name
+`);
+
+  const rows = buildDisplayContentSpecRows(result.elements);
+
+  assert(result.diagnostics.some((diagnostic) => diagnostic.message === "Element E-Users of type Table uses unsupported property rows."));
+  assert(!rows.some((row) => row.element.id === "E-Users" && row.location === "rows"));
+  assert(!rows.some((row) => row.element.id === "E-Users" && row.location === "table rows"));
+});
+
 test("aggregates Table columns into one Display Content Spec row", () => {
   const result = parseMarkVSpec(`---
 id: SCR-TABLE-COLUMNS

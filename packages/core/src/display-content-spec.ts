@@ -42,7 +42,6 @@ export function buildDisplayContentSpecRows(elements: ParsedElement[], context: 
     const domain = elementDomainFor(element);
     if (domain.is("Table")) {
       pushTableRowsReferenceRow(rows, element, sourceType, context);
-      pushDisplayPropertyRow(rows, element, "rows", properties["rows"], sourceType, undefined, context);
       pushTableColumnsRow(rows, element, sourceType);
     }
     pushDisplayPropertyRow(rows, element, "label", properties["label"], sourceType, undefined, context);
@@ -174,7 +173,7 @@ function pushTableRowsReferenceRow(
     return;
   }
 
-  const metadata = element.propertyMetadata["rows"] ?? element.propertyMetadata["sample rows"];
+  const metadata = element.propertyMetadata["sample rows"];
   if (metadata?.kind) {
     rows.push(sampleRowsReferenceRow(element, "table rows", metadata.kind));
     return;

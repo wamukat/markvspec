@@ -118,15 +118,6 @@ function checkTableProperties(element: MarkVSpecElement, diagnostics: MarkVSpecD
     return;
   }
 
-  const rows = stringProperty(element, "rows");
-  if (rows) {
-    diagnostics.push({
-      severity: "warning",
-      message: `Element ${element.id} rows is not canonical. Use sample rows or Preview Scenario samples instead.`,
-      line: firstPropertyLine(element, "rows") ?? element.location.line
-    });
-  }
-
   for (const column of element.tableColumns) {
     for (const metadata of column.metadata ?? []) {
       if (metadata.key === "sortable" && metadata.value !== "true" && metadata.value !== "false") {

@@ -137,7 +137,7 @@ export const elementTypeRegistry = new Map<string, ElementTypeDefinition>([
   ["Switch", elementDefinition("choice-control", ["checked"])],
   ["RadioGroup", elementDefinition("choice-control", ["name"])],
   ["List", elementDefinition("content-display", ["items", "sample rows"])],
-  ["Table", elementDefinition("content-display", ["rows", "sample rows"])],
+  ["Table", elementDefinition("content-display", ["sample rows"])],
   ["Banner", elementDefinition("feedback")],
   ["Dialog", elementDefinition("feedback", ["title", "content", "actions"])],
   ["Toast", elementDefinition("feedback", ["placement", "duration"])],

@@ -2999,10 +2999,11 @@ locale: ja
 
 ### 1:E-ユーザー表 Table
 
-- columns:
+- Columns:
   - 氏名
-- rows:
-  - 佐藤 拓真
+- Sample Rows:
+  - row:
+    - 氏名: 佐藤 拓真
 
 ### 2:E-検索ボタン Button
 
@@ -3047,65 +3048,6 @@ locale: ja
   assert.doesNotMatch(actionDetailsSection, /side effect レスポンス/);
   assert.match(actionDetailsSection, new RegExp(`<div class="process-card-header">${processTitleGroupPattern("unplug", `${docLabel("P1", "result")} Request partial`)}</div>[\\s\\S]*レスポンスのユーザー一覧を ${sourceCodePattern("${model.users.items}")} に格納する`));
   assert.match(actionDetailsSection, new RegExp(`<li>更新 <ul class="spec-list spec-effect-list"><li>${detailLayoutRef("T1", "User table")}</li><li>内容 検索結果を表示する</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>${sourceCodePattern("${model.audit}")} &lt; value &amp; retry</li></ul></li></ul></li>`));
-});
-
-test("omits model sample blocks from state wireframe sections", () => {
-  const source = `---
-id: SCR-MODEL-SAMPLES
-type: screen
-title: Model Samples
-locale: ja
----
-
-# SCR-MODEL-SAMPLES Model Samples
-
-## States
-
-- loaded*
-- empty
-- missing
-- undefined
-
-## Model Samples
-
-### loaded
-
-#### \${model.noticeList.items}
-
-| noticeId | title | read |
-|---|---|---|
-| N-001 | メンテナンスのお知らせ | false |
-| N-002 | 利用規約改定のお知らせ | true |
-
-#### \${model.noticeList.meta}
-
-| total |
-|---|
-| 2 |
-
-### empty
-
-#### \${model.noticeList.items}
-
-| noticeId | title | read |
-|---|---|---|
-
-### undefined
-
-#### \${model.notice}
-`;
-  const result = parseMarkVSpec(source);
-  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
-  const loadedSection = stateSection(html, "loaded");
-  const emptySection = stateSection(html, "empty");
-  const missingSection = stateSection(html, "missing");
-  const undefinedSection = stateSection(html, "undefined");
-
-  assert.doesNotMatch(html, /<h2>モデルサンプル<\/h2>/);
-  for (const section of [loadedSection, emptySection, missingSection, undefinedSection]) {
-    assert.doesNotMatch(section, /model-sample-group|model-sample-block|<h5 class="state-screen-subheading">モデルサンプル<\/h5>/);
-    assert.match(section, /<h5 class="state-screen-subheading">ワイヤーフレーム<\/h5>/);
-  }
 });
 
 test("renders preview scenario samples in generated state views", () => {
@@ -3297,136 +3239,6 @@ locale: ja
   assert.match(scenarioSection, /<td>二郎<\/td>/);
   assert.doesNotMatch(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Preview Data<\/h6>|<th>Sample<\/th>/);
   assert.doesNotMatch(scenarioSection, /2 rows/);
-});
-
-test("omits model sample state group and sample set prose from state views", () => {
-  const source = `---
-id: SCR-MODEL-SAMPLE-PROSE
-type: screen
-title: Model Sample Prose
----
-
-# SCR-MODEL-SAMPLE-PROSE Model Sample Prose
-
-## States
-
-- loaded*
-
-## Model Samples
-
-Model Samples section overview.
-
-### loaded
-
-Loaded group overview.
-
-#### \${model.users.items}
-
-Users sample overview.
-
-| id | name |
-| --- | ---- |
-| u1 | Alice |
-
-Users sample notes.
-
-#### State Notes
-
-Loaded group notes.
-
-### Section Notes
-
-Model Samples section notes.
-`;
-  const result = parseMarkVSpec(source);
-  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
-  const loadedSection = stateSection(html, "loaded");
-
-  assert.doesNotMatch(loadedSection, /model-sample-block|Model Samples section overview|Loaded group overview|Users sample overview|Users sample notes|Loaded group notes|Model Samples section notes/);
-});
-
-test("omits composed model sample prose from state views", () => {
-  const templateSource = `---
-id: TPL-MODEL-SAMPLES
-type: template
-title: Model Samples Template
----
-
-# TPL-MODEL-SAMPLES Model Samples Template
-
-## States
-
-- loaded*
-
-## Model Samples
-
-Template section overview.
-
-### loaded
-
-Template group overview.
-
-#### \${model.template.items}
-
-Template set overview.
-
-| id |
-| --- |
-| t1 |
-
-Template set notes.
-
-#### State Notes
-
-Template group notes.
-
-### Section Notes
-
-Template section notes.
-`;
-  const screenSource = `---
-id: SCR-MODEL-SAMPLES
-type: screen
-title: Model Samples Screen
----
-
-# SCR-MODEL-SAMPLES Model Samples Screen
-
-## States
-
-- loaded*
-
-## Model Samples
-
-Screen section overview.
-
-### loaded
-
-Screen group overview.
-
-#### \${model.screen.items}
-
-Screen set overview.
-
-| id |
-| --- |
-| s1 |
-
-Screen set notes.
-
-#### State Notes
-
-Screen group notes.
-
-### Section Notes
-
-Screen section notes.
-`;
-  const composed = composeMarkVSpecTemplate(parseMarkVSpec(templateSource), parseMarkVSpec(screenSource));
-  const html = renderDesignDocumentHtml(composed, renderMarkVSpecHtml(composed, { includeStyles: false }));
-  const loadedSection = stateSection(html, "loaded");
-
-  assert.doesNotMatch(loadedSection, /Template section overview|Screen section overview|Template group overview|Screen group overview|\$\{model\.template\.items\}|\$\{model\.screen\.items\}|Template set overview|Screen set overview|Template group notes|Screen group notes|Template section notes|Screen section notes/);
 });
 
 test("renders validation rules in client and server scope groups", () => {
@@ -5753,18 +5565,6 @@ default-state: loaded
 - tone: danger
 - text: Notices could not be loaded.
 - visible when: load-error
-
-## Model Samples
-
-### loaded
-
-#### ${"${model.noticeList.items}"}
-
-| noticeId | title | publishedAt |
-| --- | --- | --- |
-| N-001 | Maintenance window | 2026-05-01 |
-| N-002 | Terms update | 2026-05-02 |
-| N-003 | Feature release | 2026-05-03 |
 `);
   const html = renderDesignDocumentHtml(partial, "");
   const loadedSection = stateSection(html, "loaded");

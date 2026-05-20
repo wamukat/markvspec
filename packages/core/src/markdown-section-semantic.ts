@@ -7,9 +7,6 @@ import type {
   MarkVSpecHistoryEntry,
   MarkVSpecHistoryFieldSchema,
   MarkVSpecHistoryFieldType,
-  MarkVSpecModelSampleRow,
-  MarkVSpecModelSampleSet,
-  MarkVSpecModelSampleGroup,
   MarkVSpecNoteSection,
   MarkVSpecPreviewScenario,
   MarkVSpecRule,
@@ -73,7 +70,6 @@ export interface SectionSemanticMetadata {
 
 export type SectionSemanticPayload =
   | { type: "states"; states: MarkVSpecState[] }
-  | { type: "modelSamples"; modelSamples: MarkVSpecModelSampleSet[]; modelSampleGroups: MarkVSpecModelSampleGroup[] }
   | { type: "viewContexts"; viewContexts: MarkVSpecViewContextDefinition[] }
   | { type: "viewContextSamples"; viewContextSamples: MarkVSpecViewContextSample[] }
   | { type: "previewScenarios"; previewScenarios: MarkVSpecPreviewScenario[] }
@@ -92,10 +88,6 @@ export interface SectionSemanticResult extends SectionSemanticMetadata {
   payload: SectionSemanticPayload;
   /** @deprecated Use payload when reading section-owned state data. Kept for public compatibility. */
   states: MarkVSpecState[];
-  /** @deprecated Use payload when reading section-owned model sample data. Kept for public compatibility. */
-  modelSamples: MarkVSpecModelSampleSet[];
-  /** @deprecated Use payload when reading section-owned model sample group data. Kept for public compatibility. */
-  modelSampleGroups: MarkVSpecModelSampleGroup[];
   /** @deprecated Use payload when reading section-owned view context data. Kept for public compatibility. */
   viewContexts: MarkVSpecViewContextDefinition[];
   /** @deprecated Use payload when reading section-owned view context sample data. Kept for public compatibility. */
@@ -122,14 +114,13 @@ export interface SectionSemanticResult extends SectionSemanticMetadata {
 
 export type SectionSemanticCompatibilityValues = Pick<
   SectionSemanticResult,
-  "states" | "modelSamples" | "modelSampleGroups" | "viewContexts" | "viewContextSamples" | "previewScenarios" | "formGroups" | "events" | "validations" | "rules" | "errorCodes" | "historyFields" | "historyEntries" | "notes"
+  "states" | "viewContexts" | "viewContextSamples" | "previewScenarios" | "formGroups" | "events" | "validations" | "rules" | "errorCodes" | "historyFields" | "historyEntries" | "notes"
 >;
 
 export type SectionSemanticValueKey = keyof SectionSemanticCompatibilityValues;
 
 const sectionPayloadValueKeys = {
   states: ["states"],
-  modelSamples: ["modelSamples", "modelSampleGroups"],
   viewContexts: ["viewContexts"],
   viewContextSamples: ["viewContextSamples"],
   previewScenarios: ["previewScenarios"],
@@ -146,8 +137,6 @@ const sectionPayloadValueKeys = {
 
 export interface SmallSectionSemanticResult {
   states: MarkVSpecState[];
-  modelSamples: MarkVSpecModelSampleSet[];
-  modelSampleGroups: MarkVSpecModelSampleGroup[];
   viewContexts: MarkVSpecViewContextDefinition[];
   viewContextSamples: MarkVSpecViewContextSample[];
   previewScenarios: MarkVSpecPreviewScenario[];
@@ -214,8 +203,6 @@ export function parseSmallSectionSemantics(document: MarkdownDocument): SmallSec
 
   return {
     states: payloadValues(payloads, "states"),
-    modelSamples: payloadValues(payloads, "modelSamples"),
-    modelSampleGroups: payloadValues(payloads, "modelSampleGroups"),
     viewContexts: payloadValues(payloads, "viewContexts"),
     viewContextSamples: payloadValues(payloads, "viewContextSamples"),
     previewScenarios: payloadValues(payloads, "previewScenarios"),
@@ -296,7 +283,6 @@ function sectionOrderRank(kind: SectionKind): number {
       return 16;
     case "History":
       return 17;
-    case "ModelSamples":
     case "Unknown":
       return 0;
   }
@@ -352,7 +338,6 @@ function isSmallSemanticSection(kind: SectionKind): boolean {
   return kind === "States" ||
     kind === "FormGroups" ||
     kind === "Events" ||
-    kind === "ModelSamples" ||
     kind === "ViewContext" ||
     kind === "ViewContextSamples" ||
     kind === "PreviewScenarios" ||
@@ -374,8 +359,6 @@ function parseSmallSection(document: MarkdownDocument, sections: SectionAst[], s
       return resultFor(section, "formGroups", parseFormGroupsSection(section), ["form-groups:list"]);
     case "Events":
       return resultFor(section, "events", parseEventsSection(section), ["events:list"]);
-    case "ModelSamples":
-      return resultFor(section, "modelSamples", unsupportedModelSamplesSection(section), ["unsupported:model-samples"]);
     case "ViewContext":
       return resultFor(section, "viewContexts", parseViewContextSection(section), ["view-context"]);
     case "ViewContextSamples":
@@ -796,8 +779,6 @@ function resultFor(
     metadata,
     payload,
     states: compatibility.states,
-    modelSamples: compatibility.modelSamples,
-    modelSampleGroups: compatibility.modelSampleGroups,
     viewContexts: compatibility.viewContexts,
     viewContextSamples: compatibility.viewContextSamples,
     previewScenarios: compatibility.previewScenarios,
@@ -837,8 +818,6 @@ function compatibilityValuesForPayload(payload: SectionSemanticPayload): Section
 function emptySectionSemanticCompatibilityValues(): SectionSemanticCompatibilityValues {
   return {
     states: [],
-    modelSamples: [],
-    modelSampleGroups: [],
     viewContexts: [],
     viewContextSamples: [],
     previewScenarios: [],
@@ -987,20 +966,6 @@ function parseStateText(text: string, location: SourceLocation, diagnostics: Mar
     ...(preInitial ? { preInitial } : {}),
     location,
     raw: text
-  };
-}
-
-function unsupportedModelSamplesSection(section: SectionAst): Pick<SectionSemanticResult, "modelSamples" | "modelSampleGroups" | "sectionProse" | "diagnostics" | "dependencies"> {
-  return {
-    modelSamples: [],
-    modelSampleGroups: [],
-    sectionProse: [],
-    diagnostics: [{
-      severity: "warning",
-      message: "## Model Samples is no longer canonical. Use Element sample rows or Preview Scenario samples instead.",
-      line: section.heading.range.start.line
-    }],
-    dependencies: []
   };
 }
 
@@ -1738,9 +1703,6 @@ function isRecognizedStructuredHeading(section: SectionAst, block: BlockAst): bo
   if (block.type !== "heading") {
     return false;
   }
-  if (section.kind === "ModelSamples") {
-    return block.depth === 3 || block.depth === 4;
-  }
   if (section.kind === "BusinessRules") {
     return block.depth === 3 && /^(?:(\S+?):)?R-[\p{L}\p{N}-]+(?:\s+.+?)?\s*$/u.test(block.text);
   }
@@ -1769,16 +1731,12 @@ function isRecognizedStructuredHeading(section: SectionAst, block: BlockAst): bo
 }
 
 function isEntityHeadingDepth(section: SectionAst, block: BlockAst): boolean {
-  return block.type === "heading" && (
-    (section.kind === "ModelSamples" && block.depth === 3)
-    || (section.kind !== "ModelSamples" && block.depth === 3)
-  );
+  return block.type === "heading" && block.depth === 3;
 }
 
 function isMalformedStructuredHeading(section: SectionAst, block: BlockAst): boolean {
   return block.type === "heading" && (
     isEntityHeadingSection(section.kind)
-    || section.kind === "ModelSamples"
     || section.kind === "Layout"
     || section.kind === "Slot"
     || section.kind === "Slots"
