@@ -206,14 +206,20 @@ if (rootHtml.includes("Generated static HTML previews for the shipped MarkVSpec 
   failures.push("_site/index.html must not be the generated examples index.");
 }
 expectContains(rootHtml, 'href="examples/"', "_site/index.html should link to /examples/.");
-expectContains(rootHtml, 'href="docs/ja/start/"', "_site/index.html should link to the Japanese start page.");
-expectContains(rootHtml, 'href="docs/en/start/"', "_site/index.html should link to the English start page.");
-expectContains(rootHtml, 'href="docs/ja/guide/"', "_site/index.html should link to the Japanese guide.");
-expectContains(rootHtml, 'href="docs/en/guide/"', "_site/index.html should link to the English guide.");
-expectContains(rootHtml, 'href="docs/ja/recipes/"', "_site/index.html should link to the Japanese recipes.");
-expectContains(rootHtml, 'href="docs/en/recipes/"', "_site/index.html should link to the English recipes.");
-expectContains(rootHtml, 'href="docs/ja/reference/"', "_site/index.html should link to the Japanese reference.");
-expectContains(rootHtml, 'href="docs/en/reference/"', "_site/index.html should link to the English reference.");
+expectContains(rootHtml, 'href="docs/ja/"', "_site/index.html should link to the Japanese documentation root.");
+expectContains(rootHtml, 'href="docs/en/"', "_site/index.html should link to the English documentation root.");
+for (const languageDeepLink of [
+  'href="docs/ja/start/"',
+  'href="docs/en/start/"',
+  'href="docs/ja/guide/"',
+  'href="docs/en/guide/"',
+  'href="docs/ja/recipes/"',
+  'href="docs/en/recipes/"',
+  'href="docs/ja/reference/"',
+  'href="docs/en/reference/"'
+]) {
+  expectNotContains(rootHtml, languageDeepLink, "_site/index.html should keep language switching at the documentation root.");
+}
 
 const jaStartHtml = readSiteFile("docs/ja/start/index.html");
 expectContains(jaStartHtml, "5分で試す", "_site/docs/ja/start/index.html should provide a short quick start.");

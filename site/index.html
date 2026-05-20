@@ -149,6 +149,14 @@
     .link-list a {
       font-size: 14px;
     }
+    .eyebrow {
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      margin: 0 0 8px;
+      text-transform: uppercase;
+    }
     @media (max-width: 860px) {
       nav {
         align-items: flex-start;
@@ -172,10 +180,9 @@
     <nav aria-label="Primary">
       <a class="brand" href="./">MarkVSpec</a>
       <div class="nav-links">
-        <a href="docs/ja/start/">Start JA</a>
-        <a href="docs/en/start/">Start EN</a>
+        <a href="docs/ja/">日本語</a>
+        <a href="docs/en/">English</a>
         <a href="examples/">Examples</a>
-        <a href="docs/en/reference/">Reference</a>
         <a href="https://github.com/wamukat/markvspec">GitHub</a>
       </div>
     </nav>
@@ -188,8 +195,8 @@
           Write UI specifications in Markdown, preview them in VS Code, and share generated HTML or PDF from the same source.
         </p>
         <div class="actions">
-          <a class="button primary" href="docs/ja/start/">日本語で始める</a>
-          <a class="button secondary" href="docs/en/start/">Start in English</a>
+          <a class="button primary" href="docs/ja/">日本語ドキュメント</a>
+          <a class="button secondary" href="docs/en/">English documentation</a>
           <a class="button secondary" href="examples/">Browse examples</a>
         </div>
       </div>
@@ -201,31 +208,28 @@
 
     <section class="section-grid" aria-label="Documentation sections">
       <article class="panel">
-        <h2>Start</h2>
-        <p>Install the extension, open Hello Screen, and run the live preview.</p>
+        <p class="eyebrow">Japanese</p>
+        <h2>日本語ドキュメント</h2>
+        <p>導入、基本ガイド、レシピ、リファレンスを日本語で読みます。</p>
         <ul class="link-list">
-          <li><a href="docs/ja/start/">日本語 Start</a></li>
-          <li><a href="docs/en/start/">English Start</a></li>
-          <li><a href="https://marketplace.visualstudio.com/items?itemName=wamukat.markvspec">VS Code Marketplace</a></li>
+          <li><a href="docs/ja/">日本語トップへ</a></li>
         </ul>
       </article>
       <article class="panel">
-        <h2>Learn</h2>
-        <p>Read the guide, inspect examples, and use recipes for common screen patterns.</p>
+        <p class="eyebrow">English</p>
+        <h2>English Documentation</h2>
+        <p>Read the start path, guide, recipes, and reference in English.</p>
         <ul class="link-list">
-          <li><a href="docs/ja/guide/">日本語 Guide</a></li>
-          <li><a href="docs/en/guide/">English Guide</a></li>
-          <li><a href="docs/ja/recipes/">日本語 Recipes</a></li>
-          <li><a href="docs/en/recipes/">English Recipes</a></li>
+          <li><a href="docs/en/">Open English docs</a></li>
         </ul>
       </article>
       <article class="panel">
-        <h2>Use</h2>
-        <p>Browse generated examples, look up exact syntax, or install the CLI.</p>
+        <p class="eyebrow">Shared</p>
+        <h2>Examples And Tools</h2>
+        <p>Browse generated previews, install the extension, or use the CLI.</p>
         <ul class="link-list">
           <li><a href="examples/">Generated examples</a></li>
-          <li><a href="docs/ja/reference/">日本語 Reference</a></li>
-          <li><a href="docs/en/reference/">English Reference</a></li>
+          <li><a href="https://marketplace.visualstudio.com/items?itemName=wamukat.markvspec">VS Code Marketplace</a></li>
           <li><a href="https://www.npmjs.com/package/@markvspec/cli">npm CLI package</a></li>
         </ul>
       </article>
