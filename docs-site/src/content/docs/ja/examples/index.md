@@ -5,7 +5,7 @@ title: "Examples"
 examples は、自分の `.vspec.md` に写して使う screen pattern として読みます。
 source と preview を並べて見る主導線は、生成済みの catalog です。
 
-- [Example catalog](/markvspec/ja/examples/)
+- [Example catalog](/markvspec/examples/)
 - [Hello Screen showcase](/markvspec/examples/showcase/hello-screen.html)
 - [Login showcase](/markvspec/examples/showcase/login-basic.html)
 - [Form Submit Flow showcase](/markvspec/examples/showcase/form-submit-flow.html)

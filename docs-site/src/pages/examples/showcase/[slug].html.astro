@@ -1,0 +1,470 @@
+---
+import {
+  getExamples,
+  groupExamplesByStage,
+  githubBlobBaseUrl,
+  nextExamples,
+  relatedDocs,
+  sourceLines,
+  generatedPdfExists,
+} from '../../../lib/example-data.js';
+
+export function getStaticPaths() {
+  return getExamples().map((example) => ({
+    params: { slug: example.slug },
+    props: { example },
+  }));
+}
+
+const { example } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const examples = getExamples();
+const stageGroups = groupExamplesByStage(examples);
+const related = relatedDocs(example);
+const next = nextExamples(example, examples);
+const previewHref = `${base}/examples/generated/${example.slug}.html`;
+const pdfHref = `${base}/examples/generated/${example.slug}.pdf`;
+const metaPills = [
+  example.id,
+  example.type,
+  example.kind ? `kind ${example.kind}` : '',
+  example.stageLabel ? `category ${example.stageLabel}` : '',
+  example.route ? `route ${example.route}` : '',
+  example.locale ? `locale ${example.locale}` : '',
+].filter(Boolean);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{example.title} - MarkVSpec Example Showcase</title>
+    <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+    <style>
+      :root {
+        --page: #f6f7f9;
+        --paper: #fff;
+        --ink: #172033;
+        --muted: #617083;
+        --line: #d6dde8;
+        --line-soft: #e9edf3;
+        --accent: #2563eb;
+        --code-bg: #101827;
+        --code-ink: #e8eef8;
+        --code-muted: #95a3b8;
+      }
+      * { box-sizing: border-box; }
+      body {
+        background: var(--page);
+        color: var(--ink);
+        font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        margin: 0;
+      }
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .site-header {
+        background: var(--paper);
+        border-bottom: 1px solid var(--line);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .site-header-inner {
+        align-items: center;
+        display: flex;
+        gap: 16px;
+        justify-content: space-between;
+        margin: 0 auto;
+        max-width: 1440px;
+        padding: 12px 24px;
+      }
+      .brand {
+        align-items: center;
+        display: grid;
+        gap: 2px 9px;
+        grid-template-columns: 30px 1fr;
+      }
+      .brand img {
+        border-radius: 7px;
+        grid-row: 1 / span 2;
+        height: 30px;
+        width: 30px;
+      }
+      .brand strong { font-size: 15px; }
+      .brand span { color: var(--muted); font-size: 12px; }
+      .top-nav,
+      .example-actions,
+      .pane-tools {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+      .nav-link,
+      .button-link,
+      .small-link {
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 650;
+        gap: 6px;
+        line-height: 1.2;
+        padding: 7px 11px;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .nav-link,
+      .small-link {
+        background: #fff;
+        color: #334155;
+      }
+      .button-link {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      main {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: 260px minmax(0, 1fr);
+        margin: 0 auto;
+        max-width: 1440px;
+        padding: 22px 24px 40px;
+      }
+      .example-sidebar {
+        align-self: start;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        max-height: calc(100vh - 92px);
+        overflow: auto;
+        padding: 14px;
+        position: sticky;
+        top: 70px;
+      }
+      .example-sidebar-title {
+        color: var(--ink);
+        display: block;
+        font-size: 14px;
+        font-weight: 750;
+        margin-bottom: 12px;
+      }
+      .example-sidebar-section {
+        border-top: 1px solid var(--line-soft);
+        padding: 12px 0;
+      }
+      .example-sidebar-section:first-of-type {
+        border-top: 0;
+        padding-top: 0;
+      }
+      .example-sidebar-heading {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: .04em;
+        margin: 0 0 7px;
+        text-transform: uppercase;
+      }
+      .example-sidebar ul {
+        display: grid;
+        gap: 3px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .example-sidebar a {
+        border-radius: 6px;
+        color: #334155;
+        display: block;
+        font-size: 12px;
+        font-weight: 650;
+        line-height: 1.35;
+        padding: 6px 8px;
+      }
+      .example-sidebar a[aria-current="page"] {
+        background: #eaf1ff;
+        color: var(--accent);
+      }
+      .example-main { min-width: 0; }
+      .example-header {
+        align-items: end;
+        display: grid;
+        gap: 14px;
+        grid-template-columns: minmax(0, 1fr) auto;
+        margin-bottom: 18px;
+      }
+      .breadcrumb {
+        color: var(--muted);
+        font-size: 12px;
+        margin-bottom: 8px;
+      }
+      h1 {
+        font-size: 26px;
+        letter-spacing: 0;
+        line-height: 1.25;
+        margin: 0;
+      }
+      .subtitle {
+        color: var(--muted);
+        margin: 8px 0 0;
+        max-width: 760px;
+      }
+      .meta-row {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .pill {
+        align-items: center;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: #334155;
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 650;
+        gap: 5px;
+        padding: 4px 9px;
+      }
+      .split {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: minmax(360px, .9fr) minmax(520px, 1.1fr);
+        min-height: calc(100vh - 185px);
+      }
+      .learning-panel {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-bottom: 18px;
+      }
+      .learning-card {
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+      }
+      .learning-card h2 {
+        font-size: 13px;
+        margin: 0 0 8px;
+      }
+      .learning-card ul {
+        display: grid;
+        gap: 6px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .learning-card li {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .pane {
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, .05);
+        min-width: 0;
+        overflow: hidden;
+      }
+      .pane-header {
+        align-items: center;
+        background: #fbfcfe;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        gap: 12px;
+        justify-content: space-between;
+        min-height: 48px;
+        padding: 10px 14px;
+      }
+      .pane-title { display: grid; gap: 1px; }
+      .pane-title strong { font-size: 13px; }
+      .pane-title span { color: var(--muted); font-size: 11px; }
+      .source-wrap {
+        background: var(--code-bg);
+        color: var(--code-ink);
+        height: calc(100vh - 252px);
+        min-height: 520px;
+        overflow: auto;
+      }
+      pre {
+        font-size: 0;
+        line-height: 0;
+        margin: 0;
+        min-width: 620px;
+        padding: 12px 0;
+        tab-size: 2;
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 0;
+        line-height: 0;
+      }
+      .line {
+        display: grid;
+        font-size: 12px;
+        grid-template-columns: 44px minmax(0, 1fr);
+        height: 18px;
+        line-height: 18px;
+      }
+      .line-no {
+        color: var(--code-muted);
+        padding-right: 12px;
+        text-align: right;
+        user-select: none;
+      }
+      .line-code {
+        border-left: 1px solid rgba(148, 163, 184, .22);
+        padding: 0 18px;
+        white-space: pre;
+      }
+      .preview-frame-wrap {
+        background: #eef2f7;
+        height: calc(100vh - 252px);
+        min-height: 520px;
+        overflow: auto;
+      }
+      iframe {
+        background: #fff;
+        border: 0;
+        display: block;
+        height: 100%;
+        min-height: 520px;
+        width: 100%;
+      }
+      @media (max-width: 1000px) {
+        main { grid-template-columns: 1fr; }
+        .example-sidebar {
+          max-height: none;
+          position: static;
+        }
+        .example-header {
+          align-items: start;
+          grid-template-columns: 1fr;
+        }
+        .example-actions { justify-content: flex-start; }
+        .learning-panel { grid-template-columns: 1fr; }
+        .split { grid-template-columns: 1fr; }
+        .source-wrap,
+        .preview-frame-wrap {
+          height: auto;
+          max-height: 680px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="site-header-inner">
+        <div class="brand">
+          <img src={`${base}/assets/markvspec-icon.svg`} alt="" width="30" height="30" />
+          <strong>MarkVSpec Examples</strong>
+          <span>Source and generated preview, side by side</span>
+        </div>
+        <nav class="top-nav" aria-label="Example navigation">
+          <a class="nav-link" href={`${base}/examples/`}>Examples</a>
+          <a class="nav-link" href={`${base}/en/start/`}>Start</a>
+          <a class="nav-link" href={`${base}/en/guide/`}>Guide</a>
+          <a class="nav-link" href={`${base}/en/reference/`}>Reference</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <aside class="example-sidebar" aria-label="Example navigation">
+        <a class="example-sidebar-title" href={`${base}/examples/`}>All Examples</a>
+        {stageGroups.map((stage) => (
+          <section class="example-sidebar-section">
+            <p class="example-sidebar-heading">{stage.label}</p>
+            <ul>
+              {stage.items.map((item) => (
+                <li>
+                  <a href={`${base}/examples/showcase/${item.slug}.html`} aria-current={item.slug === example.slug ? 'page' : undefined}>{item.title}</a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </aside>
+
+      <div class="example-main">
+        <section class="example-header">
+          <div>
+            <div class="breadcrumb">Examples / {example.relativeExamplePath}</div>
+            <h1>{example.title}</h1>
+            <p class="subtitle">{example.summary}</p>
+            <div class="meta-row" aria-label="Example metadata">
+              {metaPills.map((pill) => <span class="pill">{pill}</span>)}
+            </div>
+          </div>
+          <div class="example-actions">
+            {generatedPdfExists(example.slug) ? <a class="button-link" href={pdfHref}>Download PDF</a> : null}
+            <a class="nav-link" href={previewHref}>Open preview only</a>
+            <a class="nav-link" href={`${githubBlobBaseUrl}${example.repoPath}`}>View on GitHub</a>
+          </div>
+        </section>
+
+        <section class="learning-panel" aria-label="Learning links">
+          <article class="learning-card">
+            <h2>What this teaches</h2>
+            <ul>
+              {example.teaches.length ? example.teaches.map((item) => <li>{item}</li>) : <li>No catalog teaches metadata.</li>}
+            </ul>
+          </article>
+          <article class="learning-card">
+            <h2>Related docs</h2>
+            <ul>
+              {related.length ? related.map((doc) => <li><a href={`${base}${doc.href}`}>{doc.label}</a></li>) : <li>No related docs.</li>}
+            </ul>
+          </article>
+          <article class="learning-card">
+            <h2>Next examples</h2>
+            <ul>
+              {next.length ? next.map((item) => <li><a href={`${base}/examples/showcase/${item.slug}.html`}>{item.title}</a></li>) : <li>No next example.</li>}
+            </ul>
+          </article>
+        </section>
+
+        <section class="split" aria-label="Source and generated preview">
+          <article class="pane" aria-label="VSpec source">
+            <div class="pane-header">
+              <div class="pane-title">
+                <strong>{example.slug}.vspec.md</strong>
+                <span>Markdown source</span>
+              </div>
+              <div class="pane-tools">
+                <a class="small-link" href={`${githubBlobBaseUrl}${example.repoPath}`}>Source</a>
+              </div>
+            </div>
+            <div class="source-wrap">
+              <pre><code>{sourceLines(example.source).map((line) => (
+                <span class="line"><span class="line-no">{line.number}</span><span class="line-code">{line.text}</span></span>
+              ))}</code></pre>
+            </div>
+          </article>
+
+          <article class="pane" aria-label="Generated HTML preview">
+            <div class="pane-header">
+              <div class="pane-title">
+                <strong>Generated HTML Preview</strong>
+                <span>Latest output from the same Pages build</span>
+              </div>
+              <div class="pane-tools">
+                <a class="small-link" href={previewHref}>Open full page</a>
+              </div>
+            </div>
+            <div class="preview-frame-wrap">
+              <iframe src={previewHref} title={`${example.title} generated HTML preview`}></iframe>
+            </div>
+          </article>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

@@ -79,4 +79,4 @@ structured body.
 - [Guide: Markdown Model](/markvspec/en/guide/markdown-model/)
 - [Guide: Actions](/markvspec/en/guide/actions/)
 - [Reference](../reference/)
-- [Examples](/markvspec/en/examples/)
+- [Examples](/markvspec/examples/)

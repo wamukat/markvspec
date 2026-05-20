@@ -119,6 +119,21 @@ export function validateExampleCatalog(catalog, { root, exampleFiles = [] } = {}
 }
 
 export function resolveDocKey(root, lang, group, key) {
+  const starlightSpecificPath = join(root, "docs-site", "src", "content", "docs", lang, group, `${key}.md`);
+  if (existsSync(starlightSpecificPath)) {
+    return { path: starlightSpecificPath, fallback: false };
+  }
+
+  const starlightIndexPath = join(root, "docs-site", "src", "content", "docs", lang, group, key, "index.md");
+  if (existsSync(starlightIndexPath)) {
+    return { path: starlightIndexPath, fallback: false };
+  }
+
+  const starlightGroupIndexPath = join(root, "docs-site", "src", "content", "docs", lang, group, "index.md");
+  if (existsSync(starlightGroupIndexPath)) {
+    return { path: starlightGroupIndexPath, fallback: true };
+  }
+
   const specificPath = join(root, "docs", lang, group, `${key}.md`);
   if (existsSync(specificPath)) {
     return { path: specificPath, fallback: false };

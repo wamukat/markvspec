@@ -5,7 +5,7 @@ title: "Examples"
 Use examples as screen patterns you can copy into your own `.vspec.md` file.
 The generated catalog is the main place to browse source and preview together.
 
-- [Example catalog](/markvspec/en/examples/)
+- [Example catalog](/markvspec/examples/)
 - [Hello Screen showcase](/markvspec/examples/showcase/hello-screen.html)
 - [Login showcase](/markvspec/examples/showcase/login-basic.html)
 - [Form Submit Flow showcase](/markvspec/examples/showcase/form-submit-flow.html)

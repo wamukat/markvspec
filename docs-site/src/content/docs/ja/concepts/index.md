@@ -76,4 +76,4 @@ MarkVSpec の source は plain text です。これは、人間だけでなく A
 - [Guide: Markdown Model](/markvspec/ja/guide/markdown-model/)
 - [Guide: Actions](/markvspec/ja/guide/actions/)
 - [Reference](../reference/)
-- [Examples](/markvspec/ja/examples/)
+- [Examples](/markvspec/examples/)
