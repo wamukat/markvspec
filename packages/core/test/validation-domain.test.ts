@@ -18,7 +18,6 @@ import {
 import type { MarkVSpecRule, MarkVSpecValidationRule } from "../src/types.js";
 
 test("validation domain classifies run and scope from validation properties", () => {
-  assert.equal(validationRun(validation({ run: "server-response" })), "server");
   assert.equal(validationRun(validation({ run: "client" })), "client");
   assert.equal(validationScope(validation({ scope: "composite" })), "cross-field");
   assert.equal(validationScope(validation({ target: ["E-Email", "E-ConfirmEmail"] })), "cross-field");

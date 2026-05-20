@@ -48,20 +48,16 @@ export function createValidationRuleSpecRenderer(support: ValidationRuleSpecRend
       ...support.sectionProseForKind(result, "CrossFieldValidations")
     ];
     const groups: Array<{
-      key: "clientFieldValidations" | "clientCrossFieldValidations" | "serverFieldValidations" | "serverCrossFieldValidations";
+      key: "clientFieldValidations" | "clientCrossFieldValidations";
       rules: ParsedMarkVSpec["validations"];
     }> = [
       { key: "clientFieldValidations", rules: [] },
-      { key: "clientCrossFieldValidations", rules: [] },
-      { key: "serverFieldValidations", rules: [] },
-      { key: "serverCrossFieldValidations", rules: [] }
+      { key: "clientCrossFieldValidations", rules: [] }
     ];
 
     for (const validation of result.validations) {
       const domain = validationDomainFor(validation);
-      const groupIndex = domain.run() === "server"
-        ? domain.scope() === "cross-field" ? 3 : 2
-        : domain.scope() === "cross-field" ? 1 : 0;
+      const groupIndex = domain.scope() === "cross-field" ? 1 : 0;
       groups[groupIndex]?.rules.push(validation);
     }
     const content = groups

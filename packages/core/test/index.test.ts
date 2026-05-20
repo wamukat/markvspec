@@ -1122,56 +1122,6 @@ Project lead prose.
   assert.deepEqual(result.diagnostics, []);
 });
 
-test("warns and ignores removed Front Matter owner, status, and viewport metadata", () => {
-  const source = `---
-id: SCR-REMOVED-META
-type: screen
-title: Removed Metadata
-owner: docs
-status: draft
-viewport: mobile
----
-
-# SCR-REMOVED-META Removed Metadata
-`;
-  const result = parseMarkVSpec(source);
-
-  assert.equal((result.screen as { viewport?: unknown }).viewport, undefined);
-  assert.deepEqual(
-    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
-    [
-      ["warning", "Front Matter field owner is no longer canonical and is ignored.", 1],
-      ["warning", "Front Matter field status is no longer canonical and is ignored.", 1],
-      ["warning", "Front Matter field viewport is no longer canonical and is ignored.", 1]
-    ]
-  );
-});
-
-test("warns and ignores removed project status and screen owner metadata", () => {
-  const source = `---
-id: PRJ-REMOVED-META
-type: project
-title: Removed Metadata Project
-status: draft
-screens:
-  - id: SCR-USERS
-    path: examples/04-real-world-screens/search-list.vspec.md
-    owner: admin
----
-
-# PRJ-REMOVED-META Removed Metadata Project
-`;
-  const result = parseMarkVSpecProject(source);
-
-  assert.deepEqual(
-    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
-    [
-      ["warning", "Project screen entry uses unsupported field owner.", lineNumber(source, "    owner: admin")],
-      ["warning", "Front Matter field status is no longer canonical and is ignored.", 1]
-    ]
-  );
-});
-
 test("derives Basic Info history values from the latest history entry only", () => {
   const source = `---
 id: SCR-HISTORY-BASIC-INFO
@@ -3288,37 +3238,11 @@ references:
 
   assert.equal(result.screen.template, "TPL-SHELL");
   assert.equal(result.screen.templateSrc, "../templates/shell.vspec.md");
-  assert.deepEqual(result.screen.references.templates, {});
   assert.deepEqual(result.screen.references.partials, {
     "PRT-PROFILE": "../partials/profile.vspec.md",
     "PRT-NOTICES": "../partials/notices.vspec.md"
   });
   assert.equal(result.diagnostics.length, 0);
-});
-
-test("reports removed Front Matter template reference syntax", () => {
-  const source = `---
-id: SCR-OLD-REFERENCES
-type: screen
-title: Old References
-template: TPL-SHELL
-references:
-  templates:
-    TPL-SHELL: ../templates/shell.vspec.md
----
-
-# SCR-OLD-REFERENCES Old References
-
-## States
-
-- idle*
-`;
-  const result = parseMarkVSpec(source);
-
-  assert.equal(result.screen.template, undefined);
-  assert.equal(result.screen.templateSrc, undefined);
-  assert(result.diagnostics.some((diagnostic) => diagnostic.severity === "error" && diagnostic.message === "template must be a map with id and src."));
-  assert(result.diagnostics.some((diagnostic) => diagnostic.severity === "error" && diagnostic.message === "references.templates has been removed. Use template.id and template.src."));
 });
 
 test("reports path-only Front Matter template syntax", () => {
@@ -3672,32 +3596,6 @@ title: Custom Element
   assert.equal(result.elements[0]?.type, "custom:Map");
 });
 
-test("reports removed region layout kind as an error", () => {
-  const source = `---
-id: SCR-REGION
-type: screen
-title: Region
----
-
-# SCR-REGION Region
-
-## States
-
-- idle*
-
-## Layout: mobile
-
-### L-Message Message Area
-
-- region
-`;
-  const result = parseMarkVSpec(source);
-
-  assert.deepEqual(result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message]), [
-    ["error", "Layout kind region is no longer supported. Use stack, row, grid, or inline."]
-  ]);
-});
-
 test("warns when semantic sections are out of recommended order", () => {
   const source = `---
 id: SCR-SECTION-ORDER
@@ -3821,8 +3719,6 @@ title: Validation Diagnostics
 ### V-CrossField Cross-field validation
 
 - target: E-MissingInput
-- trigger: A-MissingSave
-- trigger: E-メールアドレス入力
 - condition: E-MissingInput.value equals E-OtherInput.value
 `;
   const result = parseMarkVSpec(source);
@@ -3831,8 +3727,6 @@ title: Validation Diagnostics
     result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
     [
       ["error", "Validation V-CrossField targets missing element E-MissingInput.", lineNumber(source, "- target: E-MissingInput")],
-      ["warning", "Validation V-CrossField trigger is not canonical. Actions should consume V-CrossField.result instead of defining validation triggers.", lineNumber(source, "- trigger: A-MissingSave")],
-      ["warning", "Validation V-CrossField trigger is not canonical. Actions should consume V-CrossField.result instead of defining validation triggers.", lineNumber(source, "- trigger: E-メールアドレス入力")],
       ["warning", "Condition references missing ID E-MissingInput.", lineNumber(source, "- condition: E-MissingInput.value equals E-OtherInput.value")],
       ["warning", "Condition references missing ID E-OtherInput.", lineNumber(source, "- condition: E-MissingInput.value equals E-OtherInput.value")]
     ]
@@ -3963,7 +3857,7 @@ title: FormGroup Scope
   );
 });
 
-test("diagnoses unsupported validation run values", () => {
+test("diagnoses unrecognized validation run values", () => {
   const source = `---
 id: SCR-VALIDATION-GROUPS
 type: screen
@@ -4018,14 +3912,14 @@ title: Validation Groups
   - same-as:
     - E-パスワード入力
     - E-PasswordConfirmInput
-- run: server
+- run: edge
 - condition: E-パスワード入力.value equals E-PasswordConfirmInput.value
 `;
   const result = parseMarkVSpec(source);
 
   assert.deepEqual(
     result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
-    [["warning", "Validation V-PasswordConfirmation run server is not supported. Use client.", lineNumber(source, "- run: server")]]
+    [["warning", "Validation V-PasswordConfirmation run edge is not recognized. Use client.", lineNumber(source, "- run: edge")]]
   );
 });
 
@@ -4446,35 +4340,6 @@ title: Missing Trigger
       lineNumber(source, "### A-Submit Submit")
     ]]
   );
-});
-
-test("reports removed Radio and EmptyState element types as unknown", () => {
-  const source = `---
-id: SCR-REMOVED-ELEMENTS
-type: screen
-title: Removed Elements
----
-
-# SCR-REMOVED-ELEMENTS Removed Elements
-
-## States
-
-- idle*
-
-## Elements
-
-### E-Plan Radio
-
-- label: Pro
-
-### E-Empty EmptyState
-
-- sample: No records
-`;
-  const messages = parseMarkVSpec(source).diagnostics.map((diagnostic) => diagnostic.message);
-
-  assert(messages.includes("Unknown element type: Radio."));
-  assert(messages.includes("Unknown element type: EmptyState."));
 });
 
 test("reports duplicate IDs", () => {
@@ -8537,39 +8402,6 @@ title: Unsupported Props
   assert.equal(diagnostic.line, lineNumber(source, "- placeholder: Save button"));
 });
 
-test("warns for unsupported legacy bind element property", () => {
-  const source = `---
-id: SCR-UNSUPPORTED-BIND
-type: screen
-title: Unsupported Bind
----
-
-# SCR-UNSUPPORTED-BIND Unsupported Bind
-
-## States
-
-- idle*
-
-## Elements
-
-### E-EmailInput Input
-
-- label: Email
-- value: \${model.email}
-- bind: \${model.email}
-`;
-  const result = parseMarkVSpec(source);
-  const diagnostic = result.diagnostics.find((item) => item.code === "element.unsupportedLegacyBind");
-  const messages = result.diagnostics.map((item) => item.message);
-
-  assert(diagnostic);
-  assert.equal(diagnostic.severity, "warning");
-  assert.equal(diagnostic.message, "Element E-EmailInput uses unsupported legacy bind property. Use value/source for value origin, initial value for initial display, and E-*.value in request params instead.");
-  assert.equal(renderDiagnosticMessageForLocale(diagnostic, "ja"), "Element E-EmailInput はサポート対象外の旧 bind property を使用しています。入力値の由来は value/source、初期表示は initial value、送信値参照は E-*.value を使ってください。");
-  assert.equal(diagnostic.line, lineNumber(source, "- bind: ${model.email}"));
-  assert(!messages.includes("Element E-EmailInput of type Input uses unsupported property bind."));
-});
-
 test("allows label src opaque references on element labels", () => {
   const source = `---
 id: SCR-I18N-LABEL
@@ -11044,7 +10876,6 @@ locale: ja
       "action.process.mixesResultClassificationAndImmediateEffects",
       "action.process.multipleExecutionDetails",
       "element.unknownType",
-      "element.unsupportedLegacyBind",
       "element.unsupportedProperty",
       "frontMatter.missingRequired",
       "frontMatter.missingYaml",

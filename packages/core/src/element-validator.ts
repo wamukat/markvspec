@@ -52,16 +52,6 @@ function checkUnsupportedElementProperties(element: MarkVSpecElement, diagnostic
       continue;
     }
 
-    if (key === "bind") {
-      diagnostics.push(createMarkVSpecDiagnostic(
-        "warning",
-        "element.unsupportedLegacyBind",
-        { elementId: element.id },
-        firstPropertyLine(element, key) ?? element.location.line
-      ));
-      continue;
-    }
-
     if (commonElementProperties.has(key) || typeProperties.has(key)) {
       continue;
     }

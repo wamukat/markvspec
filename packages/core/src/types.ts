@@ -43,7 +43,6 @@ export interface MarkVSpecScreenSummary {
 }
 
 export interface MarkVSpecDocumentReferences {
-  templates: Record<string, string>;
   partials: Record<string, string>;
 }
 

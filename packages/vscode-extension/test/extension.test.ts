@@ -3241,7 +3241,7 @@ locale: ja
   assert.doesNotMatch(scenarioSection, /2 rows/);
 });
 
-test("renders validation rules in client and server scope groups", () => {
+test("renders validation rules in client field and cross-field groups", () => {
   const source = `---
 id: SCR-VALIDATIONS
 type: screen
@@ -3308,7 +3308,7 @@ locale: ja
   - unique:
     - E-パスワード入力
 - scope: single
-- run: server
+- run: client
 - condition: server response ERR-EMAIL-TAKEN
 - message: このメールアドレスは使用できません。
 - error code: ERR-EMAIL-TAKEN
@@ -3322,7 +3322,7 @@ locale: ja
     - E-パスワード入力
     - E-PasswordConfirmInput
 - scope: composite
-- run: server-response
+- run: client
 - condition: server response ERR-ACCOUNT-CONSISTENCY
 - message: アカウント情報を確認してください。
 - error code: ERR-ACCOUNT-CONSISTENCY
@@ -3332,32 +3332,28 @@ locale: ja
   const section = docSectionByHeading(html, "Validations", "業務ルール");
   const clientField = section.match(/<h3>クライアント単項目検証<\/h3>[\s\S]*?<\/table>/)?.[0] ?? "";
   const clientCrossField = section.match(/<h3>クライアント複合項目検証<\/h3>[\s\S]*?<\/table>/)?.[0] ?? "";
-  const serverField = section.match(/<h3>サーバ単項目検証<\/h3>[\s\S]*?<\/table>/)?.[0] ?? "";
-  const serverCrossField = section.match(/<h3>サーバ複合項目検証<\/h3>[\s\S]*?<\/table>/)?.[0] ?? "";
 
   assert.match(section, /<h3>クライアント単項目検証<\/h3>/);
   assert.match(section, /<h3>クライアント複合項目検証<\/h3>/);
-  assert.match(section, /<h3>サーバ単項目検証<\/h3>/);
-  assert.match(section, /<h3>サーバ複合項目検証<\/h3>/);
+  assert.doesNotMatch(section, /<h3>サーバ単項目検証<\/h3>/);
+  assert.doesNotMatch(section, /<h3>サーバ複合項目検証<\/h3>/);
   assert.match(clientField, /<th>番号\/ID<\/th><th>対象<\/th><th>ルール<\/th><th>条件<\/th><th>メッセージ<\/th><th>エラーコード<\/th>/);
   assert.doesNotMatch(section, /<th>結果<\/th>/);
   assert.doesNotMatch(section, /<th>範囲<\/th>|<th>実行<\/th>/);
   assert.match(clientField, new RegExp(`<td>${refMessageChip("V-EmailRequired", "V-EmailRequired", "メール必須")}</td>`));
   assert.match(clientField, /非推奨 condition:/);
-  assert.doesNotMatch(clientField, /V-PasswordConfirmation|V-EmailUnique|V-AccountConsistency/);
+  assert.match(clientField, new RegExp(`<td>${refMessageChip("V-EmailUnique", "V-EmailUnique", "メール重複")}</td>`));
+  assert.match(clientField, /ERR-EMAIL-TAKEN/);
+  assert.doesNotMatch(clientField, /V-PasswordConfirmation|V-AccountConsistency/);
   assert.match(clientCrossField, /<th>番号\/ID<\/th><th>対象<\/th><th>入力<\/th><th>チェック<\/th><th>条件<\/th><th>メッセージ<\/th><th>エラーコード<\/th>/);
   assert.match(clientCrossField, new RegExp(`<td>${refMessageChip("V-PasswordConfirmation", "V-PasswordConfirmation", "パスワード確認")}</td>`));
   assert.match(clientCrossField, new RegExp(`<li>${markerBadge("1", "element")}<\\/li><li>${markerBadge("2", "element")}<\\/li>`));
   assert.match(clientCrossField, /same-as/);
   assert.match(clientCrossField, new RegExp(`${markerBadge("1", "element")}\\.value equals ${markerBadge("2", "element")}\\.value`));
   assert.doesNotMatch(clientCrossField, /V-PasswordConfirmation\.result/);
-  assert.doesNotMatch(clientCrossField, /V-EmailRequired|V-EmailUnique|V-AccountConsistency/);
-  assert.match(serverField, new RegExp(`<td>${refMessageChip("V-EmailUnique", "V-EmailUnique", "メール重複")}</td>`));
-  assert.match(serverField, /ERR-EMAIL-TAKEN/);
-  assert.doesNotMatch(serverField, /V-EmailRequired|V-PasswordConfirmation|V-AccountConsistency/);
-  assert.match(serverCrossField, new RegExp(`<td>${refMessageChip("V-AccountConsistency", "V-AccountConsistency", "アカウント整合性")}</td>`));
-  assert.match(serverCrossField, /ERR-ACCOUNT-CONSISTENCY/);
-  assert.doesNotMatch(serverCrossField, /V-EmailRequired|V-PasswordConfirmation|V-EmailUnique/);
+  assert.match(clientCrossField, new RegExp(`<td>${refMessageChip("V-AccountConsistency", "V-AccountConsistency", "アカウント整合性")}</td>`));
+  assert.match(clientCrossField, /ERR-ACCOUNT-CONSISTENCY/);
+  assert.doesNotMatch(clientCrossField, /V-EmailRequired|V-EmailUnique/);
 });
 
 test("renders empty validation rules section with none label", () => {

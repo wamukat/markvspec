@@ -78,20 +78,6 @@ export function validateValidationTargets(
   });
 }
 
-export function validateValidationTrigger(
-  validation: MarkVSpecParseResult["validations"][number],
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  validationPropertyValues(validation, "trigger").forEach((trigger, index) => {
-    const line = validation.propertyLocations["trigger"]?.[index]?.line ?? validation.location.line;
-    diagnostics.push({
-      severity: "warning",
-      message: `Validation ${validation.id} trigger is not canonical. Actions should consume ${validation.id}.result instead of defining validation triggers.`,
-      line
-    });
-  });
-}
-
 export function validateValidationRules(
   validation: MarkVSpecParseResult["validations"][number],
   context: ValidationRuleDiagnosticContext,
@@ -174,7 +160,7 @@ export function validateValidationScopeAndRun(
     if (run !== "client") {
       diagnostics.push({
         severity: "warning",
-        message: `Validation ${validation.id} run ${run} is not supported. Use client.`,
+        message: `Validation ${validation.id} run ${run} is not recognized. Use client.`,
         line: validation.propertyLocations["run"]?.[index]?.line ?? validation.location.line
       });
     }

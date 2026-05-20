@@ -592,16 +592,6 @@ function parseScreen(
     });
   }
 
-  for (const key of ["owner", "status", "viewport"]) {
-    if (frontMatter[key]) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Front Matter field ${key} is no longer canonical and is ignored.`,
-        line: 1
-      });
-    }
-  }
-
   return screen;
 }
 

@@ -155,13 +155,6 @@ function parseDocumentReferences(data: Record<string, unknown>, diagnostics: Mar
     return references;
   }
 
-  if (source["templates"] !== undefined) {
-    diagnostics.push({
-      severity: "error",
-      message: "references.templates has been removed. Use template.id and template.src.",
-      line: 1
-    });
-  }
   references.partials = parseReferenceGroup(source["partials"]);
   return references;
 }
@@ -182,7 +175,6 @@ function parseReferenceGroup(value: unknown): Record<string, string> {
 
 function createEmptyDocumentReferences(): MarkVSpecDocumentReferences {
   return {
-    templates: {},
     partials: {}
   };
 }

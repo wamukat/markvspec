@@ -1,7 +1,7 @@
 import { propertyFirstString, propertyList, propertyMarker } from "./property-accessor.js";
 import type { MarkVSpecParseResult, MarkVSpecRule, MarkVSpecValidationRule, MarkVSpecValidationRuleEntry } from "./types.js";
 
-export type ValidationRunKind = "client" | "server";
+export type ValidationRunKind = "client";
 export type ValidationScopeKind = "field" | "cross-field";
 
 export interface ValidationRuleProperty {
@@ -34,8 +34,7 @@ export function businessRuleDomainFor(rule: MarkVSpecRule): BusinessRuleDomain {
 }
 
 export function validationRun(validation: MarkVSpecValidationRule): ValidationRunKind {
-  const run = propertyFirstString(validation, "run")?.toLowerCase();
-  return run === "server" || run === "server-response" ? "server" : "client";
+  return "client";
 }
 
 export function validationScope(validation: MarkVSpecValidationRule): ValidationScopeKind {

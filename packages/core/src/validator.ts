@@ -59,7 +59,6 @@ import {
   validateValidationRules,
   validateValidationScopeAndRun,
   validateValidationTargets,
-  validateValidationTrigger,
   validationPropertyValues,
   type BusinessRuleOutcomeDiagnosticSupport,
   type ValidationRuleDiagnosticContext,
@@ -861,7 +860,6 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
 
   for (const validation of result.validations) {
     validateValidationTargets(validation, validationTargetDiagnosticContext, diagnostics);
-    validateValidationTrigger(validation, diagnostics);
     validateValidationRules(validation, validationRuleDiagnosticContext, diagnostics);
     validateValidationCondition(validation, localIds, diagnostics);
     validateValidationErrorCodes(validation, errorCodeIds, diagnostics);
@@ -1954,14 +1952,6 @@ function isExternalTransitionTarget(value: string): boolean {
 }
 
 function layoutKindDiagnostic(group: MarkVSpecLayoutGroup): MarkVSpecDiagnostic {
-  if (group.kind === "region") {
-    return {
-      severity: "error",
-      message: "Layout kind region is no longer supported. Use stack, row, grid, or inline.",
-      line: group.location.line
-    };
-  }
-
   return {
     severity: "warning",
     message: `Unknown layout kind: ${group.kind}.`,
