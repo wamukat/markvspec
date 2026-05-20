@@ -10,7 +10,7 @@ Markdown で UI 仕様を書く。
 
 English documentation starts at [README.md](README.md).
 
-![Hello Screen の Markdown source と MarkVSpec VS Code preview](docs/assets/start/vscode-preview-clean.png)
+![Login 仕様の Markdown source と MarkVSpec VS Code preview](assets/MarkVSpec.gif)
 
 ## まず試す
 

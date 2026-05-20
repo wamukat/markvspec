@@ -10,7 +10,7 @@ Write UI specifications in Markdown.
 
 日本語の説明は [README.ja.md](README.ja.md) を参照してください。
 
-![Hello Screen Markdown source next to the MarkVSpec VS Code preview](docs/assets/start/vscode-preview-clean.png)
+![Login specification source next to the MarkVSpec VS Code preview](assets/MarkVSpec.gif)
 
 ## Try It
 
