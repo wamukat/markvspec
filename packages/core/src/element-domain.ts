@@ -190,11 +190,15 @@ export function displayLabelForElement(
   fallback?: string,
   propertyValue: (element: MarkVSpecElement, property: string) => string | undefined = propertyFirstString
 ): string | undefined {
-  return propertyValue(element, "label")
-    ?? propertyValue(element, "text")
-    ?? propertyValue(element, "title")
-    ?? propertyValue(element, "value")
+  return nonEmpty(propertyValue(element, "label"))
+    ?? nonEmpty(propertyValue(element, "text"))
+    ?? nonEmpty(propertyValue(element, "title"))
+    ?? nonEmpty(propertyValue(element, "value"))
     ?? fallback;
+}
+
+function nonEmpty(value: string | undefined): string | undefined {
+  return value ? value : undefined;
 }
 
 export function controlledPanelReferences(element: MarkVSpecElement): ControlledPanelReference[] {

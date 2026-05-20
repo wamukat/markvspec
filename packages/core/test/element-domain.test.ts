@@ -46,6 +46,10 @@ test("element domain resolves display label fallback without treating empty labe
     displayLabelForElement(element("Text", { label: "${route.title}" }), undefined, () => "Resolved title"),
     "Resolved title"
   );
+  assert.equal(
+    displayLabelForElement(element("Text", { text: "Title" }), undefined, (candidate, property) => String(candidate.properties[property] ?? "")),
+    "Title"
+  );
 });
 
 test("element domain exposes controlled panel references", () => {
