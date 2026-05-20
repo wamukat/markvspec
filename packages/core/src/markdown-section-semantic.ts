@@ -45,6 +45,7 @@ import {
 import { filterLinesWithoutStandaloneHtmlComments, isStandaloneHtmlCommentBlock } from "./markdown-html-comments.js";
 import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
 import { isMarkVSpecSourceType } from "./source-types.js";
+import { addAccumulatedSectionProperty, addPropertyLocation } from "./section-property-accumulator.js";
 
 export interface SemanticDependency {
   source: { type: "entity" | "section" | "render"; id: string };
@@ -1588,27 +1589,27 @@ function parseValidationsSection(section: SectionAst): Pick<SectionSemanticResul
           } else if (activeRule) {
             const [childKey, childValue] = splitKeyValue(bullet.text);
             if (childKey.trim() === "message" && childValue !== undefined) {
-              addValidationProperty(current, "message", childValue.trim(), bullet.location);
+              addAccumulatedSectionProperty(current, "message", childValue.trim(), bullet.location);
             } else if (childKey.trim() === "messages" && childValue !== undefined) {
-              addValidationProperty(current, "message", childValue.trim(), bullet.location);
+              addAccumulatedSectionProperty(current, "message", childValue.trim(), bullet.location);
             } else {
               activeRule.targets.push(bullet.text.trim());
             }
           }
         } else if (activeStructuredKey === "inputs") {
           if (item.depth === 1) {
-            addValidationProperty(current, "input", bullet.text.trim(), bullet.location);
+            addAccumulatedSectionProperty(current, "input", bullet.text.trim(), bullet.location);
           }
         } else if (item.depth === 1 && activeStructuredKey === "messages") {
-          addValidationProperty(current, "message", bullet.text.trim(), bullet.location);
+          addAccumulatedSectionProperty(current, "message", bullet.text.trim(), bullet.location);
         } else if (item.depth === 1 && activeStructuredKey === "message") {
-          addValidationProperty(current, "message", bullet.text.trim(), bullet.location);
+          addAccumulatedSectionProperty(current, "message", bullet.text.trim(), bullet.location);
         } else if (item.depth === 1 && activeStructuredKey === "target") {
-          addValidationProperty(current, "target", bullet.text.trim(), bullet.location);
+          addAccumulatedSectionProperty(current, "target", bullet.text.trim(), bullet.location);
         } else if (item.depth === 1 && activeStructuredKey === "check") {
           const [childKey, childValue] = splitKeyValue(bullet.text);
           if (childKey.trim() === "message" && childValue !== undefined) {
-            addValidationProperty(current, "message", childValue.trim(), bullet.location);
+            addAccumulatedSectionProperty(current, "message", childValue.trim(), bullet.location);
           } else if (activeRule) {
             activeRule.targets.push(bullet.text.trim());
           }
@@ -2693,19 +2694,7 @@ function applyValidationBullet(validation: MarkVSpecValidationRule, text: string
 
   const normalizedKey = key.trim();
   const normalizedValue = value.trim();
-  addValidationProperty(validation, normalizedKey, normalizedValue, location);
-}
-
-function addValidationProperty(validation: MarkVSpecValidationRule, normalizedKey: string, normalizedValue: string, location: SourceLocation): void {
-  const current = validation.properties[normalizedKey];
-  if (current === undefined) {
-    validation.properties[normalizedKey] = normalizedValue;
-  } else if (Array.isArray(current)) {
-    current.push(normalizedValue);
-  } else {
-    validation.properties[normalizedKey] = [current, normalizedValue];
-  }
-  addPropertyLocation(validation.propertyLocations, normalizedKey, location);
+  addAccumulatedSectionProperty(validation, normalizedKey, normalizedValue, location);
 }
 
 function applyFormGroupBullet(formGroup: MarkVSpecFormGroup, text: string, location: SourceLocation): string | undefined {
@@ -2717,7 +2706,7 @@ function applyFormGroupBullet(formGroup: MarkVSpecFormGroup, text: string, locat
 
   const normalizedKey = key.trim();
   const normalizedValue = value.trim();
-  addFormGroupProperty(formGroup, normalizedKey, normalizedValue, location);
+  addAccumulatedSectionProperty(formGroup, normalizedKey, normalizedValue, location);
 
   if (normalizedKey === "fields") {
     for (const field of splitReferenceList(normalizedValue)) {
@@ -2748,18 +2737,6 @@ function addFormGroupField(formGroup: MarkVSpecFormGroup, text: string, location
   });
 }
 
-function addFormGroupProperty(formGroup: MarkVSpecFormGroup, key: string, value: string, location: SourceLocation): void {
-  const current = formGroup.properties[key];
-  if (current === undefined) {
-    formGroup.properties[key] = value;
-  } else if (Array.isArray(current)) {
-    current.push(value);
-  } else {
-    formGroup.properties[key] = [current, value];
-  }
-  addPropertyLocation(formGroup.propertyLocations, key, location);
-}
-
 function splitReferenceList(value: string): string[] {
   return value
     .split(/[,、]/u)
@@ -2776,15 +2753,7 @@ function applyErrorCodeBullet(errorCode: MarkVSpecErrorCode, text: string, locat
 
   const normalizedKey = key.trim();
   const normalizedValue = value.trim();
-  const current = errorCode.properties[normalizedKey];
-  if (current === undefined) {
-    errorCode.properties[normalizedKey] = normalizedValue;
-  } else if (Array.isArray(current)) {
-    current.push(normalizedValue);
-  } else {
-    errorCode.properties[normalizedKey] = [current, normalizedValue];
-  }
-  addPropertyLocation(errorCode.propertyLocations, normalizedKey, location);
+  addAccumulatedSectionProperty(errorCode, normalizedKey, normalizedValue, location);
 }
 
 function propertyValues(value: string | string[] | undefined): string[] {
@@ -2899,7 +2868,7 @@ function applyRuleListBlock(rule: MarkVSpecRule, block: BlockAst): void {
       continue;
     }
     for (const child of listItems(item.children)) {
-      addRuleProperty(rule, "messages", child.text, locationFromBlock(child));
+      addAccumulatedSectionProperty(rule, "messages", child.text, locationFromBlock(child));
     }
   }
 }
@@ -2915,19 +2884,7 @@ function applyRuleBullet(rule: MarkVSpecRule, text: string, location: SourceLoca
   if (normalizedKey === "messages" && normalizedValue === "") {
     return;
   }
-  addRuleProperty(rule, normalizedKey, normalizedValue, location);
-}
-
-function addRuleProperty(rule: MarkVSpecRule, key: string, value: string, location: SourceLocation): void {
-  const current = rule.properties[key];
-  if (current === undefined) {
-    rule.properties[key] = value;
-  } else if (Array.isArray(current)) {
-    current.push(value);
-  } else {
-    rule.properties[key] = [current, value];
-  }
-  addPropertyLocation(rule.propertyLocations, key, location);
+  addAccumulatedSectionProperty(rule, normalizedKey, normalizedValue, location);
 }
 
 function appendRuleBodyLines(rule: MarkVSpecRule, block: BlockAst): void {
@@ -3161,10 +3118,4 @@ function parsedBulletFromListItem(item: ListItemView): ParsedBullet {
     indent: item.depth,
     location: locationFromBlock(item)
   };
-}
-
-function addPropertyLocation(locations: Record<string, SourceLocation[]>, key: string, location: SourceLocation): void {
-  const existing = locations[key] ?? [];
-  existing.push(location);
-  locations[key] = existing;
 }
