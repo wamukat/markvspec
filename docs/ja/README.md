@@ -14,17 +14,6 @@ MarkVSpec を初めて試す場合は [Start](start/) から始めてくださ�
 - 正確な記法を引く: [Reference](reference/)
 - 考え方を読む: [Concepts](concepts/)
 
-## 既存の利用者向け文書
-
-新 IA への移行中は、既存の user 文書も参照できます。
-
-- [DSL リファレンス](user/dsl.md)
-- [サンプルギャラリー](user/example-gallery.md)
-- [UI 部品・画面パターン対応範囲](user/ui-coverage.md)
-- [サーバレンダリング部分更新](user/server-partials.md)
-- [PDF 出力と共有](user/pdf-export.md)
-- [既知の制限](user/limitations.md)
-
 ## 保守者向け
 
 保守者向け文書は利用者向け導線とは分けて管理します。

@@ -5,7 +5,7 @@
 この文書は、MarkVSpec の構造化セクション内に書かれた paragraph、table、code block を
 どの semantic owner に所属させ、preview / generated document にどう表示するかを定義する内部設計です。
 
-利用者向けの DSL 説明は、この設計が実装された後に [DSL リファレンス](../user/dsl.md) へ反映します。
+利用者向けの DSL 説明は、この設計が実装された後に [DSL リファレンス](../reference/index.md) へ反映します。
 プレビュー上の表示責務は [プレビュー情報設計](preview-information-architecture.md) と整合させます。
 
 ## 背景

@@ -229,7 +229,7 @@ ja/en の本文品質は段階的に揃えてよいですが、directory / filen
 
 | 既存文書 | 移行先 | 方針 |
 | --- | --- | --- |
-| `docs/ja/user/dsl.md` | `reference/` | 章ごとに分割する。既存 URL はしばらく残すか redirect 相当の案内にする。 |
+| `docs/ja/user/dsl.md` | `reference/` | 章ごとに分割し、移行後の旧ページは削除する。 |
 | `docs/ja/user/structured-section-reference.md` | `reference/sections.md` | Reference として維持する。Guide には短い説明だけ置く。 |
 | `docs/ja/user/server-partials.md` | `guide/partial-updates.md` / `recipes/server-partial-update.md` | 概念説明と実務手順に分ける。 |
 | `docs/ja/user/pdf-export.md` | `start/export.md` / `recipes/pdf-export.md` / `reference/cli.md` | 初回手順、実務共有、CLI 詳細を分ける。 |
@@ -238,7 +238,7 @@ ja/en の本文品質は段階的に揃えてよいですが、directory / filen
 | `docs/ja/user/limitations.md` | `reference/limitations.md` | Reference として維持する。 |
 | `docs/ja/maintainers/*` | `maintainers/` | 原則維持。利用者ポータルからは別枠で案内する。 |
 
-削除は最終段階で行います。まず新しい導線を作り、既存文書から新ページへリンクを張ります。
+移行済みの旧ページは、互換導線として残さず削除します。利用者には Start / Guide / Reference / Recipes / Examples の現行導線だけを見せます。
 
 ## Example catalog
 
@@ -327,7 +327,7 @@ catalog は次の出力に使います。
 - showcase page に teaches、related guide、related reference、related recipes、next examples を表示する。
 - site top から Start / Guide / Recipes / Reference / Examples へリンクする。
 - docs の Markdown 変換時に、README、site、examples、docs index の主要導線が切れていないか check する。
-- 旧 `user/` から新 IA への互換リンク check は、主要導線の整備後に段階導入する。
+- 移行済みの `user/` artifact が再生成されていないことを check する。
 
 `scripts/check-pages-site.mjs` は次を確認します。
 
@@ -350,7 +350,7 @@ catalog は次の出力に使います。
 9. `docs/ja/reference/` と `docs/en/reference/` を作り、巨大な `dsl.md` を段階的に分割する。
 10. README と site top を新 IA に合わせる。
 11. 英語版 stub を本文へ追従させる。
-12. 旧 `docs/*/user/` のページを redirect 相当の案内、または互換リンクとして整理する。
+12. 移行済みの旧 `docs/*/user/` ページを削除し、利用者導線を新体系へ一本化する。
 
 ## Ticket 分割方針
 

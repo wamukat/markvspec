@@ -10,4 +10,3 @@
 ## Related
 
 - [Guide](../guide/index.md)
-- [Old known limitations](../user/limitations.md)

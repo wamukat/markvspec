@@ -3,8 +3,8 @@
 ## この文書の位置づけ
 
 この文書は、MarkVSpec 自体の設計思想とプロダクト判断を記録する内部設計寄りの文書です。
-利用者が設計書を書くための手順は [DSL リファレンス](../user/dsl.md) と
-[サンプルギャラリー](../user/example-gallery.md) を参照してください。
+利用者が設計書を書くための手順は [DSL リファレンス](../reference/index.md) と
+[サンプルギャラリー](../examples/index.md) を参照してください。
 
 MarkVSpec は、プロダクト開発のための Markdown-first な画面仕様フォーマットです。source document はまず画面設計書として読めるべきであり、そのうえでワイヤーフレームのレンダリングや機械可読データの export に十分な構造を持ちます。
 
@@ -255,7 +255,7 @@ ID 例です。
 
 Markdown table や大きな YAML block を primary authoring surface にしません。表は生成ビューとしては使えますが、canonical source にはしません。
 
-具体的なリリース構文は [dsl.md](../user/dsl.md)、現在の product-level design は [design-spec.md](design-spec.md) に定義します。
+具体的なリリース構文は [dsl.md](../reference/index.md)、現在の product-level design は [design-spec.md](design-spec.md) に定義します。
 
 ## レンダリングルール
 

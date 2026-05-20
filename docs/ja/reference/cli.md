@@ -23,7 +23,3 @@ PDF export には Chrome 互換ブラウザが必要です。
 ## 関連 example
 
 - [Hello Screen](../../../examples/showcase/hello-screen.html)
-
-## 旧文書
-
-- [Export Start](../start/export.md)

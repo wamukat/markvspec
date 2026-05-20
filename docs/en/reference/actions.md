@@ -37,7 +37,3 @@ Describe server-rendered partial updates with `HttpRequest` and `update`, not ra
 ## Related Example
 
 - [Form Submit Flow](../../../examples/showcase/form-submit-flow.html)
-
-## Old Document
-
-- [DSL reference](../user/dsl.md)

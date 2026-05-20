@@ -324,7 +324,7 @@ still use stable IDs such as `E-SignInButton` and `A-SubmitLogin`.
 Avoid making tables or large YAML blocks the primary authoring surface. Tables are
 acceptable as generated views, but not as the canonical source.
 
-The concrete release syntax is defined in [dsl.md](../user/dsl.md).
+The concrete release syntax is defined in [dsl.md](../reference/index.md).
 The current product-level design is summarized in [design-spec.md](design-spec.md).
 
 ## Rendering Rules

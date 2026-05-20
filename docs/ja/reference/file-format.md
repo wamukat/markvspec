@@ -24,7 +24,3 @@ Front Matter の後に Markdown 見出しと箇条書きで仕様を書きます
 ## 関連 example
 
 - [Hello Screen](../../../examples/showcase/hello-screen.html)
-
-## 旧文書
-
-- [DSL リファレンス](../user/dsl.md)

@@ -23,7 +23,3 @@
 ## Related Example
 
 - [Account Settings](../../../examples/showcase/history-and-errors.html)
-
-## Old Document
-
-- [DSL reference](../user/dsl.md)

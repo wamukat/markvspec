@@ -3,7 +3,7 @@
 ## この文書の位置づけ
 
 この文書は、MarkVSpec の実装寄り設計を記録する内部設計文書です。利用者向けの記法確認は
-[DSL リファレンス](../user/dsl.md)、サンプル確認は [サンプルギャラリー](../user/example-gallery.md) を参照してください。
+[DSL リファレンス](../reference/index.md)、サンプル確認は [サンプルギャラリー](../examples/index.md) を参照してください。
 
 MarkVSpec は、Markdown を画面設計書の canonical source として扱うためのフォーマットです。画面設計書として読めることを優先しつつ、パーサー、バリデーター、Live Preview が扱えるだけの構造を持たせます。
 

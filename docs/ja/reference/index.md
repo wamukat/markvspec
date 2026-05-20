@@ -16,10 +16,6 @@ MarkVSpec の正確な記法を引くための入口です。
 - [CLI](cli.md): validate / export command。
 - [Limitations](limitations.md): 現時点の制限。
 
-## 互換文書
-
-- [旧 DSL リファレンス](../user/dsl.md)
-
 ## Examples
 
 - [Hello Screen](../../../examples/showcase/hello-screen.html)

@@ -19,7 +19,3 @@ Markdown 見出しは object 宣言です。section の下で `###` 見出しを
 ## 関連 example
 
 - [Hello Screen](../../../examples/showcase/hello-screen.html)
-
-## 旧文書
-
-- [DSL リファレンス](../user/dsl.md)

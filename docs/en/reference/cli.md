@@ -23,7 +23,3 @@ PDF export needs a Chrome-compatible browser.
 ## Related Example
 
 - [Hello Screen](../../../examples/showcase/hello-screen.html)
-
-## Old Document
-
-- [Export Start](../start/export.md)

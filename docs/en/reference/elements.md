@@ -23,7 +23,3 @@
 ## Related Example
 
 - [Source Kind Metadata](../../../examples/showcase/source-kind-metadata.html)
-
-## Old Document
-
-- [DSL reference](../user/dsl.md)

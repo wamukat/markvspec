@@ -659,8 +659,9 @@ function renderShowcasePage(filePath, files, catalogIndex) {
       </div>
       <nav class="top-nav" aria-label="Example navigation">
         <a class="nav-link" href="../">Examples</a>
-        <a class="nav-link" href="../../docs/en/user/authoring-guide.html">Authoring Guide</a>
-        <a class="nav-link" href="../../docs/en/user/document-structure.html">Document Structure</a>
+        <a class="nav-link" href="../../docs/en/start/">Start</a>
+        <a class="nav-link" href="../../docs/en/guide/">Guide</a>
+        <a class="nav-link" href="../../docs/en/reference/">Reference</a>
       </nav>
     </div>
   </header>
@@ -976,10 +977,6 @@ const docsNavigation = [
   {
     title: "More",
     paths: ["examples/index.md", "concepts/index.md"]
-  },
-  {
-    title: "Compatibility",
-    paths: ["user/dsl.md", "user/example-gallery.md", "user/ui-coverage.md", "user/server-partials.md", "user/pdf-export.md", "user/limitations.md"]
   }
 ];
 

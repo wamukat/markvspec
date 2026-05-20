@@ -23,7 +23,3 @@ Validation covers field format, required status, and ranges. `## Rules` covers s
 
 - [Single Field Validation](../../../examples/showcase/single-field-validation.html)
 - [Login](../../../examples/showcase/login-basic.html)
-
-## Old Document
-
-- [DSL reference](../user/dsl.md)

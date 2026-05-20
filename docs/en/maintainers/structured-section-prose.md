@@ -4,7 +4,7 @@
 
 This internal design note defines how MarkVSpec assigns paragraphs, Markdown tables, and code blocks inside structured sections to semantic owners, and how preview / generated documents display them.
 
-User-facing DSL guidance belongs in [DSL reference](../user/dsl.md). Preview display responsibilities should stay aligned with [Preview information architecture](preview-information-architecture.md).
+User-facing DSL guidance belongs in [DSL reference](../reference/index.md). Preview display responsibilities should stay aligned with [Preview information architecture](preview-information-architecture.md).
 
 ## Background
 

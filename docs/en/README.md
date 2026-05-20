@@ -14,17 +14,6 @@ If you need exact syntax, use [Reference](reference/).
 - Look up exact syntax: [Reference](reference/)
 - Read positioning and concepts: [Concepts](concepts/)
 
-## Existing User Documents
-
-During the new IA migration, the existing user documents remain available.
-
-- [DSL reference](user/dsl.md)
-- [Example gallery](user/example-gallery.md)
-- [UI coverage](user/ui-coverage.md)
-- [Server-rendered partials](user/server-partials.md)
-- [PDF export approach](user/pdf-export.md)
-- [Known limitations](user/limitations.md)
-
 ## Maintainers
 
 Maintainer documents are separated from the user-facing reading path.

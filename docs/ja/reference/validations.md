@@ -23,7 +23,3 @@ Validation は入力項目の形式、必須、範囲などを扱います。`##
 
 - [Single Field Validation](../../../examples/showcase/single-field-validation.html)
 - [Login](../../../examples/showcase/login-basic.html)
-
-## 旧文書
-
-- [DSL リファレンス](../user/dsl.md)

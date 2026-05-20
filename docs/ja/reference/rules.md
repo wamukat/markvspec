@@ -23,7 +23,3 @@
 ## 関連 example
 
 - [Account Settings](../../../examples/showcase/history-and-errors.html)
-
-## 旧文書
-
-- [DSL リファレンス](../user/dsl.md)

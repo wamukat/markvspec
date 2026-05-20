@@ -11,26 +11,6 @@ const requiredFiles = [
   "examples/index.html",
   "examples/hello-screen.html",
   "examples/showcase/hello-screen.html",
-  "docs/ja/user/authoring-guide.html",
-  "docs/ja/user/dsl.html",
-  "docs/ja/user/document-structure.html",
-  "docs/ja/user/example-gallery.html",
-  "docs/ja/user/limitations.html",
-  "docs/ja/user/pdf-export.html",
-  "docs/ja/user/renderer-message-dictionary.html",
-  "docs/ja/user/server-partials.html",
-  "docs/ja/user/structured-section-reference.html",
-  "docs/ja/user/ui-coverage.html",
-  "docs/en/user/authoring-guide.html",
-  "docs/en/user/dsl.html",
-  "docs/en/user/document-structure.html",
-  "docs/en/user/example-gallery.html",
-  "docs/en/user/limitations.html",
-  "docs/en/user/pdf-export.html",
-  "docs/en/user/renderer-message-dictionary.html",
-  "docs/en/user/server-partials.html",
-  "docs/en/user/structured-section-reference.html",
-  "docs/en/user/ui-coverage.html",
   "docs/ja/index.html",
   "docs/en/index.html",
   "docs/ja/start/index.html",
@@ -119,29 +99,6 @@ const newIaIndexFiles = [
   "docs/en/concepts/index.html"
 ];
 
-const legacyUserFiles = [
-  "docs/ja/user/authoring-guide.html",
-  "docs/ja/user/dsl.html",
-  "docs/ja/user/document-structure.html",
-  "docs/ja/user/example-gallery.html",
-  "docs/ja/user/limitations.html",
-  "docs/ja/user/pdf-export.html",
-  "docs/ja/user/renderer-message-dictionary.html",
-  "docs/ja/user/server-partials.html",
-  "docs/ja/user/structured-section-reference.html",
-  "docs/ja/user/ui-coverage.html",
-  "docs/en/user/authoring-guide.html",
-  "docs/en/user/dsl.html",
-  "docs/en/user/document-structure.html",
-  "docs/en/user/example-gallery.html",
-  "docs/en/user/limitations.html",
-  "docs/en/user/pdf-export.html",
-  "docs/en/user/renderer-message-dictionary.html",
-  "docs/en/user/server-partials.html",
-  "docs/en/user/structured-section-reference.html",
-  "docs/en/user/ui-coverage.html"
-];
-
 const maintainedPagesUrls = [
   "https://wamukat.github.io/markvspec/",
   "https://wamukat.github.io/markvspec/examples/",
@@ -156,8 +113,7 @@ const maintainedPagesUrls = [
   "https://wamukat.github.io/markvspec/docs/ja/reference/",
   "https://wamukat.github.io/markvspec/docs/en/reference/",
   "https://wamukat.github.io/markvspec/docs/ja/recipes/",
-  "https://wamukat.github.io/markvspec/docs/en/recipes/",
-  ...legacyUserFiles.map((filePath) => `${pagesOrigin}/${filePath}`)
+  "https://wamukat.github.io/markvspec/docs/en/recipes/"
 ];
 
 const failures = [];
@@ -334,19 +290,11 @@ const referenceRulesHtml = readSiteFile("docs/ja/reference/rules.html");
 expectContains(referenceRulesHtml, "Validator Diagnostics", "_site/docs/ja/reference/rules.html should separate rules from validator diagnostics.");
 expectContains(readSiteFile("docs/en/reference/actions.html"), "HttpRequest", "_site/docs/en/reference/actions.html should document request process syntax.");
 expectContains(readSiteFile("docs/en/reference/rules.html"), "Validator Diagnostics", "_site/docs/en/reference/rules.html should separate rules from validator diagnostics.");
-expectContains(readSiteFile("docs/ja/user/dsl.html"), "Reference index", "_site/docs/ja/user/dsl.html should route to split reference pages.");
-expectContains(readSiteFile("docs/en/user/dsl.html"), "Reference index", "_site/docs/en/user/dsl.html should route to split reference pages.");
-
-for (const filePath of legacyUserFiles) {
-  const html = readSiteFile(filePath);
-  if (!html.includes("compat") && !html.includes("互換")) {
-    failures.push(`${filePath} should remain explicitly marked as compatibility content.`);
+for (const removedUserDir of ["docs/ja/user", "docs/en/user"]) {
+  if (existsSync(join(siteDir, removedUserDir))) {
+    failures.push(`${removedUserDir} should not be generated after the new documentation structure replaced it.`);
   }
 }
-expectContains(readSiteFile("docs/ja/user/example-gallery.html"), "../examples/index.html", "_site/docs/ja/user/example-gallery.html should route to the new examples docs.");
-expectContains(readSiteFile("docs/en/user/example-gallery.html"), "../examples/index.html", "_site/docs/en/user/example-gallery.html should route to the new examples docs.");
-expectContains(readSiteFile("docs/ja/user/server-partials.html"), "../recipes/server-partial-update.html", "_site/docs/ja/user/server-partials.html should route to the server partial recipe.");
-expectContains(readSiteFile("docs/en/user/server-partials.html"), "../recipes/server-partial-update.html", "_site/docs/en/user/server-partials.html should route to the server partial recipe.");
 
 const examplesHtml = readSiteFile("examples/index.html");
 expectContains(examplesHtml, "MarkVSpec Examples", "_site/examples/index.html should be the examples index.");
@@ -412,13 +360,6 @@ for (const filePath of [
   expectNotContains(readSiteFile(filePath), "/docs/ja/", `${filePath} should not route English IA readers to Japanese docs.`);
 }
 
-for (const coveragePath of ["docs/ja/user/ui-coverage.html", "docs/en/user/ui-coverage.html"]) {
-  const coverageHtml = readSiteFile(coveragePath);
-  for (const term of ["Tabs", "Popover", "Tooltip", "Accordion", "Disclosure", "ActionMenu"]) {
-    expectContains(coverageHtml, term, `${coveragePath} should mention ${term}.`);
-  }
-}
-
 const generatedExamples = readdirSync(join(siteDir, "examples")).filter((entry) => entry.endsWith(".html") && entry !== "index.html");
 if (generatedExamples.length === 0) {
   failures.push("_site/examples should contain generated example HTML files.");
@@ -437,8 +378,7 @@ for (const filePath of [
   "index.html",
   "docs/ja/index.html",
   "docs/en/index.html",
-  ...newIaIndexFiles,
-  ...legacyUserFiles
+  ...newIaIndexFiles
 ]) {
   expectLocalLinks(filePath);
 }

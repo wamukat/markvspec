@@ -37,7 +37,3 @@ server-rendered partial update は raw htmx 属性ではなく、`HttpRequest` �
 ## 関連 example
 
 - [Form Submit Flow](../../../examples/showcase/form-submit-flow.html)
-
-## 旧文書
-
-- [DSL リファレンス](../user/dsl.md)

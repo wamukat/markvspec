@@ -5,7 +5,7 @@ screen design documents that can also be parsed, previewed, validated, and used
 for downstream implementation handoff.
 
 This document summarizes the release product baseline. The canonical syntax is
-defined in [dsl.md](../user/dsl.md); this document should not introduce alternate
+defined in [dsl.md](../reference/index.md); this document should not introduce alternate
 authoring forms.
 
 Generated preview output follows the section responsibilities in

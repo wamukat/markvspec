@@ -24,7 +24,3 @@ After Front Matter, write the specification with Markdown headings and bullets. 
 ## Related Example
 
 - [Hello Screen](../../../examples/showcase/hello-screen.html)
-
-## Old Document
-
-- [DSL reference](../user/dsl.md)

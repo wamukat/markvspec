@@ -3,7 +3,7 @@
 ## この文書の位置づけ
 
 この文書は、MarkVSpec の lint、formatter、validation gate の判断を確認するための
-運用・開発者向け文書です。通常の記法確認は [DSL リファレンス](../user/dsl.md) を参照してください。
+運用・開発者向け文書です。通常の記法確認は [DSL リファレンス](../reference/index.md) を参照してください。
 
 この文書は formatter と lint に関するリリース時点の判断を記録します。
 

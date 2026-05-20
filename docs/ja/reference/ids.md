@@ -17,7 +17,3 @@ ID は参照のための安定した名前です。表示 label とは分けて�
 ## 関連 example
 
 - [Hello Screen](../../../examples/showcase/hello-screen.html)
-
-## 旧文書
-
-- [DSL リファレンス](../user/dsl.md)

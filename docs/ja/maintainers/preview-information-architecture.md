@@ -3,7 +3,7 @@
 ## この文書の位置づけ
 
 この文書は、MarkVSpec preview / generated document の情報設計を記録する内部設計文書です。
-利用者向けの操作手順ではありません。出力や印刷の確認は [PDF 出力と共有](../user/pdf-export.md) と
+利用者向けの操作手順ではありません。出力や印刷の確認は [PDF 出力と共有](../recipes/pdf-export.md) と
 [印刷回帰チェック](print-regression.md) を参照してください。
 
 MarkVSpec のプレビューは、生成された画面設計書です。上から下まで読めて、

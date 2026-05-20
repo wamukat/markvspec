@@ -19,7 +19,3 @@ Markdown headings declare objects. Use `###` under sections, with subsections su
 ## Related Example
 
 - [Hello Screen](../../../examples/showcase/hello-screen.html)
-
-## Old Document
-
-- [DSL reference](../user/dsl.md)

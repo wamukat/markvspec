@@ -10,4 +10,3 @@
 ## 関連
 
 - [Guide](../guide/index.md)
-- [旧 Known Limitations](../user/limitations.md)

@@ -16,10 +16,6 @@ Learning-oriented explanations live in [Guide](../guide/index.md). Reference is 
 - [CLI](cli.md): Validate and export commands.
 - [Limitations](limitations.md): Current limitations.
 
-## Compatibility
-
-- [Old DSL reference](../user/dsl.md)
-
 ## Examples
 
 - [Hello Screen](../../../examples/showcase/hello-screen.html)

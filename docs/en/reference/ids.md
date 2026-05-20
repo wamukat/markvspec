@@ -17,7 +17,3 @@ IDs are stable names for references. Keep them separate from display labels.
 ## Related Example
 
 - [Hello Screen](../../../examples/showcase/hello-screen.html)
-
-## Old Document
-
-- [DSL reference](../user/dsl.md)
