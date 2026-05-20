@@ -13,3 +13,11 @@ screens:
 # PRJ-COVERAGE-SENTINEL Coverage Sentinel Project
 
 Project lead sentinel for project-level preview and export coverage.
+
+## Notes
+
+Project notes sentinel for project preview only.
+
+## Operations Memo
+
+Project custom note sentinel for project preview only.

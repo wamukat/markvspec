@@ -1159,6 +1159,8 @@ screens:
 
 # PRJ-ADMIN Admin Console
 
+Project lead prose.
+
 ## Notes
 
 - User management screens are owned by admin.
@@ -1167,6 +1169,7 @@ screens:
 
   assert.equal(result.project.id, "PRJ-ADMIN");
   assert.equal(result.project.title, "Admin Console");
+  assert.equal(result.project.description, "Project lead prose.");
   assert.deepEqual(
     result.screens.map((screen) => [screen.id, screen.path, screen.title]),
     [

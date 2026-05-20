@@ -6,7 +6,7 @@ import type {
   MarkVSpecProjectSummary,
   SourceLocation
 } from "./types.js";
-import { firstHeading, parseMarkdownDocument, type MarkdownDocument } from "./markdown-document.js";
+import { firstHeading, parseMarkdownDocument, topLevelProseLines, type MarkdownDocument } from "./markdown-document.js";
 import { collectSectionAst, sectionBodyLines, type SourceRange } from "./markdown-section-ast.js";
 import { filterLinesWithoutStandaloneHtmlComments } from "./markdown-html-comments.js";
 
@@ -237,6 +237,11 @@ function parseProjectSummary(
         line: heading.line
       });
     }
+  }
+
+  const topLevelDescription = topLevelProseLines(document).join("\n").trim();
+  if (topLevelDescription) {
+    project.description = topLevelDescription;
   }
 
   return project;

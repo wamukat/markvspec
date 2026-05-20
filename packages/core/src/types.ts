@@ -50,6 +50,7 @@ export interface MarkVSpecDocumentReferences {
 export interface MarkVSpecProjectSummary {
   id?: string;
   title?: string;
+  description?: string;
   frontMatter: Record<string, string>;
   heading?: string;
   location?: SourceLocation;

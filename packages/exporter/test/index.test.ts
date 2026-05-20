@@ -489,6 +489,7 @@ test("exports parse coverage project sentinel in document list", () => {
     assert.match(markdown, /SCR-COVERAGE-PROJECT \| Coverage Project Screen \| Project screen summary sentinel for document-list export\. \| \/coverage\/project/);
     assert.match(markdown, /TPL-COVERAGE-SHELL \| Coverage Shell Template \| Template summary sentinel for document-list export\./);
     assert.match(markdown, /PRT-COVERAGE-SUMMARY \| Coverage Summary Partial \| Partial summary sentinel for document-list export\. \| \/coverage\/summary/);
+    assert.doesNotMatch(markdown, /Project lead sentinel|Project notes sentinel|Project custom note sentinel/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

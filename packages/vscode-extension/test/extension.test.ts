@@ -6459,6 +6459,9 @@ test("renders parse coverage project sentinel in project preview documents", () 
   assert.equal(project.diagnostics.filter((diagnostic) => diagnostic.severity === "error").length, 0);
   assert.match(html, /PRJ-COVERAGE-SENTINEL/);
   assert.match(html, /Coverage Sentinel Project/);
+  assert.match(html, /<h3>Project Overview<\/h3>[\s\S]*Project lead sentinel for project-level preview and export coverage\./);
+  assert.match(html, /<h2>Project Notes<\/h2>[\s\S]*Project notes sentinel for project preview only\.[\s\S]*Project custom note sentinel for project preview only\./);
+  assert(html.indexOf("Project Notes") < html.indexOf("Templates"), "Project Notes should render before Templates");
   assert.match(html, /TPL-COVERAGE-SHELL[\s\S]*Coverage Shell Template/);
   assert.match(html, /SCR-COVERAGE-PROJECT[\s\S]*Coverage Project Screen[\s\S]*\/coverage\/project/);
   assert.match(html, /Project Transition Diagram/);

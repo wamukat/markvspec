@@ -66,7 +66,7 @@ export. They do not claim full static project-site parity.
 | `project.frontMatter`, `project.heading` | `internal-metadata` | Source metadata; not a user-facing project table target beyond ID/title. |
 | `templates[].id`, `templates[].path`, loaded template `title` | `rendered-project` | Project preview Templates table and document-list export. |
 | `screens[].id`, `screens[].path`, loaded screen `title`, `route` | `rendered-project` | Project preview Screens table and document-list export. |
-| `project.notes` | `follow-up` | Parsed project notes are not rendered by the current project preview/document-list outputs. |
+| `project.description`, `project.notes` | `rendered-project` | Project preview renders the Project overview and Project Notes sections. Document-list export intentionally omits long project prose to preserve list readability. |
 | `documentGraph.nodes`, `documentGraph.edges` | `internal-metadata` | Resolver/runtime graph metadata; used to discover referenced partials. |
 | `projectTransitionGraph.nodes`, `projectTransitionGraph.edges` | `rendered-project` | Project transition diagram and transition table. |
 | `diagnostics` | `diagnostic` | Project preview diagnostics and document-list row counts. |
@@ -76,8 +76,8 @@ export. They do not claim full static project-site parity.
 - #1231: Preview Scenario entity lead/notes must be surfaced consistently.
 - #1233: View Context / View Context Samples prose and values are surfaced as
   generated-document sections.
-- Project document lead/notes are parsed but not surfaced by project preview or
-  document-list export yet.
+- Project document lead/notes are surfaced by project preview. Document-list
+  export intentionally omits them because it is a compact document inventory.
 - Static export omits several structured-section lead/entity prose fields that
   VS Code preview already renders. This ticket records the gap instead of
   broadening static export behavior.

@@ -7,6 +7,7 @@ import {
 import type { MarkVSpecProjectLoadResult, MessageKey, RendererMessages } from "@markvspec/core";
 import { code, escapeHtml, renderTable, text } from "./design-document-renderer.js";
 import { isDocumentRefId, renderDocumentRefId } from "./entity-reference-presenter.js";
+import { renderEntityNotes, renderEntityOverview } from "./markdown-renderer.js";
 import { renderPreviewIcon } from "./preview-icons.js";
 
 export function renderProjectDesignDocumentHtml(project: MarkVSpecProjectLoadResult, messages: RendererMessages = messagesForLocale(undefined)): string {
@@ -14,6 +15,7 @@ export function renderProjectDesignDocumentHtml(project: MarkVSpecProjectLoadRes
   const diagram = renderProjectTransitionMermaid(graph);
   return `<article class="document">
     ${renderProjectSpec(project, messages)}
+    ${renderProjectNotesSpec(project, messages)}
     ${renderProjectTemplatesSpec(project, messages)}
     ${renderProjectScreensSpec(project, messages)}
     <section class="doc-section">
@@ -31,12 +33,31 @@ function pLabel(messages: RendererMessages, key: MessageKey): string {
 
 function renderProjectSpec(project: MarkVSpecProjectLoadResult, messages: RendererMessages): string {
   const summary = project.project.project;
+  const description = summary.description ? renderEntityOverview(summary.description.split(/\r?\n/u)) : "";
   return `<section class="doc-section">
     <h2>${escapeHtml(pLabel(messages, "project"))}</h2>
     ${renderProjectKeyValueTable(messages, [
       [pLabel(messages, "id"), summary.id],
       [pLabel(messages, "title"), summary.title]
     ])}
+    ${description ? `<h3>${escapeHtml(pLabel(messages, "projectOverview"))}</h3>${description}` : ""}
+  </section>`;
+}
+
+function renderProjectNotesSpec(project: MarkVSpecProjectLoadResult, messages: RendererMessages): string {
+  const sections = project.project.notes
+    .map((section) => {
+      const notes = renderEntityNotes(section.lines);
+      return notes ? `<section class="project-note-section"><h3>${text(section.title)}</h3>${notes}</section>` : "";
+    })
+    .filter(Boolean);
+  if (sections.length === 0) {
+    return "";
+  }
+
+  return `<section class="doc-section project-notes-section">
+    <h2>${escapeHtml(pLabel(messages, "projectNotes"))}</h2>
+    ${sections.join("")}
   </section>`;
 }
 

@@ -157,6 +157,8 @@ export type MessageKey =
   | "processUpdate"
   | "processWhen"
   | "project"
+  | "projectOverview"
+  | "projectNotes"
   | "projectTransitionDiagram"
   | "projectTransitions"
   | "properties"
@@ -400,6 +402,8 @@ const en: Record<MessageKey, string> = {
   processWhen: "when",
   properties: "Properties",
   project: "Project",
+  projectOverview: "Project Overview",
+  projectNotes: "Project Notes",
   projectTransitionDiagram: "Project Transition Diagram",
   projectTransitions: "Project Transitions",
   purpose: "Purpose",
@@ -643,6 +647,8 @@ const ja: Record<MessageKey, string> = {
   processWhen: "実行条件",
   properties: "属性",
   project: "プロジェクト",
+  projectOverview: "プロジェクト概要",
+  projectNotes: "プロジェクト備考",
   projectTransitionDiagram: "プロジェクト遷移図",
   projectTransitions: "プロジェクト遷移",
   purpose: "目的",
