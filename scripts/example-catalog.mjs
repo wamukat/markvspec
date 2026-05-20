@@ -21,7 +21,6 @@ export function loadExampleCatalog(root) {
 export function validateExampleCatalog(catalog, { root, exampleFiles = [] } = {}) {
   const errors = [];
   const warnings = [];
-  const fallbackWarnings = new Set();
   const seenPaths = new Set();
   const catalogPaths = new Set();
   const exampleFileSet = new Set(exampleFiles.map((filePath) => relativeRepositoryPath(root, filePath)));
@@ -84,8 +83,6 @@ export function validateExampleCatalog(catalog, { root, exampleFiles = [] } = {}
             const resolved = resolveDocKey(root, lang, group, key);
             if (!resolved) {
               errors.push(`${label}: docs.${group} key '${key}' cannot resolve for ${lang}.`);
-            } else if (resolved.fallback) {
-              fallbackWarnings.add(`docs.${group} key '${key}' falls back to ${lang} ${group}/index.md.`);
             }
           }
         }
@@ -114,24 +111,18 @@ export function validateExampleCatalog(catalog, { root, exampleFiles = [] } = {}
     }
   }
 
-  warnings.push(...fallbackWarnings);
   return { errors, warnings };
 }
 
 export function resolveDocKey(root, lang, group, key) {
   const starlightSpecificPath = join(root, "docs-site", "src", "content", "docs", lang, group, `${key}.md`);
   if (existsSync(starlightSpecificPath)) {
-    return { path: starlightSpecificPath, fallback: false };
+    return { path: starlightSpecificPath };
   }
 
   const starlightIndexPath = join(root, "docs-site", "src", "content", "docs", lang, group, key, "index.md");
   if (existsSync(starlightIndexPath)) {
-    return { path: starlightIndexPath, fallback: false };
-  }
-
-  const starlightGroupIndexPath = join(root, "docs-site", "src", "content", "docs", lang, group, "index.md");
-  if (existsSync(starlightGroupIndexPath)) {
-    return { path: starlightGroupIndexPath, fallback: true };
+    return { path: starlightIndexPath };
   }
 
   return undefined;
