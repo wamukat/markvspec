@@ -48,6 +48,11 @@ import {
   propertyLocation,
   propertyString
 } from "./property-accessor.js";
+import {
+  anchoredOverlayReference,
+  controlledPanelReferences,
+  elementDomainFor
+} from "./element-domain.js";
 import type {
   MarkVSpecActionOutcome,
   MarkVSpecDiagnostic,
@@ -1029,7 +1034,7 @@ function validateFormGroups(
         });
         continue;
       }
-      if (!isInputElementType(element.type)) {
+      if (!elementDomainFor(element).isFormControl()) {
         diagnostics.push({
           severity: "warning",
           message: `FormGroup ${formGroup.id} field ${field.elementId} is ${element.type}, which is not an input element.`,
@@ -2863,25 +2868,14 @@ function validateControlledPanelLayoutUsage(
       }
     }
   }
-  const controlledPanelReferences: Array<{ layoutId: string; elementId: string; line: number }> = [];
+  const panelReferences: Array<{ layoutId: string; elementId: string; line: number }> = [];
   for (const element of result.elements) {
-    for (const item of element.tabs) {
-      if (item.panel) {
-        controlledPanelReferences.push({ layoutId: item.panel, elementId: element.id, line: item.propertyLocations.panel[0]?.line ?? item.location.line });
-      }
-    }
-    for (const item of element.accordionItems) {
-      if (item.panel) {
-        controlledPanelReferences.push({ layoutId: item.panel, elementId: element.id, line: item.propertyLocations.panel[0]?.line ?? item.location.line });
-      }
-    }
-    const panel = element.type === "Disclosure" ? stringProperty(element, "panel").trim() : "";
-    if (panel) {
-      controlledPanelReferences.push({ layoutId: panel, elementId: element.id, line: firstPropertyLine(element, "panel") ?? element.location.line });
+    for (const reference of controlledPanelReferences(element)) {
+      panelReferences.push({ layoutId: reference.panelId, elementId: element.id, line: reference.location?.line ?? element.location.line });
     }
   }
 
-  for (const reference of controlledPanelReferences) {
+  for (const reference of panelReferences) {
     if (!normalLayoutReferences.has(reference.layoutId)) {
       continue;
     }
@@ -2898,11 +2892,12 @@ function validateAnchoredOverlayElement(
   elementIds: Set<string>,
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
-  if (element.type !== "Popover" && element.type !== "Tooltip") {
+  const overlay = anchoredOverlayReference(element);
+  if (!overlay) {
     return;
   }
 
-  const anchor = stringProperty(element, "anchor").trim();
+  const anchor = overlay.anchorId?.trim() ?? "";
   const line = firstPropertyLine(element, "anchor") ?? element.location.line;
   if (!anchor) {
     diagnostics.push({

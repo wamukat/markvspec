@@ -109,6 +109,31 @@ export { createMarkVSpecDiagnostic, renderDiagnosticMessageForLocale, supportedD
 export { effectiveHistoryFields, latestHistoryBasicInfo, standardHistoryFields } from "./history.js";
 export { isMarkVSpecSourceType, markVSpecSourceTypes, sourceTypeForElement } from "./source-types.js";
 export {
+  anchoredOverlayReference,
+  commonElementProperties,
+  controlledPanelReferences,
+  displayLabelForElement,
+  elementAcceptsOptions,
+  elementAllowedProperties,
+  elementDomainFor,
+  elementKindForType,
+  elementSizePreset,
+  elementTypeRegistry,
+  elementWidthPreset,
+  isChoiceControlElement,
+  isContentDisplayElement,
+  isControlledPanelElement,
+  isFormControlElement,
+  isKnownElementType,
+  isOverlayElement
+} from "./element-domain.js";
+export type {
+  AnchoredOverlayReference,
+  ControlledPanelReference,
+  ElementTypeDefinition,
+  MarkVSpecElementKind
+} from "./element-domain.js";
+export {
   propertyBoolean,
   propertyFirstString,
   propertyList,

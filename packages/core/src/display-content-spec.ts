@@ -1,5 +1,6 @@
 import { sourceTypeForElement, type MarkVSpecSourceType } from "./source-types.js";
 import { tableColumnSampleKeys } from "./table-columns.js";
+import { anchoredOverlayReference, controlledPanelReferences, isFormControlElement } from "./element-domain.js";
 import type { MarkVSpecParseResult } from "./types.js";
 
 type ParsedElement = MarkVSpecParseResult["elements"][number];
@@ -72,9 +73,7 @@ export function buildDisplayContentSpecRows(elements: ParsedElement[], context: 
   });
 }
 
-export function isFormControlElement(type: string): boolean {
-  return ["Input", "Textarea", "Select", "MultiSelect", "Checkbox", "CheckboxGroup", "Switch", "RadioGroup", "DatePicker", "DateInput", "TimeInput", "NumberInput", "FileUpload", "FileInput"].includes(type);
-}
+export { isFormControlElement } from "./element-domain.js";
 
 function pushDisplayPropertyRow(
   rows: DisplayContentSpecRow[],
@@ -298,24 +297,26 @@ function pushTabsRow(
   element: ParsedElement,
   source: MarkVSpecSourceType
 ): void {
+  const references = controlledPanelReferences(element).filter((reference) => reference.kind === "tabs");
   if (element.type !== "Tabs" || element.tabs.length === 0) {
     return;
   }
+  const referenceByLabel = new Map(references.map((reference) => [reference.label, reference]));
   rows.push({
     element,
     location: "tabs",
     value: element.tabs.map((item) => item.label).join(", "),
     contentSections: [
-      { title: "Tabs", rows: element.tabs.map(formatTabItemContentRow) }
+      { title: "Tabs", rows: element.tabs.map((item) => formatTabItemContentRow(item, referenceByLabel.get(item.label))) }
     ],
     source
   });
 }
 
-function formatTabItemContentRow(item: ParsedElement["tabs"][number]): string {
+function formatTabItemContentRow(item: ParsedElement["tabs"][number], reference: ReturnType<typeof controlledPanelReferences>[number] | undefined): string {
   const details = [
-    item.panel ? `panel: ${item.panel}` : "",
-    item.action ? `action: ${item.action}` : "",
+    reference?.panelId ? `panel: ${reference.panelId}` : "",
+    reference?.actionId ? `action: ${reference.actionId}` : "",
     ...item.activeWhen.map((condition) => `active when: ${condition}`)
   ].filter(Boolean);
   return details.length > 0 ? `${item.label} (${details.join("; ")})` : item.label;
@@ -327,12 +328,13 @@ function pushAccordionDisclosureRows(
   source: MarkVSpecSourceType
 ): void {
   if (element.type === "Accordion" && element.accordionItems.length > 0) {
+    const referenceByLabel = new Map(controlledPanelReferences(element).map((reference) => [reference.label, reference]));
     rows.push({
       element,
       location: "accordion",
       value: element.accordionItems.map((item) => item.label).join(", "),
       contentSections: [
-        { title: "Accordion", rows: element.accordionItems.map(formatPanelItemContentRow) }
+        { title: "Accordion", rows: element.accordionItems.map((item) => formatPanelItemContentRow(item, referenceByLabel.get(item.label))) }
       ],
       source
     });
@@ -345,7 +347,8 @@ function pushAccordionDisclosureRows(
 
   const label = rawStringProperty(element.properties["label"]);
   const open = rawStringProperty(element.properties["open"]);
-  const panel = rawStringProperty(element.properties["panel"]);
+  const reference = controlledPanelReferences(element)[0];
+  const panel = reference?.panelId ?? "";
   const action = rawStringProperty(element.properties["action"]);
   const rowsValue = [
     label ? `label: ${label}` : "",
@@ -368,10 +371,10 @@ function pushAccordionDisclosureRows(
   });
 }
 
-function formatPanelItemContentRow(item: ParsedElement["accordionItems"][number]): string {
+function formatPanelItemContentRow(item: ParsedElement["accordionItems"][number], reference: ReturnType<typeof controlledPanelReferences>[number] | undefined): string {
   const details = [
-    item.panel ? `panel: ${item.panel}` : "",
-    item.action ? `action: ${item.action}` : "",
+    reference?.panelId ? `panel: ${reference.panelId}` : "",
+    reference?.actionId ? `action: ${reference.actionId}` : "",
     ...item.openWhen.map((condition) => `open when: ${condition}`)
   ].filter(Boolean);
   return details.length > 0 ? `${item.label} (${details.join("; ")})` : item.label;
@@ -410,13 +413,14 @@ function pushAnchoredOverlayRow(
   element: ParsedElement,
   source: MarkVSpecSourceType
 ): void {
-  if (element.type !== "Popover" && element.type !== "Tooltip") {
+  const overlay = anchoredOverlayReference(element);
+  if (!overlay) {
     return;
   }
 
   const text = rawStringProperty(element.properties["text"]) || rawStringProperty(element.properties["content"]);
-  const anchor = rawStringProperty(element.properties["anchor"]);
-  const placement = rawStringProperty(element.properties["placement"]);
+  const anchor = overlay.anchorId ?? "";
+  const placement = overlay.placement ?? "";
   const visibility = element.visibleWhen.length > 0 ? element.visibleWhen.join(", ") : "";
   const value = text || anchor || placement || visibility;
   if (!value) {

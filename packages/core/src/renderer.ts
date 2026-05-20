@@ -4,6 +4,13 @@ import { messagesForLocale } from "./renderer-messages.js";
 import { actionAppliesToState } from "./action-applicability.js";
 import { sourceTypeForElement } from "./source-types.js";
 import { propertyFirstString, propertyString } from "./property-accessor.js";
+import {
+  anchoredOverlayReference,
+  controlledPanelReferences,
+  displayLabelForElement,
+  elementSizePreset,
+  elementWidthPreset
+} from "./element-domain.js";
 import type {
   MarkVSpecAction,
   MarkVSpecElement,
@@ -331,19 +338,10 @@ function slotDefaultLayoutIds(result: MarkVSpecParseResult): Set<string> {
 function controlledPanelLayoutIdsFor(elements: MarkVSpecElement[], layoutById: Map<string, MarkVSpecLayoutGroup>): Set<string> {
   const ids = new Set<string>();
   for (const element of elements) {
-    for (const item of element.tabs) {
-      if (item.panel && layoutById.has(item.panel)) {
-        ids.add(item.panel);
+    for (const reference of controlledPanelReferences(element)) {
+      if (layoutById.has(reference.panelId)) {
+        ids.add(reference.panelId);
       }
-    }
-    for (const item of element.accordionItems) {
-      if (item.panel && layoutById.has(item.panel)) {
-        ids.add(item.panel);
-      }
-    }
-    const disclosurePanel = element.type === "Disclosure" ? stringProperty(element, "panel") : "";
-    if (disclosurePanel && layoutById.has(disclosurePanel)) {
-      ids.add(disclosurePanel);
     }
   }
   return ids;
@@ -701,7 +699,7 @@ function renderElement(
   const textValue = routeResolvedStringProperty(element, "text", context);
   const staticLabel = label || textValue || sample || value;
   const displayValue = sample || textValue || value || label;
-  const displayLabel = label || textValue || sample || value;
+  const displayLabel = displayLabelForElement(element) || sample;
   const disabled = forceDisabled || isElementDisabled(element, activeState, stateNames, options);
   const disabledAttribute = disabled ? " disabled" : "";
   const ariaDisabled = disabled ? ` aria-disabled="true"` : "";
@@ -896,8 +894,9 @@ function renderElement(
 
   if (element.type === "Popover" || element.type === "Tooltip") {
     const overlayText = textValue || routeResolvedStringProperty(element, "content", context) || displayValue || element.id;
-    const anchor = stringProperty(element, "anchor");
-    const placement = stringProperty(element, "placement") || "auto";
+    const overlay = anchoredOverlayReference(element);
+    const anchor = overlay?.anchorId ?? "";
+    const placement = overlay?.placement || "auto";
     const meta = [anchor ? `anchor: ${anchor}` : "", placement ? `placement: ${placement}` : ""].filter(Boolean).join(" / ");
     const body = element.type === "Tooltip"
       ? `<div class="${classes}" data-mm-id="${escapeHtml(element.id)}" data-mm-anchor="${escapeHtml(anchor)}" data-mm-placement="${escapeHtml(placement)}"><span class="mm-overlay-meta">${escapeHtml(meta)}</span><span class="mm-tooltip-bubble">${escapeHtml(overlayText)}</span></div>`
@@ -1016,22 +1015,6 @@ function renderField(
 ): string {
   const fieldKind = layoutKind === "grid" ? "grid" : layoutKind === "stack" ? "stack" : "row";
   return `<div class="mm-field ${cssClass("mm-field", fieldKind)}"><label class="mm-field-label">${escapeHtml(item.label)}</label>${renderElement(element, actionMarkersByElementId, activeState, stateNames, options, forceDisabled, context)}</div>`;
-}
-
-function elementWidthPreset(element: MarkVSpecElement): string | undefined {
-  if (!["Input", "Textarea", "Select", "MultiSelect", "DatePicker", "DateInput", "TimeInput", "NumberInput", "FileUpload", "FileInput"].includes(element.type)) {
-    return undefined;
-  }
-  const width = stringProperty(element, "width");
-  return ["short", "medium", "long", "full"].includes(width) ? width : undefined;
-}
-
-function elementSizePreset(element: MarkVSpecElement): string | undefined {
-  if (element.type !== "Button") {
-    return undefined;
-  }
-  const size = stringProperty(element, "size");
-  return ["small", "medium", "large"].includes(size) ? size : undefined;
 }
 
 function elementWidthWrapperStyle(element: MarkVSpecElement): string | undefined {

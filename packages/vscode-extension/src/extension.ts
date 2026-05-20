@@ -21,7 +21,11 @@ import {
   resolveProjectPath,
   isProjectReferenceAllowed,
   isMarkVSpecSourceType,
-  sourceTypeForElement
+  sourceTypeForElement,
+  anchoredOverlayReference,
+  controlledPanelReferences,
+  displayLabelForElement,
+  elementDomainFor
 } from "@markvspec/core";
 import {
   renderDesignDocumentSections
@@ -4604,14 +4608,16 @@ function renderElementLabelSummary(properties: Record<string, string | true>): s
 }
 
 function renderElementDescription(result: ReturnType<typeof parseMarkVSpec>, element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
+  const domain = elementDomainFor(element);
+  const overlay = domain.anchoredOverlay();
   const description = stringProperty(element.properties["description"])
     || stringProperty(element.properties["purpose"])
     || firstEntityProseParagraph(element.overview)
-    || (element.type === "Tabs" && stringProperty(element.properties["active"]) ? `active tab: ${stringProperty(element.properties["active"])}` : "")
-    || (element.type === "Accordion" && stringProperty(element.properties["open"]) ? `open item: ${stringProperty(element.properties["open"])}` : "")
-    || (element.type === "Disclosure" && stringProperty(element.properties["open"]) ? `open: ${stringProperty(element.properties["open"])}` : "")
-    || (element.type === "ActionMenu" && stringProperty(element.properties["open"]) ? `open: ${stringProperty(element.properties["open"])}` : "")
-    || ((element.type === "Popover" || element.type === "Tooltip") && stringProperty(element.properties["anchor"]) ? `anchor: ${stringProperty(element.properties["anchor"])}` : "")
+    || (domain.is("Tabs") && stringProperty(element.properties["active"]) ? `active tab: ${stringProperty(element.properties["active"])}` : "")
+    || (domain.is("Accordion") && stringProperty(element.properties["open"]) ? `open item: ${stringProperty(element.properties["open"])}` : "")
+    || (domain.is("Disclosure") && stringProperty(element.properties["open"]) ? `open: ${stringProperty(element.properties["open"])}` : "")
+    || (domain.is("ActionMenu") && stringProperty(element.properties["open"]) ? `open: ${stringProperty(element.properties["open"])}` : "")
+    || (overlay?.anchorId ? `anchor: ${overlay.anchorId}` : "")
     || "";
   const notes = renderEntityNotes(result, element.notes);
   return [description ? text(description) : "", notes].filter(Boolean).join("<br>");
@@ -4629,7 +4635,8 @@ function renderElementDisplayName(
     return renderElementContentDisplay(element) || referenceForId(result, element.id, "element");
   }
 
-  return renderElementLabelSummary(element.properties)
+  const domainLabel = displayLabelForElement(element);
+  return (domainLabel ? text(domainLabel) : "")
     || renderElementContentSummary(element)
     || referenceForId(result, element.id, "element");
 }
@@ -4811,8 +4818,9 @@ function renderAnchoredOverlaySummary(
   result: ReturnType<typeof parseMarkVSpec>,
   element: ReturnType<typeof parseMarkVSpec>["elements"][number]
 ): string {
-  const anchor = rawStringProperty(element.properties["anchor"]);
-  const placement = rawStringProperty(element.properties["placement"]);
+  const overlay = anchoredOverlayReference(element);
+  const anchor = overlay?.anchorId ?? "";
+  const placement = overlay?.placement ?? "";
   return [
     anchor ? `anchor: ${referenceForId(result, anchor, "element")}` : "",
     placement ? `placement: ${text(placement)}` : ""
@@ -4840,12 +4848,14 @@ function renderAccordionSummary(
   element: ReturnType<typeof parseMarkVSpec>["elements"][number]
 ): string {
   const open = rawStringProperty(element.properties["open"]);
+  const referenceByLabel = new Map(controlledPanelReferences(element).map((reference) => [reference.label, reference]));
   const rows = [
     open ? `open: ${text(open)}` : "",
     ...element.accordionItems.map((item) => {
+      const reference = referenceByLabel.get(item.label);
       const details = [
-        item.panel ? `panel: ${renderLayoutReferenceForId(result, item.panel)}` : "",
-        item.action ? `action: ${referenceForId(result, item.action, "action")}` : ""
+        reference?.panelId ? `panel: ${renderLayoutReferenceForId(result, reference.panelId)}` : "",
+        reference?.actionId ? `action: ${referenceForId(result, reference.actionId, "action")}` : ""
       ].filter(Boolean);
       return details.length > 0 ? `${text(item.label)} (${details.join("; ")})` : text(item.label);
     })
@@ -4857,9 +4867,10 @@ function renderDisclosureSummary(
   result: ReturnType<typeof parseMarkVSpec>,
   element: ReturnType<typeof parseMarkVSpec>["elements"][number]
 ): string {
+  const reference = controlledPanelReferences(element)[0];
   const rows = [
     rawStringProperty(element.properties["open"]) ? `open: ${text(rawStringProperty(element.properties["open"]))}` : "",
-    rawStringProperty(element.properties["panel"]) ? `panel: ${renderLayoutReferenceForId(result, rawStringProperty(element.properties["panel"]))}` : "",
+    reference?.panelId ? `panel: ${renderLayoutReferenceForId(result, reference.panelId)}` : "",
     rawStringProperty(element.properties["action"]) ? `action: ${referenceForId(result, rawStringProperty(element.properties["action"]), "action")}` : ""
   ].filter(Boolean);
   return rows.length > 0 ? renderSpecSections([{ title: "Disclosure", rows }]) : "";
@@ -5022,8 +5033,7 @@ function renderElementActionReferences(
 ): string {
   const actionIds = [
     rawStringProperty(element.properties["action"]),
-    ...element.tabs.map((item) => item.action),
-    ...element.accordionItems.map((item) => item.action),
+    ...controlledPanelReferences(element).map((reference) => reference.actionId),
     ...element.actionMenuItems.map((item) => item.action),
     ...result.actions
       .filter((action) => action.trigger?.elementId === element.id)
