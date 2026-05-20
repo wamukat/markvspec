@@ -3,155 +3,113 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MarkVSpec 文書構造</title>
+  <title>MarkVSpec 文書構造 - MarkVSpec Docs</title>
   <style>
     :root {
-      --page: #f6f7f9;
-      --paper: #ffffff;
-      --ink: #172033;
+      color: #172033;
+      background: #f8fafc;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       --muted: #5f6b7a;
-      --line: #d8dee7;
-      --line-soft: #e9edf3;
+      --line: #d7dee8;
+      --line-soft: #e5eaf1;
       --header-bg: #eef2f7;
-      --lead-bg: #f6f1ff;
-      --lead-line: #9b7ee8;
+      --lead-bg: #f7f3ff;
+      --lead-line: #8b6ee8;
       --section-bg: #eef6ff;
       --section-line: #4d8fd6;
       --entity-bg: #edf9f3;
       --entity-line: #42a56e;
-      --body-bg: #fff5e9;
+      --body-bg: #fff7ed;
       --body-line: #d9822b;
       --free-bg: #f3f0ff;
       --free-line: #7f65d7;
-      --code-bg: #111827;
-      --code-ink: #e5edf8;
+      --code-bg: #101827;
+      --code-ink: #e8eef8;
     }
-
     * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      background: var(--page);
-      color: var(--ink);
-      font: 14px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    main {
+    body { margin: 0; }
+    .docs-shell {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: 260px minmax(0, 880px);
+      margin: 32px auto 64px;
       max-width: 1180px;
-      margin: 0 auto;
-      padding: 28px;
+      padding: 0 24px;
     }
-
-    header {
-      border-bottom: 1px solid var(--line);
-      margin-bottom: 20px;
-      padding-bottom: 18px;
+    .docs-sidebar {
+      align-self: start;
+      background: #fff;
+      border: 1px solid #d7dee8;
+      border-radius: 8px;
+      max-height: calc(100vh - 64px);
+      overflow: auto;
+      padding: 18px;
+      position: sticky;
+      top: 32px;
     }
-
-    h1 {
-      margin: 0 0 8px;
-      font-size: 28px;
-      letter-spacing: 0;
-    }
-
-    h2 {
-      margin: 28px 0 12px;
-      font-size: 18px;
-      letter-spacing: 0;
-    }
-
-    h3 {
-      margin: 18px 0 8px;
+    .docs-sidebar-title {
+      color: #172033;
+      display: block;
       font-size: 15px;
-      letter-spacing: 0;
+      font-weight: 800;
+      margin-bottom: 14px;
     }
-
-    p { margin: 0 0 10px; }
-
-    a { color: #1d5ea8; }
-
+    .docs-sidebar-section { border-top: 1px solid #e5eaf1; padding: 12px 0; }
+    .docs-sidebar-section:first-of-type { border-top: 0; padding-top: 0; }
+    .docs-sidebar-heading {
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      margin: 0 0 8px;
+      text-transform: uppercase;
+    }
+    .docs-sidebar ul { display: grid; gap: 3px; list-style: none; margin: 0; padding: 0; }
+    .docs-sidebar a {
+      border-radius: 6px;
+      color: #334155;
+      display: block;
+      font-size: 13px;
+      font-weight: 650;
+      line-height: 1.35;
+      padding: 6px 8px;
+    }
+    .docs-sidebar a[aria-current="page"] { background: #e8f7f4; color: #0f766e; }
+    .docs-content {
+      background: #fff;
+      border: 1px solid #d7dee8;
+      border-radius: 8px;
+      padding: 32px;
+    }
+    header { border-bottom: 1px solid var(--line-soft); margin-bottom: 24px; padding-bottom: 18px; }
+    h1 { font-size: 34px; line-height: 1.2; margin: 0 0 20px; }
+    h2 { border-top: 1px solid var(--line-soft); font-size: 22px; margin: 30px 0 12px; padding-top: 22px; }
+    h3 { font-size: 18px; margin: 24px 0 10px; }
+    p, li { color: #44546a; line-height: 1.7; }
+    a { color: #0f766e; font-weight: 700; text-decoration: none; }
+    a:hover { text-decoration: underline; }
     code {
-      border: 1px solid var(--line-soft);
+      background: #edf2f7;
       border-radius: 4px;
-      background: #f8fafc;
-      padding: 1px 4px;
+      padding: 2px 5px;
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       font-size: 12px;
     }
-
     pre {
+      background: var(--code-bg);
+      border-radius: 8px;
+      color: var(--code-ink);
       margin: 0;
       overflow: auto;
-      border-radius: 6px;
-      background: var(--code-bg);
-      color: var(--code-ink);
-      padding: 14px;
+      padding: 16px;
       font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
-
-    pre code {
-      border: 0;
-      background: transparent;
-      color: inherit;
-      padding: 0;
-      font: inherit;
-    }
-
-    .lead {
-      max-width: 840px;
-      color: var(--muted);
-    }
-
-    .nav {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 14px;
-    }
-
-    .nav a {
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: var(--paper);
-      padding: 5px 10px;
-      text-decoration: none;
-      font-size: 12px;
-      font-weight: 650;
-    }
-
-    .nav a[aria-current="page"] {
-      border-color: var(--section-line);
-      background: var(--section-bg);
-      color: #1d5ea8;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(330px, .8fr);
-      gap: 18px;
-      align-items: start;
-    }
-
-    .panel {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--paper);
-      padding: 18px;
-    }
-
-    .skeleton {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      overflow: hidden;
-      background: var(--paper);
-    }
-
-    .zone {
-      border-bottom: 1px solid var(--line-soft);
-      border-left: 5px solid transparent;
-      padding: 13px 14px;
-    }
-
+    pre code { background: transparent; color: inherit; padding: 0; font: inherit; }
+    .lead { color: var(--muted); margin: 0; max-width: 760px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(260px, .8fr); gap: 18px; align-items: start; }
+    .panel { border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 18px; }
+    .skeleton { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #fff; }
+    .zone { border-bottom: 1px solid var(--line-soft); border-left: 5px solid transparent; padding: 13px 14px; }
     .zone:last-child { border-bottom: 0; }
     .zone-header { background: var(--header-bg); }
     .zone-lead { background: var(--lead-bg); border-left-color: var(--lead-line); }
@@ -159,256 +117,197 @@
     .zone-entity { margin: 10px 0 0 16px; background: var(--entity-bg); border-left-color: var(--entity-line); border-top: 1px solid rgba(66, 165, 110, .25); }
     .zone-body { margin: 10px 0 0 16px; background: var(--body-bg); border-left-color: var(--body-line); border-top: 1px solid rgba(217, 130, 43, .25); }
     .zone-free { background: var(--free-bg); border-left-color: var(--free-line); }
-
-    .zone-title {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 5px;
-      font-weight: 750;
-    }
-
-    .pill {
-      border: 1px solid currentColor;
-      border-radius: 999px;
-      padding: 2px 8px;
-      font-size: 11px;
-      line-height: 1.2;
-      font-weight: 750;
-      white-space: nowrap;
-    }
-
+    .zone-title { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 5px; font-weight: 750; }
+    .pill { border: 1px solid currentColor; border-radius: 999px; padding: 2px 8px; font-size: 11px; line-height: 1.2; font-weight: 750; white-space: nowrap; }
     .pill-header { color: #334155; }
     .pill-lead { color: #6d28d9; }
     .pill-section { color: #1d5ea8; }
     .pill-entity { color: #047857; }
     .pill-body { color: #b45309; }
     .pill-free { color: #6d28d9; }
-
-    .sample {
-      color: #334155;
-      margin-bottom: 2px;
-    }
-
-    .hint {
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .terms {
-      display: grid;
-      gap: 8px;
-    }
-
-    .term {
-      border: 1px solid var(--line-soft);
-      border-radius: 6px;
-      padding: 10px;
-      background: #fbfcfe;
-    }
-
-    .term strong {
-      display: block;
-      margin-bottom: 3px;
-    }
-
-    .term span {
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .rules {
-      display: grid;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .rule {
-      border-left: 4px solid var(--section-line);
-      background: #f8fafc;
-      padding: 10px 12px;
-    }
-
-    .code-map {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(280px, .75fr);
-      gap: 14px;
-      align-items: start;
-    }
-
-    .legend {
-      margin: 0;
-      padding-left: 18px;
-    }
-
+    .sample { color: #334155; margin-bottom: 2px; }
+    .hint { color: var(--muted); font-size: 12px; }
+    .terms { display: grid; gap: 8px; }
+    .term { border: 1px solid var(--line-soft); border-radius: 6px; padding: 10px; background: #fbfcfe; }
+    .term strong { display: block; margin-bottom: 3px; }
+    .term span { color: var(--muted); font-size: 12px; }
+    .rules { display: grid; gap: 10px; margin-top: 12px; }
+    .rule { border-left: 4px solid var(--section-line); background: #f8fafc; padding: 10px 12px; }
+    .code-map { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, .75fr); gap: 14px; align-items: start; }
+    .legend { margin: 0; padding-left: 18px; }
     .legend li + li { margin-top: 6px; }
-
-    .comment {
-      border: 1px dashed var(--line);
-      border-radius: 6px;
-      background: #fbfcfe;
-      padding: 12px;
-      color: var(--muted);
-    }
-
-    @media (max-width: 860px) {
-      main { padding: 16px; }
+    .comment { border: 1px dashed var(--line); border-radius: 6px; background: #fbfcfe; padding: 12px; color: var(--muted); }
+    @media (max-width: 720px) {
+      .docs-shell { display: block; margin: 0; padding: 0; }
+      .docs-sidebar { border-left: 0; border-radius: 0; border-right: 0; max-height: none; position: static; }
+      .docs-content { border-left: 0; border-radius: 0; border-right: 0; padding: 24px; }
       .grid, .code-map { grid-template-columns: 1fr; }
     }
+
   </style>
 </head>
 <body>
-  <main>
-    <header>
-      <h1>MarkVSpec 文書構造</h1>
-      <p class="lead">MarkVSpec 文書内の prose と構造化 DSL の位置を議論するときに使う canonical 用語です。ticket、parser、preview、documentation で同じ名前を使います。</p>
-      <nav class="nav" aria-label="主要ドキュメント">
-        <a href="index.html">Guide</a>
-        <a href="markdown-model.html">Markdown Model</a>
-        <a href="document-structure.html" aria-current="page">文書構造</a>
-        <a href="../reference/sections.html">Sections</a>
-        <a href="../reference/index.html">Reference</a>
-        <a href="../examples/index.html">Examples</a>
-        <a href="../../en/guide/document-structure.html">English</a>
-      </nav>
-    </header>
+  <div class="docs-shell">
+    <aside class="docs-sidebar" aria-label="Documentation navigation">
+      <a class="docs-sidebar-title" href="../index.html">MarkVSpec Docs</a>
+      <section class="docs-sidebar-section"><p class="docs-sidebar-heading">Start</p><ul>
+        <li><a href="../index.html">MarkVSpec 日本語ドキュメント</a></li><li><a href="../start/index.html">Start</a></li><li><a href="../start/first-screen.html">First Screen</a></li><li><a href="../start/preview.html">Preview</a></li><li><a href="../start/export.html">Export</a></li>
+      </ul></section>
+      <section class="docs-sidebar-section"><p class="docs-sidebar-heading">Guide</p><ul>
+        <li><a href="index.html">Guide</a></li><li><a href="markdown-model.html">Markdown Model</a></li><li><a href="document-structure.html" aria-current="page">MarkVSpec 文書構造</a></li><li><a href="states.html">States</a></li><li><a href="layout.html">Layout</a></li><li><a href="elements.html">Elements</a></li><li><a href="actions.html">Actions</a></li><li><a href="validation.html">Validation</a></li><li><a href="partial-updates.html">Partial Updates</a></li>
+      </ul></section>
+      <section class="docs-sidebar-section"><p class="docs-sidebar-heading">Reference</p><ul>
+        <li><a href="../reference/index.html">Reference</a></li><li><a href="../reference/file-format.html">File Format</a></li><li><a href="../reference/sections.html">Sections</a></li><li><a href="../reference/elements.html">Elements</a></li><li><a href="../reference/actions.html">Actions</a></li><li><a href="../reference/validations.html">Validations</a></li><li><a href="../reference/rules.html">Rules</a></li><li><a href="../reference/ids.html">IDs</a></li><li><a href="../reference/cli.html">CLI</a></li><li><a href="../reference/limitations.html">Limitations</a></li>
+      </ul></section>
+      <section class="docs-sidebar-section"><p class="docs-sidebar-heading">Recipes</p><ul>
+        <li><a href="../recipes/index.html">Recipes</a></li><li><a href="../recipes/login-form.html">Login Form</a></li><li><a href="../recipes/loading-error.html">Loading And Error</a></li><li><a href="../recipes/server-partial-update.html">Server Partial Update</a></li><li><a href="../recipes/pdf-export.html">PDF Export</a></li>
+      </ul></section>
+      <section class="docs-sidebar-section"><p class="docs-sidebar-heading">More</p><ul>
+        <li><a href="../examples/index.html">Examples</a></li><li><a href="../concepts/index.html">Concepts</a></li>
+      </ul></section>
+    </aside>
+    <main class="docs-content">
+      <header>
+            <h1>MarkVSpec 文書構造</h1>
+            <p class="lead">MarkVSpec 文書内の prose と構造化 DSL の位置を議論するときに使う canonical 用語です。ticket、parser、preview、documentation で同じ名前を使います。</p>
+          </header>
 
-    <section class="grid" aria-labelledby="map-title">
-      <div>
-        <h2 id="map-title">Annotated Skeleton</h2>
-        <div class="skeleton" aria-label="MarkVSpec document structure">
-          <div class="zone zone-header">
-            <div class="zone-title"><span class="pill pill-header">Document Header</span> Front Matter と H1</div>
-            <p class="sample"><code>---</code> metadata と <code># SCR-* Title</code></p>
-            <p class="hint">文書 ID、title、route など、文書全体の metadata を置きます。</p>
-          </div>
-          <div class="zone zone-lead">
-            <div class="zone-title"><span class="pill pill-lead">Document Lead</span> 最初の Section より前の目的説明</div>
-            <p class="sample">H1 の後、最初の <code>##</code> より前の Markdown 本文。</p>
-            <p class="hint">screen、template、partial、example 全体の目的を書きます。</p>
-          </div>
-          <div class="zone zone-section">
-            <div class="zone-title"><span class="pill pill-section">Section</span> level-2 の認識済み section</div>
-            <p class="sample"><code>## States</code>、<code>## Layout</code>、<code>## Elements</code>、<code>## Actions</code></p>
-            <p class="hint">認識済み section は parser が解釈し、未知の section は Markdown として保持します。</p>
-            <div class="zone zone-body">
-              <div class="zone-title"><span class="pill pill-body">Section Lead</span> 構造化定義より前の prose</div>
-              <p class="sample">section heading 直下の Markdown 本文。</p>
-              <p class="hint">その section の表、一覧、entity summary より前に表示します。</p>
-            </div>
-            <div class="zone zone-entity">
-              <div class="zone-title"><span class="pill pill-entity">Entity Block</span> level-3 の定義単位</div>
-              <p class="sample"><code>### A1:A-Submit Submit</code>、<code>### E-EmailInput Input</code></p>
-              <p class="hint">Action、Element、Validation、Business Rule など、ID を持つ対象の定義です。</p>
-              <div class="zone zone-body">
-                <div class="zone-title"><span class="pill pill-body">Entity Lead</span> entity DSL より前の prose</div>
-                <p class="sample">entity heading 直下の Markdown 本文。</p>
-                <p class="hint">その entity の目的や設計意図を書きます。</p>
+          <section class="grid" aria-labelledby="map-title">
+            <div>
+              <h2 id="map-title">Annotated Skeleton</h2>
+              <div class="skeleton" aria-label="MarkVSpec document structure">
+                <div class="zone zone-header">
+                  <div class="zone-title"><span class="pill pill-header">Document Header</span> Front Matter と H1</div>
+                  <p class="sample"><code>---</code> metadata と <code># SCR-* Title</code></p>
+                  <p class="hint">文書 ID、title、route など、文書全体の metadata を置きます。</p>
+                </div>
+                <div class="zone zone-lead">
+                  <div class="zone-title"><span class="pill pill-lead">Document Lead</span> 最初の Section より前の目的説明</div>
+                  <p class="sample">H1 の後、最初の <code>##</code> より前の Markdown 本文。</p>
+                  <p class="hint">screen、template、partial、example 全体の目的を書きます。</p>
+                </div>
+                <div class="zone zone-section">
+                  <div class="zone-title"><span class="pill pill-section">Section</span> level-2 の認識済み section</div>
+                  <p class="sample"><code>## States</code>、<code>## Layout</code>、<code>## Elements</code>、<code>## Actions</code></p>
+                  <p class="hint">認識済み section は parser が解釈し、未知の section は Markdown として保持します。</p>
+                  <div class="zone zone-body">
+                    <div class="zone-title"><span class="pill pill-body">Section Lead</span> 構造化定義より前の prose</div>
+                    <p class="sample">section heading 直下の Markdown 本文。</p>
+                    <p class="hint">その section の表、一覧、entity summary より前に表示します。</p>
+                  </div>
+                  <div class="zone zone-entity">
+                    <div class="zone-title"><span class="pill pill-entity">Entity Block</span> level-3 の定義単位</div>
+                    <p class="sample"><code>### A1:A-Submit Submit</code>、<code>### E-EmailInput Input</code></p>
+                    <p class="hint">Action、Element、Validation、Business Rule など、ID を持つ対象の定義です。</p>
+                    <div class="zone zone-body">
+                      <div class="zone-title"><span class="pill pill-body">Entity Lead</span> entity DSL より前の prose</div>
+                      <p class="sample">entity heading 直下の Markdown 本文。</p>
+                      <p class="hint">その entity の目的や設計意図を書きます。</p>
+                    </div>
+                    <div class="zone zone-body">
+                      <div class="zone-title"><span class="pill pill-body">Structured Body</span> 機械可読な DSL</div>
+                      <p class="sample"><code>- Triggered</code>、<code>- Process P1: ...</code>、<code>- label: ...</code></p>
+                      <p class="hint">parser、validator、preview が MarkVSpec semantics として解釈します。</p>
+                    </div>
+                    <div class="zone zone-body">
+                      <div class="zone-title"><span class="pill pill-body">Entity Notes</span> entity DSL の後の prose</div>
+                      <p class="sample">structured list の後、同じ entity 内に残る Markdown 本文。</p>
+                      <p class="hint">補足、実装メモ、設計上の注意を書きます。</p>
+                    </div>
+                  </div>
+                  <div class="zone zone-body">
+                    <div class="zone-title"><span class="pill pill-body">Section Notes</span> section 構造化定義の後の prose</div>
+                    <p class="sample">entity blocks や structured definitions の後の Markdown 本文。</p>
+                    <p class="hint">section 全体に対する後置補足です。</p>
+                  </div>
+                </div>
+                <div class="zone zone-free">
+                  <div class="zone-title"><span class="pill pill-free">Free-form Section</span> Markdown-only section</div>
+                  <p class="sample"><code>## Notes</code>、<code>## Open Questions</code>、未認識の <code>##</code></p>
+                  <p class="hint">構造化 DSL としては解釈せず、author が書いた Markdown として保持します。</p>
+                </div>
               </div>
-              <div class="zone zone-body">
-                <div class="zone-title"><span class="pill pill-body">Structured Body</span> 機械可読な DSL</div>
-                <p class="sample"><code>- Triggered</code>、<code>- Process P1: ...</code>、<code>- label: ...</code></p>
-                <p class="hint">parser、validator、preview が MarkVSpec semantics として解釈します。</p>
-              </div>
-              <div class="zone zone-body">
-                <div class="zone-title"><span class="pill pill-body">Entity Notes</span> entity DSL の後の prose</div>
-                <p class="sample">structured list の後、同じ entity 内に残る Markdown 本文。</p>
-                <p class="hint">補足、実装メモ、設計上の注意を書きます。</p>
-              </div>
             </div>
-            <div class="zone zone-body">
-              <div class="zone-title"><span class="pill pill-body">Section Notes</span> section 構造化定義の後の prose</div>
-              <p class="sample">entity blocks や structured definitions の後の Markdown 本文。</p>
-              <p class="hint">section 全体に対する後置補足です。</p>
+
+            <aside class="panel" aria-labelledby="terms-title">
+              <h2 id="terms-title">Canonical Terms</h2>
+              <div class="terms">
+                <div class="term"><strong>Document Header</strong><span>YAML Front Matter と最初の level-1 heading。</span></div>
+                <div class="term"><strong>Document Lead</strong><span>H1 の下、最初の level-2 section より前の Markdown。</span></div>
+                <div class="term"><strong>Section</strong><span><code>## States</code> や <code>## Actions</code> のような level-2 heading。</span></div>
+                <div class="term"><strong>Section Lead</strong><span>section 冒頭、構造化 entry より前の Markdown。</span></div>
+                <div class="term"><strong>Entity Block</strong><span>ID を持つ level-3 definition unit。</span></div>
+                <div class="term"><strong>Entity Lead</strong><span>entity heading 直下、structured body より前の Markdown。</span></div>
+                <div class="term"><strong>Structured Body</strong><span>MarkVSpec semantics として解釈する list / table。</span></div>
+                <div class="term"><strong>Entity Notes</strong><span>entity structured body の後の補足 Markdown。</span></div>
+                <div class="term"><strong>Section Notes</strong><span>section の structured definitions 後の補足 Markdown。</span></div>
+                <div class="term"><strong>Free-form Section</strong><span>DSL として解釈しない Markdown section。</span></div>
+              </div>
+            </aside>
+          </section>
+
+          <section class="panel" aria-labelledby="source-title">
+            <h2 id="source-title">Source Range Example</h2>
+            <div class="code-map">
+              <pre><code>---
+      id: SCR-LOGIN
+      type: screen
+      title: Login
+      ---
+      # SCR-LOGIN Login
+
+      画面全体の説明。
+
+      ## Elements
+
+      element catalog 全体の説明。
+
+      ### E-EmailInput Input
+
+      email 入力の目的。
+
+      - label: Email
+      - type: email
+
+      input 固有の実装メモ。
+
+      ### Section Notes
+
+      Elements 全体への補足。
+
+      ## Notes
+
+      設計中の open note。</code></pre>
+              <ol class="legend">
+                <li><strong>Document Header</strong>: Front Matter と <code># SCR-LOGIN Login</code>。</li>
+                <li><strong>Document Lead</strong>: 「画面全体の説明。」</li>
+                <li><strong>Section</strong>: <code>## Elements</code>。</li>
+                <li><strong>Section Lead</strong>: 「element catalog 全体の説明。」</li>
+                <li><strong>Entity Block</strong>: <code>### E-EmailInput Input</code>。</li>
+                <li><strong>Entity Lead</strong>: 「email 入力の目的。」</li>
+                <li><strong>Structured Body</strong>: <code>- label</code> と <code>- type</code>。</li>
+                <li><strong>Entity Notes</strong>: 「input 固有の実装メモ。」</li>
+                <li><strong>Section Notes</strong>: <code>### Section Notes</code> の内容。</li>
+                <li><strong>Free-form Section</strong>: <code>## Notes</code>。</li>
+              </ol>
             </div>
-          </div>
-          <div class="zone zone-free">
-            <div class="zone-title"><span class="pill pill-free">Free-form Section</span> Markdown-only section</div>
-            <p class="sample"><code>## Notes</code>、<code>## Open Questions</code>、未認識の <code>##</code></p>
-            <p class="hint">構造化 DSL としては解釈せず、author が書いた Markdown として保持します。</p>
-          </div>
-        </div>
-      </div>
+          </section>
 
-      <aside class="panel" aria-labelledby="terms-title">
-        <h2 id="terms-title">Canonical Terms</h2>
-        <div class="terms">
-          <div class="term"><strong>Document Header</strong><span>YAML Front Matter と最初の level-1 heading。</span></div>
-          <div class="term"><strong>Document Lead</strong><span>H1 の下、最初の level-2 section より前の Markdown。</span></div>
-          <div class="term"><strong>Section</strong><span><code>## States</code> や <code>## Actions</code> のような level-2 heading。</span></div>
-          <div class="term"><strong>Section Lead</strong><span>section 冒頭、構造化 entry より前の Markdown。</span></div>
-          <div class="term"><strong>Entity Block</strong><span>ID を持つ level-3 definition unit。</span></div>
-          <div class="term"><strong>Entity Lead</strong><span>entity heading 直下、structured body より前の Markdown。</span></div>
-          <div class="term"><strong>Structured Body</strong><span>MarkVSpec semantics として解釈する list / table。</span></div>
-          <div class="term"><strong>Entity Notes</strong><span>entity structured body の後の補足 Markdown。</span></div>
-          <div class="term"><strong>Section Notes</strong><span>section の structured definitions 後の補足 Markdown。</span></div>
-          <div class="term"><strong>Free-form Section</strong><span>DSL として解釈しない Markdown section。</span></div>
-        </div>
-      </aside>
-    </section>
+          <section class="panel" aria-labelledby="rules-title">
+            <h2 id="rules-title">Placement Rules</h2>
+            <div class="rules">
+              <div class="rule"><strong>Lead は対象の前に表示します。</strong> <code>Section Lead</code> は section の table / list / summary の前に、<code>Entity Lead</code> は entity detail の冒頭に表示します。</div>
+              <div class="rule"><strong>Notes は対象の後に表示します。</strong> <code>Entity Notes</code> は entity の structured content の後、<code>Section Notes</code> は section の structured definitions の後に表示します。</div>
+              <div class="rule"><strong>Structured Body は semantic data です。</strong> parser、validator、preview、export はこの内容に依存します。prose 領域は Markdown として保持しますが DSL semantics ではありません。</div>
+              <div class="rule"><strong>HTML comment は authoring comment です。</strong> prose 領域にある <code>&lt;!-- todo --&gt;</code> のような comment は preview / export に表示しません。</div>
+            </div>
+          </section>
 
-    <section class="panel" aria-labelledby="source-title">
-      <h2 id="source-title">Source Range Example</h2>
-      <div class="code-map">
-        <pre><code>---
-id: SCR-LOGIN
-type: screen
-title: Login
----
-# SCR-LOGIN Login
-
-画面全体の説明。
-
-## Elements
-
-element catalog 全体の説明。
-
-### E-EmailInput Input
-
-email 入力の目的。
-
-- label: Email
-- type: email
-
-input 固有の実装メモ。
-
-### Section Notes
-
-Elements 全体への補足。
-
-## Notes
-
-設計中の open note。</code></pre>
-        <ol class="legend">
-          <li><strong>Document Header</strong>: Front Matter と <code># SCR-LOGIN Login</code>。</li>
-          <li><strong>Document Lead</strong>: 「画面全体の説明。」</li>
-          <li><strong>Section</strong>: <code>## Elements</code>。</li>
-          <li><strong>Section Lead</strong>: 「element catalog 全体の説明。」</li>
-          <li><strong>Entity Block</strong>: <code>### E-EmailInput Input</code>。</li>
-          <li><strong>Entity Lead</strong>: 「email 入力の目的。」</li>
-          <li><strong>Structured Body</strong>: <code>- label</code> と <code>- type</code>。</li>
-          <li><strong>Entity Notes</strong>: 「input 固有の実装メモ。」</li>
-          <li><strong>Section Notes</strong>: <code>### Section Notes</code> の内容。</li>
-          <li><strong>Free-form Section</strong>: <code>## Notes</code>。</li>
-        </ol>
-      </div>
-    </section>
-
-    <section class="panel" aria-labelledby="rules-title">
-      <h2 id="rules-title">Placement Rules</h2>
-      <div class="rules">
-        <div class="rule"><strong>Lead は対象の前に表示します。</strong> <code>Section Lead</code> は section の table / list / summary の前に、<code>Entity Lead</code> は entity detail の冒頭に表示します。</div>
-        <div class="rule"><strong>Notes は対象の後に表示します。</strong> <code>Entity Notes</code> は entity の structured content の後、<code>Section Notes</code> は section の structured definitions の後に表示します。</div>
-        <div class="rule"><strong>Structured Body は semantic data です。</strong> parser、validator、preview、export はこの内容に依存します。prose 領域は Markdown として保持しますが DSL semantics ではありません。</div>
-        <div class="rule"><strong>HTML comment は authoring comment です。</strong> prose 領域にある <code>&lt;!-- todo --&gt;</code> のような comment は preview / export に表示しません。</div>
-      </div>
-    </section>
-
-    <section class="comment" aria-labelledby="language-title">
-      <h2 id="language-title">推奨する呼び方</h2>
-      <p>「構造化ブロックの上」「list の下」のような曖昧な表現ではなく、<code>Section Lead</code>、<code>Entity Lead</code>、<code>Entity Notes</code>、<code>Section Notes</code> を使います。</p>
-    </section>
-  </main>
+          <section class="comment" aria-labelledby="language-title">
+            <h2 id="language-title">推奨する呼び方</h2>
+            <p>「構造化ブロックの上」「list の下」のような曖昧な表現ではなく、<code>Section Lead</code>、<code>Entity Lead</code>、<code>Entity Notes</code>、<code>Section Notes</code> を使います。</p>
+          </section>
+    </main>
+  </div>
 </body>
 </html>

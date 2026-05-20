@@ -964,7 +964,7 @@ const docsNavigation = [
   },
   {
     title: "Guide",
-    paths: ["guide/index.md", "guide/markdown-model.md", "guide/states.md", "guide/layout.md", "guide/elements.md", "guide/actions.md", "guide/validation.md", "guide/partial-updates.md"]
+    paths: ["guide/index.md", "guide/markdown-model.md", "guide/document-structure.html", "guide/states.md", "guide/layout.md", "guide/elements.md", "guide/actions.md", "guide/validation.md", "guide/partial-updates.md"]
   },
   {
     title: "Reference",
@@ -993,15 +993,17 @@ function renderDocsSidebar(filePath) {
     .map((section) => {
       const items = section.paths
         .map((path) => {
-          const sourcePath = join(docsDir, lang, path);
+          const isStaticHtml = path.endsWith(".html");
+          const sourcePath = isStaticHtml ? join(siteSourceDir, "docs", lang, path) : join(docsDir, lang, path);
           if (!existsSync(sourcePath)) {
             return "";
           }
 
-          const targetOutputPath = join("docs", markdownOutputPath(join(lang, path)));
+          const targetOutputPath = join("docs", isStaticHtml ? join(lang, path) : markdownOutputPath(join(lang, path)));
           const href = toPosixPath(relative(dirname(sourceOutputPath), targetOutputPath)) || "index.html";
           const ariaCurrent = path === currentWithinLang ? ' aria-current="page"' : "";
-          return `<li><a href="${escapeHtml(href)}"${ariaCurrent}>${escapeHtml(markdownPageTitle(sourcePath))}</a></li>`;
+          const title = isStaticHtml ? htmlPageTitle(sourcePath) : markdownPageTitle(sourcePath);
+          return `<li><a href="${escapeHtml(href)}"${ariaCurrent}>${escapeHtml(title)}</a></li>`;
         })
         .filter(Boolean)
         .join("\n          ");
@@ -1020,6 +1022,13 @@ function renderDocsSidebar(filePath) {
       <a class="docs-sidebar-title" href="${escapeHtml(homeHref)}">MarkVSpec Docs</a>
       ${sections}
     </aside>`;
+}
+
+function htmlPageTitle(filePath) {
+  const html = readFileSync(filePath, "utf8");
+  return html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/iu)?.[1]?.replace(/<[^>]+>/gu, "").trim()
+    ?? html.match(/<title>([\s\S]*?)<\/title>/iu)?.[1]?.trim()
+    ?? basename(filePath, ".html");
 }
 
 function markdownPageTitle(filePath) {

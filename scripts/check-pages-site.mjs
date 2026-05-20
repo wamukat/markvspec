@@ -244,6 +244,8 @@ expectContains(guideIndexHtml, "partial-updates.html", "_site/docs/ja/guide/inde
 expectContains(guideIndexHtml, "examples/showcase/hello-screen.html", "_site/docs/ja/guide/index.html should link to example showcases.");
 const guideDocumentStructureHtml = readSiteFile("docs/ja/guide/document-structure.html");
 expectContains(guideDocumentStructureHtml, "MarkVSpec 文書構造", "_site/docs/ja/guide/document-structure.html should preserve the visual document structure guide.");
+expectContains(guideDocumentStructureHtml, 'class="docs-sidebar"', "_site/docs/ja/guide/document-structure.html should use the standard docs sidebar.");
+expectContains(guideDocumentStructureHtml, 'aria-current="page">MarkVSpec 文書構造</a>', "_site/docs/ja/guide/document-structure.html sidebar should mark the current page.");
 expectNotContains(guideDocumentStructureHtml, "旧", "_site/docs/ja/guide/document-structure.html should not describe itself as an old document.");
 expectNotContains(guideDocumentStructureHtml, "docs/user", "_site/docs/ja/guide/document-structure.html should not point readers to the removed user path.");
 const guideActionsHtml = readSiteFile("docs/ja/guide/actions.html");
@@ -254,7 +256,10 @@ const guidePartialsHtml = readSiteFile("docs/ja/guide/partial-updates.html");
 expectContains(guidePartialsHtml, "mode: replace", "_site/docs/ja/guide/partial-updates.html should include partial update replacement semantics.");
 expectContains(guidePartialsHtml, "profile-summary.partial.html", "_site/docs/ja/guide/partial-updates.html should link to the partial showcase.");
 expectContains(readSiteFile("docs/en/guide/actions.html"), "A-SubmitLogin", "_site/docs/en/guide/actions.html should include a minimal action example.");
-expectContains(readSiteFile("docs/en/guide/document-structure.html"), "MarkVSpec Document Structure", "_site/docs/en/guide/document-structure.html should preserve the visual document structure guide.");
+const enGuideDocumentStructureHtml = readSiteFile("docs/en/guide/document-structure.html");
+expectContains(enGuideDocumentStructureHtml, "MarkVSpec Document Structure", "_site/docs/en/guide/document-structure.html should preserve the visual document structure guide.");
+expectContains(enGuideDocumentStructureHtml, 'aria-current="page">MarkVSpec Document Structure</a>', "_site/docs/en/guide/document-structure.html sidebar should mark the current page.");
+expectNotContains(enGuideDocumentStructureHtml, "docs/user", "_site/docs/en/guide/document-structure.html should not point readers to the removed user path.");
 expectContains(readSiteFile("docs/en/guide/actions.html"), "examples/showcase/form-submit-flow.html", "_site/docs/en/guide/actions.html should link to the form submit showcase.");
 expectContains(readSiteFile("docs/en/guide/partial-updates.html"), "mode: replace", "_site/docs/en/guide/partial-updates.html should include partial update replacement semantics.");
 expectContains(readSiteFile("docs/en/guide/partial-updates.html"), "profile-summary.partial.html", "_site/docs/en/guide/partial-updates.html should link to the partial showcase.");
@@ -366,6 +371,13 @@ for (const filePath of [
   expectNotContains(readSiteFile(filePath), 'href="../ja/', `${filePath} should keep English IA navigation in English.`);
   expectNotContains(readSiteFile(filePath), 'href="../../ja/', `${filePath} should keep English IA navigation in English.`);
   expectNotContains(readSiteFile(filePath), "/docs/ja/", `${filePath} should not route English IA readers to Japanese docs.`);
+}
+
+for (const filePath of [
+  "docs/ja/guide/document-structure.html",
+  "docs/en/guide/document-structure.html"
+]) {
+  expectLocalLinks(filePath);
 }
 
 const generatedExamples = readdirSync(join(siteDir, "examples")).filter((entry) => entry.endsWith(".html") && entry !== "index.html");
