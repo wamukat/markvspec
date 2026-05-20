@@ -7,6 +7,7 @@ const githubBlobBaseUrl = "https://github.com/wamukat/markvspec/blob/main/";
 const outputDir = join(root, "_site");
 const siteSourceDir = join(root, "site");
 const examplesDir = join(root, "examples");
+const docsDir = join(root, "docs");
 const docsAssetsDir = join(root, "docs", "assets");
 const examplesOutDir = join(outputDir, "examples");
 const examplesShowcaseOutDir = join(examplesOutDir, "showcase");
@@ -615,6 +616,231 @@ function copyDocsAssets() {
   }
 }
 
+function renderMarkdownDocs() {
+  const markdownFiles = collectFiles(docsDir, (filePath) => {
+    return filePath.endsWith(".md");
+  });
+
+  for (const filePath of markdownFiles) {
+    const relativeDocPath = relative(docsDir, filePath);
+    const targetPath = join(outputDir, "docs", relativeDocPath.replace(/\.md$/u, ".html"));
+    mkdirSync(dirname(targetPath), { recursive: true });
+    writeFileSync(targetPath, renderMarkdownPage(filePath, readFileSync(filePath, "utf8")), "utf8");
+  }
+}
+
+function renderMarkdownPage(filePath, markdown) {
+  const title = markdown.match(/^#\s+(.+)$/mu)?.[1] ?? basename(filePath, ".md");
+  return `<!doctype html>
+<html lang="${filePath.includes(`${docsDir}/ja/`) ? "ja" : "en"}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${escapeHtml(stripMarkdownInline(title))} - MarkVSpec Docs</title>
+  <style>
+    :root {
+      color: #172033;
+      background: #f8fafc;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body {
+      margin: 0;
+    }
+    main {
+      background: #fff;
+      border: 1px solid #d7dee8;
+      border-radius: 8px;
+      margin: 32px auto 64px;
+      max-width: 880px;
+      padding: 32px;
+    }
+    h1 {
+      font-size: 34px;
+      line-height: 1.2;
+      margin: 0 0 20px;
+    }
+    h2 {
+      border-top: 1px solid #e5eaf1;
+      font-size: 22px;
+      margin: 30px 0 12px;
+      padding-top: 22px;
+    }
+    h3 {
+      font-size: 18px;
+      margin: 24px 0 10px;
+    }
+    p,
+    li {
+      color: #44546a;
+      line-height: 1.7;
+    }
+    a {
+      color: #0f766e;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    blockquote {
+      background: #f1f5f9;
+      border-left: 4px solid #0f766e;
+      margin: 18px 0;
+      padding: 10px 16px;
+    }
+    code {
+      background: #edf2f7;
+      border-radius: 4px;
+      padding: 2px 5px;
+    }
+    pre {
+      background: #101827;
+      border-radius: 8px;
+      color: #e8eef8;
+      overflow-x: auto;
+      padding: 16px;
+    }
+    pre code {
+      background: transparent;
+      padding: 0;
+    }
+    @media (max-width: 720px) {
+      main {
+        border-left: 0;
+        border-radius: 0;
+        border-right: 0;
+        margin-top: 0;
+        padding: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+${renderMarkdownBody(filePath, markdown)}
+  </main>
+</body>
+</html>
+`;
+}
+
+function stripMarkdownInline(value) {
+  return value.replace(/`([^`]+)`/gu, "$1").replace(/\[([^\]]+)\]\([^)]+\)/gu, "$1");
+}
+
+function renderMarkdownBody(filePath, markdown) {
+  const lines = markdown.split(/\r?\n/u);
+  const html = [];
+  let paragraph = [];
+  let listItems = [];
+  let inCode = false;
+  let codeLines = [];
+
+  function flushParagraph() {
+    if (paragraph.length > 0) {
+      html.push(`<p>${renderMarkdownInline(filePath, paragraph.join(" "))}</p>`);
+      paragraph = [];
+    }
+  }
+
+  function flushList() {
+    if (listItems.length > 0) {
+      html.push("<ul>");
+      for (const item of listItems) {
+        html.push(`  <li>${renderMarkdownInline(filePath, item)}</li>`);
+      }
+      html.push("</ul>");
+      listItems = [];
+    }
+  }
+
+  for (const line of lines) {
+    if (line.startsWith("```")) {
+      if (inCode) {
+        html.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+        codeLines = [];
+        inCode = false;
+      } else {
+        flushParagraph();
+        flushList();
+        inCode = true;
+      }
+      continue;
+    }
+
+    if (inCode) {
+      codeLines.push(line);
+      continue;
+    }
+
+    if (!line.trim()) {
+      flushParagraph();
+      flushList();
+      continue;
+    }
+
+    const heading = line.match(/^(#{1,3})\s+(.+)$/u);
+    if (heading) {
+      flushParagraph();
+      flushList();
+      const level = heading[1].length;
+      html.push(`<h${level}>${renderMarkdownInline(filePath, heading[2])}</h${level}>`);
+      continue;
+    }
+
+    const listItem = line.match(/^-\s+(.+)$/u);
+    if (listItem) {
+      flushParagraph();
+      listItems.push(listItem[1]);
+      continue;
+    }
+
+    const quote = line.match(/^>\s?(.*)$/u);
+    if (quote) {
+      flushParagraph();
+      flushList();
+      html.push(`<blockquote><p>${renderMarkdownInline(filePath, quote[1])}</p></blockquote>`);
+      continue;
+    }
+
+    paragraph.push(line.trim());
+  }
+
+  flushParagraph();
+  flushList();
+  return html.join("\n");
+}
+
+function renderMarkdownInline(filePath, value) {
+  return escapeHtml(value)
+    .replace(/`([^`]+)`/gu, "<code>$1</code>")
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/gu, (_match, label, href) => {
+      return `<a href="${escapeHtml(resolveMarkdownHref(filePath, href))}">${label}</a>`;
+    });
+}
+
+function resolveMarkdownHref(filePath, href) {
+  if (/^[a-z][a-z0-9+.-]*:/iu.test(href) || href.startsWith("#")) {
+    return href;
+  }
+
+  const [pathPart, hashPart = ""] = href.split("#", 2);
+  const absoluteTarget = resolve(dirname(filePath), pathPart);
+  const relativeTarget = toPosixPath(relative(root, absoluteTarget));
+  const hash = hashPart ? `#${hashPart}` : "";
+
+  if (relativeTarget.startsWith("docs/") && pathPart.endsWith(".md")) {
+    const targetHtml = relativeTarget.replace(/\.md$/u, ".html");
+    return toPosixPath(relative(dirname(join(outputDir, "docs", relative(docsDir, filePath).replace(/\.md$/u, ".html"))), join(outputDir, targetHtml))) + hash;
+  }
+
+  if (pathPart.endsWith(".md")) {
+    return `${githubBlobBaseUrl}${relativeTarget}${hash}`;
+  }
+
+  return href;
+}
+
 function rewriteHtmlMarkdownLinks(htmlPath, html) {
   return html.replace(/\bhref="([^"]+\.md(?:#[^"]*)?)"/gu, (match, href) => {
     if (/^[a-z][a-z0-9+.-]*:/iu.test(href) || href.startsWith("#")) {
@@ -650,6 +876,7 @@ execFileSync("node", ["packages/cli/dist/index.js", "export", "html", "examples/
 for (const filePath of files) {
   writeFileSync(join(examplesShowcaseOutDir, htmlFileName(filePath)), renderShowcasePage(filePath), "utf8");
 }
+renderMarkdownDocs();
 copySiteFiles();
 copyDocsAssets();
 writeFileSync(join(examplesOutDir, "index.html"), renderExamplesIndex(files));

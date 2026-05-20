@@ -17,7 +17,34 @@ const requiredFiles = [
   "docs/en/user/structured-section-reference.html",
   "docs/ja/user/ui-coverage.html",
   "docs/en/user/ui-coverage.html",
+  "docs/ja/start/index.html",
+  "docs/en/start/index.html",
+  "docs/ja/guide/index.html",
+  "docs/en/guide/index.html",
+  "docs/ja/reference/index.html",
+  "docs/en/reference/index.html",
+  "docs/ja/recipes/index.html",
+  "docs/en/recipes/index.html",
+  "docs/ja/examples/index.html",
+  "docs/en/examples/index.html",
+  "docs/ja/concepts/index.html",
+  "docs/en/concepts/index.html",
   "docs/assets/readme-hello-screen-preview.png"
+];
+
+const newIaIndexFiles = [
+  "docs/ja/start/index.html",
+  "docs/en/start/index.html",
+  "docs/ja/guide/index.html",
+  "docs/en/guide/index.html",
+  "docs/ja/reference/index.html",
+  "docs/en/reference/index.html",
+  "docs/ja/recipes/index.html",
+  "docs/en/recipes/index.html",
+  "docs/ja/examples/index.html",
+  "docs/en/examples/index.html",
+  "docs/ja/concepts/index.html",
+  "docs/en/concepts/index.html"
 ];
 
 const failures = [];
@@ -65,6 +92,10 @@ if (generatedShowcases.length !== generatedExamples.length) {
 }
 
 for (const filePath of ["examples/index.html", ...generatedShowcases.map((entry) => `examples/showcase/${entry}`)]) {
+  expectLocalLinks(filePath);
+}
+
+for (const filePath of newIaIndexFiles) {
   expectLocalLinks(filePath);
 }
 
