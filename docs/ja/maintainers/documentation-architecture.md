@@ -12,13 +12,13 @@
 
 ## 背景
 
-現状の repository には、`README.md` / `README.ja.md`、`site/`、`docs/`、
+現状の repository には、`README.md` / `README.ja.md`、`docs-site/`、`docs/`、
 `examples/` が存在します。個別の内容はあるものの、読者が
 「知る、試す、書く、調べる、応用する」という順序で移動できる構造になっていません。
 
 主な問題は次の通りです。
 
-- README、site、docs、examples がそれぞれ別の入口として振る舞っている。
+- README、公開サイト、docs、examples がそれぞれ別の入口として振る舞っている。
 - `docs/ja/README.md` が利用者向けと保守者向けを同じ強さで案内している。
 - `docs/ja/user/dsl.md` が巨大な Reference になっており、初学者の導線に近すぎる。
 - `examples/` は実用的な教材だが、Guide、Reference、Recipe との接続情報を持っていない。
@@ -34,7 +34,7 @@
 - examples を、単なるファイル一覧ではなく学習教材として扱う。
 - Reference は正確性を優先し、初学者向け Guide から分離する。
 - 保守者向け文書は残すが、利用者導線からは明確に隔離する。
-- README、site、docs、examples が同じ情報構造を共有する。
+- README、公開サイト、docs、examples が同じ情報構造を共有する。
 
 ## 読者モデル
 
@@ -70,10 +70,10 @@ README に置かないもの:
 - 保守者向け設計判断。
 - 目的別リンク表の過剰な網羅。
 
-### site
+### 公開サイト
 
-`site/` は公開ドキュメントの top page です。
-外向け landing page ではなく、公開された学習ポータルとして扱います。
+`docs-site/` は Astro Starlight による公開ドキュメント site です。
+外向け landing page だけではなく、公開された学習ポータルとして扱います。
 
 site top に置くもの:
 

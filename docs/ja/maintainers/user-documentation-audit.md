@@ -11,7 +11,7 @@
 - `docs/en/` と `docs/ja/` のユーザー向け文書
 - `docs/en/maintainers/` と `docs/ja/maintainers/` は、ユーザー導線へ漏れていないかだけを見る
 - `examples/`
-- `site/index.html`
+- `docs-site/src/pages/index.astro`
 - 生成サイトでの主要導線
 
 ## 改善方針
@@ -57,7 +57,7 @@
 | 17 | ユーザー導線から maintainer / implementation detail が分離されているか | 要修正 | README と docs root に maintainer links がある。`docs/en/README.md` / `docs/ja/README.md` はユーザー入口として再設計し、maintainers は明示的な contributor path に隔離する。 |
 | 18 | 「旧」「移行済み」「互換」「実装者メモ」のノイズが公開導線に残っていないか | 修正済み | 旧ドキュメント警告や移行済み文書のノイズは見つからない。user-facing docs に残っていた実装者寄り表現は、利用者が preview / review で判断できる表現へ言い換えた。 |
 | 19 | CLI が VS Code-first workflow を邪魔していないか | 修正済み | CLI reference / recipes は `hello.vspec.md` を基本例にし、repository checkout 前提の `examples/` path はその前提を明記した。 |
-| 20 | site/index.html が最初の選択を単純にしているか | 一部要修正 | root で日英 docs / examples へ進める点は良い。より user-first にするなら CTA は「Start in 5 minutes / 5分で試す」を第一にし、言語切替と examples を整理する。 |
+| 20 | site root が最初の選択を単純にしているか | 修正済み | Starlight root は日英 docs / examples への導線に整理済み。旧 `site/index.html` は削除し、`docs-site/src/pages/index.astro` を公開 root の source of truth にした。 |
 
 ## 優先度付き改善項目
 
