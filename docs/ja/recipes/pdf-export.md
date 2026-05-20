@@ -22,18 +22,20 @@ VS Code から出力すると、preview で見たものと export の対応を�
 ## CLI で出力する
 
 ```bash
-npx @markvspec/cli@latest export html examples/01-basics/hello-screen.vspec.md --out markvspec-html
-npx @markvspec/cli@latest export pdf examples/01-basics/hello-screen.vspec.md --out markvspec-pdf
+npx @markvspec/cli@latest export html hello.vspec.md --out markvspec-html
+npx @markvspec/cli@latest export pdf hello.vspec.md --out markvspec-pdf
 ```
 
 CLI は次の場面に向いています。
 
-- CI で example や docs の export を検証する。
+- CI で自分の `.vspec.md` を検証する。
 - review 用 HTML をまとめて生成する。
 - release artifact として PDF を作る。
 - local preview を使わずに出力だけ確認する。
 
 詳細は [CLI Reference](../reference/cli.md) を参照してください。
+
+MarkVSpec repository を checkout している場合は `examples/` 配下の path も渡せます。通常の利用では、自分の workspace にある `.vspec.md` を指定してください。
 
 ## よくある落とし穴
 
@@ -41,7 +43,7 @@ CLI は次の場面に向いています。
 - source と export を別々に修正しない。修正は `.vspec.md` に戻してから再 export します。
 - PDF export には Chrome 互換ブラウザが必要です。CI では browser dependency を事前に用意します。
 - export artifact はレビュー用です。canonical source は `.vspec.md` です。
-- file path や output directory を README に固定で書く場合は、実際に存在する example path と一致させます。
+- file path や output directory を README に固定で書く場合は、その workspace に実在する file と一致させます。
 
 ## 関連 example
 

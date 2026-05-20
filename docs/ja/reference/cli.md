@@ -1,21 +1,30 @@
 # CLI
 
-CLI は `.vspec.md` の検証と export に使います。VS Code preview で確認しながら書き、必要に応じて CLI で CI や静的成果物出力に組み込めます。
+CLI は、VS Code 拡張の外で `.vspec.md` を検証または export したいときに使います。
+
+基本の流れは次のままです。
+
+1. VS Code で `hello.vspec.md` を書く。
+2. `MarkVSpec: Open Preview` で確認する。
+3. 1画面を共有するだけなら VS Code から export する。
+4. CI、script、複数 file の一括 export では CLI を使う。
+
+自分の `.vspec.md` に対して CLI を使うだけなら、この repository を clone する必要はありません。
 
 ## 書ける構文
 
 ### Validate
 
 ```bash
-npx @markvspec/cli@latest validate examples/01-basics/hello-screen.vspec.md
+npx @markvspec/cli@latest validate hello.vspec.md
 ```
 
-source file を parse/validate し、構文上の不足や参照の問題を確認します。
+source file を parse/validate し、構文上の不足や参照の問題を確認します。CI では export 前に実行します。
 
 ### Export HTML
 
 ```bash
-npx @markvspec/cli@latest export html examples/01-basics/hello-screen.vspec.md --out markvspec-html
+npx @markvspec/cli@latest export html hello.vspec.md --out markvspec-html
 ```
 
 preview と共有に使える静的 HTML を出力します。
@@ -23,7 +32,7 @@ preview と共有に使える静的 HTML を出力します。
 ### Export PDF
 
 ```bash
-npx @markvspec/cli@latest export pdf examples/01-basics/hello-screen.vspec.md --out markvspec-pdf
+npx @markvspec/cli@latest export pdf hello.vspec.md --out markvspec-pdf
 ```
 
 PDF export には Chrome 互換ブラウザが必要です。
@@ -31,8 +40,8 @@ PDF export には Chrome 互換ブラウザが必要です。
 ## 小さな例
 
 ```bash
-npx @markvspec/cli@latest validate ./screens/login.vspec.md
-npx @markvspec/cli@latest export html ./screens/login.vspec.md --out ./dist/markvspec
+npx @markvspec/cli@latest validate hello.vspec.md
+npx @markvspec/cli@latest export html hello.vspec.md --out markvspec-html
 ```
 
 ## 注意点
@@ -42,6 +51,7 @@ npx @markvspec/cli@latest export html ./screens/login.vspec.md --out ./dist/mark
 - `--out` は出力先 directory です。既存成果物の扱いは実行環境の運用に合わせて管理してください。
 - PDF はブラウザ実行環境の差で font や page break が変わる場合があります。
 - VS Code extension から HTML/PDF を出力できる場合、個人作業では extension の export の方が簡単です。
+- `examples/` 配下の path は MarkVSpec repository を checkout している前提です。自分の作業では、workspace 内の `.vspec.md` path を渡してください。
 
 ## 関連ページ
 
