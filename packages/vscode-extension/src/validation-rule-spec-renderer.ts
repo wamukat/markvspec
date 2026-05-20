@@ -136,8 +136,7 @@ export function createValidationRuleSpecRenderer(support: ValidationRuleSpecRend
           renderValidationValues(result, validationDomainTargets(validation))
         ]),
         rule ? renderValidationRuleEntry(result, validation, rule) : text("-"),
-        renderValidationRuleProperty(result, rule, validation, "when", index)
-          || renderLegacyValidationCondition(result, validation),
+        renderValidationRuleProperty(result, rule, validation, "when", index),
         renderValidationRuleProperty(result, rule, validation, "message", index, messageValues, !hasRuleMessages),
         renderValidationRuleProperty(result, rule, validation, "error code", index, errorCodeValues, !hasRuleErrorCodes),
         ...rowspanPrefixCells(index === 0 ? rules.length : 0, [
@@ -160,7 +159,7 @@ export function createValidationRuleSpecRenderer(support: ValidationRuleSpecRend
       renderValidationValues(result, validationDomainTargets(validation)),
       renderValidationProperty(result, validation, "input") || renderValidationProperty(result, validation, "inputs"),
       renderValidationProperty(result, validation, "check") || renderValidationRules(result, validation),
-      renderValidationProperty(result, validation, "when") || renderLegacyValidationCondition(result, validation),
+      renderValidationProperty(result, validation, "when"),
       renderValidationProperty(result, validation, "message"),
       renderValidationProperty(result, validation, "error code") || renderValidationProperty(result, validation, "error codes"),
       ...(showNotes ? [support.renderEntityNotes(markdownResult, validation.notes)] : [])
@@ -281,14 +280,6 @@ export function createValidationRuleSpecRenderer(support: ValidationRuleSpecRend
     return presentValues.length === 1
       ? support.renderParamSource(result, presentValues[0] ?? "")
       : `<ul class="spec-list">${presentValues.map((item) => `<li>${support.renderParamSource(result, item)}</li>`).join("")}</ul>`;
-  };
-
-  const renderLegacyValidationCondition = (result: ParsedMarkVSpec, validation: ParsedValidation): string => {
-    const values = validationPropertyValues(validation, "condition");
-    if (values.length === 0) {
-      return "";
-    }
-    return `${text(support.label(result, "legacyCondition"))}: ${renderValidationValues(result, values)}`;
   };
 
   const renderRulesSpec = (result: ParsedMarkVSpec, markdownResult: ParsedMarkVSpec = result): string => {

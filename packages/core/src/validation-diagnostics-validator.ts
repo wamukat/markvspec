@@ -83,10 +83,10 @@ export function validateValidationRules(
   context: ValidationRuleDiagnosticContext,
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
-  if (validation.rules.length === 0 && validationPropertyValues(validation, "condition").length === 0 && validationPropertyValues(validation, "check").length === 0) {
+  if (validation.rules.length === 0 && validationPropertyValues(validation, "check").length === 0) {
     diagnostics.push({
       severity: "warning",
-      message: `Validation ${validation.id} has no rules. Define rules or migrate legacy condition-only validation.`,
+      message: `Validation ${validation.id} has no rules. Define rules or check entries.`,
       line: validation.location.line
     });
     return;

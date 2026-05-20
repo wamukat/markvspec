@@ -145,9 +145,9 @@ Visible description.
     previous,
     previous.replace("<!-- hidden before -->", "<!--\nhidden before\nnew hidden line\n-->")
   );
-  const removedComment = computeMarkVSpecRenderInvalidation(previous, previous.replace("\n<!-- hidden before -->\n", "\n"));
+  const deletedComment = computeMarkVSpecRenderInvalidation(previous, previous.replace("\n<!-- hidden before -->\n", "\n"));
 
-  for (const invalidation of [textEdit, expandedComment, removedComment]) {
+  for (const invalidation of [textEdit, expandedComment, deletedComment]) {
     assert.deepEqual(invalidation.changedSectionIds, []);
     assert.deepEqual(invalidation.impactedRenderKeys, []);
     assert.equal(invalidation.requiresFullRender, false);

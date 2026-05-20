@@ -64,7 +64,7 @@ Check the generated HTML or PDF for these points:
 - Element `sample rows:` and scenario samples show repeated structure without
   requiring unique markers for every sampled data row.
 - Partial placeholders and embedded partial previews remain visually distinct.
-- i18n label references, URL parameter transitions, and `PartialRequest`
+- i18n label references, URL parameter transitions, and partial update process
   sections remain readable.
 - Front Matter metadata is present.
 - Page breaks do not cut headings away from their first content block in an

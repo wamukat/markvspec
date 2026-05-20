@@ -97,7 +97,6 @@ export type MessageKey =
   | "layout"
   | "layouts"
   | "level"
-  | "legacyCondition"
   | "line"
   | "locale"
   | "loaded"
@@ -339,7 +338,6 @@ const en: Record<MessageKey, string> = {
   layout: "Layout",
   layouts: "Layouts",
   level: "Level",
-  legacyCondition: "legacy condition",
   line: "Line",
   locale: "Locale",
   loaded: "loaded",
@@ -582,7 +580,6 @@ const ja: Record<MessageKey, string> = {
   layout: "レイアウト",
   layouts: "レイアウト",
   level: "レベル",
-  legacyCondition: "非推奨 condition",
   line: "行",
   locale: "ロケール",
   loaded: "読み込み済み",

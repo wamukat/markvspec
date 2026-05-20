@@ -745,11 +745,11 @@ title: Layout AST Diagnostics
 
 ### Invalid
 
-### L-Repeat Repeat
+### L-Extra Extra
 
 - stack
 
-#### Repeat
+#### Metadata
 
 - source: data
 
@@ -771,8 +771,8 @@ title: Layout AST Diagnostics
     ],
     [
       "warning",
-      "Layout L-Repeat has unsupported subsection Repeat. Use #### Items for child references or layout metadata bullets for settings.",
-      lineNumber(source, "#### Repeat")
+      "Layout L-Extra has unsupported subsection Metadata. Use #### Items for child references or layout metadata bullets for settings.",
+      lineNumber(source, "#### Metadata")
     ],
     ["warning", "Slot section must specify a slot name, for example ## Slot: content.", lineNumber(source, "## Slot:")],
     ["warning", "Slot layout group is ignored because its Slot section has no name.", lineNumber(source, "### L-SlotContent Slot Content")]

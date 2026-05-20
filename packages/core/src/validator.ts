@@ -625,7 +625,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
       if (processReadModel.kind === "HttpRequest" && !processReadModel.execution.request) {
         diagnostics.push({
           severity: "warning",
-          message: `Action ${action.id} HttpRequest step has no request line such as POST /path.`,
+          message: `Action ${action.id} request process step has no request line such as POST /path.`,
           line: step.location.line
         });
       }
@@ -861,7 +861,6 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   for (const validation of result.validations) {
     validateValidationTargets(validation, validationTargetDiagnosticContext, diagnostics);
     validateValidationRules(validation, validationRuleDiagnosticContext, diagnostics);
-    validateValidationCondition(validation, localIds, diagnostics);
     validateValidationErrorCodes(validation, errorCodeIds, diagnostics);
     validateValidationScopeAndRun(validation, diagnostics);
   }
@@ -1135,22 +1134,6 @@ function validateErrorCode(
         line: errorCode.propertyLocations["display"]?.[index]?.line ?? errorCode.location.line
       });
     }
-  });
-}
-
-function validateValidationCondition(
-  validation: MarkVSpecParseResult["validations"][number],
-  localIds: Set<string>,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  validationPropertyValues(validation, "condition").forEach((condition, index) => {
-    checkConditionReferences(
-      condition,
-      localIds,
-      diagnostics,
-      validation.propertyLocations["condition"]?.[index]?.line ?? validation.location.line,
-      "warning"
-    );
   });
 }
 

@@ -382,10 +382,9 @@ route: /mypage/partials/notices
     - state: fetch-error
 ```
 
-`partial.render` は partial 文書がサーバ側で描画される契機です。`ServerCall`
-などの処理ステップ名はプロジェクトごとに選べます。`bridge` のような特定
-アーキテクチャの語は MarkVSpec の予約語にせず、必要な場合だけ処理詳細として
-書きます。
+`partial.render` は partial 文書がサーバ側で描画される契機です。処理ステップ名は
+プロジェクトごとに選べます。`bridge` のような特定アーキテクチャの語は MarkVSpec
+の予約語にせず、必要な場合だけ処理詳細として書きます。
 
 ## 生成される設計書ビュー
 

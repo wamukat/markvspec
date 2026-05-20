@@ -487,13 +487,14 @@ attribute names.
 
 Use structured action groups:
 
-- Screen-side `Process` / `PartialRequest` for partial HTML method, path, and parameters.
-- `case:` / `display` for result-specific partial updates.
-- `target`, `mode`, and `content` under `update` for semantic update details.
+- Screen-side `Process Pn: <name>` with a `request:` block for partial HTML method,
+  path, and parameters.
+- `case:` / `Effects` / `display.partial` for result-specific partial updates.
+- `target`, `mode`, and `partial` under `display` for semantic update details.
 
 Example mapping:
 
-- `PartialRequest` with `request: GET /mypage/partials/notices` maps to an htmx request such as `hx-get="/mypage/partials/notices"`.
+- `Process P1: Load notices` with `request: GET /mypage/partials/notices` maps to an htmx request such as `hx-get="/mypage/partials/notices"`.
 - `target: L-MessageArea` maps to `hx-target="#L-MessageArea"`.
 
 Actions are viewport-independent. When an action update targets a layout ID,
@@ -567,9 +568,9 @@ route: /mypage/partials/notices
 ```
 
 `partial.render` is the lifecycle trigger for rendering the partial document on
-the server. Process step names such as `ServerCall` are project-level modeling
-choices. Architecture-specific words such as `bridge` are not MarkVSpec core
-keywords; write them only as implementation details when a project needs them.
+the server. Process step names are project-level modeling choices.
+Architecture-specific words such as `bridge` are not MarkVSpec core keywords;
+write them only as implementation details when a project needs them.
 
 Supported update modes:
 

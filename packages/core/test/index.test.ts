@@ -356,91 +356,7 @@ title: Duplicate Slot
   assert(messages.includes("Duplicate slot content for content."));
 });
 
-test("does not parse removed inline initial value syntax", () => {
-  const source = `---
-id: SCR-INLINE-INITIAL
-type: screen
-title: Inline Initial
----
-
-# SCR-INLINE-INITIAL Inline Initial
-
-## States
-
-- idle*
-
-## Elements
-
-### E-EmailInput Input
-
-- value: \${model.email}{"test@example.com"}
-`;
-  const result = parseMarkVSpec(source);
-  const element = result.elements.find((item) => item.id === "E-EmailInput");
-
-  assert.equal(element?.properties["value"], '\${model.email}{"test@example.com"}');
-  assert.equal(element?.properties["initial value"], undefined);
-  assert.deepEqual(result.diagnostics, []);
-});
-
-test("does not parse removed inline initial value syntax on extended form primitives", () => {
-  const source = `---
-id: SCR-EXTENDED-INLINE-INITIAL
-type: screen
-title: Extended Inline Initial
----
-
-# SCR-EXTENDED-INLINE-INITIAL Extended Inline Initial
-
-## States
-
-- idle*
-
-## Elements
-
-### E-Notes Textarea
-
-- value: \${model.notes}{Call before renewal.}
-
-### E-Permissions MultiSelect
-
-- value: \${model.permissions}{Manage users, Export reports}
-
-### E-Notifications CheckboxGroup
-
-- value: \${model.notifications}{Security alerts}
-
-### E-EmailSwitch Switch
-
-- value: \${model.emailNotifications}{true}
-
-### E-DueDate DateInput
-
-- value: \${model.dueDate}{2026-05-13}
-
-### E-StartTime TimeInput
-
-- value: \${model.startTime}{09:30}
-
-### E-Headcount NumberInput
-
-- value: \${model.headcount}{2}
-`;
-  const result = parseMarkVSpec(source);
-  const byId = new Map(result.elements.map((element) => [element.id, element]));
-
-  assert.equal(byId.get("E-Notes")?.properties["value"], "\${model.notes}{Call before renewal.}");
-  assert.equal(byId.get("E-Notes")?.properties["initial value"], undefined);
-  assert.equal(byId.get("E-Permissions")?.properties["initial value"], undefined);
-  assert.equal(byId.get("E-Notifications")?.properties["initial value"], undefined);
-  assert.equal(byId.get("E-EmailSwitch")?.properties["initial value"], undefined);
-  assert.equal(byId.get("E-DueDate")?.properties["initial value"], undefined);
-  assert.equal(byId.get("E-StartTime")?.properties["initial value"], undefined);
-  assert.equal(byId.get("E-Headcount")?.properties["initial value"], undefined);
-  assert.deepEqual(result.diagnostics, []);
-});
-
-test("does not parse removed colonless element block starters", () => {
+test("reports indented entries under a boolean element property", () => {
   const source = `---
 id: SCR-COLONLESS-BLOCKS
 type: screen
@@ -970,7 +886,7 @@ Section notes are valid.
 ### V-NameRequired Name required
 
 - target: E-NameInput
-- condition: E-NameInput.value is empty
+- check: E-NameInput.value is empty
 - message: Name is required.
 
 ## Notes
@@ -2325,13 +2241,13 @@ route: /notices/:noticeId
 
 test("rejects brace route placeholder syntax", () => {
   const source = `---
-id: SCR-LEGACY-ROUTE
+id: SCR-BRACE-ROUTE
 type: screen
-title: Legacy Route
+title: Brace Route
 route: /users/{userId}
 ---
 
-# SCR-LEGACY-ROUTE Legacy Route
+# SCR-BRACE-ROUTE Brace Route
 
 ## States
 
@@ -2392,7 +2308,7 @@ route: /users/:userId
 - rules:
   - required:
     - E-Title
-- condition: \${route.validationUserId}
+- when: \${route.validationUserId}
 `;
   const result = parseMarkVSpec(source);
 
@@ -2402,7 +2318,7 @@ route: /users/:userId
       ["warning", "Route parameter reference ${route.accountId} does not match any :param in screen route.", lineNumber(source, "- src: ${route.accountId}")],
       ["warning", "Route parameter reference ${route.tableUserId} does not match any :param in screen route.", lineNumber(source, "  - Route ID: ${route.tableUserId}")],
       ["warning", "Route parameter reference ${route.missingUserId} does not match any :param in screen route.", lineNumber(source, "    - userId: ${route.missingUserId}")],
-      ["warning", "Route parameter reference ${route.validationUserId} does not match any :param in screen route.", lineNumber(source, "- condition: ${route.validationUserId}")]
+      ["warning", "Route parameter reference ${route.validationUserId} does not match any :param in screen route.", lineNumber(source, "- when: ${route.validationUserId}")]
     ]
   );
 });
@@ -3679,7 +3595,7 @@ title: Validations
   - same-as:
     - E-パスワード入力
     - E-PasswordConfirmInput
-- condition: E-パスワード入力.value equals E-PasswordConfirmInput.value
+- when: E-パスワード入力.value equals E-PasswordConfirmInput.value
 - message: Password and confirmation must match.
 `;
   const result = parseMarkVSpec(source);
@@ -3697,7 +3613,7 @@ title: Validations
       raw: "same-as:"
     }
   ]);
-  assert.equal(result.validations[0]?.properties["condition"], "E-パスワード入力.value equals E-PasswordConfirmInput.value");
+  assert.equal(result.validations[0]?.properties["when"], "E-パスワード入力.value equals E-PasswordConfirmInput.value");
   assert.equal(result.validations[0]?.properties["message"], "Password and confirmation must match.");
 });
 
@@ -3719,7 +3635,10 @@ title: Validation Diagnostics
 ### V-CrossField Cross-field validation
 
 - target: E-MissingInput
-- condition: E-MissingInput.value equals E-OtherInput.value
+- rules:
+  - same-as:
+    - E-MissingInput
+    - E-OtherInput
 `;
   const result = parseMarkVSpec(source);
 
@@ -3727,8 +3646,8 @@ title: Validation Diagnostics
     result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
     [
       ["error", "Validation V-CrossField targets missing element E-MissingInput.", lineNumber(source, "- target: E-MissingInput")],
-      ["warning", "Condition references missing ID E-MissingInput.", lineNumber(source, "- condition: E-MissingInput.value equals E-OtherInput.value")],
-      ["warning", "Condition references missing ID E-OtherInput.", lineNumber(source, "- condition: E-MissingInput.value equals E-OtherInput.value")]
+      ["error", "Validation V-CrossField rule same-as references missing element E-MissingInput.", lineNumber(source, "  - same-as:")],
+      ["error", "Validation V-CrossField rule same-as references missing element E-OtherInput.", lineNumber(source, "  - same-as:")]
     ]
   );
 });
@@ -3900,7 +3819,7 @@ title: Validation Groups
   - required:
     - E-メールアドレス入力
 - run: client
-- condition: E-メールアドレス入力.value is empty
+- when: E-メールアドレス入力.value is empty
 
 ## Cross-field Validations
 
@@ -3913,7 +3832,7 @@ title: Validation Groups
     - E-パスワード入力
     - E-PasswordConfirmInput
 - run: edge
-- condition: E-パスワード入力.value equals E-PasswordConfirmInput.value
+- when: E-パスワード入力.value equals E-PasswordConfirmInput.value
 `;
   const result = parseMarkVSpec(source);
 
@@ -4102,7 +4021,7 @@ title: Input Contract
 - rules:
   - email:
     - E-メールアドレス入力
-- condition: E-メールアドレス入力.value matches email
+- when: E-メールアドレス入力.value matches email
 - message: Email format is invalid.
 - error code: ERR-EMAIL-FORMAT
 
@@ -4218,12 +4137,12 @@ title: Business Rule Markdown
 
 test("does not parse Rules section as business rules", () => {
   const source = `---
-id: SCR-RULES-REMOVED
+id: SCR-RULES-NOTES
 type: screen
-title: Rules Removed
+title: Rules Notes
 ---
 
-# SCR-RULES-REMOVED Rules Removed
+# SCR-RULES-NOTES Rules Notes
 
 ## States
 
@@ -4231,16 +4150,16 @@ title: Rules Removed
 
 ## Rules
 
-### R-Legacy Legacy rule
+### R-Archived Archived rule
 
-- Legacy rule text.
+- Archived rule text.
 `;
   const result = parseMarkVSpec(source);
   const notes = result.notes.find((note) => note.title === "Rules");
 
   assert.deepEqual(result.rules, []);
   assert(notes);
-  assert(notes.lines.some((line) => line.includes("R-Legacy Legacy rule")));
+  assert(notes.lines.some((line) => line.includes("R-Archived Archived rule")));
 });
 
 test("does not let unknown sections affect semantic section order lint", () => {
@@ -4577,62 +4496,6 @@ title: Otherwise
   ]);
 });
 
-test("rejects action-level When blocks", () => {
-  const source = `---
-id: SCR-CONDITIONS
-type: screen
-title: Conditions
----
-
-# SCR-CONDITIONS Conditions
-
-## States
-
-- idle*
-
-## Layout: mobile
-
-### L-Root Root
-
-- stack
-
-## Elements
-
-### E-メールアドレス入力 Input
-
-### E-パスワード入力 Input
-
-### E-入力省略チェック Checkbox
-
-### E-Submit Button
-
-## Actions
-
-### A-Submit Submit
-
-- Triggered
-  - E-Submit.click
-- From
-  - idle
-- When
-  - all:
-    - E-メールアドレス入力 is not empty
-    - any:
-      - E-パスワード入力 is not empty
-      - E-入力省略チェック is checked
-`;
-  const result = parseMarkVSpec(source);
-  const action = result.actions.find((candidate) => candidate.id === "A-Submit");
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
-
-  assert(messages.includes("Action A-Submit has unsupported top-level entry: When. Use From, Process P1: <name>, or Otherwise."));
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit has unsupported top-level entry: When. Use From, Process P1: <name>, or Otherwise.")?.line,
-    lineNumber(source, "- When")
-  );
-  assert.equal(action?.id, "A-Submit");
-});
-
 test("rejects singular action group aliases", () => {
   const source = `---
 id: SCR-ACTION-ALIASES
@@ -4674,14 +4537,14 @@ title: Action Aliases
   );
 });
 
-test("rejects removed action groups when they are the only action list", () => {
+test("rejects unsupported action entries when they are the only action list", () => {
   const source = `---
-id: SCR-REMOVED-ACTION-GROUP
+id: SCR-UNSUPPORTED-ACTION-ENTRY
 type: screen
-title: Removed Action Group
+title: Unsupported Action Entry
 ---
 
-# SCR-REMOVED-ACTION-GROUP Removed Action Group
+# SCR-UNSUPPORTED-ACTION-ENTRY Unsupported Action Entry
 
 ## States
 
@@ -4691,77 +4554,15 @@ title: Removed Action Group
 
 ### A-Submit Submit
 
-- When
-  - E-Input is not empty
+- request: POST /submit
 `;
   const result = parseMarkVSpec(source);
 
   assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit has unsupported top-level entry: When. Use From, Process P1: <name>, or Otherwise.")?.line,
-    lineNumber(source, "- When")
+    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit has unsupported top-level entry: request: POST /submit. Use From, Process P1: <name>, or Otherwise.")?.line,
+    lineNumber(source, "- request: POST /submit")
   );
   assert.equal(result.actions.find((candidate) => candidate.id === "A-Submit")?.overview?.length ?? 0, 0);
-});
-
-test("rejects removed legacy action DSL forms directly", () => {
-  const source = `---
-id: SCR-LEGACY-ACTION-DSL
-type: screen
-title: Legacy Action DSL
----
-
-# SCR-LEGACY-ACTION-DSL Legacy Action DSL
-
-## States
-
-- idle*
-- loading
-- done
-
-## Actions
-
-### A-Legacy Legacy
-
-- Triggered
-  - E-Submit.click
-- From
-  - idle
-- Effects
-  - state: loading
-- Cases
-  - success:
-    - state: done
-- Process
-  - HttpRequest
-    - POST /legacy
-    - cases:
-      - sent:
-        - state: loading
-- Resolve: load-group
-- Process P1: Call server service
-  - Service.call()
-  - case: success
-    - \${model.member.loaded}: true
-  - cases:
-    - old:
-      - state: done
-`;
-  const result = parseMarkVSpec(source);
-  const action = result.actions.find((candidate) => candidate.id === "A-Legacy");
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
-
-  assert(messages.includes("Action A-Legacy has unsupported top-level entry: Effects. Use From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Action A-Legacy has unsupported top-level entry: Cases. Use From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Action A-Legacy has unsupported top-level entry: Process. Use From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Action A-Legacy has unsupported top-level entry: Resolve: load-group. Use From, Process P1: <name>, or Otherwise."));
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("unsupported top-level entry: Effects"))?.line,
-    lineNumber(source, "- Effects")
-  );
-  assert.deepEqual(action?.transitions.map((transition) => [transition.from, transition.to, transition.raw]), [["idle", "done", "state: done"]]);
-  assert.deepEqual(action?.sideEffects, []);
-  assert.deepEqual(action?.outcomes, []);
-  assert.deepEqual(action?.processSteps.find((step) => step.name === "Call server service")?.outcomes.find((outcome) => outcome.result === "success")?.sideEffects, []);
 });
 
 test("reports process condition references on the leaf line", () => {
@@ -5705,7 +5506,7 @@ title: Incomplete Action
     [
       [
         "warning",
-        "Action A-Submit HttpRequest step has no request line such as POST /path.",
+        "Action A-Submit request process step has no request line such as POST /path.",
         lineNumber(source, "- Process P1: Send request")
       ]
     ]
@@ -5782,7 +5583,7 @@ title: Flow Placement
   );
 });
 
-test("warns for an HttpRequest step without its own request line", () => {
+test("warns for a request process step without its own request line", () => {
   const source = `---
 id: SCR-INCOMPLETE-REQUEST-STEP
 type: screen
@@ -5825,7 +5626,7 @@ title: Incomplete Request Step
     [
       [
         "warning",
-        "Action A-Submit HttpRequest step has no request line such as POST /path.",
+        "Action A-Submit request process step has no request line such as POST /path.",
         lineNumber(source, "- Process P1: Send request")
       ]
     ]
@@ -6413,7 +6214,7 @@ title: Select Initial
 
 ### E-UnlistedSelect Select
 
-- initial value: legacy
+- initial value: custom
 
 ### E-PlanGroup RadioGroup
 

@@ -993,7 +993,7 @@ locale: en
   assert.match(loadedSection, new RegExp(`<td>${refActionChip("A1", "A-Submit", "Submit")} ${repeatedBadge()}</td>`));
 });
 
-test("omits legacy state change sections while keeping current changed specs", () => {
+test("omits retired state change headings while keeping current changed specs", () => {
   const source = `---
 id: SCR-CHANGED-ONLY-SPECS
 type: screen
@@ -1038,7 +1038,7 @@ locale: en
   assert.match(loadedSection, />E-Submit<\/code>/);
 });
 
-test("renders state action availability as current actions without removed actions", () => {
+test("renders state action availability as current actions only", () => {
   const source = `---
 id: SCR-ACTION-AVAILABILITY
 type: screen
@@ -1258,7 +1258,7 @@ title: Layout Ref Viewport
   assert.doesNotMatch(desktopLayouts, /MOB<\/code> Mobile message area/);
 });
 
-test("does not reintroduce legacy diff badge class names", () => {
+test("keeps diff badge class names out of repeated markers", () => {
   const source = `---
 id: SCR-REPEATED-BADGE-CLASS
 type: screen
@@ -3285,7 +3285,7 @@ locale: ja
     - E-パスワード入力
 - scope: field
 - run: client
-- condition: E-パスワード入力.value is empty
+- when: E-パスワード入力.value is empty
 - message: メールアドレスを入力してください。
 
 ### V-PasswordConfirmation パスワード確認
@@ -3298,7 +3298,7 @@ locale: ja
     - E-PasswordConfirmInput
 - scope: cross-field
 - run: client
-- condition: E-パスワード入力.value equals E-PasswordConfirmInput.value
+- when: E-パスワード入力.value equals E-PasswordConfirmInput.value
 - message: パスワードと確認用パスワードが一致していること。
 
 ### V-EmailUnique メール重複
@@ -3309,7 +3309,7 @@ locale: ja
     - E-パスワード入力
 - scope: single
 - run: client
-- condition: server response ERR-EMAIL-TAKEN
+- when: server response ERR-EMAIL-TAKEN
 - message: このメールアドレスは使用できません。
 - error code: ERR-EMAIL-TAKEN
 
@@ -3323,7 +3323,7 @@ locale: ja
     - E-PasswordConfirmInput
 - scope: composite
 - run: client
-- condition: server response ERR-ACCOUNT-CONSISTENCY
+- when: server response ERR-ACCOUNT-CONSISTENCY
 - message: アカウント情報を確認してください。
 - error code: ERR-ACCOUNT-CONSISTENCY
 `;
@@ -3341,7 +3341,7 @@ locale: ja
   assert.doesNotMatch(section, /<th>結果<\/th>/);
   assert.doesNotMatch(section, /<th>範囲<\/th>|<th>実行<\/th>/);
   assert.match(clientField, new RegExp(`<td>${refMessageChip("V-EmailRequired", "V-EmailRequired", "メール必須")}</td>`));
-  assert.match(clientField, /非推奨 condition:/);
+  assert.match(clientField, new RegExp(`${markerBadge("1", "element")}\\.value is empty`));
   assert.match(clientField, new RegExp(`<td>${refMessageChip("V-EmailUnique", "V-EmailUnique", "メール重複")}</td>`));
   assert.match(clientField, /ERR-EMAIL-TAKEN/);
   assert.doesNotMatch(clientField, /V-PasswordConfirmation|V-AccountConsistency/);
@@ -6863,7 +6863,7 @@ Validation overview.
 - rules:
   - required:
     - E-EmailInput
-- condition: E-EmailInput.value is empty
+- when: E-EmailInput.value is empty
 - message: Email is required.
 
 Validation notes.

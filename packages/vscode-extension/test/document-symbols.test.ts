@@ -115,7 +115,7 @@ title: 日本語画面
 ### V-日本語検証 日本語検証
 
 - target: E-ページヘッダ
-- condition: E-ページヘッダ が表示されていること
+- check: E-ページヘッダ が表示されていること
 - message: 日本語検証メッセージ
 
 ## Business Rules
