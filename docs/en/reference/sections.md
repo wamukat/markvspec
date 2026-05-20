@@ -100,6 +100,11 @@ the screen lifecycle. See
 Use `## Preview Scenarios` to name reviewable preview states without duplicating
 the whole screen.
 
+Preview Data is the umbrella term for values that MarkVSpec passes to
+preview/export rendering. It includes scalar Element display values, Element
+`sample rows:`, Preview Scenario `samples:`, Preview Scenario `route:`, and
+`## View Context Samples`.
+
 ```markdown
 ## Preview Scenarios
 
@@ -108,10 +113,22 @@ the whole screen.
 - state: idle
 - cases:
   - A-SubmitLogin.P1.invalid
+- samples:
+  - E-EmailInput: invalid@example
+- route:
+  - token: expired
 ```
 
 Use it when a reviewer must see error, empty, dialog, toast, or direct-link
-states. See [Display Effects](../../../examples/showcase/display-effects.html).
+states. `samples:` is Scenario Preview Data for Element-specific values.
+`route:` is Route Preview Data for route parameters and hash fragments.
+
+`## Model Samples` / `modelSamples` is not canonical. Use Element scalar values,
+Element `sample rows:`, Preview Scenario `samples:` / `route:`, or View Context
+Samples instead.
+
+See [Scenario Preview Data](../../../examples/showcase/scenario-samples.html)
+and [Display Effects](../../../examples/showcase/display-effects.html).
 
 ### Field And Cross-Field Validations
 

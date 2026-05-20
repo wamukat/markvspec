@@ -64,15 +64,15 @@ examples:
     next:
       - examples/03-actions/form-submit-flow.vspec.md
   - path: examples/02-states/scenario-samples.vspec.md
-    title: Scenario Samples
+    title: Scenario Preview Data
     kind: screen
     stage: loading-empty-error
-    summary: Preview scenario sample variations for the same state.
+    summary: Scenario Preview Data variations for the same state.
     showcase: true
     learningPath: false
     teaches:
       - Preview scenarios
-      - Sample data
+      - Scenario Preview Data
     docs:
       guide:
         - states

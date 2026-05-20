@@ -98,6 +98,10 @@ initial load、partial initialization、screen lifecycle による data refresh 
 画面全体を複製せず、review したい preview 状態に名前を付ける場合は
 `## Preview Scenarios` を使います。
 
+Preview Data は、MarkVSpec が preview/export に渡す表示用データ全体の総称です。
+Element の scalar 表示値、Element の `sample rows:`、Preview Scenario の
+`samples:`、Preview Scenario の `route:`、`## View Context Samples` が含まれます。
+
 ```markdown
 ## Preview Scenarios
 
@@ -106,9 +110,21 @@ initial load、partial initialization、screen lifecycle による data refresh 
 - state: idle
 - cases:
   - A-SubmitLogin.P1.invalid
+- samples:
+  - E-EmailInput: invalid@example
+- route:
+  - token: expired
 ```
 
 error、empty、dialog、toast、direct link の状態を見せたいときに使います。
+`samples:` は Element ごとの Scenario Preview Data です。`route:` は route
+parameter や hash fragment に使う Route Preview Data です。
+
+`## Model Samples` / `modelSamples` は canonical ではありません。Element の scalar 値、
+Element の `sample rows:`、Preview Scenario の `samples:` / `route:`、または
+View Context Samples を使ってください。
+
+[Scenario Preview Data](../../../examples/showcase/scenario-samples.html) と
 [Display Effects](../../../examples/showcase/display-effects.html) を参照してください。
 
 ### Field And Cross-Field Validations

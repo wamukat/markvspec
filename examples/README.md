@@ -19,7 +19,7 @@ Examples are organized by the screen pattern you want to copy. Start with
 - `02-states/async-loading.vspec.md`: fetching, loaded, empty, and error states for a list.
 - `03-actions/parallel-initial-load.vspec.md`: parallel initial requests and final state selection.
 - `04-real-world-screens/search-list.vspec.md`: filters, results, paging, empty state, error state, and replacement.
-- `02-states/scenario-samples.vspec.md`: sample data variations for the same state.
+- `02-states/scenario-samples.vspec.md`: Scenario Preview Data variations for the same state.
 
 ## Partial Updates
 
