@@ -29,13 +29,17 @@
 
 ### Element Heading
 
-Declare an element with the `### E-* Name Type` form.
+Declare an element with `### E-* Name Type`. When you want the preview to show
+a marker, write `### marker:E-* Name Type`.
 
 ```markdown
 ### E-HelpText Paragraph
+
+### 3:E-HelpText Paragraph
 ```
 
 - `E-*` is the stable ID.
+- `3` is an optional preview marker.
 - `HelpText` is the human-readable object name.
 - `Paragraph` is the element type.
 

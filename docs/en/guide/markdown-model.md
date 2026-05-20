@@ -22,17 +22,17 @@ locale: en
 
 ## States
 
-### idle
+- idle*
 
 ## Layout: mobile
 
-### L-Main Main
+### L1:L-Main Main
 
 - column
 
 ## Elements
 
-### E-Title Heading
+### 1:E-Title Heading
 
 - level: 1
 - text: Hello
@@ -45,6 +45,8 @@ This example has screen metadata and only three sections: `States`, `Layout`, an
 ## Common Patterns
 
 - Use `SCR-*` for screens, `L-*` for layout groups, `E-*` for elements, `A-*` for actions, and `R-*` for rules.
+- Use `### ID Name` or `### marker:ID Name` for objects. The marker is optional; the ID is what references use.
+- Write states as bullets under `## States`; use `*` on one state for the initial state.
 - Put only document-level information in Front Matter. Put element labels, actions, and behavior in the body.
 - Use `##` sections for major concerns. Put visual structure in `Layout` and `Elements`, behavior in `Actions`, and constraints in `Business Rules` or validation-oriented sections.
 - Put explanatory prose under `## Notes` or directly under a section. Avoid mixing free-form notes into object property lists.

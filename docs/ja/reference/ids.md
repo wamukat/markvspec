@@ -22,14 +22,14 @@ title: Login
 
 ## Elements
 
-### E-SignInButton Button
+### 5:E-SignInButton Button
 
 - label: Sign in
 - action: A-SubmitLogin
 
 ## Actions
 
-### A-SubmitLogin Submit login
+### A1:A-SubmitLogin Submit login
 ```
 
 ## Prefixes
@@ -42,14 +42,35 @@ title: Login
 | `A-*` | action | `A-SubmitLogin` |
 | `R-*` | rule | `R-CanSubmit` |
 
+## Marker 付き heading
+
+object heading には、preview marker を ID の前に付けられます。
+
+```markdown
+### 5:E-SignInButton Button
+
+### A1:A-SubmitLogin Submit login
+
+### L1:L-LoginForm Login form
+```
+
+`:` より前が preview に表示される marker です。安定した ID は `:` より後ろです。
+`Items`、`action`、`target`、`navigate` などの参照では、marker ではなく ID を使います。
+
+preview marker が不要な場合は、省略できます。
+
+```markdown
+### E-SignInButton Button
+```
+
 ## 小さな例
 
 ```markdown
-### E-RememberMe Checkbox
+### 1:E-RememberMe Checkbox
 
 - label: Remember me
 
-### A-ToggleRememberMe Toggle remember me
+### A1:A-ToggleRememberMe Toggle remember me
 
 - Process P1: Toggle remembered state
   - state: idle
@@ -62,7 +83,7 @@ title: Login
 - ID は参照用、`label` や `text` は表示用です。
 - ID は大文字 prefix と意味のある名前で書きます。
 - 同じ file 内で ID を重複させないでください。
-- `Items`、`action`、`target`、`navigate` などは ID を参照します。
+- `Items`、`action`、`target`、`navigate` などは marker ではなく ID を参照します。
 - screen を分割しても参照が壊れないよう、rename は慎重に行います。
 - ID に raw route、CSS class、database primary key を混ぜないでください。
 

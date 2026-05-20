@@ -45,10 +45,13 @@
 
 ### Action Heading
 
-Declare an action with the `### A-* Name` form.
+Declare an action with `### A-* Name`. When you want the preview to show an
+action marker, write `### marker:A-* Name`.
 
 ```markdown
 ### A-RefreshList Refresh list
+
+### A1:A-RefreshList Refresh list
 ```
 
 ### Blocks

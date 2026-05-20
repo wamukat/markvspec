@@ -15,7 +15,7 @@ locale: en
 
 ## States
 
-- idle
+- idle*
 
 ## Layout: mobile
 
@@ -47,6 +47,7 @@ Write the body with Markdown headings and bullets.
 - `###` declares an object.
 - `####` declares a subsection inside an object.
 - Bullets describe properties, rules, conditions, and transitions.
+- A `###` object heading may be `### ID Name` or `### marker:ID Name`.
 
 JSON is not the authoring format. Tools may use JSON internally or in exports, but users do not write JSON as the source format.
 
@@ -62,7 +63,7 @@ route: /hello
 
 ## Elements
 
-### E-Title Heading
+### 1:E-Title Heading
 
 - level: 1
 - text: Hello MarkVSpec
@@ -77,6 +78,7 @@ route: /hello
 - Front Matter is YAML, but the body should not drift into YAML or JSON.
 - Markdown tables may be used for explanation, but they are not canonical source.
 - Use `type: partial` for server-rendered partials or screen fragments.
+- Write states as bullets under `## States`; use `*` on one state for the initial state.
 
 ## Related Pages
 

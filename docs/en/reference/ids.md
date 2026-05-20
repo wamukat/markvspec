@@ -22,14 +22,14 @@ title: Login
 
 ## Elements
 
-### E-SignInButton Button
+### 5:E-SignInButton Button
 
 - label: Sign in
 - action: A-SubmitLogin
 
 ## Actions
 
-### A-SubmitLogin Submit login
+### A1:A-SubmitLogin Submit login
 ```
 
 ## Prefixes
@@ -42,14 +42,36 @@ title: Login
 | `A-*` | Action | `A-SubmitLogin` |
 | `R-*` | Rule | `R-CanSubmit` |
 
+## Marker-Prefixed Headings
+
+Object headings may include a preview marker before the ID.
+
+```markdown
+### 5:E-SignInButton Button
+
+### A1:A-SubmitLogin Submit login
+
+### L1:L-LoginForm Login form
+```
+
+The part before `:` is the marker shown in preview. The stable ID is the part
+after `:`. Use the stable ID in references such as `Items`, `action`, `target`,
+and `navigate`.
+
+You can omit the marker when you do not need preview labels:
+
+```markdown
+### E-SignInButton Button
+```
+
 ## Small Example
 
 ```markdown
-### E-RememberMe Checkbox
+### 1:E-RememberMe Checkbox
 
 - label: Remember me
 
-### A-ToggleRememberMe Toggle remember me
+### A1:A-ToggleRememberMe Toggle remember me
 
 - Process P1: Toggle remembered state
   - state: idle
@@ -62,7 +84,7 @@ title: Login
 - IDs are for references; `label` and `text` are for display.
 - Write IDs with an uppercase prefix and a meaningful name.
 - Do not duplicate IDs within the same file.
-- `Items`, `action`, `target`, and `navigate` refer to IDs.
+- `Items`, `action`, `target`, and `navigate` refer to IDs, not preview markers.
 - Rename IDs carefully so references keep working when screens are split.
 - Do not mix raw routes, CSS classes, or database primary keys into IDs.
 

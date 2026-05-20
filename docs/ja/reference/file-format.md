@@ -15,7 +15,7 @@ locale: ja
 
 ## States
 
-- idle
+- idle*
 
 ## Layout: mobile
 
@@ -47,6 +47,7 @@ Front Matter には element property、action、layout item は書きません�
 - `###` は object 宣言。
 - `####` は object 内の subsection。
 - bullet は property、rule、condition、transition を表します。
+- `###` の object heading は `### ID Name` または `### marker:ID Name` で書けます。
 
 JSON は authoring format ではありません。tool の内部表現や export 結果として使われることはありますが、利用者が source として書く形式ではありません。
 
@@ -62,7 +63,7 @@ route: /hello
 
 ## Elements
 
-### E-Title Heading
+### 1:E-Title Heading
 
 - level: 1
 - text: Hello MarkVSpec
@@ -77,6 +78,7 @@ route: /hello
 - Front Matter は YAML ですが、本文を YAML や JSON に寄せないでください。
 - Markdown table は説明用には使えますが、canonical source にはしません。
 - `type: partial` は server-rendered partial や画面断片を表す場合に使います。
+- state は `## States` の下に bullet で書き、初期状態には `*` を1つだけ付けます。
 
 ## 関連ページ
 

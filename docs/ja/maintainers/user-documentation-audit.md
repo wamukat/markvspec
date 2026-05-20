@@ -41,8 +41,8 @@
 | 1 | README と docs root が OSS 利用者向けの入口になっているか | 要修正 | `README.md` / `README.ja.md` に contributor command と maintainer directory へのリンクが残っている。`docs/en/README.md` / `docs/ja/README.md` も maintainer links を前面に出している。通常の利用者にはノイズ。 |
 | 2 | clone 不要の初回体験が成立しているか | 概ねOK | Start は Marketplace install、任意 folder、`hello.vspec.md`、preview、export の流れになっている。README も clone 不要を明記している。 |
 | 3 | 最初のサンプルが警告や未定義参照を出さないか | 修正済み | Start の Hello Screen と `examples/01-basics/hello-screen.vspec.md` は外部 screen ID を参照せず、同じ `idle` state に留まる最小 action に揃えた。 |
-| 4 | Canonical DSL が README / Guide / Reference / Examples で一致しているか | 要修正 | Reference は `### E-Title Heading` / `### A-SubmitLogin Submit login` を示す一方、examples は `### 1:E-Title`、`### L1:L-Page`、`### A1:A-Continue` の marker 付き見出しを多用する。marker 付き見出しをユーザー構文として文書化するか、examples から外す必要がある。 |
-| 5 | State の書き方が一貫しているか | 要修正 | `- idle*`、`- idle`、`### idle` が混在している。初期 state の表現と、箇条書き state / 見出し state の使い分けを Reference で明確にする必要がある。 |
+| 4 | Canonical DSL が README / Guide / Reference / Examples で一致しているか | 修正済み | marker 付き heading を `### marker:ID Name` として Reference に明記した。marker は preview 表示用で、参照に使う安定 ID は `:` より後ろ。 |
+| 5 | State の書き方が一貫しているか | 修正済み | Start / Guide / Reference の基本例を `## States` 配下の bullet に揃え、初期 state は `- idle*` のように `*` で示すと明記した。 |
 | 6 | Action / HTTP request syntax が正確か | 概ねOK | ユーザー向け docs は HTTP method/path を `request:` に統一済み。`server:` は HTTP そのものではない server-side service call の説明としてだけ残っている。 |
 | 7 | Action caller と結果が追えるか | 一部要修正 | Actions は概ね `action: A-*`、`From`、`Process Pn:`、`case:` で追える。Partial Updates guide の最小例は「refresh button をクリック」と説明するが、例の中に button / caller がない。 |
 | 8 | Validation と Business Rules の境界が明確か | 一部要修正 | Japanese guide は4分類を示しており方向性は良い。English validation guide では required 相当を `Business Rules` に置く例があり、Reference の「field constraint は element 近く」とぶれる。 |
@@ -64,8 +64,8 @@
 ### P0: 正確性
 
 1. Reference と examples の DSL 表記差を解消する。
-   - marker 付き heading を正式構文として文書化するか、examples の heading を Reference に合わせる。
-   - 初期 state の `*`、見出し state、箇条書き state の使い分けを明記する。
+   - 対応済み: marker 付き heading を正式構文として文書化した。
+   - 対応済み: 初期 state は `## States` 配下の bullet に `*` を付ける形に揃えた。
 2. examples が使う section / element type / property を Reference に追加する。
    - `Form Groups`
    - `Events`
@@ -121,8 +121,8 @@
 
 ## サブエージェントからの主な指摘
 
-- README と docs root に maintainer / contributor 情報が残っており、入口として user-first ではない。
-- Reference の heading syntax と examples の marker-prefixed heading が食い違っている。
+- 対応済み: README と docs root の通常導線から maintainer / contributor 情報を外した。
+- 対応済み: Reference に marker-prefixed heading syntax を追加し、examples の表記と揃えた。
 - `Form Groups`、`Slots`、`Error Codes` など、examples が使う section が Reference に不足している。
 - Element Reference が実際の showcase element type をカバーしていない。
 - Partial update の説明に `display.partial`、`partial`、`content` が混在している。

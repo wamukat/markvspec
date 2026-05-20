@@ -45,10 +45,13 @@
 
 ### Action Heading
 
-Action は `### A-* Name` の形で宣言します。
+Action は `### A-* Name` で宣言します。preview に action marker を出したい場合は
+`### marker:A-* Name` と書きます。
 
 ```markdown
 ### A-RefreshList Refresh list
+
+### A1:A-RefreshList Refresh list
 ```
 
 ### Blocks

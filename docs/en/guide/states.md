@@ -13,20 +13,21 @@ Use state names from the user's point of view, not implementation booleans. Pref
 ```markdown
 ## States
 
-### idle
-
-### loading
-
-### error
+- idle*
+- loading
+- error
 ```
 
-This minimal example defines only the normal, loading, and error states. Even before you describe visual differences, these names can be used as action results and preview targets.
+This minimal example defines the normal, loading, and error states. The `*`
+marks `idle` as the initial state. Even before you describe visual differences,
+these names can be used as action results and preview targets.
 
 ![Async Fetching state preview](../../assets/vscode-previews/async-loading-vscode-preview.png)
 
 ## Common Patterns
 
 - Use short state names that are meaningful in the screen.
+- Write states as bullets under `## States`; use `*` on one state for the initial state.
 - Reference states from layout, elements, and action cases.
 - For async work, align action cases with resulting states.
 - Start with common names such as `idle`, `loading`, `empty`, `error`, and `success`, then specialize only when needed, such as `auth-error` or `permission-denied`.

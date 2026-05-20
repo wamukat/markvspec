@@ -7,7 +7,7 @@ Sections are top-level headings in the `.vspec.md` body. MarkVSpec uses the sect
 ```markdown
 ## States
 
-- idle
+- idle*
 - loading
 - error
 
@@ -36,6 +36,22 @@ MarkVSpec recognizes these top-level sections.
 | `## Notes` | Additional notes, implementation context, and intent |
 | `## Open Questions` | Unresolved questions |
 
+### States
+
+Write states as bullets under `## States`. Add `*` to exactly one state when you
+want to mark the initial state explicitly.
+
+```markdown
+## States
+
+- idle*
+- loading
+- error
+```
+
+Use the same state names from action cases, element visibility, and preview
+notes.
+
 ## Small Example
 
 ```markdown
@@ -57,7 +73,7 @@ MarkVSpec recognizes these top-level sections.
 
 - Use the fixed English section names, even in Japanese documents.
 - Markdown headings declare objects. They are not visual heading decoration.
-- Objects usually use the `### ID Name` form.
+- Objects use `### ID Name` or marker-prefixed `### marker:ID Name` headings.
 - Subsections such as `#### Items` belong to the previous object.
 - Unknown sections may be treated as prose and may not participate in preview or validation.
 

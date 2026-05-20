@@ -22,17 +22,17 @@ locale: en
 
 ## States
 
-### idle
+- idle*
 
 ## Layout: mobile
 
-### L-Main Main
+### L1:L-Main Main
 
 - column
 
 ## Elements
 
-### E-Title Heading
+### 1:E-Title Heading
 
 - level: 1
 - text: Hello
@@ -45,6 +45,8 @@ locale: en
 ## よくある書き方
 
 - `SCR-*` は画面、`L-*` は layout group、`E-*` は element、`A-*` は action、`R-*` は rule に使う。
+- object は `### ID Name` または `### marker:ID Name` で書く。marker は任意で、参照に使うのは ID。
+- state は `## States` の下に bullet で書き、初期状態には `*` を1つだけ付ける。
 - Front Matter には文書全体の情報だけを書く。個別 element の label や action は本文に置く。
 - `##` section は大きな関心ごとで分ける。画面の見え方は `Layout` と `Elements`、振る舞いは `Actions`、制約は `Business Rules` や `Validation` に寄せる。
 - 文章の補足は `## Notes` や section 直下の prose に置く。構造化された object の箇条書きと混ぜすぎない。

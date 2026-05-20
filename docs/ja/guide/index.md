@@ -26,7 +26,7 @@ Guide では細かい構文を説明しません。まず「何を書くと、pr
 ```markdown
 ## States
 
-### idle
+- idle*
 
 ## Elements
 
@@ -40,7 +40,7 @@ Guide では細かい構文を説明しません。まず「何を書くと、pr
 ### A-Continue Continue
 
 - Process P1: Navigate
-  - navigate: SCR-NEXT
+  - state: idle
 ```
 
 このくらいから始めます。最初から完全な仕様にしようとしないでください。

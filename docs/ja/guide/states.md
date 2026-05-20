@@ -9,16 +9,13 @@ State は、同じ画面の見え方を分ける名前です。
 ```markdown
 ## States
 
-### idle
-
-### loading
-
-### empty
-
-### error
+- idle*
+- loading
+- empty
+- error
 ```
 
-preview では state ごとに画面を切り替えて確認できます。
+`*` が付いた `idle` が初期状態です。preview では state ごとに画面を切り替えて確認できます。
 
 ![Async Fetching の state 切り替え preview](../../assets/vscode-previews/async-loading-vscode-preview.png)
 
@@ -30,6 +27,7 @@ preview では state ごとに画面を切り替えて確認できます。
 - `apiDone` ではなく `loaded`
 
 実装の変数名ではなく、画面の状態名にします。
+state は `## States` の下に bullet で書き、初期状態には `*` を1つだけ付けます。
 
 ## Action とつなぐ
 

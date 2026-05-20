@@ -29,13 +29,17 @@
 
 ### Element Heading
 
-Element は `### E-* Name Type` の形で宣言します。
+Element は `### E-* Name Type` で宣言します。preview に marker を出したい場合は
+`### marker:E-* Name Type` と書きます。
 
 ```markdown
 ### E-HelpText Paragraph
+
+### 3:E-HelpText Paragraph
 ```
 
 - `E-*` は stable ID。
+- `3` は任意の preview marker。
 - `HelpText` は人が読む object 名。
 - `Paragraph` は element type。
 

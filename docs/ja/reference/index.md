@@ -50,7 +50,7 @@ route: /hello
 
 ## States
 
-- idle
+- idle*
 
 ## Layout: mobile
 
@@ -67,12 +67,12 @@ route: /hello
 
 ## Elements
 
-### E-Title Heading
+### 1:E-Title Heading
 
 - level: 1
 - text: Hello MarkVSpec
 
-### E-Continue Button
+### 2:E-Continue Button
 
 - label: Continue
 - variant: primary
@@ -80,10 +80,10 @@ route: /hello
 
 ## Actions
 
-### A-Continue Continue
+### A1:A-Continue Continue
 
-- Process P1: Navigate to next screen
-  - navigate: SCR-NEXT
+- Process P1: Stay on the current screen
+  - state: idle
 ```
 
 ![Hello Screen の source と生成 preview](../../assets/vscode-previews/hello-screen-vscode-preview.png)
