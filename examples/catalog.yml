@@ -2,7 +2,7 @@ examples:
   - path: examples/01-basics/hello-screen.vspec.md
     title: Hello Screen
     kind: screen
-    stage: basics
+    stage: beginner
     summary: Minimum screen specification with metadata, state, layout, elements, and a click action.
     showcase: true
     learningPath: true
@@ -25,7 +25,7 @@ examples:
   - path: examples/02-states/async-loading.vspec.md
     title: Async Fetching
     kind: screen
-    stage: states
+    stage: loading-empty-error
     summary: Request lifecycle with fetching, loaded, empty, and error states.
     showcase: true
     learningPath: true
@@ -46,7 +46,7 @@ examples:
   - path: examples/02-states/responsive-profile.vspec.md
     title: Responsive Profile
     kind: screen
-    stage: states
+    stage: responsive-layout
     summary: Mobile and desktop layout variants over shared elements.
     showcase: true
     learningPath: true
@@ -66,7 +66,7 @@ examples:
   - path: examples/02-states/scenario-samples.vspec.md
     title: Scenario Samples
     kind: screen
-    stage: states
+    stage: loading-empty-error
     summary: Preview scenario sample variations for the same state.
     showcase: true
     learningPath: false
@@ -83,7 +83,7 @@ examples:
   - path: examples/02-states/source-kind-metadata.vspec.md
     title: Source Kind Metadata
     kind: screen
-    stage: states
+    stage: content-display
     summary: Property-level kind, source, and format metadata.
     showcase: true
     learningPath: false
@@ -100,7 +100,7 @@ examples:
   - path: examples/03-actions/form-submit-flow.vspec.md
     title: Form Submit Flow
     kind: screen
-    stage: actions
+    stage: form-validation
     summary: Submit lifecycle with validation receive source, request parameters, and navigation.
     showcase: true
     learningPath: true
@@ -123,7 +123,7 @@ examples:
   - path: examples/03-actions/single-field-validation.vspec.md
     title: Single Field Validation
     kind: screen
-    stage: actions
+    stage: form-validation
     summary: Single-field validation contracts and input constraints.
     showcase: true
     learningPath: true
@@ -143,7 +143,7 @@ examples:
   - path: examples/03-actions/display-effects.vspec.md
     title: Display Updates
     kind: screen
-    stage: actions
+    stage: partial-update
     summary: Display effect shapes for messages, dialogs, toasts, and layout insertion.
     showcase: true
     learningPath: true
@@ -164,7 +164,7 @@ examples:
   - path: examples/03-actions/event-triggers.vspec.md
     title: Event Triggers
     kind: screen
-    stage: actions
+    stage: navigation-overlay
     summary: Page load, change, blur, focus, submit, and dialog triggers.
     showcase: true
     learningPath: false
@@ -181,7 +181,7 @@ examples:
   - path: examples/03-actions/parallel-initial-load.vspec.md
     title: Parallel Initial Load
     kind: screen
-    stage: actions
+    stage: loading-empty-error
     summary: Parallel server calls and final resolve state decision.
     showcase: true
     learningPath: false
@@ -200,7 +200,7 @@ examples:
   - path: examples/03-actions/toast-feedback.vspec.md
     title: Toast Feedback
     kind: screen
-    stage: actions
+    stage: navigation-overlay
     summary: Toast feedback from action cases and targetless display effects.
     showcase: true
     learningPath: false
@@ -217,7 +217,7 @@ examples:
   - path: examples/04-real-world-screens/login-basic.vspec.md
     title: Login
     kind: screen
-    stage: real-world-screens
+    stage: form-validation
     summary: Compact authentication flow with responsive layout, validation, request, response, and navigation.
     showcase: true
     learningPath: true
@@ -242,7 +242,7 @@ examples:
   - path: examples/04-real-world-screens/search-list.vspec.md
     title: Search List
     kind: screen
-    stage: real-world-screens
+    stage: loading-empty-error
     summary: Search list with filters, table rows, paging, empty/error states, and replacement.
     showcase: true
     learningPath: true
@@ -266,7 +266,7 @@ examples:
   - path: examples/04-real-world-screens/notice-detail.vspec.md
     title: Notice Detail
     kind: screen
-    stage: real-world-screens
+    stage: content-display
     summary: Display content specification for wording, data sources, samples, and formats.
     showcase: true
     learningPath: false
@@ -284,7 +284,7 @@ examples:
   - path: examples/04-real-world-screens/profile-edit-rich.vspec.md
     title: Profile Edit Rich
     kind: screen
-    stage: real-world-screens
+    stage: form-validation
     summary: Extended form controls, media, list content, and modal dialog wiring.
     showcase: true
     learningPath: false
@@ -304,7 +304,7 @@ examples:
   - path: examples/04-real-world-screens/tabs-settings.vspec.md
     title: Tabs Settings
     kind: screen
-    stage: real-world-screens
+    stage: navigation-overlay
     summary: Tabs element with active tab, panel references, and item actions.
     showcase: true
     learningPath: false
@@ -322,7 +322,7 @@ examples:
   - path: examples/04-real-world-screens/anchored-help.vspec.md
     title: Anchored Help
     kind: screen
-    stage: real-world-screens
+    stage: navigation-overlay
     summary: Popover and tooltip anchors, placement, visibility, and text.
     showcase: true
     learningPath: false
@@ -340,7 +340,7 @@ examples:
   - path: examples/04-real-world-screens/accordion-disclosure.vspec.md
     title: Accordion Disclosure
     kind: screen
-    stage: real-world-screens
+    stage: navigation-overlay
     summary: Accordion and disclosure open state, panel references, and actions.
     showcase: true
     learningPath: false
@@ -358,7 +358,7 @@ examples:
   - path: examples/04-real-world-screens/action-menu.vspec.md
     title: Action Menu
     kind: screen
-    stage: real-world-screens
+    stage: navigation-overlay
     summary: Action menu items, open overlay, danger tone, and disabled conditions.
     showcase: true
     learningPath: false
@@ -378,7 +378,7 @@ examples:
   - path: examples/05-reuse/template-shell.vspec.md
     title: Account Shell
     kind: template
-    stage: reuse
+    stage: reuse-template
     summary: Template document unit, reusable navigation shell, and content slot placeholder.
     showcase: true
     learningPath: true
@@ -399,7 +399,7 @@ examples:
   - path: examples/05-reuse/basic-slot-page.vspec.md
     title: Basic Slot Page
     kind: screen
-    stage: reuse
+    stage: reuse-template
     summary: Smallest screen that fills a template content slot.
     showcase: true
     learningPath: true
@@ -418,7 +418,7 @@ examples:
   - path: examples/05-reuse/profile-page-with-template.vspec.md
     title: Profile Home
     kind: screen
-    stage: reuse
+    stage: partial-update
     summary: Template composition, route params, referenced partials, and partial refresh.
     showcase: true
     learningPath: true
@@ -439,7 +439,7 @@ examples:
   - path: examples/05-reuse/profile-summary.partial.vspec.md
     title: Profile Summary Partial
     kind: partial
-    stage: reuse
+    stage: partial-update
     summary: Partial document route, partial-local states, and server-side load/build action.
     showcase: true
     learningPath: false
@@ -459,7 +459,7 @@ examples:
   - path: examples/05-reuse/responsive-template-shell.vspec.md
     title: Responsive Shell
     kind: template
-    stage: reuse
+    stage: reuse-template
     summary: Mobile and desktop template shell layouts that render the same slot differently.
     showcase: true
     learningPath: false
@@ -477,7 +477,7 @@ examples:
   - path: examples/05-reuse/responsive-slot-page.vspec.md
     title: Responsive Slot Page
     kind: screen
-    stage: reuse
+    stage: reuse-template
     summary: Viewport-neutral slot fallback and desktop-specific slot override.
     showcase: true
     learningPath: false
@@ -495,7 +495,7 @@ examples:
   - path: examples/05-reuse/default-slot-page.vspec.md
     title: Default Slot Page
     kind: screen
-    stage: reuse
+    stage: reuse-template
     summary: Template slot default fallback when a screen provides no slot content.
     showcase: true
     learningPath: false
@@ -512,7 +512,7 @@ examples:
   - path: examples/06-structured-sections/history-and-errors.vspec.md
     title: Account Settings
     kind: screen
-    stage: structured-sections
+    stage: content-display
     summary: Error Codes, custom History Fields, History entries, and a save flow.
     showcase: true
     learningPath: true

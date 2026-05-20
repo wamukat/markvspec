@@ -259,7 +259,7 @@ ${links}
       <img src="../assets/markvspec-icon.svg" alt="" width="38" height="38">
       <h1>MarkVSpec Examples</h1>
     </div>
-    <p>Generated example showcases for the shipped MarkVSpec examples. Open Source + Preview to compare the Markdown source with the generated HTML output, or use Preview when you only need the rendered document.</p>
+    <p>Browse examples by the screen pattern you want to copy. Open Source + Preview to compare the Markdown source with the generated output, or use Preview when you only need the rendered document.</p>
     <section>
       <h2>Learning Path</h2>
       <ul>
@@ -318,7 +318,7 @@ function renderShowcasePage(filePath, files, catalogIndex) {
     metadata.id,
     metadata.type,
     catalogEntry?.kind ? `kind ${catalogEntry.kind}` : "",
-    catalogEntry?.stage ? `stage ${catalogEntry.stage}` : "",
+    catalogEntry?.stage ? `category ${stageLabel(catalogEntry.stage)}` : "",
     metadata.route ? `route ${metadata.route}` : "",
     metadata.locale ? `locale ${metadata.locale}` : ""
   ]
@@ -914,7 +914,7 @@ function groupExampleFilesByStage(files, catalogIndex) {
     const entry = catalogEntryForFile(catalogIndex, filePath);
     const relativeExamplePath = toPosixPath(relative(examplesDir, filePath));
     const [folder = "examples"] = relativeExamplePath.split("/");
-    const label = titleize(entry?.stage ?? folder.replace(/^\d+-/u, ""));
+    const label = stageLabel(entry?.stage ?? folder.replace(/^\d+-/u, ""));
     const group = groups.get(label) ?? [];
     group.push(filePath);
     groups.set(label, group);
@@ -932,6 +932,20 @@ function groupFilesByKind(files, catalogIndex) {
     groups.set(label, group);
   }
   return [...groups.entries()].map(([label, groupFiles]) => ({ label, files: groupFiles }));
+}
+
+function stageLabel(value) {
+  const labels = new Map([
+    ["beginner", "Beginner"],
+    ["form-validation", "Form And Validation"],
+    ["loading-empty-error", "Loading, Empty, And Error"],
+    ["partial-update", "Partial Updates"],
+    ["navigation-overlay", "Navigation And Overlay UI"],
+    ["reuse-template", "Reuse And Templates"],
+    ["responsive-layout", "Responsive Layout"],
+    ["content-display", "Content And Display Details"]
+  ]);
+  return labels.get(value) ?? titleize(value);
 }
 
 function titleize(value) {

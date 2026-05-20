@@ -1,32 +1,51 @@
 # MarkVSpec Examples
 
-The examples are organized as a learning path. Open them in order when checking
-the DSL, preview, State Views, Action Details, and export output.
+Examples are organized by the screen pattern you want to copy. Start with
+`beginner`, then jump to the workflow closest to your screen.
 
-- `01-basics/hello-screen.vspec.md`: minimum document shape with metadata, one state, one viewport, layout, elements, and a click action marker.
-- `02-states/async-loading.vspec.md`: asynchronous state modeling for request send, response handling, fetching, loaded, empty, and error previews.
-- `02-states/scenario-samples.vspec.md`: baseline Element samples and Preview Scenario data variations, including table `rows: []` in the same loaded state.
-- `02-states/source-kind-metadata.vspec.md`: focused property-level `kind` / `source` / `format` metadata for Display Content Spec source categories.
-- `02-states/responsive-profile.vspec.md`: mobile and desktop layout variants over shared elements.
-- `03-actions/event-triggers.vspec.md`: `page.load`, `.change`, `.blur`, `.focus`, `.submit`, and dialog click/close triggers with visible display effects.
-- `03-actions/display-effects.vspec.md`: focused `display:` effect shapes for layout element insertion, field validation text, business-rule messages, targetless dialogs, and targetless toasts.
-- `03-actions/form-submit-flow.vspec.md`: submit lifecycle with validation receive source, request parameters, server process details, stop/continue flow, and navigation.
-- `03-actions/single-field-validation.vspec.md`: focused single-field validation contracts and browser-facing input constraints without request or navigation noise.
-- `03-actions/toast-feedback.vspec.md`: non-modal toast feedback from action cases, targetless display effects, toast stacks, and Error Codes with `display: toast`.
-- `03-actions/parallel-initial-load.vspec.md`: grouped parallel server calls, response cases, and final Resolve state decision.
-- `04-real-world-screens/notice-detail.vspec.md`: Display Content Spec mapping for wording, data sources, samples, formats, values, and navigation params.
-- `04-real-world-screens/profile-edit-rich.vspec.md`: extended element catalog for form controls, media, list content, and modal dialog wiring.
-- `04-real-world-screens/search-list.vspec.md`: real-world search list with filters, table sample rows, paging, empty/error states, and result replacement.
-- `04-real-world-screens/tabs-settings.vspec.md`: focused Tabs element example covering active tab, panel references, item actions, and generated spec aggregation.
-- `04-real-world-screens/anchored-help.vspec.md`: focused Popover and Tooltip example covering anchors, placement, visibility, and generated overlay specs.
-- `04-real-world-screens/accordion-disclosure.vspec.md`: focused Accordion and Disclosure example covering local open state, panel references, item actions, and generated spec aggregation.
-- `04-real-world-screens/action-menu.vspec.md`: focused ActionMenu example covering closed baseline, open overlay, action-only menu items, danger tone, disabled conditions, and generated spec aggregation.
-- `04-real-world-screens/login-basic.vspec.md`: compact authentication flow covering responsive layout, required validation, request parameters, response cases, disabled controls, and navigation.
-- `05-reuse/template-shell.vspec.md`: template document unit, reusable navigation shell, language select, and `content` slot placeholder.
-- `05-reuse/basic-slot-page.vspec.md`: smallest screen that fills a template `content` slot without partial or action noise.
-- `05-reuse/responsive-template-shell.vspec.md`: mobile and desktop template shell that renders the same slot in different viewport layouts.
-- `05-reuse/responsive-slot-page.vspec.md`: viewport-neutral slot fallback for mobile and viewport-specific slot override for desktop.
-- `05-reuse/default-slot-page.vspec.md`: template slot default fallback when the screen intentionally provides no slot content.
-- `05-reuse/profile-page-with-template.vspec.md`: template composition, route params, referenced partials, slot content, partial host metadata, and `display.partial` refresh.
-- `05-reuse/profile-summary.partial.vspec.md`: partial document route, partial-local states, and server-side load/build action for a host screen.
-- `06-structured-sections/history-and-errors.vspec.md`: Error Codes, custom History Fields, History entries, and a small save flow that references them.
+## Beginner
+
+- `01-basics/hello-screen.vspec.md`: the smallest screen that still previews in VS Code.
+
+## Form And Validation
+
+- `03-actions/form-submit-flow.vspec.md`: submit, request, response cases, and field feedback.
+- `03-actions/single-field-validation.vspec.md`: one input with required / format constraints and error text.
+- `04-real-world-screens/login-basic.vspec.md`: compact login flow with validation, disabled controls, request, response, and navigation.
+- `04-real-world-screens/profile-edit-rich.vspec.md`: larger edit form with richer controls and dialog wiring.
+
+## Loading, Empty, And Error States
+
+- `02-states/async-loading.vspec.md`: fetching, loaded, empty, and error states for a list.
+- `03-actions/parallel-initial-load.vspec.md`: parallel initial requests and final state selection.
+- `04-real-world-screens/search-list.vspec.md`: filters, results, paging, empty state, error state, and replacement.
+- `02-states/scenario-samples.vspec.md`: sample data variations for the same state.
+
+## Partial Updates
+
+- `03-actions/display-effects.vspec.md`: messages, dialogs, toasts, and layout insertion as action results.
+- `05-reuse/profile-page-with-template.vspec.md`: a host screen that refreshes a partial.
+- `05-reuse/profile-summary.partial.vspec.md`: partial document loaded by a host screen.
+
+## Navigation And Overlay UI
+
+- `03-actions/event-triggers.vspec.md`: page load, change, blur, focus, submit, and dialog events.
+- `03-actions/toast-feedback.vspec.md`: toast feedback from action cases.
+- `04-real-world-screens/tabs-settings.vspec.md`: tabs, active panel, and item actions.
+- `04-real-world-screens/anchored-help.vspec.md`: popover and tooltip anchors.
+- `04-real-world-screens/accordion-disclosure.vspec.md`: accordion / disclosure open state.
+- `04-real-world-screens/action-menu.vspec.md`: action menu, disabled item, and danger action.
+
+## Reuse And Templates
+
+- `05-reuse/template-shell.vspec.md`: reusable shell with a content slot.
+- `05-reuse/basic-slot-page.vspec.md`: smallest screen that fills a template slot.
+- `05-reuse/responsive-template-shell.vspec.md`: mobile / desktop slot placement in a shell.
+- `05-reuse/responsive-slot-page.vspec.md`: viewport-specific slot content.
+- `05-reuse/default-slot-page.vspec.md`: template default content when a page supplies nothing.
+
+## Content And Display Details
+
+- `02-states/source-kind-metadata.vspec.md`: source, kind, and format metadata for displayed values.
+- `04-real-world-screens/notice-detail.vspec.md`: display wording, data sources, samples, formats, values, and navigation params.
+- `06-structured-sections/history-and-errors.vspec.md`: error codes, history fields, history entries, and a small save flow.
