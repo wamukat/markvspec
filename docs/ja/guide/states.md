@@ -1,14 +1,10 @@
 # States
 
-States は、同じ画面が取りうる表示状態を名前で分けるためのセクションです。loading、empty、error、success のような状態を source 上で明示します。
+State は、同じ画面の見え方を分ける名前です。
 
-## 考え方
+ログイン画面なら `idle`、`submitting`、`auth-error`。一覧画面なら `loading`、`loaded`、`empty`、`error`。まずはユーザーから見える状態名で分けます。
 
-画面は 1 つでも、表示状態は複数あります。初期表示、読み込み中、入力エラー、送信中、保存済み、空結果などを state として分けると、仕様 review で「どの状態の話をしているのか」が明確になります。
-
-State は実装の boolean 名ではなく、ユーザーから見た画面の状態名にします。たとえば `isLoading` ではなく `loading`、`hasError` ではなく `auth-error` のように書くと、layout、element、action の case から参照しやすくなります。
-
-## 最小例
+## まずこれだけ
 
 ```markdown
 ## States
@@ -17,25 +13,25 @@ State は実装の boolean 名ではなく、ユーザーから見た画面の�
 
 ### loading
 
+### empty
+
 ### error
 ```
 
-この最小例では、通常状態、読み込み中、エラー状態だけを定義しています。まだ見た目の差分を書いていなくても、action の結果や preview の切り替え対象として state 名を先に置けます。
+preview では state ごとに画面を切り替えて確認できます。
 
-## よくある書き方
+## 名前の付け方
 
-- state 名は画面内で意味が分かる短い名前にする。
-- layout や element の条件は state 名を参照して説明する。
-- 非同期処理では action の case と state を対応させる。
-- `idle`、`loading`、`empty`、`error`、`success` のような一般名から始め、必要なときだけ `auth-error` や `permission-denied` のように具体化する。
-- API request 中の状態は `submitting` や `refreshing` のように、ユーザーが待っている対象が分かる名前にする。
-- state ごとの差分は、すべてを複製せず、差分が出る layout、element、message、action case に寄せる。
+- `isLoading` ではなく `loading`
+- `hasError` ではなく `error`
+- `authFailedFlag` ではなく `auth-error`
+- `apiDone` ではなく `loaded`
 
-## 例: action と state をつなぐ
+実装の変数名ではなく、画面の状態名にします。
+
+## Action とつなぐ
 
 ```markdown
-## Actions
-
 ### A-LoadOrders Load orders
 
 - From
@@ -45,19 +41,16 @@ State は実装の boolean 名ではなく、ユーザーから見た画面の�
     - GET /orders
   - case: sent
     - state: loading
-  - case: success
-    - state: success
   - case: empty
     - state: empty
   - case: failure
     - state: error
 ```
 
-状態変化は `Process Pn:` 配下の `case:` に書きます。これにより、preview と review の両方で「どの操作がどの state を作るのか」を追いやすくなります。
+この DSL を見れば、「どの結果でどの state になるか」が分かります。長い文章で説明しなくてかまいません。
 
-## 次に読むもの
+## 見る例
 
-- [Layout](layout.md)
-- [Actions](actions.md)
 - [Async Fetching](../../../examples/showcase/async-loading.html)
-- [Reference](../reference/index.md)
+- [Loading And Error](../recipes/loading-error.md)
+- [States Reference](../reference/sections.md)

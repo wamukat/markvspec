@@ -256,7 +256,7 @@ expectContains(guideDocumentStructureHtml, 'aria-current="page">MarkVSpec 文書
 expectNotContains(guideDocumentStructureHtml, "旧", "_site/docs/ja/guide/document-structure.html should not describe itself as an old document.");
 expectNotContains(guideDocumentStructureHtml, "docs/user", "_site/docs/ja/guide/document-structure.html should not point readers to the removed user path.");
 const guideActionsHtml = readSiteFile("docs/ja/guide/actions.html");
-expectContains(guideActionsHtml, "A-SubmitLogin", "_site/docs/ja/guide/actions.html should include a minimal action example.");
+expectContains(guideActionsHtml, "A-Save", "_site/docs/ja/guide/actions.html should include a minimal action example.");
 expectContains(guideActionsHtml, "examples/showcase/form-submit-flow.html", "_site/docs/ja/guide/actions.html should link to the form submit showcase.");
 expectContains(guideActionsHtml, "reference/index.html", "_site/docs/ja/guide/actions.html should link to reference.");
 const guidePartialsHtml = readSiteFile("docs/ja/guide/partial-updates.html");

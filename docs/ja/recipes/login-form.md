@@ -1,16 +1,16 @@
 # Login Form
 
-## いつ使うか
-
-ログイン、サインイン、管理画面への入口など、入力値を検証して authentication request を送る画面で使います。入力欄、submit button、required rule、成功時の遷移、失敗時の message を1つの screen spec にまとめます。
-
-この recipe は、form の見た目を細かく指定するためではなく、user が何を入力し、どの action が起き、結果として画面がどう変わるかを読むためのものです。
+ログイン画面を書くときの最小パターンです。
 
 ## 完成イメージ
 
-Email と password を入力し、Sign in を押す。入力不足なら field message を表示し、request 中は submit を待機状態にする。認証に成功したら dashboard へ遷移し、失敗したら error state と message area を更新します。
+- `idle`: email、password、Sign in button。
+- `submitting`: 送信中の状態。
+- `auth-error`: 認証エラー message。
 
-## 最小の書き方
+[Login example を preview で見る](../../../examples/showcase/login-basic.html)
+
+## DSL
 
 ```markdown
 ## States
@@ -63,51 +63,31 @@ Email と password を入力し、Sign in を押す。入力不足なら field m
   - receive:
     - response: A-SubmitLogin.P1.response
   - case: success
-    - from: submitting
-    - response: 2xx authenticated user
     - navigate: SCR-DASHBOARD
   - case: failure
-    - from: submitting
-    - response: 401 invalid credentials
     - state: auth-error
     - display:
       - target: L-MessageArea
       - content: Authentication error message
 ```
 
-## 書き方の要点
+## ここを見る
 
-- `Input` には user に見える label と入力種別を書く。
-- submit の発火元は button 側の `action: A-*` で接続する。
-- request parameter は `E-EmailInput.value` のように element の値として書く。
-- request 中、成功、失敗を state と `case:` で分ける。
-- 失敗時にどこへ何を表示するかは `display` の `target` と `content` で明示する。
+- button が何を起こすか: `E-SignInButton` の `action`。
+- 送信先: `server: POST /login`。
+- 送信する値: `params`。
+- 成功時: `case: success`。
+- 失敗時: `case: failure`。
 
-## よくある落とし穴
+## よくある間違い
 
-- `action: submit` だけで終わらせると、request path、parameter、結果が読めません。
-- password policy や required 条件を prose だけにすると、review で見落とされます。`required` や `Business Rules` に分けて書きます。
-- API の実装詳細を書きすぎる必要はありません。画面仕様として必要な method、path、入力、response case に絞ります。
-- button の disabled 色や CSS class は書きません。semantic には `state: submitting` や `variant: primary` で十分です。
-- success と failure を1つの文章にまとめると、preview や AI review が追いにくくなります。
+- `action: submit` だけで終わらせる。
+- success / failure を文章だけで説明する。
+- CSS class や button 色を書く。
+- API の内部仕様を書きすぎる。
 
-## 関連 example
-
-- [Login](../../../examples/showcase/login-basic.html): responsive layout、required validation、request parameter、response case、navigation を含む例。
-- [Single Field Validation](../../../examples/showcase/single-field-validation.html): field 単位の validation feedback を確認する例。
-
-## 関連 reference
+## 詳細
 
 - [Actions Guide](../guide/actions.md)
 - [Validation Guide](../guide/validation.md)
-- [Elements Reference](../reference/elements.md)
 - [Actions Reference](../reference/actions.md)
-- [Business Rules Reference](../reference/rules.md)
-
-## 確認方法
-
-- required field の条件が element または rule として読める。
-- request parameter が input element の値から取られている。
-- request 中、success、failure の state / case が分かれている。
-- failure message の表示先が `target` で追える。
-- dashboard など他 screen へ移る場合、`navigate` の遷移先 ID が明示されている。
