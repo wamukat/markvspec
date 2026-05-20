@@ -228,17 +228,23 @@ const jaStartHtml = readSiteFile("docs/ja/start/index.html");
 expectContains(jaStartHtml, "5分で試す", "_site/docs/ja/start/index.html should provide a short quick start.");
 expectContains(jaStartHtml, "<h3>Step 1: 拡張を入れる</h3>", "_site/docs/ja/start/index.html should render quick start steps as headings.");
 expectContains(jaStartHtml, "VS Code Marketplace", "_site/docs/ja/start/index.html should mention marketplace install.");
+expectContains(jaStartHtml, "<h3>Step 2: Hello Screen を作る</h3>", "_site/docs/ja/start/index.html should ask users to create the first file.");
+expectContains(jaStartHtml, "hello.vspec.md", "_site/docs/ja/start/index.html should use a user-created local file.");
 expectContains(jaStartHtml, "MarkVSpec: Open Preview", "_site/docs/ja/start/index.html should mention the preview command.");
 expectContains(jaStartHtml, "export html", "_site/docs/ja/start/index.html should mention HTML export.");
 expectContains(jaStartHtml, "export pdf", "_site/docs/ja/start/index.html should mention PDF export.");
+expectNotContains(jaStartHtml, "code examples/", "_site/docs/ja/start/index.html should not require cloned repository examples.");
 
 const enStartHtml = readSiteFile("docs/en/start/index.html");
 expectContains(enStartHtml, "Try It In 5 Minutes", "_site/docs/en/start/index.html should provide a short quick start.");
 expectContains(enStartHtml, "<h3>Step 1: Install The Extension</h3>", "_site/docs/en/start/index.html should render quick start steps as headings.");
 expectContains(enStartHtml, "VS Code Marketplace", "_site/docs/en/start/index.html should mention marketplace install.");
+expectContains(enStartHtml, "<h3>Step 2: Create Hello Screen</h3>", "_site/docs/en/start/index.html should ask users to create the first file.");
+expectContains(enStartHtml, "hello.vspec.md", "_site/docs/en/start/index.html should use a user-created local file.");
 expectContains(enStartHtml, "MarkVSpec: Open Preview", "_site/docs/en/start/index.html should mention the preview command.");
 expectContains(enStartHtml, "export html", "_site/docs/en/start/index.html should mention HTML export.");
 expectContains(enStartHtml, "export pdf", "_site/docs/en/start/index.html should mention PDF export.");
+expectNotContains(enStartHtml, "code examples/", "_site/docs/en/start/index.html should not require cloned repository examples.");
 
 expectContains(readSiteFile("docs/ja/start/first-screen.html"), "Hello Screen", "_site/docs/ja/start/first-screen.html should explain the first screen.");
 expectContains(readSiteFile("docs/ja/start/preview.html"), "MarkVSpec: Open Preview", "_site/docs/ja/start/preview.html should explain live preview.");

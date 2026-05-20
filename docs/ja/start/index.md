@@ -1,8 +1,8 @@
 # Start
 
-MarkVSpec を初めて試す人向けの最短ルートです。
+MarkVSpec を初めて使う人向けの最短ルートです。
 
-5分で、VS Code 拡張のインストール、Hello Screen の確認、live preview、HTML / PDF export まで進めます。
+repository を clone していなくても進められる手順です。5分で、VS Code 拡張のインストール、最小 screen file の作成、live preview、HTML / PDF export まで確認します。
 
 ## 5分で試す
 
@@ -16,12 +16,64 @@ CLI で入れる場合:
 code --install-extension wamukat.markvspec
 ```
 
-### Step 2: Hello Screen を開く
+### Step 2: Hello Screen を作る
 
-repository を開き、[Hello Screen](../../../examples/01-basics/hello-screen.vspec.md) を開きます。
+VS Code で空の folder を開き、`hello.vspec.md` を作ります。次の内容を貼り付けて保存します。
 
-```bash
-code examples/01-basics/hello-screen.vspec.md
+```markdown
+---
+id: SCR-HELLO
+type: screen
+title: Hello Screen
+route: /hello
+locale: ja
+---
+
+# SCR-HELLO Hello Screen
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Page Hello page
+
+- stack
+- gap: md
+- align: center
+
+#### Items
+
+- E-Title
+- E-Lead
+- E-ContinueButton
+
+## Elements
+
+### E-Title Heading
+
+- level: 1
+- label: Hello MarkVSpec
+
+### E-Lead Paragraph
+
+- text: This is the minimum screen specification that still renders a useful preview.
+
+### E-ContinueButton Button
+
+- label: Continue
+- variant: primary
+- action: A-Continue
+
+## Actions
+
+### A-Continue Continue
+
+- From
+  - idle
+- Process P1: Apply immediate effect
+  - navigate: SCR-NEXT
 ```
 
 ### Step 3: preview を開く
@@ -37,8 +89,8 @@ MarkVSpec: Open Preview
 必要なら CLI で HTML / PDF を出力します。
 
 ```bash
-npx @markvspec/cli@latest export html examples/01-basics/hello-screen.vspec.md --out markvspec-html
-npx @markvspec/cli@latest export pdf examples/01-basics/hello-screen.vspec.md --out markvspec-pdf
+npx @markvspec/cli@latest export html hello.vspec.md --out markvspec-html
+npx @markvspec/cli@latest export pdf hello.vspec.md --out markvspec-pdf
 ```
 
 ## 詳細
@@ -49,6 +101,6 @@ npx @markvspec/cli@latest export pdf examples/01-basics/hello-screen.vspec.md --
 
 ## 次に読む
 
-- [Examples](../examples/index.md): 学習順に並んだ example。
+- [Examples](../examples/index.md): 追加で読める example。
 - [Guide](../guide/index.md): MarkVSpec の基本。
 - [Reference](../reference/index.md): 記法の詳細。

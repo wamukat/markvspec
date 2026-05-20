@@ -14,6 +14,8 @@ English documentation starts at [README.md](README.md).
 
 ## まず試す
 
+repository を clone していなくても試せます。
+
 1. [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=wamukat.markvspec)
    から VS Code 拡張を入れます。
 
@@ -21,9 +23,11 @@ English documentation starts at [README.md](README.md).
    code --install-extension wamukat.markvspec
    ```
 
-2. VS Code で [Hello Screen](examples/01-basics/hello-screen.vspec.md) を開きます。
+2. VS Code で任意の folder を開き、`hello.vspec.md` を作ります。
 
-3. 次のコマンドを実行します。
+3. [Start guide](https://wamukat.github.io/markvspec/docs/ja/start/) の Hello Screen source を貼り付けて保存します。
+
+4. 次のコマンドを実行します。
 
    ```text
    MarkVSpec: Open Preview
@@ -44,12 +48,14 @@ English documentation starts at [README.md](README.md).
 - CLI package: `@markvspec/cli`
 
 ```sh
-npx @markvspec/cli@latest validate examples/01-basics/hello-screen.vspec.md
-npx @markvspec/cli@latest export html examples/01-basics/hello-screen.vspec.md --out markvspec-html
-npx @markvspec/cli@latest export pdf examples/01-basics/hello-screen.vspec.md --out markvspec-pdf
+npx @markvspec/cli@latest validate hello.vspec.md
+npx @markvspec/cli@latest export html hello.vspec.md --out markvspec-html
+npx @markvspec/cli@latest export pdf hello.vspec.md --out markvspec-pdf
 ```
 
 ## 開発者向け
+
+repository を clone して開発する人向けです。利用者が preview を試すだけなら、この section は不要です。
 
 ```sh
 npm run typecheck

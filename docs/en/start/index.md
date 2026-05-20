@@ -2,7 +2,7 @@
 
 This is the shortest path for trying MarkVSpec for the first time.
 
-In about five minutes, you can install the VS Code extension, inspect Hello Screen, open the live preview, and export HTML / PDF.
+You do not need to clone this repository. In about five minutes, you can install the VS Code extension, create a small screen file, open the live preview, and export HTML / PDF.
 
 ## Try It In 5 Minutes
 
@@ -16,12 +16,64 @@ Or install it from the command line:
 code --install-extension wamukat.markvspec
 ```
 
-### Step 2: Open Hello Screen
+### Step 2: Create Hello Screen
 
-Open this repository, then open [Hello Screen](../../../examples/01-basics/hello-screen.vspec.md).
+Open an empty folder in VS Code, create `hello.vspec.md`, paste this source, and save it.
 
-```bash
-code examples/01-basics/hello-screen.vspec.md
+```markdown
+---
+id: SCR-HELLO
+type: screen
+title: Hello Screen
+route: /hello
+locale: en
+---
+
+# SCR-HELLO Hello Screen
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Page Hello page
+
+- stack
+- gap: md
+- align: center
+
+#### Items
+
+- E-Title
+- E-Lead
+- E-ContinueButton
+
+## Elements
+
+### E-Title Heading
+
+- level: 1
+- label: Hello MarkVSpec
+
+### E-Lead Paragraph
+
+- text: This is the minimum screen specification that still renders a useful preview.
+
+### E-ContinueButton Button
+
+- label: Continue
+- variant: primary
+- action: A-Continue
+
+## Actions
+
+### A-Continue Continue
+
+- From
+  - idle
+- Process P1: Apply immediate effect
+  - navigate: SCR-NEXT
 ```
 
 ### Step 3: Open Preview
@@ -37,8 +89,8 @@ MarkVSpec: Open Preview
 Export HTML / PDF when you need shareable output.
 
 ```bash
-npx @markvspec/cli@latest export html examples/01-basics/hello-screen.vspec.md --out markvspec-html
-npx @markvspec/cli@latest export pdf examples/01-basics/hello-screen.vspec.md --out markvspec-pdf
+npx @markvspec/cli@latest export html hello.vspec.md --out markvspec-html
+npx @markvspec/cli@latest export pdf hello.vspec.md --out markvspec-pdf
 ```
 
 ## Details
@@ -49,6 +101,6 @@ npx @markvspec/cli@latest export pdf examples/01-basics/hello-screen.vspec.md --
 
 ## Next
 
-- [Examples](../examples/index.md): Examples ordered as a learning path.
+- [Examples](../examples/index.md): More examples to read after the first file.
 - [Guide](../guide/index.md): MarkVSpec basics.
 - [Reference](../reference/index.md): Syntax details.

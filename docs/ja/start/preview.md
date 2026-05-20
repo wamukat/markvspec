@@ -6,7 +6,7 @@ VS Code live preview は、`.vspec.md` を低忠実度の画面仕様として�
 
 ### Step 1: source を開く
 
-VS Code で `examples/01-basics/hello-screen.vspec.md` を開きます。
+VS Code で作成した `hello.vspec.md` を開きます。
 
 ### Step 2: Command Palette を開く
 

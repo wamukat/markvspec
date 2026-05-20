@@ -1,8 +1,8 @@
 # First Screen
 
-Start with [Hello Screen](../../../examples/01-basics/hello-screen.vspec.md).
+Start with `hello.vspec.md`.
 
-This file is the smallest useful Markdown screen specification.
+This file is the smallest useful Markdown screen specification. The repository `examples/` are for later learning; you do not need them for the first run.
 
 ## What To Check
 
@@ -12,11 +12,9 @@ This file is the smallest useful Markdown screen specification.
 - `## Elements` describes text, controls, and buttons.
 - `## Actions` describes what happens when the button is clicked.
 
-## Open It
+## Create It
 
-```bash
-code examples/01-basics/hello-screen.vspec.md
-```
+Open any folder in VS Code, create `hello.vspec.md`, paste the Hello Screen source from [Start](index.md), and save it.
 
 A `.vspec.md` file should be readable as Markdown. Read the source first, then use preview to inspect the structure.
 

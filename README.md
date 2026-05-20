@@ -14,6 +14,8 @@ Write UI specifications in Markdown.
 
 ## Try It
 
+You do not need to clone this repository to try MarkVSpec.
+
 1. Install the VS Code extension from the
    [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=wamukat.markvspec).
 
@@ -21,9 +23,12 @@ Write UI specifications in Markdown.
    code --install-extension wamukat.markvspec
    ```
 
-2. Open [Hello Screen](examples/01-basics/hello-screen.vspec.md) in VS Code.
+2. Open any folder in VS Code and create `hello.vspec.md`.
 
-3. Run:
+3. Paste the Hello Screen source from the
+   [Start guide](https://wamukat.github.io/markvspec/docs/en/start/) and save it.
+
+4. Run:
 
    ```text
    MarkVSpec: Open Preview
@@ -44,12 +49,14 @@ Write UI specifications in Markdown.
 - CLI package: `@markvspec/cli`
 
 ```sh
-npx @markvspec/cli@latest validate examples/01-basics/hello-screen.vspec.md
-npx @markvspec/cli@latest export html examples/01-basics/hello-screen.vspec.md --out markvspec-html
-npx @markvspec/cli@latest export pdf examples/01-basics/hello-screen.vspec.md --out markvspec-pdf
+npx @markvspec/cli@latest validate hello.vspec.md
+npx @markvspec/cli@latest export html hello.vspec.md --out markvspec-html
+npx @markvspec/cli@latest export pdf hello.vspec.md --out markvspec-pdf
 ```
 
 ## For Contributors
+
+This section is for people cloning the repository to develop MarkVSpec. You do not need it to try the extension.
 
 ```sh
 npm run typecheck

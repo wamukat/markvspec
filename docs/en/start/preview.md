@@ -6,7 +6,7 @@ The VS Code live preview lets you inspect a `.vspec.md` file as a low-fidelity U
 
 ### Step 1: Open The Source
 
-Open `examples/01-basics/hello-screen.vspec.md` in VS Code.
+Open the `hello.vspec.md` file you created in VS Code.
 
 ### Step 2: Open The Command Palette
 
