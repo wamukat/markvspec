@@ -1,12 +1,12 @@
 ---
 id: SCR-DISPLAY-EFFECTS
 type: screen
-title: Display Effects
+title: Display Updates
 route: /display-effects
 locale: en
 ---
 
-# SCR-DISPLAY-EFFECTS Display Effects
+# SCR-DISPLAY-EFFECTS Display Updates
 
 This example teaches the core `display:` effect shapes in one small screen. Read
 the Preview Scenarios to compare layout-level element insertion, field-level
@@ -133,24 +133,21 @@ behavior are intentionally excluded.
     - validation: V-EmailRequired.result
   - case: invalid
     - description: field validation failed
-    - Effects
-      - display:
-        - target: E-EmailInput.error
-        - message: V-EmailRequired.messages
+    - display:
+      - target: E-EmailInput.error
+      - message: V-EmailRequired.messages
     - stop
   - case: duplicate
     - description: business rule failed after a valid field value
-    - Effects
-      - display:
-        - target: L-MessageArea
-        - message: R-EmailMustBeUnique.messages
+    - display:
+      - target: L-MessageArea
+      - message: R-EmailMustBeUnique.messages
     - stop
   - case: missing-form-data
     - description: show a rich element in a layout target
-    - Effects
-      - display:
-        - target: L-MessageArea
-        - element: E-FormBanner
+    - display:
+      - target: L-MessageArea
+      - element: E-FormBanner
     - stop
 
 ### A2:A-RequestDelete Request delete dialog
@@ -159,9 +156,8 @@ behavior are intentionally excluded.
   - idle
 - Process P1: Show dialog
   - case: done
-    - Effects
-      - display:
-        - element: E-DeleteDialog
+    - display:
+      - element: E-DeleteDialog
     - stop
 
 ### A3:A-CloseDeleteDialog Close delete dialog
@@ -170,8 +166,7 @@ behavior are intentionally excluded.
   - idle
 - Process P1: Close dialog
   - case: done
-    - Effects
-      - state: idle
+    - state: idle
 
 ### A4:A-SaveDraft Save draft
 
@@ -179,9 +174,8 @@ behavior are intentionally excluded.
   - idle
 - Process P1: Show toast
   - case: saved
-    - Effects
-      - display:
-        - element: E-SavedToast
+    - display:
+      - element: E-SavedToast
     - stop
 
 ## Preview Scenarios

@@ -11,7 +11,7 @@ loaded through Front Matter references.
 | [`default-slot-page.vspec.md`](default-slot-page.vspec.md) | Shows template default fallback when the screen intentionally provides no slot content. |
 | [`responsive-template-shell.vspec.md`](responsive-template-shell.vspec.md) | Template with `mobile` and `desktop` layouts that both render the same `content` slot. |
 | [`responsive-slot-page.vspec.md`](responsive-slot-page.vspec.md) | Screen with viewport-neutral slot content plus a `desktop` slot override. |
-| [`profile-page-with-template.vspec.md`](profile-page-with-template.vspec.md) | Screen that combines template composition, route params, `references.partials`, an `L-*` partial host, and response-side `display.partial`. |
+| [`profile-page-with-template.vspec.md`](profile-page-with-template.vspec.md) | Screen that combines template composition, route params, `references.partials`, an `L-*` partial host, and response-side `display`. |
 | [`profile-summary.partial.vspec.md`](profile-summary.partial.vspec.md) | Standalone `type: partial` fragment with partial-local states and a `partial.render` build action. |
 
 Read order:
@@ -31,6 +31,7 @@ Authoring boundaries:
 - `references.partials` maps `PRT-*` IDs to files. It does not declare where the
   partial appears.
 - `partial:` on an `L-*` layout declares the partial host.
-- `display.partial` describes a response-side replacement of that host with a
-  referenced partial document.
+- response-side `display` describes replacement of that host. Use `partial` for
+  a referenced partial document ID. Use `element` or `message` for non-partial
+  display updates.
 - Template-owned states stay inside the template. Screens provide slot content.

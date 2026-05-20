@@ -1,0 +1,530 @@
+examples:
+  - path: examples/01-basics/hello-screen.vspec.md
+    title: Hello Screen
+    kind: screen
+    stage: beginner
+    summary: Minimum screen specification with metadata, state, layout, elements, and a click action.
+    showcase: true
+    learningPath: true
+    teaches:
+      - Front Matter
+      - States
+      - Layout
+      - Elements
+      - Button action
+    docs:
+      guide:
+        - markdown-model
+        - actions
+      reference:
+        - file-format
+        - actions
+      recipes: []
+    next:
+      - examples/02-states/async-loading.vspec.md
+  - path: examples/02-states/async-loading.vspec.md
+    title: Async Fetching
+    kind: screen
+    stage: loading-empty-error
+    summary: Request lifecycle with fetching, loaded, empty, and error states.
+    showcase: true
+    learningPath: true
+    teaches:
+      - Async states
+      - Loading UI
+      - Empty state
+      - Error state
+    docs:
+      guide:
+        - states
+      reference:
+        - sections
+      recipes:
+        - loading-error
+    next:
+      - examples/02-states/responsive-profile.vspec.md
+  - path: examples/02-states/responsive-profile.vspec.md
+    title: Responsive Profile
+    kind: screen
+    stage: responsive-layout
+    summary: Mobile and desktop layout variants over shared elements.
+    showcase: true
+    learningPath: true
+    teaches:
+      - Responsive layout
+      - Shared elements
+      - Viewport-specific layout
+    docs:
+      guide:
+        - layout
+        - elements
+      reference:
+        - elements
+      recipes: []
+    next:
+      - examples/03-actions/form-submit-flow.vspec.md
+  - path: examples/02-states/scenario-samples.vspec.md
+    title: Scenario Preview Data
+    kind: screen
+    stage: loading-empty-error
+    summary: Scenario Preview Data variations for the same state.
+    showcase: true
+    learningPath: false
+    teaches:
+      - Preview scenarios
+      - Scenario Preview Data
+    docs:
+      guide:
+        - states
+      reference:
+        - sections
+      recipes: []
+    next: []
+  - path: examples/02-states/source-kind-metadata.vspec.md
+    title: Source Kind Metadata
+    kind: screen
+    stage: content-display
+    summary: Property-level kind, source, and format metadata.
+    showcase: true
+    learningPath: false
+    teaches:
+      - Display content source
+      - Property metadata
+    docs:
+      guide:
+        - elements
+      reference:
+        - elements
+      recipes: []
+    next: []
+  - path: examples/03-actions/form-submit-flow.vspec.md
+    title: Form Submit Flow
+    kind: screen
+    stage: form-validation
+    summary: Submit lifecycle with validation receive source, request parameters, and navigation.
+    showcase: true
+    learningPath: true
+    teaches:
+      - Form submit
+      - Validation receive
+      - Request params
+      - Navigation
+    docs:
+      guide:
+        - actions
+        - validation
+      reference:
+        - actions
+        - validations
+      recipes:
+        - login-form
+    next:
+      - examples/03-actions/single-field-validation.vspec.md
+  - path: examples/03-actions/single-field-validation.vspec.md
+    title: Single Field Validation
+    kind: screen
+    stage: form-validation
+    summary: Single-field validation contracts and input constraints.
+    showcase: true
+    learningPath: true
+    teaches:
+      - Field validation
+      - Input constraints
+    docs:
+      guide:
+        - validation
+      reference:
+        - validations
+        - elements
+      recipes:
+        - login-form
+    next:
+      - examples/03-actions/display-effects.vspec.md
+  - path: examples/03-actions/display-effects.vspec.md
+    title: Display Updates
+    kind: screen
+    stage: partial-update
+    summary: Display effect shapes for messages, dialogs, toasts, and layout insertion.
+    showcase: true
+    learningPath: true
+    teaches:
+      - Display effects
+      - Message targets
+      - Dialogs
+      - Toasts
+    docs:
+      guide:
+        - actions
+      reference:
+        - actions
+      recipes:
+        - loading-error
+    next:
+      - examples/04-real-world-screens/login-basic.vspec.md
+  - path: examples/03-actions/event-triggers.vspec.md
+    title: Event Triggers
+    kind: screen
+    stage: navigation-overlay
+    summary: Page load, change, blur, focus, submit, and dialog triggers.
+    showcase: true
+    learningPath: false
+    teaches:
+      - Event triggers
+      - Action lifecycle
+    docs:
+      guide:
+        - actions
+      reference:
+        - actions
+      recipes: []
+    next: []
+  - path: examples/03-actions/parallel-initial-load.vspec.md
+    title: Parallel Initial Load
+    kind: screen
+    stage: loading-empty-error
+    summary: Parallel server calls and final resolve state decision.
+    showcase: true
+    learningPath: false
+    teaches:
+      - Page load
+      - Parallel requests
+      - Response cases
+    docs:
+      guide:
+        - actions
+      reference:
+        - actions
+      recipes:
+        - loading-error
+    next: []
+  - path: examples/03-actions/toast-feedback.vspec.md
+    title: Toast Feedback
+    kind: screen
+    stage: navigation-overlay
+    summary: Toast feedback from action cases and targetless display effects.
+    showcase: true
+    learningPath: false
+    teaches:
+      - Toasts
+      - Targetless display
+    docs:
+      guide:
+        - actions
+      reference:
+        - actions
+      recipes: []
+    next: []
+  - path: examples/04-real-world-screens/login-basic.vspec.md
+    title: Login
+    kind: screen
+    stage: form-validation
+    summary: Compact authentication flow with responsive layout, validation, request, response, and navigation.
+    showcase: true
+    learningPath: true
+    teaches:
+      - Login form
+      - Required validation
+      - Authentication request
+      - Response cases
+    docs:
+      guide:
+        - layout
+        - actions
+        - validation
+      reference:
+        - elements
+        - actions
+        - validations
+      recipes:
+        - login-form
+    next:
+      - examples/04-real-world-screens/search-list.vspec.md
+  - path: examples/04-real-world-screens/search-list.vspec.md
+    title: Search List
+    kind: screen
+    stage: loading-empty-error
+    summary: Search list with filters, table rows, paging, empty/error states, and replacement.
+    showcase: true
+    learningPath: true
+    teaches:
+      - Search filters
+      - Table rows
+      - Paging
+      - Result replacement
+    docs:
+      guide:
+        - states
+        - actions
+      reference:
+        - elements
+        - actions
+      recipes:
+        - loading-error
+        - server-partial-update
+    next:
+      - examples/05-reuse/template-shell.vspec.md
+  - path: examples/04-real-world-screens/notice-detail.vspec.md
+    title: Notice Detail
+    kind: screen
+    stage: content-display
+    summary: Display content specification for wording, data sources, samples, and formats.
+    showcase: true
+    learningPath: false
+    teaches:
+      - Display content
+      - Data sources
+      - Formatting
+    docs:
+      guide:
+        - elements
+      reference:
+        - elements
+      recipes: []
+    next: []
+  - path: examples/04-real-world-screens/profile-edit-rich.vspec.md
+    title: Profile Edit Rich
+    kind: screen
+    stage: form-validation
+    summary: Extended form controls, media, list content, and modal dialog wiring.
+    showcase: true
+    learningPath: false
+    teaches:
+      - Form controls
+      - Media elements
+      - Dialog wiring
+    docs:
+      guide:
+        - elements
+        - actions
+      reference:
+        - elements
+        - actions
+      recipes: []
+    next: []
+  - path: examples/04-real-world-screens/tabs-settings.vspec.md
+    title: Tabs Settings
+    kind: screen
+    stage: navigation-overlay
+    summary: Tabs element with active tab, panel references, and item actions.
+    showcase: true
+    learningPath: false
+    teaches:
+      - Tabs
+      - Panel references
+      - Item actions
+    docs:
+      guide:
+        - elements
+      reference:
+        - elements
+      recipes: []
+    next: []
+  - path: examples/04-real-world-screens/anchored-help.vspec.md
+    title: Anchored Help
+    kind: screen
+    stage: navigation-overlay
+    summary: Popover and tooltip anchors, placement, visibility, and text.
+    showcase: true
+    learningPath: false
+    teaches:
+      - Popover
+      - Tooltip
+      - Anchors
+    docs:
+      guide:
+        - elements
+      reference:
+        - elements
+      recipes: []
+    next: []
+  - path: examples/04-real-world-screens/accordion-disclosure.vspec.md
+    title: Accordion Disclosure
+    kind: screen
+    stage: navigation-overlay
+    summary: Accordion and disclosure open state, panel references, and actions.
+    showcase: true
+    learningPath: false
+    teaches:
+      - Accordion
+      - Disclosure
+      - Local open state
+    docs:
+      guide:
+        - elements
+      reference:
+        - elements
+      recipes: []
+    next: []
+  - path: examples/04-real-world-screens/action-menu.vspec.md
+    title: Action Menu
+    kind: screen
+    stage: navigation-overlay
+    summary: Action menu items, open overlay, danger tone, and disabled conditions.
+    showcase: true
+    learningPath: false
+    teaches:
+      - Action menu
+      - Danger tone
+      - Disabled condition
+    docs:
+      guide:
+        - elements
+        - actions
+      reference:
+        - elements
+        - actions
+      recipes: []
+    next: []
+  - path: examples/05-reuse/template-shell.vspec.md
+    title: Account Shell
+    kind: template
+    stage: reuse-template
+    summary: Template document unit, reusable navigation shell, and content slot placeholder.
+    showcase: true
+    learningPath: true
+    teaches:
+      - Template
+      - Slot
+      - Reuse
+    docs:
+      guide:
+        - partial-updates
+      reference:
+        - file-format
+        - sections
+      recipes:
+        - server-partial-update
+    next:
+      - examples/05-reuse/basic-slot-page.vspec.md
+  - path: examples/05-reuse/basic-slot-page.vspec.md
+    title: Basic Slot Page
+    kind: screen
+    stage: reuse-template
+    summary: Smallest screen that fills a template content slot.
+    showcase: true
+    learningPath: true
+    teaches:
+      - Slot content
+      - Template composition
+    docs:
+      guide:
+        - partial-updates
+      reference:
+        - file-format
+      recipes:
+        - server-partial-update
+    next:
+      - examples/05-reuse/profile-page-with-template.vspec.md
+  - path: examples/05-reuse/profile-page-with-template.vspec.md
+    title: Profile Home
+    kind: screen
+    stage: partial-update
+    summary: Template composition, route params, referenced partials, and partial refresh.
+    showcase: true
+    learningPath: true
+    teaches:
+      - Template composition
+      - Partial host
+      - Partial refresh
+    docs:
+      guide:
+        - partial-updates
+      reference:
+        - actions
+        - sections
+      recipes:
+        - server-partial-update
+    next:
+      - examples/06-structured-sections/history-and-errors.vspec.md
+  - path: examples/05-reuse/profile-summary.partial.vspec.md
+    title: Profile Summary Partial
+    kind: partial
+    stage: partial-update
+    summary: Partial document route, partial-local states, and server-side load/build action.
+    showcase: true
+    learningPath: false
+    teaches:
+      - Partial
+      - Partial-local state
+      - Server-side build action
+    docs:
+      guide:
+        - partial-updates
+      reference:
+        - file-format
+        - actions
+      recipes:
+        - server-partial-update
+    next: []
+  - path: examples/05-reuse/responsive-template-shell.vspec.md
+    title: Responsive Shell
+    kind: template
+    stage: reuse-template
+    summary: Mobile and desktop template shell layouts that render the same slot differently.
+    showcase: true
+    learningPath: false
+    teaches:
+      - Responsive template
+      - Slot layout
+    docs:
+      guide:
+        - layout
+        - partial-updates
+      reference:
+        - file-format
+      recipes: []
+    next: []
+  - path: examples/05-reuse/responsive-slot-page.vspec.md
+    title: Responsive Slot Page
+    kind: screen
+    stage: reuse-template
+    summary: Viewport-neutral slot fallback and desktop-specific slot override.
+    showcase: true
+    learningPath: false
+    teaches:
+      - Slot fallback
+      - Viewport override
+    docs:
+      guide:
+        - layout
+        - partial-updates
+      reference:
+        - file-format
+      recipes: []
+    next: []
+  - path: examples/05-reuse/default-slot-page.vspec.md
+    title: Default Slot Page
+    kind: screen
+    stage: reuse-template
+    summary: Template slot default fallback when a screen provides no slot content.
+    showcase: true
+    learningPath: false
+    teaches:
+      - Default slot
+      - Template fallback
+    docs:
+      guide:
+        - partial-updates
+      reference:
+        - file-format
+      recipes: []
+    next: []
+  - path: examples/06-structured-sections/history-and-errors.vspec.md
+    title: Account Settings
+    kind: screen
+    stage: content-display
+    summary: Error Codes, custom History Fields, History entries, and a save flow.
+    showcase: true
+    learningPath: true
+    teaches:
+      - Structured sections
+      - Error codes
+      - History
+    docs:
+      guide:
+        - markdown-model
+      reference:
+        - sections
+        - rules
+      recipes: []
+    next: []

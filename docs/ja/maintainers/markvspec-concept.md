@@ -3,8 +3,8 @@
 ## この文書の位置づけ
 
 この文書は、MarkVSpec 自体の設計思想とプロダクト判断を記録する内部設計寄りの文書です。
-利用者が設計書を書くための手順は [DSL リファレンス](../user/dsl.md) と
-[サンプルギャラリー](../user/example-gallery.md) を参照してください。
+利用者が設計書を書くための手順は [DSL リファレンス](../reference/index.md) と
+[サンプルギャラリー](../examples/index.md) を参照してください。
 
 MarkVSpec は、プロダクト開発のための Markdown-first な画面仕様フォーマットです。source document はまず画面設計書として読めるべきであり、そのうえでワイヤーフレームのレンダリングや機械可読データの export に十分な構造を持ちます。
 
@@ -99,11 +99,9 @@ route: /login
     - params:
       - email: E-EmailInput.value
   - case: sent
-    - Effects
-      - state: wait-auth
+    - state: wait-auth
   - case: send-failed
-    - Effects
-      - state: auth-error
+    - state: auth-error
 ```
 
 ## Front Matter
@@ -226,7 +224,7 @@ ID 例です。
 
 - `From`
 - `Process`
-- `Effects`
+- `state` / `display` / `navigate`
 - process `case`
 
 Action の呼び出し元は Action の外側で定義します。ユーザー操作は Element の
@@ -249,13 +247,13 @@ ID 例です。
 - Front Matter は文書全体の機械向けメタデータ。
 - 見出しは major object。例: `# SCR-LOGIN Login`, `### 7:E-SignInButton Button`, `### A1:A-SubmitLogin Submit login`。
 - 箇条書きは property や rule。例: `- label: ログイン`。
-- ネストした箇条書きは `From`, `Process`, `Effects` のような action group と、process step 直下の `case:` などの詳細。
+- ネストした箇条書きは `From`, `Process Pn:`, 直接の state/display 変更、process step 直下の `case:` などの詳細。
 
 `7` や `A1` のような短い heading marker は preview 表示用です。参照には `E-SignInButton` や `A-SubmitLogin` のような安定 ID を使います。
 
 Markdown table や大きな YAML block を primary authoring surface にしません。表は生成ビューとしては使えますが、canonical source にはしません。
 
-具体的なリリース構文は [dsl.md](../user/dsl.md)、現在の product-level design は [design-spec.md](design-spec.md) に定義します。
+具体的なリリース構文は [dsl.md](../reference/index.md)、現在の product-level design は [design-spec.md](design-spec.md) に定義します。
 
 ## レンダリングルール
 

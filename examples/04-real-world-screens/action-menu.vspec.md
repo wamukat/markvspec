@@ -49,54 +49,57 @@ and danger tone can be reviewed without introducing a generic menu.
 - placement: bottom-end
 - open when: menu-open
 - open when: menu-open-locked
+- action: A-OpenMenu
+- action event: click
 - items:
   - Edit
     - action: A-EditAccount
+  - Lock row
+    - action: A-LockRow
   - Disable
     - action: A-DisableAccount
     - tone: danger
     - disabled when: menu-open-locked
 
+### 4:E-RowActionsCloseTarget custom:EventBoundary
+
+- label: Action menu close boundary
+- visible when: menu-open
+- visible when: menu-open-locked
+- action: A-CloseMenu
+- action event: close
+
 ## Actions
 
 ### A3:A-OpenMenu Open action menu
 
-- Triggered
-  - E-RowActions.click
 - From
   - menu-closed
 - Process P1: Open menu
   - case: done
     - description: More actions trigger opens the action menu.
-    - Effects
-      - state: menu-open
+    - state: menu-open
     - stop
 
 ### A4:A-CloseMenu Close action menu
 
-- Triggered
-  - E-RowActions.close
 - From
   - menu-open
   - menu-open-locked
 - Process P1: Close menu
   - case: done
     - description: Outside click or escape closes the open action menu.
-    - Effects
-      - state: menu-closed
+    - state: menu-closed
     - stop
 
 ### A5:A-LockRow Lock selected row
 
-- Triggered
-  - E-RowActions.click
 - From
   - menu-open
 - Process P1: Lock row
   - case: done
     - description: Selected row becomes locked while the action menu remains open.
-    - Effects
-      - state: menu-open-locked
+    - state: menu-open-locked
     - stop
 
 ### A1:A-EditAccount Edit account
@@ -107,8 +110,7 @@ and danger tone can be reviewed without introducing a generic menu.
 - Process P1: Select menu item
   - case: done
     - description: Edit action item is selected from the open action menu.
-    - Effects
-      - state: menu-open
+    - state: menu-open
     - stop
 
 ### A2:A-DisableAccount Disable account
@@ -119,11 +121,9 @@ and danger tone can be reviewed without introducing a generic menu.
 - Process P1: Select menu item
   - case: blocked
     - description: Disable action is unavailable while the menu is open and the selected row is locked.
-    - Effects
-      - state: menu-open-locked
+    - state: menu-open-locked
     - stop
   - case: done
     - description: Disable action item is selected with danger tone.
-    - Effects
-      - state: menu-open
+    - state: menu-open
     - stop

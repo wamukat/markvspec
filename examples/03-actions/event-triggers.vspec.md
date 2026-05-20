@@ -220,8 +220,7 @@ initial load separates the `page.load` request action from its response handler.
     - saved preferences load result
   - case: sent
     - description: saved preferences request sent
-    - Effects
-      - state: initializing
+    - state: initializing
 
 ### A2:A-HandlePreferencesResponse Handle saved preferences response
 
@@ -232,12 +231,10 @@ initial load separates the `page.load` request action from its response handler.
     - response: A-LoadPreferences.P1.response
   - case: success
     - response: 200 saved preferences
-    - Effects
-      - state: idle
+    - state: idle
   - case: failure
     - response: 5xx or timeout
-    - Effects
-      - state: initialize-error
+    - state: initialize-error
 
 ### A3:A-MarkPreferencesChanged Mark preferences changed
 
@@ -245,10 +242,9 @@ initial load separates the `page.load` request action from its response handler.
   - idle
 - Process P1: Mark changed
   - case: done
-    - Effects
-      - display:
-        - target: L-StatusArea
-        - element: E-UnsavedNotice
+    - display:
+      - target: L-StatusArea
+      - element: E-UnsavedNotice
     - stop
 
 ### A4:A-ValidateEmail Validate email on blur
@@ -260,15 +256,13 @@ initial load separates the `page.load` request action from its response handler.
     - validation: V-PreferencesForm.result
   - case: invalid
     - description: email is empty or malformed
-    - Effects
-      - display:
-        - target: L-ValidationArea
-        - element: E-ValidationBanner
+    - display:
+      - target: L-ValidationArea
+      - element: E-ValidationBanner
     - stop
   - case: valid
     - description: email is valid
-    - Effects
-      - state: idle
+    - state: idle
     - stop
 
 ### A5:A-ShowDeliveryHelp Show delivery help
@@ -277,10 +271,9 @@ initial load separates the `page.load` request action from its response handler.
   - idle
 - Process P1: Apply immediate effect
   - case: done
-    - Effects
-      - display:
-        - target: L-HelpArea
-        - element: E-HelpText
+    - display:
+      - target: L-HelpArea
+      - element: E-HelpText
     - stop
 
 ### A6:A-RequestDiscardDialog Request discard dialog
@@ -289,9 +282,8 @@ initial load separates the `page.load` request action from its response handler.
   - idle
 - Process P1: Apply immediate effect
   - case: done
-    - Effects
-      - display:
-        - element: E-ConfirmDialog
+    - display:
+      - element: E-ConfirmDialog
     - stop
 
 ### A7:A-CloseDiscardDialog Close discard dialog
@@ -317,15 +309,13 @@ initial load separates the `page.load` request action from its response handler.
     - validation: V-PreferencesForm.result
   - case: invalid
     - description: required field missing or invalid
-    - Effects
-      - display:
-        - target: L-ValidationArea
-        - element: E-ValidationBanner
+    - display:
+      - target: L-ValidationArea
+      - element: E-ValidationBanner
     - stop
   - case: valid
     - description: form fields are valid
-    - Effects
-      - state: idle
+    - state: idle
     - stop
 
 ## Preview Scenarios

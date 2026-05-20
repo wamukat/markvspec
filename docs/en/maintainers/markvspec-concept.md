@@ -131,16 +131,13 @@ route: /login
       - email: E-EmailInput.value
       - password: E-PasswordInput.value
   - case: sent
-    - Effects
-      - state: wait-auth
+    - state: wait-auth
   - case: success
     - response: 2xx authenticated user
-    - Effects
-      - navigate: SCR-DASHBOARD
+    - navigate: SCR-DASHBOARD
   - case: failure
     - response: 401 invalid credentials
-    - Effects
-      - state: auth-error
+    - state: auth-error
 
 ## Business Rules
 
@@ -291,7 +288,7 @@ Action fields:
 
 - `From`
 - `Process`
-- `Effects`
+- `state` / `display` / `navigate`
 - process `case`
 - side effects when needed
 
@@ -316,7 +313,7 @@ Prefer Markdown that people can write quickly:
 - Headings define major objects: `# SCR-LOGIN Login`,
   `### 7:E-SignInButton Button`, or `### A1:A-SubmitLogin Submit login`.
 - Bullets define properties and rules: `- label: Sign in`.
-- Nested bullets define action groups and process details such as `From`, `Process`, `Effects`, and process `case`.
+- Nested bullets define action groups and process details such as `From`, `Process Pn:`, direct state/display changes, and process `case:`.
 
 Short heading markers such as `7` or `A1` are preview display aids. References
 still use stable IDs such as `E-SignInButton` and `A-SubmitLogin`.
@@ -324,7 +321,7 @@ still use stable IDs such as `E-SignInButton` and `A-SubmitLogin`.
 Avoid making tables or large YAML blocks the primary authoring surface. Tables are
 acceptable as generated views, but not as the canonical source.
 
-The concrete release syntax is defined in [dsl.md](../user/dsl.md).
+The concrete release syntax is defined in [dsl.md](../reference/index.md).
 The current product-level design is summarized in [design-spec.md](design-spec.md).
 
 ## Rendering Rules

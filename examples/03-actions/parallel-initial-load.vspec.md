@@ -84,8 +84,7 @@ the ordering and final state decision are clear.
 - From
   - before-load
 - Process P0: Start initial loading
-  - Effects
-    - state: initializing
+  - state: initializing
 - Process P1: Call server service
   - group: initial-load
   - server:
@@ -115,11 +114,9 @@ the ordering and final state decision are clear.
     - response: A-InitialLoad.P2.response
   - case: ready
     - response: profile and points loaded
-    - Effects
-      - state: idle
+    - state: idle
     - stop
   - case: failed
     - response: one or more calls failed
-    - Effects
-      - state: initialize-error
+    - state: initialize-error
     - stop

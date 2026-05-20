@@ -176,14 +176,12 @@ outside this example.
   - result:
     - first search page request
   - case: sent
-    - Effects
-      - state: fetching
+    - state: fetching
   - case: send-failed
-    - Effects
-      - state: fetch-error
-      - display:
-        - target: L-StatusArea
-        - element: E-LoadErrorBanner
+    - state: fetch-error
+    - display:
+      - target: L-StatusArea
+      - element: E-LoadErrorBanner
 
 ### A2:A-HandleSearchUsersResponse Handle search users response
 
@@ -194,25 +192,22 @@ outside this example.
     - response: A-SearchUsers.P1.response
   - case: success
     - response: 200 with one or more rows
-    - Effects
-      - state: idle
-      - display:
-        - target: L-Results
-        - element: E-UsersTable
+    - state: idle
+    - display:
+      - target: L-Results
+      - element: E-UsersTable
   - case: empty
     - response: 200 with no rows
-    - Effects
-      - state: empty
-      - display:
-        - target: L-Results
-        - element: E-EmptyText
+    - state: empty
+    - display:
+      - target: L-Results
+      - element: E-EmptyText
   - case: failure
     - response: 5xx or timeout
-    - Effects
-      - state: fetch-error
-      - display:
-        - target: L-StatusArea
-        - element: E-LoadErrorBanner
+    - state: fetch-error
+    - display:
+      - target: L-StatusArea
+      - element: E-LoadErrorBanner
 
 ### A3:A-NextPage Next page
 
@@ -229,11 +224,9 @@ outside this example.
   - result:
     - next search page request
   - case: sent
-    - Effects
-      - state: fetching
+    - state: fetching
   - case: send-failed
-    - Effects
-      - state: fetch-error
+    - state: fetch-error
 
 ### A4:A-PreviousPage Previous page
 
@@ -250,11 +243,9 @@ outside this example.
   - result:
     - previous search page request
   - case: sent
-    - Effects
-      - state: fetching
+    - state: fetching
   - case: send-failed
-    - Effects
-      - state: fetch-error
+    - state: fetch-error
 
 ### A5:A-HandleNextPageResponse Handle next page response
 
@@ -265,25 +256,22 @@ outside this example.
     - response: A-NextPage.P1.response
   - case: success
     - response: 200 with one or more rows
-    - Effects
-      - state: idle
-      - display:
-        - target: L-Results
-        - element: E-UsersTable
+    - state: idle
+    - display:
+      - target: L-Results
+      - element: E-UsersTable
   - case: empty
     - response: 200 with no rows
-    - Effects
-      - state: empty
-      - display:
-        - target: L-Results
-        - element: E-EmptyText
+    - state: empty
+    - display:
+      - target: L-Results
+      - element: E-EmptyText
   - case: failure
     - response: 5xx or timeout
-    - Effects
-      - state: fetch-error
-      - display:
-        - target: L-StatusArea
-        - element: E-LoadErrorBanner
+    - state: fetch-error
+    - display:
+      - target: L-StatusArea
+      - element: E-LoadErrorBanner
 
 ### A6:A-HandlePreviousPageResponse Handle previous page response
 
@@ -294,22 +282,19 @@ outside this example.
     - response: A-PreviousPage.P1.response
   - case: success
     - response: 200 with one or more rows
-    - Effects
-      - state: idle
-      - display:
-        - target: L-Results
-        - element: E-UsersTable
+    - state: idle
+    - display:
+      - target: L-Results
+      - element: E-UsersTable
   - case: empty
     - response: 200 with no rows
-    - Effects
-      - state: empty
-      - display:
-        - target: L-Results
-        - element: E-EmptyText
+    - state: empty
+    - display:
+      - target: L-Results
+      - element: E-EmptyText
   - case: failure
     - response: 5xx or timeout
-    - Effects
-      - state: fetch-error
-      - display:
-        - target: L-StatusArea
-        - element: E-LoadErrorBanner
+    - state: fetch-error
+    - display:
+      - target: L-StatusArea
+      - element: E-LoadErrorBanner

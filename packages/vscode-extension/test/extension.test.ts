@@ -6052,7 +6052,7 @@ test("renders ActionMenu element summary, wireframe, and display content spec", 
   assert.match(elementSummary, /<td>ActionMenu<\/td>/);
   assert.match(elementSummary, new RegExp(refActionChip("A1", "A-EditAccount", "Edit account")));
   assert.match(elementSummary, new RegExp(refActionChip("A2", "A-DisableAccount", "Disable account")));
-  assert.match(displayContent, new RegExp(`<td>action menu</td><td>${specSectionPattern("Action Menu", ["Edit \\(action: A-EditAccount\\)", "Disable \\(action: A-DisableAccount; tone: danger; disabled when: menu-open-locked\\)"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
+  assert.match(displayContent, new RegExp(`<td>action menu</td><td>${specSectionPattern("Action Menu", ["Edit \\(action: A-EditAccount\\)", "Lock row \\(action: A-LockRow\\)", "Disable \\(action: A-DisableAccount; tone: danger; disabled when: menu-open-locked\\)"])}</td><td>-</td><td>${sourceTypeChipPattern("fixed")}</td>`));
 });
 
 test("splits input form values and source metadata into separate columns", () => {

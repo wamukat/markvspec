@@ -16,7 +16,7 @@ references:
 
 This example teaches how a screen fills a template slot and references a partial.
 Read front matter `template`/`references.partials`, `## Slot: content`, route
-parameters, the `L-*` partial host contract, and response-side `display.partial`
+parameters, the `L-*` partial host contract, and response-side `display`
 updates; the reusable shell itself is defined in the template example.
 
 ## States
@@ -88,13 +88,11 @@ updates; the reusable shell itself is defined in the template example.
       - memberId: ${route.memberId}
   - case: sent
     - description: request accepted
-    - Effects
-      - state: fetching
+    - state: fetching
     - stop
   - case: send-failed
     - description: network error
-    - Effects
-      - state: fetch-error
+    - state: fetch-error
     - stop
 
 ### A2:A-HandleProfileSummaryResponse Handle profile summary response
@@ -106,14 +104,12 @@ updates; the reusable shell itself is defined in the template example.
     - response: A-RefreshProfile.P1.response
   - case: success
     - response: 200 partial HTML
-    - Effects
-      - state: idle
-      - display:
-        - target: L-ProfileSummaryHost
-        - partial: PRT-PROFILE-SUMMARY
+    - state: idle
+    - display:
+      - target: L-ProfileSummaryHost
+      - partial: PRT-PROFILE-SUMMARY
     - stop
   - case: failure
     - response: 5xx or timeout
-    - Effects
-      - state: fetch-error
+    - state: fetch-error
     - stop

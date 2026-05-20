@@ -144,9 +144,8 @@ Kanbalone の運用では、実装後に独立したサブエージェントレ�
 - [ ] 互換ブラウザがある環境で `MarkVSpec: Export PDF` から PDF を出力できる。
 - [ ] README と docs のリンクが英日で最新になっている。
 - [ ] README 冒頭の preview screenshot
-  `docs/assets/readme-hello-screen-preview.png` が現在の
-  `examples/01-basics/hello-screen.vspec.md` のMarkdown sourceと生成HTMLから作った
-  左右並びの実キャプチャである。
+  `docs/assets/start/vscode-preview-clean.png` が現在の VS Code preview 実画面の
+  キャプチャであり、README 上の説明も VS Code preview として正確である。
 - [ ] npm publish 後に `npx @markvspec/cli@latest validate ...` と
   `npx @markvspec/cli@latest export html ...` で公開済み package を確認する。
 - [ ] Kanbalone チケットのプロセスを守る。実装、検証、独立レビュー、
@@ -219,27 +218,13 @@ VS Code extension はこの repository から bundled VSIX として package し
 
 ## README preview screenshot 更新手順
 
-README に掲載する screenshot は、手で描いたモックではなく、実際のMarkdown sourceと
-MarkVSpec が生成した static HTML preview から作る。左にMarkdown、右に生成された
-ワイヤーフレームが見える構図にする。
+README に掲載する screenshot は、手で描いたモックではなく、実際の VS Code 画面から
+作る。左に `hello.vspec.md` の Markdown source、右に MarkVSpec preview が見える
+構図にする。保存先は `docs/assets/start/vscode-preview-clean.png` とし、Start /
+Guide / README で同じ実キャプチャを使う。
 
-```bash
-rm -rf .work/readme-preview
-mkdir -p .work/readme-preview docs/assets
-node packages/cli/dist/index.js export html examples/01-basics/hello-screen.vspec.md --out .work/readme-preview
-node scripts/create-readme-preview-page.mjs \
-  --source examples/01-basics/hello-screen.vspec.md \
-  --html .work/readme-preview/hello-screen.html \
-  --out .work/readme-preview/readme-preview-capture.html
-agent-browser --session markvspec-readme open "file://$PWD/.work/readme-preview/readme-preview-capture.html"
-agent-browser --session markvspec-readme wait --load networkidle
-agent-browser --session markvspec-readme screenshot "$PWD/docs/assets/readme-hello-screen-preview.png"
-agent-browser --session markvspec-readme close
-```
-
-取得後は画像を目視し、左側に `Hello Screen` のMarkdown source、右側に生成HTMLの
-ワイヤーフレームが一目で分かること、README 上の説明が VS Code preview そのものでは
-なく static HTML preview として正確であることを確認する。
+取得後は画像を目視し、source、preview toolbar、wireframe が一目で分かること、
+README 上の説明が VS Code preview として正確であることを確認する。
 
 Extension Development Host で直接スモークする場合は、拡張を build してから次の
 コマンドを使う。

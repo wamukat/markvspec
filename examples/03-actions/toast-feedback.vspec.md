@@ -95,17 +95,15 @@ toast stack.
     - settings save request
   - case: success
     - description: settings saved
-    - Effects
-      - display:
-        - element: E-SavedToast
+    - display:
+      - element: E-SavedToast
     - continue
   - case: failure
     - description: save failed
-    - Effects
-      - error code: ERR-SETTINGS-SAVE-FAILED
-      - state: idle
-      - display:
-        - element: E-SaveFailedToast
+    - error code: ERR-SETTINGS-SAVE-FAILED
+    - state: idle
+    - display:
+      - element: E-SaveFailedToast
     - stop
 - Process P2: Queue background sync
   - server:
@@ -113,9 +111,8 @@ toast stack.
   - result:
     - settings sync queue request
   - case: queued
-    - Effects
-      - display:
-        - element: E-SyncQueuedToast
+    - display:
+      - element: E-SyncQueuedToast
     - stop
 
 ## Preview Scenarios

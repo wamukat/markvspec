@@ -77,27 +77,33 @@ Important syntax:
 ```markdown
 ### A-SubmitLogin Submit login
 
-- Triggered
-  - E-SignInButton.click
 - From
   - idle
-- Process
-  - HttpRequest
+- Process P1: Send login request
+  - server:
     - POST /login
-    - email: E-EmailInput.value
-    - password: E-PasswordInput.value
-- Effects
-  - state: wait-auth
-- Cases
-  - success:
+    - params:
+      - email: E-EmailInput.value
+      - password: E-PasswordInput.value
+  - case: sent
+    - state: wait-auth
+
+### A-HandleLoginResponse Handle login response
+
+- From
+  - wait-auth
+- Process P1: Apply login response
+  - receive:
+    - response: A-SubmitLogin.P1.response
+  - case: success
     - from: wait-auth
     - response: 2xx authenticated user
     - navigate: SCR-DASHBOARD
-  - failure:
+  - case: failure
     - from: wait-auth
     - response: 401 invalid credentials
     - state: auth-error
-    - update:
+    - display:
       - target: L-MessageArea
       - content: Authentication error message
 ```
@@ -116,9 +122,9 @@ Important syntax:
 The user's product uses Thymeleaf and plans to support htmx partial updates.
 MarkVSpec actions should model this with:
 
-- `Process` / `HttpRequest` for method, path, and request parameters.
-- `Cases` / `update` for result-specific partial updates.
-- `target` and `content` under `update` for semantic update details.
+- `Process Pn:` / `server:` for method, path, and request parameters.
+- `case:` / `display` for result-specific partial updates.
+- `target` and `content` under `display` for semantic update details.
 - Use `mode: replace` for partial update replacement semantics.
   it is not an instruction to write raw `hx-*` attributes into the design doc.
 

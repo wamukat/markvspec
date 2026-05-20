@@ -73,11 +73,9 @@ global layout are handled by the host screen.
     - current member profile result
   - case: success
     - description: 200 member profile
-    - Effects
-      - state: loaded
+    - state: loaded
     - stop
   - case: failure
     - description: 5xx or timeout
-    - Effects
-      - state: fetch-error
+    - state: fetch-error
     - stop

@@ -5,7 +5,7 @@
 この文書は、MarkVSpec の構造化セクション内に書かれた paragraph、table、code block を
 どの semantic owner に所属させ、preview / generated document にどう表示するかを定義する内部設計です。
 
-利用者向けの DSL 説明は、この設計が実装された後に [DSL リファレンス](../user/dsl.md) へ反映します。
+利用者向けの DSL 説明は、この設計が実装された後に [DSL リファレンス](../reference/index.md) へ反映します。
 プレビュー上の表示責務は [プレビュー情報設計](preview-information-architecture.md) と整合させます。
 
 ## 背景
@@ -197,7 +197,7 @@ Actions は既存方針を正式仕様にします。
 - Section Notes
   - `### Section Notes` に書かれた action 一覧全体の補足として表示します。
 - Entity Lead
-  - action heading 直下で、最初の `From` / `Process` / process `case` / `Effects` などの構造化 list より前の任意本文。
+  - action heading 直下で、最初の `From` / `Process Pn:` / process `case:` / 直接の state/display 変更などの構造化 list より前の任意本文。
   - Action Summary と Action Details に表示します。
 - Entity Notes
   - action の構造化 list 後の任意本文。

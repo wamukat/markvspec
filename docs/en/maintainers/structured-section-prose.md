@@ -4,7 +4,7 @@
 
 This internal design note defines how MarkVSpec assigns paragraphs, Markdown tables, and code blocks inside structured sections to semantic owners, and how preview / generated documents display them.
 
-User-facing DSL guidance belongs in [DSL reference](../user/dsl.md). Preview display responsibilities should stay aligned with [Preview information architecture](preview-information-architecture.md).
+User-facing DSL guidance belongs in [DSL reference](../reference/index.md). Preview display responsibilities should stay aligned with [Preview information architecture](preview-information-architecture.md).
 
 ## Background
 
@@ -155,7 +155,7 @@ Actions formalize the existing behavior.
 - Structured data starts at the first `### A-*`.
 - Section Lead describes the action list.
 - Section Notes are written under `### Section Notes`.
-- Entity Lead is prose under the action heading before the first structured list such as `From`, `Process`, process `case`, or `Effects`.
+- Entity Lead is prose under the action heading before the first structured list such as `From`, `Process Pn:`, process `case:`, or direct state/display changes.
 - Entity Lead appears in Action Summary and Action Details.
 - Entity Notes are prose after the action structured list.
 - Entity Notes appear in Action Details, not Action Summary.

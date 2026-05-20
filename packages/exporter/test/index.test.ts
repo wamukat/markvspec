@@ -737,7 +737,11 @@ test("exports responsive design document sections for every viewport", () => {
 
     exportMarkVSpecHtmlFiles([sourcePath], outDir);
     const html = readFileSync(join(outDir, "responsive.html"), "utf8");
+    const htmlWithoutScripts = html.replace(/<script\b[\s\S]*?<\/script>/gu, "");
 
+    assert.match(html, /globalThis\["mermaid"\]/);
+    assert.match(html, /function renderMermaidDiagrams\(\)/);
+    assert.match(html, /\.mermaid-render \{ background: #fff; border: 1px solid #d1d5db;/);
     assert.match(html, /<section class="doc-section state-screen-section"(?=[^>]*\bdata-state="idle")(?=[^>]*\bdata-viewport="mobile")(?=[^>]*\bstyle="--markvspec-viewport-width:390px;--markvspec-print-scale:1")/);
     assert.match(html, /<section class="doc-section state-screen-section"(?=[^>]*\bdata-state="idle")(?=[^>]*\bdata-viewport="desktop")(?=[^>]*\bstyle="--markvspec-viewport-width:960px;--markvspec-print-scale:1")/);
     assert.match(html, /@page \{ margin: 14mm; size: A4 landscape; \}/);
@@ -771,8 +775,8 @@ test("exports responsive design document sections for every viewport", () => {
     assert.match(html, /<style>\s*@media print \{\s*\.wireframe-section \.mm-wireframe \{ border: 1px solid #d1d5db !important; box-shadow: none !important; box-sizing: border-box !important; max-width: 100% !important; min-width: 0 !important; outline: 0 !important; width: 100% !important; \}/);
     assert.match(html, /\.state-screen-section\[data-viewport\] \.wireframe-section \.mm-wireframe:not\(\.mm-wireframe-empty\) \{ max-width: none !important; width: var\(--markvspec-viewport-width, 100%\) !important; zoom: var\(--markvspec-print-scale, 1\) !important; \}/);
     assert.match(html, /\.wireframe-section \.mm-element-table th,\s+\.wireframe-section \.mm-element-table td \{ box-sizing: border-box; overflow-wrap: anywhere; word-break: break-word; \}/);
-    assert.doesNotMatch(html, /<h2>Model Samples<\/h2>|Rows:|Sample Data/);
-    assert.doesNotMatch(html, /model-sample-path-heading|U-001|U-002|Empty array/);
+    assert.doesNotMatch(htmlWithoutScripts, /<h2>Model Samples<\/h2>|Rows:|Sample Data/);
+    assert.doesNotMatch(htmlWithoutScripts, /model-sample-path-heading|U-001|U-002|Empty array/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

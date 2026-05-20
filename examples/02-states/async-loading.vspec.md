@@ -107,14 +107,12 @@ loaded, empty, and error previews are the focus.
   - result:
     - item list request
   - case: sent
-    - Effects
-      - state: fetching
+    - state: fetching
   - case: send-failed
-    - Effects
-      - state: fetch-error
-      - display:
-        - target: L-StatusArea
-        - element: E-ErrorBanner
+    - state: fetch-error
+    - display:
+      - target: L-StatusArea
+      - element: E-ErrorBanner
 
 ### A2:A-HandleItemsResponse Handle items response
 
@@ -125,16 +123,13 @@ loaded, empty, and error previews are the focus.
     - response: A-RefreshItems.P1.response
   - case: success
     - response: HTTP 200 with rows
-    - Effects
-      - state: loaded
-      - display:
-        - target: E-ItemsTable
-        - element: E-ItemsTable
+    - state: loaded
+    - display:
+      - target: E-ItemsTable
+      - element: E-ItemsTable
   - case: empty
     - response: HTTP 200 with no rows
-    - Effects
-      - state: empty
+    - state: empty
   - case: failure
     - response: HTTP error or timeout
-    - Effects
-      - state: fetch-error
+    - state: fetch-error

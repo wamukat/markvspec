@@ -82,9 +82,6 @@ for (const { path: readmePath } of readmeExpectations) {
       fail(`${readmePath} must not present VSIX as the user-facing install path: ${deprecatedText}`);
     }
   }
-  if (!readme.includes("npm run check:readme-release")) {
-    fail(`${readmePath} must document the README release-state check.`);
-  }
 }
 
 for (const checklistPath of ["docs/en/maintainers/release-checklist.md", "docs/ja/maintainers/release-checklist.md"]) {

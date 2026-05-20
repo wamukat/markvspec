@@ -3,7 +3,7 @@
 ## この文書の位置づけ
 
 この文書は、MarkVSpec の実装寄り設計を記録する内部設計文書です。利用者向けの記法確認は
-[DSL リファレンス](../user/dsl.md)、サンプル確認は [サンプルギャラリー](../user/example-gallery.md) を参照してください。
+[DSL リファレンス](../reference/index.md)、サンプル確認は [サンプルギャラリー](../examples/index.md) を参照してください。
 
 MarkVSpec は、Markdown を画面設計書の canonical source として扱うためのフォーマットです。画面設計書として読めることを優先しつつ、パーサー、バリデーター、Live Preview が扱えるだけの構造を持たせます。
 
@@ -262,17 +262,15 @@ Action レベルの guard / `When` は使わず、操作可否は要素の `disa
   - receive:
     - validation: V-LoginForm.result
   - case: invalid
-    - Effects
-      - state: validation-error
+    - state: validation-error
     - stop
   - case: valid
     - continue
 - Process P2: Clear stale message
   - when: ${state.auth-error}
-  - Effects
-    - display:
-      - target: L-MessageArea
-      - element: E-EmptyMessage
+  - display:
+    - target: L-MessageArea
+    - element: E-EmptyMessage
 - Process P3: Send login request
   - request:
     - method: POST
@@ -281,11 +279,9 @@ Action レベルの guard / `When` は使わず、操作可否は要素の `disa
       - email: E-EmailInput.value
       - password: E-PasswordInput.value
   - case: sent
-    - Effects
-      - state: wait-auth
+    - state: wait-auth
   - case: send-failed
-    - Effects
-      - state: auth-error
+    - state: auth-error
 ```
 
 処理ステップには `when` や `skip when` を置けます。これにより、同じアクションでも状態や条件に応じた前処理を表現できます。
@@ -304,15 +300,13 @@ HTTP request のクリック Action では、送信できたかどうかを requ
     - response: A-SubmitLogin.P3.response
   - case: success
     - response: 2xx authenticated user
-    - Effects
-      - navigate: SCR-DASHBOARD
+    - navigate: SCR-DASHBOARD
   - case: failure
     - response: 401 invalid credentials
-    - Effects
-      - state: auth-error
-      - display:
-        - target: L-MessageArea
-        - element: E-AuthenticationErrorMessage
+    - state: auth-error
+    - display:
+      - target: L-MessageArea
+      - element: E-AuthenticationErrorMessage
 ```
 
 `navigate: SCR-*` は別画面への遷移です。状態遷移図では画面内状態のノードとして扱わず、終端への遷移として描画します。
@@ -321,7 +315,7 @@ HTTP request のクリック Action では、送信できたかどうかを requ
 
 MarkVSpec は htmx 属性そのものを書く場所ではありません。部分更新は意味として表します。
 
-- screen 側の `Process` / `HttpRequest`: HTTP method、path、パラメータ、送信結果。
+- screen 側の `Process Pn:` / `server:`: HTTP method、path、パラメータ、送信結果。
 - response handler Action の `case:` / `update`: レスポンス結果ごとの部分更新。
 - `target`: 更新対象の layout または element。
 - `content`: 差し替える内容の意味。
@@ -381,14 +375,11 @@ route: /mypage/partials/notices
   - server:
     - NoticeQueryService.findLatest()
   - case: success
-    - Effects
-      - state: loaded
+    - state: loaded
   - case: empty
-    - Effects
-      - state: empty
+    - state: empty
   - case: failure
-    - Effects
-      - state: fetch-error
+    - state: fetch-error
 ```
 
 `partial.render` は partial 文書がサーバ側で描画される契機です。`ServerCall`

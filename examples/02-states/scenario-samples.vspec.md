@@ -122,8 +122,7 @@ account data without creating extra states.
     - path: /account/subscriptions
   - case: sent
     - description: account subscription request sent
-    - Effects
-      - state: initializing
+    - state: initializing
 
 ### A2:A-HandleAccountResponse Handle account response
 
@@ -134,16 +133,13 @@ account data without creating extra states.
     - response: A-LoadAccount.P1.response
   - case: has-subscriptions
     - response: HTTP 200 with subscription rows
-    - Effects
-      - state: loaded
+    - state: loaded
   - case: empty
     - response: HTTP 200 with no subscription rows
-    - Effects
-      - state: loaded
+    - state: loaded
   - case: failure
     - response: HTTP 5xx or network failure
-    - Effects
-      - state: initialize-error
+    - state: initialize-error
 
 ## Preview Scenarios
 
