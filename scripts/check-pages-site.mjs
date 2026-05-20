@@ -227,6 +227,10 @@ for (const languageDeepLink of [
 }
 
 const jaStartHtml = readSiteFile("docs/ja/start/index.html");
+expectContains(jaStartHtml, 'class="docs-sidebar"', "_site/docs/ja/start/index.html should show documentation navigation.");
+expectContains(jaStartHtml, 'href="../guide/index.html"', "_site/docs/ja/start/index.html sidebar should link to guide.");
+expectContains(jaStartHtml, 'href="../reference/index.html"', "_site/docs/ja/start/index.html sidebar should link to reference.");
+expectContains(jaStartHtml, 'aria-current="page">Start</a>', "_site/docs/ja/start/index.html sidebar should mark the current page.");
 expectContains(jaStartHtml, "5分で試す", "_site/docs/ja/start/index.html should provide a short quick start.");
 expectContains(jaStartHtml, "<h3>Step 1: 拡張を入れる</h3>", "_site/docs/ja/start/index.html should render quick start steps as headings.");
 expectContains(jaStartHtml, "VS Code Marketplace", "_site/docs/ja/start/index.html should mention marketplace install.");
@@ -242,6 +246,10 @@ expectContains(jaStartHtml, "export pdf", "_site/docs/ja/start/index.html should
 expectNotContains(jaStartHtml, "code examples/", "_site/docs/ja/start/index.html should not require cloned repository examples.");
 
 const enStartHtml = readSiteFile("docs/en/start/index.html");
+expectContains(enStartHtml, 'class="docs-sidebar"', "_site/docs/en/start/index.html should show documentation navigation.");
+expectContains(enStartHtml, 'href="../guide/index.html"', "_site/docs/en/start/index.html sidebar should link to guide.");
+expectContains(enStartHtml, 'href="../reference/index.html"', "_site/docs/en/start/index.html sidebar should link to reference.");
+expectContains(enStartHtml, 'aria-current="page">Start</a>', "_site/docs/en/start/index.html sidebar should mark the current page.");
 expectContains(enStartHtml, "Try It In 5 Minutes", "_site/docs/en/start/index.html should provide a short quick start.");
 expectContains(enStartHtml, "<h3>Step 1: Install The Extension</h3>", "_site/docs/en/start/index.html should render quick start steps as headings.");
 expectContains(enStartHtml, "VS Code Marketplace", "_site/docs/en/start/index.html should mention marketplace install.");
@@ -436,6 +444,9 @@ for (const filePath of [
 }
 
 const helloShowcaseHtml = readSiteFile("examples/showcase/hello-screen.html");
+expectContains(helloShowcaseHtml, 'class="example-sidebar"', "_site/examples/showcase/hello-screen.html should show example navigation.");
+expectContains(helloShowcaseHtml, 'href="login-basic.html"', "_site/examples/showcase/hello-screen.html sidebar should link to other showcases.");
+expectContains(helloShowcaseHtml, 'aria-current="page">Hello Screen</a>', "_site/examples/showcase/hello-screen.html sidebar should mark the current example.");
 expectContains(helloShowcaseHtml, "Source and generated preview, side by side", "_site/examples/showcase/hello-screen.html should be a showcase page.");
 expectContains(helloShowcaseHtml, '<iframe src="../hello-screen.html"', "_site/examples/showcase/hello-screen.html should embed the generated preview.");
 expectContains(helloShowcaseHtml, '<span class="line-no">1</span>', "_site/examples/showcase/hello-screen.html should show source line numbers.");
@@ -447,6 +458,9 @@ expectContains(helloShowcaseHtml, "Reference: File Format", "_site/examples/show
 expectContains(helloShowcaseHtml, "Async Fetching", "_site/examples/showcase/hello-screen.html should link to the next example.");
 
 const loginShowcaseHtml = readSiteFile("examples/showcase/login-basic.html");
+expectContains(loginShowcaseHtml, 'class="example-sidebar"', "_site/examples/showcase/login-basic.html should show example navigation.");
+expectContains(loginShowcaseHtml, 'href="hello-screen.html"', "_site/examples/showcase/login-basic.html sidebar should link back to other showcases.");
+expectContains(loginShowcaseHtml, 'aria-current="page">Login</a>', "_site/examples/showcase/login-basic.html sidebar should mark the current example.");
 expectContains(loginShowcaseHtml, "Recipes: Login Form", "_site/examples/showcase/login-basic.html should link to the login recipe.");
 expectContains(loginShowcaseHtml, '<span class="pill">kind screen</span>', "_site/examples/showcase/login-basic.html should show the example kind.");
 

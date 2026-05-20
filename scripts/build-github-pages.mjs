@@ -281,7 +281,7 @@ function pdfFileName(filePath) {
   return `${basename(filePath, ".vspec.md")}.pdf`;
 }
 
-function renderShowcasePage(filePath, catalogIndex) {
+function renderShowcasePage(filePath, files, catalogIndex) {
   const markdown = readFileSync(filePath, "utf8");
   const repoPath = toPosixPath(relative(root, filePath));
   const relativeExamplePath = toPosixPath(relative(examplesDir, filePath));
@@ -304,6 +304,7 @@ function renderShowcasePage(filePath, catalogIndex) {
       .map((value) => `<span class="pill">${escapeHtml(value)}</span>`)
       .join("\n          ");
   const learningPanel = renderShowcaseLearningPanel(catalogEntry, catalogIndex);
+  const exampleSidebar = renderExampleSidebar(filePath, files, catalogIndex);
 
   return `<!doctype html>
 <html lang="en">
@@ -387,9 +388,69 @@ function renderShowcasePage(filePath, catalogIndex) {
       color: #fff;
     }
     main {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: 260px minmax(0, 1fr);
       margin: 0 auto;
       max-width: 1440px;
       padding: 22px 24px 40px;
+    }
+    .example-sidebar {
+      align-self: start;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      max-height: calc(100vh - 92px);
+      overflow: auto;
+      padding: 14px;
+      position: sticky;
+      top: 70px;
+    }
+    .example-sidebar-title {
+      color: var(--ink);
+      display: block;
+      font-size: 14px;
+      font-weight: 750;
+      margin-bottom: 12px;
+    }
+    .example-sidebar-section {
+      border-top: 1px solid var(--line-soft);
+      padding: 12px 0;
+    }
+    .example-sidebar-section:first-of-type {
+      border-top: 0;
+      padding-top: 0;
+    }
+    .example-sidebar-heading {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 750;
+      letter-spacing: .04em;
+      margin: 0 0 7px;
+      text-transform: uppercase;
+    }
+    .example-sidebar ul {
+      display: grid;
+      gap: 3px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .example-sidebar a {
+      border-radius: 6px;
+      color: #334155;
+      display: block;
+      font-size: 12px;
+      font-weight: 650;
+      line-height: 1.35;
+      padding: 6px 8px;
+    }
+    .example-sidebar a[aria-current="page"] {
+      background: #eaf1ff;
+      color: var(--accent);
+    }
+    .example-main {
+      min-width: 0;
     }
     .example-header {
       align-items: end;
@@ -567,6 +628,13 @@ function renderShowcasePage(filePath, catalogIndex) {
       width: 100%;
     }
     @media (max-width: 1000px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+      .example-sidebar {
+        max-height: none;
+        position: static;
+      }
       .example-header {
         align-items: start;
         grid-template-columns: 1fr;
@@ -598,55 +666,58 @@ function renderShowcasePage(filePath, catalogIndex) {
   </header>
 
   <main>
-    <section class="example-header">
-      <div>
-        <div class="breadcrumb">Examples / ${escapeHtml(relativeExamplePath)}</div>
-        <h1>${escapeHtml(metadata.title)}</h1>
-        <p class="subtitle">${escapeHtml(catalogEntry?.summary ?? "Compare the MarkVSpec Markdown source on the left with the generated HTML preview on the right.")}</p>
-        <div class="meta-row" aria-label="Example metadata">
-          ${metaPills}
+    ${exampleSidebar}
+    <div class="example-main">
+      <section class="example-header">
+        <div>
+          <div class="breadcrumb">Examples / ${escapeHtml(relativeExamplePath)}</div>
+          <h1>${escapeHtml(metadata.title)}</h1>
+          <p class="subtitle">${escapeHtml(catalogEntry?.summary ?? "Compare the MarkVSpec Markdown source on the left with the generated HTML preview on the right.")}</p>
+          <div class="meta-row" aria-label="Example metadata">
+            ${metaPills}
+          </div>
         </div>
-      </div>
-      <div class="example-actions">
-        ${pdfLink}
-        <a class="nav-link" href="${escapeHtml(previewHref)}">Open preview only</a>
-        <a class="nav-link" href="${githubBlobBaseUrl}${escapeHtml(repoPath)}">View on GitHub</a>
-      </div>
-    </section>
+        <div class="example-actions">
+          ${pdfLink}
+          <a class="nav-link" href="${escapeHtml(previewHref)}">Open preview only</a>
+          <a class="nav-link" href="${githubBlobBaseUrl}${escapeHtml(repoPath)}">View on GitHub</a>
+        </div>
+      </section>
 
-    ${learningPanel}
+      ${learningPanel}
 
-    <section class="split" aria-label="Source and generated preview">
-      <article class="pane" aria-label="VSpec source">
-        <div class="pane-header">
-          <div class="pane-title">
-            <strong>${escapeHtml(basename(filePath))}</strong>
-            <span>Markdown source</span>
+      <section class="split" aria-label="Source and generated preview">
+        <article class="pane" aria-label="VSpec source">
+          <div class="pane-header">
+            <div class="pane-title">
+              <strong>${escapeHtml(basename(filePath))}</strong>
+              <span>Markdown source</span>
+            </div>
+            <div class="pane-tools">
+              <a class="small-link" href="${githubBlobBaseUrl}${escapeHtml(repoPath)}">Source</a>
+            </div>
           </div>
-          <div class="pane-tools">
-            <a class="small-link" href="${githubBlobBaseUrl}${escapeHtml(repoPath)}">Source</a>
+          <div class="source-wrap">
+            <pre><code>${renderSourceLines(markdown)}</code></pre>
           </div>
-        </div>
-        <div class="source-wrap">
-          <pre><code>${renderSourceLines(markdown)}</code></pre>
-        </div>
-      </article>
+        </article>
 
-      <article class="pane" aria-label="Generated HTML preview">
-        <div class="pane-header">
-          <div class="pane-title">
-            <strong>Generated HTML Preview</strong>
-            <span>Latest output from the same Pages build</span>
+        <article class="pane" aria-label="Generated HTML preview">
+          <div class="pane-header">
+            <div class="pane-title">
+              <strong>Generated HTML Preview</strong>
+              <span>Latest output from the same Pages build</span>
+            </div>
+            <div class="pane-tools">
+              <a class="small-link" href="${escapeHtml(previewHref)}">Open full page</a>
+            </div>
           </div>
-          <div class="pane-tools">
-            <a class="small-link" href="${escapeHtml(previewHref)}">Open full page</a>
+          <div class="preview-frame-wrap">
+            <iframe src="${escapeHtml(previewHref)}" title="${escapeHtml(metadata.title)} generated HTML preview"></iframe>
           </div>
-        </div>
-        <div class="preview-frame-wrap">
-          <iframe src="${escapeHtml(previewHref)}" title="${escapeHtml(metadata.title)} generated HTML preview"></iframe>
-        </div>
-      </article>
-    </section>
+        </article>
+      </section>
+    </div>
   </main>
 </body>
 </html>
@@ -684,6 +755,33 @@ function renderShowcaseLearningPanel(entry, catalogIndex) {
         </ul>
       </article>
     </section>`;
+}
+
+function renderExampleSidebar(currentFilePath, files, catalogIndex) {
+  const groups = groupExampleFilesByStage(files, catalogIndex)
+    .map(({ label, files: stageFiles }) => {
+      const items = stageFiles
+        .map((filePath) => {
+          const entry = catalogEntryForFile(catalogIndex, filePath);
+          const title = entry?.title ?? titleFromFile(filePath);
+          const ariaCurrent = filePath === currentFilePath ? ' aria-current="page"' : "";
+          return `<li><a href="${escapeHtml(htmlFileName(filePath))}"${ariaCurrent}>${escapeHtml(title)}</a></li>`;
+        })
+        .join("\n          ");
+
+      return `<section class="example-sidebar-section">
+        <p class="example-sidebar-heading">${escapeHtml(label)}</p>
+        <ul>
+          ${items}
+        </ul>
+      </section>`;
+    })
+    .join("\n      ");
+
+  return `<aside class="example-sidebar" aria-label="Example navigation">
+      <a class="example-sidebar-title" href="../">All Examples</a>
+      ${groups}
+    </aside>`;
 }
 
 function renderRelatedDocLinks(entry, prefix) {
@@ -858,8 +956,84 @@ function markdownOutputPath(relativeDocPath) {
     : relativeDocPath.replace(/\.md$/u, ".html");
 }
 
+const docsNavigation = [
+  {
+    title: "Start",
+    paths: ["README.md", "start/index.md", "start/first-screen.md", "start/preview.md", "start/export.md"]
+  },
+  {
+    title: "Guide",
+    paths: ["guide/index.md", "guide/markdown-model.md", "guide/states.md", "guide/layout.md", "guide/elements.md", "guide/actions.md", "guide/validation.md", "guide/partial-updates.md"]
+  },
+  {
+    title: "Reference",
+    paths: ["reference/index.md", "reference/file-format.md", "reference/sections.md", "reference/elements.md", "reference/actions.md", "reference/validations.md", "reference/rules.md", "reference/ids.md", "reference/cli.md", "reference/limitations.md"]
+  },
+  {
+    title: "Recipes",
+    paths: ["recipes/index.md", "recipes/login-form.md", "recipes/loading-error.md", "recipes/server-partial-update.md", "recipes/pdf-export.md"]
+  },
+  {
+    title: "More",
+    paths: ["examples/index.md", "concepts/index.md"]
+  },
+  {
+    title: "Compatibility",
+    paths: ["user/dsl.md", "user/example-gallery.md", "user/ui-coverage.md", "user/server-partials.md", "user/pdf-export.md", "user/limitations.md"]
+  }
+];
+
+function renderDocsSidebar(filePath) {
+  const relativeDocPath = toPosixPath(relative(docsDir, filePath));
+  const [lang] = relativeDocPath.split("/");
+  if (!["ja", "en"].includes(lang)) {
+    return "";
+  }
+
+  const currentWithinLang = relativeDocPath.slice(lang.length + 1);
+  const sourceOutputPath = join("docs", markdownOutputPath(relative(docsDir, filePath)));
+  const sections = docsNavigation
+    .map((section) => {
+      const items = section.paths
+        .map((path) => {
+          const sourcePath = join(docsDir, lang, path);
+          if (!existsSync(sourcePath)) {
+            return "";
+          }
+
+          const targetOutputPath = join("docs", markdownOutputPath(join(lang, path)));
+          const href = toPosixPath(relative(dirname(sourceOutputPath), targetOutputPath)) || "index.html";
+          const ariaCurrent = path === currentWithinLang ? ' aria-current="page"' : "";
+          return `<li><a href="${escapeHtml(href)}"${ariaCurrent}>${escapeHtml(markdownPageTitle(sourcePath))}</a></li>`;
+        })
+        .filter(Boolean)
+        .join("\n          ");
+
+      return `<section class="docs-sidebar-section">
+        <p class="docs-sidebar-heading">${escapeHtml(section.title)}</p>
+        <ul>
+          ${items}
+        </ul>
+      </section>`;
+    })
+    .join("\n      ");
+
+  const homeHref = toPosixPath(relative(dirname(sourceOutputPath), join("docs", lang, "index.html"))) || "index.html";
+  return `<aside class="docs-sidebar" aria-label="Documentation navigation">
+      <a class="docs-sidebar-title" href="${escapeHtml(homeHref)}">MarkVSpec Docs</a>
+      ${sections}
+    </aside>`;
+}
+
+function markdownPageTitle(filePath) {
+  const markdown = readFileSync(filePath, "utf8");
+  const title = markdown.match(/^#\s+(.+)$/mu)?.[1] ?? basename(filePath, ".md");
+  return stripMarkdownInline(title);
+}
+
 function renderMarkdownPage(filePath, markdown) {
   const title = markdown.match(/^#\s+(.+)$/mu)?.[1] ?? basename(filePath, ".md");
+  const sidebar = renderDocsSidebar(filePath);
   return `<!doctype html>
 <html lang="${filePath.includes(`${docsDir}/ja/`) ? "ja" : "en"}">
 <head>
@@ -875,12 +1049,72 @@ function renderMarkdownPage(filePath, markdown) {
     body {
       margin: 0;
     }
-    main {
+    .docs-shell {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: 260px minmax(0, 880px);
+      margin: 32px auto 64px;
+      max-width: 1180px;
+      padding: 0 24px;
+    }
+    .docs-sidebar {
+      align-self: start;
       background: #fff;
       border: 1px solid #d7dee8;
       border-radius: 8px;
-      margin: 32px auto 64px;
-      max-width: 880px;
+      max-height: calc(100vh - 64px);
+      overflow: auto;
+      padding: 18px;
+      position: sticky;
+      top: 32px;
+    }
+    .docs-sidebar-title {
+      color: #172033;
+      display: block;
+      font-size: 15px;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+    .docs-sidebar-section {
+      border-top: 1px solid #e5eaf1;
+      padding: 12px 0;
+    }
+    .docs-sidebar-section:first-of-type {
+      border-top: 0;
+      padding-top: 0;
+    }
+    .docs-sidebar-heading {
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      margin: 0 0 8px;
+      text-transform: uppercase;
+    }
+    .docs-sidebar ul {
+      display: grid;
+      gap: 3px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .docs-sidebar a {
+      border-radius: 6px;
+      color: #334155;
+      display: block;
+      font-size: 13px;
+      font-weight: 650;
+      line-height: 1.35;
+      padding: 6px 8px;
+    }
+    .docs-sidebar a[aria-current="page"] {
+      background: #e8f7f4;
+      color: #0f766e;
+    }
+    .docs-content {
+      background: #fff;
+      border: 1px solid #d7dee8;
+      border-radius: 8px;
       padding: 32px;
     }
     h1 {
@@ -944,20 +1178,34 @@ function renderMarkdownPage(filePath, markdown) {
       max-width: 100%;
     }
     @media (max-width: 720px) {
-      main {
+      .docs-shell {
+        display: block;
+        margin: 0;
+        padding: 0;
+      }
+      .docs-sidebar {
         border-left: 0;
         border-radius: 0;
         border-right: 0;
-        margin-top: 0;
+        max-height: none;
+        position: static;
+      }
+      .docs-content {
+        border-left: 0;
+        border-radius: 0;
+        border-right: 0;
         padding: 24px;
       }
     }
   </style>
 </head>
 <body>
-  <main>
+  <div class="docs-shell">
+    ${sidebar}
+    <main class="docs-content">
 ${renderMarkdownBody(filePath, markdown)}
-  </main>
+    </main>
+  </div>
 </body>
 </html>
 `;
@@ -1132,7 +1380,7 @@ execFileSync("node", ["packages/cli/dist/index.js", "export", "html", "examples/
   stdio: "inherit"
 });
 for (const filePath of files) {
-  writeFileSync(join(examplesShowcaseOutDir, htmlFileName(filePath)), renderShowcasePage(filePath, catalogIndex), "utf8");
+  writeFileSync(join(examplesShowcaseOutDir, htmlFileName(filePath)), renderShowcasePage(filePath, files, catalogIndex), "utf8");
 }
 renderMarkdownDocs();
 copySiteFiles();
