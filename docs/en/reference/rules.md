@@ -49,7 +49,7 @@ Declare a rule with the `### R-* Name` form.
 - message: No matching results.
 ```
 
-![History And Errors business rules preview](../../assets/previews/history-and-errors-showcase.png)
+![History And Errors business rules preview](../../assets/vscode-previews/history-and-errors-vscode-preview.png)
 
 ## Difference From Validator Diagnostics
 

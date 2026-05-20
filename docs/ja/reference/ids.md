@@ -55,7 +55,7 @@ title: Login
   - state: idle
 ```
 
-![Hello Screen の ID 付き preview](../../assets/previews/hello-screen-showcase.png)
+![Hello Screen の ID 付き preview](../../assets/vscode-previews/hello-screen-vscode-preview.png)
 
 ## 注意点
 

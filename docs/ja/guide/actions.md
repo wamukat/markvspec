@@ -27,7 +27,7 @@ button や link には `action: A-*` を付けます。`## Actions` には、そ
 
 preview では、`Save` button と `A-Save` のつながり、`idle` から `saving` への変化を確認できます。
 
-![Form Submit Flow の action preview](../../assets/previews/form-submit-flow-showcase.png)
+![Form Submit Flow の action preview](../../assets/vscode-previews/form-submit-flow-vscode-preview.png)
 
 ## 書く判断
 

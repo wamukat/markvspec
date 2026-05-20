@@ -22,7 +22,7 @@ Use state names from the user's point of view, not implementation booleans. Pref
 
 This minimal example defines only the normal, loading, and error states. Even before you describe visual differences, these names can be used as action results and preview targets.
 
-![Async Fetching state preview](../../assets/previews/async-loading-showcase.png)
+![Async Fetching state preview](../../assets/vscode-previews/async-loading-vscode-preview.png)
 
 ## Common Patterns
 

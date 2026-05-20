@@ -55,7 +55,7 @@ title: Login
   - state: idle
 ```
 
-![Hello Screen preview with stable IDs](../../assets/previews/hello-screen-showcase.png)
+![Hello Screen preview with stable IDs](../../assets/vscode-previews/hello-screen-vscode-preview.png)
 
 ## Notes
 

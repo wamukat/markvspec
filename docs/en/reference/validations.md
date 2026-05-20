@@ -58,7 +58,7 @@ Error messages can be written in a shape that matches constraints.
   - max: Quantity must be 10 or less.
 ```
 
-![Single Field Validation preview](../../assets/previews/single-field-validation-showcase.png)
+![Single Field Validation preview](../../assets/vscode-previews/single-field-validation-vscode-preview.png)
 
 ## Notes
 

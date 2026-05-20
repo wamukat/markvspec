@@ -81,7 +81,7 @@ Declare an element with the `### E-* Name Type` form.
 - href: /signup
 ```
 
-![Source Kind Metadata elements preview](../../assets/previews/source-kind-metadata-showcase.png)
+![Source Kind Metadata elements preview](../../assets/vscode-previews/source-kind-metadata-vscode-preview.png)
 
 ## Notes
 

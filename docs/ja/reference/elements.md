@@ -81,7 +81,7 @@ Element は `### E-* Name Type` の形で宣言します。
 - href: /signup
 ```
 
-![Source Kind Metadata の elements preview](../../assets/previews/source-kind-metadata-showcase.png)
+![Source Kind Metadata の elements preview](../../assets/vscode-previews/source-kind-metadata-vscode-preview.png)
 
 ## 注意点
 

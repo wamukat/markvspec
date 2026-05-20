@@ -95,7 +95,7 @@ Describe server-rendered partial updates with `display` inside a result case, no
   - navigate: SCR-SETTINGS
 ```
 
-![Form Submit Flow actions preview](../../assets/previews/form-submit-flow-showcase.png)
+![Form Submit Flow actions preview](../../assets/vscode-previews/form-submit-flow-vscode-preview.png)
 
 ## Notes
 

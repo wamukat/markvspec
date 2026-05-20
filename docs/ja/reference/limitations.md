@@ -48,7 +48,7 @@ MarkVSpec では、実装詳細ではなく意味を持つ DSL を書きます�
 - action: A-Submit
 ```
 
-![Source Kind Metadata の semantic DSL preview](../../assets/previews/source-kind-metadata-showcase.png)
+![Source Kind Metadata の semantic DSL preview](../../assets/vscode-previews/source-kind-metadata-vscode-preview.png)
 
 ## 注意点
 

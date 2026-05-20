@@ -27,7 +27,7 @@ Layout section では、画面をどの UI のまとまりとして読むかを�
 
 この例では、ログインフォームを 1 つの layout group として定義し、フォーム内の順序を `Items` で固定しています。これだけで preview は「何がどの順で並ぶか」を表現できます。
 
-![Responsive Profile の layout preview](../../assets/previews/responsive-profile-showcase.png)
+![Responsive Profile の layout preview](../../assets/vscode-previews/responsive-profile-vscode-preview.png)
 
 ## よくある書き方
 

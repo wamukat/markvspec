@@ -68,7 +68,7 @@ route: /hello
 - text: Hello MarkVSpec
 ```
 
-![Hello Screen の file format 例と生成 preview](../../assets/previews/hello-screen-showcase.png)
+![Hello Screen の file format 例と生成 preview](../../assets/vscode-previews/hello-screen-vscode-preview.png)
 
 ## 注意点
 

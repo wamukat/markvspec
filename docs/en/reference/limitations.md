@@ -48,7 +48,7 @@ Prefer:
 - action: A-Submit
 ```
 
-![Source Kind Metadata semantic DSL preview](../../assets/previews/source-kind-metadata-showcase.png)
+![Source Kind Metadata semantic DSL preview](../../assets/vscode-previews/source-kind-metadata-vscode-preview.png)
 
 ## Notes
 

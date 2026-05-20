@@ -21,7 +21,7 @@ MarkVSpec では `hx-*` や CSS selector は書きません。どの request が
 
 preview では、`L-ProfileSummary` が更新対象として読めます。
 
-![Profile Home の partial update preview](../../assets/previews/profile-page-with-template-showcase.png)
+![Profile Home の partial update preview](../../assets/vscode-previews/profile-page-with-template-vscode-preview.png)
 
 ## 書くもの
 

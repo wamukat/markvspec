@@ -40,7 +40,7 @@ locale: en
 
 This example has screen metadata and only three sections: `States`, `Layout`, and `Elements`. That is enough to start rendering a preview. Start this small, confirm the preview works, then add actions and validation so problems are easy to isolate.
 
-![Hello Screen source and generated preview](../../assets/previews/hello-screen-showcase.png)
+![Hello Screen source and generated preview](../../assets/vscode-previews/hello-screen-vscode-preview.png)
 
 ## Common Patterns
 

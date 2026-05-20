@@ -95,7 +95,7 @@ server-rendered partial update は raw htmx 属性ではなく、結果 case の
   - navigate: SCR-SETTINGS
 ```
 
-![Form Submit Flow の actions preview](../../assets/previews/form-submit-flow-showcase.png)
+![Form Submit Flow の actions preview](../../assets/vscode-previews/form-submit-flow-vscode-preview.png)
 
 ## 注意点
 

@@ -86,7 +86,7 @@ route: /hello
   - navigate: SCR-NEXT
 ```
 
-![Hello Screen の source と生成 preview](../../assets/previews/hello-screen-showcase.png)
+![Hello Screen の source と生成 preview](../../assets/vscode-previews/hello-screen-vscode-preview.png)
 
 ## 関連ページ
 

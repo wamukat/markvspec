@@ -86,7 +86,7 @@ route: /hello
   - navigate: SCR-NEXT
 ```
 
-![Hello Screen source and generated preview](../../assets/previews/hello-screen-showcase.png)
+![Hello Screen source and generated preview](../../assets/vscode-previews/hello-screen-vscode-preview.png)
 
 ## Related Pages
 

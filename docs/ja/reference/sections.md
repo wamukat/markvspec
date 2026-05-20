@@ -51,7 +51,7 @@ Sections は `.vspec.md` の本文を分割する top-level heading です。Mar
 - Should the resend action be visible before 30 seconds?
 ```
 
-![Hello Screen の section 構成と生成 preview](../../assets/previews/hello-screen-showcase.png)
+![Hello Screen の section 構成と生成 preview](../../assets/vscode-previews/hello-screen-vscode-preview.png)
 
 ## 注意点
 

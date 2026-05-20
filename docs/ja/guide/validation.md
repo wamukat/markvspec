@@ -35,7 +35,7 @@ input 自体に閉じる条件は、element の近くに書きます。
 
 preview や review では、「この field には何を入力できるか」がその場で読めます。
 
-![Single Field Validation の preview](../../assets/previews/single-field-validation-showcase.png)
+![Single Field Validation の preview](../../assets/vscode-previews/single-field-validation-vscode-preview.png)
 
 ## クライアント複合項目チェック
 

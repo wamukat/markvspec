@@ -65,7 +65,7 @@ This example defines only a heading and a primary button. The `action` property 
 
 Input constraints stay near `E-EmailInput`, while the error message uses `tone: danger` and a state condition. This lets preview and review show which UI part matters in each state.
 
-![Source Kind Metadata elements preview](../../assets/previews/source-kind-metadata-showcase.png)
+![Source Kind Metadata elements preview](../../assets/vscode-previews/source-kind-metadata-vscode-preview.png)
 
 ## Next Reading
 

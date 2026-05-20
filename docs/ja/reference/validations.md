@@ -58,7 +58,7 @@ error message は constraint と対応する形で書けます。
   - max: Quantity must be 10 or less.
 ```
 
-![Single Field Validation の validation preview](../../assets/previews/single-field-validation-showcase.png)
+![Single Field Validation の validation preview](../../assets/vscode-previews/single-field-validation-vscode-preview.png)
 
 ## 注意点
 

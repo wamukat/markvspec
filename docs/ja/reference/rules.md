@@ -49,7 +49,7 @@ Rule は `### R-* Name` の形で宣言します。
 - message: No matching results.
 ```
 
-![History And Errors の business rules preview](../../assets/previews/history-and-errors-showcase.png)
+![History And Errors の business rules preview](../../assets/vscode-previews/history-and-errors-vscode-preview.png)
 
 ## Validator Diagnostics との違い
 

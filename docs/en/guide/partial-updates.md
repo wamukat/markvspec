@@ -8,7 +8,7 @@ A partial update changes part of the screen without navigating the whole page. I
 
 This keeps the UI specification reviewable whether the implementation uses Thymeleaf, htmx, a custom fetch flow, or another server-rendered approach. Preview can show the target layout group or message area, and HTML/PDF export can still explain the update intent.
 
-![Profile Home partial update preview](../../assets/previews/profile-page-with-template-showcase.png)
+![Profile Home partial update preview](../../assets/vscode-previews/profile-page-with-template-vscode-preview.png)
 
 ## Minimal Example
 
