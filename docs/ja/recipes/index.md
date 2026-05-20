@@ -34,7 +34,7 @@ MarkVSpec は screen state、elements、actions、outcome を semantic に書く
 - [Guide](../guide/index.md): authoring flow を学ぶ。
 - [Actions Guide](../guide/actions.md): requests、cases、effects。
 - [Partial Updates Guide](../guide/partial-updates.md): server-rendered partial update model。
-- [CLI Reference](../reference/cli.md): CLI からの HTML / PDF export。
+- [CLI Reference](../reference/cli.md): validation、HTML/PDF export、project `document-list` export。
 - [Reference](../reference/index.md): sections、IDs、elements、rules。
 
 ## Recipe の使い方

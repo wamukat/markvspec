@@ -30,6 +30,9 @@ HTML export は、ブラウザで開ける軽い成果物が必要なときに�
 
 Static HTML には、VS Code の外で review するために必要な structured specification も含まれます。states、layout、elements、actions、Form Groups、Business Rules、Validations、Error Codes、custom Notes、section / entity の lead や notes prose を確認できます。編集対象は生成 HTML ではなく、source の `.vspec.md` です。
 
+project file 内の screen、template、参照 partial を一覧で確認したい場合は、CLI の
+`export document-list` を使います。詳しくは [CLI reference](../reference/cli.md) を参照してください。
+
 ## PDF
 
 ```bash

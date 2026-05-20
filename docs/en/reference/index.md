@@ -13,7 +13,7 @@ Learning-oriented explanations live in [Guide](../guide/index.md). Reference is 
 - Check input constraints and error display: [Validations](validations.md)
 - Check screen-specific decisions: [Business Rules](rules.md)
 - Check ID prefixes and references: [IDs](ids.md)
-- Check CLI validate/export commands: [CLI](cli.md)
+- Check CLI validation, HTML/PDF export, and project document-list export: [CLI](cli.md)
 - Check what MarkVSpec intentionally does not model: [Limitations](limitations.md)
 
 ## Reference Pages
@@ -27,7 +27,7 @@ Learning-oriented explanations live in [Guide](../guide/index.md). Reference is 
 | [Validations](validations.md) | `required`, `constraints`, format/range, and error messages |
 | [Business Rules](rules.md) | Business rules and screen-specific conditions in `## Business Rules` |
 | [IDs](ids.md) | How to use `SCR-*`, `L-*`, `E-*`, `A-*`, and `R-*` |
-| [CLI](cli.md) | `validate`, HTML export, and PDF export |
+| [CLI](cli.md) | `validate`, HTML/PDF export, and project `document-list` export |
 | [Limitations](limitations.md) | Markdown tables, JSON, visual design, and implementation details |
 
 ## Common Lookups

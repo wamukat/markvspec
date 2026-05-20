@@ -13,7 +13,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 - 入力制約と error 表示を確認する: [Validations](validations.md)
 - 画面固有の判断条件を確認する: [Business Rules](rules.md)
 - ID prefix と参照規則を確認する: [IDs](ids.md)
-- CLI の validate/export を確認する: [CLI](cli.md)
+- CLI の validation、HTML/PDF export、project document-list export を確認する: [CLI](cli.md)
 - 現時点で書かないものを確認する: [Limitations](limitations.md)
 
 ## Reference Pages
@@ -27,7 +27,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 | [Validations](validations.md) | `required`、`constraints`、format/range、error message |
 | [Business Rules](rules.md) | `## Business Rules` に書く business rule と画面固有条件 |
 | [IDs](ids.md) | `SCR-*`、`L-*`、`E-*`、`A-*`、`R-*` の使い分け |
-| [CLI](cli.md) | `validate`、HTML export、PDF export |
+| [CLI](cli.md) | `validate`、HTML/PDF export、project `document-list` export |
 | [Limitations](limitations.md) | Markdown table、JSON、visual design、実装詳細の扱い |
 
 ## よく見る組み合わせ

@@ -34,7 +34,7 @@ MarkVSpec describes screen states, elements, actions, and outcomes semantically.
 - [Guide](../guide/index.md): Learn the authoring flow.
 - [Actions Guide](../guide/actions.md): Requests, cases, and effects.
 - [Partial Updates Guide](../guide/partial-updates.md): Server-rendered partial update model.
-- [CLI Reference](../reference/cli.md): HTML / PDF export from the CLI.
+- [CLI Reference](../reference/cli.md): validation, HTML/PDF export, and project `document-list` export.
 - [Reference](../reference/index.md): Sections, IDs, elements, and rules.
 
 ## How To Use Recipes

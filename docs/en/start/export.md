@@ -31,6 +31,9 @@ who do not need to read Markdown.
 
 Static HTML includes the structured specification that reviewers need outside VS Code: states, layout, elements, actions, Form Groups, Business Rules, Validations, Error Codes, custom Notes, and section/entity lead or notes prose. Treat it as a review artifact generated from the `.vspec.md` source, not as a separate document to edit.
 
+For a compact inventory of screens, templates, and referenced partials in a
+project file, use CLI `export document-list`. See [CLI reference](../reference/cli.md).
+
 ## PDF
 
 ```bash
