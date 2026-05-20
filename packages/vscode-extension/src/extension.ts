@@ -107,6 +107,10 @@ import {
 } from "./preview-design-document-renderer.js";
 import { createValidationRuleSpecRenderer } from "./validation-rule-spec-renderer.js";
 import {
+  PreviewUpdateController,
+  type PreviewPatchResult
+} from "./preview-update-controller.js";
+import {
   actionDetailAnchor,
   businessRulesAnchor,
   errorCodesAnchor,
@@ -129,6 +133,11 @@ export {
 } from "./preview-shell.js";
 export { createMarkVSpecCodeActions } from "./quick-fixes.js";
 export { createMarkVSpecDocumentSymbols } from "./document-symbol-provider.js";
+export {
+  isCurrentPreviewGenerationState,
+  normalizePreviewPatchResultState,
+  scheduleCoalescedPreviewUpdate
+} from "./preview-update-controller.js";
 
 type MarkerCategory = "layout" | "element" | "action";
 interface ScreenDocumentResult {
@@ -174,7 +183,6 @@ const projectDocumentResultCache = new Map<string, MarkVSpecProjectLoadResult>()
 const projectFileContentCache = new Map<string, { fingerprint: string; source: string }>();
 const parsedProjectFileCache = new Map<string, { fingerprint: string; result: ReturnType<typeof parseMarkVSpec> }>();
 const previewSourceByUri = new Map<string, string>();
-const pendingFragmentUpdates = new Map<string, (result: PreviewPatchResult) => void>();
 export const PREVIEW_UPDATE_DEBOUNCE_MS = 150;
 export const PREVIEW_AUTO_UPDATE_DEFAULT = true;
 export const PREVIEW_WEBVIEW_UPDATE_TIMEOUT_MS = 3000;
@@ -182,8 +190,6 @@ const DIAGNOSTIC_UPDATE_DEBOUNCE_MS = 250;
 
 let previewPanel: vscode.WebviewPanel | undefined;
 let previewDocumentUri: vscode.Uri | undefined;
-let previewGenerationId = 0;
-let previewUpdateTimer: ReturnType<typeof setTimeout> | undefined;
 let extensionRootUri: vscode.Uri | undefined;
 let markerVisibility = {
   layout: true,
@@ -194,6 +200,12 @@ let previewShowRepeatedContent = false;
 let previewAutoUpdate = PREVIEW_AUTO_UPDATE_DEFAULT;
 let diagnosticsController: MarkVSpecDiagnosticsController | undefined;
 let outputChannel: vscode.OutputChannel | undefined;
+const previewUpdateController = new PreviewUpdateController({
+  clearTimeout,
+  debounceMs: PREVIEW_UPDATE_DEBOUNCE_MS,
+  setTimeout,
+  timeoutMs: PREVIEW_WEBVIEW_UPDATE_TIMEOUT_MS
+});
 
 export function activate(context: vscode.ExtensionContext): void {
   const activationStart = Date.now();
@@ -284,7 +296,7 @@ export function activate(context: vscode.ExtensionContext): void {
         previewDocumentUri = undefined;
         previewSourceByUri.clear();
         resolvePendingFragmentUpdates(false);
-        previewGenerationId += 1;
+        previewUpdateController.invalidateGeneration();
         markerVisibility = {
           layout: true,
           element: true,
@@ -315,11 +327,12 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         if (message.command === "fragmentUpdateResult" && message.requestId) {
-          const resolve = pendingFragmentUpdates.get(message.requestId);
-          if (resolve) {
-            pendingFragmentUpdates.delete(message.requestId);
-            resolve(normalizePreviewPatchResult(message, previewDocumentUri?.toString() ?? ""));
-          }
+          previewUpdateController.resolveFragmentUpdateResult(
+            message.requestId,
+            message,
+            previewDocumentUri?.toString() ?? "",
+            currentPreviewUpdateState()
+          );
           return;
         }
 
@@ -512,28 +525,16 @@ export function deactivate(): void {
 
 function schedulePreviewUpdate(document: vscode.TextDocument): void {
   const documentUri = document.uri.toString();
-  const generationId = reservePreviewGeneration();
-  previewUpdateTimer = scheduleCoalescedPreviewUpdate({
-    timer: previewUpdateTimer,
-    clearTimeout,
-    setTimeout,
-    delayMs: PREVIEW_UPDATE_DEBOUNCE_MS,
+  previewUpdateController.schedule({
     document,
     documentUri,
-    shouldRun: (scheduledDocumentUri) => isCurrentPreviewGeneration(generationId, scheduledDocumentUri),
-    run: (scheduledDocument) => updatePreview(scheduledDocument, generationId),
-    clearTimer: () => {
-      previewUpdateTimer = undefined;
-    }
+    shouldRun: (scheduledDocumentUri, generationId) => isCurrentPreviewGeneration(generationId, scheduledDocumentUri),
+    run: (scheduledDocument, generationId) => updatePreview(scheduledDocument, generationId)
   });
 }
 
 function cancelScheduledPreviewUpdate(): void {
-  if (!previewUpdateTimer) {
-    return;
-  }
-  clearTimeout(previewUpdateTimer);
-  previewUpdateTimer = undefined;
+  previewUpdateController.cancelScheduledUpdate();
 }
 
 export function shouldSkipActiveEditorPreviewUpdate(currentPreviewUri: string | undefined, activeEditorUri: string): boolean {
@@ -573,32 +574,7 @@ function updatePreview(document: vscode.TextDocument, generationId = reservePrev
 }
 
 function reservePreviewGeneration(): number {
-  previewGenerationId += 1;
-  return previewGenerationId;
-}
-
-export function scheduleCoalescedPreviewUpdate<TDocument, TTimer>(input: {
-  timer: TTimer | undefined;
-  clearTimeout: (timer: TTimer) => void;
-  setTimeout: (callback: () => void, delayMs: number) => TTimer;
-  delayMs: number;
-  document: TDocument;
-  documentUri: string;
-  shouldRun: (documentUri: string) => boolean;
-  run: (document: TDocument) => void;
-  clearTimer: () => void;
-}): TTimer {
-  if (input.timer !== undefined) {
-    input.clearTimeout(input.timer);
-  }
-
-  return input.setTimeout(() => {
-    input.clearTimer();
-    if (!input.shouldRun(input.documentUri)) {
-      return;
-    }
-    input.run(input.document);
-  }, input.delayMs);
+  return previewUpdateController.reserveGeneration();
 }
 
 async function updatePreviewAsync(document: vscode.TextDocument, generationId: number, options: PreviewUpdateOptions = {}): Promise<void> {
@@ -791,19 +767,17 @@ async function commitPreviewHtml(
 }
 
 function isCurrentPreviewGeneration(generationId: number, documentUri: string): boolean {
-  return isCurrentPreviewGenerationState({
+  return previewUpdateController.isCurrentGeneration({
     hasPreviewPanel: Boolean(previewPanel),
-    currentGenerationId: previewGenerationId,
     currentDocumentUri: previewDocumentUri?.toString()
   }, generationId, documentUri);
 }
 
-export function isCurrentPreviewGenerationState(
-  state: { hasPreviewPanel: boolean; currentGenerationId: number; currentDocumentUri: string | undefined },
-  generationId: number,
-  documentUri: string
-): boolean {
-  return state.hasPreviewPanel && state.currentGenerationId === generationId && state.currentDocumentUri === documentUri;
+function currentPreviewUpdateState(): { hasPreviewPanel: boolean; currentDocumentUri: string | undefined } {
+  return {
+    hasPreviewPanel: Boolean(previewPanel),
+    currentDocumentUri: previewDocumentUri?.toString()
+  };
 }
 
 function yieldToWebview(): Promise<void> {
@@ -1308,12 +1282,6 @@ interface PreviewFragmentUpdate {
   html: string[];
 }
 
-export interface PreviewPatchResult {
-  success: boolean;
-  reason: string;
-  webviewPatchMs?: number;
-}
-
 export interface PreviewUpdateTelemetry {
   sourceLabel: string;
   generationId: number;
@@ -1534,77 +1502,11 @@ function findElementHtmlEnd(html: string, start: number, tagName: string): numbe
 }
 
 async function postPreviewFragmentUpdate(panel: vscode.WebviewPanel, fragments: PreviewFragmentUpdate[], generationId: number): Promise<PreviewPatchResult> {
-  const updateId = `${Date.now()}:${Math.random().toString(36).slice(2)}`;
-  const result = new Promise<PreviewPatchResult>((resolve) => {
-    const timer = setTimeout(() => {
-      pendingFragmentUpdates.delete(updateId);
-      resolve({ success: false, reason: "webview-timeout" });
-    }, PREVIEW_WEBVIEW_UPDATE_TIMEOUT_MS);
-    pendingFragmentUpdates.set(updateId, (patchResult) => {
-      clearTimeout(timer);
-      resolve(patchResult);
-    });
-  });
-
-  let posted = false;
-  try {
-    posted = await panel.webview.postMessage({
-      command: "replaceFragments",
-      generationId,
-      requestId: updateId,
-      updateId,
-      fragments
-    });
-  } catch {
-    posted = false;
-  }
-  if (!posted) {
-    const resolve = pendingFragmentUpdates.get(updateId);
-    pendingFragmentUpdates.delete(updateId);
-    resolve?.({ success: false, reason: "post-message-failed" });
-  }
-
-  return result;
+  return previewUpdateController.postFragmentUpdate(panel.webview, fragments, generationId);
 }
 
 function resolvePendingFragmentUpdates(success: boolean): void {
-  for (const resolve of pendingFragmentUpdates.values()) {
-    resolve({ success, reason: success ? "disposed-success" : "disposed" });
-  }
-  pendingFragmentUpdates.clear();
-}
-
-function normalizePreviewPatchResult(message: { generationId?: number; success?: boolean; reason?: string; webviewPatchMs?: number }, documentUri: string): PreviewPatchResult {
-  return normalizePreviewPatchResultState(
-    {
-      hasPreviewPanel: Boolean(previewPanel),
-      currentGenerationId: previewGenerationId,
-      currentDocumentUri: previewDocumentUri?.toString()
-    },
-    message,
-    documentUri
-  );
-}
-
-export function normalizePreviewPatchResultState(
-  state: { hasPreviewPanel: boolean; currentGenerationId: number; currentDocumentUri: string | undefined },
-  message: { generationId?: number; success?: boolean; reason?: string; webviewPatchMs?: number },
-  documentUri: string
-): PreviewPatchResult {
-  if (typeof message.generationId !== "number") {
-    return { success: false, reason: message.reason ?? "missing-generation" };
-  }
-  if (!isCurrentPreviewGenerationState(state, message.generationId, documentUri)) {
-    return { success: false, reason: "stale-generation-result" };
-  }
-  const normalized: PreviewPatchResult = {
-    success: Boolean(message.success),
-    reason: message.reason ?? (message.success ? "applied" : "webview-rejected")
-  };
-  if (typeof message.webviewPatchMs === "number" && Number.isFinite(message.webviewPatchMs)) {
-    normalized.webviewPatchMs = message.webviewPatchMs;
-  }
-  return normalized;
+  previewUpdateController.resolvePendingFragmentUpdates(success);
 }
 
 function formatLogList(values: string[]): string {
