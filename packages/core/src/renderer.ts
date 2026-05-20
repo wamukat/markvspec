@@ -3,7 +3,7 @@ import { messagesForLocale } from "./renderer-messages.js";
 import { actionAppliesToState } from "./action-applicability.js";
 import { propertyFirstString, propertyString } from "./property-accessor.js";
 import { renderElement } from "./element-renderer.js";
-import type { ElementRenderContext } from "./element-renderer.js";
+import type { ElementControlledPanelKind, ElementControlledPanelRenderContext, ElementRenderContext } from "./element-renderer.js";
 import {
   controlledPanelReferences,
 } from "./element-domain.js";
@@ -205,6 +205,8 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
     const depth = insertionContext.depth + layoutDepthFor(layoutId, slotContent.layoutGroups);
     const layoutById = new Map(slotContent.layoutGroups.map((group) => [group.id, group]));
     const formGroupMarkersByLayoutId = mapFormGroupMarkersByLayoutId(result.formGroups, slotContent.layoutGroups, layoutById);
+    const normallyContainedLayoutIds = normallyContainedLayoutIdsFor(slotContent.layoutGroups, layoutById, result);
+    const controlledPanelLayoutIds = controlledPanelLayoutIdsFor(result.elements, layoutById);
 
     return {
       renderKey,
@@ -223,9 +225,14 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
           ...renderContextForState(result, activeState),
           routeValues,
           sampleOverrides: options.sampleOverrides ?? {},
+          result,
+          layoutById,
+          slotContentsByName,
           elementById,
           actionMarkersByElementId,
           formGroupMarkersByLayoutId,
+          normallyContainedLayoutIds,
+          controlledPanelLayoutIds,
           slotViewport: slotViewport === "default" ? activeViewport : slotViewport
         }),
         insertionContext.parentDisabled,
@@ -253,6 +260,9 @@ export function renderMarkVSpecHtmlFragment(result: MarkVSpecParseResult, render
       ...renderContextForState(result, activeState),
       routeValues,
       sampleOverrides: options.sampleOverrides ?? {},
+      result,
+      layoutById,
+      slotContentsByName,
       elementById,
       actionMarkersByElementId,
       formGroupMarkersByLayoutId: mapFormGroupMarkersByLayoutId(result.formGroups, layoutGroups, layoutById),
@@ -287,7 +297,7 @@ interface ActionMarkerReference {
   marker: string;
 }
 
-interface RenderContext {
+interface RenderContext extends ElementRenderContext {
   sampleOverrides: Record<string, MarkVSpecParseResult["previewScenarios"][number]["samples"][number]>;
   routeValues: Record<string, string>;
   result?: MarkVSpecParseResult;
@@ -302,15 +312,6 @@ interface RenderContext {
   slotName?: string;
   slotRenderViewport?: string;
   slotViewport?: string;
-  renderControlledPanelLayout?: (
-    panelId: string,
-    activeState: string | undefined,
-    stateNames: Set<string>,
-    options: MarkVSpecRenderOptions,
-    parentDisabled: boolean,
-    context: ElementRenderContext,
-    kind: "tabs" | "accordion" | "disclosure"
-  ) => string;
 }
 
 interface FormGroupMarkerReference {
@@ -324,10 +325,27 @@ type SlotContent = MarkVSpecParseResult["slotContents"][number];
 type SlotContentsByName = Map<string, SlotContent[]>;
 
 function withElementRendererCallbacks<T extends RenderContext>(context: T): T {
+  const controlledPanelContext = controlledPanelRenderContext(context);
   return {
     ...context,
+    controlledPanelContext,
     renderControlledPanelLayout: (panelId, activeState, stateNames, options, parentDisabled, panelContext, kind) =>
-      renderControlledPanelLayout(panelId, activeState, stateNames, options, parentDisabled, panelContext as RenderContext, kind)
+      renderControlledPanelLayout(panelId, activeState, stateNames, options, parentDisabled, panelContext, kind)
+  };
+}
+
+function controlledPanelRenderContext(context: RenderContext): ElementControlledPanelRenderContext | undefined {
+  if (!context.result || !context.layoutById || !context.slotContentsByName || !context.elementById || !context.actionMarkersByElementId) {
+    return undefined;
+  }
+
+  return {
+    ...context,
+    result: context.result,
+    layoutById: context.layoutById,
+    slotContentsByName: context.slotContentsByName,
+    elementById: context.elementById,
+    actionMarkersByElementId: context.actionMarkersByElementId
   };
 }
 
@@ -728,21 +746,36 @@ function renderSlot(
 
   const layoutById = new Map(slotContent.layoutGroups.map((group) => [group.id, group]));
   const containedLayoutIds = new Set<string>();
+  const normallyContainedLayoutIds = new Set<string>();
+  const controlledPanelLayoutIds = controlledPanelLayoutIdsFor(result.elements, layoutById);
   for (const group of slotContent.layoutGroups) {
     for (const item of group.items) {
       if (item.type === "contains" && layoutById.has(item.targetId)) {
         containedLayoutIds.add(item.targetId);
+        normallyContainedLayoutIds.add(item.targetId);
       }
+    }
+  }
+  for (const layoutId of controlledPanelLayoutIds) {
+    if (!normallyContainedLayoutIds.has(layoutId)) {
+      containedLayoutIds.add(layoutId);
     }
   }
 
   const rootGroups = slotContent.layoutGroups.filter((group) => !containedLayoutIds.has(group.id));
-  const slotContext = {
+  const slotContext = withElementRendererCallbacks({
     ...context,
+    result,
+    layoutById,
+    slotContentsByName,
+    elementById,
+    actionMarkersByElementId,
+    normallyContainedLayoutIds,
+    controlledPanelLayoutIds,
     slotName: name,
     slotRenderViewport: slotContent.viewport ?? "default",
     slotViewport: viewport
-  };
+  });
   return rootGroups
     .map((group) => renderLayoutGroup(
       group,
@@ -785,12 +818,17 @@ function renderSlotDefault(
 
   const renderKey = `slot-default:${name}:${viewport || "default"}:${defaultId}`;
   const label = `<div class="mm-slot-default-label">Default: ${escapeHtml(defaultId)}</div>`;
-  const defaultContext = {
+  const defaultContext = withElementRendererCallbacks({
     ...context,
+    result,
+    layoutById,
+    slotContentsByName,
+    elementById,
+    actionMarkersByElementId,
     slotName: name,
     slotRenderViewport: "default",
     slotViewport: viewport
-  };
+  });
 
   const layout = layoutById.get(defaultId);
   if (layout) {
@@ -836,8 +874,8 @@ function renderControlledPanelLayout(
   stateNames: Set<string>,
   options: MarkVSpecRenderOptions,
   parentDisabled: boolean,
-  context: RenderContext,
-  kind: "tabs" | "accordion" | "disclosure"
+  context: ElementControlledPanelRenderContext,
+  kind: ElementControlledPanelKind
 ): string {
   if (context.normallyContainedLayoutIds?.has(panelId)) {
     return "";

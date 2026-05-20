@@ -8,36 +8,49 @@ import {
   elementSizePreset,
   elementWidthPreset
 } from "./element-domain.js";
-import type { MarkVSpecElement, MarkVSpecParseResult, MarkVSpecRenderOptions } from "./types.js";
+import type { MarkVSpecElement, MarkVSpecLayoutGroup, MarkVSpecParseResult, MarkVSpecRenderOptions } from "./types.js";
 
 export interface ElementActionMarkerReference {
   id: string;
   marker: string;
 }
 
-export interface ElementRenderContext {
+export type ElementControlledPanelKind = "tabs" | "accordion" | "disclosure";
+
+export interface ElementRenderBaseContext {
   sampleOverrides: Record<string, MarkVSpecParseResult["previewScenarios"][number]["samples"][number]>;
   routeValues: Record<string, string>;
   elementById?: Map<string, MarkVSpecElement>;
   actionMarkersByElementId?: Map<string, ElementActionMarkerReference[]>;
   suppressMarkers?: boolean;
-  result?: MarkVSpecParseResult;
-  layoutById?: unknown;
-  slotContentsByName?: unknown;
   normallyContainedLayoutIds?: ReadonlySet<string>;
   controlledPanelLayoutIds?: ReadonlySet<string>;
   slotName?: string;
   slotRenderViewport?: string;
   slotViewport?: string;
+}
+
+export interface ElementControlledPanelRenderContext extends ElementRenderBaseContext {
+  result: MarkVSpecParseResult;
+  layoutById: Map<string, MarkVSpecLayoutGroup>;
+  slotContentsByName: Map<string, MarkVSpecParseResult["slotContents"][number][]>;
+  elementById: Map<string, MarkVSpecElement>;
+  actionMarkersByElementId: Map<string, ElementActionMarkerReference[]>;
+  controlledPanelContext?: ElementControlledPanelRenderContext;
   renderControlledPanelLayout?: (
     panelId: string,
     activeState: string | undefined,
     stateNames: Set<string>,
     options: MarkVSpecRenderOptions,
     parentDisabled: boolean,
-    context: ElementRenderContext,
-    kind: "tabs" | "accordion" | "disclosure"
+    context: ElementControlledPanelRenderContext,
+    kind: ElementControlledPanelKind
   ) => string;
+}
+
+export interface ElementRenderContext extends ElementRenderBaseContext {
+  controlledPanelContext?: ElementControlledPanelRenderContext;
+  renderControlledPanelLayout?: ElementControlledPanelRenderContext["renderControlledPanelLayout"];
 }
 
 function emptyRenderContext(): ElementRenderContext {
@@ -203,7 +216,9 @@ export function renderElement(
       })
       .join("");
     const panel = activeItem?.panel;
-    const panelBody = panel ? context.renderControlledPanelLayout?.(panel, activeState, stateNames, options, disabled, context, "tabs") ?? "" : "";
+    const panelBody = panel && context.controlledPanelContext
+      ? context.renderControlledPanelLayout?.(panel, activeState, stateNames, options, disabled, context.controlledPanelContext, "tabs") ?? ""
+      : "";
     const panelNote = panel && !panelBody ? `<div class="mm-tabs-panel-note">panel: ${escapeHtml(panel)}</div>` : "";
     return renderAnnotatedElement(markers, element.type, `<div class="${classes}" data-mm-id="${escapeHtml(element.id)}"><div class="mm-tab-strip">${tabs}</div>${panelBody || panelNote}</div>`);
   }
@@ -217,7 +232,9 @@ export function renderElement(
       const expanded = item.label === openLabel;
       const panel = item.panel ? ` data-mm-accordion-panel="${escapeHtml(item.panel)}"` : "";
       const action = item.action ? ` data-mm-accordion-action="${escapeHtml(item.action)}"` : "";
-      const panelBody = expanded && item.panel ? context.renderControlledPanelLayout?.(item.panel, activeState, stateNames, options, disabled, context, "accordion") ?? "" : "";
+      const panelBody = expanded && item.panel && context.controlledPanelContext
+        ? context.renderControlledPanelLayout?.(item.panel, activeState, stateNames, options, disabled, context.controlledPanelContext, "accordion") ?? ""
+        : "";
       const panelNote = expanded && item.panel && !panelBody ? `<div class="mm-accordion-panel-note">panel: ${escapeHtml(item.panel)}</div>` : "";
       return `<div class="mm-accordion-item${expanded ? " mm-accordion-item-open" : ""}"${panel}${action}><div class="mm-accordion-header">${expanded ? "v" : ">"} ${escapeHtml(item.label)}</div>${panelBody || panelNote}</div>`;
     }).join("");
@@ -228,7 +245,9 @@ export function renderElement(
     const open = isDisclosureOpen(element, activeState, stateNames, options);
     const panel = stringProperty(element, "panel");
     const panelAttr = panel ? ` data-mm-disclosure-panel="${escapeHtml(panel)}"` : "";
-    const panelBody = open && panel ? context.renderControlledPanelLayout?.(panel, activeState, stateNames, options, disabled, context, "disclosure") ?? "" : "";
+    const panelBody = open && panel && context.controlledPanelContext
+      ? context.renderControlledPanelLayout?.(panel, activeState, stateNames, options, disabled, context.controlledPanelContext, "disclosure") ?? ""
+      : "";
     const panelNote = open && panel && !panelBody ? `<div class="mm-accordion-panel-note">panel: ${escapeHtml(panel)}</div>` : "";
     return renderAnnotatedElement(markers, element.type, `<div class="${classes} ${open ? "mm-disclosure-open" : "mm-disclosure-closed"}" data-mm-id="${escapeHtml(element.id)}"${panelAttr}><div class="mm-accordion-header">${open ? "v" : ">"} ${escapeHtml(displayLabel || element.id)}</div>${panelBody || panelNote}</div>`);
   }

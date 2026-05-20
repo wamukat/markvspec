@@ -3029,6 +3029,136 @@ template:
   assert.ok(fragment?.html.includes(slotContentStyle));
 });
 
+test("renders slot content Tabs panels consistently in full and fragment renders", () => {
+  const source = `---
+id: SCR-SLOT-TABS
+type: screen
+title: Slot Tabs
+---
+
+# SCR-SLOT-TABS Slot Tabs
+
+## States
+
+- profile*
+
+## Layout: desktop
+
+### L-Shell Shell
+
+- stack
+
+#### Items
+
+- slot: content
+
+## Slot: content
+
+### L-Content Content
+
+- stack
+
+#### Items
+
+- E-SlotTabs
+
+### L-ProfilePanel Profile Panel
+
+- stack
+
+#### Items
+
+- E-ProfileText
+
+## Elements
+
+### E-SlotTabs Tabs
+
+- items:
+  - Profile
+    - panel: L-ProfilePanel
+    - active when: profile
+
+### E-ProfileText Text
+
+- value: Profile details
+`;
+  const result = parseMarkVSpec(source);
+  const fullHtml = renderMarkVSpecHtml(result, { includeStyles: false, viewport: "desktop" });
+  const fragment = renderMarkVSpecHtmlFragment(result, "slot-content:content:default:L-Content", { includeStyles: false, viewport: "desktop" });
+  const controlledPanel = 'class="mm-controlled-panel mm-controlled-panel-tabs" data-mm-controlled-panel="L-ProfilePanel"';
+
+  assert.ok(fullHtml.includes(controlledPanel));
+  assert.ok(fragment?.html.includes(controlledPanel));
+  assert.ok(fullHtml.includes("Profile details"));
+  assert.ok(fragment?.html.includes("Profile details"));
+});
+
+test("keeps normally contained slot Tabs panels out of controlled panel expansion", () => {
+  const source = `---
+id: SCR-SLOT-CONTAINED-TABS
+type: screen
+title: Slot Contained Tabs
+---
+
+# SCR-SLOT-CONTAINED-TABS Slot Contained Tabs
+
+## States
+
+- profile*
+
+## Layout: desktop
+
+### L-Shell Shell
+
+- stack
+
+#### Items
+
+- slot: content
+
+## Slot: content
+
+### L-Content Content
+
+- stack
+
+#### Items
+
+- E-SlotTabs
+- L-ProfilePanel
+
+### L-ProfilePanel Profile Panel
+
+- stack
+
+#### Items
+
+- E-ProfileText
+
+## Elements
+
+### E-SlotTabs Tabs
+
+- items:
+  - Profile
+    - panel: L-ProfilePanel
+    - active when: profile
+
+### E-ProfileText Text
+
+- value: Profile details
+`;
+  const result = parseMarkVSpec(source);
+  const fullHtml = renderMarkVSpecHtml(result, { includeStyles: false, viewport: "desktop" });
+  const fragment = renderMarkVSpecHtmlFragment(result, "slot-content:content:default:L-Content", { includeStyles: false, viewport: "desktop" });
+
+  assert.doesNotMatch(fullHtml, /mm-controlled-panel-tabs/u);
+  assert.doesNotMatch(fragment?.html ?? "", /mm-controlled-panel-tabs/u);
+  assert.equal((fullHtml.match(/Profile details/gu) ?? []).length, 1);
+  assert.equal((fragment?.html.match(/Profile details/gu) ?? []).length, 1);
+});
+
 test("skips slot content fragments for multiple template insertion points", () => {
   const templateSource = `---
 id: TPL-MULTI-SLOT
