@@ -75,7 +75,7 @@ For `F-*` and `V-*` examples that should appear as reference chips, prefer a
 | --- | --- | --- |
 | [Hello Screen](../../../examples/01-basics/hello-screen.vspec.md) | Minimum useful screen. | Metadata, one state, one viewport, layout, elements, and a click action marker. |
 | [Async Fetching](../../../examples/02-states/async-loading.vspec.md) | Request send and response handling. | Fetching, loaded, empty, and fetch-error states, response cases, and table sample rows. |
-| [Scenario Samples](../../../examples/02-states/scenario-samples.vspec.md) | Dedicated preview data variation example. | Neutral Element `sample` / `sample rows:` plus loaded-state Preview Scenario `samples`, including `rows: []`. |
+| [Scenario Preview Data](../../../examples/02-states/scenario-samples.vspec.md) | Dedicated preview data variation example. | Neutral Element `sample` / `sample rows:` plus loaded-state Preview Scenario `samples`, including `rows: []`. |
 | [Source Kind Metadata](../../../examples/02-states/source-kind-metadata.vspec.md) | Property-level display value metadata. | `kind`, `source`, and `format` on `label`, `value`, `placeholder`, `src`, `href`, and Select options. |
 | [Responsive Profile](../../../examples/02-states/responsive-profile.vspec.md) | Same content in mobile and desktop layouts. | Viewport-specific layout groups over shared elements. |
 | [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | Non-click events and lifecycle triggers. | `page.load`, `.change` unsaved notice display, `.blur` validation, `.focus` help text, `.submit`, dialog click actions, `close`, and Preview Scenarios. |
@@ -109,7 +109,7 @@ For `F-*` and `V-*` examples that should appear as reference chips, prefer a
 3. Switch viewport filters between `All`, `mobile`, and `desktop`.
 4. Open [Search List](../../../examples/04-real-world-screens/search-list.vspec.md)
    and confirm table sample rows render in the `idle` state.
-5. Open [Scenario Samples](../../../examples/02-states/scenario-samples.vspec.md)
+5. Open [Scenario Preview Data](../../../examples/02-states/scenario-samples.vspec.md)
    and confirm scenario sample overrides render.
 6. Open [Source Kind Metadata](../../../examples/02-states/source-kind-metadata.vspec.md)
    and confirm Display Content Spec shows property-level Kind/Source/Format.

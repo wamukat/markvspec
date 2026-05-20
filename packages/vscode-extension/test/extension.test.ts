@@ -3109,10 +3109,10 @@ test("renders preview scenario samples in generated state views", () => {
   const source = `---
 id: SCR-SCENARIO-SAMPLES
 type: screen
-title: Scenario Samples
+title: Scenario Preview Data
 ---
 
-# SCR-SCENARIO-SAMPLES Scenario Samples
+# SCR-SCENARIO-SAMPLES Scenario Preview Data
 
 ## States
 
@@ -3203,16 +3203,16 @@ Preview Scenarios section notes.
   assert.match(baseWireframe, /Baseline scenario title/);
   assert.match(baseWireframe, /<td>Bob<\/td><td>Viewer<\/td>/);
   assert.match(baseSection, /State: [\s\S]*loaded[\s\S]*Baseline scenario lead mentions[\s\S]*E-Title[\s\S]*<h5 class="state-screen-subheading">Wireframe<\/h5>/);
-  assert.match(baseSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
+  assert.match(baseSection, /<h6 class="state-screen-detail-heading">Scenario Preview Data<\/h6>/);
   assert.match(baseSection, /E-Title[\s\S]*Baseline scenario title/);
-  assert.match(baseSection, /Scenario Samples[\s\S]*Baseline scenario notes\./);
+  assert.match(baseSection, /Scenario Preview Data[\s\S]*Baseline scenario notes\./);
   assert.doesNotMatch(html, /data-state-view-title="loaded \/ loaded"/);
   assert.match(scenarioWireframe, /Baseline scenario title/);
   assert.match(scenarioWireframe, /<td>Carol<\/td><td>Owner<\/td>/);
   assert.doesNotMatch(scenarioWireframe, /Fallback title|<td>Alice<\/td><td>Admin<\/td>|<td>Bob<\/td><td>Viewer<\/td>/);
   assert.match(scenarioWireframe, /<td class="mm-table-empty" colspan="1">\(no data\)<\/td>/);
   assert.match(scenarioSection, /State: [\s\S]*loaded[\s\S]*loaded-users[\s\S]*Additional scenario lead\.[\s\S]*<h5 class="state-screen-subheading">Wireframe<\/h5>/);
-  assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
+  assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Preview Data<\/h6>/);
   assert.match(scenarioSection, /E-Title[\s\S]*Baseline scenario title/);
   assert.match(scenarioSection, /E-Users[\s\S]*<code>rows: 1 rows<\/code>/);
   assert.match(scenarioSection, /<section class="scenario-sample-rows-block" id="sample-rows-default-loaded.20.2F.20loaded-users-E-Users">/);
@@ -3224,18 +3224,18 @@ Preview Scenarios section notes.
   assert.match(scenarioSection, /E-EmptyUsers[\s\S]*<code>rows: \[\]<\/code>/);
   assert.match(scenarioSection, /<section class="scenario-sample-rows-block" id="sample-rows-default-loaded.20.2F.20loaded-users-E-EmptyUsers">/);
   assert.equal(scenarioSection.match(/<section class="scenario-sample-rows-block"/g)?.length, 2);
-  assert.match(scenarioSection, /Scenario Samples[\s\S]*Additional scenario notes\./);
+  assert.match(scenarioSection, /Scenario Preview Data[\s\S]*Additional scenario notes\./);
 });
 
 test("localizes preview scenario sample table labels in generated state views", () => {
   const source = `---
 id: SCR-SCENARIO-SAMPLES-JA
 type: screen
-title: シナリオサンプル
+title: シナリオプレビューデータ
 locale: ja
 ---
 
-# SCR-SCENARIO-SAMPLES-JA シナリオサンプル
+# SCR-SCENARIO-SAMPLES-JA シナリオプレビューデータ
 
 ## States
 
@@ -3284,7 +3284,7 @@ locale: ja
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
   const scenarioSection = stateViewTitleSection(html, "loaded / loaded-special");
 
-  assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">シナリオサンプル<\/h6>/);
+  assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">シナリオプレビューデータ<\/h6>/);
   assert.match(scenarioSection, /<th>画面要素<\/th><th>サンプル<\/th>/);
   assert.match(scenarioSection, /<code>rows: 2 行<\/code>/);
   assert.match(scenarioSection, /<h6 class="scenario-sample-rows-heading">サンプル 行数:/);
@@ -3292,7 +3292,7 @@ locale: ja
   assert.match(scenarioSection, /<th>名前<\/th>/);
   assert.match(scenarioSection, /<td>一郎<\/td>/);
   assert.match(scenarioSection, /<td>二郎<\/td>/);
-  assert.doesNotMatch(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>|<th>Sample<\/th>/);
+  assert.doesNotMatch(scenarioSection, /<h6 class="state-screen-detail-heading">Scenario Preview Data<\/h6>|<th>Sample<\/th>/);
   assert.doesNotMatch(scenarioSection, /2 rows/);
 });
 

@@ -933,9 +933,9 @@ title: Scenario Base Selection
 
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
   const overlapSection = stateSectionContaining(html, "loaded", "loaded-overlay");
-  assert.doesNotMatch(overlapSection, /Scenario Samples/);
+  assert.doesNotMatch(overlapSection, /Scenario Preview Data/);
   const valueSampleSection = stateSectionContaining(html, "loaded", "loaded-sample-value");
-  assert.match(valueSampleSection, /Scenario Samples/);
+  assert.match(valueSampleSection, /Scenario Preview Data/);
   assert.match(valueSampleSection, /Scenario shared/);
 });
 

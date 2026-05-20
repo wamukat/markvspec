@@ -237,7 +237,7 @@ test("exports preview scenarios and scenario samples in standalone HTML", () => 
     assert.doesNotMatch(html, /data-state-view-title="loaded \/ loaded"/);
     assert.match(baselineLoaded, /Morgan Lee/);
     assert.match(baselineLoaded, /Team Pro/);
-    assert.match(baselineLoaded, /<h6 class="state-screen-detail-heading">Scenario Samples<\/h6>/);
+    assert.match(baselineLoaded, /<h6 class="state-screen-detail-heading">Scenario Preview Data<\/h6>/);
     assert.match(baselineLoaded, /E-SubscriptionTable/);
     assert.match(baselineLoaded, /<code>rows: 2 rows<\/code>/);
     assert.match(baselineLoaded, /<section class="scenario-sample-rows-block" id="sample-rows-desktop-loaded-E-SubscriptionTable">/);
@@ -286,7 +286,7 @@ test("exports source-kind metadata example in standalone HTML", () => {
     assert.doesNotMatch(loadedSection, /option label/);
     assert.doesNotMatch(html, /data-state-view-title="loaded \/ loaded-admin"/);
     assert.doesNotMatch(html, /data-state-view-title="loaded \/ loaded"/);
-    assert.match(html, /Scenario Samples/);
+    assert.match(html, /Scenario Preview Data/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -300,11 +300,11 @@ test("exports localized scenario sample rows in standalone HTML", () => {
     writeFileSync(sourcePath, `---
 id: SCR-SCENARIO-SAMPLES-JA
 type: screen
-title: シナリオサンプル
+title: シナリオプレビューデータ
 locale: ja
 ---
 
-# SCR-SCENARIO-SAMPLES-JA シナリオサンプル
+# SCR-SCENARIO-SAMPLES-JA シナリオプレビューデータ
 
 ## States
 
@@ -349,7 +349,7 @@ locale: ja
     const html = readFileSync(join(outDir, "scenario-samples-ja.html"), "utf8");
     const scenarioSection = stateViewSection(html, "loaded / loaded-special");
 
-    assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">シナリオサンプル<\/h6>/);
+    assert.match(scenarioSection, /<h6 class="state-screen-detail-heading">シナリオプレビューデータ<\/h6>/);
     assert.match(scenarioSection, /<code>rows: 2 行<\/code>/);
     assert.match(scenarioSection, /<h6 class="scenario-sample-rows-heading">サンプル 行数:/);
     assert.match(scenarioSection, /<table class="spec-table scenario-sample-rows-table">/);

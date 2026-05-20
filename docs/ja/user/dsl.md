@@ -2256,6 +2256,8 @@ Action から View Context を更新するときは、process case の中に `vi
 ## View Context Samples セクション
 
 `## View Context Samples` は、preview/export で利用する View Context の値セットに名前を付けます。
+これは View Context Preview Data であり、`${view.*}` の値を State Views と Preview
+Scenarios に渡します。セクション名は引き続き `## View Context Samples` です。
 Section Lead / Notes と各 sample の Lead / Notes は、generated preview/export document で
 View Context section の直後、State Views より前に表示されます。
 
@@ -2279,7 +2281,15 @@ Preview Scenario が `view` を指定しない場合、preview/export はまず
 
 ## Preview Scenarios セクション
 
-`## Preview Scenarios` は、state preview に使う `state`、`model`、`view`、route parameter data、`samples` の組み合わせを明示します。`## States` から作る baseline preview は常に表示されます。`### <state-name>` block で `state:` を省略すると、その state の baseline preview に `samples:` を適用します。state 名とは異なる scenario 名に `state:` を明示すると、追加 preview variant になります。
+Preview Data は、preview/export に渡す表示用データ全体の総称です。Element の scalar
+表示値、Element の `sample rows:`、Preview Scenario の `samples:`、Preview Scenario
+の `route:`、`## View Context Samples` が含まれます。
+
+`## Model Samples` / `modelSamples` は canonical ではなく、unsupported として扱います。
+Element の scalar 値、Element の `sample rows:`、Preview Scenario の `samples:` /
+`route:`、または View Context Samples を使ってください。
+
+`## Preview Scenarios` は、state preview に使う `state`、`model`、`view`、Route Preview Data、Scenario Preview Data の組み合わせを明示します。`## States` から作る baseline preview は常に表示されます。`### <state-name>` block で `state:` を省略すると、その state の baseline preview に `samples:` を適用します。state 名とは異なる scenario 名に `state:` を明示すると、追加 preview variant になります。
 
 ```markdown
 ## Preview Scenarios
@@ -2332,7 +2342,8 @@ Scenario Notes も有効です。Section Lead / Notes は State Views 全体に�
 の heading 直下、Wireframe 見出しの前に表示します。Scenario Notes はその
 State View の説明表群の後、次の State View の前に表示します。
 
-`route:` は `samples:` とは別の scenario top-level property です。子要素は
+`samples:` は Element ごとの Scenario Preview Data を書く DSL property です。
+`route:` は Route Preview Data で、`samples:` とは別の scenario top-level property です。子要素は
 `key: value` 形式で書き、key は Front Matter の `route` にある `:param`
 placeholder、または URL fragment 用の特別な `hash` と一致させます。route sample は
 `${route.memberId}` のように表示値 property に書かれた route 参照と、
@@ -2347,7 +2358,7 @@ Element の `samples:` がある場合はそちらを優先します。
 View Context の fallback は、`View Context Samples.default`、View Context のデフォルト値、
 `*` がない View Context 定義の先頭値の順です。
 
-sample の優先順位は次の通りです。
+Preview Data の優先順位は次の通りです。
 
 1. 追加 Preview Scenario の `samples` が、その scenario の表示値として最優先です。
 2. 追加 scenario に対象 element の `samples` がない場合は、`### <state-name>` の baseline `samples` を使います。
@@ -2355,6 +2366,11 @@ sample の優先順位は次の通りです。
 4. scenario 側に対象 element の `samples` も route 解決対象もない場合は、`label`、`text`、`message`、`hint`、`value` などの scalar property value を baseline として使います。
 5. `sample rows:` は `Table` / `List` の複数行 baseline 値として使います。
 6. どこにも preview 用の値がない場合は placeholder 的な表示に留め、値を捏造しません。
+
+生成される State Views では、明示された `samples:` / `route:` の表示 block 見出しは
+`シナリオプレビューデータ` です。DSL property 名は引き続き `samples:` と `route:`
+です。`preview data:` は未対応の構文です。`session.*` / `cookie.*` は
+`samples:` や `route:` で解決される Preview Data namespace ではありません。
 
 ```markdown
 ## Elements

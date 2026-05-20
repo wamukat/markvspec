@@ -1947,12 +1947,21 @@ without reading framework-specific attributes.
 
 ## Data Sources And Samples
 
+Preview Data is the umbrella term for values that MarkVSpec passes to
+preview/export rendering. It includes scalar Element display values, Element
+`sample rows:`, Preview Scenario `samples:`, Preview Scenario `route:`, and
+`## View Context Samples`.
+
 Property-level `kind: data` marks that a display value comes from business data,
 API responses, or server-side data. It is an origin category, not a data path.
 Use the display property value as the scalar baseline preview value, nested
 `source:` as an optional detail reference, `sample rows:` for multi-row
 Table/List preview values, and Preview Scenario `samples` for state/scenario
 specific overrides.
+
+`## Model Samples` / `modelSamples` is no longer canonical and remains
+unsupported. Use Element scalar values, Element `sample rows:`, Preview Scenario
+`samples:` / `route:`, or View Context Samples instead.
 
 Do not use Action `Effects` to assign into `${data.*}`. Action-side model
 mutation is not canonical because it describes an implementation store or server
@@ -2351,9 +2360,9 @@ one Action has multiple processes and should not be used as canonical syntax.
 ## Preview Scenarios
 
 Use `## Preview Scenarios` when state previews need explicit `state`, `model`,
-`view`, route parameter data, samples, and action/process case combinations. Baseline previews from
+`view`, Route Preview Data, Scenario Preview Data, and action/process case combinations. Baseline previews from
 `## States` still render. A heading that matches a state name and omits
-`state:` defines baseline samples for that normal state preview; a heading with
+`state:` defines baseline Scenario Preview Data for that normal state preview; a heading with
 a distinct scenario name and explicit `state:` adds an extra variant.
 
 ```markdown
@@ -2583,7 +2592,9 @@ Actions update View Context with `view:` effects inside a process case:
 ## View Context Samples Section
 
 Use `## View Context Samples` to name reusable view-context value sets for
-preview/export.
+preview/export. These samples are View Context Preview Data: they supply
+`${view.*}` values used by State Views and Preview Scenarios, while keeping the
+section name unchanged.
 Section Lead / Notes and each sample's Lead / Notes are rendered in generated
 preview/export documents immediately after the View Context section and before
 State Views.
@@ -2610,7 +2621,7 @@ their first listed value.
 ## Preview Scenarios Section
 
 Use `## Preview Scenarios` when state previews need explicit `state`, `model`,
-`view`, route parameter data, and sample combinations. Baseline previews from `## States` always
+`view`, Route Preview Data, and Scenario Preview Data combinations. Baseline previews from `## States` always
 render. A `### <state-name>` block without `state:` attaches `samples:` to that
 baseline state preview. A distinct scenario name with explicit `state:` adds an
 extra preview variant.
@@ -2640,7 +2651,8 @@ heading:
   - E-Title: Baseline loaded title
 ```
 
-`route:` is a top-level scenario property, separate from `samples:`. Its child
+`samples:` is the DSL property for Element-specific Scenario Preview Data.
+`route:` is Route Preview Data: it is a top-level scenario property, separate from `samples:`. Its child
 items must be `key: value` entries whose keys match `:param` placeholders in the
 screen Front Matter `route`, or the special `hash` key for URL fragments.
 Route samples resolve scalar display values written as `${route.memberId}` and
@@ -2658,7 +2670,7 @@ Context fallback follows the same order: `View Context Samples.default`, then
 View Context default values. View Context definitions without a `*` default fall
 back to their first listed value.
 
-Sample precedence:
+Preview Data precedence:
 
 1. Additional Preview Scenario `samples` are used first for that scenario.
 2. If the additional scenario does not override an element, state-name baseline
@@ -2672,6 +2684,11 @@ Sample precedence:
    elements.
 6. If no property value or row sample exists, MarkVSpec leaves the preview
    placeholder-like and does not invent a value.
+
+The generated State Views heading for explicit `samples:` / `route:` data is
+`Scenario Preview Data`. The DSL property names remain `samples:` and `route:`;
+`preview data:` is not supported syntax. `session.*` and `cookie.*` are not
+Preview Data namespaces resolved by `samples:` or `route:`.
 
 ```markdown
 ## Elements

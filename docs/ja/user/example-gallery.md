@@ -41,7 +41,7 @@ F-* / V-* を参照 chip として読みやすく見せたい場合は、安定 
 | --- | --- |
 | [Hello Screen](../../../examples/01-basics/hello-screen.vspec.md) | metadata、1 state、1 viewport、layout、element、click action marker の最小例。 |
 | [Async Fetching](../../../examples/02-states/async-loading.vspec.md) | request 送信、response handling、fetching/empty/fetch-error state、table sample rows の例。 |
-| [Scenario Samples](../../../examples/02-states/scenario-samples.vspec.md) | baseline の Element `sample` / `sample rows:` と、同じ loaded state に対する Preview Scenario data variation / `rows: []` の例。 |
+| [Scenario Preview Data](../../../examples/02-states/scenario-samples.vspec.md) | baseline の Element `sample` / `sample rows:` と、同じ loaded state に対する Preview Scenario data variation / `rows: []` の例。 |
 | [Source Kind Metadata](../../../examples/02-states/source-kind-metadata.vspec.md) | `label`、`value`、`placeholder`、`src`、`href`、Select options で property-level `kind` / `source` / `format` を確認する例。 |
 | [Responsive Profile](../../../examples/02-states/responsive-profile.vspec.md) | mobile / desktop viewport で同じ情報を異なる配置にする例。 |
 | [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) | `page.load`、`.change` の未保存通知、`.blur` validation、`.focus` help、`.submit`、dialog click / `close` と Preview Scenarios の例。 |
@@ -71,7 +71,7 @@ F-* / V-* を参照 chip として読みやすく見せたい場合は、安定 
 
 1. [Login Basic](../../../examples/04-real-world-screens/login-basic.vspec.md) を開き、mobile / desktop の preview を確認する。
 2. marker 表示、viewport filter、state 切替を確認する。
-3. [Scenario Samples](../../../examples/02-states/scenario-samples.vspec.md) で scenario sample override の表示を確認する。
+3. [Scenario Preview Data](../../../examples/02-states/scenario-samples.vspec.md) で Scenario Preview Data override の表示を確認する。
 4. [Source Kind Metadata](../../../examples/02-states/source-kind-metadata.vspec.md) で Display Content Spec の property-level Kind/Source/Format 表示を確認する。
 5. [Event Triggers](../../../examples/03-actions/event-triggers.vspec.md) で click 以外の event と lifecycle trigger を確認する。
 6. [Display Effects](../../../examples/03-actions/display-effects.vspec.md) で display target の違いを Preview Scenarios ごとに確認する。

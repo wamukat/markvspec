@@ -16,6 +16,7 @@ messages:
   formControls: Form Controls
   conditionHiddenShort: Hidden
   noVisibleElements: No visible elements
+  scenarioSamples: Scenario Preview Data
   wireframe: Wireframe
 ```
 
@@ -38,7 +39,7 @@ Included:
 - Generated design document section headings.
 - Preview and generated-document table names, column names, and fixed labels.
 - Condition labels such as `visible`, `hidden`, and `disabled`.
-- Generated helper text such as `None.`, scenario sample empty-row messages, and `No visible elements`.
+- Generated helper text such as `None.`, Scenario Preview Data empty-row messages, and `No visible elements`.
 
 Excluded:
 
@@ -65,6 +66,7 @@ messages:
   formControls: Form Controls
   conditionHiddenShort: Hidden
   noVisibleElements: No visible elements
+  scenarioSamples: Scenario Preview Data
   wireframe: Wireframe
 ```
 

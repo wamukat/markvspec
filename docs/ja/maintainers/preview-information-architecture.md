@@ -53,7 +53,7 @@ MarkVSpec のプレビューは、生成された画面設計書です。上か�
   marker と ID を併記し、Layout 参照は marker と Layout name、Action 参照は
   marker と Action name を表示して、Layout ID や Action ID だけの表示に戻さない。
 - 部分更新は Action Details 内に置き、request、response、case と同じ Action 文脈で target、fragment/content、結果の違いを確認できるようにする。
-- Element samples と Preview Scenario samples は、wireframe で使う実サンプル値を示す。Scenario override は該当 wireframe の下に小さな `Scenario Samples` 表として表示する。
+- Element samples と Preview Scenario samples は、wireframe で使う実サンプル値を示す。Scenario override は該当 wireframe の下に小さな `Scenario Preview Data` 表として表示する。
 - Action から `${data.value}` へ代入する model mutation は canonical DSL ではないため、独立した preview section として集計しない。表示値の由来参照は State Views、表示内容仕様、入力フォーム仕様で確認する。
 
 ## 推奨出力順
@@ -63,7 +63,7 @@ MarkVSpec のプレビューは、生成された画面設計書です。上か�
 3. Table of Contents
 4. States
 5. State Flow
-6. Viewport / State Wireframes（scenario samples がある場合は wireframe 下に Scenario Samples）
+6. Viewport / State Wireframes（scenario samples がある場合は wireframe 下に Scenario Preview Data）
 7. Screen Transitions
 8. 状態遷移表
 9. Action Details

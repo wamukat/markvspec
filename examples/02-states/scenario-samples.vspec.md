@@ -1,12 +1,12 @@
 ---
 id: SCR-SCENARIO-SAMPLES
 type: screen
-title: Scenario Samples
+title: Scenario Preview Data
 route: /scenario-samples
 locale: en
 ---
 
-# SCR-SCENARIO-SAMPLES Scenario Samples
+# SCR-SCENARIO-SAMPLES Scenario Preview Data
 
 This example focuses on previewing data variations without a separate data
 model section. Read Element `sample` / `sample rows:` as neutral baseline data,
