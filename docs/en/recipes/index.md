@@ -1,25 +1,23 @@
 # Recipes
 
-This section is the entry point for practical UI specification patterns.
+Use recipes to choose practical UI specification patterns by goal.
 
-> Stub: These pages will be expanded in follow-up tickets. For now, they provide
-> the recipe paths and links to existing examples.
+Each recipe stays focused on purpose, target result, minimal snippet, related example, related reference, and verification.
 
-## Planned Pages
+## Choose By Goal
 
-- `login-form.md`: Login forms.
-- `loading-error.md`: Loading / empty / error states.
-- `server-partial-update.md`: Server-rendered partial updates.
-- `pdf-export.md`: HTML / PDF sharing.
-
-## Existing Documents
-
-- [Example gallery](../user/example-gallery.md)
-- [PDF export approach](../user/pdf-export.md)
-- [Server-rendered partials](../user/server-partials.md)
+- [Login Form](login-form.md): Login, validation, and authentication request.
+- [Loading And Error](loading-error.md): Loading, empty, error, and success states.
+- [Server Partial Update](server-partial-update.md): Server-rendered partial updates.
+- [PDF Export](pdf-export.md): Share as HTML / PDF.
 
 ## Examples
 
-- [Login Basic](../../../examples/04-real-world-screens/login-basic.vspec.md)
-- [Async Loading](../../../examples/02-states/async-loading.vspec.md)
-- [Search List](../../../examples/04-real-world-screens/search-list.vspec.md)
+- [Login](../../../examples/showcase/login-basic.html)
+- [Async Fetching](../../../examples/showcase/async-loading.html)
+- [Profile Home](../../../examples/showcase/profile-page-with-template.html)
+
+## Reference
+
+- [Guide](../guide/index.md)
+- [Reference](../reference/index.md)

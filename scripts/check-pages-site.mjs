@@ -47,7 +47,15 @@ const requiredFiles = [
   "docs/ja/reference/index.html",
   "docs/en/reference/index.html",
   "docs/ja/recipes/index.html",
+  "docs/ja/recipes/login-form.html",
+  "docs/ja/recipes/loading-error.html",
+  "docs/ja/recipes/server-partial-update.html",
+  "docs/ja/recipes/pdf-export.html",
   "docs/en/recipes/index.html",
+  "docs/en/recipes/login-form.html",
+  "docs/en/recipes/loading-error.html",
+  "docs/en/recipes/server-partial-update.html",
+  "docs/en/recipes/pdf-export.html",
   "docs/ja/examples/index.html",
   "docs/en/examples/index.html",
   "docs/ja/concepts/index.html",
@@ -157,6 +165,30 @@ expectContains(readSiteFile("docs/en/guide/actions.html"), "A-SubmitLogin", "_si
 expectContains(readSiteFile("docs/en/guide/actions.html"), "examples/showcase/form-submit-flow.html", "_site/docs/en/guide/actions.html should link to the form submit showcase.");
 expectContains(readSiteFile("docs/en/guide/partial-updates.html"), "mode: replace", "_site/docs/en/guide/partial-updates.html should include partial update replacement semantics.");
 expectContains(readSiteFile("docs/en/guide/partial-updates.html"), "profile-summary.partial.html", "_site/docs/en/guide/partial-updates.html should link to the partial showcase.");
+
+const recipeIndexHtml = readSiteFile("docs/ja/recipes/index.html");
+expectContains(recipeIndexHtml, "login-form.html", "_site/docs/ja/recipes/index.html should link to login form recipe.");
+expectContains(recipeIndexHtml, "server-partial-update.html", "_site/docs/ja/recipes/index.html should link to server partial update recipe.");
+const loginRecipeHtml = readSiteFile("docs/ja/recipes/login-form.html");
+expectContains(loginRecipeHtml, "examples/showcase/login-basic.html", "_site/docs/ja/recipes/login-form.html should link to Login Basic showcase.");
+expectContains(loginRecipeHtml, "guide/actions.html", "_site/docs/ja/recipes/login-form.html should link to actions guide.");
+expectContains(loginRecipeHtml, "guide/validation.html", "_site/docs/ja/recipes/login-form.html should link to validation guide.");
+const partialRecipeHtml = readSiteFile("docs/ja/recipes/server-partial-update.html");
+expectContains(partialRecipeHtml, "semantic action/update", "_site/docs/ja/recipes/server-partial-update.html should explain semantic partial updates.");
+expectContains(partialRecipeHtml, "mode: replace", "_site/docs/ja/recipes/server-partial-update.html should include replacement semantics.");
+expectContains(partialRecipeHtml, "hx-get", "_site/docs/ja/recipes/server-partial-update.html should explicitly avoid raw htmx attributes.");
+expectOrder(
+  readSiteFile("docs/ja/recipes/loading-error.html"),
+  ["## States", "### error", "## Actions", "### A-LoadItems Load items"],
+  "_site/docs/ja/recipes/loading-error.html should place loading action under Actions."
+);
+expectContains(readSiteFile("docs/en/recipes/login-form.html"), "examples/showcase/login-basic.html", "_site/docs/en/recipes/login-form.html should link to Login Basic showcase.");
+expectContains(readSiteFile("docs/en/recipes/server-partial-update.html"), "semantic action/update", "_site/docs/en/recipes/server-partial-update.html should explain semantic partial updates.");
+expectOrder(
+  readSiteFile("docs/en/recipes/loading-error.html"),
+  ["## States", "### error", "## Actions", "### A-LoadItems Load items"],
+  "_site/docs/en/recipes/loading-error.html should place loading action under Actions."
+);
 
 const examplesHtml = readSiteFile("examples/index.html");
 expectContains(examplesHtml, "MarkVSpec Examples", "_site/examples/index.html should be the examples index.");

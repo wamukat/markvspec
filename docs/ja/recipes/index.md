@@ -1,25 +1,23 @@
 # Recipes
 
-このセクションは、実務でよくある UI 仕様パターンを目的別に探すための入口です。
+実務でよくある UI 仕様パターンを、目的から選ぶための入口です。
 
-> Stub: このページ群は後続チケットで本文化します。現時点では recipe の
-> 受け皿と既存 examples への導線だけを置いています。
+各 recipe は、目的、完成イメージ、最小 snippet、関連 example、関連 reference、確認方法だけに絞ります。
 
-## 今後の構成
+## 目的別に選ぶ
 
-- `login-form.md`: ログインフォーム。
-- `loading-error.md`: loading / empty / error state。
-- `server-partial-update.md`: server-rendered partial update。
-- `pdf-export.md`: HTML / PDF 共有。
-
-## 既存文書
-
-- [サンプルギャラリー](../user/example-gallery.md)
-- [PDF 出力と共有](../user/pdf-export.md)
-- [サーバレンダリング部分更新](../user/server-partials.md)
+- [Login Form](login-form.md): ログイン、入力検証、認証 request。
+- [Loading And Error](loading-error.md): loading、empty、error、success の状態整理。
+- [Server Partial Update](server-partial-update.md): server-rendered partial update。
+- [PDF Export](pdf-export.md): HTML / PDF で共有する。
 
 ## Examples
 
-- [Login Basic](../../../examples/04-real-world-screens/login-basic.vspec.md)
-- [Async Loading](../../../examples/02-states/async-loading.vspec.md)
-- [Search List](../../../examples/04-real-world-screens/search-list.vspec.md)
+- [Login](../../../examples/showcase/login-basic.html)
+- [Async Fetching](../../../examples/showcase/async-loading.html)
+- [Profile Home](../../../examples/showcase/profile-page-with-template.html)
+
+## Reference
+
+- [Guide](../guide/index.md)
+- [Reference](../reference/index.md)
