@@ -37,6 +37,10 @@ import {
   parsePreviewScenariosSection,
   type PreviewScenarioSectionSemanticSupport
 } from "./preview-scenario-section-semantic.js";
+import {
+  parseValidationsSection,
+  type ValidationSectionSemanticSupport
+} from "./validation-section-semantic.js";
 import { actionIdPattern, elementIdPattern, formGroupIdPattern } from "./ids.js";
 import type { MarkdownDocument } from "./markdown-document.js";
 import {
@@ -182,6 +186,15 @@ const accordionItemPropertyKeys = new Set(["panel", "action", "open when"]);
 const panelItemPropertyKeys = new Set([...tabItemPropertyKeys, ...accordionItemPropertyKeys]);
 const actionMenuItemPropertyKeys = new Set(["action", "tone", "disabled when"]);
 const previewScenarioSectionSemanticSupport: PreviewScenarioSectionSemanticSupport = {
+  appendEntityProseLines,
+  isEntityNoteBlock,
+  isSectionNotesHeading,
+  listItems,
+  parsedBulletFromListItem,
+  proseForSection,
+  splitKeyValue
+};
+const validationSectionSemanticSupport: ValidationSectionSemanticSupport = {
   appendEntityProseLines,
   isEntityNoteBlock,
   isSectionNotesHeading,
@@ -375,11 +388,11 @@ function parseSmallSection(document: MarkdownDocument, sections: SectionAst[], s
         ["preview-scenarios"]
       );
     case "Validations":
-      return resultFor(section, "validations", parseValidationsSection(section), ["validations:list"]);
+      return resultFor(section, "validations", parseValidationsSection(section, validationSectionSemanticSupport), ["validations:list"]);
     case "FieldValidations":
-      return resultFor(section, "validations", parseValidationsSection(section), ["validations:list"]);
+      return resultFor(section, "validations", parseValidationsSection(section, validationSectionSemanticSupport), ["validations:list"]);
     case "CrossFieldValidations":
-      return resultFor(section, "validations", parseValidationsSection(section), ["validations:list"]);
+      return resultFor(section, "validations", parseValidationsSection(section, validationSectionSemanticSupport), ["validations:list"]);
     case "BusinessRules":
       return resultFor(section, "rules", parseRulesSection(section), ["rules:list"]);
     case "ErrorCodes":
@@ -1250,155 +1263,6 @@ function parseViewContextSamplesSection(section: SectionAst): Pick<SectionSemant
 function viewContextSampleKey(key: string): string {
   const match = /^\$\{view\.([^}]+)\}$/u.exec(key);
   return match?.[1]?.trim() ?? key;
-}
-
-function parseValidationsSection(section: SectionAst): Pick<SectionSemanticResult, "validations" | "sectionProse" | "dependencies"> {
-  const validations: MarkVSpecValidationRule[] = [];
-  const dependencies: SemanticDependency[] = [];
-  const sectionScope = validationScopeForSection(section.kind);
-  let current: MarkVSpecValidationRule | undefined;
-  let currentHasStructuredContent = false;
-  let hasSeenEntity = false;
-  let inSectionNotes = false;
-  const sectionOverviewBlocks: BlockAst[] = [];
-  const sectionNoteBlocks: BlockAst[] = [];
-  for (const block of section.blocks) {
-    if (isSectionNotesHeading(block)) {
-      current = undefined;
-      currentHasStructuredContent = false;
-      inSectionNotes = true;
-      hasSeenEntity = true;
-      continue;
-    }
-    if (inSectionNotes) {
-      if (isEntityNoteBlock(block)) {
-        sectionNoteBlocks.push(block);
-      }
-      continue;
-    }
-    if (block.type === "heading" && block.depth === 3) {
-      hasSeenEntity = true;
-      const match = /^(?:(?<marker>\S+?):)?(?<id>V-[\p{L}\p{N}-]+)(?:\s+(?<name>.+?))?\s*$/u.exec(block.text);
-      if (!match) {
-        current = undefined;
-        currentHasStructuredContent = false;
-        continue;
-      }
-      const id = match.groups?.id ?? block.text.split(/\s+/u)[0] ?? block.text;
-      const marker = match.groups?.marker;
-      current = {
-        id,
-        name: match.groups?.name,
-        bullets: [],
-        rules: [],
-        properties: {
-          ...(marker ? { marker } : {}),
-          ...(sectionScope ? { scope: sectionScope } : {}),
-          ...(sectionScope ? { run: "client" } : {})
-        },
-        propertyLocations: {
-          ...(marker ? { marker: [locationFromBlock(block)] } : {}),
-          ...(sectionScope ? { scope: [locationFromBlock(block)], run: [locationFromBlock(block)] } : {})
-        },
-        location: locationFromBlock(block)
-      };
-      validations.push(current);
-      currentHasStructuredContent = false;
-      continue;
-    }
-    if (!current) {
-      if (!hasSeenEntity && isEntityNoteBlock(block)) {
-        sectionOverviewBlocks.push(block);
-      }
-      continue;
-    }
-    if (isEntityNoteBlock(block)) {
-      appendEntityProseLines(current, block, currentHasStructuredContent);
-      continue;
-    }
-    if (current) {
-      if (block.type === "list") {
-        currentHasStructuredContent = true;
-      }
-      let activeStructuredKey: string | undefined;
-      let activeRule: MarkVSpecValidationRule["rules"][number] | undefined;
-      for (const item of listItems([block])) {
-        const bullet = parsedBulletFromListItem(item);
-        if (item.depth === 0) {
-          activeRule = undefined;
-          const [key] = splitKeyValue(bullet.text);
-          activeStructuredKey = key.trim();
-          applyValidationBullet(current, bullet.text, bullet.location);
-          continue;
-        }
-
-        if (activeStructuredKey === "rules" || activeStructuredKey === "constraints") {
-          if (item.depth === 1) {
-            const [namePart, valuePart] = splitKeyValue(bullet.text);
-            const name = namePart.trim();
-            const targets = valuePart?.trim() ? [valuePart.trim()] : [];
-            activeRule = {
-              name,
-              targets,
-              location: bullet.location,
-              raw: bullet.text
-            };
-            current.rules.push(activeRule);
-          } else if (activeRule) {
-            const [childKey, childValue] = splitKeyValue(bullet.text);
-            if (childKey.trim() === "message" && childValue !== undefined) {
-              addAccumulatedSectionProperty(current, "message", childValue.trim(), bullet.location);
-            } else if (childKey.trim() === "messages" && childValue !== undefined) {
-              addAccumulatedSectionProperty(current, "message", childValue.trim(), bullet.location);
-            } else {
-              activeRule.targets.push(bullet.text.trim());
-            }
-          }
-        } else if (activeStructuredKey === "inputs") {
-          if (item.depth === 1) {
-            addAccumulatedSectionProperty(current, "input", bullet.text.trim(), bullet.location);
-          }
-        } else if (item.depth === 1 && activeStructuredKey === "messages") {
-          addAccumulatedSectionProperty(current, "message", bullet.text.trim(), bullet.location);
-        } else if (item.depth === 1 && activeStructuredKey === "message") {
-          addAccumulatedSectionProperty(current, "message", bullet.text.trim(), bullet.location);
-        } else if (item.depth === 1 && activeStructuredKey === "target") {
-          addAccumulatedSectionProperty(current, "target", bullet.text.trim(), bullet.location);
-        } else if (item.depth === 1 && activeStructuredKey === "check") {
-          const [childKey, childValue] = splitKeyValue(bullet.text);
-          if (childKey.trim() === "message" && childValue !== undefined) {
-            addAccumulatedSectionProperty(current, "message", childValue.trim(), bullet.location);
-          } else if (activeRule) {
-            activeRule.targets.push(bullet.text.trim());
-          }
-        }
-      }
-      const targets = propertyValues(current.properties["target"]);
-      for (const target of targets) {
-        dependencies.push({
-          source: { type: "entity", id: current.id },
-          target: { type: "entity", id: target },
-          direction: "source-invalidates-target",
-          kind: "references"
-        });
-      }
-    }
-  }
-  return {
-    validations,
-    sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["validations:list", ...validations.map((validation) => validationRenderKey(validation.id))]),
-    dependencies
-  };
-}
-
-function validationScopeForSection(kind: SectionKind): "field" | "cross-field" | undefined {
-  if (kind === "FieldValidations") {
-    return "field";
-  }
-  if (kind === "CrossFieldValidations") {
-    return "cross-field";
-  }
-  return undefined;
 }
 
 function parseFormGroupsSection(section: SectionAst): Pick<SectionSemanticResult, "formGroups" | "sectionProse" | "dependencies"> {
@@ -2422,10 +2286,6 @@ function formGroupRenderKey(formGroupId: string): string {
   return `form-group:${formGroupId}`;
 }
 
-function validationRenderKey(validationId: string): string {
-  return `validation:${validationId}`;
-}
-
 function ruleRenderKey(ruleId: string): string {
   return `rule:${ruleId}`;
 }
@@ -2441,18 +2301,6 @@ function referenceDependency(sourceId: string, targetId: string): SemanticDepend
     direction: "source-invalidates-target",
     kind: "references"
   };
-}
-
-function applyValidationBullet(validation: MarkVSpecValidationRule, text: string, location: SourceLocation): void {
-  validation.bullets.push({ text, location });
-  const [key, value] = splitKeyValue(text);
-  if (value === undefined) {
-    return;
-  }
-
-  const normalizedKey = key.trim();
-  const normalizedValue = value.trim();
-  addAccumulatedSectionProperty(validation, normalizedKey, normalizedValue, location);
 }
 
 function applyFormGroupBullet(formGroup: MarkVSpecFormGroup, text: string, location: SourceLocation): string | undefined {
