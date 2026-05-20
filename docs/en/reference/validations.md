@@ -2,6 +2,16 @@
 
 Validations cover input constraints and error display. Keep field validation near the element, and put screen or business decisions in [Business Rules](rules.md).
 
+## Boundary
+
+| If the check is about... | Put it in |
+| --- | --- |
+| Required input | The `Input` element |
+| Format, length, range, or pattern | The `Input` element `constraints` |
+| Comparing multiple fields | `## Business Rules` or a pre-submit action |
+| A server response for one field | `## Actions` `case:` with `display` targeting the field error |
+| A product decision such as permission, stock, or contract state | `## Business Rules`, then the server response `case:` |
+
 ## Syntax You Can Write
 
 ```markdown
@@ -67,6 +77,7 @@ Error messages can be written in a shape that matches constraints.
 - Validator diagnostics are tool output, separate from validation requirements written in the source.
 - Error display elements can be written in `## Elements` as `Paragraph` or `Text` with `tone: danger`.
 - Server response errors are clearest when written in `## Actions` with `case:` and `display`.
+- Use `display` `message` for user-visible error text. Use `element` or `partial` when the result shows an existing element or partial.
 
 ## Related Pages
 

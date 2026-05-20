@@ -1,16 +1,25 @@
 # Validation
 
-Validation keeps input rules and error behavior in the source. Separating field constraints from action failure cases makes missing rules easier to spot.
+Validation explains what input is accepted and how errors appear.
 
-## Concept
+Start by separating where the decision is made and what it checks.
 
-Validation separates constraints that belong to an input from errors that happen as a result of processing. Field constraints such as required, format, and minLength are easiest to read near the element. Business rules such as duplicate email, missing permission, or unavailable stock are easier to review as `R-*` rules or action cases because they connect to API and product behavior.
+## Four Buckets
 
-Errors should describe both the rule and the display behavior. Capture which state shows the error, which message area changes, and which tone the message uses. That keeps the same behavior visible in VS Code preview and exported HTML/PDF.
+| Kind | Examples | Write it in |
+| --- | --- | --- |
+| Client single-field check | required, email format, text length, numeric range | `## Elements` on the input |
+| Client cross-field check | password confirmation, start date <= end date | `## Business Rules` or a pre-submit action |
+| Server field check | duplicate email, unknown product code | `## Actions` response `case:` with the affected field |
+| Server business check | stock shortage, missing permission, contract restriction | `## Actions` response `case:` and `## Business Rules` |
+
+Business Rules are for product decisions. They are not the place for basic input shape such as required, format, min, or max.
 
 ![Single Field Validation preview](../../assets/vscode-previews/single-field-validation-vscode-preview.png)
 
-## Minimal Example
+## Client Single-field Checks
+
+Rules that can be decided from one input belong near that input.
 
 ```markdown
 ## Elements
@@ -21,36 +30,38 @@ Errors should describe both the rule and the display behavior. Capture which sta
 - required
 - constraints
   - format: email
-
-## Business Rules
-
-### R-EmailRequired Rule
-
-- target: E-EmailInput
-- message: Email is required
+- error:
+  - required: Email is required.
+  - format: Enter a valid email address.
 ```
 
-This example keeps basic field constraints on the element and separates the reviewable rule as `R-*`. For a small screen, you can start with the element alone. As fields and business rules grow, the `Business Rules` section keeps the source readable.
+In preview and review, the reader can see what the field accepts without hunting through another section.
 
-## Common Patterns
+## Client Cross-field Checks
 
-- Keep field constraints near the element.
-- Split business rules into `R-*` rules.
-- Use action failure cases to update error state or message areas.
-- Write messages as user-facing copy, not only internal error codes.
-- For rules involving multiple fields, explicitly name the affected fields.
-- Use action cases to separate client-side validation from server-side validation after submit.
-- Include error elements or message areas in layout so the display path is visible.
+Rules that compare multiple inputs should not be hidden on one element.
 
-## Example: Server-side Validation
+```markdown
+## Business Rules
+
+### R-PasswordMatches Password matches
+
+- when:
+  - E-PasswordInput.value is present
+  - E-PasswordConfirmInput.value differs from E-PasswordInput.value
+- appliesTo:
+  - E-PasswordConfirmInput
+- message: Password confirmation does not match.
+```
+
+Name the fields the rule reads and where the error is shown.
+
+## Server Field Checks
+
+Errors that only the server can decide belong to response cases.
 
 ```markdown
 ## Elements
-
-### E-NameInput Input
-
-- label: Name
-- required
 
 ### E-EmailInput Input
 
@@ -59,17 +70,10 @@ This example keeps basic field constraints on the element and separates the revi
 - constraints
   - format: email
 
-### E-FormBanner Banner
+### E-EmailError Text
 
 - tone: danger
 - visible when: input-error
-
-## Business Rules
-
-### R-UniqueEmail Rule
-
-- target: E-EmailInput
-- message: This email address is already used.
 
 ## Actions
 
@@ -79,21 +83,68 @@ This example keeps basic field constraints on the element and separates the revi
   - request:
     - POST /profile
     - params:
-      - name: E-NameInput.value
       - email: E-EmailInput.value
-  - case: validation-error
+  - case: email-duplicated
     - state: input-error
     - display:
-      - target: E-FormBanner
-      - content: Validation error summary
+      - target: E-EmailError
+      - message: This email address is already used.
 ```
 
-Splitting field constraints, business rules, and post-submit error cases makes missing behavior easier to find. It also makes AI edits more precise because you can refer to IDs such as `R-UniqueEmail` or `A-SubmitProfile`.
+`format: email` and `email-duplicated` are different checks. The format can be checked before submit. Duplication is decided by the server response.
+
+## Server Business Checks
+
+Stock, permission, contract, or plan restrictions usually need both a rule and a response case.
+
+```markdown
+## Business Rules
+
+### R-PlanAllowsExport Plan allows export
+
+- when: current plan does not allow PDF export
+- appliesTo: A-ExportPdf
+- message: Your current plan cannot export PDF.
+
+## Actions
+
+### A-ExportPdf Export PDF
+
+- Process P1: Request PDF export
+  - request:
+    - POST /exports/pdf
+  - case: plan-not-allowed
+    - state: export-error
+    - display:
+      - target: E-ExportMessage
+      - message: Your current plan cannot export PDF.
+```
+
+The Business Rule explains why the action is not allowed. The Action case explains what the screen does with the server result.
+
+## Error Display
+
+Validation is incomplete if the user-visible display is missing.
+
+- Field-level message: `E-EmailError`
+- Form-level message: `E-FormMessage`
+- Action result message: `display` with `target` and `message`
+- Error state: `state: input-error` or `state: submit-error`
+
+Put display elements in `## Elements` as `Text`, `Paragraph`, or `Banner` with `tone: danger`.
+
+## When Unsure
+
+- One field decides it: write it in `## Elements`.
+- Multiple fields or a product condition decide it: write it in `## Business Rules`.
+- A server response decides it: write it in `## Actions` as a `case:`.
+- The user sees it: write a `display` target and message.
 
 ## Next Reading
 
 - [Elements](elements.md)
 - [Actions](actions.md)
+- [Business Rules](../reference/rules.md)
+- [Validation Reference](../reference/validations.md)
 - [Single Field Validation](../../../examples/showcase/single-field-validation.html)
 - [Login](../../../examples/showcase/login-basic.html)
-- [Reference](../reference/index.md)

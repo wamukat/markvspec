@@ -61,6 +61,20 @@ preview や review では、「この field には何を入力できるか」が
 サーバに送って初めて分かる field error は、request の response case として書きます。
 
 ```markdown
+## Elements
+
+### E-EmailInput Input
+
+- label: Email
+- required
+- constraints
+  - format: email
+
+### E-EmailError Text
+
+- tone: danger
+- visible when: input-error
+
 ## Actions
 
 ### A-SubmitProfile Submit profile
@@ -74,8 +88,7 @@ preview や review では、「この field には何を入力できるか」が
     - state: input-error
     - display:
       - target: E-EmailError
-      - content: This email address is already used.
-      - mode: replace
+      - message: This email address is already used.
 ```
 
 これは `format: email` とは別物です。email の形式は client で見られますが、重複は server response で決まります。
@@ -104,8 +117,7 @@ preview や review では、「この field には何を入力できるか」が
     - state: export-error
     - display:
       - target: E-ExportMessage
-      - content: Your current plan cannot export PDF.
-      - mode: replace
+      - message: Your current plan cannot export PDF.
 ```
 
 Business Rule は「なぜ不可なのか」を説明し、Action case は「その結果、画面で何が起きるか」を書きます。
@@ -116,7 +128,7 @@ validation は判定だけでは不十分です。ユーザーに見える表示
 
 - field の直下に出す: `E-EmailError`
 - form 全体に出す: `E-FormMessage`
-- action 結果として出す: `display` で target と content を指定する
+- action 結果として出す: `display` で target と message を指定する
 - error state を持つ: `state: input-error` や `state: submit-error`
 
 表示用 element は `tone: danger` の `Text` や `Paragraph` として `## Elements` に置きます。

@@ -2,6 +2,16 @@
 
 Validations は入力値の制約と error 表示を扱います。field validation は element の近くに書き、画面や業務の判断条件は [Business Rules](rules.md) に分けます。
 
+## 境界
+
+| 判定対象 | 書く場所 |
+| --- | --- |
+| 必須入力 | `Input` element |
+| format、length、range、pattern | `Input` element の `constraints` |
+| 複数 field の比較 | `## Business Rules` または submit 前 action |
+| server response で決まる field error | `## Actions` の `case:` と field error への `display` |
+| 権限、在庫、契約状態などの業務判断 | `## Business Rules` と server response の `case:` |
+
 ## 書ける構文
 
 ```markdown
@@ -67,6 +77,7 @@ error message は constraint と対応する形で書けます。
 - validator diagnostics は tool output であり、source に書く validation 仕様とは別です。
 - error 表示用の element がある場合は、`tone: danger` の `Paragraph` や `Text` として `## Elements` に書けます。
 - server response による error 表示は `## Actions` の `case:` と `display` で書くと、request との関係が明確になります。
+- user-visible な error text は `display` の `message` に書きます。既存 element や partial を表示する場合は `element` または `partial` を使います。
 
 ## 関連ページ
 

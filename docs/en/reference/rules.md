@@ -2,6 +2,8 @@
 
 `## Business Rules` describes business rules and screen-specific decisions. Keep it separate from input validation, tool diagnostics, and implementation-level if statements.
 
+Use Business Rules when the decision depends on product meaning: permissions, account status, plan restrictions, stock, date relationships, or multiple fields. Do not use this section for basic input shape such as required, format, min, or max.
+
 ## Syntax You Can Write
 
 ```markdown
@@ -13,12 +15,13 @@
 - effect: disable E-SignInButton
 - message: Account is locked.
 
-### R-CanSubmit Can submit login
+### R-AccountRequiresMfa Account requires MFA
 
 - when:
-  - E-EmailInput.value is present
-  - E-PasswordInput.value is present
-- effect: enable E-SignInButton
+  - account.mfaRequired is true
+  - device is not trusted
+- effect: show E-MfaStep
+- message: Additional verification is required.
 ```
 
 ### Rule Heading
@@ -57,7 +60,8 @@ Validator Diagnostics are tool output from parser / validator checks. `## Busine
 
 ## Notes
 
-- Put required fields and formats in [Validations](validations.md).
+- Put required fields, formats, and ranges in [Validations](validations.md).
+- Put server response errors in [Actions](actions.md) response `case:` entries with `display`.
 - Put request/response branches in `case:` entries under [Actions](actions.md).
 - `## Business Rules` is human-authored specification content. It is not where Validator Diagnostics are written.
 - Use stable IDs such as `E-*` and `A-*` when a rule refers to elements or actions.

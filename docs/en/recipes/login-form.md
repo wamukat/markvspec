@@ -2,7 +2,7 @@
 
 ## When To Use
 
-Use this recipe for login, sign-in, admin entry, or any screen that validates inputs and sends an authentication request. Keep inputs, submit button, required rules, success navigation, and failure message in one screen spec.
+Use this recipe for login, sign-in, admin entry, or any screen that validates inputs and sends an authentication request. Keep inputs, submit button, field constraints, success navigation, and failure message in one screen spec.
 
 This recipe is not for describing form styling in detail. It is for making the user input, triggered action, and resulting screen behavior readable.
 
@@ -72,21 +72,24 @@ The user enters email and password, then selects Sign in. Missing input shows fi
     - state: auth-error
     - display:
       - target: L-MessageArea
-      - content: Authentication error message
+      - message: Authentication error message
 ```
 
 ## Authoring Notes
 
 - Give each `Input` a user-visible label and input type when needed.
+- Put required, format, and range constraints on the input element.
+- Use `## Business Rules` only for cross-field rules or product decisions such as locked accounts.
 - Connect the submit source with `action: A-*` on the button.
 - Write request parameters as element values, such as `E-EmailInput.value`.
 - Separate in-flight, success, and failure behavior with states and `case:` entries.
-- For failure feedback, make the target and content explicit under `display`.
+- For failure feedback, make the target and message explicit under `display`.
 
 ## Common Pitfalls
 
 - `action: submit` alone is not enough. Reviewers cannot see the request path, parameters, or result cases.
-- If password policy or required input rules live only in prose, they are easy to miss. Use `required` or a separate `Business Rules` section.
+- If required, format, or range rules live only in prose, they are easy to miss. Put them on the input element.
+- Do not put basic required checks in `## Business Rules`. Use that section for cross-field or product decisions.
 - Do not over-describe API internals. Keep method, path, inputs, and response cases that matter to the screen.
 - Do not specify disabled colors or CSS classes. Use semantic state such as `submitting` and priority such as `variant: primary`.
 - Do not collapse success and failure into one paragraph. Separate cases are easier to preview and review.
@@ -101,12 +104,14 @@ The user enters email and password, then selects Sign in. Missing input shows fi
 - [Actions Guide](../guide/actions.md)
 - [Validation Guide](../guide/validation.md)
 - [Elements Reference](../reference/elements.md)
+- [Validations Reference](../reference/validations.md)
 - [Actions Reference](../reference/actions.md)
 - [Business Rules Reference](../reference/rules.md)
 
 ## Verify
 
-- Required fields are visible as elements or rules.
+- Required fields are visible on the input elements.
+- Business rules are reserved for cross-field or product decisions.
 - Request parameters come from input element values.
 - In-flight, success, and failure behavior are separate states / cases.
 - Failure message placement is traceable through `target`.
