@@ -35,9 +35,6 @@ import {
   validationRuleTargets as validationDomainRuleTargets,
   validationTargets as validationDomainTargets
 } from "@markvspec/core";
-import {
-  renderDesignDocumentSections
-} from "@markvspec/document-renderer";
 import type {
   DisplayContentSpecSampleRowsRef,
   MarkVSpecProjectLoadResult,
@@ -64,27 +61,16 @@ import {
 } from "./design-document-renderer.js";
 import type { TableCell } from "./design-document-renderer.js";
 import {
-  buildStateScreenReadModels,
-  buildViewportStateScreenReadModels,
   scenarioRouteValues
 } from "@markvspec/core";
 import type { FocusScope, StateScreenReadModel } from "@markvspec/core";
-import {
-  renderStateScreenReadModel,
-  renderStateViewsSection,
-  renderStateViewportSection
-} from "./state-views-renderer.js";
 import type { StateViewsRenderContext } from "./state-views-renderer.js";
 import { createStateViewSpecTableRenderer } from "./state-view-spec-tables.js";
-import { createDocumentScope } from "./document-scope.js";
 import type { DocumentScope } from "./document-scope.js";
 import {
   embedPartialPreviews,
   enrichPartialReferenceInfo,
   loadPartialPreviewsForScreen,
-  partialPreviewPathsForResult,
-  partialPreviewsForResult,
-  propagatePartialPreviews,
   registerPartialPreviews,
   updateDocumentReferenceInfo
 } from "./partial-preview.js";
@@ -106,7 +92,6 @@ import { MarkVSpecDiagnosticsController } from "./diagnostics.js";
 import { createMarkVSpecCodeActions } from "./quick-fixes.js";
 import { renderPreviewPrintWireframeOverrideStyle } from "./preview-styles.js";
 import { renderPreviewIcon } from "./preview-icons.js";
-import { renderProjectDesignDocumentHtml as renderProjectDesignDocumentHtmlBase } from "./project-preview-document.js";
 import {
   renderPreviewClientScript,
   renderPreviewMermaidScriptTag,
@@ -121,11 +106,14 @@ import {
 import { renderProjectPreviewStyles, renderScreenPreviewStyles } from "./preview-document-styles.js";
 import { createMarkVSpecDocumentSymbolsProvider } from "./document-symbol-provider.js";
 import {
-  addDocumentSectionNumberHtml,
   demoteHtmlHeadings,
-  numberDocumentSectionsHtml,
   prependHtmlInsideFirstTag
 } from "./preview-html-postprocess.js";
+import {
+  buildDocumentScope as buildDocumentScopeBase,
+  createPreviewDesignDocumentRenderer,
+  type DesignDocumentOptions
+} from "./preview-design-document-renderer.js";
 import {
   actionDetailAnchor,
   businessRulesAnchor,
@@ -1847,7 +1835,7 @@ export function renderStandaloneProjectHtml(
 }
 
 export function renderProjectDesignDocumentHtml(project: MarkVSpecProjectLoadResult, messages: RendererMessages = projectRendererMessagesForResult(project)): string {
-  return renderProjectDesignDocumentHtmlBase(project, messages);
+  return previewDesignDocumentRenderer.renderProjectDesignDocumentHtml(project, messages);
 }
 
 function projectRendererMessagesForResult(project: MarkVSpecProjectLoadResult): RendererMessages {
@@ -1860,11 +1848,6 @@ function readMermaidScript(extensionUri: vscode.Uri | undefined): string | undef
 
 function renderMarkerToggle(category: "layout" | "element" | "action", labelText: string, pressed: boolean, messages: RendererMessages): string {
   return `<button type="button" data-marker-toggle="${category}" aria-pressed="${pressed ? "true" : "false"}" title="${escapeHtml(`${messages.toggleMarker}: ${labelText}`)}">${escapeHtml(labelText)}</button>`;
-}
-
-interface DesignDocumentOptions {
-  focus?: FocusScope;
-  messages?: RendererMessages;
 }
 
 function markdownRenderOptions(result: ReturnType<typeof parseMarkVSpec>): MarkdownRenderOptions {
@@ -1920,51 +1903,33 @@ function conditionLabel(result: ReturnType<typeof parseMarkVSpec>, key: string):
   return key;
 }
 
+const previewDesignDocumentRenderer = createPreviewDesignDocumentRenderer({
+  rendererMessagesForResult,
+  projectRendererMessagesForResult,
+  setRendererMessages: (result, messages) => rendererMessagesByResult.set(result, messages),
+  renderSectionNumber,
+  renderScreenSpec,
+  renderHistorySpec,
+  renderInlineTableOfContents,
+  renderStatesSpec,
+  renderStateFlowSpec,
+  renderViewContextsSpec,
+  renderViewContextSamplesSpec,
+  renderActionDetailsSpec,
+  renderFormGroupsSpec,
+  renderValidationRulesSpec,
+  renderRulesSpec,
+  renderErrorCodesSpec,
+  renderNotesSpec,
+  renderScreenTransitionsSpec,
+  renderActionTransitionsSpec,
+  renderDiagnosticsSpec,
+  stateViewsRenderContext,
+  renderWireframeFor
+});
+
 export function renderDesignDocumentHtml(result: ReturnType<typeof parseMarkVSpec>, _preview: string, options: DesignDocumentOptions = {}): string {
-  const scope = buildDocumentScope(result, options.focus);
-  const detailsResult = scope.specResult;
-  const messages = options.messages ?? rendererMessagesForResult(result);
-  rendererMessagesByResult.set(result, messages);
-  rendererMessagesByResult.set(detailsResult, messages);
-  let sectionNumber = 1;
-  const numberedSection = (render: (number: string) => string): string => {
-    const number = String(sectionNumber);
-    const html = render(number);
-    if (!html.trim()) {
-      return "";
-    }
-    sectionNumber += 1;
-    return html;
-  };
-  const numberedSections = (html: string): string => {
-    const numbered = numberDocumentSectionsHtml(html, sectionNumber, renderSectionNumber);
-    sectionNumber = numbered.nextNumber;
-    return numbered.html;
-  };
-
-  return renderDesignDocumentSections([
-    renderScreenSpec(result),
-    renderHistorySpec(result),
-    renderInlineTableOfContents(result),
-    numberedSection((number) => withSectionNumber(renderStatesSpec(detailsResult, result), number)),
-    numberedSection((number) => withSectionNumber(renderStateFlowSpec(detailsResult), number)),
-    numberedSection((number) => withSectionNumber(renderViewContextsSpec(detailsResult, result), number)),
-    numberedSection((number) => withSectionNumber(renderViewContextSamplesSpec(detailsResult, result), number)),
-    numberedSection((number) => withSectionNumber(renderViewportStateScreensSpec(scope, number), number)),
-    numberedSection((number) => withSectionNumber(renderActionDetailsSpec(detailsResult, result), number)),
-    numberedSection((number) => withSectionNumber(renderFormGroupsSpec(detailsResult, result), number)),
-    numberedSection((number) => withSectionNumber(renderValidationRulesSpec(detailsResult, result), number)),
-    numberedSection((number) => withSectionNumber(renderRulesSpec(detailsResult, result), number)),
-    numberedSection((number) => withSectionNumber(renderErrorCodesSpec(detailsResult, result), number)),
-    numberedSections(renderNotesSpec(result)),
-    numberedSection((number) => withSectionNumber(renderScreenTransitionsSpec(detailsResult), number)),
-    numberedSection((number) => withSectionNumber(renderActionTransitionsSpec(detailsResult, result), number)),
-    numberedSection((number) => withSectionNumber(renderDiagnosticsSpec(result), number))
-  ]);
-}
-
-function withSectionNumber(html: string, sectionNumber: string): string {
-  return addDocumentSectionNumberHtml(html, sectionNumber, renderSectionNumber);
+  return previewDesignDocumentRenderer.renderDesignDocumentHtml(result, options);
 }
 
 function renderSectionNumber(sectionNumber: string): string {
@@ -1972,16 +1937,7 @@ function renderSectionNumber(sectionNumber: string): string {
 }
 
 export function buildDocumentScope(result: ReturnType<typeof parseMarkVSpec>, focus?: FocusScope): DocumentScope {
-  const partials = partialPreviewsForResult(result);
-  const partialPaths = partialPreviewPathsForResult(result);
-  const scope = createDocumentScope(result, {
-    focus,
-    partialPreviews: partials,
-    partialPaths
-  });
-  // Partial previews are keyed by parse result object; focused wireframe results need the same lookup context.
-  propagatePartialPreviews(result, scope.wireframeResult);
-  return scope;
+  return buildDocumentScopeBase(result, focus);
 }
 
 function renderInlineTableOfContents(result: ReturnType<typeof parseMarkVSpec>): string {
@@ -1993,60 +1949,7 @@ function renderInlineTableOfContents(result: ReturnType<typeof parseMarkVSpec>):
 }
 
 function renderViewportStateScreensSpec(scope: DocumentScope, sectionNumber?: string): string {
-  const { specResult: detailsResult, wireframeResult, focus } = scope;
-  const renderContext = stateViewsRenderContext(detailsResult, scope.sourceResult);
-  const viewportSections = buildViewportStateScreenReadModels(detailsResult, wireframeResult, focus, stateScreenReadModelOptions(detailsResult))
-    .map((viewportModel, index) => {
-      const viewportNumber = sectionNumber ? `${sectionNumber}.${index + 1}` : undefined;
-      return renderStateViewportSection(
-        renderContext,
-        viewportModel.viewport,
-        viewportModel.isDefault,
-        viewportModel.models.map((model, stateIndex) => renderStateScreenReadModel(
-          detailsResult,
-          renderContext,
-          model,
-          renderStateScreenWireframe(wireframeResult, model, stateIndex),
-          viewportNumber ? `${viewportNumber}.${stateIndex + 1}` : undefined
-        )).join(""),
-        viewportNumber
-      );
-    })
-    .join("");
-  return renderStateViewsSection(renderContext, viewportSections);
-}
-
-function renderStateScreensSpec(
-  result: ReturnType<typeof parseMarkVSpec>,
-  wireframeResult: ReturnType<typeof parseMarkVSpec>,
-  viewport: string | undefined,
-  focus?: FocusScope,
-  viewportNumber?: string
-): string {
-  const renderContext = stateViewsRenderContext(result);
-  return buildStateScreenReadModels(result, wireframeResult, viewport, focus, stateScreenReadModelOptions(result))
-    .map((model, index) => renderStateScreenReadModel(
-      result,
-      renderContext,
-      model,
-      renderStateScreenWireframe(wireframeResult, model, index),
-      viewportNumber ? `${viewportNumber}.${index + 1}` : undefined
-    ))
-    .join("");
-}
-
-function stateScreenReadModelOptions(result: ReturnType<typeof parseMarkVSpec>) {
-  return {
-    label: (key: "default" | "viewport") => label(result, key)
-  };
-}
-
-function renderStateScreenWireframe(
-  wireframeResult: ReturnType<typeof parseMarkVSpec>,
-  model: StateScreenReadModel,
-  index: number
-): string {
-  return renderWireframeFor(wireframeResult, model.viewport, model.stateName, index === 0, model.focus, model.modelValues, model.viewValues, model.displayEffects, model.scenarioSamples, model.scenarioRoute);
+  return previewDesignDocumentRenderer.renderViewportStateScreensSpec(scope, sectionNumber);
 }
 
 function stateViewsRenderContext(
