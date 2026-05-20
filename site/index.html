@@ -6,7 +6,7 @@
   <title>MarkVSpec</title>
   <style>
     :root {
-      color: #152033;
+      color: #172033;
       background: #f7fafc;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
@@ -17,7 +17,7 @@
       margin: 0;
     }
     a {
-      color: #08716d;
+      color: #0f766e;
       font-weight: 700;
       text-decoration: none;
     }
@@ -25,7 +25,7 @@
       text-decoration: underline;
     }
     header {
-      background: #ffffff;
+      background: #fff;
       border-bottom: 1px solid #d7dee8;
       position: sticky;
       top: 0;
@@ -41,7 +41,7 @@
       padding: 14px 24px;
     }
     .brand {
-      color: #152033;
+      color: #172033;
       font-size: 18px;
       font-weight: 800;
     }
@@ -58,21 +58,12 @@
     main {
       margin: 0 auto;
       max-width: 1120px;
-      padding: 54px 24px 72px;
+      padding: 48px 24px 72px;
     }
     .hero {
-      align-items: center;
       display: grid;
       gap: 36px;
-      grid-template-columns: minmax(0, 1fr) minmax(300px, 520px);
-    }
-    .eyebrow {
-      color: #9a5c00;
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0;
-      margin: 0 0 12px;
-      text-transform: uppercase;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 520px);
     }
     h1 {
       font-size: 52px;
@@ -84,7 +75,7 @@
       font-size: 18px;
       line-height: 1.65;
       margin: 22px 0 0;
-      max-width: 660px;
+      max-width: 640px;
     }
     .actions {
       display: flex;
@@ -102,14 +93,14 @@
     }
     .button.primary {
       background: #0f766e;
-      color: #ffffff;
+      color: #fff;
     }
     .button.secondary {
-      background: #ffffff;
+      background: #fff;
       color: #0f766e;
     }
     .preview {
-      background: #ffffff;
+      background: #fff;
       border: 1px solid #d7dee8;
       border-radius: 8px;
       box-shadow: 0 18px 38px rgb(15 23 42 / 10%);
@@ -134,7 +125,7 @@
       margin-top: 54px;
     }
     .panel {
-      background: #ffffff;
+      background: #fff;
       border: 1px solid #d7dee8;
       border-radius: 8px;
       padding: 18px;
@@ -166,9 +157,6 @@
       .nav-links {
         justify-content: flex-start;
       }
-      main {
-        padding-top: 36px;
-      }
       .hero,
       .section-grid {
         grid-template-columns: 1fr;
@@ -184,9 +172,10 @@
     <nav aria-label="Primary">
       <a class="brand" href="./">MarkVSpec</a>
       <div class="nav-links">
-        <a href="docs/ja/user/authoring-guide.html">日本語ガイド</a>
-        <a href="docs/en/user/authoring-guide.html">English Guide</a>
+        <a href="docs/ja/start/">Start JA</a>
+        <a href="docs/en/start/">Start EN</a>
         <a href="examples/">Examples</a>
+        <a href="docs/en/reference/">Reference</a>
         <a href="https://github.com/wamukat/markvspec">GitHub</a>
       </div>
     </nav>
@@ -194,15 +183,13 @@
   <main>
     <section class="hero" aria-labelledby="hero-title">
       <div>
-        <p class="eyebrow">Markdown-first screen specifications</p>
         <h1 id="hero-title">MarkVSpec</h1>
         <p class="lead">
-          Write screen specifications in Markdown, preview them in VS Code, and share generated HTML or PDF with the same source file.
-          MarkVSpec keeps screens, states, interactions, validation, and generated documentation reviewable as Git-friendly text.
+          Write UI specifications in Markdown, preview them in VS Code, and share generated HTML or PDF from the same source.
         </p>
         <div class="actions">
-          <a class="button primary" href="docs/ja/user/authoring-guide.html">日本語で読む</a>
-          <a class="button secondary" href="docs/en/user/authoring-guide.html">Read in English</a>
+          <a class="button primary" href="docs/ja/start/">日本語で始める</a>
+          <a class="button secondary" href="docs/en/start/">Start in English</a>
           <a class="button secondary" href="examples/">Browse examples</a>
         </div>
       </div>
@@ -212,32 +199,34 @@
       </figure>
     </section>
 
-    <section class="section-grid" aria-label="Site sections">
+    <section class="section-grid" aria-label="Documentation sections">
       <article class="panel">
-        <h2>Start Authoring</h2>
-        <p>Follow the visual authoring guide to see how Markdown source becomes preview and generated document output.</p>
+        <h2>Start</h2>
+        <p>Install the extension, open Hello Screen, and run the live preview.</p>
         <ul class="link-list">
-          <li><a href="docs/ja/user/authoring-guide.html">日本語 Authoring Guide</a></li>
-          <li><a href="docs/en/user/authoring-guide.html">English Authoring Guide</a></li>
-          <li><a href="docs/ja/user/ui-coverage.html">UI 部品対応範囲</a></li>
-          <li><a href="docs/en/user/ui-coverage.html">UI Coverage</a></li>
-        </ul>
-      </article>
-      <article class="panel">
-        <h2>Inspect Examples</h2>
-        <p>Open generated example previews in the browser, then jump to the source Markdown from each entry.</p>
-        <ul class="link-list">
-          <li><a href="examples/">Generated example index</a></li>
-          <li><a href="examples/hello-screen.html">Hello Screen preview</a></li>
-        </ul>
-      </article>
-      <article class="panel">
-        <h2>Use The Tools</h2>
-        <p>Install the VS Code extension for live preview, or use the CLI for validation and export.</p>
-        <ul class="link-list">
+          <li><a href="docs/ja/start/">日本語 Start</a></li>
+          <li><a href="docs/en/start/">English Start</a></li>
           <li><a href="https://marketplace.visualstudio.com/items?itemName=wamukat.markvspec">VS Code Marketplace</a></li>
+        </ul>
+      </article>
+      <article class="panel">
+        <h2>Learn</h2>
+        <p>Read the guide, inspect examples, and use recipes for common screen patterns.</p>
+        <ul class="link-list">
+          <li><a href="docs/ja/guide/">日本語 Guide</a></li>
+          <li><a href="docs/en/guide/">English Guide</a></li>
+          <li><a href="docs/ja/recipes/">日本語 Recipes</a></li>
+          <li><a href="docs/en/recipes/">English Recipes</a></li>
+        </ul>
+      </article>
+      <article class="panel">
+        <h2>Use</h2>
+        <p>Browse generated examples, look up exact syntax, or install the CLI.</p>
+        <ul class="link-list">
+          <li><a href="examples/">Generated examples</a></li>
+          <li><a href="docs/ja/reference/">日本語 Reference</a></li>
+          <li><a href="docs/en/reference/">English Reference</a></li>
           <li><a href="https://www.npmjs.com/package/@markvspec/cli">npm CLI package</a></li>
-          <li><a href="https://github.com/wamukat/markvspec">Repository</a></li>
         </ul>
       </article>
     </section>

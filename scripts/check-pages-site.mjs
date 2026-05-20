@@ -17,6 +17,8 @@ const requiredFiles = [
   "docs/en/user/structured-section-reference.html",
   "docs/ja/user/ui-coverage.html",
   "docs/en/user/ui-coverage.html",
+  "docs/ja/index.html",
+  "docs/en/index.html",
   "docs/ja/start/index.html",
   "docs/en/start/index.html",
   "docs/ja/guide/index.html",
@@ -33,6 +35,8 @@ const requiredFiles = [
 ];
 
 const newIaIndexFiles = [
+  "docs/ja/index.html",
+  "docs/en/index.html",
   "docs/ja/start/index.html",
   "docs/en/start/index.html",
   "docs/ja/guide/index.html",
@@ -61,10 +65,14 @@ if (rootHtml.includes("Generated static HTML previews for the shipped MarkVSpec 
   failures.push("_site/index.html must not be the generated examples index.");
 }
 expectContains(rootHtml, 'href="examples/"', "_site/index.html should link to /examples/.");
-expectContains(rootHtml, 'href="docs/ja/user/authoring-guide.html"', "_site/index.html should link to the Japanese authoring guide.");
-expectContains(rootHtml, 'href="docs/en/user/authoring-guide.html"', "_site/index.html should link to the English authoring guide.");
-expectContains(rootHtml, 'href="docs/ja/user/ui-coverage.html"', "_site/index.html should link to the Japanese UI coverage page.");
-expectContains(rootHtml, 'href="docs/en/user/ui-coverage.html"', "_site/index.html should link to the English UI coverage page.");
+expectContains(rootHtml, 'href="docs/ja/start/"', "_site/index.html should link to the Japanese start page.");
+expectContains(rootHtml, 'href="docs/en/start/"', "_site/index.html should link to the English start page.");
+expectContains(rootHtml, 'href="docs/ja/guide/"', "_site/index.html should link to the Japanese guide.");
+expectContains(rootHtml, 'href="docs/en/guide/"', "_site/index.html should link to the English guide.");
+expectContains(rootHtml, 'href="docs/ja/recipes/"', "_site/index.html should link to the Japanese recipes.");
+expectContains(rootHtml, 'href="docs/en/recipes/"', "_site/index.html should link to the English recipes.");
+expectContains(rootHtml, 'href="docs/ja/reference/"', "_site/index.html should link to the Japanese reference.");
+expectContains(rootHtml, 'href="docs/en/reference/"', "_site/index.html should link to the English reference.");
 
 const examplesHtml = readSiteFile("examples/index.html");
 expectContains(examplesHtml, "MarkVSpec Examples", "_site/examples/index.html should be the examples index.");

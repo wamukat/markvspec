@@ -623,10 +623,16 @@ function renderMarkdownDocs() {
 
   for (const filePath of markdownFiles) {
     const relativeDocPath = relative(docsDir, filePath);
-    const targetPath = join(outputDir, "docs", relativeDocPath.replace(/\.md$/u, ".html"));
+    const targetPath = join(outputDir, "docs", markdownOutputPath(relativeDocPath));
     mkdirSync(dirname(targetPath), { recursive: true });
     writeFileSync(targetPath, renderMarkdownPage(filePath, readFileSync(filePath, "utf8")), "utf8");
   }
+}
+
+function markdownOutputPath(relativeDocPath) {
+  return basename(relativeDocPath) === "README.md"
+    ? join(dirname(relativeDocPath), "index.html")
+    : relativeDocPath.replace(/\.md$/u, ".html");
 }
 
 function renderMarkdownPage(filePath, markdown) {
@@ -830,8 +836,9 @@ function resolveMarkdownHref(filePath, href) {
   const hash = hashPart ? `#${hashPart}` : "";
 
   if (relativeTarget.startsWith("docs/") && pathPart.endsWith(".md")) {
-    const targetHtml = relativeTarget.replace(/\.md$/u, ".html");
-    return toPosixPath(relative(dirname(join(outputDir, "docs", relative(docsDir, filePath).replace(/\.md$/u, ".html"))), join(outputDir, targetHtml))) + hash;
+    const targetHtml = join("docs", markdownOutputPath(relative("docs", relativeTarget)));
+    const sourceHtml = join(outputDir, "docs", markdownOutputPath(relative(docsDir, filePath)));
+    return toPosixPath(relative(dirname(sourceHtml), join(outputDir, targetHtml))) + hash;
   }
 
   if (pathPart.endsWith(".md")) {
