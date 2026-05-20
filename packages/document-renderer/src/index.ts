@@ -169,9 +169,14 @@ export function renderStaticDesignDocumentHtml(result: MarkVSpecParseResult, opt
   return renderDesignDocumentSections([
     renderDocumentOverviewSection(result, messages),
     renderHistorySection(result, messages),
+    renderStaticFormGroupsSection(result, messages),
     renderStaticStateFlowSection(result, messages),
     renderStaticActionTransitionsSection(result, messages),
     renderStaticActionDetailsSection(result, messages),
+    renderStaticValidationsSection(result, messages),
+    renderStaticBusinessRulesSection(result, messages),
+    renderStaticErrorCodesSection(result, messages),
+    renderStaticNotesSection(result, messages),
     renderStaticViewContextsSection(result, messages),
     renderStaticViewContextSamplesSection(result, messages),
     renderStaticStateViewsSection(result, messages, staticStateViewRenderingSupport)
@@ -208,6 +213,183 @@ function renderStaticEntityOverview(result: MarkVSpecParseResult, lines: readonl
 
 function renderStaticEntityNotes(result: MarkVSpecParseResult, lines: readonly string[]): string {
   return lines.length > 0 ? `<div class="entity-notes">${renderMarkdownLines([...lines], result)}</div>` : "";
+}
+
+function renderSectionProse(result: MarkVSpecParseResult, kind: string): { overview: string; notes: string } {
+  const sectionProse = result.sectionProse.filter((candidate) => candidate.kind === kind);
+  return {
+    overview: renderStaticEntityOverview(result, sectionProse.flatMap((candidate) => candidate.overview)),
+    notes: renderStaticEntityNotes(result, sectionProse.flatMap((candidate) => candidate.notes))
+  };
+}
+
+function renderStaticFormGroupsSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
+  const prose = renderSectionProse(result, "FormGroups");
+  if (result.formGroups.length === 0 && !prose.overview && !prose.notes) {
+    return "";
+  }
+  const showOverview = result.formGroups.some((group) => (group.overview?.length ?? 0) > 0);
+  const showNotes = result.formGroups.some((group) => (group.notes?.length ?? 0) > 0);
+  const table = result.formGroups.length > 0
+    ? renderTable(
+      [
+        `${messages.marker}/${messages.id}`,
+        ...(showOverview ? [messages.overview] : []),
+        messages.fields,
+        messages.submit,
+        messages.properties,
+        ...(showNotes ? [messages.notes] : [])
+      ],
+      result.formGroups.map((group) => [
+        renderStaticEntityReferenceById(result, group.id),
+        ...(showOverview ? [renderStaticEntityOverview(result, group.overview ?? [])] : []),
+        renderStaticReferenceList(result, group.fields.map((field) => field.elementId)),
+        group.submit ? renderStaticEntityReferenceById(result, group.submit.actionId) : "",
+        renderStaticPropertiesAndBullets(result, group.properties, group.bullets),
+        ...(showNotes ? [renderStaticEntityNotes(result, group.notes ?? [])] : [])
+      ]),
+      messages.none
+    )
+    : `<p class="spec-empty">${escapeHtml(messages.none)}</p>`;
+  return `<section class="doc-section form-groups-section"><h2>${escapeHtml(messages.formGroups)}</h2>${prose.overview}${table}${prose.notes}</section>`;
+}
+
+function renderStaticValidationsSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
+  const prose = renderSectionProse(result, "Validations");
+  if (result.validations.length === 0 && !prose.overview && !prose.notes) {
+    return "";
+  }
+  const showOverview = result.validations.some((validation) => (validation.overview?.length ?? 0) > 0);
+  const showNotes = result.validations.some((validation) => (validation.notes?.length ?? 0) > 0);
+  const table = result.validations.length > 0
+    ? renderTable(
+      [
+        `${messages.marker}/${messages.id}`,
+        ...(showOverview ? [messages.overview] : []),
+        messages.rules,
+        messages.properties,
+        ...(showNotes ? [messages.notes] : [])
+      ],
+      result.validations.map((validation) => [
+        renderStaticEntityReferenceById(result, validation.id),
+        ...(showOverview ? [renderStaticEntityOverview(result, validation.overview ?? [])] : []),
+        renderStaticValidationRules(result, validation.rules),
+        renderStaticPropertiesAndBullets(result, validation.properties, validation.bullets),
+        ...(showNotes ? [renderStaticEntityNotes(result, validation.notes ?? [])] : [])
+      ]),
+      messages.none
+    )
+    : `<p class="spec-empty">${escapeHtml(messages.none)}</p>`;
+  return `<section class="doc-section validation-section"><h2>${escapeHtml(messages.validation)}</h2>${prose.overview}${table}${prose.notes}</section>`;
+}
+
+function renderStaticBusinessRulesSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
+  const prose = renderSectionProse(result, "BusinessRules");
+  if (result.rules.length === 0 && !prose.overview && !prose.notes) {
+    return "";
+  }
+  const showOverview = result.rules.some((rule) => (rule.overview?.length ?? 0) > 0);
+  const showNotes = result.rules.some((rule) => (rule.notes?.length ?? 0) > 0);
+  const table = result.rules.length > 0
+    ? renderTable(
+      [
+        `${messages.marker}/${messages.id}`,
+        ...(showOverview ? [messages.overview] : []),
+        messages.rules,
+        messages.properties,
+        ...(showNotes ? [messages.notes] : [])
+      ],
+      result.rules.map((rule) => [
+        renderStaticEntityReferenceById(result, rule.id),
+        ...(showOverview ? [renderStaticEntityOverview(result, rule.overview ?? [])] : []),
+        renderStaticRuleBody(result, rule),
+        renderStaticProperties(rule.properties),
+        ...(showNotes ? [renderStaticEntityNotes(result, rule.notes ?? [])] : [])
+      ]),
+      messages.none
+    )
+    : `<p class="spec-empty">${escapeHtml(messages.none)}</p>`;
+  return `<section class="doc-section business-rules-section"><h2>${escapeHtml(messages.businessRules)}</h2>${prose.overview}${table}${prose.notes}</section>`;
+}
+
+function renderStaticErrorCodesSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
+  const prose = renderSectionProse(result, "ErrorCodes");
+  if (result.errorCodes.length === 0 && !prose.overview && !prose.notes) {
+    return "";
+  }
+  const showOverview = result.errorCodes.some((errorCode) => (errorCode.overview?.length ?? 0) > 0);
+  const showNotes = result.errorCodes.some((errorCode) => (errorCode.notes?.length ?? 0) > 0);
+  const table = result.errorCodes.length > 0
+    ? renderTable(
+      [
+        `${messages.marker}/${messages.id}`,
+        ...(showOverview ? [messages.overview] : []),
+        messages.properties,
+        ...(showNotes ? [messages.notes] : [])
+      ],
+      result.errorCodes.map((errorCode) => [
+        renderStaticEntityReferenceById(result, errorCode.id),
+        ...(showOverview ? [renderStaticEntityOverview(result, errorCode.overview ?? [])] : []),
+        renderStaticPropertiesAndBullets(result, errorCode.properties, errorCode.bullets),
+        ...(showNotes ? [renderStaticEntityNotes(result, errorCode.notes ?? [])] : [])
+      ]),
+      messages.none
+    )
+    : `<p class="spec-empty">${escapeHtml(messages.none)}</p>`;
+  return `<section class="doc-section error-codes-section"><h2>${escapeHtml(messages.errorCodes)}</h2>${prose.overview}${table}${prose.notes}</section>`;
+}
+
+function renderStaticNotesSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
+  if (result.notes.length === 0) {
+    return "";
+  }
+  return `<section class="doc-section notes-section"><h2>${escapeHtml(messages.notes)}</h2>${result.notes.map((note) => `<section class="note-block"><h3>${escapeHtml(note.title)}</h3>${renderStaticEntityNotes(result, note.lines)}</section>`).join("")}</section>`;
+}
+
+function renderStaticReferenceList(result: MarkVSpecParseResult, ids: string[]): string {
+  return ids.length > 0 ? `<ul class="spec-list">${ids.map((id) => `<li>${renderStaticEntityReferenceById(result, id)}</li>`).join("")}</ul>` : "";
+}
+
+function renderStaticEntityReferenceById(result: MarkVSpecParseResult, id: string): string {
+  const reference = resolveMarkVSpecEntityReference(result, id);
+  return reference ? renderStaticEntityReference(reference, staticEntityReferencePresenterSupport) : code(id);
+}
+
+function renderStaticProperties(properties: Record<string, string | string[] | true>): string {
+  const entries = Object.entries(properties).filter(([, value]) => value !== undefined);
+  if (entries.length === 0) {
+    return "";
+  }
+  return `<ul class="spec-list">${entries.map(([key, value]) => `<li>${code(key)}${value === true ? "" : `: ${escapeHtml(Array.isArray(value) ? value.join(", ") : value)}`}</li>`).join("")}</ul>`;
+}
+
+function renderStaticPropertiesAndBullets(
+  result: MarkVSpecParseResult,
+  properties: Record<string, string | string[] | true>,
+  bullets: readonly { text: string }[]
+): string {
+  const items = [
+    ...Object.entries(properties)
+      .filter(([, value]) => value !== undefined)
+      .map(([key, value]) => `${code(key)}${value === true ? "" : `: ${escapeHtml(Array.isArray(value) ? value.join(", ") : value)}`}`),
+    ...bullets.map((bullet) => renderInlineMarkdown(bullet.text, result))
+  ];
+  return items.length > 0 ? `<ul class="spec-list">${items.map((item) => `<li>${item}</li>`).join("")}</ul>` : "";
+}
+
+function renderStaticValidationRules(result: MarkVSpecParseResult, rules: MarkVSpecParseResult["validations"][number]["rules"]): string {
+  if (rules.length === 0) {
+    return "";
+  }
+  return `<ul class="spec-list">${rules.map((rule) => `<li>${code(rule.name)}${rule.targets.length > 0 ? `: ${rule.targets.map((target) => renderStaticEntityReferenceById(result, target)).join(", ")}` : ""}</li>`).join("")}</ul>`;
+}
+
+function renderStaticRuleBody(result: MarkVSpecParseResult, rule: MarkVSpecParseResult["rules"][number]): string {
+  const lines = [
+    ...(rule.bodyLines ?? []),
+    ...rule.bullets.map((bullet) => `- ${bullet.text}`)
+  ];
+  return renderMarkdownLines(lines, result);
 }
 
 function renderStaticViewContextsSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
@@ -333,11 +515,12 @@ function renderStaticActionTransitionsSection(result: MarkVSpecParseResult, mess
 }
 
 function renderStaticActionDetailsSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
-  if (result.actions.length === 0) {
+  const prose = renderSectionProse(result, "Actions");
+  if (result.actions.length === 0 && !prose.overview && !prose.notes) {
     return "";
   }
   const cards = result.actions.map((action) => renderStaticActionDetail(result, messages, action)).join("");
-  return `<section class="doc-section"><h2>${escapeHtml(messages.actionDetails)}</h2><div class="action-detail-list">${cards}</div></section>`;
+  return `<section class="doc-section"><h2>${escapeHtml(messages.actionDetails)}</h2>${prose.overview}<div class="action-detail-list">${cards}</div>${prose.notes}</section>`;
 }
 
 function renderStaticActionDetail(
@@ -346,9 +529,11 @@ function renderStaticActionDetail(
   action: MarkVSpecParseResult["actions"][number]
 ): string {
   const rows = [
+    [messages.overview, renderStaticEntityOverview(result, action.overview ?? [])],
     [messages.trigger, action.triggeredBy ? escapeHtml(action.triggeredBy) : ""],
     [messages.from, action.fromStates.map(renderStaticStateLabel).join(", ")],
-    [messages.process, renderStaticProcessSteps(result, messages, action)]
+    [messages.process, renderStaticProcessSteps(result, messages, action)],
+    [messages.notes, renderStaticEntityNotes(result, action.notes ?? [])]
   ].filter(([, value]) => value);
   return `<article class="action-detail"><h3>${escapeHtml(action.id)} ${escapeHtml(action.name)}</h3><dl>${rows.map(([key, value]) => `<dt>${escapeHtml(key)}</dt><dd>${value}</dd>`).join("")}</dl></article>`;
 }

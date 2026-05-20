@@ -31,25 +31,25 @@ export. They do not claim full static project-site parity.
 | `screen.id`, `screen.title`, `screen.description`, `screen.route`, `screen.defaultState`, `screen.frontMatter.locale` | `rendered-preview`, `rendered-static-export` | Screen spec, state views, route/scenario rendering, and localized labels. |
 | `screen.template`, `screen.templateSrc`, `screen.references` | `rendered-project`, `diagnostic` | Composition/project loading consumes these; broken references become diagnostics. Standalone screen docs do not render the raw reference object. |
 | `states.name`, `states.initial`, `states.preInitial` | `rendered-preview`, `rendered-static-export` | State lists, state views, and transition context. |
-| `states.message` | `rendered-preview`, `follow-up` | VS Code preview renders state messages. Static export parity should be handled separately if needed. |
+| `states.message` | `rendered-preview`, `follow-up` | VS Code preview renders state messages. Static export state-message placement remains a focused follow-up because state views already carry wireframe/spec context and need a layout decision. |
 | `layoutGroups.id`, `name`, `viewport`, `kind`, `partial`, `items`, `properties`, `notes` | `rendered-preview`, `rendered-static-export` | Layout spec tables and state-view wireframes. |
-| `layoutGroups.overview` | `rendered-preview`, `follow-up` | Static export currently keeps layout notes but not all lead prose. |
+| `layoutGroups.overview` | `rendered-preview`, `follow-up` | Static export currently keeps layout notes in state-view layout specs; layout lead prose still needs a dedicated layout-spec placement decision. |
 | `slotDefinitions.name`, `title`, `properties`, `overview`, `notes` | `rendered-preview`, `rendered-static-export`, `rendered-project` | Template slot contracts and composed project documents. |
 | `slotContents.name`, `viewport`, `layoutGroups` | `rendered-preview`, `rendered-static-export`, `rendered-project` | Screen-side slot content is rendered after composition. |
 | `elements.id`, `type`, `documentRole`, display properties, metadata, route params, options, tabs, accordions, menu items, table columns/rows, sample rows, conditional expressions, validations, input rules, `overview`, `notes` | `rendered-preview`, `rendered-static-export` | Element spec tables, wireframes, state views, and scenario samples. |
-| `formGroups.id`, `name`, `fields`, `submit`, `properties`, `bullets`, `overview`, `notes` | `rendered-preview`, `follow-up` | Form Groups detail prose is covered in VS Code preview; static parity is not complete. |
+| `formGroups.id`, `name`, `fields`, `submit`, `properties`, `bullets`, `overview`, `notes` | `rendered-preview`, `rendered-static-export` | Form Groups section, entity prose, fields, submit action, and properties are rendered in static single-document export. |
 | `events.event`, `events.actionId` | `rendered-preview`, `rendered-static-export`, `diagnostic` | Lifecycle callers are rendered through action trigger/flow detail and validated. |
 | `actions.id`, `name`, `fromStates`, `triggeredBy`, `trigger`, `transitions`, `target`, `mode`, `fragment`, `sideEffects`, `routeParams`, `responses`, `properties` | `rendered-preview`, `rendered-static-export`, `rendered-project` | Action detail tables, state/project transition graphs, and diagnostics. |
-| `actions.overview`, `actions.notes` | `rendered-preview`, `follow-up` | VS Code preview renders action prose; static action prose parity is not complete. |
+| `actions.overview`, `actions.notes` | `rendered-preview`, `rendered-static-export` | Static action details render action overview/notes and section lead/notes. |
 | `processSteps.name`, `marker`, `parallelGroup`, `resolveGroup`, `when`, `skipWhen`, `inputs`, `receives`, `results`, `details`, `outcomes`, `to`, `target`, `mode`, `fragment`, `content`, `display`, `sideEffects` | `rendered-preview`, `rendered-static-export` | Action process cards and process/case detail tables. |
 | `actionOutcomes.result`, `flow`, `flowDirectives`, `from`, `to`, `description`, `response`, `request`, `target`, `mode`, `fragment`, `content`, `display`, `sideEffects`, `errorCodes`, `businessRules`, `routeParams` | `rendered-preview`, `rendered-static-export`, `rendered-project` | Process outcomes and transition extraction. |
-| `rules.id`, `name`, `bodyLines`, `bullets`, `properties`, `overview`, `notes` | `rendered-preview`, `follow-up` | Business Rules section is covered in preview; static prose parity is not complete. |
-| `validations.id`, `name`, `rules`, `bullets`, `properties`, `overview`, `notes` | `rendered-preview`, `follow-up` | Validations section is covered in preview; static prose parity is not complete. |
-| `errorCodes.id`, `name`, `bullets`, `properties`, `overview`, `notes` | `rendered-preview`, `follow-up` | Error Codes section is covered in preview; static prose parity is not complete. |
+| `rules.id`, `name`, `bodyLines`, `bullets`, `properties`, `overview`, `notes` | `rendered-preview`, `rendered-static-export` | Business Rules section prose, rule body, properties, overview, and notes render in static single-document export. |
+| `validations.id`, `name`, `rules`, `bullets`, `properties`, `overview`, `notes` | `rendered-preview`, `rendered-static-export` | Validation section prose, validation rules, properties, overview, and notes render in static single-document export. |
+| `errorCodes.id`, `name`, `bullets`, `properties`, `overview`, `notes` | `rendered-preview`, `rendered-static-export` | Error Codes section prose, properties, overview, and notes render in static single-document export. |
 | `historyFields.key`, `label`, `required`, `type`, `rawType` | `rendered-preview`, `rendered-static-export` | History table schema. |
 | `historyEntries.version`, `fields`, `bodyLines` | `rendered-preview`, `rendered-static-export` | History section. |
-| `notes.title`, `lines` | `rendered-preview`, `follow-up` | Notes section is visible in VS Code preview. Static export parity is not complete. |
-| `sectionProse.overview`, `sectionProse.notes` | `rendered-preview`, `follow-up` | Section lead/notes ownership for structured sections. Static export parity is intentionally recorded as a gap. |
+| `notes.title`, `lines` | `rendered-preview`, `rendered-static-export` | Custom Notes sections render in static single-document export. |
+| `sectionProse.overview`, `sectionProse.notes` | `rendered-preview`, `rendered-static-export`, `follow-up` | Static export renders lead/notes for Form Groups, Actions, Validations, Business Rules, Error Codes, View Context, View Context Samples, and Preview Scenarios. States messages and layout lead prose remain focused follow-ups. |
 | `sectionProse.renderKeys` | `internal-metadata` | Routing metadata used by preview fragments. |
 | `viewContexts.name`, `type`, `values`, `defaultValue`, `properties`, `overview`, `notes` | `rendered-preview`, `rendered-static-export` | View Context definition section and state-view evaluation. |
 | `viewContextSamples.name`, `values`, `overview`, `notes` | `rendered-preview`, `rendered-static-export` | View Context Samples section and scenario/state-view evaluation. |
@@ -76,6 +76,10 @@ export. They do not claim full static project-site parity.
 - #1231: Preview Scenario entity lead/notes must be surfaced consistently.
 - #1233: View Context / View Context Samples prose and values are surfaced as
   generated-document sections.
+- #1235: Static single-document export now renders Form Groups, action prose,
+  Validation/Business Rule/Error Code prose, and custom Notes. State messages
+  and layout lead prose remain follow-ups because their static placement needs a
+  narrower design decision.
 - Project document lead/notes are surfaced by project preview. Document-list
   export intentionally omits them because it is a compact document inventory.
 - Static export omits several structured-section lead/entity prose fields that
