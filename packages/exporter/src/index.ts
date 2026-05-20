@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import {
@@ -22,6 +23,10 @@ import {
 } from "@markvspec/document-renderer";
 import type { MarkVSpecDiagnostic, MarkVSpecParseResult, MarkVSpecValidationGateOptions, RendererMessages, ResolvedRendererMessages } from "@markvspec/core";
 import type { MarkVSpecProjectScreen } from "@markvspec/core";
+
+const require = createRequire(import.meta.url);
+let cachedMermaidScript: string | undefined;
+let hasReadMermaidScript = false;
 
 export interface MarkVSpecExportFileResult {
   sourcePath: string;
@@ -733,6 +738,10 @@ function standaloneHtml(
   const messageMetadata = options.messageSourcePath
     ? `\n    <!-- MarkVSpec messages: ${escapeHtml(options.messageSourcePath).replace(/--/gu, "- -")} -->`
     : "";
+  const needsMermaid = content.includes("data-mermaid-source");
+  const mermaidScript = needsMermaid ? readMermaidScript() : undefined;
+  const mermaidStyles = mermaidScript ? `\n      ${standaloneMermaidCss()}` : "";
+  const mermaidRuntime = mermaidScript ? `\n    <script>\n${mermaidScript}\n    </script>\n    <script>\n${standaloneMermaidRuntime()}\n    </script>` : "";
   return `<!doctype html>
 <html lang="${escapeHtml(options.locale ?? "en")}">
   <head>
@@ -818,6 +827,7 @@ function standaloneHtml(
       .process-flow-connector::before { content: "↓"; }
       .process-parallel-group-card { background: #f8fafc; border-style: dashed; }
       .process-parallel-children { display: grid; gap: 8px; }
+      ${mermaidStyles}
       .mm-export-diagnostics { margin-top: 24px; padding: 16px; border: 1px solid #d1d5db; background: #fff; }
       .mm-export-diagnostics table { width: 100%; border-collapse: collapse; }
       .mm-export-diagnostics th, .mm-export-diagnostics td { border-bottom: 1px solid #e5e7eb; padding: 8px; text-align: left; }
@@ -855,7 +865,7 @@ function standaloneHtml(
   <body>
     <main>
       ${content}
-    </main>
+    </main>${mermaidRuntime}
     <style>
       @media print {
         .wireframe-section .mm-wireframe { border: 1px solid #d1d5db !important; box-shadow: none !important; box-sizing: border-box !important; max-width: 100% !important; min-width: 0 !important; outline: 0 !important; width: 100% !important; }
@@ -869,6 +879,123 @@ function standaloneHtml(
     </style>
   </body>
 </html>`;
+}
+
+function readMermaidScript(): string | undefined {
+  if (hasReadMermaidScript) {
+    return cachedMermaidScript;
+  }
+  hasReadMermaidScript = true;
+  try {
+    cachedMermaidScript = readFileSync(require.resolve("mermaid/dist/mermaid.min.js"), "utf8");
+  } catch {
+    cachedMermaidScript = undefined;
+  }
+  return cachedMermaidScript;
+}
+
+function standaloneMermaidCss(): string {
+  return `.mermaid-block { position: relative; }
+      .mermaid-source { background: #f9fafb; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; display: none; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 12px; line-height: 1.5; margin: 0; overflow: auto; padding: 34px 12px 12px; white-space: pre; }
+      .mermaid-source code { background: transparent; border: 0; border-radius: 0; color: inherit; font: inherit; padding: 0; }
+      .mermaid-block.is-source-visible .mermaid-source { display: block; }
+      .mermaid-block.is-source-visible .mermaid-placeholder, .mermaid-block.is-source-visible .mermaid-render { display: none; }
+      .mermaid-placeholder { align-items: center; background: #fff; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; color: #6b7280; display: flex; font-size: 12px; justify-content: center; min-height: 160px; padding: 34px 12px 12px; }
+      .mermaid-render { background: #fff; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; overflow: auto; padding: 12px; }
+      .mermaid-render svg { height: auto; max-width: 100%; }
+      .mermaid-source-toggle { background: #fff; border: 1px solid #cbd5e1; border-radius: 5px; color: #334155; cursor: pointer; font-size: 11px; font-weight: 650; line-height: 1; padding: 5px 8px; position: absolute; right: 8px; top: 8px; z-index: 1; }
+      .mermaid-source-toggle:hover { background: #f8fafc; color: #111827; }
+      .mermaid-source-toggle:focus-visible { outline: 2px solid #60a5fa; outline-offset: 2px; }
+      .state-flow-section .mermaid-block, .state-flow-section .mermaid-placeholder, .state-flow-section .mermaid-render { min-height: 260px; }`;
+}
+
+function standaloneMermaidRuntime(): string {
+  return `(() => {
+      const messages = {
+        showSource: "Show source",
+        hideSource: "Hide source",
+        rendering: "Rendering Mermaid diagram...",
+        renderFailed: "Unable to render Mermaid diagram."
+      };
+
+      function prepareBlock(block) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "mermaid-block";
+        block.parentNode.insertBefore(wrapper, block);
+        wrapper.appendChild(block);
+
+        const placeholder = document.createElement("div");
+        placeholder.className = "mermaid-placeholder";
+        placeholder.textContent = messages.rendering;
+        wrapper.appendChild(placeholder);
+
+        const toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.className = "mermaid-source-toggle";
+        toggle.textContent = messages.showSource;
+        toggle.setAttribute("aria-label", messages.showSource);
+        toggle.addEventListener("click", () => {
+          const isSourceVisible = wrapper.classList.toggle("is-source-visible");
+          toggle.textContent = isSourceVisible ? messages.hideSource : messages.showSource;
+          toggle.setAttribute("aria-label", isSourceVisible ? messages.hideSource : messages.showSource);
+        });
+        wrapper.appendChild(toggle);
+
+        return { source: block.textContent || "", placeholder, toggle, wrapper };
+      }
+
+      function showSource(item) {
+        item.wrapper.classList.add("is-source-visible");
+        item.toggle.textContent = messages.hideSource;
+        item.toggle.setAttribute("aria-label", messages.hideSource);
+      }
+
+      async function renderMermaidDiagrams() {
+        const blocks = Array.from(document.querySelectorAll("[data-mermaid-source]"));
+        if (blocks.length === 0) {
+          return;
+        }
+
+        const items = blocks.map(prepareBlock);
+        if (!window.mermaid) {
+          for (const item of items) {
+            item.placeholder.textContent = messages.renderFailed;
+            showSource(item);
+          }
+          return;
+        }
+
+        try {
+          window.mermaid.initialize({ startOnLoad: false, securityLevel: "strict", theme: "default" });
+        } catch {
+          for (const item of items) {
+            item.placeholder.textContent = messages.renderFailed;
+            showSource(item);
+          }
+          return;
+        }
+
+        for (let index = 0; index < items.length; index += 1) {
+          const item = items[index];
+          const output = document.createElement("div");
+          output.className = "mermaid-render";
+          try {
+            const rendered = await window.mermaid.render("markvspec-static-mermaid-" + index, item.source);
+            output.innerHTML = rendered.svg;
+            item.placeholder.replaceWith(output);
+          } catch {
+            item.placeholder.textContent = messages.renderFailed;
+            showSource(item);
+          }
+        }
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", renderMermaidDiagrams, { once: true });
+      } else {
+        void renderMermaidDiagrams();
+      }
+    })();`;
 }
 
 function renderDiagnostics(diagnostics: readonly MarkVSpecDiagnostic[], messages: RendererMessages, locale: string | undefined): string {
