@@ -54,7 +54,7 @@ preview や review では、「この field には何を入力できるか」が
 - message: Password confirmation does not match.
 ```
 
-「どの field を見て、どこへ表示するか」を明示すると、実装者にも AI にも伝わります。
+「どの field を見て、どこへ表示するか」を明示すると、仕様レビューで validation の判断と表示位置を確認できます。
 
 ## サーバ単項目チェック
 

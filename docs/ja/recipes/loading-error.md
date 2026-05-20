@@ -2,7 +2,7 @@
 
 ## いつ使うか
 
-画面表示時や検索条件変更時に data を読み込み、loading、loaded、empty、error を user に見せ分ける画面で使います。非同期処理を prose で説明するだけではなく、screen state と action case に分けて書くことで、preview、review、実装タスクへつなげやすくします。
+画面表示時や検索条件変更時に data を読み込み、loading、loaded、empty、error を user に見せ分ける画面で使います。非同期処理を prose で説明するだけではなく、screen state と action case に分けて書くことで、preview と review で user-visible result を判断しやすくします。
 
 ## 完成イメージ
 

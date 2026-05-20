@@ -31,7 +31,7 @@
 - Guide は「何を書けば preview で何が見えるか」を短く説明する。
 - Reference は正確な構文だけを引ける形にする。
 - Recipes は利用目的から入れる形にする。
-- Examples は renderer coverage ではなく、利用者が真似できる画面パターンとして整理する。
+- Examples は、利用者が真似できる画面パターンとして整理する。
 - Maintainer / contributor 情報は通常のユーザー導線から外す。
 
 ## 20の見直し観点
@@ -45,18 +45,18 @@
 | 5 | State の書き方が一貫しているか | 修正済み | Start / Guide / Reference の基本例を `## States` 配下の bullet に揃え、初期 state は `- idle*` のように `*` で示すと明記した。 |
 | 6 | Action / HTTP request syntax が正確か | 概ねOK | ユーザー向け docs は HTTP method/path を `request:` に統一済み。`server:` は HTTP そのものではない server-side service call の説明としてだけ残っている。 |
 | 7 | Action caller と結果が追えるか | 一部要修正 | Actions は概ね `action: A-*`、`From`、`Process Pn:`、`case:` で追える。Partial Updates guide の最小例は「refresh button をクリック」と説明するが、例の中に button / caller がない。 |
-| 8 | Validation と Business Rules の境界が明確か | 一部要修正 | Japanese guide は4分類を示しており方向性は良い。English validation guide では required 相当を `Business Rules` に置く例があり、Reference の「field constraint は element 近く」とぶれる。 |
+| 8 | Validation と Business Rules の境界が明確か | 修正済み | field constraints、cross-field rules、server field validation、server business checks の4分類を日英 guide / reference / recipes で揃えた。required / format / range は input element 近くに置き、Business Rules は cross-field や product decision に限定する方針へ更新済み。 |
 | 9 | Form Groups など examples が使う section が Reference に載っているか | 修正済み | `## Form Groups`、`## Events`、`## Preview Scenarios`、`## Field Validations`、`## Cross-field Validations`、`## Slots` / `## Slot: name`、`## Error Codes`、`## History Fields` / `## History` を Sections Reference に追加した。 |
 | 10 | Element type / property が Reference に載っているか | 修正済み | Reference に `Spinner`、`Banner`、`Table`、`Badge`、`Select`、`Dialog`、`Toast`、`Tabs`、`ActionMenu` と showcase の specialized controls を追加した。`Message` は新規 source では使わず、`Banner` / `Text` / `Paragraph` / `Toast` に分ける方針を明記した。 |
 | 11 | Element property の使い方が一貫しているか | 修正済み | `text` は read-only display copy、`label` は control/link 名、`value` は入力値や binding 名として使う方針を Reference に明記した。Heading は新規 source では `level` + `text` を使う。 |
 | 12 | Partial Update が semantic に説明されているか | 修正済み | canonical syntax は result case の `display` に `target` と `message` / `element` / `partial` のいずれかを書く形に統一した。`display.partial` 表現は examples README から除去した。 |
 | 13 | Guide / Reference / Recipes の役割分担が守られているか | 概ねOK | Guide は概念と最小例、Reference は構文、Recipes は目的別に分かれている。ただし一部 Guide の最小例が説明不足で、Reference に未掲載の構文へ飛ぶ。 |
-| 14 | Examples が利用者向けの学習順になっているか | 要修正 | generated examples の sidebar は改善済み。一方 `examples/README.md` は renderer coverage や内部機能名に近い説明が多く、ユーザーが「どれを真似するか」を判断しづらい。 |
+| 14 | Examples が利用者向けの学習順になっているか | 修正済み | `examples/README.md`、docs examples index、generated examples index を beginner / form-validation / loading-empty-error / partial-update / navigation-overlay / reuse-template などの利用者タスク分類へ整理した。 |
 | 15 | Screenshots がページの目的に合っているか | 概ねOK | Start、Guide、Reference に VS Code / preview screenshot が置かれている。最近差し替えた actions screenshot は source と preview の対応が取れている。今後は全 screenshot を「何を理解させる画像か」で継続監査する。 |
-| 16 | 日本語と英語で同じ情報を得られるか | 要修正 | ファイル構成は概ね揃っているが、Recipes などで英語の方が詳しく、日本語は薄い箇所がある。生成 showcase の related docs が英語へ寄る問題もある。 |
+| 16 | 日本語と英語で同じ情報を得られるか | 修正済み | 日本語 Recipes index を英語版と同等の構造へ拡充し、生成 showcase の related docs は English / Japanese の両方を明示する導線へ変更した。 |
 | 17 | ユーザー導線から maintainer / implementation detail が分離されているか | 要修正 | README と docs root に maintainer links がある。`docs/en/README.md` / `docs/ja/README.md` はユーザー入口として再設計し、maintainers は明示的な contributor path に隔離する。 |
-| 18 | 「旧」「移行済み」「互換」「実装者メモ」のノイズが公開導線に残っていないか | 概ねOK | 旧ドキュメント警告や移行済み文書のノイズは見つからない。ただし「実装タスク」「実装者にも」などの実装者寄り表現が一部 user docs に残る。 |
-| 19 | CLI が VS Code-first workflow を邪魔していないか | 一部要修正 | Start / Export は VS Code export を先に出しているので良い。CLI reference / recipes は repository path の例があり、clone していない利用者には不親切。`hello.vspec.md` と repo checkout 例を分ける。 |
+| 18 | 「旧」「移行済み」「互換」「実装者メモ」のノイズが公開導線に残っていないか | 修正済み | 旧ドキュメント警告や移行済み文書のノイズは見つからない。user-facing docs に残っていた実装者寄り表現は、利用者が preview / review で判断できる表現へ言い換えた。 |
+| 19 | CLI が VS Code-first workflow を邪魔していないか | 修正済み | CLI reference / recipes は `hello.vspec.md` を基本例にし、repository checkout 前提の `examples/` path はその前提を明記した。 |
 | 20 | site/index.html が最初の選択を単純にしているか | 一部要修正 | root で日英 docs / examples へ進める点は良い。より user-first にするなら CTA は「Start in 5 minutes / 5分で試す」を第一にし、言語切替と examples を整理する。 |
 
 ## 優先度付き改善項目
@@ -115,11 +115,51 @@
 
 10. 実装者目線の文をユーザーの目的に言い換える。
     - 「実装者にも伝わる」より「仕様レビューで判断できる」。
-    - 「renderer coverage」より「画面パターンを確認する」。
+    - 内部カバレッジ目線より「画面パターンを確認する」。
 11. Screenshot は「説明したい判断」と対応させる。
     - state ページなら状態遷移または state view。
     - action ページなら caller、process、display update の対応。
     - validation ページなら入力制約とエラー表示。
+
+## 実装者目線表現の検索結果
+
+2026-05-20 時点で次を検索した。
+
+```sh
+rg -n -i "renderer coverage|implementation task|implementer|実装タスク|実装者にも" docs/en docs/ja --glob '!**/maintainers/**'
+```
+
+user-facing docs に残っていた該当表現は次のように修正した。
+
+| File | Before | After |
+| --- | --- | --- |
+| `docs/en/recipes/loading-error.md` | implementation tasks can follow it | reviewers can see the user-visible result |
+| `docs/ja/recipes/loading-error.md` | preview、review、実装タスクへつなげやすい | preview と review で user-visible result を判断しやすい |
+| `docs/ja/guide/validation.md` | 実装者にも AI にも伝わる | 仕様レビューで validation の判断と表示位置を確認できる |
+
+maintainers 配下には、過去の監査観点や設計意図として同じ語が残る場合がある。これは通常の user-facing 導線ではなく、変更理由の記録として扱う。
+
+## Screenshot 対応表
+
+Guide / Reference の screenshot は、「そのページで何を判断させるか」と対応させる。
+
+| Area | Page | Screenshot | 目的 | 状態 |
+| --- | --- | --- | --- | --- |
+| Guide | `guide/index.md` | `assets/start/vscode-preview-clean.png` | VS Code source と preview を並べて確認できることを示す | OK |
+| Guide | `guide/markdown-model.md` | `assets/vscode-previews/hello-screen-vscode-preview.png` | Markdown source が preview へ変換される関係を示す | OK |
+| Guide | `guide/states.md` | `assets/vscode-previews/async-loading-vscode-preview.png` | state 一覧と state view の切り替えを示す | OK |
+| Guide | `guide/layout.md` | `assets/vscode-previews/responsive-profile-vscode-preview.png` | mobile / desktop layout の違いを示す | OK |
+| Guide | `guide/elements.md` | `assets/vscode-previews/source-kind-metadata-vscode-preview.png` | element と表示 content metadata の対応を示す | OK |
+| Guide | `guide/actions.md` | `assets/vscode-previews/form-submit-flow-vscode-preview.png` | caller、process、display update の関係を示す | OK |
+| Guide | `guide/validation.md` | `assets/vscode-previews/single-field-validation-vscode-preview.png` | input constraint と error 表示を示す | OK |
+| Guide | `guide/partial-updates.md` | `assets/vscode-previews/profile-page-with-template-vscode-preview.png` | host screen と partial refresh の関係を示す | OK |
+| Reference | `reference/index.md` / `file-format.md` | `assets/vscode-previews/hello-screen-vscode-preview.png` | 最小 `.vspec.md` と生成 preview の全体像を示す | OK |
+| Reference | `reference/sections.md` | `assets/vscode-previews/hello-screen-sections-vscode-preview.png` | section 構成が preview にどう表れるかを示す | OK |
+| Reference | `reference/ids.md` | `assets/vscode-previews/hello-screen-ids-vscode-preview.png` | stable ID が source と preview の対応点になることを示す | OK |
+| Reference | `reference/elements.md` / `limitations.md` | `assets/vscode-previews/source-kind-metadata-vscode-preview.png` | semantic element metadata と制限事項を示す | OK |
+| Reference | `reference/actions.md` | `assets/vscode-previews/form-submit-flow-vscode-preview.png` | action case と screen update の追跡点を示す | OK |
+| Reference | `reference/validations.md` | `assets/vscode-previews/single-field-validation-vscode-preview.png` | validation syntax と error display の対応を示す | OK |
+| Reference | `reference/rules.md` | `assets/vscode-previews/history-and-errors-vscode-preview.png` | business rule / structured sections の参照先を示す | OK |
 
 ## サブエージェントからの主な指摘
 

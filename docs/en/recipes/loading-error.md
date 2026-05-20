@@ -2,7 +2,7 @@
 
 ## When To Use
 
-Use this recipe for screens that load data on page load or filter change and need to distinguish loading, loaded, empty, and error states. Instead of explaining async behavior only in prose, write it as screen states and action cases so preview, review, and implementation tasks can follow it.
+Use this recipe for screens that load data on page load or filter change and need to distinguish loading, loaded, empty, and error states. Instead of explaining async behavior only in prose, write it as screen states and action cases so reviewers can see the user-visible result.
 
 ## Target Result
 
