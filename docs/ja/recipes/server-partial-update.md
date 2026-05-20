@@ -34,7 +34,7 @@ Refresh button や filter の変更で server に request し、返ってきた 
 ### A-RefreshSummary Refresh summary
 
 - Process P1: Request profile summary
-  - server:
+  - request:
     - GET /profile/summary
     - params:
       - userId: route.userId
@@ -64,7 +64,7 @@ Refresh button や filter の変更で server に request し、返ってきた 
 
 ## 書き方の要点
 
-- request は `Process Pn:` の `server:` に書く。
+- request は `Process Pn:` の `request:` に書く。
 - 差し替え先は `target` に layout ID で書く。
 - 返ってくるものは HTML 断片そのものではなく、`Profile summary partial` のように意味で書く。
 - 差し替え方法は必要に応じて `mode: replace` で明示する。

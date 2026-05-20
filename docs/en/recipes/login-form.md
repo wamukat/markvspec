@@ -47,7 +47,7 @@ The user enters email and password, then selects Sign in. Missing input shows fi
 - From
   - idle
 - Process P1: Send login request
-  - server:
+  - request:
     - POST /login
     - params:
       - email: E-EmailInput.value

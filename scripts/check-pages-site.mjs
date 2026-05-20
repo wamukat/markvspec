@@ -308,7 +308,7 @@ expectContains(referenceIndexHtml, "<table>", "_site/docs/ja/reference/index.htm
 expectNotContains(referenceIndexHtml, "<p>| Page |", "_site/docs/ja/reference/index.html should not render Markdown table syntax as text.");
 expectContains(readSiteFile("docs/ja/guide/index.html"), "<ol>", "_site/docs/ja/guide/index.html should render ordered reading steps as an ordered list.");
 const referenceActionsHtml = readSiteFile("docs/ja/reference/actions.html");
-expectContains(referenceActionsHtml, "server:", "_site/docs/ja/reference/actions.html should document request process syntax.");
+expectContains(referenceActionsHtml, "request:", "_site/docs/ja/reference/actions.html should document request process syntax.");
 expectContains(referenceActionsHtml, "mode: replace", "_site/docs/ja/reference/actions.html should document update replacement semantics.");
 expectContains(referenceActionsHtml, "examples/showcase/form-submit-flow.html", "_site/docs/ja/reference/actions.html should link back to action example.");
 const referenceElementsHtml = readSiteFile("docs/ja/reference/elements.html");
@@ -316,7 +316,7 @@ expectContains(referenceElementsHtml, "variant", "_site/docs/ja/reference/elemen
 expectContains(referenceElementsHtml, "raw color", "_site/docs/ja/reference/elements.html should discourage low-level visual styling.");
 const referenceRulesHtml = readSiteFile("docs/ja/reference/rules.html");
 expectContains(referenceRulesHtml, "Validator Diagnostics", "_site/docs/ja/reference/rules.html should separate rules from validator diagnostics.");
-expectContains(readSiteFile("docs/en/reference/actions.html"), "server:", "_site/docs/en/reference/actions.html should document request process syntax.");
+expectContains(readSiteFile("docs/en/reference/actions.html"), "request:", "_site/docs/en/reference/actions.html should document request process syntax.");
 expectContains(readSiteFile("docs/en/reference/rules.html"), "Validator Diagnostics", "_site/docs/en/reference/rules.html should separate rules from validator diagnostics.");
 for (const removedUserDir of ["docs/ja/user", "docs/en/user"]) {
   if (existsSync(join(siteDir, removedUserDir))) {

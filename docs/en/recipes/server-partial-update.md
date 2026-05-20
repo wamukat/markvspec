@@ -34,7 +34,7 @@ A Refresh button or filter change sends a server request. The returned summary p
 ### A-RefreshSummary Refresh summary
 
 - Process P1: Request profile summary
-  - server:
+  - request:
     - GET /profile/summary
     - params:
       - userId: route.userId
@@ -64,7 +64,7 @@ A Refresh button or filter change sends a server request. The returned summary p
 
 ## Authoring Notes
 
-- Put the request under `server:` inside `Process Pn:`.
+- Put the request under `request:` inside `Process Pn:`.
 - Use a layout ID as the `target`.
 - Describe the returned content by meaning, such as `Profile summary partial`, rather than embedding an HTML fragment.
 - Add `mode: replace` when replacement semantics matter.

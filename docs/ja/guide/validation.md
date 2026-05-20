@@ -66,7 +66,7 @@ preview や review では、「この field には何を入力できるか」が
 ### A-SubmitProfile Submit profile
 
 - Process P1: Submit profile
-  - server:
+  - request:
     - POST /profile
     - params:
       - email: E-EmailInput.value
@@ -98,7 +98,7 @@ preview や review では、「この field には何を入力できるか」が
 ### A-ExportPdf Export PDF
 
 - Process P1: Request PDF export
-  - server:
+  - request:
     - POST /exports/pdf
   - case: plan-not-allowed
     - state: export-error

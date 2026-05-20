@@ -1,6 +1,6 @@
 # Actions
 
-`## Actions` connects user interaction, server requests, state changes, navigation, and partial updates. Buttons and links refer to actions with `action: A-*`; lifecycle events such as page load are connected in `## Events`.
+`## Actions` connects user interaction, HTTP requests, state changes, navigation, and partial updates. Buttons and links refer to actions with `action: A-*`; lifecycle events such as page load are connected in `## Events`.
 
 ## Syntax You Can Write
 
@@ -12,7 +12,7 @@
 - From
   - idle
 - Process P1: Send login request
-  - server:
+  - request:
     - POST /login
     - params:
       - email: E-EmailInput.value
@@ -57,16 +57,16 @@ Declare an action with the `### A-* Name` form.
 | --- | --- |
 | `From` | State where the action is available |
 | `Process Pn: ...` | Request, calculation, local process, or response handling |
-| `server` / `sync` / `receive` | Process input or execution detail |
+| `request` / `receive` / `sync` / `server` | Process input or execution detail |
 | `case: ...` | Result-specific behavior such as success, failure, or empty |
 
-### Server Request
+### HTTP Request
 
-Put request details under `server:` or `sync:` inside `Process Pn:`, then write the method/path and request parameters.
+Put HTTP request details under `request:` inside `Process Pn:`, then write the method/path and request parameters. Use `server:` only when you need to describe a server-side service call that is not the HTTP request itself.
 
 ```markdown
 - Process P1: Load profile
-  - server:
+  - request:
     - GET /profile
     - params:
       - userId: route.userId

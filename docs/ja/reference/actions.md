@@ -1,6 +1,6 @@
 # Actions
 
-`## Actions` は user interaction、server request、state change、navigation、partial update を結びます。button や link は element の `action: A-*` から参照し、画面読み込みなどの lifecycle event は `## Events` で接続します。
+`## Actions` は user interaction、HTTP request、state change、navigation、partial update を結びます。button や link は element の `action: A-*` から参照し、画面読み込みなどの lifecycle event は `## Events` で接続します。
 
 ## 書ける構文
 
@@ -12,7 +12,7 @@
 - From
   - idle
 - Process P1: Send login request
-  - server:
+  - request:
     - POST /login
     - params:
       - email: E-EmailInput.value
@@ -57,16 +57,16 @@ Action は `### A-* Name` の形で宣言します。
 | --- | --- |
 | `From` | action が有効な state |
 | `Process Pn: ...` | request、calculation、local process、response handling |
-| `server` / `sync` / `receive` | process の入力や実行内容 |
+| `request` / `receive` / `sync` / `server` | process の入力や実行内容 |
 | `case: ...` | success/failure/empty など、process result 別の挙動 |
 
-### Server Request
+### HTTP Request
 
-request は `Process Pn:` の `server:` または `sync:` の下に置き、method/path と request parameter を書きます。
+HTTP request は `Process Pn:` の `request:` の下に置き、method/path と request parameter を書きます。`server:` は必要な場合だけ、サーバ側の service call など HTTP request ではない処理を書くために使います。
 
 ```markdown
 - Process P1: Load profile
-  - server:
+  - request:
     - GET /profile
     - params:
       - userId: route.userId

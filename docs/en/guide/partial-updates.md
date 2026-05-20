@@ -18,7 +18,7 @@ This keeps the UI specification reviewable whether the implementation uses Thyme
 ### A-RefreshProfile Refresh profile
 
 - Process P1: Request profile summary
-  - server:
+  - request:
     - GET /profile/summary
   - case: success
     - display:
@@ -31,7 +31,7 @@ This example says that clicking a refresh button fetches a summary partial and r
 
 ## Common Patterns
 
-- Put requests under `server:` inside `Process Pn:`.
+- Put requests under `request:` inside `Process Pn:`.
 - Put result-specific partial changes under process `case:` entries with `display`.
 - Keep `target` and `content` semantic.
 - Use the ID of the updated layout group or message element as `target`.
@@ -59,7 +59,7 @@ This example says that clicking a refresh button fetches a summary partial and r
 ### A-SearchProducts Search products
 
 - Process P1: Search products
-  - server:
+  - request:
     - GET /products/search
     - params:
       - q: E-SearchInput.value

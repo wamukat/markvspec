@@ -40,7 +40,7 @@ preview では、`Submit` button と `A-SubmitRequest` のつながり、validat
 - button から action を呼ぶ: element の `action: A-*`。
 - 画面読み込みで action を呼ぶ: `## Events`。
 - action が有効な state を絞る: `From`。
-- request を書く: `Process Pn:` の `server:`。
+- HTTP request を書く: `Process Pn:` の `request:`。
 - 結果で分岐する: `case:`。
 - 表示を差し替える: `display`。
 - 画面を移動する: `navigate`。

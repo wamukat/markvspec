@@ -60,7 +60,7 @@
 ### A-LoadItems Load items
 
 - Process P1: Request items
-  - server:
+  - request:
     - GET /items
   - case: sent
     - state: loading

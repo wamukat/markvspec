@@ -43,7 +43,7 @@ This minimal example defines only the normal, loading, and error states. Even be
 - From
   - idle
 - Process P1: Request orders
-  - server:
+  - request:
     - GET /orders
   - case: sent
     - state: loading

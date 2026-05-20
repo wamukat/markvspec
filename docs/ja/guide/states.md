@@ -39,7 +39,7 @@ preview では state ごとに画面を切り替えて確認できます。
 - From
   - idle
 - Process P1: Request orders
-  - server:
+  - request:
     - GET /orders
   - case: sent
     - state: loading

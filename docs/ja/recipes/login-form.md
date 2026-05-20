@@ -47,7 +47,7 @@
 - From
   - idle
 - Process P1: Send login request
-  - server:
+  - request:
     - POST /login
     - params:
       - email: E-EmailInput.value
@@ -74,7 +74,7 @@
 ## ここを見る
 
 - button が何を起こすか: `E-SignInButton` の `action`。
-- 送信先: `server: POST /login`。
+- 送信先: `request: POST /login`。
 - 送信する値: `params`。
 - 成功時: `case: success`。
 - 失敗時: `case: failure`。

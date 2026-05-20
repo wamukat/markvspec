@@ -49,7 +49,7 @@ MarkVSpec は raw CSS や framework attribute ではなく、意図を記述し�
 
 - `variant` は `primary` / `secondary` のような priority を表す。
 - `tone` は `warning` / `danger` のような semantic intent を表す。
-- `Process Pn:` と `server` / `receive` は action が何をするかを表す。
+- `Process Pn:` と `request` / `receive` は action が何をするかを表す。
 - `case:` と `display` は state change と partial update を表す。
 
 この方針により、特定の implementation stack に寄せすぎず、validation と rendering

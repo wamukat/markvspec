@@ -6,7 +6,7 @@ Actions describe what happens when users interact with a screen or when the scre
 
 An action describes one flow: where it is called from, what work runs, and how the screen changes as a result. Connect button and link clicks with `action: A-*` on the element. Put lifecycle events such as page load under `## Events`.
 
-Put the work under `Process Pn:`. For a server request, use `server:`; for screen-local calculation or validation, use `sync:` or `receive:`. Put result branches under the process as `case:` entries, such as success, failure, empty, and validation-error, then describe state changes, navigation, display updates, or messages for each case.
+Put the work under `Process Pn:`. For an HTTP request, use `request:`; for screen-local calculation or validation, use `sync:` or `receive:`. Use `server:` only for a server-side service call that is not the HTTP request itself. Put result branches under the process as `case:` entries, such as success, failure, empty, and validation-error, then describe state changes, navigation, display updates, or messages for each case.
 
 ## Minimal Example
 

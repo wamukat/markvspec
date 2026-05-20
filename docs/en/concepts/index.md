@@ -50,7 +50,7 @@ MarkVSpec describes intent instead of raw CSS or framework attributes.
 
 - `variant` describes priority, such as `primary` or `secondary`.
 - `tone` describes semantic intent, such as `warning` or `danger`.
-- `Process Pn:` and `server` / `receive` describe what an action does.
+- `Process Pn:` and `request` / `receive` describe what an action does.
 - `case:` and `display` describe state changes and partial updates.
 
 This keeps the document useful across implementation stacks while still being

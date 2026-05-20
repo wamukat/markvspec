@@ -23,7 +23,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 | [File Format](file-format.md) | `.vspec.md`、Front Matter、document type、本文の基本形 |
 | [Sections](sections.md) | 認識される top-level section と Markdown 見出しの役割 |
 | [Elements](elements.md) | `Heading`、`Paragraph`、`Text`、`Input`、`Button` などの element |
-| [Actions](actions.md) | `action: A-*`、`## Events`、`Process Pn:`、`server`、`receive`、`case:`、`display` |
+| [Actions](actions.md) | `action: A-*`、`## Events`、`Process Pn:`、`request`、`receive`、`case:`、`display` |
 | [Validations](validations.md) | `required`、`constraints`、format/range、error message |
 | [Business Rules](rules.md) | `## Business Rules` に書く business rule と画面固有条件 |
 | [IDs](ids.md) | `SCR-*`、`L-*`、`E-*`、`A-*`、`R-*` の使い分け |
@@ -34,7 +34,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 
 - 最小の screen を書く: [File Format](file-format.md)、[Sections](sections.md)、[Elements](elements.md)
 - form を書く: [Elements](elements.md)、[Validations](validations.md)、[Actions](actions.md)
-- server request を書く: [Actions](actions.md)、[Business Rules](rules.md)、[IDs](ids.md)
+- HTTP request を書く: [Actions](actions.md)、[Business Rules](rules.md)、[IDs](ids.md)
 - partial update を書く: [Actions](actions.md)、[Elements](elements.md)
 - export する: [CLI](cli.md)、[Limitations](limitations.md)
 

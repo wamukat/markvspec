@@ -76,7 +76,7 @@ This example keeps basic field constraints on the element and separates the revi
 ### A-SubmitProfile Submit profile
 
 - Process P1: Submit profile
-  - server:
+  - request:
     - POST /profile
     - params:
       - name: E-NameInput.value

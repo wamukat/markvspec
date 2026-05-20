@@ -10,7 +10,7 @@ MarkVSpec では `hx-*` や CSS selector は書きません。どの request が
 ### A-RefreshProfile Refresh profile
 
 - Process P1: Request profile summary
-  - server:
+  - request:
     - GET /profile/summary
   - case: success
     - display:
@@ -25,7 +25,7 @@ preview では、`L-ProfileSummary` が更新対象として読めます。
 
 ## 書くもの
 
-- `server:`: 取得する request。
+- `request:`: 取得する request。
 - `target`: 差し替える layout / element。
 - `content`: 表示される内容の意味。
 - `mode: replace`: 対象領域を置き換える。
