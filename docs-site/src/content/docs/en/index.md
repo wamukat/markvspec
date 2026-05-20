@@ -7,9 +7,8 @@ hero:
   tagline: Write UI specifications in Markdown, preview them in VS Code, and export HTML or PDF.
   actions:
     - text: Start
-      link: /en/start/
+      link: /markvspec/en/start/
       icon: right-arrow
 ---
 
 English documentation for MarkVSpec.
-

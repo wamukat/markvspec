@@ -7,9 +7,8 @@ hero:
   tagline: Markdown で UI 仕様を書き、VS Code で preview し、HTML / PDF に出力します。
   actions:
     - text: はじめる
-      link: /ja/start/
+      link: /markvspec/ja/start/
       icon: right-arrow
 ---
 
 MarkVSpec の日本語ドキュメントです。
-
