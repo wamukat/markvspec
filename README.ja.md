@@ -36,21 +36,8 @@ repository を clone していなくても試せます。
 ## 次に読むもの
 
 - [Website](https://wamukat.github.io/markvspec/)
-- [Start guide](https://wamukat.github.io/markvspec/docs/ja/start/)
+- [5分で試す](https://wamukat.github.io/markvspec/docs/ja/start/)
 - [Examples](https://wamukat.github.io/markvspec/examples/)
 - [Guide](https://wamukat.github.io/markvspec/docs/ja/guide/)
 - [Reference](https://wamukat.github.io/markvspec/docs/ja/reference/)
 - [Recipes](https://wamukat.github.io/markvspec/docs/ja/recipes/)
-
-## 開発者向け
-
-repository を clone して開発する人向けです。利用者が preview を試すだけなら、この section は不要です。
-
-```sh
-npm run typecheck
-npm test
-npm run build
-```
-
-保守者向けの記録は [docs/ja/maintainers/](docs/ja/maintainers/) と
-[docs/en/maintainers/](docs/en/maintainers/) にあります。

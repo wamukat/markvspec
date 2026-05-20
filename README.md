@@ -37,21 +37,8 @@ You do not need to clone this repository to try MarkVSpec.
 ## Where To Go Next
 
 - [Website](https://wamukat.github.io/markvspec/)
-- [Start guide](https://wamukat.github.io/markvspec/docs/en/start/)
+- [Start in 5 minutes](https://wamukat.github.io/markvspec/docs/en/start/)
 - [Examples](https://wamukat.github.io/markvspec/examples/)
 - [Guide](https://wamukat.github.io/markvspec/docs/en/guide/)
 - [Reference](https://wamukat.github.io/markvspec/docs/en/reference/)
 - [Recipes](https://wamukat.github.io/markvspec/docs/en/recipes/)
-
-## For Contributors
-
-This section is for people cloning the repository to develop MarkVSpec. You do not need it to try the extension.
-
-```sh
-npm run typecheck
-npm test
-npm run build
-```
-
-Maintainer notes live under [docs/en/maintainers/](docs/en/maintainers/) and
-[docs/ja/maintainers/](docs/ja/maintainers/).
