@@ -5,6 +5,7 @@ import { loadExampleCatalog, validateExampleCatalog } from "./example-catalog.mj
 const root = process.cwd();
 const siteDir = join(root, "_site");
 const pagesOrigin = "https://wamukat.github.io/markvspec";
+const newIaSourceSections = ["start", "guide", "reference", "recipes", "examples", "concepts"];
 const requiredFiles = [
   "index.html",
   "examples/index.html",
@@ -158,6 +159,21 @@ const maintainedPagesUrls = [
 ];
 
 const failures = [];
+
+const jaNewIaSourceFiles = collectNewIaSourceFiles("ja");
+const enNewIaSourceFiles = collectNewIaSourceFiles("en");
+expectSameList(
+  jaNewIaSourceFiles,
+  enNewIaSourceFiles,
+  "docs/en and docs/ja new IA Markdown paths should match"
+);
+
+for (const filePath of [
+  "docs/en/README.md",
+  ...enNewIaSourceFiles.map((relativePath) => `docs/en/${relativePath}`)
+]) {
+  expectNoStubMarker(filePath);
+}
 
 const catalog = loadExampleCatalog(root);
 const exampleSources = collectFiles(join(root, "examples"), (filePath) => filePath.endsWith(".vspec.md"));
@@ -322,6 +338,47 @@ expectContains(examplesHtml, "Teaches: Front Matter", "_site/examples/index.html
 expectContains(examplesHtml, '<span class="pill">template</span>', "_site/examples/index.html should identify template examples.");
 expectContains(examplesHtml, '<span class="pill">partial</span>', "_site/examples/index.html should identify partial examples.");
 
+const docsEnExamplesHtml = readSiteFile("docs/en/examples/index.html");
+expectNotContains(docsEnExamplesHtml, "Stub", "_site/docs/en/examples/index.html should not be a stub.");
+expectContains(docsEnExamplesHtml, "../../../examples/", "_site/docs/en/examples/index.html should link to the generated example catalog.");
+expectContains(docsEnExamplesHtml, "../../../examples/showcase/hello-screen.html", "_site/docs/en/examples/index.html should link to English example showcases.");
+
+for (const filePath of [
+  "docs/en/start/index.html",
+  "docs/en/start/first-screen.html",
+  "docs/en/start/preview.html",
+  "docs/en/start/export.html",
+  "docs/en/guide/index.html",
+  "docs/en/guide/markdown-model.html",
+  "docs/en/guide/states.html",
+  "docs/en/guide/layout.html",
+  "docs/en/guide/elements.html",
+  "docs/en/guide/actions.html",
+  "docs/en/guide/validation.html",
+  "docs/en/guide/partial-updates.html",
+  "docs/en/reference/index.html",
+  "docs/en/reference/file-format.html",
+  "docs/en/reference/sections.html",
+  "docs/en/reference/elements.html",
+  "docs/en/reference/actions.html",
+  "docs/en/reference/validations.html",
+  "docs/en/reference/rules.html",
+  "docs/en/reference/ids.html",
+  "docs/en/reference/cli.html",
+  "docs/en/reference/limitations.html",
+  "docs/en/recipes/index.html",
+  "docs/en/recipes/login-form.html",
+  "docs/en/recipes/loading-error.html",
+  "docs/en/recipes/server-partial-update.html",
+  "docs/en/recipes/pdf-export.html",
+  "docs/en/examples/index.html",
+  "docs/en/concepts/index.html"
+]) {
+  expectNotContains(readSiteFile(filePath), 'href="../ja/', `${filePath} should keep English IA navigation in English.`);
+  expectNotContains(readSiteFile(filePath), 'href="../../ja/', `${filePath} should keep English IA navigation in English.`);
+  expectNotContains(readSiteFile(filePath), "/docs/ja/", `${filePath} should not route English IA readers to Japanese docs.`);
+}
+
 for (const coveragePath of ["docs/ja/user/ui-coverage.html", "docs/en/user/ui-coverage.html"]) {
   const coverageHtml = readSiteFile(coveragePath);
   for (const term of ["Tabs", "Popover", "Tooltip", "Accordion", "Disclosure", "ActionMenu"]) {
@@ -414,6 +471,21 @@ function expectNotContains(content, needle, message) {
   }
 }
 
+function expectNoStubMarker(filePath) {
+  const content = readFileSync(join(root, filePath), "utf8");
+  if (/\b(?:Stub|TODO|TBD|coming soon|placeholder)\b/iu.test(content)) {
+    failures.push(`${filePath} should contain finished English documentation, not stub markers.`);
+  }
+}
+
+function expectSameList(left, right, message) {
+  const leftOnly = left.filter((entry) => !right.includes(entry));
+  const rightOnly = right.filter((entry) => !left.includes(entry));
+  if (leftOnly.length > 0 || rightOnly.length > 0) {
+    failures.push(`${message}. ja-only: ${leftOnly.join(", ") || "-"}; en-only: ${rightOnly.join(", ") || "-"}`);
+  }
+}
+
 function expectOrder(content, needles, message) {
   let offset = -1;
   for (const needle of needles) {
@@ -482,4 +554,13 @@ function collectFiles(dir, predicate) {
     }
   }
   return files.sort((a, b) => a.localeCompare(b));
+}
+
+function collectNewIaSourceFiles(lang) {
+  const baseDir = join(root, "docs", lang);
+  return newIaSourceSections.flatMap((section) => {
+    const sectionDir = join(baseDir, section);
+    return collectFiles(sectionDir, (filePath) => filePath.endsWith(".md"))
+      .map((filePath) => filePath.slice(baseDir.length + 1));
+  }).sort((a, b) => a.localeCompare(b));
 }

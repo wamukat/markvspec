@@ -1,18 +1,35 @@
 # Examples
 
-This section is the entry point for reading `examples/` as a learning path.
+This section is the documentation entry point for reading `examples/` as a
+learning path.
 
-> Stub: A follow-up ticket will connect this page to `examples/catalog.yml`.
-> For now, use the existing example list.
+The generated example catalog is the primary place to browse runnable `.vspec.md`
+screens:
 
-## Existing Documents
+- [Example catalog](../../../examples/)
+- [Hello Screen showcase](../../../examples/showcase/hello-screen.html)
+- [Login Basic showcase](../../../examples/showcase/login-basic.html)
+- [Form Submit Flow showcase](../../../examples/showcase/form-submit-flow.html)
+- [Partial Profile showcase](../../../examples/showcase/profile-summary.partial.html)
 
-- [Example gallery](../user/example-gallery.md)
-- [UI coverage](../user/ui-coverage.md)
+## How To Read Examples
 
-## Repository Examples
+Start with `Hello Screen`, then follow the catalog learning path. Each showcase
+keeps the source and generated preview side by side, so you can see how Markdown
+headings and bullets become a low-fidelity UI specification.
 
-- [examples/README.md](../../../examples/README.md)
-- [Hello Screen](../../../examples/01-basics/hello-screen.vspec.md)
-- [Login Basic](../../../examples/04-real-world-screens/login-basic.vspec.md)
-- [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md)
+Use examples for:
+
+- learning the file shape before reading the full reference
+- copying a small screen pattern into a new `.vspec.md` file
+- checking how actions, states, and partial updates are written together
+- reviewing renderer coverage for common UI patterns
+
+## Related Documentation
+
+- [Start: First Screen](../start/first-screen.md)
+- [Guide: Markdown Model](../guide/markdown-model.md)
+- [Guide: Actions](../guide/actions.md)
+- [Reference: File Format](../reference/file-format.md)
+- [Reference: Elements](../reference/elements.md)
+- [Recipes: Login Form](../recipes/login-form.md)

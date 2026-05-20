@@ -33,4 +33,4 @@ Maintainer documents are separated from the user-facing reading path.
 - [Preview information architecture](maintainers/preview-information-architecture.md)
 - [Release checklist](maintainers/release-checklist.md)
 
-日本語版は [日本語ドキュメント](../ja/) を参照してください。
+For Japanese documentation, see [Japanese Documentation](../ja/).
