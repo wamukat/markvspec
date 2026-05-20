@@ -68,6 +68,7 @@ Error messages can be written in a shape that matches constraints.
 
 ## Related Pages
 
+- [Guide: Validation](../guide/validation.md)
 - [Elements](elements.md)
 - [Actions](actions.md)
 - [Business Rules](rules.md)

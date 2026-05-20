@@ -68,6 +68,7 @@ error message は constraint と対応する形で書けます。
 
 ## 関連ページ
 
+- [Guide: Validation](../guide/validation.md)
 - [Elements](elements.md)
 - [Actions](actions.md)
 - [Business Rules](rules.md)
