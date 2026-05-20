@@ -20,6 +20,8 @@ State は、同じ画面の見え方を分ける名前です。
 
 preview では state ごとに画面を切り替えて確認できます。
 
+![Async Fetching の state 切り替え preview](../../assets/previews/async-loading-showcase.png)
+
 ## 名前の付け方
 
 - `isLoading` ではなく `loading`

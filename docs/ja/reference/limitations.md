@@ -48,6 +48,8 @@ MarkVSpec では、実装詳細ではなく意味を持つ DSL を書きます�
 - action: A-Submit
 ```
 
+![Source Kind Metadata の semantic DSL preview](../../assets/previews/source-kind-metadata-showcase.png)
+
 ## 注意点
 
 - MarkVSpec は low-fidelity wireframe と仕様確認に向いた形式です。

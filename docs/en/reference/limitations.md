@@ -48,6 +48,8 @@ Prefer:
 - action: A-Submit
 ```
 
+![Source Kind Metadata semantic DSL preview](../../assets/previews/source-kind-metadata-showcase.png)
+
 ## Notes
 
 - MarkVSpec is suited to low-fidelity wireframes and specification review.

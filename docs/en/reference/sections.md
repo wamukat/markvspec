@@ -51,6 +51,8 @@ MarkVSpec recognizes these top-level sections.
 - Should the resend action be visible before 30 seconds?
 ```
 
+![Hello Screen sections and generated preview](../../assets/previews/hello-screen-showcase.png)
+
 ## Notes
 
 - Use the fixed English section names, even in Japanese documents.

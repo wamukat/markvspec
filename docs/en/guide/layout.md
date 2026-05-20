@@ -27,6 +27,8 @@ Use `L-*` layout groups for meaningful units such as forms, headers, lists, deta
 
 This example defines a login form as one layout group and fixes the order of the fields with `Items`. That is enough for preview to show what appears and in what order.
 
+![Responsive Profile layout preview](../../assets/previews/responsive-profile-showcase.png)
+
 ## Common Patterns
 
 - Use `L-*` IDs for layout groups.

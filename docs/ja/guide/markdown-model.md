@@ -40,6 +40,8 @@ locale: en
 
 この例は、画面 ID と title を metadata として持ち、`States`、`Layout`、`Elements` の 3 section だけで preview 可能な最小の画面を表します。最初はこのサイズで作り、preview が出ることを確認してから action や validation を追加すると、問題の切り分けが簡単です。
 
+![Hello Screen の source と生成 preview](../../assets/previews/hello-screen-showcase.png)
+
 ## よくある書き方
 
 - `SCR-*` は画面、`L-*` は layout group、`E-*` は element、`A-*` は action、`R-*` は rule に使う。

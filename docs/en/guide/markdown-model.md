@@ -40,6 +40,8 @@ locale: en
 
 This example has screen metadata and only three sections: `States`, `Layout`, and `Elements`. That is enough to start rendering a preview. Start this small, confirm the preview works, then add actions and validation so problems are easy to isolate.
 
+![Hello Screen source and generated preview](../../assets/previews/hello-screen-showcase.png)
+
 ## Common Patterns
 
 - Use `SCR-*` for screens, `L-*` for layout groups, `E-*` for elements, `A-*` for actions, and `R-*` for rules.

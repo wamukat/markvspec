@@ -51,6 +51,8 @@ Sections は `.vspec.md` の本文を分割する top-level heading です。Mar
 - Should the resend action be visible before 30 seconds?
 ```
 
+![Hello Screen の section 構成と生成 preview](../../assets/previews/hello-screen-showcase.png)
+
 ## 注意点
 
 - section heading は英語の固定名を使います。日本語文書でも `## Elements` のように書きます。

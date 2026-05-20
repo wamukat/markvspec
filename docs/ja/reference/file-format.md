@@ -68,6 +68,8 @@ route: /hello
 - text: Hello MarkVSpec
 ```
 
+![Hello Screen の file format 例と生成 preview](../../assets/previews/hello-screen-showcase.png)
+
 ## 注意点
 
 - file extension は `.vspec.md` を使います。

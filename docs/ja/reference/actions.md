@@ -95,6 +95,8 @@ server-rendered partial update は raw htmx 属性ではなく、結果 case の
   - navigate: SCR-SETTINGS
 ```
 
+![Form Submit Flow の actions preview](../../assets/previews/form-submit-flow-showcase.png)
+
 ## 注意点
 
 - action の ID は `A-*` を使います。

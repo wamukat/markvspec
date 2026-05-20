@@ -49,6 +49,8 @@ Rule は `### R-* Name` の形で宣言します。
 - message: No matching results.
 ```
 
+![History And Errors の business rules preview](../../assets/previews/history-and-errors-showcase.png)
+
 ## Validator Diagnostics との違い
 
 Validator Diagnostics は parser / validator が source の不足や矛盾を見つけて出す tool output です。`## Business Rules` は author が画面仕様として書く判断条件です。

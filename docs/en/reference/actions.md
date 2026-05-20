@@ -95,6 +95,8 @@ Describe server-rendered partial updates with `display` inside a result case, no
   - navigate: SCR-SETTINGS
 ```
 
+![Form Submit Flow actions preview](../../assets/previews/form-submit-flow-showcase.png)
+
 ## Notes
 
 - Use the `A-*` prefix for action IDs.

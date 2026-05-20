@@ -86,6 +86,8 @@ route: /hello
   - navigate: SCR-NEXT
 ```
 
+![Hello Screen source and generated preview](../../assets/previews/hello-screen-showcase.png)
+
 ## Related Pages
 
 - [Guide](../guide/index.md)

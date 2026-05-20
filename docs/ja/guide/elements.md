@@ -65,6 +65,8 @@ Element は「画面に何があるか」と「ユーザーにとって何をす
 
 入力制約は `E-EmailInput` に近い場所へ置き、エラー表示は `tone: danger` と state 条件で表します。これにより preview でも仕様 review でも、どの部品がどの状態で意味を持つかを確認できます。
 
+![Source Kind Metadata の elements preview](../../assets/previews/source-kind-metadata-showcase.png)
+
 ## 次に読むもの
 
 - [Actions](actions.md)

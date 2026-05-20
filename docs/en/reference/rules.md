@@ -49,6 +49,8 @@ Declare a rule with the `### R-* Name` form.
 - message: No matching results.
 ```
 
+![History And Errors business rules preview](../../assets/previews/history-and-errors-showcase.png)
+
 ## Difference From Validator Diagnostics
 
 Validator Diagnostics are tool output from parser / validator checks. `## Business Rules` is author-written specification content for screen decisions.

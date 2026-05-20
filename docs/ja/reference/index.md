@@ -86,6 +86,8 @@ route: /hello
   - navigate: SCR-NEXT
 ```
 
+![Hello Screen の source と生成 preview](../../assets/previews/hello-screen-showcase.png)
+
 ## 関連ページ
 
 - [Guide](../guide/index.md)

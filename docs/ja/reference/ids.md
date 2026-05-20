@@ -55,6 +55,8 @@ title: Login
   - state: idle
 ```
 
+![Hello Screen の ID 付き preview](../../assets/previews/hello-screen-showcase.png)
+
 ## 注意点
 
 - ID は参照用、`label` や `text` は表示用です。

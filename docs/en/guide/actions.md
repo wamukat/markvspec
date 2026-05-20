@@ -75,6 +75,8 @@ The button connection lives on `E-SignInButton` with `action: A-SubmitLogin`. Th
 
 This keeps request parameters, in-flight state, and result-specific UI changes in one place. In VS Code preview, you can switch states and verify which case creates which UI.
 
+![Form Submit Flow action preview](../../assets/previews/form-submit-flow-showcase.png)
+
 ## Next Reading
 
 - [States](states.md)

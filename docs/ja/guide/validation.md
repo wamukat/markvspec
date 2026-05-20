@@ -35,6 +35,8 @@ input 自体に閉じる条件は、element の近くに書きます。
 
 preview や review では、「この field には何を入力できるか」がその場で読めます。
 
+![Single Field Validation の preview](../../assets/previews/single-field-validation-showcase.png)
+
 ## クライアント複合項目チェック
 
 複数 field を見る条件は、単一 element に押し込まず、rule として分けます。

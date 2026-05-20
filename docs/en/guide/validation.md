@@ -8,6 +8,8 @@ Validation separates constraints that belong to an input from errors that happen
 
 Errors should describe both the rule and the display behavior. Capture which state shows the error, which message area changes, and which tone the message uses. That keeps the same behavior visible in VS Code preview and exported HTML/PDF.
 
+![Single Field Validation preview](../../assets/previews/single-field-validation-showcase.png)
+
 ## Minimal Example
 
 ```markdown

@@ -81,6 +81,8 @@ Element は `### E-* Name Type` の形で宣言します。
 - href: /signup
 ```
 
+![Source Kind Metadata の elements preview](../../assets/previews/source-kind-metadata-showcase.png)
+
 ## 注意点
 
 - 見出しは `H1` や `H2` ではなく、`Heading` と `level: 1..6` で書きます。

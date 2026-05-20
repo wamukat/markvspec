@@ -68,6 +68,8 @@ route: /hello
 - text: Hello MarkVSpec
 ```
 
+![Hello Screen file format example and generated preview](../../assets/previews/hello-screen-showcase.png)
+
 ## Notes
 
 - Use the `.vspec.md` file extension.

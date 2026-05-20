@@ -55,6 +55,8 @@ title: Login
   - state: idle
 ```
 
+![Hello Screen preview with stable IDs](../../assets/previews/hello-screen-showcase.png)
+
 ## Notes
 
 - IDs are for references; `label` and `text` are for display.
