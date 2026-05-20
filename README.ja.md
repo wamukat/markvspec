@@ -65,5 +65,3 @@ npm run build
 
 保守者向けの記録は [docs/ja/maintainers/](docs/ja/maintainers/) と
 [docs/en/maintainers/](docs/en/maintainers/) にあります。
-
-リリース担当者は tag 作成前に `npm run check:readme-release` を実行します。

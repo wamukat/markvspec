@@ -66,5 +66,3 @@ npm run build
 
 Maintainer notes live under [docs/en/maintainers/](docs/en/maintainers/) and
 [docs/ja/maintainers/](docs/ja/maintainers/).
-
-Release maintainers must run `npm run check:readme-release` before tagging.
