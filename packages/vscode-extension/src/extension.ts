@@ -25,7 +25,10 @@ import {
   anchoredOverlayReference,
   controlledPanelReferences,
   displayLabelForElement,
+  displaySummaryForElement,
+  displaySummaryForElementProperties,
   elementDomainFor,
+  isElementDisplaySampleValue,
   businessRuleMessages,
   validationDomainFor,
   validationErrorCodes,
@@ -1116,7 +1119,7 @@ function symbolsForSection(
   if (section.title === "Elements") {
     return result.elements
       .filter((element) => isLineInSection(element.location.line, section))
-      .map((element) => createDocumentSymbol(document, `${formatMarkerPrefix(element.properties["marker"])}${element.id}`, element.type, vscode.SymbolKind.Field, element.location.line, nextSiblingLineEnd(document, element.location.line, section.endLine)));
+      .map((element) => createDocumentSymbol(document, `${formatMarkerPrefix(displaySummaryForElement(element).marker)}${element.id}`, element.type, vscode.SymbolKind.Field, element.location.line, nextSiblingLineEnd(document, element.location.line, section.endLine)));
   }
 
   if (section.title === "Actions") {
@@ -2771,17 +2774,18 @@ function renderDisplayContentValue(element: ParsedElement, value: string, sectio
   if (hasOpaqueExpression(value)) {
     return renderExpressionTokens(value);
   }
-  const dataSample = element.properties["source"] === "data" ? rawStringProperty(element.properties["sample"]) : "";
-  return element.type === "Badge" && (value === dataSample || value === rawStringProperty(element.properties["text"]))
-    ? renderSemanticChip(value, rawStringProperty(element.properties["tone"]))
+  const summary = displaySummaryForElement(element);
+  return isElementDisplaySampleValue(element, value)
+    ? renderSemanticChip(value, summary.tone)
     : text(value);
 }
 
 function renderSampleRowsRef(element: ParsedElement, sampleRowsRef: DisplayContentSpecSampleRowsRef): string {
+  const summary = displaySummaryForElement(element);
   const ref = renderEntityRefChip({
     id: sampleRowsRef.elementId,
     category: "element",
-    marker: rawStringProperty(element.properties["marker"]) || sampleRowsRef.elementId,
+    marker: summary.marker || sampleRowsRef.elementId,
     label: element.id,
     href: sampleRowsRef.anchorId ? `#${sampleRowsRef.anchorId}` : undefined
   });
@@ -4522,21 +4526,23 @@ function firstStringProperty(value: string | string[] | true | undefined): strin
 }
 
 function renderElementLabelSummary(properties: Record<string, string | true>): string {
-  const labelValue = stringProperty(properties["label"]);
-  const labelSource = renderSourceSummary(properties["label src"]);
+  const summary = displaySummaryForElementProperties(properties);
+  const labelValue = summary.label;
+  const labelSource = renderSourceSummary(summary.labelSource);
   return [labelValue, labelSource].filter(Boolean).join("<br>");
 }
 
 function renderElementDescription(result: ReturnType<typeof parseMarkVSpec>, element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
   const domain = elementDomainFor(element);
   const overlay = domain.anchoredOverlay();
-  const description = stringProperty(element.properties["description"])
-    || stringProperty(element.properties["purpose"])
+  const summary = domain.displaySummary();
+  const description = summary.description
+    || summary.purpose
     || firstEntityProseParagraph(element.overview)
-    || (domain.is("Tabs") && stringProperty(element.properties["active"]) ? `active tab: ${stringProperty(element.properties["active"])}` : "")
-    || (domain.is("Accordion") && stringProperty(element.properties["open"]) ? `open item: ${stringProperty(element.properties["open"])}` : "")
-    || (domain.is("Disclosure") && stringProperty(element.properties["open"]) ? `open: ${stringProperty(element.properties["open"])}` : "")
-    || (domain.is("ActionMenu") && stringProperty(element.properties["open"]) ? `open: ${stringProperty(element.properties["open"])}` : "")
+    || (domain.is("Tabs") && summary.active ? `active tab: ${summary.active}` : "")
+    || (domain.is("Accordion") && summary.open ? `open item: ${summary.open}` : "")
+    || (domain.is("Disclosure") && summary.open ? `open: ${summary.open}` : "")
+    || (domain.is("ActionMenu") && summary.open ? `open: ${summary.open}` : "")
     || (overlay?.anchorId ? `anchor: ${overlay.anchorId}` : "")
     || "";
   const notes = renderEntityNotes(result, element.notes);
@@ -4567,24 +4573,25 @@ function renderElementContentDisplay(element: ReturnType<typeof parseMarkVSpec>[
     return content;
   }
 
-  return renderSemanticChip(content, stringProperty(element.properties["tone"]));
+  return renderSemanticChip(content, displaySummaryForElement(element).tone);
 }
 
 function renderElementSampleSummary(element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
-  const sample = element.properties["source"] === "data" ? stringProperty(element.properties["sample"]) : "";
+  const { dataSample: sample, tone } = displaySummaryForElement(element);
   if (element.type === "Badge" && sample) {
-    return renderSemanticChip(sample, stringProperty(element.properties["tone"]));
+    return renderSemanticChip(sample, tone);
   }
 
-  return sample;
+  return sample ?? "";
 }
 
 function renderFormControlValue(
   element: ReturnType<typeof parseMarkVSpec>["elements"][number],
   sampleValue: string | undefined
 ): string {
-  const initialValue = rawStringProperty(element.properties["initial value"]);
-  const value = rawStringProperty(element.properties["value"]);
+  const summary = displaySummaryForElement(element);
+  const initialValue = summary.initialValue ?? "";
+  const value = summary.value ?? "";
   const renderedValue = sampleValue ?? (initialValue || value);
   return renderedValue ? renderExpressionTokens(renderedValue) : "";
 }
@@ -4695,16 +4702,17 @@ function renderElementDisplayValue(
   result: ReturnType<typeof parseMarkVSpec>,
   element: ReturnType<typeof parseMarkVSpec>["elements"][number]
 ): string {
-  const labelValue = rawStringProperty(element.properties["label"]);
-  const sample = element.properties["source"] === "data" ? rawStringProperty(element.properties["sample"]) : "";
-  const textValue = rawStringProperty(element.properties["text"]);
-  const value = rawStringProperty(element.properties["value"]);
-  const format = rawStringProperty(element.properties["format"]);
+  const summary = displaySummaryForElement(element);
+  const labelValue = summary.label ?? "";
+  const sample = summary.dataSample ?? "";
+  const textValue = summary.text ?? "";
+  const value = summary.value ?? "";
+  const format = summary.format ?? "";
   const rows = [
-    labelValue ? `${label(result, "label")}: ${renderValueWithOptionalSource(labelValue, element.properties["label src"])}` : "",
+    labelValue ? `${label(result, "label")}: ${renderValueWithOptionalSource(labelValue, summary.labelSource)}` : "",
     textValue ? `${label(result, "textValue")}: ${renderElementFixedTextDisplayValue(element, textValue)}` : "",
     sample ? `${label(result, "sample")}: ${renderElementSampleDisplayValue(element, sample)}` : "",
-    !sample && element.properties["src"] ? `${label(result, "src")}: ${renderSourceSummary(element.properties["src"])}` : "",
+    !sample && summary.src ? `${label(result, "src")}: ${renderSourceSummary(summary.src)}` : "",
     value ? `${label(result, "value")}: ${hasOpaqueExpression(value) ? renderExpressionTokens(value) : text(value)}` : "",
     format ? `${label(result, "format")}: ${text(format)}` : "",
     element.type === "Accordion" ? renderAccordionSummary(result, element) : "",
@@ -4721,16 +4729,17 @@ function renderElementDisplayValue(
 }
 
 function renderElementSampleDisplayValue(element: ReturnType<typeof parseMarkVSpec>["elements"][number], sample: string): string {
+  const summary = displaySummaryForElement(element);
   const renderedSample = element.type === "Badge"
-    ? renderSemanticChip(sample, rawStringProperty(element.properties["tone"]))
+    ? renderSemanticChip(sample, summary.tone)
     : text(sample);
-  const source = renderSourceSummary(element.properties["src"]);
+  const source = renderSourceSummary(summary.src);
   return source ? `${renderedSample} (${source})` : renderedSample;
 }
 
 function renderElementFixedTextDisplayValue(element: ReturnType<typeof parseMarkVSpec>["elements"][number], value: string): string {
   return element.type === "Badge"
-    ? renderSemanticChip(value, rawStringProperty(element.properties["tone"]))
+    ? renderSemanticChip(value, displaySummaryForElement(element).tone)
     : text(value);
 }
 
@@ -4767,7 +4776,7 @@ function renderAccordionSummary(
   result: ReturnType<typeof parseMarkVSpec>,
   element: ReturnType<typeof parseMarkVSpec>["elements"][number]
 ): string {
-  const open = rawStringProperty(element.properties["open"]);
+  const open = displaySummaryForElement(element).open ?? "";
   const references = controlledPanelReferences(element).filter((reference) => reference.kind === "accordion");
   const rows = [
     open ? `open: ${text(open)}` : "",
@@ -4787,11 +4796,12 @@ function renderDisclosureSummary(
   result: ReturnType<typeof parseMarkVSpec>,
   element: ReturnType<typeof parseMarkVSpec>["elements"][number]
 ): string {
+  const summary = displaySummaryForElement(element);
   const reference = controlledPanelReferences(element)[0];
   const rows = [
-    rawStringProperty(element.properties["open"]) ? `open: ${text(rawStringProperty(element.properties["open"]))}` : "",
+    summary.open ? `open: ${text(summary.open)}` : "",
     reference?.panelId ? `panel: ${renderLayoutReferenceForId(result, reference.panelId)}` : "",
-    rawStringProperty(element.properties["action"]) ? `action: ${referenceForId(result, rawStringProperty(element.properties["action"]), "action")}` : ""
+    summary.actionId ? `action: ${referenceForId(result, summary.actionId, "action")}` : ""
   ].filter(Boolean);
   return rows.length > 0 ? renderSpecSections([{ title: "Disclosure", rows }]) : "";
 }
@@ -4800,9 +4810,10 @@ function renderActionMenuSummary(
   result: ReturnType<typeof parseMarkVSpec>,
   element: ReturnType<typeof parseMarkVSpec>["elements"][number]
 ): string {
+  const summary = displaySummaryForElement(element);
   const rows = [
-    rawStringProperty(element.properties["open"]) ? `open: ${text(rawStringProperty(element.properties["open"]))}` : "",
-    rawStringProperty(element.properties["placement"]) ? `placement: ${text(rawStringProperty(element.properties["placement"]))}` : "",
+    summary.open ? `open: ${text(summary.open)}` : "",
+    summary.placement ? `placement: ${text(summary.placement)}` : "",
     ...element.actionMenuItems.map((item) => {
       const details = [
         item.action ? `action: ${referenceForId(result, item.action, "action")}` : "",
@@ -4870,7 +4881,7 @@ function renderValueWithOptionalSource(value: string, source: string | true | un
 }
 
 function renderToneSummary(element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
-  const tone = stringProperty(element.properties["tone"]);
+  const tone = displaySummaryForElement(element).tone;
   return tone ? renderSemanticChip(tone, tone) : "";
 }
 
@@ -4893,25 +4904,11 @@ function semanticChipTone(tone: string | undefined): "neutral" | "info" | "succe
 }
 
 function renderElementValueSummary(properties: Record<string, string | true>): string {
-  const value = stringProperty(properties["value"]);
-  const initialValue = stringProperty(properties["initial value"]);
-  if (value && initialValue) {
-    return `${value} {${initialValue}}`;
-  }
-  return value || initialValue;
+  return displaySummaryForElementProperties(properties).valueSummary ?? "";
 }
 
 function renderElementContentSummary(element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
-  const sample = element.properties["source"] === "data" ? stringProperty(element.properties["sample"]) : "";
-  return sample
-    || stringProperty(element.properties["label"])
-    || stringProperty(element.properties["value"])
-    || stringProperty(element.properties["content"])
-    || stringProperty(element.properties["text"])
-    || stringProperty(element.properties["alt"])
-    || stringProperty(element.properties["name"])
-    || stringProperty(element.properties["title"])
-    || stringProperty(element.properties["active"]);
+  return displaySummaryForElement(element).contentSummary ?? "";
 }
 
 function renderSourceSummary(value: string | true | undefined): string {
@@ -4952,7 +4949,7 @@ function renderElementActionReferences(
   element: ReturnType<typeof parseMarkVSpec>["elements"][number]
 ): string {
   const actionIds = [
-    rawStringProperty(element.properties["action"]),
+    displaySummaryForElement(element).actionId,
     ...controlledPanelReferences(element).map((reference) => reference.actionId),
     ...element.actionMenuItems.map((item) => item.action),
     ...result.actions
@@ -4966,17 +4963,18 @@ function renderElementActionReferences(
 }
 
 function renderContentElementNotes(element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
+  const summary = displaySummaryForElement(element);
   const notes = [
-    stringProperty(element.properties["level"]) ? `level: ${stringProperty(element.properties["level"])}` : "",
-    stringProperty(element.properties["src"]) ? `src: ${stringProperty(element.properties["src"])}` : "",
-    stringProperty(element.properties["format"]) ? `format: ${stringProperty(element.properties["format"])}` : "",
-    stringProperty(element.properties["items"]) ? `items: ${stringProperty(element.properties["items"])}` : "",
-    element.type === "Tabs" && stringProperty(element.properties["active"]) ? `active tab: ${stringProperty(element.properties["active"])}` : "",
-    element.type === "Accordion" && stringProperty(element.properties["open"]) ? `open item: ${stringProperty(element.properties["open"])}` : "",
+    summary.level ? `level: ${summary.level}` : "",
+    summary.src ? `src: ${summary.src}` : "",
+    summary.format ? `format: ${summary.format}` : "",
+    summary.items ? `items: ${summary.items}` : "",
+    element.type === "Tabs" && summary.active ? `active tab: ${summary.active}` : "",
+    element.type === "Accordion" && summary.open ? `open item: ${summary.open}` : "",
     element.type === "Accordion" && element.accordionItems.length > 0 ? `items: ${element.accordionItems.map((item) => item.label).join(", ")}` : "",
-    element.type === "Disclosure" && stringProperty(element.properties["open"]) ? `open: ${stringProperty(element.properties["open"])}` : "",
-    element.type === "Disclosure" && stringProperty(element.properties["panel"]) ? `panel: ${stringProperty(element.properties["panel"])}` : "",
-    element.type === "ActionMenu" && stringProperty(element.properties["open"]) ? `open: ${stringProperty(element.properties["open"])}` : "",
+    element.type === "Disclosure" && summary.open ? `open: ${summary.open}` : "",
+    element.type === "Disclosure" && summary.panelId ? `panel: ${summary.panelId}` : "",
+    element.type === "ActionMenu" && summary.open ? `open: ${summary.open}` : "",
     element.type === "ActionMenu" && element.actionMenuItems.length > 0 ? `items: ${element.actionMenuItems.map((item) => item.label).join(", ")}` : "",
     element.tableColumns.length > 0 ? `columns: ${element.tableColumns.map((column) => column.label).join(", ")}` : "",
     element.tableRows.length > 0 ? `sample rows: ${element.tableRows.length}` : ""

@@ -35,6 +35,31 @@ export interface AnchoredOverlayReference {
   placement?: string;
 }
 
+export interface ElementDisplaySummary {
+  marker?: string;
+  label?: string;
+  labelSource?: string;
+  description?: string;
+  purpose?: string;
+  dataSample?: string;
+  text?: string;
+  content?: string;
+  value?: string;
+  initialValue?: string;
+  src?: string;
+  format?: string;
+  tone?: string;
+  actionId?: string;
+  active?: string;
+  open?: string;
+  panelId?: string;
+  placement?: string;
+  level?: string;
+  items?: string;
+  contentSummary?: string;
+  valueSummary?: string;
+}
+
 export interface ActiveControlledPanelOptions {
   isConditionActive(condition: string): boolean;
 }
@@ -206,6 +231,57 @@ export function displayValueForElement(element: MarkVSpecElement): string | unde
   return value && !isFormControlElement(element) ? value : undefined;
 }
 
+export function displaySummaryForElement(element: MarkVSpecElement): ElementDisplaySummary {
+  return displaySummaryForElementProperties(element.properties);
+}
+
+export function displaySummaryForElementProperties(properties: MarkVSpecElement["properties"]): ElementDisplaySummary {
+  const owner = { properties };
+  const dataSample = propertyString(owner, "source") === "data" ? nonEmpty(propertyString(owner, "sample")) : undefined;
+  const value = nonEmpty(propertyString(owner, "value"));
+  const initialValue = nonEmpty(propertyString(owner, "initial value"));
+  const contentSummary = dataSample
+    ?? nonEmpty(propertyString(owner, "label"))
+    ?? value
+    ?? nonEmpty(propertyString(owner, "content"))
+    ?? nonEmpty(propertyString(owner, "text"))
+    ?? nonEmpty(propertyString(owner, "alt"))
+    ?? nonEmpty(propertyString(owner, "name"))
+    ?? nonEmpty(propertyString(owner, "title"))
+    ?? nonEmpty(propertyString(owner, "active"));
+  const valueSummary = value && initialValue ? `${value} {${initialValue}}` : value ?? initialValue;
+
+  return {
+    marker: propertyString(owner, "marker"),
+    label: propertyString(owner, "label"),
+    labelSource: propertyString(owner, "label src"),
+    description: propertyString(owner, "description"),
+    purpose: propertyString(owner, "purpose"),
+    dataSample,
+    text: propertyString(owner, "text"),
+    content: propertyString(owner, "content"),
+    value,
+    initialValue,
+    src: propertyString(owner, "src"),
+    format: propertyString(owner, "format"),
+    tone: propertyString(owner, "tone"),
+    actionId: propertyString(owner, "action"),
+    active: propertyString(owner, "active"),
+    open: propertyString(owner, "open"),
+    panelId: propertyString(owner, "panel"),
+    placement: propertyString(owner, "placement"),
+    level: propertyString(owner, "level"),
+    items: propertyString(owner, "items"),
+    contentSummary,
+    valueSummary
+  };
+}
+
+export function isElementDisplaySampleValue(element: MarkVSpecElement, value: string): boolean {
+  const summary = displaySummaryForElement(element);
+  return element.type === "Badge" && (value === summary.dataSample || value === summary.text);
+}
+
 function nonEmpty(value: string | undefined): string | undefined {
   return value ? value : undefined;
 }
@@ -356,6 +432,10 @@ export class ElementDomain {
 
   displayValue(): string | undefined {
     return displayValueForElement(this.element);
+  }
+
+  displaySummary(): ElementDisplaySummary {
+    return displaySummaryForElement(this.element);
   }
 
   anchoredOverlay(): AnchoredOverlayReference | undefined {

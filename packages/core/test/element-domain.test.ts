@@ -5,6 +5,8 @@ import {
   anchoredOverlayReference,
   controlledPanelReferences,
   displayLabelForElement,
+  displaySummaryForElement,
+  displaySummaryForElementProperties,
   displayValueForElement,
   elementAllowedProperties,
   elementDomainFor,
@@ -13,6 +15,7 @@ import {
   isChoiceControlElement,
   isContentDisplayElement,
   isControlledPanelElement,
+  isElementDisplaySampleValue,
   isFormControlElement,
   isKnownElementType,
   isOverlayElement
@@ -161,6 +164,49 @@ test("element domain exposes display value for non-form display elements", () =>
   assert.equal(displayValueForElement(element("Text", { value: "Published" })), "Published");
   assert.equal(displayValueForElement(element("Input", { value: "Jane" })), undefined);
   assert.equal(elementDomainFor(element("Badge", { value: "Paid" })).displayValue(), "Paid");
+});
+
+test("element domain builds display summary from semantic element properties", () => {
+  assert.deepEqual(displaySummaryForElement(element("Badge", {
+    marker: "Status",
+    label: "Payment status",
+    "label src": "i18n:payment.status",
+    description: "Current payment state",
+    source: "data",
+    sample: "Paid",
+    text: "Fallback",
+    tone: "success",
+    action: "A-OpenPayment",
+    format: "currency"
+  })), {
+    marker: "Status",
+    label: "Payment status",
+    labelSource: "i18n:payment.status",
+    description: "Current payment state",
+    purpose: undefined,
+    dataSample: "Paid",
+    text: "Fallback",
+    content: undefined,
+    value: undefined,
+    initialValue: undefined,
+    src: undefined,
+    format: "currency",
+    tone: "success",
+    actionId: "A-OpenPayment",
+    active: undefined,
+    open: undefined,
+    panelId: undefined,
+    placement: undefined,
+    level: undefined,
+    items: undefined,
+    contentSummary: "Paid",
+    valueSummary: undefined
+  });
+  assert.equal(isElementDisplaySampleValue(element("Badge", { source: "data", sample: "Paid", tone: "success" }), "Paid"), true);
+  assert.equal(isElementDisplaySampleValue(element("Text", { source: "data", sample: "Paid" }), "Paid"), false);
+  assert.equal(displaySummaryForElementProperties({ value: "Published", "initial value": "Draft" }).valueSummary, "Published {Draft}");
+  assert.equal(displaySummaryForElementProperties({ label: "", text: "Title" }).contentSummary, "Title");
+  assert.equal(displaySummaryForElementProperties({ value: "", "initial value": "Draft" }).valueSummary, "Draft");
 });
 
 test("element domain exposes anchored overlay references", () => {

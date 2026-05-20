@@ -1,6 +1,6 @@
 import { sourceTypeForElement, type MarkVSpecSourceType } from "./source-types.js";
 import { tableColumnSampleKeys } from "./table-columns.js";
-import { anchoredOverlayReference, controlledPanelReferences, displayValueForElement, elementDomainFor, isFormControlElement } from "./element-domain.js";
+import { anchoredOverlayReference, controlledPanelReferences, displaySummaryForElement, displayValueForElement, elementDomainFor, isFormControlElement } from "./element-domain.js";
 import type { MarkVSpecParseResult } from "./types.js";
 
 type ParsedElement = MarkVSpecParseResult["elements"][number];
@@ -278,7 +278,7 @@ function pushListItemsRow(
     return;
   }
 
-  const items = splitListValue(rawStringProperty(element.properties["items"]));
+  const items = splitListValue(displaySummaryForElement(element).items ?? "");
   if (items.length === 0) {
     return;
   }
@@ -348,10 +348,11 @@ function pushAccordionDisclosureRows(
     return;
   }
 
-  const label = rawStringProperty(element.properties["label"]);
-  const open = rawStringProperty(element.properties["open"]);
+  const summary = displaySummaryForElement(element);
+  const label = summary.label ?? "";
+  const open = summary.open ?? "";
   const panel = disclosureReference.panelId ?? "";
-  const action = rawStringProperty(element.properties["action"]);
+  const action = summary.actionId ?? "";
   const rowsValue = [
     label ? `label: ${label}` : "",
     open ? `open: ${open}` : "",
@@ -411,7 +412,8 @@ function pushAnchoredOverlayRow(
     return;
   }
 
-  const text = rawStringProperty(element.properties["text"]) || rawStringProperty(element.properties["content"]);
+  const summary = displaySummaryForElement(element);
+  const text = summary.text || summary.content || "";
   const anchor = overlay.anchorId ?? "";
   const placement = overlay.placement ?? "";
   const visibility = element.visibleWhen.length > 0 ? element.visibleWhen.join(", ") : "";

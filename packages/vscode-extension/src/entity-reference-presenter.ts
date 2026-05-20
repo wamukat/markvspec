@@ -1,4 +1,5 @@
 import {
+  displaySummaryForElement,
   preferredLayoutGroupForViewport,
   type MarkVSpecParseResult
 } from "@markvspec/core";
@@ -91,8 +92,7 @@ export function findMarker(result: MarkVSpecParseResult, id: string): string | u
 
   const element = result.elements.find((candidate) => candidate.id === id);
   if (element) {
-    const marker = element.properties["marker"];
-    return typeof marker === "string" ? marker : undefined;
+    return displaySummaryForElement(element).marker;
   }
 
   const action = result.actions.find((candidate) => candidate.id === id);

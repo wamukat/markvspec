@@ -112,6 +112,8 @@ export {
   anchoredOverlayReference,
   commonElementProperties,
   controlledPanelReferences,
+  displaySummaryForElement,
+  displaySummaryForElementProperties,
   displayLabelForElement,
   elementAcceptsOptions,
   elementAllowedProperties,
@@ -123,6 +125,7 @@ export {
   isChoiceControlElement,
   isContentDisplayElement,
   isControlledPanelElement,
+  isElementDisplaySampleValue,
   isFormControlElement,
   isKnownElementType,
   isOverlayElement
@@ -130,6 +133,7 @@ export {
 export type {
   AnchoredOverlayReference,
   ControlledPanelReference,
+  ElementDisplaySummary,
   ElementTypeDefinition,
   MarkVSpecElementKind
 } from "./element-domain.js";
