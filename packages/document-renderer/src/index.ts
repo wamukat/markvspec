@@ -1,5 +1,10 @@
-import { buildViewportStateScreenReadModels, effectiveHistoryFields, isMarkVSpecSourceType, latestHistoryBasicInfo, layoutConditionValues, layoutDisplaySettings, messagesForLocale, propertyBoolean, propertyString as corePropertyString, renderMarkVSpecHtml, resolveMarkVSpecEntityReference, sampleRowsAnchorId, scenarioRouteValues, sourceTypeForElement, stateScreenControlledPanelPlacementsForModel, stateScreenElementGroups, stateScreenElementsForModel, stateScreenLayoutsForModel, stateScreenUnplacedLayoutIdsForModel, tableColumnSampleKeys } from "@markvspec/core";
-import type { ControlledPanelPlacement, DisplayContentSpecRow, DisplayContentSpecSampleRowsRef, MarkVSpecParseResult, RendererMessages, StateScreenReadModel } from "@markvspec/core";
+import { buildViewportStateScreenReadModels, effectiveHistoryFields, latestHistoryBasicInfo, layoutConditionValues, layoutDisplaySettings, messagesForLocale, propertyString as corePropertyString, renderMarkVSpecHtml, resolveMarkVSpecEntityReference, sampleRowsAnchorId, scenarioRouteValues, stateScreenControlledPanelPlacementsForModel, stateScreenLayoutsForModel, stateScreenUnplacedLayoutIdsForModel, tableColumnSampleKeys } from "@markvspec/core";
+import type { ControlledPanelPlacement, MarkVSpecParseResult, RendererMessages, StateScreenReadModel } from "@markvspec/core";
+import {
+  renderDisplayContentSpecBox,
+  renderInputFormSpecBox,
+  type StaticElementSpecRenderingSupport
+} from "./static-element-spec.js";
 
 export type MarkVSpecDocumentViewport = "mobile" | "tablet" | "desktop" | string;
 
@@ -139,6 +144,24 @@ export function renderDesignDocumentSections(sections: readonly string[]): strin
 export type TableCell = string | undefined | null | {
   html: string | undefined;
   rowspan?: number;
+};
+
+const staticElementSpecRenderingSupport: StaticElementSpecRenderingSupport = {
+  code,
+  consecutiveRowspans,
+  escapeHtml,
+  renderCondition,
+  renderElementConditionSummary,
+  renderExpressionTokens,
+  renderPreviewIcon,
+  renderScenarioSampleElementRef,
+  renderSemanticChip,
+  renderSpecSections,
+  renderStaticSpecList,
+  renderStaticSpecSections,
+  renderTable,
+  renderTableWithCells,
+  rowspanPrefixCells
 };
 
 export function renderStaticDesignDocumentHtml(result: MarkVSpecParseResult, options: RenderStaticDesignDocumentOptions = {}): string {
@@ -734,8 +757,8 @@ function renderStateScreenSection(
     <h5 class="state-screen-subheading">${escapeHtml(messages.wireframe)}</h5>
     <section class="wireframe-section">${wireframe}</section>
     ${renderScenarioSamplesBox(result, model, messages)}
-    ${renderInputFormSpecBox(result, model, messages)}
-    ${renderDisplayContentSpecBox(result, model, messages)}
+    ${renderInputFormSpecBox(result, model, messages, staticElementSpecRenderingSupport)}
+    ${renderDisplayContentSpecBox(result, model, messages, staticElementSpecRenderingSupport)}
   </section>
   ${renderStaticLayoutsSpecBox(result, model, messages)}
   ${scenarioNotes}
@@ -1026,216 +1049,6 @@ function scenarioSampleCellValue(fields: Record<string, string>, keys: string[])
   return "";
 }
 
-function renderInputFormSpecBox(
-  result: MarkVSpecParseResult,
-  model: StateScreenReadModel,
-  messages: RendererMessages
-): string {
-  const elements = stateScreenElementsForModel(result, model);
-  const { formControls } = stateScreenElementGroups(elements, result, model.stateName, model);
-  if (formControls.length === 0) {
-    return "";
-  }
-
-  const markerIdHeader = `${messages.marker}/${messages.id}`;
-  const rows = formControls.map((element) => [
-    renderScenarioSampleElementRef(result, element.id),
-    escapeHtml(element.type),
-    renderStaticRequiredSpec(element, messages),
-    renderStaticFormControlValue(element, model),
-    renderStaticFormControlSource(element),
-    renderStaticInputSpec(element, messages),
-    renderElementConditionSummary(element, messages)
-  ]);
-  return `<div class="element-detail-group">
-    <h6 class="state-screen-detail-heading">${escapeHtml(messages.inputFormSpec)}</h6>
-    ${renderTable([markerIdHeader, messages.type, messages.required, messages.initialValueSource, messages.displaySource, messages.inputSpec, messages.condition], rows, messages.none)}
-  </div>`;
-}
-
-function renderStaticFormControlValue(element: MarkVSpecParseResult["elements"][number], model: StateScreenReadModel): string {
-  const sampleValue = model.scenarioSamples.find((sample) => sample.elementId === element.id && sample.value !== undefined)?.value
-    ?? routeResolvedValue(rawStringProperty(element.properties["value"]), model);
-  const initialValue = rawStringProperty(element.properties["initial value"]);
-  const value = rawStringProperty(element.properties["value"]);
-  const renderedValue = sampleValue ?? (initialValue || value);
-  return renderedValue ? renderExpressionTokens(renderedValue) : "";
-}
-
-function routeResolvedValue(value: string, model: StateScreenReadModel): string | undefined {
-  const match = /^\$\{\s*route\.([A-Za-z][A-Za-z0-9_-]*)\s*\}$/u.exec(value);
-  if (!match) {
-    return undefined;
-  }
-  return model.scenarioRoute.find((sample) => sample.key === match[1])?.value;
-}
-
-function renderStaticFormControlSource(element: MarkVSpecParseResult["elements"][number]): string {
-  const valueMetadata = element.propertyMetadata["value"];
-  const sourceKind = valueMetadata?.kind ?? sourceTypeForElement(element);
-  const sourceDetail = valueMetadata?.source;
-  return [renderSourceSummary(sourceKind), sourceDetail ? renderSourceSummary(sourceDetail) : ""].filter(Boolean).join("<br>");
-}
-
-function renderStaticRequiredSpec(element: MarkVSpecParseResult["elements"][number], messages: RendererMessages): string {
-  const requiredWhenRows = element.inputRules.flatMap((rule) => {
-    if (!isRequiredWhenInputRule(rule)) {
-      return [];
-    }
-    const condition = requiredWhenValue(rule);
-    return condition ? [`${escapeHtml(messages.conditionWhenShort)}: ${renderCondition(condition)}`] : [];
-  });
-  const rows = [
-    isRequiredProperty(element.properties["required"]) || element.inputRules.some(isRequiredBooleanInputRule) ? escapeHtml(messages.requiredYes) : requiredWhenRows.length === 0 ? escapeHtml(messages.requiredNo) : "",
-    ...requiredWhenRows
-  ].filter(Boolean);
-  return rows.length === 1 ? rows[0] ?? "" : renderStaticSpecList(rows);
-}
-
-function renderStaticInputSpec(element: MarkVSpecParseResult["elements"][number], messages: RendererMessages): string {
-  const inputRows = [
-    ...["type", "mode"].map((key) => {
-      const value = rawStringProperty(element.properties[key]);
-      return value ? `${escapeHtml(key)}: ${renderExpressionTokens(value)}` : "";
-    }),
-    element.selectOptions.length > 0
-      ? `${escapeHtml(messages.options)}: ${element.selectOptions.map((option) => renderStaticValueWithOptionalSource(option.label, option.source)).join(", ")}`
-      : ""
-  ].filter(Boolean);
-  const constraintRows = [
-    ...element.inputRules
-      .filter((rule) => !isRequiredInputRule(rule))
-      .map((rule) => rule.value ? `${escapeHtml(rule.key)}: ${renderExpressionTokens(rule.value)}` : escapeHtml(rule.key)),
-    ...["min", "max", "step", "min length", "max length", "accept", "multiple"].map((key) => {
-      const property = element.properties[key];
-      const value = rawStringProperty(property);
-      if (value) {
-        return `${escapeHtml(key)}: ${renderExpressionTokens(value)}`;
-      }
-      return property === true ? escapeHtml(key) : "";
-    }),
-    element.properties["readonly"] === true || rawStringProperty(element.properties["readonly"]) ? escapeHtml(messages.readonly).toLowerCase() : ""
-  ].filter(Boolean);
-  const format = rawStringProperty(element.properties["format"]);
-  return renderStaticSpecSections([
-    [messages.input, inputRows],
-    [messages.constraints, constraintRows],
-    [messages.format, format ? [renderExpressionTokens(format)] : []]
-  ]);
-}
-
-function renderStaticValueWithOptionalSource(value: string, source: string | true | undefined): string {
-  const renderedSource = renderSourceSummary(source);
-  return renderedSource ? `${escapeHtml(value)} (${renderedSource})` : escapeHtml(value);
-}
-
-function isRequiredProperty(value: string | true | undefined): boolean {
-  return propertyBoolean({ properties: { value } }, "value");
-}
-
-function isRequiredInputRule(rule: MarkVSpecParseResult["elements"][number]["inputRules"][number]): boolean {
-  return rule.key.trim().toLowerCase() === "required" || isRequiredWhenInputRule(rule);
-}
-
-function isRequiredBooleanInputRule(rule: MarkVSpecParseResult["elements"][number]["inputRules"][number]): boolean {
-  return rule.key.trim().toLowerCase() === "required" && (!rule.value || rule.value.trim().toLowerCase() === "true");
-}
-
-function isRequiredWhenInputRule(rule: MarkVSpecParseResult["elements"][number]["inputRules"][number]): boolean {
-  return rule.key.trim().toLowerCase() === "required when" || rule.key.trim().toLowerCase().startsWith("required when ");
-}
-
-function requiredWhenValue(rule: MarkVSpecParseResult["elements"][number]["inputRules"][number]): string {
-  const key = rule.key.trim();
-  if (key.toLowerCase() === "required when") {
-    return rule.value.trim();
-  }
-  return key.slice("required when".length).trim();
-}
-
-function renderDisplayContentSpecBox(
-  result: MarkVSpecParseResult,
-  model: StateScreenReadModel,
-  messages: RendererMessages
-): string {
-  const elements = stateScreenElementsForModel(result, model);
-  const { displayContentRows } = stateScreenElementGroups(elements, result, model.stateName, model);
-  if (displayContentRows.length === 0) {
-    return "";
-  }
-
-  return `<div class="element-detail-group">
-    <h6 class="state-screen-detail-heading">${escapeHtml(messages.displayContentSpec)}</h6>
-    ${renderDisplayContentSpecTable(result, displayContentRows, messages)}
-  </div>`;
-}
-
-function renderDisplayContentSpecTable(
-  result: MarkVSpecParseResult,
-  rows: DisplayContentSpecRow[],
-  messages: RendererMessages
-): string {
-  const spans = consecutiveRowspans(rows, (row) => row.element.id);
-  const markerIdHeader = `${messages.marker}/${messages.id}`;
-  return renderTableWithCells(
-    [markerIdHeader, messages.displayLocation, messages.displayValue, messages.format, messages.displaySource, messages.condition],
-    rows.map((row, index) => [
-      ...rowspanPrefixCells(spans[index] ?? 0, [
-        renderScenarioSampleElementRef(result, row.element.id)
-      ]),
-      escapeHtml(row.location),
-      renderDisplayContentValue(row.element, row.value, row.contentSections, row.sampleRowsRef),
-      row.format ? escapeHtml(row.format) : "",
-      renderSourceSummary(row.source),
-      renderElementConditionSummary(row.element, messages)
-    ])
-  );
-}
-
-function renderDisplayContentValue(
-  element: MarkVSpecParseResult["elements"][number],
-  value: string,
-  sections?: DisplayContentSpecRow["contentSections"],
-  sampleRowsRef?: DisplayContentSpecSampleRowsRef
-): string {
-  if (sampleRowsRef) {
-    return `${escapeHtml(value)}: ${renderSampleRowsReference(element, sampleRowsRef)}`;
-  }
-  if (sections && sections.length > 0) {
-    return renderSpecSections(sections.map((section) => ({
-      title: section.title,
-      rows: section.rows.map((row) => renderExpressionTokens(row))
-    })));
-  }
-  if (hasOpaqueExpression(value)) {
-    return renderExpressionTokens(value);
-  }
-  const dataSample = element.properties["source"] === "data" ? rawStringProperty(element.properties["sample"]) : "";
-  return element.type === "Badge" && (value === dataSample || value === rawStringProperty(element.properties["text"]))
-    ? renderSemanticChip(value, rawStringProperty(element.properties["tone"]))
-    : escapeHtml(value);
-}
-
-function renderSampleRowsReference(
-  element: MarkVSpecParseResult["elements"][number],
-  sampleRowsRef: DisplayContentSpecSampleRowsRef
-): string {
-  const marker = rawStringProperty(element.properties["marker"]) || sampleRowsRef.elementId;
-  const href = sampleRowsRef.anchorId ? ` href="#${escapeHtml(sampleRowsRef.anchorId)}"` : "";
-  return `<a class="mm-ref-chip mm-ref-chip-element"${href} data-mm-ref-id="${escapeHtml(sampleRowsRef.elementId)}">${renderPreviewIcon("table")}<code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">${escapeHtml(marker)}</code> <span class="mm-detail-ref-id">${escapeHtml(sampleRowsRef.elementId)}</span></a>`;
-}
-
-function renderSourceSummary(value: string | true | undefined): string {
-  const source = rawStringProperty(value);
-  if (!source) {
-    return "";
-  }
-  if (isMarkVSpecSourceType(source)) {
-    return `<span class="mm-chip mm-source-chip mm-source-chip-${escapeHtml(source)}">${renderSourceKindIcon(source)}${escapeHtml(source)}</span>`;
-  }
-  return hasOpaqueExpression(source) ? renderExpressionTokens(source) : code(source);
-}
-
 type PreviewIconName = "circle-x" | "cog" | "database" | "eye-off" | "languages" | "merge" | "panels-top-left" | "refresh-cw" | "route" | "satellite-dish" | "split" | "square-check-big" | "table" | "unplug" | "waypoints";
 
 function renderPreviewIcon(name: PreviewIconName): string {
@@ -1257,19 +1070,6 @@ function renderPreviewIcon(name: PreviewIconName): string {
     waypoints: '<path d="m10.586 5.414-5.172 5.172"/><path d="m18.586 13.414-5.172 5.172"/><path d="M6 12h12"/><circle cx="12" cy="20" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="20" cy="12" r="2"/><circle cx="4" cy="12" r="2"/>'
   };
   return `<svg class="mm-icon mm-icon-${name}" aria-hidden="true" viewBox="0 0 24 24">${paths[name]}</svg>`;
-}
-
-function renderSourceKindIcon(source: string): string {
-  if (source === "data") {
-    return renderPreviewIcon("database");
-  }
-  if (source === "route") {
-    return renderPreviewIcon("route");
-  }
-  if (source === "i18n") {
-    return renderPreviewIcon("languages");
-  }
-  return "";
 }
 
 function renderElementConditionSummary(
