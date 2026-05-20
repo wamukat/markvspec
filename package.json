@@ -6,6 +6,7 @@
   "license": "MIT",
   "type": "module",
   "workspaces": [
+    "docs-site",
     "packages/*"
   ],
   "scripts": {
