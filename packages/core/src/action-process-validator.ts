@@ -13,43 +13,12 @@ import type {
   SourceLocation
 } from "./types.js";
 
-const partialIdRegex = /^PRT-[\p{L}\p{N}-]+$/u;
 const validationResultReferenceRegex = new RegExp(String.raw`^(V-${idNamePattern})\.result$`, "u");
 
 export interface ActionProcessValidationSupport {
   firstPropertyLocation(owner: { propertyLocations?: Record<string, SourceLocation[]> }, key: string): SourceLocation | undefined;
   requestParamSourceId(source: string): string | undefined;
   splitReferenceList(value: string): string[];
-}
-
-export function validatePartialRequestStep(
-  actionId: string,
-  step: MarkVSpecProcessStep,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  const request = processStepDetailFromReadModel(step, "request");
-  if (!request || !/^([A-Z]+)\s+.+$/.test(request.value)) {
-    diagnostics.push({
-      severity: "warning",
-      message: `Action ${actionId} PartialRequest step should define request such as GET /path.`,
-      line: request?.location.line ?? step.location.line
-    });
-  }
-
-  const partial = processStepDetailFromReadModel(step, "partial");
-  if (!partial) {
-    diagnostics.push({
-      severity: "warning",
-      message: `Action ${actionId} PartialRequest step should define partial PRT-* ID.`,
-      line: step.location.line
-    });
-  } else if (!partialIdRegex.test(partial.value)) {
-    diagnostics.push({
-      severity: "error",
-      message: `Action ${actionId} PartialRequest partial must use a PRT-* partial ID.`,
-      line: partial.location.line
-    });
-  }
 }
 
 export function validateProcessGranularity(
@@ -88,11 +57,6 @@ export function validateProcessGranularity(
 }
 
 export function validateUnsupportedProcessLevelPartial(actionId: string, step: MarkVSpecProcessStep, diagnostics: MarkVSpecDiagnostic[]): void {
-  const processReadModel = buildMarkVSpecProcessStepReadModel(step);
-  if (processReadModel.kind === "PartialRequest") {
-    return;
-  }
-
   for (const detail of step.details.filter((candidate) => candidate.key === "partial")) {
     diagnostics.push({
       severity: "warning",

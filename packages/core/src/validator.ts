@@ -43,7 +43,6 @@ import {
 } from "./action-envelope-read-model.js";
 import {
   processStepLabel,
-  validatePartialRequestStep,
   validateProcessBusinessRulePlacement,
   validateProcessCaseFlowPlacement,
   validateProcessDataReferences,
@@ -60,7 +59,6 @@ import {
   validateValidationRules,
   validateValidationScopeAndRun,
   validateValidationTargets,
-  validateValidationTrigger,
   validationPropertyValues,
   type BusinessRuleOutcomeDiagnosticSupport,
   type ValidationRuleDiagnosticContext,
@@ -627,7 +625,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
       if (processReadModel.kind === "HttpRequest" && !processReadModel.execution.request) {
         diagnostics.push({
           severity: "warning",
-          message: `Action ${action.id} HttpRequest step has no request line such as POST /path.`,
+          message: `Action ${action.id} request process step has no request line such as POST /path.`,
           line: step.location.line
         });
       }
@@ -640,20 +638,6 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
             line: detail.location.line
           });
         }
-      }
-
-      if (processReadModel.kind === "PartialRequest") {
-        validatePartialRequestStep(action.id, step, diagnostics);
-        const partialDetail = step.details.find((detail) => detail.key === "partial");
-        const isSelfPartialRequest = result.screen.type === "partial" && partialDetail?.value === result.screen.id;
-        if (isSelfPartialRequest) {
-          continue;
-        }
-        collectPartialReference(
-          partialDetail?.value,
-          partialDetail?.location ?? step.location,
-          referencedPartialIds
-        );
       }
 
       if (processReadModel.kind === "Resolve") {
@@ -876,9 +860,7 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
 
   for (const validation of result.validations) {
     validateValidationTargets(validation, validationTargetDiagnosticContext, diagnostics);
-    validateValidationTrigger(validation, diagnostics);
     validateValidationRules(validation, validationRuleDiagnosticContext, diagnostics);
-    validateValidationCondition(validation, localIds, diagnostics);
     validateValidationErrorCodes(validation, errorCodeIds, diagnostics);
     validateValidationScopeAndRun(validation, diagnostics);
   }
@@ -1152,22 +1134,6 @@ function validateErrorCode(
         line: errorCode.propertyLocations["display"]?.[index]?.line ?? errorCode.location.line
       });
     }
-  });
-}
-
-function validateValidationCondition(
-  validation: MarkVSpecParseResult["validations"][number],
-  localIds: Set<string>,
-  diagnostics: MarkVSpecDiagnostic[]
-): void {
-  validationPropertyValues(validation, "condition").forEach((condition, index) => {
-    checkConditionReferences(
-      condition,
-      localIds,
-      diagnostics,
-      validation.propertyLocations["condition"]?.[index]?.line ?? validation.location.line,
-      "warning"
-    );
   });
 }
 
@@ -1969,14 +1935,6 @@ function isExternalTransitionTarget(value: string): boolean {
 }
 
 function layoutKindDiagnostic(group: MarkVSpecLayoutGroup): MarkVSpecDiagnostic {
-  if (group.kind === "region") {
-    return {
-      severity: "error",
-      message: "Layout kind region is no longer supported. Use stack, row, grid, or inline.",
-      line: group.location.line
-    };
-  }
-
   return {
     severity: "warning",
     message: `Unknown layout kind: ${group.kind}.`,

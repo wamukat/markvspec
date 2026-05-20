@@ -108,8 +108,7 @@ examples には次の specialized control も出ます。画面の意味を区�
   `RadioGroup`、`Switch`、`Link` で使います。
 - `value`: input 系 element の現在値、binding 名、sample value。表示 label ではありません。
 
-既存 example には互換性のため `Heading` に `label` が残る場合があります。新しく書く場合は
-`level` と `text` を使ってください。
+`Heading` は `level` と `text` を使います。`label` は名前を持つ control と link にだけ使います。
 
 ### Message type
 

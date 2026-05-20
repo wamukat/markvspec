@@ -67,7 +67,7 @@ MARKVSPEC_REQUIRE_PDF=1 npm run check:print-regression
   紐づいて表示される。
 - Element の `sample rows:` と scenario samples は、繰り返し構造を示しつつ、各サンプルデータ行に個別 marker を要求しない。
 - partial placeholder と埋め込み partial preview が区別して読める。
-- i18n label reference、URL parameter 付き遷移、`PartialRequest` section が読める。
+- i18n label reference、URL parameter 付き遷移、partial update process section が読める。
 - Front Matter metadata が表示される。
 - page break によって見出しと最初の本文が読みにくく分断されない。
 - inline 目次の後と History の前は、章区切りとして改ページされる。

@@ -21,7 +21,6 @@ export type SectionKind =
   | "FormGroups"
   | "Events"
   | "Actions"
-  | "ModelSamples"
   | "ViewContext"
   | "ViewContextSamples"
   | "PreviewScenarios"
@@ -212,8 +211,6 @@ function sectionMetadata(title: string): { kind: SectionKind; viewport?: string;
       return { kind: "Events" };
     case "Actions":
       return { kind: "Actions" };
-    case "Model Samples":
-      return { kind: "ModelSamples" };
     case "View Context":
       return { kind: "ViewContext" };
     case "View Context Samples":

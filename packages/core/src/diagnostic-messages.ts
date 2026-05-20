@@ -9,7 +9,6 @@ export type MarkVSpecDiagnosticCode =
   | "layout.unsupportedItemsEntry"
   | "element.unknownType"
   | "element.unsupportedProperty"
-  | "element.unsupportedLegacyBind"
   | "action.missingTrigger"
   | "action.invalidTrigger"
   | "action.process.multipleExecutionDetails"
@@ -44,8 +43,6 @@ const diagnosticMessageTemplates: Record<DiagnosticLocale, Record<MarkVSpecDiagn
       `Unknown element type: ${param(params, "type")}.`,
     "element.unsupportedProperty": (params) =>
       `Element ${param(params, "elementId")} of type ${param(params, "type")} uses unsupported property ${param(params, "property")}.`,
-    "element.unsupportedLegacyBind": (params) =>
-      `Element ${param(params, "elementId")} uses unsupported legacy bind property. Use value/source for value origin, initial value for initial display, and E-*.value in request params instead.`,
     "action.missingTrigger": (params) =>
       `Action ${param(params, "actionId")} has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.`,
     "action.invalidTrigger": (params) =>
@@ -86,8 +83,6 @@ const diagnosticMessageTemplates: Record<DiagnosticLocale, Record<MarkVSpecDiagn
       `Element type ${param(params, "type")} は未定義です。Button/Input/Text/Table などのサポート済み type を使ってください。`,
     "element.unsupportedProperty": (params) =>
       `Element ${param(params, "elementId")} (${param(params, "type")}) の property ${param(params, "property")} はサポートされていません。低レベルな style や未定義 property は削除し、対応する canonical property を使ってください。`,
-    "element.unsupportedLegacyBind": (params) =>
-      `Element ${param(params, "elementId")} はサポート対象外の旧 bind property を使用しています。入力値の由来は value/source、初期表示は initial value、送信値参照は E-*.value を使ってください。`,
     "action.missingTrigger": (params) =>
       `Action ${param(params, "actionId")} に trigger がありません。Element action:、## Events の page.load / partial.render、または receive A-ActionId.P-marker.response を追加してください。`,
     "action.invalidTrigger": (params) =>

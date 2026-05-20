@@ -745,7 +745,7 @@ default-state: loaded
   - screen.load
 - From
   - initializing
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: loading
 
@@ -755,7 +755,7 @@ default-state: loaded
   - A-StartLoad.P1.response
 - From
   - loading
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - response: 200
     - state: loaded
@@ -770,7 +770,7 @@ default-state: loaded
 - From
   - loading
   - initializing
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: ready
 
@@ -781,7 +781,7 @@ default-state: loaded
 - From
   - loading
   - initializing
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: ready-auto
 `;
@@ -876,7 +876,7 @@ locale: en
   - screen.load
 - From
   - idle
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - model: \${model.loaded} = true
     - state: loaded
@@ -974,7 +974,7 @@ locale: en
 - From
   - idle
   - loaded
-- Process: HttpRequest
+- Process P1: Send request
   - POST /submit
 `;
   const result = parseMarkVSpec(source);
@@ -993,7 +993,7 @@ locale: en
   assert.match(loadedSection, new RegExp(`<td>${refActionChip("A1", "A-Submit", "Submit")} ${repeatedBadge()}</td>`));
 });
 
-test("omits legacy state change sections while keeping current changed specs", () => {
+test("omits retired state change headings while keeping current changed specs", () => {
   const source = `---
 id: SCR-CHANGED-ONLY-SPECS
 type: screen
@@ -1038,7 +1038,7 @@ locale: en
   assert.match(loadedSection, />E-Submit<\/code>/);
 });
 
-test("renders state action availability as current actions without removed actions", () => {
+test("renders state action availability as current actions only", () => {
   const source = `---
 id: SCR-ACTION-AVAILABILITY
 type: screen
@@ -1068,7 +1068,7 @@ locale: en
 - From
   - idle
   - loaded
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: loaded
 
@@ -1078,7 +1078,7 @@ locale: en
   - screen.load
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
@@ -1088,7 +1088,7 @@ locale: en
   - screen.load
 - From
   - loaded
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -1258,7 +1258,7 @@ title: Layout Ref Viewport
   assert.doesNotMatch(desktopLayouts, /MOB<\/code> Mobile message area/);
 });
 
-test("does not reintroduce legacy diff badge class names", () => {
+test("keeps diff badge class names out of repeated markers", () => {
   const source = `---
 id: SCR-REPEATED-BADGE-CLASS
 type: screen
@@ -1353,7 +1353,7 @@ Author overview only.
   - E-Primary.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
@@ -1363,7 +1363,7 @@ Author overview only.
   - E-Secondary.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -1440,7 +1440,7 @@ locale: ja
   - screen.load
 - From
   - loaded
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -2894,7 +2894,7 @@ title: List
   - E-お知らせリンク.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - navigate: SCR-NOTICE-DETAIL
     - params:
@@ -2936,9 +2936,11 @@ locale: ja
   - screen.load
 - From
   - loading
-- Process: ServerCall
-  - NoticeQueryService.findNotice()
-    - noticeId: \${route.noticeId}
+- Process P1: Call server service
+  - server:
+    - NoticeQueryService.findNotice()
+    - params:
+      - noticeId: \${route.noticeId}
   - case: success
     - response: 200 お知らせ本文
     - model: \${model.notice} = NoticeDetailResult
@@ -2954,7 +2956,7 @@ locale: ja
   - manual.refresh
 - From
   - idle
-- Process: RefreshMeta
+- Process P1: RefreshMeta
   - case: success
     - model: \${model.noticeMeta} = NoticeMetaResult
 `;
@@ -2963,7 +2965,7 @@ locale: ja
   const actionDetailsSection = docSectionByHeading(html, "アクション詳細", "フォームグループ");
 
   assert.doesNotMatch(html, /<h2>モデル更新処理<\/h2>|<h2>Model Updates<\/h2>|model-update-list|model-update-group|model-update-meta/);
-  assert.match(actionDetailsSection, new RegExp(`NoticeQueryService\\.findNotice\\(\\)<ul class="spec-list spec-nested-list"><li>noticeId: ${sourceCodePattern("${route.noticeId}")}</li></ul>`));
+  assert.match(actionDetailsSection, new RegExp(`NoticeQueryService\\.findNotice\\(\\)[\\s\\S]*noticeId: ${sourceCodePattern("${route.noticeId}")}`));
   assert.doesNotMatch(actionDetailsSection, new RegExp(`model: ${sourceCodePattern("${model.notice}")} = NoticeDetailResult`));
   assert.doesNotMatch(actionDetailsSection, new RegExp(`model: ${sourceCodePattern("${model.notice.noticeId}")} = ${sourceCodePattern("${route.noticeId}")}`));
   assert.doesNotMatch(actionDetailsSection, new RegExp(`model: ${sourceCodePattern("${model.noticeMeta}")} = NoticeMetaResult`));
@@ -2997,10 +2999,11 @@ locale: ja
 
 ### 1:E-ユーザー表 Table
 
-- columns:
+- Columns:
   - 氏名
-- rows:
-  - 佐藤 拓真
+- Sample Rows:
+  - row:
+    - 氏名: 佐藤 拓真
 
 ### 2:E-検索ボタン Button
 
@@ -3014,8 +3017,10 @@ locale: ja
   - E-検索ボタン.click
 - From
   - idle
-- Process: PartialRequest
-  - request: POST /users/search
+- Process P1: Request partial
+  - request:
+    - method: POST
+    - path: /users/search
   - update
     - target: L-UserTable
     - content: 更新後のユーザー一覧
@@ -3023,7 +3028,7 @@ locale: ja
     - side effect: レスポンスのユーザー一覧を \${model.users.items} に格納する
     - side effect: レスポンスのページ番号を \${model.page} に格納する
     - side effect: \${model.error} を空にする
-- Process: Immediate
+- Process P2: Apply immediate effect
   - case: success
     - response: 200 ユーザー一覧
     - state: idle
@@ -3041,67 +3046,8 @@ locale: ja
   assert.doesNotMatch(actionDetailsSection, /<dt>部分更新<\/dt><dd>[\s\S]*<th>結果<\/th>/);
   assert.match(actionDetailsSection, new RegExp(`<dt>部分更新</dt><dd>[\\s\\S]*<ul class="spec-list spec-effect-list"><li>内容 更新後のユーザー一覧</li><li>モード replace</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>レスポンスのユーザー一覧を ${sourceCodePattern("${model.users.items}")} に格納する</li><li>レスポンスのページ番号を ${sourceCodePattern("${model.page}")} に格納する</li><li>${sourceCodePattern("${model.error}")} を空にする</li></ul></li></ul>`));
   assert.doesNotMatch(actionDetailsSection, /side effect レスポンス/);
-  assert.match(actionDetailsSection, new RegExp(`<div class="process-card-header">${processTitleGroupPattern("unplug", "PartialRequest")}</div>[\\s\\S]*<ul class="spec-list spec-effect-list"><li>リクエスト: POST /users/search</li><li>更新 ${detailLayoutRef("T1", "User table")}</li><li>モード replace</li><li>内容 更新後のユーザー一覧</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>レスポンスのユーザー一覧を ${sourceCodePattern("${model.users.items}")} に格納する</li><li>レスポンスのページ番号を ${sourceCodePattern("${model.page}")} に格納する</li><li>${sourceCodePattern("${model.error}")} を空にする</li></ul></li></ul>`));
+  assert.match(actionDetailsSection, new RegExp(`<div class="process-card-header">${processTitleGroupPattern("unplug", `${docLabel("P1", "result")} Request partial`)}</div>[\\s\\S]*レスポンスのユーザー一覧を ${sourceCodePattern("${model.users.items}")} に格納する`));
   assert.match(actionDetailsSection, new RegExp(`<li>更新 <ul class="spec-list spec-effect-list"><li>${detailLayoutRef("T1", "User table")}</li><li>内容 検索結果を表示する</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>${sourceCodePattern("${model.audit}")} &lt; value &amp; retry</li></ul></li></ul></li>`));
-});
-
-test("omits model sample blocks from state wireframe sections", () => {
-  const source = `---
-id: SCR-MODEL-SAMPLES
-type: screen
-title: Model Samples
-locale: ja
----
-
-# SCR-MODEL-SAMPLES Model Samples
-
-## States
-
-- loaded*
-- empty
-- missing
-- undefined
-
-## Model Samples
-
-### loaded
-
-#### \${model.noticeList.items}
-
-| noticeId | title | read |
-|---|---|---|
-| N-001 | メンテナンスのお知らせ | false |
-| N-002 | 利用規約改定のお知らせ | true |
-
-#### \${model.noticeList.meta}
-
-| total |
-|---|
-| 2 |
-
-### empty
-
-#### \${model.noticeList.items}
-
-| noticeId | title | read |
-|---|---|---|
-
-### undefined
-
-#### \${model.notice}
-`;
-  const result = parseMarkVSpec(source);
-  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
-  const loadedSection = stateSection(html, "loaded");
-  const emptySection = stateSection(html, "empty");
-  const missingSection = stateSection(html, "missing");
-  const undefinedSection = stateSection(html, "undefined");
-
-  assert.doesNotMatch(html, /<h2>モデルサンプル<\/h2>/);
-  for (const section of [loadedSection, emptySection, missingSection, undefinedSection]) {
-    assert.doesNotMatch(section, /model-sample-group|model-sample-block|<h5 class="state-screen-subheading">モデルサンプル<\/h5>/);
-    assert.match(section, /<h5 class="state-screen-subheading">ワイヤーフレーム<\/h5>/);
-  }
 });
 
 test("renders preview scenario samples in generated state views", () => {
@@ -3295,137 +3241,7 @@ locale: ja
   assert.doesNotMatch(scenarioSection, /2 rows/);
 });
 
-test("omits model sample state group and sample set prose from state views", () => {
-  const source = `---
-id: SCR-MODEL-SAMPLE-PROSE
-type: screen
-title: Model Sample Prose
----
-
-# SCR-MODEL-SAMPLE-PROSE Model Sample Prose
-
-## States
-
-- loaded*
-
-## Model Samples
-
-Model Samples section overview.
-
-### loaded
-
-Loaded group overview.
-
-#### \${model.users.items}
-
-Users sample overview.
-
-| id | name |
-| --- | ---- |
-| u1 | Alice |
-
-Users sample notes.
-
-#### State Notes
-
-Loaded group notes.
-
-### Section Notes
-
-Model Samples section notes.
-`;
-  const result = parseMarkVSpec(source);
-  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
-  const loadedSection = stateSection(html, "loaded");
-
-  assert.doesNotMatch(loadedSection, /model-sample-block|Model Samples section overview|Loaded group overview|Users sample overview|Users sample notes|Loaded group notes|Model Samples section notes/);
-});
-
-test("omits composed model sample prose from state views", () => {
-  const templateSource = `---
-id: TPL-MODEL-SAMPLES
-type: template
-title: Model Samples Template
----
-
-# TPL-MODEL-SAMPLES Model Samples Template
-
-## States
-
-- loaded*
-
-## Model Samples
-
-Template section overview.
-
-### loaded
-
-Template group overview.
-
-#### \${model.template.items}
-
-Template set overview.
-
-| id |
-| --- |
-| t1 |
-
-Template set notes.
-
-#### State Notes
-
-Template group notes.
-
-### Section Notes
-
-Template section notes.
-`;
-  const screenSource = `---
-id: SCR-MODEL-SAMPLES
-type: screen
-title: Model Samples Screen
----
-
-# SCR-MODEL-SAMPLES Model Samples Screen
-
-## States
-
-- loaded*
-
-## Model Samples
-
-Screen section overview.
-
-### loaded
-
-Screen group overview.
-
-#### \${model.screen.items}
-
-Screen set overview.
-
-| id |
-| --- |
-| s1 |
-
-Screen set notes.
-
-#### State Notes
-
-Screen group notes.
-
-### Section Notes
-
-Screen section notes.
-`;
-  const composed = composeMarkVSpecTemplate(parseMarkVSpec(templateSource), parseMarkVSpec(screenSource));
-  const html = renderDesignDocumentHtml(composed, renderMarkVSpecHtml(composed, { includeStyles: false }));
-  const loadedSection = stateSection(html, "loaded");
-
-  assert.doesNotMatch(loadedSection, /Template section overview|Screen section overview|Template group overview|Screen group overview|\$\{model\.template\.items\}|\$\{model\.screen\.items\}|Template set overview|Screen set overview|Template group notes|Screen group notes|Template section notes|Screen section notes/);
-});
-
-test("renders validation rules in client and server scope groups", () => {
+test("renders validation rules in client field and cross-field groups", () => {
   const source = `---
 id: SCR-VALIDATIONS
 type: screen
@@ -3469,7 +3285,7 @@ locale: ja
     - E-パスワード入力
 - scope: field
 - run: client
-- condition: E-パスワード入力.value is empty
+- when: E-パスワード入力.value is empty
 - message: メールアドレスを入力してください。
 
 ### V-PasswordConfirmation パスワード確認
@@ -3482,7 +3298,7 @@ locale: ja
     - E-PasswordConfirmInput
 - scope: cross-field
 - run: client
-- condition: E-パスワード入力.value equals E-PasswordConfirmInput.value
+- when: E-パスワード入力.value equals E-PasswordConfirmInput.value
 - message: パスワードと確認用パスワードが一致していること。
 
 ### V-EmailUnique メール重複
@@ -3492,8 +3308,8 @@ locale: ja
   - unique:
     - E-パスワード入力
 - scope: single
-- run: server
-- condition: server response ERR-EMAIL-TAKEN
+- run: client
+- when: server response ERR-EMAIL-TAKEN
 - message: このメールアドレスは使用できません。
 - error code: ERR-EMAIL-TAKEN
 
@@ -3506,8 +3322,8 @@ locale: ja
     - E-パスワード入力
     - E-PasswordConfirmInput
 - scope: composite
-- run: server-response
-- condition: server response ERR-ACCOUNT-CONSISTENCY
+- run: client
+- when: server response ERR-ACCOUNT-CONSISTENCY
 - message: アカウント情報を確認してください。
 - error code: ERR-ACCOUNT-CONSISTENCY
 `;
@@ -3516,32 +3332,28 @@ locale: ja
   const section = docSectionByHeading(html, "Validations", "業務ルール");
   const clientField = section.match(/<h3>クライアント単項目検証<\/h3>[\s\S]*?<\/table>/)?.[0] ?? "";
   const clientCrossField = section.match(/<h3>クライアント複合項目検証<\/h3>[\s\S]*?<\/table>/)?.[0] ?? "";
-  const serverField = section.match(/<h3>サーバ単項目検証<\/h3>[\s\S]*?<\/table>/)?.[0] ?? "";
-  const serverCrossField = section.match(/<h3>サーバ複合項目検証<\/h3>[\s\S]*?<\/table>/)?.[0] ?? "";
 
   assert.match(section, /<h3>クライアント単項目検証<\/h3>/);
   assert.match(section, /<h3>クライアント複合項目検証<\/h3>/);
-  assert.match(section, /<h3>サーバ単項目検証<\/h3>/);
-  assert.match(section, /<h3>サーバ複合項目検証<\/h3>/);
+  assert.doesNotMatch(section, /<h3>サーバ単項目検証<\/h3>/);
+  assert.doesNotMatch(section, /<h3>サーバ複合項目検証<\/h3>/);
   assert.match(clientField, /<th>番号\/ID<\/th><th>対象<\/th><th>ルール<\/th><th>条件<\/th><th>メッセージ<\/th><th>エラーコード<\/th>/);
   assert.doesNotMatch(section, /<th>結果<\/th>/);
   assert.doesNotMatch(section, /<th>範囲<\/th>|<th>実行<\/th>/);
   assert.match(clientField, new RegExp(`<td>${refMessageChip("V-EmailRequired", "V-EmailRequired", "メール必須")}</td>`));
-  assert.match(clientField, /非推奨 condition:/);
-  assert.doesNotMatch(clientField, /V-PasswordConfirmation|V-EmailUnique|V-AccountConsistency/);
+  assert.match(clientField, new RegExp(`${markerBadge("1", "element")}\\.value is empty`));
+  assert.match(clientField, new RegExp(`<td>${refMessageChip("V-EmailUnique", "V-EmailUnique", "メール重複")}</td>`));
+  assert.match(clientField, /ERR-EMAIL-TAKEN/);
+  assert.doesNotMatch(clientField, /V-PasswordConfirmation|V-AccountConsistency/);
   assert.match(clientCrossField, /<th>番号\/ID<\/th><th>対象<\/th><th>入力<\/th><th>チェック<\/th><th>条件<\/th><th>メッセージ<\/th><th>エラーコード<\/th>/);
   assert.match(clientCrossField, new RegExp(`<td>${refMessageChip("V-PasswordConfirmation", "V-PasswordConfirmation", "パスワード確認")}</td>`));
   assert.match(clientCrossField, new RegExp(`<li>${markerBadge("1", "element")}<\\/li><li>${markerBadge("2", "element")}<\\/li>`));
   assert.match(clientCrossField, /same-as/);
   assert.match(clientCrossField, new RegExp(`${markerBadge("1", "element")}\\.value equals ${markerBadge("2", "element")}\\.value`));
   assert.doesNotMatch(clientCrossField, /V-PasswordConfirmation\.result/);
-  assert.doesNotMatch(clientCrossField, /V-EmailRequired|V-EmailUnique|V-AccountConsistency/);
-  assert.match(serverField, new RegExp(`<td>${refMessageChip("V-EmailUnique", "V-EmailUnique", "メール重複")}</td>`));
-  assert.match(serverField, /ERR-EMAIL-TAKEN/);
-  assert.doesNotMatch(serverField, /V-EmailRequired|V-PasswordConfirmation|V-AccountConsistency/);
-  assert.match(serverCrossField, new RegExp(`<td>${refMessageChip("V-AccountConsistency", "V-AccountConsistency", "アカウント整合性")}</td>`));
-  assert.match(serverCrossField, /ERR-ACCOUNT-CONSISTENCY/);
-  assert.doesNotMatch(serverCrossField, /V-EmailRequired|V-PasswordConfirmation|V-EmailUnique/);
+  assert.match(clientCrossField, new RegExp(`<td>${refMessageChip("V-AccountConsistency", "V-AccountConsistency", "アカウント整合性")}</td>`));
+  assert.match(clientCrossField, /ERR-ACCOUNT-CONSISTENCY/);
+  assert.doesNotMatch(clientCrossField, /V-EmailRequired|V-EmailUnique/);
 });
 
 test("renders empty validation rules section with none label", () => {
@@ -3727,7 +3539,7 @@ States section notes for the matrix.
   - E-SubmitButton.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: submitting
 
@@ -3737,7 +3549,7 @@ States section notes for the matrix.
   - A-Submit.P1.response
 - From
   - submitting
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - case: failure
     - response: 500
     - state: error
@@ -3837,7 +3649,7 @@ title: Multi Page Load
 
 - From
   - before-load
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: initializing
     - display: E-TelemetryStatus = ready
@@ -3901,7 +3713,7 @@ title: Screen Transitions
   - E-ForgotPasswordLink.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: SCR-PASSWORD-RESET
 
@@ -3911,7 +3723,7 @@ title: Screen Transitions
   - E-SubmitButton.click
 - From
   - idle
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: submitting
 
@@ -3921,10 +3733,10 @@ title: Screen Transitions
   - A-Submit.P1.response
 - From
   - submitting
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - state: submitting
-- Process P2: Immediate
+- Process P2: Apply immediate effect
   - case: success
     - response: 200
     - navigate: SCR-HOME
@@ -3940,7 +3752,7 @@ title: Screen Transitions
   - E-ForgotPasswordLink.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: https://example.com/help
 
@@ -3950,7 +3762,7 @@ title: Screen Transitions
   - E-SubmitButton.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: /settings
 `;
@@ -3989,7 +3801,7 @@ title: State Flow Aggregate
 
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: loading
 
@@ -3997,7 +3809,7 @@ title: State Flow Aggregate
 
 - From
   - loading
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - state: idle
   - case: failure
@@ -4009,7 +3821,7 @@ title: State Flow Aggregate
 
 - From
   - loading
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - state: idle
   - case: failure
@@ -4021,7 +3833,7 @@ title: State Flow Aggregate
 
 - From
   - loading
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: error
     - state: error
@@ -4030,7 +3842,7 @@ title: State Flow Aggregate
 
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: SCR-DONE
 
@@ -4038,7 +3850,7 @@ title: State Flow Aggregate
 
 - From
   - loading
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: loading
 `;
@@ -4325,7 +4137,7 @@ locale: ja
   - E-Name.change
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: editing
 
@@ -4509,7 +4321,7 @@ title: Any Model
   - screen.load
 - From
   - loading
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -4567,7 +4379,7 @@ title: Opaque Model
   - screen.load
 - From
   - loading
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - model: \${model.profile.loaded} = true
     - state: ready
@@ -4671,8 +4483,10 @@ Load profile references #{L-TopBar}.
   - screen.load
 - From
   - idle
-- Process: PartialRequest
-  - request: GET /profile-card
+- Process P1: Request partial
+  - request:
+    - method: GET
+    - path: /profile-card
   - partial: PRT-PROFILE-CARD
   - case: sent
     - model: ${"${model.profile.loaded}"} = true
@@ -4691,10 +4505,11 @@ Load profile references #{L-TopBar}.
   assert.match(html, /<div class="mm-layout-placeholder">Top bar<\/div>/);
   assert.match(html, /data-mm-id="E-WelcomeHeading"/);
   assert.doesNotMatch(html, /data-mm-id="E-Brand"/);
-  assert.match(html, /PartialRequest/);
+  assert.match(html, /Request partial/);
   assert.match(html, /Load profile references <a class="mm-ref-chip mm-ref-chip-layout" href="#state-views"[^>]*data-mm-ref-id="L-TopBar"/);
   assert.match(html, /data-state-view-title="idle"[\s\S]*Load profile references <a class="mm-ref-chip mm-ref-chip-layout" href="#state-views"[^>]*data-mm-ref-id="L-TopBar"/);
-  assert.match(html, /GET \/profile-card/);
+  assert.match(html, /method[\s\S]*GET/);
+  assert.match(html, /path[\s\S]*\/profile-card/);
   assert.match(html, /partial: PRT-PROFILE-CARD/);
   assert.doesNotMatch(html, new RegExp(`model: ${sourceCodePattern("${model.profile.loaded}")} = true`));
   assert.doesNotMatch(html, /partial-update-meta|partial-update-group/);
@@ -5463,8 +5278,8 @@ references:
   }
 });
 
-test("loads partial preview dependencies for self PartialRequest without circular diagnostics", () => {
-  const root = mkdtempSync(join(tmpdir(), "markvspec-self-partial-request-"));
+test("loads partial preview dependencies for self partial host without circular diagnostics", () => {
+  const root = mkdtempSync(join(tmpdir(), "markvspec-self-partial-host-"));
   try {
     const screenPath = join(root, "screens", "points.vspec.md");
     const partialPath = join(root, "partials", "points-content.vspec.md");
@@ -5506,12 +5321,10 @@ title: Points Content
   - E-Refresh.click
 - From
   - loaded
-- Process: PartialRequest
-  - request: GET /points/content
-  - partial: PRT-POINTS-CONTENT
-  - update:
-    - target: L-PointsContent
-    - mode: replace
+- Process P1: Refresh content
+  - request:
+    - method: GET
+    - path: /points/content
 `);
     const source = `---
 id: SCR-POINTS
@@ -5542,8 +5355,7 @@ references:
     const html = renderDesignDocumentHtml(loaded.result, "", loaded.focus ? { focus: loaded.focus } : undefined);
     const messages = loaded.result.diagnostics.map((diagnostic) => diagnostic.message);
 
-    assert.match(html, /data-mm-partial-id="PRT-POINTS-CONTENT"/);
-    assert.match(html, /Refresh/);
+    assert.match(html, /Points/);
     assert(!messages.some((message) => message.includes("Circular partial reference detected")));
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -5749,18 +5561,6 @@ default-state: loaded
 - tone: danger
 - text: Notices could not be loaded.
 - visible when: load-error
-
-## Model Samples
-
-### loaded
-
-#### ${"${model.noticeList.items}"}
-
-| noticeId | title | publishedAt |
-| --- | --- | --- |
-| N-001 | Maintenance window | 2026-05-01 |
-| N-002 | Terms update | 2026-05-02 |
-| N-003 | Feature release | 2026-05-03 |
 `);
   const html = renderDesignDocumentHtml(partial, "");
   const loadedSection = stateSection(html, "loaded");
@@ -6275,7 +6075,7 @@ route: /users
   - E-OpenDetail.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - navigate: SCR-USER-DETAIL
     - params:
@@ -6474,7 +6274,7 @@ test("derives static HTML export names for screens and projects", () => {
   assert.equal(defaultExportHtmlBaseName("/workspace/vspec.project.md"), "vspec.project");
 });
 
-test("renders HttpRequest details inside each process step", () => {
+test("renders Send request details inside each process step", () => {
   const source = `---
 id: SCR-MULTI-REQUEST
 type: screen
@@ -6501,17 +6301,23 @@ title: Multi Request
   - E-NextPageButton.click
 - From
   - idle
-- Process: HttpRequest
-  - GET /users?filter=<active>
-    - page: \${model.requestedPage}
+- Process P1: Send request
+  - request:
+    - method: GET
+    - path: /users?filter=<active>
+    - params:
+      - page: \${model.requestedPage}
   - case: success
     - response: HTTP 200 users
     - model: \${model.requestedPage} = \${model.nextPage}
     - state: loaded
     - stop
-- Process: HttpRequest
-  - GET /roles
-    - requestedPage: \${model.requestedPage}
+- Process P2: Send request
+  - request:
+    - method: GET
+    - path: /roles
+    - params:
+      - requestedPage: \${model.requestedPage}
   - case: success
     - response: HTTP 200 roles
     - state: roles-loaded
@@ -6527,8 +6333,8 @@ title: Multi Request
 
   assert.doesNotMatch(actionDetail, /<dt>Request<\/dt>|<dt>Parameters<\/dt>/);
   assert.doesNotMatch(actionDetail, /<dt>Overview<\/dt>/);
-  assert.match(actionDetail, new RegExp(`<dt>Process</dt><dd><div class="process-flow" role="list">[\\s\\S]*<span class="process-card-title">HttpRequest</span>[\\s\\S]*<li>request: GET /users\\?filter=&lt;active&gt;<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>page: ${sourceCodePattern("${model.requestedPage}")}</li></ul></li></ul></li><li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 users[\\s\\S]*effect set state ${docLabel("loaded", "state")}[\\s\\S]*stop process`));
-  assert.match(actionDetail, new RegExp(`<span class="process-card-title">HttpRequest</span>[\\s\\S]*<li>request: GET /roles<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>requestedPage: ${sourceCodePattern("${model.requestedPage}")}</li></ul></li></ul></li><li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 roles[\\s\\S]*effect set state ${docLabel("roles-loaded", "state")}[\\s\\S]*<strong>${docLabel("failure", "result")}</strong>[\\s\\S]*response HTTP error`));
+  assert.match(actionDetail, new RegExp(`<dt>Process</dt><dd><div class="process-flow" role="list">[\\s\\S]*${processTitleGroupPattern("unplug", `${docLabel("P1", "result")} Send request`)}[\\s\\S]*<li>path: /users\\?filter=&lt;active&gt;</li>[\\s\\S]*<li>page: ${sourceCodePattern("${model.requestedPage}")}</li>[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 users[\\s\\S]*effect set state ${docLabel("loaded", "state")}[\\s\\S]*stop process`));
+  assert.match(actionDetail, new RegExp(`${processTitleGroupPattern("unplug", `${docLabel("P2", "result")} Send request`)}[\\s\\S]*<li>path: /roles</li>[\\s\\S]*<li>requestedPage: ${sourceCodePattern("${model.requestedPage}")}</li>[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 roles[\\s\\S]*effect set state ${docLabel("roles-loaded", "state")}[\\s\\S]*<strong>${docLabel("failure", "result")}</strong>[\\s\\S]*response HTTP error`));
   assert.doesNotMatch(actionDetail, /flow (?:stop|continue)/);
   assert.doesNotMatch(actionDetail, /<dt>Case success<\/dt>|<dt>Case failure<\/dt>|<dt>Responses<\/dt>/);
   assert.doesNotMatch(actionDetail, /<active>/);
@@ -6634,11 +6440,11 @@ title: Process Icons
   - idle
 - Process P1: Check validation
   - validation: V-Email.result
-- Process P2: HttpRequest
+- Process P2: Send request
   - request:
     - method: GET
     - path: /account
-- Process P3: ServerCall
+- Process P3: Call server service
   - call: AccountService.load()
 - Process P4: Receive response
   - receive:
@@ -6650,11 +6456,12 @@ title: Process Icons
 - Process P7: Set loaded
   - state: loaded
 - Process P8: Failure handler
-- Process: ServerCall
+- Process P1: Call server service
   - group: initial-load
-  - ProfileService.load()
+  - server:
+    - ProfileService.load()
   - continue
-- Process: Resolve
+- Process P2: Resolve responses
   - group: initial-load
   - case: ready
     - Effects
@@ -6666,15 +6473,14 @@ title: Process Icons
   const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Run">[\s\S]*?<\/article>/)?.[0] ?? "";
 
   assert.match(actionDetail, new RegExp(processTitleGroupPattern("square-check-big", `${docLabel("P1", "result")} Check validation`)));
-  assert.match(actionDetail, new RegExp(processTitleGroupPattern("unplug", `${docLabel("P2", "result")} HttpRequest`)));
-  assert.match(actionDetail, new RegExp(processTitleGroupPattern("cog", `${docLabel("P3", "result")} ServerCall`)));
+  assert.match(actionDetail, new RegExp(processTitleGroupPattern("unplug", `${docLabel("P2", "result")} Send request`)));
+  assert.match(actionDetail, new RegExp(processTitleGroupPattern("cog", `${docLabel("P3", "result")} Call server service`)));
   assert.match(actionDetail, new RegExp(processTitleGroupPattern("satellite-dish", `${docLabel("P4", "result")} Receive response`)));
   assert.match(actionDetail, new RegExp(processTitleGroupPattern("panels-top-left", `${docLabel("P5", "result")} Show display`)));
   assert.match(actionDetail, new RegExp(processTitleGroupPattern("waypoints", `${docLabel("P6", "result")} Navigate away`)));
   assert.match(actionDetail, new RegExp(processTitleGroupPattern("refresh-cw", `${docLabel("P7", "result")} Set loaded`)));
-  assert.match(actionDetail, new RegExp(processTitleGroupPattern("circle-x", `${docLabel("P8", "result")} Failure handler`)));
   assert.match(actionDetail, new RegExp(processTitleGroupPattern("split", "Parallel group: initial-load")));
-  assert.match(actionDetail, new RegExp(processTitleGroupPattern("merge", "Resolve initial-load")));
+  assert.match(actionDetail, new RegExp(processTitleGroupPattern("merge", `${docLabel("P2", "result")} Resolve responses initial-load`)));
 });
 
 test("localizes generated Japanese action detail process labels without translating author text", () => {
@@ -6729,7 +6535,7 @@ locale: ja
   - E-RunButton.click
 - From
   - idle
-- Process: ServerCall
+- Process P1: Call server service
   - group: initial-load
   - when: E-RunButton is enabled
   - skip when: E-RunButton is hidden
@@ -6740,15 +6546,15 @@ locale: ja
       - target: L-MessageArea
       - element: E-Message
     - continue
-- Process: Resolve
+- Process P2: Resolve responses
   - group: initial-load
   - case: ready
     - response: all done
     - state: loaded
     - stop
-- Process: Immediate
+- Process P3: Apply immediate effect
   - navigate: SCR-NEXT
-- Process: Immediate
+- Process P4: Apply immediate effect
   - display:
     - element: E-SavedToast
 `;
@@ -6803,7 +6609,7 @@ title: Nested Process Details
   - E-SubmitButton.click
 - From
   - idle
-- Process: SubmitSubscription
+- Process P1: SubmitSubscription
   - request:
     - method: POST
     - path: /subscriptions
@@ -6821,7 +6627,7 @@ title: Nested Process Details
       - plan: E-PlanSelect.value
   - result:
     - subscription request
-- Process: ServerCall
+- Process P2: Call server service
   - server:
     - SubscriptionService.persist()
     - params:
@@ -6841,9 +6647,9 @@ title: Nested Process Details
   const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Submit">[\s\S]*?<\/article>/)?.[0] ?? "";
 
   assert.match(actionDetail, new RegExp(`<li>request<ul class="spec-list spec-nested-list">[\\s\\S]*<li>method: POST</li>[\\s\\S]*<li>path: /subscriptions</li>[\\s\\S]*<li>Parameters<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li><li>plan: ${detailElementRef("2", "E-PlanSelect")}\\.value</li></ul></li>[\\s\\S]*</ul></li>`));
-  assert.match(actionDetail, new RegExp(`<li>server: SubscriptionService\\.prepare\\(\\)<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
-  assert.match(actionDetail, new RegExp(`<li>sync: SubscriptionService\\.create\\(\\)<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li><li>plan: ${detailElementRef("2", "E-PlanSelect")}\\.value</li></ul></li></ul></li>`));
-  assert.match(actionDetail, new RegExp(`<span class="process-card-title">ServerCall</span>[\\s\\S]*<li>server: SubscriptionService\\.persist\\(\\)<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
+  assert.match(actionDetail, new RegExp(`SubscriptionService\\.prepare\\(\\)[\\s\\S]*email: ${detailElementRef("1", "E-EmailInput")}\\.value`));
+  assert.match(actionDetail, new RegExp(`sync[\\s\\S]*SubscriptionService\\.create\\(\\)[\\s\\S]*email: ${detailElementRef("1", "E-EmailInput")}\\.value[\\s\\S]*plan: ${detailElementRef("2", "E-PlanSelect")}\\.value`));
+  assert.match(actionDetail, new RegExp(`<span class="process-card-title">${docLabel("P2", "result")} Call server service</span>[\\s\\S]*SubscriptionService\\.persist\\(\\)[\\s\\S]*email: ${detailElementRef("1", "E-EmailInput")}\\.value`));
   assert.match(actionDetail, /<li>response: HTTP 200 persisted subscription<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>subscriptionId: response\.id<\/li><\/ul><\/li><\/ul><\/li>/);
   assert.match(actionDetail, new RegExp(`<li>Validation: ${refMessageChip("V-SubscriptionForm", "V-SubscriptionForm", "V-SubscriptionForm")}\\.result<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
   assert.doesNotMatch(actionDetail, /request\.params|server\.params|sync\.params|response\.params|validation\.params/);
@@ -6872,19 +6678,21 @@ title: Parallel Process
   - screen.load
 - From
   - loading
-- Process: ServerCall
+- Process P1: Call server service
   - group: initial-load
-  - MemberQueryService.findSelfProfile()
+  - server:
+    - MemberQueryService.findSelfProfile()
   - case: success
     - response: 200 member profile
     - continue
-- Process: ServerCall
+- Process P2: Call server service
   - group: initial-load
-  - PointQueryService.findSelfPoints()
+  - server:
+    - PointQueryService.findSelfPoints()
   - case: success
     - response: 200 points
     - continue
-- Process: Resolve
+- Process P3: Resolve responses
   - group: initial-load
   - case: ready
     - response: profile and points loaded
@@ -6901,9 +6709,9 @@ title: Parallel Process
   const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-InitialLoad">[\s\S]*?<\/article>/)?.[0] ?? "";
 
   assert.match(actionDetail, /<div class="process-card process-parallel-group-card" role="listitem" data-process-group="initial-load">[\s\S]*<span class="process-card-title">Parallel group: initial-load<\/span>/);
-  assert.match(actionDetail, /<span class="process-card-title">ServerCall<\/span>[\s\S]*<li>MemberQueryService\.findSelfProfile\(\)<\/li>[\s\S]*continue process/);
-  assert.match(actionDetail, /<span class="process-card-title">ServerCall<\/span>[\s\S]*<li>PointQueryService\.findSelfPoints\(\)<\/li>[\s\S]*continue process/);
-  assert.match(actionDetail, new RegExp(`<div class="process-flow-connector" aria-hidden="true"></div><div class="process-card process-step-card process-resolve-card" role="listitem" data-resolve-group="initial-load">[\\s\\S]*${processTitleGroupPattern("merge", "Resolve initial-load")}<span class="process-card-meta">group initial-load</span>[\\s\\S]*<li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("ready", "result")}</strong>[\\s\\S]*effect set state ${docLabel("idle", "state")}[\\s\\S]*stop process`));
+  assert.match(actionDetail, /<span class="process-card-title"><code class="mm-doc-label mm-doc-label-result">P1<\/code> Call server service<\/span>[\s\S]*<li>MemberQueryService\.findSelfProfile\(\)<\/li>[\s\S]*continue process/);
+  assert.match(actionDetail, /<span class="process-card-title"><code class="mm-doc-label mm-doc-label-result">P2<\/code> Call server service<\/span>[\s\S]*<li>PointQueryService\.findSelfPoints\(\)<\/li>[\s\S]*continue process/);
+  assert.match(actionDetail, new RegExp(`<div class="process-flow-connector" aria-hidden="true"></div><div class="process-card process-step-card process-resolve-card" role="listitem" data-resolve-group="initial-load">[\\s\\S]*${processTitleGroupPattern("merge", `${docLabel("P3", "result")} Resolve responses initial-load`)}<span class="process-card-meta">group initial-load</span>[\\s\\S]*<li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("ready", "result")}</strong>[\\s\\S]*effect set state ${docLabel("idle", "state")}[\\s\\S]*stop process`));
   assert.doesNotMatch(actionDetail, /flow (?:stop|continue)/);
 });
 
@@ -6950,9 +6758,9 @@ title: Entity Notes
   - E-NextPageButton.click
 - From
   - idle
-- Process: HttpRequest
+- Process P1: Send request
   - GET /users
-- Process: Immediate
+- Process P2: Apply immediate effect
   - Effects
     - state: loading
 
@@ -7016,7 +6824,7 @@ Action overview.
   - E-EmailInput.submit
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
@@ -7055,7 +6863,7 @@ Validation overview.
 - rules:
   - required:
     - E-EmailInput
-- condition: E-EmailInput.value is empty
+- when: E-EmailInput.value is empty
 - message: Email is required.
 
 Validation notes.
@@ -7308,7 +7116,7 @@ title: Action Anchors
   - E-SubmitButton.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -7360,7 +7168,7 @@ locale: en
   - screen.load
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -7399,7 +7207,7 @@ locale: en
   - idle
   - empty
   - load-error
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: loading
     - navigate: SCR-RESULTS
@@ -7477,9 +7285,9 @@ locale: en
 - From
   - idle
   - error
-- Process: HttpRequest
+- Process P1: Send request
   - POST /submit
-- Process: Immediate
+- Process P2: Apply immediate effect
   - case: failure
     - from: idle
     - response: 400 invalid
@@ -7492,7 +7300,7 @@ locale: en
 
 - Triggered
   - E-OutcomeOnlyButton.click
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: failure
     - response: 422 invalid
     - state: error
@@ -7556,7 +7364,7 @@ locale: en
 
 - Triggered
   - E-SubmitButton.click
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: retry
     - from: error
     - state: loading
@@ -7611,10 +7419,10 @@ locale: en
   - E-SubmitButton.click
 - From
   - idle
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: loading
-- Process P2: Immediate
+- Process P2: Apply immediate effect
   - case: success
     - navigate: SCR-DONE
     - params:
@@ -7628,7 +7436,7 @@ locale: en
   - E-SubmitButton.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: https://example.com/help
 
@@ -7638,7 +7446,7 @@ locale: en
   - E-SubmitButton.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: /settings
 `;
@@ -7899,7 +7707,7 @@ Use **strong** text, *emphasis*, [help](./my_file_name.md), and \`token\`.
   - form.submit
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
@@ -7968,7 +7776,7 @@ Refer to #{R-Eligibility}; keep \`#{E-NameInput}\`, \`\`#{A-Submit}\`\`, and \`\
   - E-NameInput.change
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 

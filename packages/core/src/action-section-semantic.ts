@@ -287,7 +287,7 @@ function referenceDependency(sourceId: string, targetId: string): SemanticDepend
 
 function firstActionStructuredListItemLine(block: BlockAst, support: ActionSectionSemanticSupport): number | undefined {
   const item = support.listItems([block]).find((candidate) =>
-    candidate.depth === 0 && /^(?:Triggered|From|Process(?:\s*:.*)?|Effects|Otherwise|Cases|When|Effect|Case|Else)\s*$/iu.test(candidate.text)
+    candidate.depth === 0 && /^(?:Triggered|From|Process(?:\s*:.*)?|Otherwise)\s*$/iu.test(candidate.text)
   );
   return item?.range?.start.line;
 }

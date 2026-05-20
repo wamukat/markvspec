@@ -250,10 +250,10 @@ function parseLayoutOrSlotSection(section: SectionAst, support: LayoutSectionSem
       currentLayoutHasStructuredContent = true;
       layoutSubsection = block.text;
       currentLayoutNestedProperty = undefined;
-      if (layoutSubsection === "Repeat") {
+      if (layoutSubsection !== "Items") {
         diagnostics.push({
-          severity: "error",
-          message: `Layout ${currentLayout.id} uses removed Repeat subsection. Use Element sample rows or Preview Scenario samples instead.`,
+          severity: "warning",
+          message: `Layout ${currentLayout.id} has unsupported subsection ${layoutSubsection}. Use #### Items for child references or layout metadata bullets for settings.`,
           line: support.locationFromBlock(block).line
         });
       }
@@ -267,7 +267,7 @@ function parseLayoutOrSlotSection(section: SectionAst, support: LayoutSectionSem
     currentLayoutHasStructuredContent = true;
     for (const item of support.listItems([block])) {
       const bullet = support.parsedBulletFromListItem(item);
-      if (layoutSubsection === "Repeat") {
+      if (layoutSubsection !== undefined && layoutSubsection !== "Items") {
         continue;
       }
       if (bullet.indent > 0) {

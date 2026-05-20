@@ -97,7 +97,6 @@ export type MessageKey =
   | "layout"
   | "layouts"
   | "level"
-  | "legacyCondition"
   | "line"
   | "locale"
   | "loaded"
@@ -190,8 +189,6 @@ export type MessageKey =
   | "screen"
   | "screens"
   | "screenTransitions"
-  | "serverCrossFieldValidations"
-  | "serverFieldValidations"
   | "severity"
   | "sample"
   | "scenarioSamples"
@@ -341,7 +338,6 @@ const en: Record<MessageKey, string> = {
   layout: "Layout",
   layouts: "Layouts",
   level: "Level",
-  legacyCondition: "legacy condition",
   line: "Line",
   locale: "Locale",
   loaded: "loaded",
@@ -434,8 +430,6 @@ const en: Record<MessageKey, string> = {
   screen: "Screen",
   screens: "Screens",
   screenTransitions: "Screen Transitions",
-  serverCrossFieldValidations: "Server Cross-field Validations",
-  serverFieldValidations: "Server Field Validations",
   severity: "Severity",
   sample: "Sample",
   scenarioSamples: "Scenario Preview Data",
@@ -586,7 +580,6 @@ const ja: Record<MessageKey, string> = {
   layout: "レイアウト",
   layouts: "レイアウト",
   level: "レベル",
-  legacyCondition: "非推奨 condition",
   line: "行",
   locale: "ロケール",
   loaded: "読み込み済み",
@@ -679,8 +672,6 @@ const ja: Record<MessageKey, string> = {
   screen: "画面",
   screens: "画面",
   screenTransitions: "画面遷移",
-  serverCrossFieldValidations: "サーバ複合項目検証",
-  serverFieldValidations: "サーバ単項目検証",
   severity: "重要度",
   sample: "サンプル",
   scenarioSamples: "シナリオプレビューデータ",

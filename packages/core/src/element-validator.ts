@@ -52,16 +52,6 @@ function checkUnsupportedElementProperties(element: MarkVSpecElement, diagnostic
       continue;
     }
 
-    if (key === "bind") {
-      diagnostics.push(createMarkVSpecDiagnostic(
-        "warning",
-        "element.unsupportedLegacyBind",
-        { elementId: element.id },
-        firstPropertyLine(element, key) ?? element.location.line
-      ));
-      continue;
-    }
-
     if (commonElementProperties.has(key) || typeProperties.has(key)) {
       continue;
     }
@@ -116,15 +106,6 @@ function checkElementPresetProperties(element: MarkVSpecElement, diagnostics: Ma
 function checkTableProperties(element: MarkVSpecElement, diagnostics: MarkVSpecDiagnostic[]): void {
   if (element.type !== "Table") {
     return;
-  }
-
-  const rows = stringProperty(element, "rows");
-  if (rows) {
-    diagnostics.push({
-      severity: "warning",
-      message: `Element ${element.id} rows is not canonical. Use sample rows or Preview Scenario samples instead.`,
-      line: firstPropertyLine(element, "rows") ?? element.location.line
-    });
   }
 
   for (const column of element.tableColumns) {

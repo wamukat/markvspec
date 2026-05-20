@@ -37,9 +37,6 @@ export type {
   MarkVSpecLoadedProjectScreen,
   MarkVSpecLayoutGroup,
   MarkVSpecLayoutItem,
-  MarkVSpecModelSampleGroup,
-  MarkVSpecModelSampleRow,
-  MarkVSpecModelSampleSet,
   MarkVSpecNoteSection,
   MarkVSpecParseResult,
   MarkVSpecProjectLoadResult,
@@ -329,8 +326,6 @@ export function parseMarkVSpec(source: string): MarkVSpecParseResult {
     errorCodes: [],
     historyFields: [],
     historyEntries: [],
-    modelSampleGroups: [],
-    modelSamples: [],
     viewContexts: [],
     viewContextSamples: [],
     previewScenarios: [],
@@ -396,7 +391,6 @@ function applySmallSectionSemantics(
   semantics: ReturnType<typeof parseSmallSectionSemantics>
 ): void {
   result.states = semantics.states;
-  result.modelSamples = semantics.modelSamples;
   result.viewContexts = semantics.viewContexts;
   result.viewContextSamples = semantics.viewContextSamples;
   result.previewScenarios = semantics.previewScenarios;
@@ -407,7 +401,6 @@ function applySmallSectionSemantics(
   result.errorCodes = semantics.errorCodes;
   result.historyFields = semantics.historyFields;
   result.historyEntries = semantics.historyEntries;
-  result.modelSampleGroups = semantics.modelSampleGroups;
   result.sectionProse.push(...semantics.sectionProse);
   result.notes = semantics.notes;
   mergeDiagnostics(result.diagnostics, semantics.diagnostics);
@@ -597,16 +590,6 @@ function parseScreen(
       message: "Front Matter field type must be screen, template, or partial.",
       line: 1
     });
-  }
-
-  for (const key of ["owner", "status", "viewport"]) {
-    if (frontMatter[key]) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Front Matter field ${key} is no longer canonical and is ignored.`,
-        line: 1
-      });
-    }
   }
 
   return screen;

@@ -109,8 +109,7 @@ Use these three properties consistently:
   `Select`, `Checkbox`, `RadioGroup`, `Switch`, and `Link`.
 - `value`: current value, binding name, or sample value for input-like elements.
 
-`Heading` examples may still contain `label` for compatibility with older
-sources, but new source should use `text` with `level`.
+`Heading` uses `level` and `text`. Use `label` only for named controls and links.
 
 ### Message Type
 

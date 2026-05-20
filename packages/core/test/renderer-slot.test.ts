@@ -686,17 +686,6 @@ template:
 ### E-DesktopAside Text
 
 - value: Desktop aside
-
-## Model Samples
-
-### idle
-
-#### \${model.cards.items}
-
-| title |
-| --- |
-| Alpha |
-| Beta |
 `;
   const template = parseMarkVSpec(templateSource);
   const screen = parseMarkVSpec(screenSource);

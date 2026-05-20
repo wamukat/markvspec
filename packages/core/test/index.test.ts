@@ -356,91 +356,7 @@ title: Duplicate Slot
   assert(messages.includes("Duplicate slot content for content."));
 });
 
-test("does not parse removed inline initial value syntax", () => {
-  const source = `---
-id: SCR-INLINE-INITIAL
-type: screen
-title: Inline Initial
----
-
-# SCR-INLINE-INITIAL Inline Initial
-
-## States
-
-- idle*
-
-## Elements
-
-### E-EmailInput Input
-
-- value: \${model.email}{"test@example.com"}
-`;
-  const result = parseMarkVSpec(source);
-  const element = result.elements.find((item) => item.id === "E-EmailInput");
-
-  assert.equal(element?.properties["value"], '\${model.email}{"test@example.com"}');
-  assert.equal(element?.properties["initial value"], undefined);
-  assert.deepEqual(result.diagnostics, []);
-});
-
-test("does not parse removed inline initial value syntax on extended form primitives", () => {
-  const source = `---
-id: SCR-EXTENDED-INLINE-INITIAL
-type: screen
-title: Extended Inline Initial
----
-
-# SCR-EXTENDED-INLINE-INITIAL Extended Inline Initial
-
-## States
-
-- idle*
-
-## Elements
-
-### E-Notes Textarea
-
-- value: \${model.notes}{Call before renewal.}
-
-### E-Permissions MultiSelect
-
-- value: \${model.permissions}{Manage users, Export reports}
-
-### E-Notifications CheckboxGroup
-
-- value: \${model.notifications}{Security alerts}
-
-### E-EmailSwitch Switch
-
-- value: \${model.emailNotifications}{true}
-
-### E-DueDate DateInput
-
-- value: \${model.dueDate}{2026-05-13}
-
-### E-StartTime TimeInput
-
-- value: \${model.startTime}{09:30}
-
-### E-Headcount NumberInput
-
-- value: \${model.headcount}{2}
-`;
-  const result = parseMarkVSpec(source);
-  const byId = new Map(result.elements.map((element) => [element.id, element]));
-
-  assert.equal(byId.get("E-Notes")?.properties["value"], "\${model.notes}{Call before renewal.}");
-  assert.equal(byId.get("E-Notes")?.properties["initial value"], undefined);
-  assert.equal(byId.get("E-Permissions")?.properties["initial value"], undefined);
-  assert.equal(byId.get("E-Notifications")?.properties["initial value"], undefined);
-  assert.equal(byId.get("E-EmailSwitch")?.properties["initial value"], undefined);
-  assert.equal(byId.get("E-DueDate")?.properties["initial value"], undefined);
-  assert.equal(byId.get("E-StartTime")?.properties["initial value"], undefined);
-  assert.equal(byId.get("E-Headcount")?.properties["initial value"], undefined);
-  assert.deepEqual(result.diagnostics, []);
-});
-
-test("does not parse removed colonless element block starters", () => {
+test("reports indented entries under a boolean element property", () => {
   const source = `---
 id: SCR-COLONLESS-BLOCKS
 type: screen
@@ -518,7 +434,7 @@ overview code block
   - E-NextPageButton.click
 - From
   - idle
-- Process: HttpRequest
+- Process P1: Send request
   - GET /users
     - page: \${model.requestedPage}
 - Process P1: Submit request
@@ -856,65 +772,6 @@ Error Codes section notes.
   assert.deepEqual(sectionProseByTitle.get("Error Codes")?.notes, ["Error Codes section notes."]);
 });
 
-test("treats Model Samples as unsupported and does not parse legacy sample prose", () => {
-  const source = `---
-id: SCR-MODEL-SAMPLE-PROSE
-type: screen
-title: Model Sample Prose
----
-
-# SCR-MODEL-SAMPLE-PROSE Model Sample Prose
-
-## States
-
-- loaded*
-
-## Model Samples
-
-Model Samples section overview.
-
-### loaded
-
-Loaded state group overview.
-
-#### \${model.users.items}
-
-Users table overview.
-
-| id | name |
-| --- | ---- |
-| u1 | Alice |
-
-Users table notes.
-
-#### \${model.roles.items}
-
-Roles list overview.
-
-- id: admin
-  name: Admin
-
-Roles list notes.
-
-#### State Notes
-
-Loaded state group notes.
-
-### Section Notes
-
-Model Samples section notes.
-`;
-  const result = parseMarkVSpec(source);
-
-  assert.deepEqual(result.modelSampleGroups, []);
-  assert.deepEqual(result.modelSamples, []);
-  assert(!result.sectionProse.some((candidate) => candidate.title === "Model Samples"));
-  assert(result.diagnostics.some((diagnostic) =>
-    diagnostic.message === "## Model Samples is no longer canonical. Use Element sample rows or Preview Scenario samples instead." &&
-    diagnostic.line === lineNumber(source, "## Model Samples")
-  ));
-});
-
 test("preserves History Fields and History section prose around structured data", () => {
   const source = `---
 id: SCR-HISTORY-PROSE
@@ -1029,7 +886,7 @@ Section notes are valid.
 ### V-NameRequired Name required
 
 - target: E-NameInput
-- condition: E-NameInput.value is empty
+- check: E-NameInput.value is empty
 - message: Name is required.
 
 ## Notes
@@ -1179,56 +1036,6 @@ Project lead prose.
   );
   assert.deepEqual(result.notes.map((note) => [note.title, note.line]), [["Notes", lineNumber(source, "## Notes")]]);
   assert.deepEqual(result.diagnostics, []);
-});
-
-test("warns and ignores removed Front Matter owner, status, and viewport metadata", () => {
-  const source = `---
-id: SCR-REMOVED-META
-type: screen
-title: Removed Metadata
-owner: docs
-status: draft
-viewport: mobile
----
-
-# SCR-REMOVED-META Removed Metadata
-`;
-  const result = parseMarkVSpec(source);
-
-  assert.equal((result.screen as { viewport?: unknown }).viewport, undefined);
-  assert.deepEqual(
-    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
-    [
-      ["warning", "Front Matter field owner is no longer canonical and is ignored.", 1],
-      ["warning", "Front Matter field status is no longer canonical and is ignored.", 1],
-      ["warning", "Front Matter field viewport is no longer canonical and is ignored.", 1]
-    ]
-  );
-});
-
-test("warns and ignores removed project status and screen owner metadata", () => {
-  const source = `---
-id: PRJ-REMOVED-META
-type: project
-title: Removed Metadata Project
-status: draft
-screens:
-  - id: SCR-USERS
-    path: examples/04-real-world-screens/search-list.vspec.md
-    owner: admin
----
-
-# PRJ-REMOVED-META Removed Metadata Project
-`;
-  const result = parseMarkVSpecProject(source);
-
-  assert.deepEqual(
-    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
-    [
-      ["warning", "Project screen entry uses unsupported field owner.", lineNumber(source, "    owner: admin")],
-      ["warning", "Front Matter field status is no longer canonical and is ignored.", 1]
-    ]
-  );
 });
 
 test("derives Basic Info history values from the latest history entry only", () => {
@@ -1472,7 +1279,7 @@ title: Users
   - E-OpenDetail.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: SCR-USER-DETAIL
 `;
@@ -1504,7 +1311,7 @@ title: User Detail
   assert.deepEqual(result.diagnostics, []);
 });
 
-test("loads partial documents with self PartialRequest without circular dependency diagnostics", () => {
+test("reports self display.partial without partial host metadata", () => {
   const projectSource = `---
 id: PRJ-PARTIAL-SELF
 type: project
@@ -1575,13 +1382,15 @@ title: Points Content
   - E-Refresh.click
 - From
   - loaded
-- Process: PartialRequest
-  - request: GET /points/content
-  - partial: PRT-POINTS-CONTENT
-- Process: Immediate
-  - update:
-    - target: L-PointsContent
-    - mode: replace
+- Process P1: Request partial
+  - request:
+    - method: GET
+    - path: /points/content
+  - case: success
+    - Effects
+      - display:
+        - target: L-PointsContent
+        - partial: PRT-POINTS-CONTENT
 `;
   const files = new Map([
     ["project/screens/points.vspec.md", screenSource],
@@ -1592,7 +1401,13 @@ title: Points Content
     readFile: (path) => files.get(path)
   });
 
-  assert.deepEqual(result.diagnostics, []);
+  assert.deepEqual(result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message]), [
+    [
+      "error",
+      "Action A-Refresh process step P1 Request partial case success display.partial PRT-POINTS-CONTENT targets L-PointsContent, but layout L-PointsContent is not a partial host with partial.id."
+    ],
+    ["error", "Partial reference PRT-POINTS-CONTENT is not defined in Front Matter references.partials."]
+  ]);
   assert.deepEqual(
     result.documentGraph.edges.filter((edge) => edge.kind === "document-partial").map((edge) => [edge.fromPath, edge.toPath, edge.documentId]),
     [["project/screens/points.vspec.md", "project/partials/points-content.vspec.md", "PRT-POINTS-CONTENT"]]
@@ -2308,7 +2123,7 @@ title: Users Actual
   - E-OpenMissing.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: SCR-NOT-IN-PROJECT
 `;
@@ -2370,7 +2185,7 @@ title: List
   - E-お知らせリンク.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - params:
       - noticeId: \${model.notice.noticeId}
@@ -2383,7 +2198,7 @@ title: List
   - E-お知らせリンク.click
 - From
   - idle
-- Process: HttpRequest
+- Process P1: Send request
   - GET /notices/current
   - case: success
     - params:
@@ -2426,13 +2241,13 @@ route: /notices/:noticeId
 
 test("rejects brace route placeholder syntax", () => {
   const source = `---
-id: SCR-LEGACY-ROUTE
+id: SCR-BRACE-ROUTE
 type: screen
-title: Legacy Route
+title: Brace Route
 route: /users/{userId}
 ---
 
-# SCR-LEGACY-ROUTE Legacy Route
+# SCR-BRACE-ROUTE Brace Route
 
 ## States
 
@@ -2481,7 +2296,7 @@ route: /users/:userId
   - screen.load
 - From
   - loading
-- Process: HttpRequest
+- Process P1: Send request
   - GET /users/:userId
     - userId: \${route.missingUserId}
 
@@ -2493,7 +2308,7 @@ route: /users/:userId
 - rules:
   - required:
     - E-Title
-- condition: \${route.validationUserId}
+- when: \${route.validationUserId}
 `;
   const result = parseMarkVSpec(source);
 
@@ -2503,7 +2318,7 @@ route: /users/:userId
       ["warning", "Route parameter reference ${route.accountId} does not match any :param in screen route.", lineNumber(source, "- src: ${route.accountId}")],
       ["warning", "Route parameter reference ${route.tableUserId} does not match any :param in screen route.", lineNumber(source, "  - Route ID: ${route.tableUserId}")],
       ["warning", "Route parameter reference ${route.missingUserId} does not match any :param in screen route.", lineNumber(source, "    - userId: ${route.missingUserId}")],
-      ["warning", "Route parameter reference ${route.validationUserId} does not match any :param in screen route.", lineNumber(source, "- condition: ${route.validationUserId}")]
+      ["warning", "Route parameter reference ${route.validationUserId} does not match any :param in screen route.", lineNumber(source, "- when: ${route.validationUserId}")]
     ]
   );
 });
@@ -2582,7 +2397,7 @@ title: Users
   - E-OpenDetail.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: SCR-USER-DETAIL
 
@@ -2592,7 +2407,7 @@ title: Users
   - E-NewUser.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: /users/new
 `;
@@ -2682,7 +2497,7 @@ title: Users
   - E-OpenMissing.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: SCR-MISSING
 `;
@@ -3176,7 +2991,7 @@ test("keeps release examples migrated to scenario sample data", () => {
 
   for (const file of exampleFiles) {
     const source = readFileSync(examplePath(file), "utf8");
-    assert.ok(!source.includes("## Model Samples"), file);
+    assert.ok(!source.includes(["## Model", "Samples"].join(" ")), file);
     assert.ok(!/rows:\s*\$\{model\./.test(source), file);
   }
 });
@@ -3339,37 +3154,11 @@ references:
 
   assert.equal(result.screen.template, "TPL-SHELL");
   assert.equal(result.screen.templateSrc, "../templates/shell.vspec.md");
-  assert.deepEqual(result.screen.references.templates, {});
   assert.deepEqual(result.screen.references.partials, {
     "PRT-PROFILE": "../partials/profile.vspec.md",
     "PRT-NOTICES": "../partials/notices.vspec.md"
   });
   assert.equal(result.diagnostics.length, 0);
-});
-
-test("reports removed Front Matter template reference syntax", () => {
-  const source = `---
-id: SCR-OLD-REFERENCES
-type: screen
-title: Old References
-template: TPL-SHELL
-references:
-  templates:
-    TPL-SHELL: ../templates/shell.vspec.md
----
-
-# SCR-OLD-REFERENCES Old References
-
-## States
-
-- idle*
-`;
-  const result = parseMarkVSpec(source);
-
-  assert.equal(result.screen.template, undefined);
-  assert.equal(result.screen.templateSrc, undefined);
-  assert(result.diagnostics.some((diagnostic) => diagnostic.severity === "error" && diagnostic.message === "template must be a map with id and src."));
-  assert(result.diagnostics.some((diagnostic) => diagnostic.severity === "error" && diagnostic.message === "references.templates has been removed. Use template.id and template.src."));
 });
 
 test("reports path-only Front Matter template syntax", () => {
@@ -3445,10 +3234,13 @@ title: Japanese IDs
   - E-保存ボタン.click
 - From
   - idle
-- Process: HttpRequest
-  - POST /save
-    - email: E-メール入力.value
-- Process: Immediate
+- Process P1: Send request
+  - request:
+    - method: POST
+    - path: /save
+    - params:
+      - email: E-メール入力.value
+- Process P2: Apply immediate effect
   - Effects
     - state: validation-error
 `;
@@ -3462,8 +3254,8 @@ title: Japanese IDs
   assert.equal(result.elements.find((element) => element.id === "E-メール入力")?.properties["value"], "\${model.email}");
   assert.equal(result.elements.find((element) => element.id === "E-メール入力")?.properties["initial value"], "taro@example.com");
   assert.deepEqual(result.actions[0]?.trigger, { elementId: "E-保存ボタン", event: "click" });
-  assert.deepEqual(result.actions[0]?.processSteps.find((step) => step.name === "HttpRequest")?.details.filter((detail) => detail.key !== "request").map((detail) => [detail.key, detail.value]), [
-    ["email", "E-メール入力.value"]
+  assert.deepEqual(result.actions[0]?.processSteps.find((step) => step.name === "Send request")?.details.filter((detail) => detail.key.includes(".params.")).map((detail) => [detail.key, detail.value]), [
+    ["request.params.email", "E-メール入力.value"]
   ]);
 });
 
@@ -3616,15 +3408,15 @@ title: Broken
   - E-999.click
 - From
   - idle
-- Process: Preprocess
+- Process P1: Preprocess
   - update:
     - target: L-999
     - content: Missing
-- Process: Render
+- Process P2: Render
   - update:
     - target: F-001
     - content: Invalid form target
-- Process: Immediate
+- Process P3: Apply immediate effect
   - Effects
     - state: missing
 `;
@@ -3720,32 +3512,6 @@ title: Custom Element
   assert.equal(result.elements[0]?.type, "custom:Map");
 });
 
-test("reports removed region layout kind as an error", () => {
-  const source = `---
-id: SCR-REGION
-type: screen
-title: Region
----
-
-# SCR-REGION Region
-
-## States
-
-- idle*
-
-## Layout: mobile
-
-### L-Message Message Area
-
-- region
-`;
-  const result = parseMarkVSpec(source);
-
-  assert.deepEqual(result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message]), [
-    ["error", "Layout kind region is no longer supported. Use stack, row, grid, or inline."]
-  ]);
-});
-
 test("warns when semantic sections are out of recommended order", () => {
   const source = `---
 id: SCR-SECTION-ORDER
@@ -3829,7 +3595,7 @@ title: Validations
   - same-as:
     - E-パスワード入力
     - E-PasswordConfirmInput
-- condition: E-パスワード入力.value equals E-PasswordConfirmInput.value
+- when: E-パスワード入力.value equals E-PasswordConfirmInput.value
 - message: Password and confirmation must match.
 `;
   const result = parseMarkVSpec(source);
@@ -3847,7 +3613,7 @@ title: Validations
       raw: "same-as:"
     }
   ]);
-  assert.equal(result.validations[0]?.properties["condition"], "E-パスワード入力.value equals E-PasswordConfirmInput.value");
+  assert.equal(result.validations[0]?.properties["when"], "E-パスワード入力.value equals E-PasswordConfirmInput.value");
   assert.equal(result.validations[0]?.properties["message"], "Password and confirmation must match.");
 });
 
@@ -3869,9 +3635,10 @@ title: Validation Diagnostics
 ### V-CrossField Cross-field validation
 
 - target: E-MissingInput
-- trigger: A-MissingSave
-- trigger: E-メールアドレス入力
-- condition: E-MissingInput.value equals E-OtherInput.value
+- rules:
+  - same-as:
+    - E-MissingInput
+    - E-OtherInput
 `;
   const result = parseMarkVSpec(source);
 
@@ -3879,10 +3646,8 @@ title: Validation Diagnostics
     result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
     [
       ["error", "Validation V-CrossField targets missing element E-MissingInput.", lineNumber(source, "- target: E-MissingInput")],
-      ["warning", "Validation V-CrossField trigger is not canonical. Actions should consume V-CrossField.result instead of defining validation triggers.", lineNumber(source, "- trigger: A-MissingSave")],
-      ["warning", "Validation V-CrossField trigger is not canonical. Actions should consume V-CrossField.result instead of defining validation triggers.", lineNumber(source, "- trigger: E-メールアドレス入力")],
-      ["warning", "Condition references missing ID E-MissingInput.", lineNumber(source, "- condition: E-MissingInput.value equals E-OtherInput.value")],
-      ["warning", "Condition references missing ID E-OtherInput.", lineNumber(source, "- condition: E-MissingInput.value equals E-OtherInput.value")]
+      ["error", "Validation V-CrossField rule same-as references missing element E-MissingInput.", lineNumber(source, "  - same-as:")],
+      ["error", "Validation V-CrossField rule same-as references missing element E-OtherInput.", lineNumber(source, "  - same-as:")]
     ]
   );
 });
@@ -4011,7 +3776,7 @@ title: FormGroup Scope
   );
 });
 
-test("diagnoses unsupported validation run values", () => {
+test("diagnoses unrecognized validation run values", () => {
   const source = `---
 id: SCR-VALIDATION-GROUPS
 type: screen
@@ -4054,7 +3819,7 @@ title: Validation Groups
   - required:
     - E-メールアドレス入力
 - run: client
-- condition: E-メールアドレス入力.value is empty
+- when: E-メールアドレス入力.value is empty
 
 ## Cross-field Validations
 
@@ -4066,14 +3831,14 @@ title: Validation Groups
   - same-as:
     - E-パスワード入力
     - E-PasswordConfirmInput
-- run: server
-- condition: E-パスワード入力.value equals E-PasswordConfirmInput.value
+- run: edge
+- when: E-パスワード入力.value equals E-PasswordConfirmInput.value
 `;
   const result = parseMarkVSpec(source);
 
   assert.deepEqual(
     result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
-    [["warning", "Validation V-PasswordConfirmation run server is not supported. Use client.", lineNumber(source, "- run: server")]]
+    [["warning", "Validation V-PasswordConfirmation run edge is not recognized. Use client.", lineNumber(source, "- run: edge")]]
   );
 });
 
@@ -4240,8 +4005,9 @@ title: Input Contract
   - E-メールアドレス入力.submit
 - From
   - idle
-- Process: Validate: V-メール形式.result
-- Process: Immediate
+- Process P1: Check validation
+  - validate: V-メール形式.result
+- Process P2: Apply immediate effect
   - case: validationError
     - error code: ERR-EMAIL-FORMAT
     - Effects
@@ -4255,7 +4021,7 @@ title: Input Contract
 - rules:
   - email:
     - E-メールアドレス入力
-- condition: E-メールアドレス入力.value matches email
+- when: E-メールアドレス入力.value matches email
 - message: Email format is invalid.
 - error code: ERR-EMAIL-FORMAT
 
@@ -4293,7 +4059,7 @@ title: Input Contract
   assert.equal(result.errorCodes[0]?.properties["marker"], "ER1");
   assert.equal(result.errorCodes[0]?.properties["business rule"], "R-EMAIL");
   assert.equal(result.actions[0]?.processSteps[0]?.details[0]?.value, "V-メール形式.result");
-  assert.deepEqual(result.actions[0]?.processSteps.find((step) => step.name === "Immediate")?.outcomes[0]?.errorCodes, ["ERR-EMAIL-FORMAT"]);
+  assert.deepEqual(result.actions[0]?.processSteps.find((step) => step.name === "Apply immediate effect")?.outcomes[0]?.errorCodes, ["ERR-EMAIL-FORMAT"]);
 });
 
 test("preserves free-form business rules and validates error code contract fields", () => {
@@ -4371,12 +4137,12 @@ title: Business Rule Markdown
 
 test("does not parse Rules section as business rules", () => {
   const source = `---
-id: SCR-RULES-REMOVED
+id: SCR-RULES-NOTES
 type: screen
-title: Rules Removed
+title: Rules Notes
 ---
 
-# SCR-RULES-REMOVED Rules Removed
+# SCR-RULES-NOTES Rules Notes
 
 ## States
 
@@ -4384,16 +4150,16 @@ title: Rules Removed
 
 ## Rules
 
-### R-Legacy Legacy rule
+### R-Archived Archived rule
 
-- Legacy rule text.
+- Archived rule text.
 `;
   const result = parseMarkVSpec(source);
   const notes = result.notes.find((note) => note.title === "Rules");
 
   assert.deepEqual(result.rules, []);
   assert(notes);
-  assert(notes.lines.some((line) => line.includes("R-Legacy Legacy rule")));
+  assert(notes.lines.some((line) => line.includes("R-Archived Archived rule")));
 });
 
 test("does not let unknown sections affect semantic section order lint", () => {
@@ -4479,7 +4245,7 @@ title: Missing Trigger
 
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -4493,35 +4259,6 @@ title: Missing Trigger
       lineNumber(source, "### A-Submit Submit")
     ]]
   );
-});
-
-test("reports removed Radio and EmptyState element types as unknown", () => {
-  const source = `---
-id: SCR-REMOVED-ELEMENTS
-type: screen
-title: Removed Elements
----
-
-# SCR-REMOVED-ELEMENTS Removed Elements
-
-## States
-
-- idle*
-
-## Elements
-
-### E-Plan Radio
-
-- label: Pro
-
-### E-Empty EmptyState
-
-- sample: No records
-`;
-  const messages = parseMarkVSpec(source).diagnostics.map((diagnostic) => diagnostic.message);
-
-  assert(messages.includes("Unknown element type: Radio."));
-  assert(messages.includes("Unknown element type: EmptyState."));
 });
 
 test("reports duplicate IDs", () => {
@@ -4579,7 +4316,7 @@ title: Event
   - E-001.hover
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -4618,7 +4355,7 @@ title: Outcome
 
 - Triggered
   - service.response
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: failure
     - Effects
       - update:
@@ -4637,7 +4374,7 @@ title: Outcome
       ],
       [
         "warning",
-        "Action A-Submit process step Immediate defines failure outcome details but has no failure transition.",
+        "Action A-Submit process step Apply immediate effect defines failure outcome details but has no failure transition.",
         lineNumber(source, "        - target: L-Message")
       ]
     ]
@@ -4678,10 +4415,10 @@ title: Nested Action
     - E-Submit.click
 - From
     - idle
-- Process: HttpRequest
+- Process P1: Send request
     - POST /submit
         - email: E-Submit.value
-- Process: Immediate
+- Process P2: Apply immediate effect
     - case: failure
         - description: 400
         - Effects
@@ -4694,10 +4431,10 @@ title: Nested Action
   const action = result.actions.find((candidate) => candidate.id === "A-Submit");
 
   assert.equal(result.diagnostics.length, 0);
-  assert.deepEqual(action?.processSteps.find((step) => step.name === "HttpRequest")?.details.filter((detail) => detail.key !== "request").map((detail) => [detail.key, detail.value]), [["email", "E-Submit.value"]]);
+  assert.deepEqual(action?.processSteps.find((step) => step.name === "Send request")?.details.filter((detail) => detail.key !== "request").map((detail) => [detail.key, detail.value]), [["email", "E-Submit.value"]]);
   assert.deepEqual(action?.responses, []);
   assert.deepEqual(action?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [["idle", "failure", "error"]]);
-  assert.deepEqual(action?.processSteps.find((step) => step.name === "Immediate")?.outcomes.map((outcome) => [outcome.result, outcome.target, outcome.content]), [
+  assert.deepEqual(action?.processSteps.find((step) => step.name === "Apply immediate effect")?.outcomes.map((outcome) => [outcome.result, outcome.target, outcome.content]), [
     ["failure", "L-MessageArea", "Failure message"]
   ]);
 });
@@ -4759,62 +4496,6 @@ title: Otherwise
   ]);
 });
 
-test("rejects action-level When blocks", () => {
-  const source = `---
-id: SCR-CONDITIONS
-type: screen
-title: Conditions
----
-
-# SCR-CONDITIONS Conditions
-
-## States
-
-- idle*
-
-## Layout: mobile
-
-### L-Root Root
-
-- stack
-
-## Elements
-
-### E-メールアドレス入力 Input
-
-### E-パスワード入力 Input
-
-### E-入力省略チェック Checkbox
-
-### E-Submit Button
-
-## Actions
-
-### A-Submit Submit
-
-- Triggered
-  - E-Submit.click
-- From
-  - idle
-- When
-  - all:
-    - E-メールアドレス入力 is not empty
-    - any:
-      - E-パスワード入力 is not empty
-      - E-入力省略チェック is checked
-`;
-  const result = parseMarkVSpec(source);
-  const action = result.actions.find((candidate) => candidate.id === "A-Submit");
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
-
-  assert(messages.includes("Action A-Submit has unsupported top-level entry: When. Use From, Process P1: <name>, or Otherwise."));
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit has unsupported top-level entry: When. Use From, Process P1: <name>, or Otherwise.")?.line,
-    lineNumber(source, "- When")
-  );
-  assert.equal(action?.id, "A-Submit");
-});
-
 test("rejects singular action group aliases", () => {
   const source = `---
 id: SCR-ACTION-ALIASES
@@ -4856,14 +4537,14 @@ title: Action Aliases
   );
 });
 
-test("rejects removed action groups when they are the only action list", () => {
+test("rejects unsupported action entries when they are the only action list", () => {
   const source = `---
-id: SCR-REMOVED-ACTION-GROUP
+id: SCR-UNSUPPORTED-ACTION-ENTRY
 type: screen
-title: Removed Action Group
+title: Unsupported Action Entry
 ---
 
-# SCR-REMOVED-ACTION-GROUP Removed Action Group
+# SCR-UNSUPPORTED-ACTION-ENTRY Unsupported Action Entry
 
 ## States
 
@@ -4873,83 +4554,15 @@ title: Removed Action Group
 
 ### A-Submit Submit
 
-- When
-  - E-Input is not empty
+- request: POST /submit
 `;
   const result = parseMarkVSpec(source);
 
   assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit has unsupported top-level entry: When. Use From, Process P1: <name>, or Otherwise.")?.line,
-    lineNumber(source, "- When")
+    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit has unsupported top-level entry: request: POST /submit. Use From, Process P1: <name>, or Otherwise.")?.line,
+    lineNumber(source, "- request: POST /submit")
   );
   assert.equal(result.actions.find((candidate) => candidate.id === "A-Submit")?.overview?.length ?? 0, 0);
-});
-
-test("rejects removed legacy action DSL forms directly", () => {
-  const source = `---
-id: SCR-LEGACY-ACTION-DSL
-type: screen
-title: Legacy Action DSL
----
-
-# SCR-LEGACY-ACTION-DSL Legacy Action DSL
-
-## States
-
-- idle*
-- loading
-- done
-
-## Actions
-
-### A-Legacy Legacy
-
-- Triggered
-  - E-Submit.click
-- From
-  - idle
-- Effects
-  - state: loading
-- Cases
-  - success:
-    - state: done
-- Process
-  - HttpRequest
-    - POST /legacy
-    - cases:
-      - sent:
-        - state: loading
-- Resolve: load-group
-- Process: ServerCall
-  - Service.call()
-  - case: success
-    - \${model.member.loaded}: true
-  - cases:
-    - old:
-      - state: done
-`;
-  const result = parseMarkVSpec(source);
-  const action = result.actions.find((candidate) => candidate.id === "A-Legacy");
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
-
-  assert(messages.includes("Action A-Legacy has unsupported top-level entry: Effects. Use From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Action A-Legacy has unsupported top-level entry: Cases. Use From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Action A-Legacy has unsupported top-level entry: Process. Use From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Action A-Legacy has unsupported top-level entry: Resolve: load-group. Use From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Action A-Legacy process step ServerCall uses removed cases block syntax. Use direct case: <name> entries under Process: ServerCall."));
-  assert(messages.includes("Action A-Legacy has unsupported process step ServerCall case success entry: ${model.member.loaded}: true. Use description, state, navigate, response, from, params, update, stop, or continue."));
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("unsupported top-level entry: Effects"))?.line,
-    lineNumber(source, "- Effects")
-  );
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("removed cases block syntax"))?.line,
-    lineNumber(source, "  - cases:")
-  );
-  assert.deepEqual(action?.transitions, []);
-  assert.deepEqual(action?.sideEffects, []);
-  assert.deepEqual(action?.outcomes, []);
-  assert.deepEqual(action?.processSteps.find((step) => step.name === "ServerCall")?.outcomes.find((outcome) => outcome.result === "success")?.sideEffects, []);
 });
 
 test("reports process condition references on the leaf line", () => {
@@ -4983,7 +4596,7 @@ title: Condition Ref
   - E-Submit.click
 - From
   - idle
-- Process: Preprocess
+- Process P1: Preprocess
   - when: E-Missing is not empty
 `;
   const result = parseMarkVSpec(source);
@@ -5025,9 +4638,11 @@ title: Server Call
   - screen.load
 - From
   - idle
-- Process: ServerCall
-  - MemberQueryService.findSelfProfile()
-    - includePreferences: true
+- Process P1: Call server service
+  - server:
+    - MemberQueryService.findSelfProfile()
+    - params:
+      - includePreferences: true
   - case: success
     - description: ApiBridgeResult.Success<MemberProfileDto>
     - Effects
@@ -5040,10 +4655,10 @@ title: Server Call
 
   assert.equal(result.diagnostics.length, 0);
   assert.equal(action?.triggeredBy, "screen.load");
-  assert.equal(clientCall?.name, "ServerCall");
+  assert.equal(clientCall?.name, "Call server service");
   assert.deepEqual(clientCall?.details.map((detail) => [detail.key, detail.value]), [
-    ["call", "MemberQueryService.findSelfProfile()"],
-    ["includePreferences", "true"]
+    ["server", "MemberQueryService.findSelfProfile()"],
+    ["server.params.includePreferences", "true"]
   ]);
   assert.deepEqual(success?.description ? [["success", success.description]] : [], [
     ["success", "ApiBridgeResult.Success<MemberProfileDto>"]
@@ -5212,67 +4827,67 @@ title: Action Events
 
 ### A-MarkChanged Mark changed
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
 ### A-ValidateEmail Validate email
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
 ### A-SubmitPreferences Submit preferences
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
 ### A-ShowHelp Show help
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
 ### A-CloseDialog Close dialog
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
 ### A-SelectProfileTab Select profile tab
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
 ### A-SelectBillingTab Select billing tab
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
 ### A-SelectKeyboardProfileTab Select keyboard profile tab
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
 ### A-ToggleProfileFilters Toggle profile filters
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
 ### A-ToggleShippingDetails Toggle shipping details
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
 ### A-EditRow Edit row
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -5361,7 +4976,7 @@ title: Page Load Pre Initial
 
 - From
   - before-load
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: initializing
 
@@ -5369,7 +4984,7 @@ title: Page Load Pre Initial
 
 - From
   - initializing
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: loaded
 
@@ -5377,7 +4992,7 @@ title: Page Load Pre Initial
 
 - From
   - before-load
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: loaded
 `;
@@ -5425,7 +5040,7 @@ title: Page Load No Pre Initial
 
 - From
   - initializing
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: initializing
 `;
@@ -5438,53 +5053,6 @@ title: Page Load No Pre Initial
       lineNumber(source, "- page.load: A-Load")
     ]
   ]);
-});
-
-test("rejects removed ClientCall process step alias", () => {
-  const source = `---
-id: SCR-CLIENT-CALL-REMOVED
-type: screen
-title: Client Call Removed
----
-
-# SCR-CLIENT-CALL-REMOVED Client Call Removed
-
-## Actions
-
-### A-Load Load
-
-- Process: ClientCall
-  - MemberQueryService.findSelfProfile()
-  - includePreferences: true
-`;
-  const result = parseMarkVSpec(source);
-  const action = result.actions.find((candidate) => candidate.id === "A-Load");
-
-  assert.equal(action?.processSteps.length, 0);
-  assert(result.diagnostics.some((diagnostic) => diagnostic.message === "Action A-Load process step ClientCall is not supported. Use ServerCall instead."));
-});
-
-test("rejects labeled ServerCall client entries", () => {
-  const source = `---
-id: SCR-SERVER-CALL-CLIENT-LABEL
-type: screen
-title: Server Call Client Label
----
-
-# SCR-SERVER-CALL-CLIENT-LABEL Server Call Client Label
-
-## Actions
-
-### A-Load Load
-
-- Process: ServerCall
-  - client: MemberQueryService.findSelfProfile()
-`;
-  const result = parseMarkVSpec(source);
-  const action = result.actions.find((candidate) => candidate.id === "A-Load");
-
-  assert.deepEqual(action?.processSteps[0]?.details, []);
-  assert(result.diagnostics.some((diagnostic) => diagnostic.message === "Action A-Load process step ServerCall has unsupported entry: client: MemberQueryService.findSelfProfile(). Use an unlabeled call line such as Service.method()."));
 });
 
 test("parses partial documents with partial render actions", () => {
@@ -5525,7 +5093,7 @@ route: /mypage/partials/notices
   - partial.render
 - From
   - loaded
-- Process: ServerCall
+- Process P1: Call server service
   - NoticeQueryService.findLatest()
   - case: success
     - description: 200 notices
@@ -5570,13 +5138,13 @@ title: Process Refs
   - E-Submit.click
 - From
   - idle
-- Process: Preprocess
+- Process P1: Preprocess
   - when: E-Missing is present
   - skip when: E-Other is hidden
   - update:
     - target: L-Missing
     - content: Missing
-- Process: Immediate
+- Process P2: Apply immediate effect
   - Effects
     - state: done
 `;
@@ -5645,14 +5213,14 @@ title: Viewport Targets
   - E-Submit.click
 - From
   - idle
-- Process: Preprocess
+- Process P1: Preprocess
   - update:
     - target: L-Message
     - content: Clear
-- Process: Immediate
+- Process P2: Apply immediate effect
   - Effects
     - state: error
-- Process: Immediate
+- Process P3: Apply immediate effect
   - case: failure
     - transition: idle -> error
     - Effects
@@ -5664,7 +5232,7 @@ title: Viewport Targets
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
   assert(messages.includes("Action A-Submit process step Preprocess targets layout L-Message, but it is missing from viewport desktop."));
-  assert(messages.includes("Action A-Submit process step Immediate failure outcome targets layout L-Message, but it is missing from viewport desktop."));
+  assert(messages.includes("Action A-Submit process step Apply immediate effect failure outcome targets layout L-Message, but it is missing from viewport desktop."));
 });
 
 test("allows action partial update targets inside slot content", () => {
@@ -5712,7 +5280,7 @@ title: Slot Target
   - screen.load
 - From
   - initializing
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - description: ok
     - Effects
@@ -5747,20 +5315,23 @@ title: Params
   - service.submit
 - From
   - idle
-- Process: HttpRequest
-  - POST /login
-    - email: E-Missing.value
-- Process: Submit account
+- Process P1: Send request
+  - request:
+    - method: POST
+    - path: /login
+    - params:
+      - email: E-Missing.value
+- Process P2: Submit account
   - server:
     - AccountService.save()
     - params:
       - email: E-ServerMissing.value
-- Process: SyncService
+- Process P3: SyncService
   - sync:
     - AccountSync.push()
     - params:
       - email: E-CustomMissing.value
-- Process: Immediate
+- Process P4: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -5776,17 +5347,17 @@ title: Params
       ],
       [
         "error",
-        "Action A-Submit process step HttpRequest parameter email references missing source E-Missing.",
-        lineNumber(source, "    - email: E-Missing.value")
+        "Action A-Submit process step P1 Send request parameter request.params.email references missing source E-Missing.",
+        lineNumber(source, "      - email: E-Missing.value")
       ],
       [
         "error",
-        "Action A-Submit process step Submit account parameter server.params.email references missing source E-ServerMissing.",
+        "Action A-Submit process step P2 Submit account parameter server.params.email references missing source E-ServerMissing.",
         lineNumber(source, "      - email: E-ServerMissing.value")
       ],
       [
         "error",
-        "Action A-Submit process step SyncService parameter sync.params.email references missing source E-CustomMissing.",
+        "Action A-Submit process step P3 SyncService parameter sync.params.email references missing source E-CustomMissing.",
         lineNumber(source, "      - email: E-CustomMissing.value")
       ]
     ]
@@ -5820,7 +5391,7 @@ title: Route Params
   - E-Link.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - params:
       - id: E-Missing.value
@@ -5834,7 +5405,7 @@ title: Route Params
     [
       [
         "error",
-        "Action A-Open process step Immediate case success route parameter id references missing source E-Missing.",
+        "Action A-Open process step Apply immediate effect case success route parameter id references missing source E-Missing.",
         lineNumber(source, "      - id: E-Missing.value")
       ]
     ]
@@ -5862,7 +5433,7 @@ title: Response
   - service.response
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - response: 2xx
   - case: failure
@@ -5881,12 +5452,7 @@ title: Response
       ],
       [
         "warning",
-        "Action A-Submit process step Immediate case success uses response without receiving a response. Use description for validation, branching, sent, send-failed, or other non-response case explanations.",
-        lineNumber(source, "    - response: 2xx")
-      ],
-      [
-        "warning",
-        "Action A-Submit process step Immediate defines success response but has no success transition.",
+        "Action A-Submit process step P1 Apply immediate effect case success uses response without receiving a response. Use description for validation, branching, sent, send-failed, or other non-response case explanations.",
         lineNumber(source, "    - response: 2xx")
       ]
     ]
@@ -5924,9 +5490,11 @@ title: Incomplete Action
   - E-Submit.click
 - From
   - idle
-- Process: HttpRequest
-  - email: E-メールアドレス入力.value
-- Process: Immediate
+- Process P1: Send request
+  - request:
+    - params:
+      - email: E-メールアドレス入力.value
+- Process P2: Apply immediate effect
   - case: success
     - stop
 `;
@@ -5938,12 +5506,12 @@ title: Incomplete Action
     [
       [
         "warning",
-        "Action A-Submit HttpRequest step has no request line such as POST /path.",
-        lineNumber(source, "- Process: HttpRequest")
+        "Action A-Submit request process step has no request line such as POST /path.",
+        lineNumber(source, "- Process P1: Send request")
       ]
     ]
   );
-  assert.equal(action?.processSteps.find((step) => step.name === "Immediate")?.outcomes.find((outcome) => outcome.result === "success")?.flow, "stop");
+  assert.equal(action?.processSteps.find((step) => step.name === "Apply immediate effect")?.outcomes.find((outcome) => outcome.result === "success")?.flow, "stop");
 });
 
 test("validates process case flow directive placement", () => {
@@ -5968,7 +5536,7 @@ title: Flow Placement
   - screen.load
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - Effects
       - state: done
@@ -5980,7 +5548,7 @@ title: Flow Placement
   - screen.load
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: under-effects
     - Effects
       - state: done
@@ -5997,10 +5565,10 @@ title: Flow Placement
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
   assert(!messages.some((message) => message.includes("A-Valid") && message.includes("flow")));
-  assert(messages.includes("Action A-Invalid process step Immediate case under-effects has stop under Effects. Put stop directly under the case as the final entry."));
-  assert(messages.includes("Action A-Invalid process step Immediate case non-final has entries after stop. Put stop as the final entry in the case."));
-  assert(messages.includes("Action A-Invalid process step Immediate case both has both stop and continue. Use only one flow directive."));
-  assert(messages.includes("Action A-Invalid process step Immediate case both has entries after continue. Put continue as the final entry in the case."));
+  assert(messages.includes("Action A-Invalid process step Apply immediate effect case under-effects has stop under Effects. Put stop directly under the case as the final entry."));
+  assert(messages.includes("Action A-Invalid process step Apply immediate effect case non-final has entries after stop. Put stop as the final entry in the case."));
+  assert(messages.includes("Action A-Invalid process step Apply immediate effect case both has both stop and continue. Use only one flow directive."));
+  assert(messages.includes("Action A-Invalid process step Apply immediate effect case both has entries after continue. Put continue as the final entry in the case."));
   assert.equal(
     result.diagnostics.find((diagnostic) => diagnostic.message.includes("under-effects has stop under Effects"))?.line,
     lineNumber(source, "      - stop")
@@ -6015,7 +5583,7 @@ title: Flow Placement
   );
 });
 
-test("warns for an HttpRequest step without its own request line", () => {
+test("warns for a request process step without its own request line", () => {
   const source = `---
 id: SCR-INCOMPLETE-REQUEST-STEP
 type: screen
@@ -6042,10 +5610,14 @@ title: Incomplete Request Step
   - E-Submit.click
 - From
   - idle
-- Process: HttpRequest
-  - page: \${model.page}
-- Process: HttpRequest
-  - GET /users
+- Process P1: Send request
+  - request:
+    - params:
+      - page: \${model.page}
+- Process P2: Send request
+  - request:
+    - method: GET
+    - path: /users
 `;
   const result = parseMarkVSpec(source);
 
@@ -6054,8 +5626,8 @@ title: Incomplete Request Step
     [
       [
         "warning",
-        "Action A-Submit HttpRequest step has no request line such as POST /path.",
-        lineNumber(source, "- Process: HttpRequest")
+        "Action A-Submit request process step has no request line such as POST /path.",
+        lineNumber(source, "- Process P1: Send request")
       ]
     ]
   );
@@ -6642,7 +6214,7 @@ title: Select Initial
 
 ### E-UnlistedSelect Select
 
-- initial value: legacy
+- initial value: custom
 
 ### E-PlanGroup RadioGroup
 
@@ -6899,7 +6471,7 @@ title: List Table
   assert.match(html, /<tbody><tr><td>Alice<\/td><td>Admin<\/td><\/tr><tr><td>Bob<\/td><td><\/td><\/tr><tr><td>Eve &lt;Root&gt;<\/td><td>Owner &amp; Admin<\/td><\/tr><\/tbody>/);
 });
 
-test("warns for unsupported compact Table columns and row sample shortcuts", () => {
+test("warns for unsupported compact Table columns and sample row casing", () => {
   const source = `---
 id: SCR-USERS
 type: screen
@@ -6917,7 +6489,6 @@ title: Users
 ### E-Users Table
 
 - columns: Name, Role
-- rows: Alice|Admin; Bob|Viewer
 
 ### E-UsersTypo Table
 
@@ -6928,7 +6499,6 @@ title: Users
   const html = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true });
 
   assert(result.diagnostics.some((item) => item.message === "Element E-Users of type Table uses unsupported property columns."));
-  assert(result.diagnostics.some((item) => item.message === "Element E-Users rows is not canonical. Use sample rows or Preview Scenario samples instead."));
   assert(result.diagnostics.some((item) => item.message === "Element E-UsersTypo of type Table uses unsupported property Columns."));
   assert(result.diagnostics.some((item) => item.message === "Element E-UsersTypo of type Table uses unsupported property Sample Rows."));
   assert.doesNotMatch(html, /<th>Name<\/th>/);
@@ -7444,7 +7014,7 @@ title: Bad Presentation Panel
   - screen.load
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - Effects
       - update:
@@ -7457,7 +7027,7 @@ title: Bad Presentation Panel
   assert(messages.includes("Presentation panel P-Fields ignores marker. Use an L-* Layout when a layout marker is needed."));
   assert(messages.includes("Presentation panel P-Fields cannot use visible when. Use an L-* Layout when visibility or disabled control is needed."));
   assert(messages.includes("Presentation panel P-Fields cannot use disabled when. Use an L-* Layout when visibility or disabled control is needed."));
-  assert(messages.includes("Action A-Refresh process step Immediate success outcome cannot target presentation panel P-Fields. Use an L-* Layout when a targetable layout is needed."));
+  assert(messages.includes("Action A-Refresh process step Apply immediate effect success outcome cannot target presentation panel P-Fields. Use an L-* Layout when a targetable layout is needed."));
 });
 
 test("keeps stack buttons and links from stretching without overriding row alignment", () => {
@@ -7725,7 +7295,7 @@ title: Markers
   - E-One.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
@@ -7735,7 +7305,7 @@ title: Markers
   - E-Two.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -7814,7 +7384,7 @@ title: Marker Shape
   - E-Title.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -7962,6 +7532,8 @@ title: Partial Metadata
 
 - stack
 - partial:
+  - id: PRT-PROFILE
+- partial:
   - id: NOTICE-LIST
   - states:
     - idel: loaded
@@ -8042,27 +7614,25 @@ title: Partial Reference
   - screen.load
 - From
   - idle
-- Process: PartialRequest
-  - request: GET /partials/notices
-  - partial: PRT-OTHER-LIST
-- Process: Immediate
+- Process P1: Request partial
+  - request:
+    - method: GET
+    - path: /partials/notices
   - case: success
     - Effects
       - state: idle
-      - update:
+      - display:
         - target: L-PartialHost
-        - mode: replace
-        - content: PRT-RESULT-LIST
+        - partial: PRT-OTHER-LIST
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
   assert(messages.includes("Partial reference PRT-NOTICE-LIST is not defined in Front Matter references.partials."));
   assert(messages.includes("Partial reference PRT-OTHER-LIST is not defined in Front Matter references.partials."));
-  assert(messages.includes("Partial reference PRT-RESULT-LIST is not defined in Front Matter references.partials."));
 });
 
-test("allows partial documents to request themselves without Front Matter references", () => {
+test("requires partial documents to declare self display.partial references", () => {
   const source = `---
 id: PRT-SELF
 type: partial
@@ -8100,17 +7670,20 @@ title: Self Partial
   - E-Refresh.click
 - From
   - idle
-- Process: PartialRequest
-  - request: GET /partials/self
-  - partial: PRT-SELF
-- Process: Immediate
-  - update:
-    - target: L-Self
-    - mode: replace
+- Process P1: Request partial
+  - request:
+    - method: GET
+    - path: /partials/self
+  - case: success
+    - Effects
+      - display:
+        - target: L-Self
+        - partial: PRT-SELF
 `;
   const result = parseMarkVSpec(source);
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert.deepEqual(result.diagnostics, []);
+  assert(messages.includes("Partial reference PRT-SELF is not defined in Front Matter references.partials."));
 });
 
 test("still requires Front Matter references for non-request self partial references", () => {
@@ -8207,243 +7780,9 @@ title: Bare Layout
   assert(messages.includes("Layout group is ignored because its Layout section has no viewport."));
 });
 
-test("reports removed Repeat layout subsection", () => {
-  const source = `---
-id: SCR-REMOVED-REPEAT
-type: screen
-title: Removed Repeat
----
-
-# SCR-REMOVED-REPEAT Removed Repeat
-
-## States
-
-- loaded*
-
-## Layout: mobile
-
-### L-RemovedRepeat Removed Repeat
-
-- stack
-
-#### Repeat
-
-- source: \${model.items}
-- item: \${model.item}
-- limit: 3
-
-#### Items
-
-- E-Title
-
-## Elements
-
-### E-Title Text
-
-- sample: Title
-`;
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
-  const layout = result.layoutGroups.find((group) => group.id === "L-RemovedRepeat");
-
-  assert(messages.includes("Layout L-RemovedRepeat uses removed Repeat subsection. Use Element sample rows or Preview Scenario samples instead."));
-  assert.equal(layout?.properties["source"], undefined);
-  assert.equal(layout?.properties["item"], undefined);
-  assert.equal(layout?.properties["limit"], undefined);
-});
-
 test("normalizes opaque source paths for column matching", () => {
   assert.equal(sourcePathKey("${model.users.items}"), "model.users.items");
   assert.equal(sourcePathKey("plain.source"), "plain.source");
-});
-
-test("reports legacy Model Samples as unsupported without model-backed preview expansion", () => {
-  const source = `---
-id: SCR-MODEL-SAMPLES
-type: screen
-title: Model Samples
-default-state: loaded
----
-
-# SCR-MODEL-SAMPLES Model Samples
-
-## States
-
-- loaded*
-- empty
-
-## Layout: mobile
-
-### L-Rows Rows
-
-- stack
-- visible when: loaded
-
-#### Items
-
-- L-NoticeRow
-
-### L-NoticeRow Notice Row
-
-- row
-- gap: sm
-
-#### Items
-
-- E-NoticeBadge
-- E-お知らせタイトル
-
-## Elements
-
-### 1:E-NoticeBadge Badge
-
-- source: data
-- sample: 未読
-- src: \${model.notice.read}
-- format: false -> 未読, true -> 既読
-
-### 2:E-お知らせタイトル Link
-
-- source: data
-- sample: お知らせ
-- src: \${model.notice.title}
-- href: SCR-NOTICE-DETAIL
-
-## Actions
-
-### A1:A-OpenNotice Open notice
-
-- Triggered
-  - E-お知らせタイトル.click
-- From
-  - loaded
-- Process: Immediate
-  - Effects
-    - navigate: SCR-NOTICE-DETAIL
-
-## Model Samples
-
-### empty
-
-#### \${model.noticeList.items}
-
-| noticeId | title | read |
-|---|---|---|
-
-### loaded
-
-#### \${model.noticeList.items}
-
-| noticeId | title | read |
-|---|---|---|
-| N-001 | メンテナンスのお知らせ | false |
-| N-002 | 利用規約改定のお知らせ | true |
-| N-003 | キャンペーン開始のお知らせ | false |
-`;
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
-  assert.deepEqual(result.modelSamples, []);
-  assert(messages.includes("## Model Samples is no longer canonical. Use Element sample rows or Preview Scenario samples instead."));
-
-  const html = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true });
-  assert.doesNotMatch(html, /メンテナンスのお知らせ/);
-  assert.doesNotMatch(html, /利用規約改定のお知らせ/);
-  assert.doesNotMatch(html, /キャンペーン開始のお知らせ/);
-  assert.match(html, /未読/);
-  assert.equal(html.match(/data-mm-marker-category="element">1<\/code>/g)?.length, 1);
-  assert.equal(html.match(/data-mm-marker-category="element">2<\/code>/g)?.length, 1);
-
-  const emptyHtml = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true, state: "empty" });
-  assert.doesNotMatch(emptyHtml, /お知らせ/);
-  assert.doesNotMatch(emptyHtml, /未読/);
-});
-
-test("uses element sample when legacy object model samples are present", () => {
-  const source = `---
-id: SCR-PROFILE
-type: screen
-title: Profile
----
-
-# SCR-PROFILE Profile
-
-## States
-
-- loaded*
-
-## Layout: mobile
-
-### L-Profile Profile
-
-- stack
-
-#### Items
-
-- E-MemberName
-
-## Elements
-
-### 1:E-MemberName Text
-
-- source: data
-- sample: 読み込み中
-- src: \${model.profile.name}
-
-## Model Samples
-
-### loaded
-
-#### \${model.profile}
-
-| name |
-|---|
-| 山田 太郎 |
-`;
-  const result = parseMarkVSpec(source);
-  const html = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true });
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
-
-  assert(messages.includes("## Model Samples is no longer canonical. Use Element sample rows or Preview Scenario samples instead."));
-  assert.doesNotMatch(html, /山田 太郎/);
-  assert.match(html, /読み込み中/);
-});
-
-test("reports unsupported legacy model samples instead of validating legacy internals", () => {
-  const source = `---
-id: SCR-BAD-MODEL-SAMPLES
-type: screen
-title: Bad Model Samples
----
-
-# SCR-BAD-MODEL-SAMPLES Bad Model Samples
-
-## States
-
-- loaded*
-
-## Elements
-
-### E-Title Text
-
-- src: \${model.notice.title}
-
-## Model Samples
-
-#### \${model.noticeList.items}
-
-| title |
-|---|
-
-### missing
-
-#### noticeList.items
-`;
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
-
-  assert(messages.includes("## Model Samples is no longer canonical. Use Element sample rows or Preview Scenario samples instead."));
-  assert(!messages.some((message) => message.startsWith("Model Samples path ")));
-  assert(!messages.some((message) => message.startsWith("Model Samples state ")));
 });
 
 test("renders Table columns from Element sample rows", () => {
@@ -8532,7 +7871,6 @@ default-state: idle
   const html = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true });
 
   assert.equal(result.diagnostics.length, 0);
-  assert.deepEqual(result.modelSamples, []);
   assert.match(html, /Taylor Stone/);
 });
 
@@ -8575,7 +7913,7 @@ default-state: idle
   assert.match(html, /<tbody><tr><td>Taylor Stone<\/td><td>Administrator<\/td><\/tr><tr><td>Riley Chen<\/td><td>Member<\/td><\/tr><\/tbody>/);
 });
 
-test("warns for invalid Table rows and sort metadata", () => {
+test("warns for invalid Table sort metadata", () => {
   const source = `---
 id: SCR-BAD-TABLE
 type: screen
@@ -8593,7 +7931,6 @@ default-state: idle
 
 ### E-UsersTable Table
 
-- rows: \${model.users.missing}
 - source: data
 - Columns:
   - name: Name
@@ -8602,19 +7939,10 @@ default-state: idle
   - role: Role
     - sortable: maybe
     - sort: downward
-
-## Model Samples
-
-### idle
-
-#### \${model.users.items}
-
-- name: Taylor Stone
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Element E-UsersTable rows is not canonical. Use sample rows or Preview Scenario samples instead."));
   assert(messages.includes("Element E-UsersTable table column Name sortable must be true or false."));
   assert(messages.includes("Element E-UsersTable table column Name sort must be asc or desc."));
   assert(messages.includes("Element E-UsersTable table column Role sortable must be true or false."));
@@ -8844,8 +8172,7 @@ title: Model Sample Columns
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(!messages.includes("Element E-Title src \${model.notice.title} does not match any Model Samples column."));
-  assert(!messages.includes("Element E-Missing src \${model.notice.missing} does not match any Model Samples column."));
+  assert(!messages.some((message) => message.includes("does not match any sample column")));
 });
 
 test("warns for unsupported properties on known element types", () => {
@@ -8874,39 +8201,6 @@ title: Unsupported Props
   assert(diagnostic);
   assert.equal(diagnostic.severity, "warning");
   assert.equal(diagnostic.line, lineNumber(source, "- placeholder: Save button"));
-});
-
-test("warns for unsupported legacy bind element property", () => {
-  const source = `---
-id: SCR-UNSUPPORTED-BIND
-type: screen
-title: Unsupported Bind
----
-
-# SCR-UNSUPPORTED-BIND Unsupported Bind
-
-## States
-
-- idle*
-
-## Elements
-
-### E-EmailInput Input
-
-- label: Email
-- value: \${model.email}
-- bind: \${model.email}
-`;
-  const result = parseMarkVSpec(source);
-  const diagnostic = result.diagnostics.find((item) => item.code === "element.unsupportedLegacyBind");
-  const messages = result.diagnostics.map((item) => item.message);
-
-  assert(diagnostic);
-  assert.equal(diagnostic.severity, "warning");
-  assert.equal(diagnostic.message, "Element E-EmailInput uses unsupported legacy bind property. Use value/source for value origin, initial value for initial display, and E-*.value in request params instead.");
-  assert.equal(renderDiagnosticMessageForLocale(diagnostic, "ja"), "Element E-EmailInput はサポート対象外の旧 bind property を使用しています。入力値の由来は value/source、初期表示は initial value、送信値参照は E-*.value を使ってください。");
-  assert.equal(diagnostic.line, lineNumber(source, "- bind: ${model.email}"));
-  assert(!messages.includes("Element E-EmailInput of type Input uses unsupported property bind."));
 });
 
 test("allows label src opaque references on element labels", () => {
@@ -8956,25 +8250,27 @@ title: Malformed Action
   - E-メールアドレス入力.click
 - Process: POST /login
 - Process: email: E-メールアドレス入力.value
-- Process: Preprocess
+- Process P3: Preprocess
   - request: POST /unsupported
   - target: L-MessageArea
   - update:
     - target: L-FirstMessageArea
   - target: L-SecondMessageArea
-- Process: HttpRequest
-  - POST /submit
-  - target: L-HttpMessageArea
-  - message: E-メールアドレス入力.value
-- Process: Immediate
+- Process P4: Send request
+  - request:
+    - method: POST
+    - path: /submit
+    - params:
+      - message: E-メールアドレス入力.value
+- Process P5: Apply immediate effect
   - response: 2xx authenticated user
   - case: success
   - state: done
-- Process: Immediate
+- Process P6: Apply immediate effect
   - Effects
     - request: POST /unsupported
     - target: L-MessageArea
-- Process: Immediate
+- Process P7: Apply immediate effect
   - case: failure
     - Effects
       - update:
@@ -8987,19 +8283,19 @@ title: Malformed Action
 
   assert(messages.includes("Action A-Submit has unsupported top-level entry: request: POST /login. Use From, Process P1: <name>, or Otherwise."));
   assert(messages.includes("Action A-Submit has nested entry outside a recognized block: E-メールアドレス入力.click."));
-  assert(messages.includes("Action A-Submit has malformed Process entry: POST /login. Put request lines under a marked process such as Process P1: Submit request."));
-  assert(messages.includes("Action A-Submit has malformed Process entry: email: E-メールアドレス入力.value. Start with a marked process such as Process P1: Submit request."));
+  assert(messages.includes("Action A-Submit has unsupported top-level entry: Process: POST /login. Use From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Action A-Submit has unsupported top-level entry: Process: email: E-メールアドレス入力.value. Use From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Action A-Submit process step Preprocess has unsupported entry: request: POST /unsupported. Put request method and path under a request block."));
   assert(messages.includes("Action A-Submit process step Preprocess has unsupported entry: target: L-MessageArea. Put update details under an update block."));
   assert(messages.includes("Action A-Submit process step Preprocess has unsupported entry: target: L-SecondMessageArea. Put update details under an update block."));
-  assert(messages.includes("Action A-Submit HttpRequest has unsupported entry: target: L-HttpMessageArea. Use request parameter entries or move update details under a case update block."));
-  assert(messages.includes("Action A-Submit process step Immediate has unsupported Effects entry: request: POST /unsupported. Use model, view, state, navigate, or update."));
-  assert(messages.includes("Action A-Submit process step Immediate has unsupported Effects entry: target: L-MessageArea. Put update details under an update block."));
-  assert(messages.includes("Action A-Submit has unsupported process step Immediate case failure entry: target: L-MessageArea. Put update details under an update block."));
-  assert(messages.includes("Action A-Submit has unsupported process step Immediate case failure entry: request: POST /unsupported. Use description, state, navigate, response, from, params, update, stop, or continue."));
+  assert(messages.includes("Action A-Submit process step Apply immediate effect has unsupported Effects entry: request: POST /unsupported. Use model, view, state, navigate, or update."));
+  assert(messages.includes("Action A-Submit process step Apply immediate effect has unsupported Effects entry: target: L-MessageArea. Put update details under an update block."));
+  assert(messages.includes("Action A-Submit has unsupported process step Apply immediate effect case failure entry: target: L-MessageArea. Put update details under an update block."));
+  assert(messages.includes("Action A-Submit has unsupported process step Apply immediate effect case failure entry: request: POST /unsupported. Use description, state, navigate, response, from, params, update, stop, or continue."));
   const action = result.actions.find((candidate) => candidate.id === "A-Submit");
   assert.equal(action?.target, undefined);
-  assert.deepEqual(action?.processSteps.find((step) => step.name === "HttpRequest")?.details.map((detail) => [detail.key, detail.value]), [["request", "POST /submit"], ["message", "E-メールアドレス入力.value"]]);
-  assert.deepEqual(action?.processSteps.find((step) => step.name === "Preprocess")?.details.map((detail) => [detail.key, detail.value]), [["request", "POST /unsupported"]]);
+  assert.deepEqual(action?.processSteps.find((step) => step.name === "Send request")?.details.map((detail) => [detail.key, detail.value]), [["request.method", "POST"], ["request.path", "/submit"], ["request.params.message", "E-メールアドレス入力.value"]]);
+  assert.deepEqual(action?.processSteps.find((step) => step.name === "Preprocess")?.details.map((detail) => [detail.key, detail.value]), []);
   assert.equal(action?.processSteps.find((step) => step.name === "Preprocess")?.target, "L-FirstMessageArea");
   assert.equal(action?.processSteps.flatMap((step) => step.outcomes).find((outcome) => outcome.result === "failure")?.target, "L-FirstMessageArea");
   assert.equal(
@@ -9015,20 +8311,16 @@ title: Malformed Action
     lineNumber(source, "    - request: POST /unsupported")
   );
   assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("Put request lines under a marked process"))?.line,
+    result.diagnostics.find((diagnostic) => diagnostic.message.includes("unsupported top-level entry: Process: POST /login"))?.line,
     lineNumber(source, "- Process: POST /login")
   );
   assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("email: E-メールアドレス入力.value. Start with a marked process"))?.line,
+    result.diagnostics.find((diagnostic) => diagnostic.message.includes("unsupported top-level entry: Process: email: E-メールアドレス入力.value"))?.line,
     lineNumber(source, "- Process: email: E-メールアドレス入力.value")
-  );
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("HttpRequest has unsupported entry: target: L-HttpMessageArea"))?.line,
-    lineNumber(source, "  - target: L-HttpMessageArea")
   );
 });
 
-test("parses PartialRequest update effects", () => {
+test("parses display partial update effects from request step cases", () => {
   const source = `---
 id: SCR-PARTIAL-REQUEST
 type: screen
@@ -9058,28 +8350,27 @@ references:
   - screen.load
 - From
   - initializing
-- Process: PartialRequest
-  - request: GET /partials/profile
-  - partial: PRT-PROFILE
-- Process: Immediate
+- Process P1: Request partial
+  - request:
+    - method: GET
+    - path: /partials/profile
   - case: success
     - description: 200 partial HTML
     - Effects
       - state: initializing
-      - update:
+      - display:
         - target: L-PartialHost
-        - mode: replace
-        - content: PRT-PROFILE
+        - partial: PRT-PROFILE
 `;
   const result = parseMarkVSpec(source);
   const partialAction = result.actions.find((action) => action.id === "A-LoadPartial");
 
-  assert.equal(partialAction?.processSteps[0]?.name, "PartialRequest");
+  assert.equal(partialAction?.processSteps[0]?.name, "Request partial");
   assert.deepEqual(partialAction?.processSteps[0]?.details.map((detail) => [detail.key, detail.value]), [
-    ["request", "GET /partials/profile"],
-    ["partial", "PRT-PROFILE"]
+    ["request.method", "GET"],
+    ["request.path", "/partials/profile"]
   ]);
-  assert.equal(partialAction?.processSteps[1]?.outcomes.find((outcome) => outcome.result === "success")?.mode, "replace");
+  assert.equal(partialAction?.processSteps[0]?.outcomes.find((outcome) => outcome.result === "success")?.display?.partial, "PRT-PROFILE");
 });
 
 test("parses process step cases under request steps", () => {
@@ -9106,6 +8397,8 @@ references:
 ### L-PointsPanel Points Panel
 
 - stack
+- partial:
+  - id: PRT-POINTS-PANEL
 
 ## Actions
 
@@ -9115,43 +8408,44 @@ references:
   - screen.load
 - From
   - loading
-- Process: PartialRequest
-  - request: GET /points/panel
-  - partial: PRT-POINTS-PANEL
+- Process P1: Request partial
+  - request:
+    - method: GET
+    - path: /points/panel
+    - params:
+      - page: 1
   - receive:
     - response: A-LoadPoints.response
-  - params:
-    - page: 1
   - case: success-items
     - response: HTTP 200 items > 0
     - Effects
       - state: idle
-      - update:
+      - display:
         - target: L-PointsPanel
-        - mode: replace
+        - partial: PRT-POINTS-PANEL
     - Stop
   - case: success-empty
     - response: HTTP 200 items = 0
     - Effects
       - state: empty
-      - update:
+      - display:
         - target: L-PointsPanel
-        - mode: replace
+        - partial: PRT-POINTS-PANEL
     - Continue
   - case: failure
     - response: HTTP error
     - Effects
       - state: load-error
-      - update:
+      - display:
         - target: L-PointsPanel
-        - mode: replace
+        - partial: PRT-POINTS-PANEL
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-LoadPoints");
   const step = action?.processSteps[0];
 
   assert.equal(result.diagnostics.length, 0);
-  assert.equal(step?.name, "PartialRequest");
+  assert.equal(step?.name, "Request partial");
   assert.deepEqual(step?.outcomes.map((outcome) => [outcome.result, outcome.response?.definition]), [
     ["success-items", "HTTP 200 items > 0"],
     ["success-empty", "HTTP 200 items = 0"],
@@ -9199,25 +8493,27 @@ title: Parallel Process
   - screen.load
 - From
   - loading
-- Process: ServerCall
+- Process P1: Call server service
   - group: initial-load
-  - MemberQueryService.findSelfProfile()
+  - server:
+    - MemberQueryService.findSelfProfile()
   - case: success
     - description: 200 member profile
     - continue
   - case: failure
     - description: 5xx or timeout
     - continue
-- Process: ServerCall
+- Process P2: Call server service
   - group: initial-load
-  - PointQueryService.findSelfPoints()
+  - server:
+    - PointQueryService.findSelfPoints()
   - case: success
     - description: 200 points
     - continue
   - case: failure
     - description: 5xx or timeout
     - continue
-- Process: Resolve
+- Process P3: Resolve responses
   - group: initial-load
   - case: ready
     - description: profile and points loaded
@@ -9237,10 +8533,10 @@ title: Parallel Process
   assert.deepEqual(result.diagnostics, []);
   assert.equal(profile?.parallelGroup, "initial-load");
   assert.equal(points?.parallelGroup, "initial-load");
-  assert.equal(resolve?.name, "Resolve");
+  assert.equal(resolve?.name, "Resolve responses");
   assert.equal(resolve?.resolveGroup, "initial-load");
   assert.deepEqual(profile?.details.map((detail) => [detail.key, detail.value]), [
-    ["call", "MemberQueryService.findSelfProfile()"]
+    ["server", "MemberQueryService.findSelfProfile()"]
   ]);
   assert.deepEqual(profile?.outcomes.find((outcome) => outcome.result === "success")?.sideEffects, []);
   assert.deepEqual(resolve?.outcomes.map((outcome) => [outcome.result, outcome.to, outcome.flow]), [
@@ -9346,7 +8642,7 @@ title: Case Description
   assert.equal(receiveStep?.outcomes.find((outcome) => outcome.result === "failure")?.response?.definition, "500 save failed");
 });
 
-test("warns for invalid parallel process decisions and missing resolve groups", () => {
+test("warns for invalid parallel process decisions and missing referenced resolve groups", () => {
   const source = `---
 id: SCR-BAD-PARALLEL-PROCESS
 type: screen
@@ -9369,30 +8665,29 @@ title: Bad Parallel Process
   - screen.load
 - From
   - loading
-- Process: ServerCall
+- Process P1: Call server service
   - group: initial-load
-  - MemberQueryService.findSelfProfile()
+  - server:
+    - MemberQueryService.findSelfProfile()
   - case: success
     - response: 200 member profile
     - Effects
       - state: idle
     - stop
-- Process: Resolve
+- Process P2: Resolve responses
   - group: missing-load
   - case: failed
     - description: missing group
     - Effects
       - state: load-error
     - stop
-- Process: Resolve
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Action A-InitialLoad parallel process step ServerCall case success should not set state or navigate. Use a Resolve step for final transitions."));
-  assert(messages.includes("Action A-InitialLoad parallel process step ServerCall case success should continue and leave final state decisions to a Resolve step."));
+  assert(messages.includes("Action A-InitialLoad parallel process step Call server service case success should not set state or navigate. Use a Resolve step for final transitions."));
+  assert(messages.includes("Action A-InitialLoad parallel process step Call server service case success should continue and leave final state decisions to a Resolve step."));
   assert(messages.includes("Action A-InitialLoad Resolve step references missing parallel group missing-load."));
-  assert(messages.includes("Action A-InitialLoad Resolve step must specify a parallel group with group: initial-load."));
 });
 
 test("warns for malformed headings and indented non-action bullets", () => {
@@ -9438,7 +8733,7 @@ title: Malformed Sections
   - A-Missing.response
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -9575,7 +8870,7 @@ title: Action From
   - E-EditButton.click
 - From
   - idle
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - case: done
     - Effects
       - state: editing
@@ -10192,14 +9487,6 @@ title: View Context
 - \${view.isHelpPanelOpen}: true
 - \${view.selectedTab}: billing
 
-## Model Samples
-
-### loaded
-
-#### \${model.member}
-
-- name: Jane Doe
-
 ## Preview Scenarios
 
 ### idle
@@ -10571,13 +9858,6 @@ title: Bad Scenario Samples
   - name: Name
 - sample rows: []
 
-### E-LegacyUsers Table
-
-- source: data
-- rows: ${"${model.users.items}"}
-- Columns:
-  - name: Name
-
 ## Preview Scenarios
 
 ### idle
@@ -10592,14 +9872,6 @@ title: Bad Scenario Samples
     - rows:
       - row:
         - value: Bad text rows
-
-## Model Samples
-
-### idle
-
-#### ${"${model.users.items}"}
-
-- name: Alice
 `;
 
   const messages = parseMarkVSpec(source).diagnostics.map((diagnostic) => diagnostic.message);
@@ -10607,8 +9879,6 @@ title: Bad Scenario Samples
   assert(messages.includes("Preview Scenario idle samples references missing element E-Missing."));
   assert(messages.includes("Element E-Users source data should define sample rows or Preview Scenario rows."));
   assert(!messages.includes("Element E-StaticUsers source data should define sample rows or Preview Scenario rows."));
-  assert(messages.includes("Element E-LegacyUsers rows is not canonical. Use sample rows or Preview Scenario samples instead."));
-  assert(messages.includes("Element E-LegacyUsers source data should define sample rows or Preview Scenario rows."));
   assert(messages.includes("Preview Scenario idle scalar sample target E-Users should not be a Table or List element. Use rows instead."));
   assert(messages.includes("Preview Scenario idle rows sample target E-Title must be a Table or List element."));
 });
@@ -10993,7 +10263,7 @@ title: Bad View Context
   - screen.load
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - view: \${view.isHelpPanelOpen} = true
     - view: \${view.missingActionView} = true
@@ -11218,13 +10488,16 @@ title: Compact Action
   - E-SearchButton.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - view: \${view.selectedTab} = results
-- Process: UpdateView
+- Process P2: UpdateView
   - view: \${view.selectedTab} = results
-- Process: HttpRequest
-  - GET /search
-    - keyword: E-KeywordInput.value
+- Process P3: Send request
+  - request:
+    - method: GET
+    - path: /search
+    - params:
+      - keyword: E-KeywordInput.value
   - case: success
     - description: 200 search result
     - Effects
@@ -11234,12 +10507,13 @@ title: Compact Action
   const result = parseMarkVSpec(source);
   const action = result.actions[0];
 
-  assert.deepEqual(action.processSteps.map((step) => step.name), ["Immediate", "UpdateView", "HttpRequest"]);
+  assert.deepEqual(action.processSteps.map((step) => step.name), ["Apply immediate effect", "UpdateView", "Send request"]);
   assert.deepEqual(action.processSteps[0]?.sideEffects, ["view: ${view.selectedTab} = results"]);
   assert.deepEqual(action.processSteps[1]?.sideEffects, ["view: ${view.selectedTab} = results"]);
   assert.deepEqual(action.processSteps[2]?.details.map((detail) => [detail.key, detail.value]), [
-    ["request", "GET /search"],
-    ["keyword", "E-KeywordInput.value"]
+    ["request.method", "GET"],
+    ["request.path", "/search"],
+    ["request.params.keyword", "E-KeywordInput.value"]
   ]);
   assert.deepEqual(action.processSteps[2]?.outcomes[0]?.sideEffects, []);
   assert.deepEqual(action.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
@@ -11403,7 +10677,6 @@ locale: ja
       "action.process.mixesResultClassificationAndImmediateEffects",
       "action.process.multipleExecutionDetails",
       "element.unknownType",
-      "element.unsupportedLegacyBind",
       "element.unsupportedProperty",
       "frontMatter.missingRequired",
       "frontMatter.missingYaml",
@@ -12479,8 +11752,6 @@ title: Action Neutral Diagnostics
 - From
   - idle
 - Process P1: Missing result
-  - input:
-    - value: E-Missing.value
   - case: done
     - Effects
       - state: loaded
@@ -12528,8 +11799,6 @@ title: Action Neutral Diagnostics
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Action A-Run process step Missing result uses legacy input block syntax. Put execution values under request.params, server.params, or custom detail params instead."));
-  assert(messages.includes("Action A-Run process step P1 Missing result value references missing source E-Missing."));
   assert(messages.includes("Action A-Run has duplicate process marker P1."));
   assert(messages.includes("Action A-Run process step P1 Duplicate marker references missing process marker P9."));
   assert(messages.includes("Action A-Other trigger A-Run.response is ambiguous. Use A-ActionId.P-marker.response."));

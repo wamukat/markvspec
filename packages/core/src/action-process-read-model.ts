@@ -5,35 +5,27 @@ import type {
   MarkVSpecProcessStepReadModel
 } from "./types.js";
 
-const httpRequestNames = new Set(["httprequest", "http request"]);
-const serverCallNames = new Set(["servercall", "server call"]);
-const partialRequestNames = new Set(["partialrequest", "partial request"]);
-
-export function classifyMarkVSpecProcessStep(step: Pick<MarkVSpecProcessStep, "name">): MarkVSpecProcessStepKind {
-  const normalized = normalizeProcessName(step.name);
-  if (httpRequestNames.has(normalized)) {
+export function classifyMarkVSpecProcessStep(step: MarkVSpecProcessStep): MarkVSpecProcessStepKind {
+  if (processStepRootDetail(step, "request")) {
     return "HttpRequest";
   }
-  if (serverCallNames.has(normalized)) {
+  if (processStepRootDetail(step, "server")) {
     return "ServerCall";
   }
-  if (normalized === "validate") {
+  if (processStepRootDetail(step, "validation") || processStepDetail(step, "validate")) {
     return "Validate";
   }
-  if (normalized === "resolve" || normalized.startsWith("resolve ")) {
+  if (step.resolveGroup) {
     return "Resolve";
   }
-  if (partialRequestNames.has(normalized)) {
-    return "PartialRequest";
-  }
-  if (normalized === "immediate") {
+  if (step.to || step.target || step.mode || step.fragment || step.content || step.display) {
     return "Immediate";
   }
   return "Generic";
 }
 
 export function isMarkVSpecProcessStepKind(
-  step: Pick<MarkVSpecProcessStep, "name">,
+  step: MarkVSpecProcessStep,
   kind: MarkVSpecProcessStepKind
 ): boolean {
   return classifyMarkVSpecProcessStep(step) === kind;
@@ -97,13 +89,17 @@ export function processStepDetail(step: MarkVSpecProcessStep, key: string): Mark
   return step.details.find((detail) => detail.key === key);
 }
 
+export function processStepRootDetail(step: MarkVSpecProcessStep, root: string): MarkVSpecProcessStepDetail | undefined {
+  return step.details.find((detail) => processExecutionDetailRoot(detail.key) === root || detail.key === root);
+}
+
 export function processStepDataReferenceDetails(step: MarkVSpecProcessStep): MarkVSpecProcessStepDetail[] {
   return [...step.inputs, ...step.receives];
 }
 
 export function isCanonicalProcessParamDetail(step: MarkVSpecProcessStep, detail: MarkVSpecProcessStepDetail): boolean {
   const kind = classifyMarkVSpecProcessStep(step);
-  if (kind === "HttpRequest" && detail.key !== "request") {
+  if (kind === "HttpRequest" && isRequestParamDetail(detail)) {
     return true;
   }
   return detail.scope === "params" || detail.key.includes(".params.");
@@ -149,19 +145,21 @@ function processRequestDetail(step: MarkVSpecProcessStep, kind: MarkVSpecProcess
   if (kind !== "HttpRequest") {
     return undefined;
   }
-  return processStepDetail(step, "request");
+  return processStepDetail(step, "request")
+    ?? processStepDetail(step, "request.method")
+    ?? processStepDetail(step, "request.path");
 }
 
 function processCallDetail(step: MarkVSpecProcessStep, kind: MarkVSpecProcessStepKind): MarkVSpecProcessStepDetail | undefined {
   if (kind !== "ServerCall") {
     return undefined;
   }
-  return processStepDetail(step, "call");
+  return processStepDetail(step, "call") ?? processStepDetail(step, "server");
 }
 
 function processParamDetails(step: MarkVSpecProcessStep, kind: MarkVSpecProcessStepKind): MarkVSpecProcessStepDetail[] {
   if (kind === "HttpRequest") {
-    return step.details.filter((detail) => detail.key !== "request");
+    return step.details.filter(isRequestParamDetail);
   }
 
   const params: MarkVSpecProcessStepDetail[] = [];
@@ -191,6 +189,9 @@ function processCustomDetails(step: MarkVSpecProcessStep, kind: MarkVSpecProcess
     if (kind === "ServerCall" && detail.key === "call") {
       return false;
     }
+    if (kind === "ServerCall" && processExecutionDetailRoot(detail.key) === "server" && !paramDetails.has(detail)) {
+      return false;
+    }
     if (detail.key === "validation" || detail.key === "validate") {
       return false;
     }
@@ -205,6 +206,14 @@ function processCustomDetails(step: MarkVSpecProcessStep, kind: MarkVSpecProcess
     }
     return true;
   });
+}
+
+function isRequestParamDetail(detail: MarkVSpecProcessStepDetail): boolean {
+  if (detail.scope === "params" || detail.key.includes(".params.")) {
+    return true;
+  }
+  const root = processExecutionDetailRoot(detail.key);
+  return root !== "request" && root !== "server" && root !== "sync" && root !== "response";
 }
 
 function isExecutionRootDetail(key: string): boolean {
@@ -227,8 +236,4 @@ function processExecutionDetailRoot(key: string): string | undefined {
   }
 
   return undefined;
-}
-
-function normalizeProcessName(name: string): string {
-  return name.trim().replace(/\s+/gu, " ").toLowerCase();
 }

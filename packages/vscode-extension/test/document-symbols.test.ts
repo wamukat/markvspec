@@ -115,18 +115,8 @@ title: 日本語画面
 ### V-日本語検証 日本語検証
 
 - target: E-ページヘッダ
-- condition: E-ページヘッダ が表示されていること
+- check: E-ページヘッダ が表示されていること
 - message: 日本語検証メッセージ
-
-## Model Samples
-
-### 初期
-
-#### \${model.お知らせ.items}
-
-| title |
-| --- |
-| お知らせ |
 
 ## Business Rules
 
@@ -159,9 +149,6 @@ title: 日本語画面
   assert.equal(elements?.children[0]?.detail, "見出し");
   assert.equal(actions?.children[0]?.name, "A1:A-日本語操作 日本語操作");
   assert.equal(validations?.children[0]?.name, "V-日本語検証 日本語検証");
-  const modelSamples = screen.children.find((child) => child.name === "Model Samples");
-  assert.equal(modelSamples?.detail, "Section");
-  assert.deepEqual(modelSamples?.children, []);
   assert.equal(businessRules?.children[0]?.name, "R1:R-日本語業務ルール 業務ルール");
   assert.equal(errorCodes?.children[0]?.name, "ER1:ERR-日本語 日本語エラー");
 });

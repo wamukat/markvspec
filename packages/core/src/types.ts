@@ -43,7 +43,6 @@ export interface MarkVSpecScreenSummary {
 }
 
 export interface MarkVSpecDocumentReferences {
-  templates: Record<string, string>;
   partials: Record<string, string>;
 }
 
@@ -298,29 +297,6 @@ export interface MarkVSpecSampleRow {
   raw: string;
 }
 
-export interface MarkVSpecModelSampleSet {
-  state: string;
-  path: string;
-  overview?: string[];
-  notes?: string[];
-  columns: string[];
-  rows: MarkVSpecModelSampleRow[];
-  location: SourceLocation;
-}
-
-export interface MarkVSpecModelSampleGroup {
-  state: string;
-  overview?: string[];
-  notes?: string[];
-  location: SourceLocation;
-}
-
-export interface MarkVSpecModelSampleRow {
-  values: Record<string, string>;
-  location: SourceLocation;
-  raw: string;
-}
-
 export type MarkVSpecViewContextType = "boolean" | "enum";
 
 export interface MarkVSpecViewContextValue {
@@ -481,7 +457,7 @@ export interface MarkVSpecProcessStepDetail {
   location: SourceLocation;
 }
 
-export type MarkVSpecProcessStepKind = "HttpRequest" | "ServerCall" | "Validate" | "Resolve" | "PartialRequest" | "Immediate" | "Generic";
+export type MarkVSpecProcessStepKind = "HttpRequest" | "ServerCall" | "Validate" | "Resolve" | "Immediate" | "Generic";
 
 export interface MarkVSpecProcessStepExecutionReadModel {
   kind: MarkVSpecProcessStepKind;
@@ -673,8 +649,6 @@ export interface MarkVSpecParseResult {
   errorCodes: MarkVSpecErrorCode[];
   historyFields: MarkVSpecHistoryFieldSchema[];
   historyEntries: MarkVSpecHistoryEntry[];
-  modelSampleGroups: MarkVSpecModelSampleGroup[];
-  modelSamples: MarkVSpecModelSampleSet[];
   viewContexts: MarkVSpecViewContextDefinition[];
   viewContextSamples: MarkVSpecViewContextSample[];
   previewScenarios: MarkVSpecPreviewScenario[];

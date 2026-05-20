@@ -775,8 +775,6 @@ test("exports responsive design document sections for every viewport", () => {
     assert.match(html, /<style>\s*@media print \{\s*\.wireframe-section \.mm-wireframe \{ border: 1px solid #d1d5db !important; box-shadow: none !important; box-sizing: border-box !important; max-width: 100% !important; min-width: 0 !important; outline: 0 !important; width: 100% !important; \}/);
     assert.match(html, /\.state-screen-section\[data-viewport\] \.wireframe-section \.mm-wireframe:not\(\.mm-wireframe-empty\) \{ max-width: none !important; width: var\(--markvspec-viewport-width, 100%\) !important; zoom: var\(--markvspec-print-scale, 1\) !important; \}/);
     assert.match(html, /\.wireframe-section \.mm-element-table th,\s+\.wireframe-section \.mm-element-table td \{ box-sizing: border-box; overflow-wrap: anywhere; word-break: break-word; \}/);
-    assert.doesNotMatch(htmlWithoutScripts, /<h2>Model Samples<\/h2>|Rows:|Sample Data/);
-    assert.doesNotMatch(htmlWithoutScripts, /model-sample-path-heading|U-001|U-002|Empty array/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

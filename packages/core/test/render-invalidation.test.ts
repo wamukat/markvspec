@@ -145,9 +145,9 @@ Visible description.
     previous,
     previous.replace("<!-- hidden before -->", "<!--\nhidden before\nnew hidden line\n-->")
   );
-  const removedComment = computeMarkVSpecRenderInvalidation(previous, previous.replace("\n<!-- hidden before -->\n", "\n"));
+  const deletedComment = computeMarkVSpecRenderInvalidation(previous, previous.replace("\n<!-- hidden before -->\n", "\n"));
 
-  for (const invalidation of [textEdit, expandedComment, removedComment]) {
+  for (const invalidation of [textEdit, expandedComment, deletedComment]) {
     assert.deepEqual(invalidation.changedSectionIds, []);
     assert.deepEqual(invalidation.impactedRenderKeys, []);
     assert.equal(invalidation.requiresFullRender, false);
@@ -386,17 +386,6 @@ title: Invalidation Source
 
 - src: \${model.card.title}
 - value: Fallback
-
-## Model Samples
-
-### idle
-
-#### \${model.cards.items}
-
-| title |
-| --- |
-| Alpha |
-| Beta |
 `;
   const current = previous.replace("- src: \${model.card.title}", "- src: \${model.account.title}");
   const invalidation = computeMarkVSpecRenderInvalidation(previous, current);
@@ -438,16 +427,6 @@ title: Invalidation Source Safe
 
 - src: \${model.profile.name}
 - value: Fallback
-
-## Model Samples
-
-### idle
-
-#### \${model.profile}
-
-| name | display |
-| --- | --- |
-| Alpha | Beta |
 `;
   const current = previous.replace("- src: \${model.profile.name}", "- src: \${model.profile.display}");
   const invalidation = computeMarkVSpecRenderInvalidation(previous, current);
@@ -485,7 +464,7 @@ title: Invalidation Action
   - E-Submit.click
 - From
   - idle
-- Process: ServerCall
+- Process P1: Call server service
   - submit form
 `;
   const current = previous.replace("  - submit form", "  - submit updated form");

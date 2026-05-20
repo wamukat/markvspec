@@ -55,7 +55,6 @@ export. They do not claim full static project-site parity.
 | `viewContextSamples.name`, `values`, `overview`, `notes` | `rendered-preview`, `rendered-static-export` | View Context Samples section and scenario/state-view evaluation. |
 | `previewScenarios.name`, `state`, `model`, `view`, `before`, `route`, `samples`, `cases`, `properties` | `rendered-preview`, `rendered-static-export` | State-view variants and sample tables. |
 | `previewScenarios.overview`, `previewScenarios.notes` | `rendered-preview`, `rendered-static-export` | Preview Scenario section lead/notes and scenario lead/notes render in preview and static single-document HTML export. Static project-site parity is intentionally outside this matrix. |
-| `modelSampleGroups`, `modelSamples` | `unsupported/deprecated` | Legacy Model Samples are intentionally warned and omitted from canonical output. |
 | `diagnostics` | `diagnostic` | Diagnostics table and editor diagnostics. |
 
 ## Project Document

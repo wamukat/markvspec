@@ -38,8 +38,10 @@ title: Action Envelope
   - E-SubmitButton.click
 - From
   - idle
-- Process: HttpRequest
-  - POST /submit
+- Process P1: Send request
+  - request:
+    - method: POST
+    - path: /submit
   - case: success
     - Effects
       - state: ready
@@ -72,14 +74,14 @@ title: Action Envelope
       sources: ["transition", "process-outcome"],
       fromStates: ["idle"],
       toTargets: ["ready"],
-      processMarkers: []
+      processMarkers: ["P1"]
     },
     {
       result: "failure",
       sources: ["transition", "process-outcome"],
       fromStates: ["idle"],
       toTargets: ["failed"],
-      processMarkers: []
+      processMarkers: ["P1"]
     }
   ]);
 });
@@ -107,8 +109,10 @@ title: Action Response
   - screen.load
 - From
   - before-load
-- Process P1: HttpRequest
-  - GET /profile
+- Process P1: Send request
+  - request:
+    - method: GET
+    - path: /profile
   - case: success
     - response: 200 profile
     - Effects
@@ -120,7 +124,7 @@ title: Action Response
   - A-Load.P1.response
 - From
   - loading
-- Process P2: Resolve
+- Process P2: Resolve responses
   - receive: A-Load.P1.response
   - case: success
     - Effects
@@ -169,8 +173,10 @@ title: Long Process Marker
   - screen.load
 - From
   - loading
-- Process PLongMarker13: HttpRequest
-  - GET /profile
+- Process PLongMarker13: Send request
+  - request:
+    - method: GET
+    - path: /profile
   - case: success
     - response: 200 profile
     - Effects
@@ -182,7 +188,7 @@ title: Long Process Marker
   - A-Load.PLongMarker13.response
 - From
   - loading
-- Process P1: Resolve
+- Process P1: Resolve responses
   - receive: A-Load.PLongMarker13.response
   - case: success
     - Effects

@@ -225,7 +225,7 @@ view context sample の参照は diagnostic error です。全組み合わせの
 
 ## Actions からの更新
 
-Action の効果は `model`、`state`、`view` の 3 種類として並べられます。旧 `cases:` block は canonical authoring から外し、効果は必ず `Process Pn:` または `case:` 配下に直接書きます。
+Action の効果は `model`、`state`、`view` の 3 種類として並べられます。効果は `Process Pn:` または `case:` 配下に直接書きます。
 
 `Process Pn: <process-name>` と `case: <case-name>` を使い、複数 step は `Process P1:`、`Process P2:` のように複数並べます。記載順を process order として扱います。
 
@@ -281,7 +281,7 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
 この形で破綻しないための前提は次の通りです。
 
 - `Process Pn: <process-name>` は Action 直下の process step を表す。`P1`、`P2` のような marker は後続参照用の安定 ID として扱う。
-- `case: <case-name>` は直近の `Process Pn:` の結果分岐を表す。旧 `cases:` block は canonical form から外す。
+- `case: <case-name>` は直近の `Process Pn:` の結果分岐を表す。
 - `response`、`when`、`skip when`、request parameter、service call などの step detail は `Process Pn:` 直下、または該当する `case:` 直下に置く。
 - `state`、`display`、`navigate` などの効果は `Process Pn:` 直下、または `case:` 直下に直接置く。
 - `Validate` のように引数が必要な process は、`Process P2: Validate search form` + `target: V-...` のように detail として表す。同期的に同一 Action 内で集約できる場合の `Resolve` は `Process P3: Resolve grouped processes` + `group: initial-load` のように書けるが、`page.load` 後に response を受ける初期化 flow では別 Action の `receive:` で扱う。
@@ -371,7 +371,8 @@ Action の効果は `model`、`state`、`view` の 3 種類として並べられ
 - `## Preview Scenarios` がない場合は、全 state の baseline scenario を自動生成する。
 - `## Preview Scenarios` がある場合は、それを preview / export の source of truth とする。ただし、すべての state が少なくとも 1 scenario に登場しない場合は diagnostic error とする。
 - `View Context` の全組み合わせは自動生成しない。
-- Action DSL は compact canonical syntax に移行する。Action 直下の効果 block と legacy `Process` -> step -> `cases:` は canonical form から外す。
+- Action DSL は compact canonical syntax とする。Action 直下の効果 block は使わず、
+  `Process Pn: <name>` と process 配下の `case:` に統一する。
 - `Resolve` は `Process Pn: Resolve ...` に統一する。
 - 2 値 enum と boolean の使い分けは warning 中心にする。`type: enum` の値が `true` / `false` だけの場合は warning、`type: boolean` に `open` / `closed` のような enum 風値を入れた場合は error とする。
 - 条件式の初期実装は単項条件、`not`、enum equality までに絞る。`and` / `or`、比較演算、`in` などは初期実装では扱わない。

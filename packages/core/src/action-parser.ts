@@ -47,53 +47,6 @@ export function applyActionBulletToContext(
       return { block: "process", processStep: step };
     }
 
-    const inlineProcess = parseInlineProcess(bullet.text);
-    if (inlineProcess) {
-      const normalizedProcess = normalizeBlockLabel(inlineProcess);
-      if (isHttpRequestLine(inlineProcess)) {
-        diagnostics.push({
-          severity: "warning",
-          message: `Action ${action.id} has malformed Process entry: ${inlineProcess}. Put request lines under a marked process such as Process P1: Submit request.`,
-          line: bullet.location.line
-        });
-        return { block: "process", rejectedProcessStepIndent: bullet.indent };
-      }
-      const [inlineProcessKey, inlineProcessValue] = splitKeyValue(inlineProcess);
-      const normalizedInlineProcessKey = normalizeBlockLabel(inlineProcessKey);
-      if (inlineProcessValue !== undefined && normalizedInlineProcessKey !== "validate" && normalizedInlineProcessKey !== "resolve") {
-        diagnostics.push({
-          severity: "warning",
-          message: `Action ${action.id} has malformed Process entry: ${inlineProcess}. Start with a marked process such as Process P1: Submit request.`,
-          line: bullet.location.line
-        });
-        return { block: "process", rejectedProcessStepIndent: bullet.indent };
-      }
-      if (normalizedProcess === "client call" || normalizedProcess === "clientcall") {
-        diagnostics.push({
-          severity: "warning",
-          message: `Action ${action.id} process step ${inlineProcess} is not supported. Use ServerCall instead.`,
-          line: bullet.location.line
-        });
-        return { block: "process", rejectedProcessStepIndent: bullet.indent };
-      }
-
-      const step = createProcessStep(inlineProcessValue === undefined ? inlineProcess : inlineProcessKey.trim(), bullet.indent, bullet.location);
-      if (inlineProcessValue !== undefined && normalizedInlineProcessKey === "validate") {
-        step.details.push({
-          key: "validation",
-          value: inlineProcessValue.trim(),
-          location: bullet.location
-        });
-        addPropertyLocation(step.propertyLocations, "validation", bullet.location);
-      }
-      if (inlineProcessValue !== undefined && normalizedInlineProcessKey === "resolve") {
-        step.resolveGroup = inlineProcessValue.trim();
-        addPropertyLocation(step.propertyLocations, "resolve", bullet.location);
-      }
-      action.processSteps.push(step);
-      return { block: "process", processStep: step };
-    }
-
     const block = parseActionBlock(bullet.text);
     if (block) {
       return { block, outcome: block === "otherwise" ? "otherwise" : undefined };
@@ -138,44 +91,6 @@ export function applyActionBulletToContext(
       return { block: context.block, rejectedProcessStepIndent: context.rejectedProcessStepIndent };
     }
 
-    const stepName = parseProcessStepName(bullet.text);
-    if (stepName && (!context.processStep || bullet.indent <= context.processStep.indent)) {
-      if (isHttpRequestLine(stepName)) {
-        diagnostics.push({
-          severity: "warning",
-          message: `Action ${action.id} has malformed Process entry: ${bullet.text}. Put request lines under a marked process such as Process P1: Submit request.`,
-          line: bullet.location.line
-        });
-        return { block: context.block, processStep: context.processStep, ...nextNestedContext(bullet, context) };
-      }
-
-      const normalizedStepName = normalizeBlockLabel(stepName);
-      if (normalizedStepName === "client call" || normalizedStepName === "clientcall") {
-        diagnostics.push({
-          severity: "warning",
-          message: `Action ${action.id} process step ${stepName} is not supported. Use ServerCall instead.`,
-          line: bullet.location.line
-        });
-        return { block: context.block, rejectedProcessStepIndent: bullet.indent };
-      }
-      const step = createProcessStep(stepName, bullet.indent, bullet.location);
-      const [, inlineValue] = splitKeyValue(bullet.text);
-      if (inlineValue !== undefined && normalizedStepName === "validate") {
-        step.details.push({
-          key: "validation",
-          value: inlineValue.trim(),
-          location: bullet.location
-        });
-        addPropertyLocation(step.propertyLocations, "validation", bullet.location);
-      }
-      if (inlineValue !== undefined && normalizeBlockLabel(stepName) === "resolve") {
-        step.resolveGroup = inlineValue.trim();
-        addPropertyLocation(step.propertyLocations, "resolve", bullet.location);
-      }
-      action.processSteps.push(step);
-      return { block: context.block, processStep: step };
-    }
-
     if (context.processStep) {
       if (bullet.indent <= context.processStep.indent) {
         diagnostics.push({
@@ -211,15 +126,6 @@ export function applyActionBulletToContext(
         };
       }
 
-      if (isCasesBlock(bullet.text)) {
-        diagnostics.push({
-          severity: "warning",
-          message: `Action ${action.id} process step ${context.processStep.name} uses removed cases block syntax. Use direct case: <name> entries under Process: ${context.processStep.name}.`,
-          line: bullet.location.line
-        });
-        return { block: context.block, processStep: context.processStep, rejectedProcessStepIndent: bullet.indent };
-      }
-
       if (normalizeBlockLabel(bullet.text) === "effects") {
         return { block: context.block, processStep: context.processStep, processEffectsIndent: bullet.indent };
       }
@@ -238,10 +144,6 @@ export function applyActionBulletToContext(
   return { block: context.block, outcome: context.outcome };
 }
 
-function isHttpRequestLine(text: string): boolean {
-  return /^[A-Z]+\s+.+$/.test(text);
-}
-
 function parseActionBlock(text: string): ActionBlock | undefined {
   const normalized = normalizeBlockLabel(text);
   if (normalized === "triggered") {
@@ -254,13 +156,6 @@ function parseActionBlock(text: string): ActionBlock | undefined {
     return "otherwise";
   }
   return undefined;
-}
-
-function parseInlineProcess(text: string): string | undefined {
-  const [key, value] = splitKeyValue(text);
-  return normalizeBlockLabel(key) === "process" && value !== undefined && value.trim()
-    ? value.trim()
-    : undefined;
 }
 
 function parseDirectCaseName(text: string): string | undefined {
@@ -301,17 +196,6 @@ function isProcessCaseFlowDirective(text: string): boolean {
   return normalized === "stop" || normalized === "continue";
 }
 
-function parseProcessStepName(text: string): string | undefined {
-  const [name, value] = splitKeyValue(text);
-  if (value !== undefined) {
-    const normalizedName = normalizeBlockLabel(name);
-    return normalizedName === "validate" || normalizedName === "resolve" ? name.trim() : undefined;
-  }
-
-  const normalized = name.trim();
-  return normalized ? normalized : undefined;
-}
-
 function createProcessStep(name: string, indent: number, location: SourceLocation): MarkVSpecProcessStep {
   const canonical = parseCanonicalProcess(name);
   return {
@@ -331,11 +215,6 @@ function createProcessStep(name: string, indent: number, location: SourceLocatio
   };
 }
 
-function isCasesBlock(text: string): boolean {
-  const normalized = normalizeBlockLabel(text);
-  return normalized === "cases";
-}
-
 function applyActionTrigger(action: MarkVSpecAction, value: string, location: SourceLocation): void {
   action.triggeredBy = value;
   action.triggeredByLocation = location;
@@ -350,29 +229,6 @@ function applyActionTrigger(action: MarkVSpecAction, value: string, location: So
   }
 }
 
-function applyHttpRequestBullet(bullet: ActionBulletInput, step: MarkVSpecProcessStep): void {
-  const request = /^([A-Z]+)\s+(.+)$/.exec(bullet.text);
-  if (request) {
-    step.details.push({
-      key: "request",
-      value: bullet.text,
-      location: bullet.location
-    });
-    addPropertyLocation(step.propertyLocations, "request", bullet.location);
-    return;
-  }
-
-  const [name, source] = splitKeyValue(bullet.text);
-  if (source !== undefined) {
-    step.details.push({
-      key: name.trim(),
-      value: source.trim(),
-      location: bullet.location
-    });
-    addPropertyLocation(step.propertyLocations, name.trim(), bullet.location);
-  }
-}
-
 function applyProcessStepBullet(
   action: MarkVSpecAction,
   step: MarkVSpecProcessStep,
@@ -380,18 +236,10 @@ function applyProcessStepBullet(
   currentNestedBlock: ProcessNestedBlock | undefined,
   diagnostics: MarkVSpecDiagnostic[]
 ): void {
-  const normalizedStep = normalizeBlockLabel(step.name);
   const [keyPart, valuePart] = splitKeyValue(bullet.text);
   const key = keyPart.trim();
   const value = valuePart?.trim();
-
-  const isHttpRequestStep = normalizedStep === "http request" || normalizedStep === "httprequest";
-
-  if (currentNestedBlock === "input" && value !== undefined) {
-    step.inputs.push({ key, value, location: bullet.location });
-    addPropertyLocation(step.propertyLocations, `input ${key}`, bullet.location);
-    return;
-  }
+  const normalizedStep = normalizeBlockLabel(step.name);
 
   if (currentNestedBlock === "receive" && value !== undefined) {
     step.receives.push({ key, value, location: bullet.location });
@@ -443,45 +291,23 @@ function applyProcessStepBullet(
     return;
   }
 
-  if ((value === undefined || value === "") && (isProcessDetailBlockLabel(normalizeBlockLabel(bullet.text)) || isCustomProcessDetailBlockStart(bullet.text) || ["input", "receive", "result"].includes(normalizeBlockLabel(bullet.text)))) {
+  if ((value === undefined || value === "") && (isProcessDetailBlockLabel(normalizeBlockLabel(bullet.text)) || isCustomProcessDetailBlockStart(bullet.text) || ["receive", "result"].includes(normalizeBlockLabel(bullet.text)))) {
     if (isCustomProcessDetailBlockStart(bullet.text)) {
       addPropertyLocation(step.propertyLocations, `detail ${normalizeBlockLabel(bullet.text)}`, bullet.location);
     }
-    if (normalizeBlockLabel(bullet.text) === "input") {
-      diagnostics.push({
-        severity: "warning",
-        message: `Action ${action.id} process step ${step.name} uses legacy input block syntax. Put execution values under request.params, server.params, or custom detail params instead.`,
-        line: bullet.location.line
-      });
-    }
-    return;
-  }
-
-  if (isHttpRequestStep) {
-    if (value !== undefined && isUpdateEffectKey(key)) {
-      diagnostics.push({
-        severity: "warning",
-        message: `Action ${action.id} HttpRequest has unsupported entry: ${bullet.text}. Use request parameter entries or move update details under a case update block.`,
-        line: bullet.location.line
-      });
-      return;
-    }
-
-    applyHttpRequestBullet(bullet, step);
-    return;
-  }
-
-  if (isServerCallStep(normalizedStep) && value === undefined) {
-    step.details.push({
-      key: "call",
-      value: bullet.text,
-      location: bullet.location
-    });
-    addPropertyLocation(step.propertyLocations, "call", bullet.location);
     return;
   }
 
   if (value === undefined) {
+    return;
+  }
+
+  if (key === "request" && value.trim()) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Action ${action.id} process step ${step.name} has unsupported entry: ${bullet.text}. Put request method and path under a request block.`,
+      line: bullet.location.line
+    });
     return;
   }
 
@@ -513,26 +339,6 @@ function applyProcessStepBullet(
     return;
   }
 
-  if (isServerCallStep(normalizedStep)) {
-    if (key === "client") {
-      diagnostics.push({
-        severity: "warning",
-        message: `Action ${action.id} process step ${step.name} has unsupported entry: ${bullet.text}. Use an unlabeled call line such as Service.method().`,
-        line: bullet.location.line
-      });
-      return;
-    }
-
-    step.details.push({
-      key,
-      value,
-      scope: currentNestedBlock,
-      location: bullet.location
-    });
-    addPropertyLocation(step.propertyLocations, key, bullet.location);
-    return;
-  }
-
   if (key === "update") {
     return;
   }
@@ -557,10 +363,6 @@ function applyProcessStepBullet(
     location: bullet.location
   });
   addPropertyLocation(step.propertyLocations, key, bullet.location);
-}
-
-function isServerCallStep(normalizedStep: string): boolean {
-  return normalizedStep === "server call" || normalizedStep === "servercall";
 }
 
 function applyProcessStepDirectCaseBullet(
@@ -1062,7 +864,7 @@ function nextNestedContext(bullet: ActionBulletInput, context: ActionParseContex
     };
   }
 
-  if (normalized === "update" || normalized === "params" || normalized === "input" || normalized === "receive" || normalized === "result" || isKnownProcessDetailBlock(normalized) || normalized === "display") {
+  if (normalized === "update" || normalized === "params" || normalized === "receive" || normalized === "result" || isKnownProcessDetailBlock(normalized) || normalized === "display") {
     return {
       nestedBlock: normalized,
       nestedBlockIndent: bullet.indent

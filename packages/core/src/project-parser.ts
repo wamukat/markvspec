@@ -305,14 +305,6 @@ function validateProjectIndex(
     });
   }
 
-  if (project.frontMatter["status"]) {
-    diagnostics.push({
-      severity: "warning",
-      message: "Front Matter field status is no longer canonical and is ignored.",
-      line: 1
-    });
-  }
-
   if (screens.length === 0) {
     diagnostics.push({
       severity: "error",

@@ -103,7 +103,7 @@ title: AST Table
 
 # SCR-AST-TABLE AST Table
 
-## Model Samples
+## Preview Scenarios
 
 ### idle
 
@@ -113,7 +113,7 @@ title: AST Table
 | --- | --- |
 | 1 | Alice |
 
-## Model Samples
+## Preview Scenarios
 
 ### loaded
 
@@ -128,7 +128,7 @@ title: AST Table
   const sections = collectSectionAst(document);
 
   assert.deepEqual(diagnostics, []);
-  assert.deepEqual(sections.map((section) => section.id), ["section:ModelSamples", "section:ModelSamples:2"]);
+  assert.deepEqual(sections.map((section) => section.id), ["section:PreviewScenarios", "section:PreviewScenarios:2"]);
 
   const firstTable = sections[0].blocks.find((block) => block.type === "table");
   assert.ok(firstTable);
@@ -170,16 +170,6 @@ title: Small AST
   - E-Name
   - E-Status, E-Role、E-Region
 - submit: A-Save
-
-## Model Samples
-
-### idle
-
-#### user
-
-| id | name |
-| --- | --- |
-| 1 | Alice |
 
 ## Validations
 
@@ -250,10 +240,6 @@ Custom detail.
       raw: "invalid"
     }
   ]);
-  assert.deepEqual(astResult.modelSamples, []);
-  assert(astResult.diagnostics.some((diagnostic) =>
-    diagnostic.message === "## Model Samples is no longer canonical. Use Element sample rows or Preview Scenario samples instead."
-  ));
   assert.deepEqual(astResult.formGroups, [
     {
       id: "F-ProfileForm",
@@ -393,17 +379,10 @@ Custom detail.
       lines: ["", "Custom detail.", ""]
     }
   ]);
-  assert.deepEqual(astResult.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]), [
-    [
-      "warning",
-      "## Model Samples is no longer canonical. Use Element sample rows or Preview Scenario samples instead.",
-      lineNumber(source, "## Model Samples")
-    ]
-  ]);
+  assert.deepEqual(astResult.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]), []);
   assert.deepEqual(astResult.sectionResults.map((result) => [result.sectionId, result.renderKeys]), [
     ["section:States", ["states:list"]],
     ["section:FormGroups", ["form-groups:list"]],
-    ["section:ModelSamples", ["unsupported:model-samples"]],
     ["section:Validations", ["validations:list"]],
     ["section:BusinessRules", ["rules:list"]],
     ["section:HistoryFields", ["history-fields:list"]],
@@ -414,7 +393,6 @@ Custom detail.
   assert.deepEqual(astResult.sectionResults.map((result) => [result.sectionId, result.payload.type]), [
     ["section:States", "states"],
     ["section:FormGroups", "formGroups"],
-    ["section:ModelSamples", "modelSamples"],
     ["section:Validations", "validations"],
     ["section:BusinessRules", "rules"],
     ["section:HistoryFields", "historyFields"],
@@ -425,7 +403,6 @@ Custom detail.
   assert.deepEqual(astResult.sectionResults.map((result) => [result.metadata.sectionId, result.metadata.kind, result.metadata.renderKeys]), [
     ["section:States", "States", ["states:list"]],
     ["section:FormGroups", "FormGroups", ["form-groups:list"]],
-    ["section:ModelSamples", "ModelSamples", ["unsupported:model-samples"]],
     ["section:Validations", "Validations", ["validations:list"]],
     ["section:BusinessRules", "BusinessRules", ["rules:list"]],
     ["section:HistoryFields", "HistoryFields", ["history-fields:list"]],
@@ -449,7 +426,6 @@ Custom detail.
     [{ type: "entity", id: "F-ProfileForm" }, { type: "entity", id: "E-Role" }, "references"],
     [{ type: "entity", id: "F-ProfileForm" }, { type: "entity", id: "E-Region" }, "references"],
     [{ type: "entity", id: "F-ProfileForm" }, { type: "entity", id: "A-Save" }, "references"],
-    [{ type: "section", id: "section:ModelSamples" }, { type: "render", id: "unsupported:model-samples" }, "renders"],
     [{ type: "section", id: "section:Validations" }, { type: "render", id: "validations:list" }, "renders"],
     [{ type: "entity", id: "V-REQUIRED" }, { type: "entity", id: "E-Name" }, "references"],
     [{ type: "section", id: "section:BusinessRules" }, { type: "render", id: "rules:list" }, "renders"],
@@ -530,13 +506,6 @@ title: Small AST Diagnostics
   - Orphan description
 - loa*ding
 
-## Model Samples
-
-#### user
-
-| id |
-| --- |
-| 1 |
 `;
   const diagnostics: MarkVSpecDiagnostic[] = [];
   const document = parseMarkdownDocument(source, diagnostics);
@@ -545,8 +514,7 @@ title: Small AST Diagnostics
 
   const expectedDiagnostics = [
     ["error", "State description has no parent state: Orphan description.", lineNumber(source, "  - Orphan description")],
-    ["error", "State loa*ding uses * outside the end of the state name.", lineNumber(source, "- loa*ding")],
-    ["warning", "## Model Samples is no longer canonical. Use Element sample rows or Preview Scenario samples instead.", lineNumber(source, "## Model Samples")]
+    ["error", "State loa*ding uses * outside the end of the state name.", lineNumber(source, "- loa*ding")]
   ];
   assert.deepEqual(
     astResult.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
@@ -777,13 +745,13 @@ title: Layout AST Diagnostics
 
 ### Invalid
 
-### L-Repeat Repeat
+### L-Extra Extra
 
 - stack
 
-#### Repeat
+#### Metadata
 
-- source: \${model.items}
+- source: data
 
 ## Slot:
 
@@ -801,7 +769,11 @@ title: Layout AST Diagnostics
       "Malformed Layout heading. Expected ### [<marker>:]L-* [name] or ### P-* [name].",
       lineNumber(source, "### Invalid"),
     ],
-    ["error", "Layout L-Repeat uses removed Repeat subsection. Use Element sample rows or Preview Scenario samples instead.", lineNumber(source, "#### Repeat")],
+    [
+      "warning",
+      "Layout L-Extra has unsupported subsection Metadata. Use #### Items for child references or layout metadata bullets for settings.",
+      lineNumber(source, "#### Metadata")
+    ],
     ["warning", "Slot section must specify a slot name, for example ## Slot: content.", lineNumber(source, "## Slot:")],
     ["warning", "Slot layout group is ignored because its Slot section has no name.", lineNumber(source, "### L-SlotContent Slot Content")]
   ];
@@ -972,9 +944,12 @@ title: Action AST
   - E-SubmitButton.click
 - From
   - idle
-- Process: HttpRequest
-  - POST /login
-    - email: E-メールアドレス入力.value
+- Process P1: Send request
+  - request:
+    - method: POST
+    - path: /login
+    - params:
+      - email: E-メールアドレス入力.value
   - case: success
     - response: 2xx authenticated
     - params:
@@ -989,10 +964,11 @@ title: Action AST
     - from: idle
     - Effects
       - state: error
-- Process: ServerCall
-  - ProfileService.load()
-  - params:
-    - memberId: E-MemberId.value
+- Process P2: Call server service
+  - server:
+    - ProfileService.load()
+    - params:
+      - memberId: E-MemberId.value
 `;
   const diagnostics: MarkVSpecDiagnostic[] = [];
   const document = parseMarkdownDocument(source, diagnostics);
@@ -1008,8 +984,8 @@ title: Action AST
   assert.deepEqual(action?.trigger, { elementId: "E-SubmitButton", event: "click" });
   assert.deepEqual(action?.fromStates, ["idle"]);
   assert.deepEqual(action?.processSteps.map((step) => [step.name, step.details.map((detail) => [detail.key, detail.value])]), [
-    ["HttpRequest", [["request", "POST /login"], ["email", "E-メールアドレス入力.value"]]],
-    ["ServerCall", [["call", "ProfileService.load()"], ["params", ""], ["memberId", "E-MemberId.value"]]]
+    ["Send request", [["request.method", "POST"], ["request.path", "/login"], ["request.params.email", "E-メールアドレス入力.value"]]],
+    ["Call server service", [["server", "ProfileService.load()"], ["server.params.memberId", "E-MemberId.value"]]]
   ]);
   assert.deepEqual(action?.responses, []);
   assert.deepEqual(action?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
@@ -1027,8 +1003,11 @@ title: Action AST
   assert.deepEqual(action?.propertyLocations["marker"], [{ line: lineNumber(source, "### main:A-Submit Submit") }]);
   assert.equal(action?.propertyLocations["request"], undefined);
   assert.equal(action?.propertyLocations["param email"], undefined);
-  assert.deepEqual(action?.processSteps[0]?.propertyLocations["request"], [{ line: lineNumber(source, "  - POST /login") }]);
-  assert.deepEqual(action?.processSteps[0]?.propertyLocations["email"], [{ line: lineNumber(source, "    - email: E-メールアドレス入力.value") }]);
+  assert.deepEqual(action?.processSteps[0]?.propertyLocations["request"], [
+    { line: lineNumber(source, "    - method: POST") },
+    { line: lineNumber(source, "    - path: /login") }
+  ]);
+  assert.deepEqual(action?.processSteps[0]?.propertyLocations["request.params"], [{ line: lineNumber(source, "      - email: E-メールアドレス入力.value") }]);
   assert.deepEqual(parseResult.actions, astResult.actions);
   assert.deepEqual(astResult.sectionResults.map((result) => [result.sectionId, result.renderKeys]), [
     ["section:Actions", ["actions:list", "action:A-Submit"]]
@@ -1075,7 +1054,7 @@ title: Action AST Diagnostics
     ["warning", "Malformed Action heading. Expected ### [<marker>:]A-* <name>.", lineNumber(source, "### Submit without ID")],
     ["warning", "Action A-Submit has unsupported top-level entry: request: POST /login. Use From, Process P1: <name>, or Otherwise.", lineNumber(source, "- request: POST /login")],
     ["warning", "Action A-Submit has nested entry outside a recognized block: E-メールアドレス入力.click.", lineNumber(source, "  - E-メールアドレス入力.click")],
-    ["warning", "Action A-Submit has malformed Process entry: POST /login. Put request lines under a marked process such as Process P1: Submit request.", lineNumber(source, "- Process: POST /login")]
+    ["warning", "Action A-Submit has unsupported top-level entry: Process: POST /login. Use From, Process P1: <name>, or Otherwise.", lineNumber(source, "- Process: POST /login")]
   ];
 
   assert.deepEqual(

@@ -120,10 +120,6 @@ error、empty、dialog、toast、direct link の状態を見せたいときに�
 `samples:` は Element ごとの Scenario Preview Data です。`route:` は route
 parameter や hash fragment に使う Route Preview Data です。
 
-`## Model Samples` / `modelSamples` は canonical ではありません。Element の scalar 値、
-Element の `sample rows:`、Preview Scenario の `samples:` / `route:`、または
-View Context Samples を使ってください。
-
 [Scenario Preview Data](../../../examples/showcase/scenario-samples.html) と
 [Display Effects](../../../examples/showcase/display-effects.html) を参照してください。
 

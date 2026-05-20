@@ -1,5 +1,5 @@
 import { parseMarkVSpec } from "./index.js";
-import { isMarkVSpecProcessStepKind, processStepDetail as processStepDetailFromReadModel } from "./action-process-read-model.js";
+import { processStepDetail as processStepDetailFromReadModel } from "./action-process-read-model.js";
 import { elementIdPattern, layoutIdPattern } from "./ids.js";
 import { parseMarkVSpecProject } from "./project-parser.js";
 import type {
@@ -448,10 +448,7 @@ function partialIdsReferencedBy(result: MarkVSpecParseResult): Set<string> {
   }
   for (const action of result.actions) {
     for (const step of action.processSteps) {
-      const partialId = processStepDetail(step, "partial");
-      if (!isSelfPartialRequest(result, step, partialId)) {
-        collectPartialId(ids, partialId);
-      }
+      collectPartialId(ids, processStepDetail(step, "partial"));
       collectPartialId(ids, step.content);
       for (const outcome of step.outcomes) {
         collectPartialId(ids, outcome.content);
@@ -479,10 +476,6 @@ function collectPartialId(ids: Set<string>, value: string | undefined): void {
 
 function processStepDetail(step: MarkVSpecProcessStep, key: string): string | undefined {
   return processStepDetailFromReadModel(step, key)?.value;
-}
-
-function isSelfPartialRequest(result: MarkVSpecParseResult, step: MarkVSpecProcessStep, partialId: string | undefined): boolean {
-  return result.screen.type === "partial" && result.screen.id === partialId && isMarkVSpecProcessStepKind(step, "PartialRequest");
 }
 
 function loadProjectEntries(
@@ -595,8 +588,6 @@ export function composeMarkVSpecTemplate(template: MarkVSpecParseResult, screen:
     errorCodes: [...template.errorCodes, ...screen.errorCodes],
     historyFields: [...template.historyFields, ...screen.historyFields],
     historyEntries: [...template.historyEntries, ...screen.historyEntries],
-    modelSampleGroups: [],
-    modelSamples: [],
     viewContexts: [...template.viewContexts, ...screen.viewContexts],
     viewContextSamples: [...template.viewContextSamples, ...screen.viewContextSamples],
     previewScenarios: [...template.previewScenarios, ...screen.previewScenarios],

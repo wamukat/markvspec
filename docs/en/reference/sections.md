@@ -123,10 +123,6 @@ Use it when a reviewer must see error, empty, dialog, toast, or direct-link
 states. `samples:` is Scenario Preview Data for Element-specific values.
 `route:` is Route Preview Data for route parameters and hash fragments.
 
-`## Model Samples` / `modelSamples` is not canonical. Use Element scalar values,
-Element `sample rows:`, Preview Scenario `samples:` / `route:`, or View Context
-Samples instead.
-
 See [Scenario Preview Data](../../../examples/showcase/scenario-samples.html)
 and [Display Effects](../../../examples/showcase/display-effects.html).
 

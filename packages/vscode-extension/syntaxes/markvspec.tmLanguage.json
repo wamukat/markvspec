@@ -163,7 +163,7 @@
       "patterns": [
         {
           "name": "meta.action-group.markvspec",
-          "match": "^(\\s*-\\s+)(From|Effects|Otherwise)\\s*:?\\s*$",
+          "match": "^(\\s*-\\s+)(Triggered|From|Otherwise)\\s*:?\\s*$",
           "captures": {
             "1": {
               "name": "punctuation.definition.list.begin.markvspec"
@@ -203,21 +203,6 @@
             },
             "3": {
               "name": "punctuation.separator.key-value.markvspec"
-            }
-          }
-        },
-        {
-          "name": "meta.process-step.markvspec",
-          "match": "^(\\s*-\\s+)(HttpRequest|PartialRequest|ServerCall|Preprocess|Resolve)(?::\\s*([A-Za-z][A-Za-z0-9_-]*))?\\s*$",
-          "captures": {
-            "1": {
-              "name": "punctuation.definition.list.begin.markvspec"
-            },
-            "2": {
-              "name": "support.function.process-step.markvspec"
-            },
-            "3": {
-              "name": "entity.name.tag.parallel-group.markvspec"
             }
           }
         },
