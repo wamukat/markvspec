@@ -13,6 +13,7 @@ import type {
   RendererMessages,
   StateScreenReadModel
 } from "@markvspec/core";
+import { renderStaticElementSampleRowsReference } from "./static-entity-reference-presenter.js";
 
 type StaticElement = MarkVSpecParseResult["elements"][number];
 type StaticTableCell = string | undefined | null | {
@@ -214,8 +215,11 @@ function renderSampleRowsReference(
   support: StaticElementSpecRenderingSupport
 ): string {
   const marker = rawStringProperty(element.properties["marker"]) || sampleRowsRef.elementId;
-  const href = sampleRowsRef.anchorId ? ` href="#${support.escapeHtml(sampleRowsRef.anchorId)}"` : "";
-  return `<a class="mm-ref-chip mm-ref-chip-element"${href} data-mm-ref-id="${support.escapeHtml(sampleRowsRef.elementId)}">${support.renderPreviewIcon("table")}<code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">${support.escapeHtml(marker)}</code> <span class="mm-detail-ref-id">${support.escapeHtml(sampleRowsRef.elementId)}</span></a>`;
+  return renderStaticElementSampleRowsReference({
+    anchorId: sampleRowsRef.anchorId,
+    elementId: sampleRowsRef.elementId,
+    marker
+  }, support);
 }
 
 function renderSourceSummary(value: string | true | undefined, support: StaticElementSpecRenderingSupport): string {
