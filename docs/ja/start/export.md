@@ -2,6 +2,19 @@
 
 MarkVSpec は `.vspec.md` から HTML / PDF を出力できます。
 
+## VS Code
+
+Command Palette から次のどちらかを実行します。
+
+```text
+MarkVSpec: Export Static HTML
+MarkVSpec: Export PDF
+```
+
+![VS Code Command Palette で MarkVSpec の HTML / PDF export command を表示している画面](../../assets/start/vscode-export-command.png)
+
+初めて試す場合は、VS Code 拡張からの export が一番簡単です。
+
 ## HTML
 
 ```bash

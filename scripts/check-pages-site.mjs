@@ -91,7 +91,9 @@ const requiredFiles = [
   "docs/en/examples/index.html",
   "docs/ja/concepts/index.html",
   "docs/en/concepts/index.html",
-  "docs/assets/readme-hello-screen-preview.png"
+  "docs/assets/readme-hello-screen-preview.png",
+  "docs/assets/start/vscode-preview-clean.png",
+  "docs/assets/start/vscode-export-command.png"
 ];
 
 const newIaIndexFiles = [
@@ -231,6 +233,10 @@ expectContains(jaStartHtml, "VS Code Marketplace", "_site/docs/ja/start/index.ht
 expectContains(jaStartHtml, "<h3>Step 2: Hello Screen を作る</h3>", "_site/docs/ja/start/index.html should ask users to create the first file.");
 expectContains(jaStartHtml, "hello.vspec.md", "_site/docs/ja/start/index.html should use a user-created local file.");
 expectContains(jaStartHtml, "MarkVSpec: Open Preview", "_site/docs/ja/start/index.html should mention the preview command.");
+expectContains(jaStartHtml, "../../assets/start/vscode-preview-clean.png", "_site/docs/ja/start/index.html should show the preview screenshot.");
+expectContains(jaStartHtml, "MarkVSpec: Export Static HTML", "_site/docs/ja/start/index.html should mention the VS Code HTML export command.");
+expectContains(jaStartHtml, "MarkVSpec: Export PDF", "_site/docs/ja/start/index.html should mention the VS Code PDF export command.");
+expectContains(jaStartHtml, "../../assets/start/vscode-export-command.png", "_site/docs/ja/start/index.html should show the export command screenshot.");
 expectContains(jaStartHtml, "export html", "_site/docs/ja/start/index.html should mention HTML export.");
 expectContains(jaStartHtml, "export pdf", "_site/docs/ja/start/index.html should mention PDF export.");
 expectNotContains(jaStartHtml, "code examples/", "_site/docs/ja/start/index.html should not require cloned repository examples.");
@@ -242,6 +248,10 @@ expectContains(enStartHtml, "VS Code Marketplace", "_site/docs/en/start/index.ht
 expectContains(enStartHtml, "<h3>Step 2: Create Hello Screen</h3>", "_site/docs/en/start/index.html should ask users to create the first file.");
 expectContains(enStartHtml, "hello.vspec.md", "_site/docs/en/start/index.html should use a user-created local file.");
 expectContains(enStartHtml, "MarkVSpec: Open Preview", "_site/docs/en/start/index.html should mention the preview command.");
+expectContains(enStartHtml, "../../assets/start/vscode-preview-clean.png", "_site/docs/en/start/index.html should show the preview screenshot.");
+expectContains(enStartHtml, "MarkVSpec: Export Static HTML", "_site/docs/en/start/index.html should mention the VS Code HTML export command.");
+expectContains(enStartHtml, "MarkVSpec: Export PDF", "_site/docs/en/start/index.html should mention the VS Code PDF export command.");
+expectContains(enStartHtml, "../../assets/start/vscode-export-command.png", "_site/docs/en/start/index.html should show the export command screenshot.");
 expectContains(enStartHtml, "export html", "_site/docs/en/start/index.html should mention HTML export.");
 expectContains(enStartHtml, "export pdf", "_site/docs/en/start/index.html should mention PDF export.");
 expectNotContains(enStartHtml, "code examples/", "_site/docs/en/start/index.html should not require cloned repository examples.");

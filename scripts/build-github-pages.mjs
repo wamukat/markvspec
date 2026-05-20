@@ -933,6 +933,16 @@ function renderMarkdownPage(filePath, markdown) {
       background: transparent;
       padding: 0;
     }
+    figure {
+      margin: 18px 0 24px;
+    }
+    figure img {
+      border: 1px solid #d7dee8;
+      border-radius: 8px;
+      display: block;
+      height: auto;
+      max-width: 100%;
+    }
     @media (max-width: 720px) {
       main {
         border-left: 0;
@@ -1014,6 +1024,14 @@ function renderMarkdownBody(filePath, markdown) {
       flushList();
       const level = heading[1].length;
       html.push(`<h${level}>${renderMarkdownInline(filePath, heading[2])}</h${level}>`);
+      continue;
+    }
+
+    const image = line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/u);
+    if (image) {
+      flushParagraph();
+      flushList();
+      html.push(`<figure><img src="${escapeHtml(resolveMarkdownHref(filePath, image[2]))}" alt="${escapeHtml(image[1])}"></figure>`);
       continue;
     }
 

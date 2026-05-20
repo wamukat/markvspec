@@ -84,9 +84,22 @@ Run this from the Command Palette.
 MarkVSpec: Open Preview
 ```
 
+The preview opens beside the source and shows the generated screen specification.
+
+![VS Code showing hello.vspec.md beside the MarkVSpec preview](../../assets/start/vscode-preview-clean.png)
+
 ### Step 4: Export HTML / PDF
 
-Export HTML / PDF when you need shareable output.
+Export HTML / PDF from the VS Code Command Palette when you need shareable output.
+
+```text
+MarkVSpec: Export Static HTML
+MarkVSpec: Export PDF
+```
+
+![VS Code Command Palette showing MarkVSpec HTML and PDF export commands](../../assets/start/vscode-export-command.png)
+
+If you prefer the CLI, pass the same file.
 
 ```bash
 npx @markvspec/cli@latest export html hello.vspec.md --out markvspec-html
