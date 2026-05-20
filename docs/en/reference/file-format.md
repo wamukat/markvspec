@@ -1,6 +1,7 @@
 # File Format
 
 A `.vspec.md` file is the MarkVSpec authoring source. One file normally describes one screen, template, or partial.
+A `.vspec.project.md` file describes a project index that points to screen and template files.
 
 ## Syntax You Can Write
 
@@ -32,12 +33,40 @@ Front Matter contains document-level metadata only.
 | Field | Required | Value |
 | --- | --- | --- |
 | `id` | yes | `SCR-*`, or a stable ID that matches the document type |
-| `type` | yes | `screen`, `template`, or `partial` |
+| `type` | yes | `screen`, `template`, `partial`, or `project` |
 | `title` | yes | Human-readable screen name |
 | `route` | no | URL path for a screen |
 | `locale` | no | Locale such as `ja` or `en` |
 
 Do not put element properties, actions, or layout items in Front Matter. Put them in the Markdown body.
+
+### Project Files
+
+Use a project file when you want one preview to list related screens and templates.
+
+```markdown
+---
+id: PRJ-ACCOUNT
+type: project
+title: Account Project
+screens:
+  - id: SCR-LOGIN
+    path: screens/login.vspec.md
+templates:
+  - id: TPL-ACCOUNT-SHELL
+    path: templates/account-shell.vspec.md
+---
+
+# PRJ-ACCOUNT Account Project
+
+Use this project to review the account screens together.
+
+## Notes
+
+Keep navigation and shared shell changes visible in one place.
+```
+
+Project preview renders the project lead and `## Notes` so reviewers can read the project intent beside the screen/template list and transition graph. Document-list export intentionally keeps the output compact and does not include long project lead / notes prose.
 
 ### Body
 
@@ -78,6 +107,7 @@ route: /hello
 - Front Matter is YAML, but the body should not drift into YAML or JSON.
 - Markdown tables may be used for explanation, but they are not canonical source.
 - Use `type: partial` for server-rendered partials or screen fragments.
+- Use `type: project` only in `.vspec.project.md` files that list related screens and templates.
 - Write states as bullets under `## States`; use `*` on one state for the initial state.
 
 ## Related Pages

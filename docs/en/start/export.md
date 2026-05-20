@@ -23,11 +23,13 @@ If you prefer the CLI, see [CLI reference](../reference/cli.md) for options.
 npx @markvspec/cli@latest export html hello.vspec.md --out markvspec-html
 ```
 
-This creates `hello-screen.html` in the output directory. Use it as a static artifact for review and sharing.
+This creates `hello.html` in the output directory. Use it as a static artifact for review and sharing.
 
 Use HTML export when you need a lightweight artifact that opens in a browser.
 Keep the source in the pull request and share the HTML artifact with reviewers
 who do not need to read Markdown.
+
+Static HTML includes the structured specification that reviewers need outside VS Code: states, layout, elements, actions, Form Groups, Business Rules, Validations, Error Codes, custom Notes, and section/entity lead or notes prose. Treat it as a review artifact generated from the `.vspec.md` source, not as a separate document to edit.
 
 ## PDF
 
@@ -45,6 +47,7 @@ artifacts.
 ## Before Exporting
 
 - Check in preview that the main states, elements, and actions are readable.
+- Check that Form Groups, Business Rules, Validations, Error Codes, and Notes that matter to the review appear in the HTML output.
 - Keep the source in a Git-managed location.
 - Share `.vspec.md` when recipients need to edit; share HTML / PDF when they only need to read.
 - For CLI export of multiple files, pass an explicit output directory.

@@ -23,10 +23,12 @@ CLI で出力したい場合の詳しい option は [CLI reference](../reference
 npx @markvspec/cli@latest export html hello.vspec.md --out markvspec-html
 ```
 
-出力先には `hello-screen.html` が作られます。レビューや共有用に、source と別の静的成果物として扱えます。
+出力先には `hello.html` が作られます。レビューや共有用に、source と別の静的成果物として扱えます。
 
 HTML export は、ブラウザで開ける軽い成果物が必要なときに使います。pull request に source を置き、
 レビュー用 artifact として HTML を共有すると、Markdown を読まない人にも画面仕様を見せられます。
+
+Static HTML には、VS Code の外で review するために必要な structured specification も含まれます。states、layout、elements、actions、Form Groups、Business Rules、Validations、Error Codes、custom Notes、section / entity の lead や notes prose を確認できます。編集対象は生成 HTML ではなく、source の `.vspec.md` です。
 
 ## PDF
 
@@ -42,6 +44,7 @@ PDF export は、issue、仕様レビュー、非エンジニア向け共有な�
 ## export 前に見ること
 
 - preview で、主要な状態、要素、action が読めるか。
+- review に必要な Form Groups、Business Rules、Validations、Error Codes、Notes が HTML output に出ているか。
 - source が Git に残る場所に置かれているか。
 - 共有先が編集する必要があるなら `.vspec.md`、読むだけなら HTML / PDF を渡す。
 - CLI で複数 file を出す場合は、出力先 directory を明示する。
