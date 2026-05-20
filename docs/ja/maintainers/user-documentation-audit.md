@@ -46,7 +46,7 @@
 | 6 | Action / HTTP request syntax が正確か | 概ねOK | ユーザー向け docs は HTTP method/path を `request:` に統一済み。`server:` は HTTP そのものではない server-side service call の説明としてだけ残っている。 |
 | 7 | Action caller と結果が追えるか | 一部要修正 | Actions は概ね `action: A-*`、`From`、`Process Pn:`、`case:` で追える。Partial Updates guide の最小例は「refresh button をクリック」と説明するが、例の中に button / caller がない。 |
 | 8 | Validation と Business Rules の境界が明確か | 一部要修正 | Japanese guide は4分類を示しており方向性は良い。English validation guide では required 相当を `Business Rules` に置く例があり、Reference の「field constraint は element 近く」とぶれる。 |
-| 9 | Form Groups など examples が使う section が Reference に載っているか | 要修正 | examples は `## Form Groups`、`## Events`、`## Preview Scenarios`、`## Field Validations`、`## Cross-field Validations`、`## Slots`、`## Error Codes` を使うが、ユーザー向け Reference の sections coverage が足りない。 |
+| 9 | Form Groups など examples が使う section が Reference に載っているか | 修正済み | `## Form Groups`、`## Events`、`## Preview Scenarios`、`## Field Validations`、`## Cross-field Validations`、`## Slots` / `## Slot: name`、`## Error Codes`、`## History Fields` / `## History` を Sections Reference に追加した。 |
 | 10 | Element type / property が Reference に載っているか | 要修正 | Reference の Common Types は少ないが、examples は `Spinner`、`Banner`、`Table`、`Badge`、`Select`、`Dialog`、`Toast`、`Tabs`、`ActionMenu` などを使う。`Message` type も guide に出るが Reference にない。 |
 | 11 | Element property の使い方が一貫しているか | 要修正 | Heading の本文表現に `text`、`label`、`value` が混在している。どれが canonical かを決めて、Reference と examples を揃える必要がある。 |
 | 12 | Partial Update が semantic に説明されているか | 一部要修正 | `hx-*` を書かない方針は明確。だが examples / README では `display.partial`、実例では `display` + `partial`、Reference では `content` + `mode: replace` が並び、利用者が canonical syntax を判断しにくい。 |
@@ -67,13 +67,14 @@
    - 対応済み: marker 付き heading を正式構文として文書化した。
    - 対応済み: 初期 state は `## States` 配下の bullet に `*` を付ける形に揃えた。
 2. examples が使う section / element type / property を Reference に追加する。
-   - `Form Groups`
-   - `Events`
-   - `Preview Scenarios`
-   - `Field Validations`
-   - `Cross-field Validations`
-   - `Slots`
-   - `Error Codes`
+   - 対応済み: `Form Groups`
+   - 対応済み: `Events`
+   - 対応済み: `Preview Scenarios`
+   - 対応済み: `Field Validations`
+   - 対応済み: `Cross-field Validations`
+   - 対応済み: `Slots` / `Slot: name`
+   - 対応済み: `Error Codes`
+   - 対応済み: `History Fields` / `History`
    - `Spinner`、`Banner`、`Table`、`Badge`、`Select`、`Dialog`、`Toast`、`Tabs`、`ActionMenu`
 3. Partial Update の canonical syntax を1つに決めて揃える。
    - `display` の下で `content` / `element` / `partial` をどう使い分けるかを Reference に書く。
@@ -123,7 +124,7 @@
 
 - 対応済み: README と docs root の通常導線から maintainer / contributor 情報を外した。
 - 対応済み: Reference に marker-prefixed heading syntax を追加し、examples の表記と揃えた。
-- `Form Groups`、`Slots`、`Error Codes` など、examples が使う section が Reference に不足している。
+- 対応済み: `Form Groups`、`Slots`、`Error Codes` など、examples が使う section を Sections Reference に追加した。
 - Element Reference が実際の showcase element type をカバーしていない。
 - Partial update の説明に `display.partial`、`partial`、`content` が混在している。
 - Japanese examples 導線から generated showcase に進むと、related docs が English に寄る。

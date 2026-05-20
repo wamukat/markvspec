@@ -7,7 +7,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 ## 使い方
 
 - ファイル全体の形を確認する: [File Format](file-format.md)
-- `## Layout: mobile` や `## Elements` などの section を確認する: [Sections](sections.md)
+- `## Layout: mobile`、`## Form Groups`、`## Preview Scenarios` などの section を確認する: [Sections](sections.md)
 - UI 部品の type と property を確認する: [Elements](elements.md)
 - click、request、state change、partial update を確認する: [Actions](actions.md)
 - 入力制約と error 表示を確認する: [Validations](validations.md)
@@ -21,7 +21,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 | Page | 内容 |
 | --- | --- |
 | [File Format](file-format.md) | `.vspec.md`、Front Matter、document type、本文の基本形 |
-| [Sections](sections.md) | 認識される top-level section と Markdown 見出しの役割 |
+| [Sections](sections.md) | layout、events、form groups、validations、slots、error codes、history などの section |
 | [Elements](elements.md) | `Heading`、`Paragraph`、`Text`、`Input`、`Button` などの element |
 | [Actions](actions.md) | `action: A-*`、`## Events`、`Process Pn:`、`request`、`receive`、`case:`、`display` |
 | [Validations](validations.md) | `required`、`constraints`、format/range、error message |
@@ -34,6 +34,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 
 - 最小の screen を書く: [File Format](file-format.md)、[Sections](sections.md)、[Elements](elements.md)
 - form を書く: [Elements](elements.md)、[Validations](validations.md)、[Actions](actions.md)
+- form group、preview scenario、slot、error code を書く: [Sections](sections.md)
 - HTTP request を書く: [Actions](actions.md)、[Business Rules](rules.md)、[IDs](ids.md)
 - partial update を書く: [Actions](actions.md)、[Elements](elements.md)
 - export する: [CLI](cli.md)、[Limitations](limitations.md)

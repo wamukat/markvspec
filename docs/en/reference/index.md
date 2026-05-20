@@ -7,7 +7,7 @@ Learning-oriented explanations live in [Guide](../guide/index.md). Reference is 
 ## How To Use This Reference
 
 - Check the shape of a source file: [File Format](file-format.md)
-- Check sections such as `## Layout: mobile` and `## Elements`: [Sections](sections.md)
+- Check sections such as `## Layout: mobile`, `## Form Groups`, and `## Preview Scenarios`: [Sections](sections.md)
 - Check UI element types and properties: [Elements](elements.md)
 - Check clicks, requests, state changes, and partial updates: [Actions](actions.md)
 - Check input constraints and error display: [Validations](validations.md)
@@ -21,7 +21,7 @@ Learning-oriented explanations live in [Guide](../guide/index.md). Reference is 
 | Page | Covers |
 | --- | --- |
 | [File Format](file-format.md) | `.vspec.md`, Front Matter, document type, and body shape |
-| [Sections](sections.md) | Recognized top-level sections and Markdown heading roles |
+| [Sections](sections.md) | Recognized sections, including layout, events, form groups, validations, slots, error codes, and history |
 | [Elements](elements.md) | Elements such as `Heading`, `Paragraph`, `Text`, `Input`, and `Button` |
 | [Actions](actions.md) | `action: A-*`, `## Events`, `Process Pn:`, `request`, `receive`, `case:`, and `display` |
 | [Validations](validations.md) | `required`, `constraints`, format/range, and error messages |
@@ -34,6 +34,7 @@ Learning-oriented explanations live in [Guide](../guide/index.md). Reference is 
 
 - Write the smallest useful screen: [File Format](file-format.md), [Sections](sections.md), [Elements](elements.md)
 - Write a form: [Elements](elements.md), [Validations](validations.md), [Actions](actions.md)
+- Write form groups, preview scenarios, slots, or error codes: [Sections](sections.md)
 - Write an HTTP request: [Actions](actions.md), [Business Rules](rules.md), [IDs](ids.md)
 - Write a partial update: [Actions](actions.md), [Elements](elements.md)
 - Export output: [CLI](cli.md), [Limitations](limitations.md)
