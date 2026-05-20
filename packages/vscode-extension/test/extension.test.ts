@@ -37,6 +37,7 @@ import {
   shouldUseIncrementalPreviewUpdate,
   renderStandaloneProjectHtml
 } from "../src/extension.js";
+import { MarkVSpecDiagnosticsController } from "../src/diagnostics.js";
 import { renderEntityNotes, renderInlineMarkdown } from "../src/markdown-renderer.js";
 import {
   escapeRegExp,
@@ -254,6 +255,93 @@ function createTextDocument(source: string, filePath = "/workspace/example.vspec
     fileName: filePath
   };
 }
+
+function lineNumber(source: string, needle: string): number {
+  const index = source.split(/\r?\n/u).findIndex((line) => line === needle);
+  assert.notEqual(index, -1);
+  return index + 1;
+}
+
+function screenWithUnrepresentedProcessText(id: string, title: string, prose: string): string {
+  return `---
+id: ${id}
+type: screen
+title: ${title}
+---
+
+# ${id} ${title}
+
+## States
+
+- idle*
+- authenticating
+
+## Layout: mobile
+
+### L-Page
+
+- stack
+
+#### Items
+
+- E-SubmitButton
+
+## Elements
+
+### E-SubmitButton Button
+
+- label: Submit
+- action: A-Submit
+
+## Actions
+
+### A-Submit Submit
+
+- From
+  - idle
+- Process P1: Submit login
+  - ${prose}
+  - request:
+    - method: POST
+    - path: /login
+  - result:
+    - login submission request
+  - case: sent
+    - state: authenticating
+`;
+}
+
+test("maps unrepresented source text warnings to VS Code diagnostics", () => {
+  const source = screenWithUnrepresentedProcessText("SCR-VSCODE-UNREPRESENTED", "VS Code Unrepresented", "Encode request body");
+  const document = createTextDocument(source);
+  const calls: Array<{ uri: unknown; diagnostics: vscode.Diagnostic[] }> = [];
+  const controller = new MarkVSpecDiagnosticsController({
+    collection: {
+      set: (uri: unknown, diagnostics: vscode.Diagnostic[]) => {
+        calls.push({ uri, diagnostics });
+      },
+      delete: () => undefined,
+      clear: () => undefined,
+      dispose: () => undefined,
+      forEach: () => undefined,
+      get: () => undefined,
+      has: () => false,
+      name: "MarkVSpec Test"
+    } as unknown as vscode.DiagnosticCollection,
+    debounceMs: 0,
+    isMarkVSpecDocument: () => true,
+    loadResult: () => parseMarkVSpec(source),
+    documentLabel: () => "test",
+    logDuration: () => undefined
+  });
+
+  controller.update(document as unknown as vscode.TextDocument);
+
+  assert.equal(calls.length, 1);
+  const diagnostic = calls[0]?.diagnostics.find((item) => item.message.includes("Encode request body"));
+  assert.equal(diagnostic?.severity, vscode.DiagnosticSeverity.Warning);
+  assert.equal(diagnostic?.range.start.line, lineNumber(source, "  - Encode request body") - 1);
+});
 
 test("renders generated design document sections without launching VS Code", () => {
   const source = readFileSync(resolve("../../examples/04-real-world-screens/login-basic.vspec.md"), "utf8");

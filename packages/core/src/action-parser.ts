@@ -1,4 +1,5 @@
 import { elementIdPattern } from "./ids.js";
+import { createUnrepresentedSourceTextDiagnostic } from "./source-text-diagnostics.js";
 import type { MarkVSpecAction, MarkVSpecActionOutcome, MarkVSpecDiagnostic, MarkVSpecProcessStep, MarkVSpecRouteParam, SourceLocation } from "./types.js";
 
 export interface ActionBulletInput {
@@ -291,7 +292,7 @@ function applyProcessStepBullet(
     return;
   }
 
-  if ((value === undefined || value === "") && (isProcessDetailBlockLabel(normalizeBlockLabel(bullet.text)) || isCustomProcessDetailBlockStart(bullet.text) || ["receive", "result"].includes(normalizeBlockLabel(bullet.text)))) {
+  if ((value === undefined || value === "") && (isProcessDetailBlockLabel(normalizeBlockLabel(bullet.text)) || isCustomProcessDetailBlockStart(bullet.text) || isProcessSyntaxOnlyBlockLabel(normalizeBlockLabel(bullet.text)))) {
     if (isCustomProcessDetailBlockStart(bullet.text)) {
       addPropertyLocation(step.propertyLocations, `detail ${normalizeBlockLabel(bullet.text)}`, bullet.location);
     }
@@ -299,6 +300,17 @@ function applyProcessStepBullet(
   }
 
   if (value === undefined) {
+    const representedDetail = representedValueLessProcessDetail(bullet.text);
+    if (representedDetail) {
+      step.details.push({ key: representedDetail.key, value: representedDetail.value, location: bullet.location });
+      addPropertyLocation(step.propertyLocations, representedDetail.key, bullet.location);
+      return;
+    }
+
+    diagnostics.push(createUnrepresentedSourceTextDiagnostic({
+      text: bullet.text,
+      location: bullet.location
+    }));
     return;
   }
 
@@ -912,6 +924,23 @@ function isCustomProcessDetailBlockStart(text: string): boolean {
   return /^[a-z][a-z0-9_-]*$/u.test(normalized)
     && !["triggered", "from", "process", "otherwise", "case", "effects", "input", "receive", "result", "update", "params", "display", "content"].includes(normalized)
     && !isKnownProcessDetailBlock(normalized);
+}
+
+function isProcessSyntaxOnlyBlockLabel(normalized: string): boolean {
+  return ["content", "display", "input", "params", "receive", "result", "update"].includes(normalized);
+}
+
+function representedValueLessProcessDetail(text: string): { key: string; value: string } | undefined {
+  const trimmed = text.trim();
+  if (/^[A-Z]+\s+\/\S*/u.test(trimmed)) {
+    return { key: "request", value: trimmed };
+  }
+
+  if (/^[A-Za-z_][A-Za-z0-9_.]*\([^)]*\)$/u.test(trimmed)) {
+    return { key: "server", value: trimmed };
+  }
+
+  return undefined;
 }
 
 function isProcessDetailNestedBlock(block: ProcessNestedBlock | undefined): block is string {

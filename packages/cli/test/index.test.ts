@@ -54,6 +54,30 @@ locale: ja
   }
 });
 
+test("validate prints unrepresented source text warnings and fail-on-warnings fails", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "markvspec-cli-unrepresented-text-"));
+  const originalLog = console.log;
+  const logs: string[] = [];
+  try {
+    const sourcePath = join(dir, "unrepresented.vspec.md");
+    writeFileSync(sourcePath, screenWithUnrepresentedProcessText("SCR-CLI-UNREPRESENTED", "CLI Unrepresented", "Encode request body"));
+    console.log = (message?: unknown) => {
+      logs.push(String(message));
+    };
+
+    assert.equal(await main(["validate", sourcePath]), 0);
+    assert(logs.some((line) => line.includes("warning: This source line is not represented in MarkVSpec output: Encode request body.")));
+    assert(logs.some((line) => line.includes("0 error(s), 1 warning(s).")));
+
+    logs.length = 0;
+    assert.equal(await main(["validate", sourcePath, "--fail-on-warnings"]), 1);
+    assert(logs.some((line) => line.includes("0 error(s), 1 warning(s).")));
+  } finally {
+    console.log = originalLog;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("export html writes an HTML file", async () => {
   const dir = mkdtempSync(join(tmpdir(), "markvspec-cli-html-"));
   try {
@@ -310,5 +334,54 @@ title: ${title}
 ### E-Title Heading
 
 - text: ${title}
+`;
+}
+
+function screenWithUnrepresentedProcessText(id: string, title: string, prose: string): string {
+  return `---
+id: ${id}
+type: screen
+title: ${title}
+---
+
+# ${id} ${title}
+
+## States
+
+- idle*
+- authenticating
+
+## Layout: mobile
+
+### L-Page
+
+- stack
+
+#### Items
+
+- E-SubmitButton
+
+## Elements
+
+### E-SubmitButton Button
+
+- label: Submit
+- action: A-Submit
+
+## Actions
+
+### A-Submit Submit
+
+- From
+  - idle
+- Process P1: Submit login
+  - ${prose}
+  - request:
+    - method: POST
+    - path: /login
+  - result:
+    - login submission request
+  - case: sent
+    - state: authenticating
 `;
 }

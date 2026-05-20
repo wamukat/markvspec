@@ -16,6 +16,7 @@ export type MarkVSpecDiagnosticCode =
   | "action.process.mixesResultClassificationAndImmediateEffects"
   | "action.parallelProcess.caseShouldNotSetStateOrNavigate"
   | "action.process.caseResponseWithoutReceive"
+  | "unrepresented-source-text"
   | "partial.referenceMissing"
   | "validation.ruleMissingElement"
   | "previewScenario.missingState"
@@ -57,6 +58,8 @@ const diagnosticMessageTemplates: Record<DiagnosticLocale, Record<MarkVSpecDiagn
       `Action ${param(params, "actionId")} parallel process step ${param(params, "stepName")} case ${param(params, "result")} should not set state or navigate. Use a Resolve step for final transitions.`,
     "action.process.caseResponseWithoutReceive": (params) =>
       `Action ${param(params, "actionId")} process step ${param(params, "stepLabel")} case ${param(params, "result")} uses response without receiving a response. Use description for validation, branching, sent, send-failed, or other non-response case explanations.`,
+    "unrepresented-source-text": (params) =>
+      `This source line is not represented in MarkVSpec output: ${param(params, "text")}. Move it to Notes/overview or a supported property, or add DSL support for this kind of text.`,
     "partial.referenceMissing": (params) =>
       `Partial reference ${param(params, "partialId")} is not defined in Front Matter references.partials.`,
     "validation.ruleMissingElement": (params) =>
@@ -97,6 +100,8 @@ const diagnosticMessageTemplates: Record<DiagnosticLocale, Record<MarkVSpecDiagn
       `Action ${param(params, "actionId")} の parallel Process step ${param(params, "stepName")} case ${param(params, "result")} では state や navigate を設定しないでください。最終遷移は Resolve step に任せてください。`,
     "action.process.caseResponseWithoutReceive": (params) =>
       `Action ${param(params, "actionId")} の Process step ${param(params, "stepLabel")} case ${param(params, "result")} は response を受信していないのに response を使っています。validation、branching、sent、send-failed など response 以外の説明には description を使ってください。`,
+    "unrepresented-source-text": (params) =>
+      `この source line は MarkVSpec の出力に表現されていません: ${param(params, "text")}。Notes/overview またはサポート済み property に移すか、この種類の text に対する DSL support を追加してください。`,
     "partial.referenceMissing": (params) =>
       `Partial reference ${param(params, "partialId")} が Front Matter references.partials に定義されていません。references.partials に ${param(params, "partialId")}: <path> を追加してください。`,
     "validation.ruleMissingElement": (params) =>
