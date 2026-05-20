@@ -1,28 +1,25 @@
 # Guide
 
-This section is the entry point for learning the MarkVSpec basics in order.
+Use this section to learn MarkVSpec basics in order while moving between docs and examples.
 
-> Stub: These pages will be expanded in follow-up tickets. Use the existing user
-> documents for detailed behavior until the guide pages are written.
+Detailed syntax belongs in [Reference](../reference/index.md). Guide pages stay focused on authoring concepts and small examples.
 
-## Planned Pages
+## Reading Order
 
-- `markdown-model.md`: Markdown source, Front Matter, headings, and bullets.
-- `states.md`: Screen states.
-- `layout.md`: Layout groups and items.
-- `elements.md`: UI elements.
-- `actions.md`: Triggers, processes, cases, and effects.
-- `validation.md`: Field validations and rules.
-- `partial-updates.md`: Server-rendered partial updates.
-
-## Existing Documents
-
-- [DSL reference](../user/dsl.md)
-- [Structured section reference](../user/structured-section-reference.md)
-- [Server-rendered partials](../user/server-partials.md)
+- [Markdown Model](markdown-model.md): Basic `.vspec.md` structure.
+- [States](states.md): Screen states.
+- [Layout](layout.md): Layout groups and items.
+- [Elements](elements.md): UI elements.
+- [Actions](actions.md): Triggers, processes, and cases.
+- [Validation](validation.md): Field validation and rules.
+- [Partial Updates](partial-updates.md): Server-rendered partial updates.
 
 ## Examples
 
-- [Hello Screen](../../../examples/01-basics/hello-screen.vspec.md)
-- [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md)
-- [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md)
+- [Hello Screen](../../../examples/showcase/hello-screen.html)
+- [Form Submit Flow](../../../examples/showcase/form-submit-flow.html)
+- [Profile Page With Template](../../../examples/showcase/profile-page-with-template.html)
+
+## Reference
+
+- [Reference](../reference/index.md)

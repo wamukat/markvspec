@@ -1,28 +1,25 @@
 # Guide
 
-このセクションは、MarkVSpec の基本を順番に学ぶための入口です。
+MarkVSpec の基本を、example と往復しながら順に学ぶための入口です。
 
-> Stub: このページ群は後続チケットで本文化します。詳細な仕様は当面、
-> 既存の user 文書を参照してください。
+詳細な構文一覧は [Reference](../reference/index.md) に置き、Guide では画面仕様を書くための考え方と最小例に絞ります。
 
-## 今後の構成
+## 読む順番
 
-- `markdown-model.md`: Markdown source、Front Matter、見出し、箇条書きの役割。
-- `states.md`: 画面状態の書き方。
-- `layout.md`: layout group と items の書き方。
-- `elements.md`: UI element の基本。
-- `actions.md`: trigger、process、case、effect の基本。
-- `validation.md`: field validation と rules の基本。
-- `partial-updates.md`: server-rendered partial update の表現。
-
-## 既存文書
-
-- [DSL リファレンス](../user/dsl.md)
-- [構造化セクションリファレンス](../user/structured-section-reference.md)
-- [サーバレンダリング部分更新](../user/server-partials.md)
+- [Markdown Model](markdown-model.md): `.vspec.md` の基本構造。
+- [States](states.md): 画面状態の分け方。
+- [Layout](layout.md): layout group と items。
+- [Elements](elements.md): UI element の書き方。
+- [Actions](actions.md): trigger、process、case。
+- [Validation](validation.md): 入力検証と rules。
+- [Partial Updates](partial-updates.md): server-rendered partial update。
 
 ## Examples
 
-- [Hello Screen](../../../examples/01-basics/hello-screen.vspec.md)
-- [Form Submit Flow](../../../examples/03-actions/form-submit-flow.vspec.md)
-- [Profile Page With Template](../../../examples/05-reuse/profile-page-with-template.vspec.md)
+- [Hello Screen](../../../examples/showcase/hello-screen.html)
+- [Form Submit Flow](../../../examples/showcase/form-submit-flow.html)
+- [Profile Page With Template](../../../examples/showcase/profile-page-with-template.html)
+
+## Reference
+
+- [Reference](../reference/index.md)
