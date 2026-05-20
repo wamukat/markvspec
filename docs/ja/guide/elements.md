@@ -4,7 +4,7 @@ Elements は画面に出る UI 部品を意味で記述します。見た目の�
 
 ## 考え方
 
-Element は「画面に何があるか」と「ユーザーにとって何をする部品か」を表します。MarkVSpec は design token や CSS の置き場ではないため、色、font size、class 名ではなく、Heading、Text、Input、Button、Message、Link のような UI の役割を中心に書きます。
+Element は「画面に何があるか」と「ユーザーにとって何をする部品か」を表します。MarkVSpec は design token や CSS の置き場ではないため、色、font size、class 名ではなく、Heading、Text、Input、Button、Banner、Toast、Link のような UI の役割を中心に書きます。
 
 低忠実度 preview では、element の type、label、value、variant、tone、action が画面理解の手掛かりになります。Git diff でも、button の label が変わった、action の接続先が変わった、error message が追加された、といった意味のある変更が見えます。
 
@@ -37,7 +37,7 @@ Element は「画面に何があるか」と「ユーザーにとって何をす
 - warning、error、success などの意味は raw color ではなく `tone` で表す。
 - `H1`、`H2` のような type は使わず、`Heading` と `level` で表す。
 
-## 例: 入力とメッセージ
+## 例: 入力と error banner
 
 ```markdown
 ## Elements
@@ -50,7 +50,7 @@ Element は「画面に何があるか」と「ユーザーにとって何をす
 - constraints
   - format: email
 
-### E-ErrorMessage Message
+### E-ErrorBanner Banner
 
 - tone: danger
 - text: Email address is required.
@@ -63,7 +63,7 @@ Element は「画面に何があるか」と「ユーザーにとって何をす
 - action: A-Submit
 ```
 
-入力制約は `E-EmailInput` に近い場所へ置き、エラー表示は `tone: danger` と state 条件で表します。これにより preview でも仕様 review でも、どの部品がどの状態で意味を持つかを確認できます。
+入力制約は `E-EmailInput` に近い場所へ置き、error banner は `tone: danger` と state 条件で表します。これにより preview でも仕様 review でも、どの部品がどの状態で意味を持つかを確認できます。
 
 ![Source Kind Metadata の elements preview](../../assets/vscode-previews/source-kind-metadata-vscode-preview.png)
 

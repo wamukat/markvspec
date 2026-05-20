@@ -59,7 +59,7 @@ This example keeps basic field constraints on the element and separates the revi
 - constraints
   - format: email
 
-### E-FormMessage Message
+### E-FormBanner Banner
 
 - tone: danger
 - visible when: input-error
@@ -84,7 +84,7 @@ This example keeps basic field constraints on the element and separates the revi
   - case: validation-error
     - state: input-error
     - display:
-      - target: E-FormMessage
+      - target: E-FormBanner
       - content: Validation error summary
 ```
 
