@@ -85,7 +85,7 @@ docs-site/
 
 ## URL 方針
 
-結論: Starlight 標準 i18n path へ寄せる。ただし、既存公開 URL は redirect stub で維持する。
+結論: Starlight 標準 i18n path へ寄せる。既存 `/docs/ja/...` / `/docs/en/...` URL の redirect 互換は作らない。
 
 新 URL:
 
@@ -94,23 +94,20 @@ docs-site/
 - `/markvspec/ja/guide/scenarios/`
 - `/markvspec/en/reference/cli/`
 
-既存 URL:
+破棄する旧 URL:
 
 - `/markvspec/docs/ja/start/`
 - `/markvspec/docs/en/start/`
 - `/markvspec/docs/ja/guide/scenarios.html`
 - `/markvspec/docs/en/reference/cli.html`
 
-既存 URL はすでに公開済みで、README、検索結果、外部リンクから到達する可能性がある。破壊的に捨てると利用者にとって不親切なので、移行時は旧 URL へ静的 redirect page を生成する。
+旧 URL は移行時に破棄する。余計な redirect / canonical stub / release 告知を追加せず、README、site root、docs 内 link を新 URL に揃える。
 
-redirect 方針:
+URL 更新方針:
 
-- maintained URL は旧 path に HTML redirect stub を置く。
-- redirect 先は Starlight 標準 path にする。
-- canonical は新 URL に寄せる。
 - README / site root / docs 内 link は新 URL に更新する。
-- release note で URL 変更を告知する。
-- 旧 URL redirect は少なくとも1 minor release 以上維持する。
+- `check-pages-site` は旧 URL 互換を検査しない。
+- 旧 URL 用の redirect page、canonical page、stub generation は追加しない。
 
 GitHub Pages base path:
 
@@ -181,7 +178,7 @@ Starlight build 前に `examples/catalog.yml` を検証し、Starlight build 後
 移行期間:
 
 - `npm run build:pages`: Starlight build と examples generation をまとめる互換 entrypoint として維持する。
-- `npm run check:pages-site`: Starlight 移行後の URL / redirect / examples / essential content check に作り替える。
+- `npm run check:pages-site`: Starlight 移行後の新 URL / examples / essential content check に作り替える。
 - `npm run audit:examples`: 維持する。
 - `npm run check:release`: `build:pages` と `check:pages-site` を含めるかは release checklist で決める。
 
@@ -235,7 +232,6 @@ publish directory は当面 `_site` のまま維持する。workflow と local p
   - `/en/reference/cli/`
   - `/examples/`
   - `/examples/showcase/hello-screen.html`
-  - 旧 URL redirect: `/docs/ja/start/`
 - Pagefind search が build artifact に生成されていること。
 - GitHub Pages base path `/markvspec/` で assets / links が壊れないこと。
 
@@ -319,6 +315,7 @@ publish directory は当面 `_site` のまま維持する。workflow と local p
 目的:
 
 - `npm run build:pages`、`check:pages-site`、GitHub Pages workflow を Starlight + examples composition に切り替える。
+- 旧 docs URL 互換は作らない。公開導線は新 Starlight URL へ揃え、redirect / canonical stub / 旧 URL 維持チェックは追加しない。
 
 対象:
 
@@ -326,12 +323,17 @@ publish directory は当面 `_site` のまま維持する。workflow と local p
 - `.github/workflows/pages.yml`
 - `scripts/check-pages-site.mjs`
 - 必要なら `scripts/compose-pages-site.mjs`
+- `README.md`
+- `README.ja.md`
+- root page / docs 内 link
 
 受入条件:
 
 - `npm run build:pages` が Starlight docs と generated examples を1つの publish directory に出力する。
-- `npm run check:pages-site` が新 URL、旧 URL redirect、examples、assets、search artifact を確認する。
+- `npm run check:pages-site` が新 URL、examples、assets、search artifact を確認する。
 - `npm run check:pages-site` が examples showcase から Starlight docs への Related docs link を確認する。
+- README / root page / docs 内 link が新 Starlight URL を使う。
+- 旧 docs URL の redirect / canonical / stub generation が追加されていない。
 - workflow が publish directory を GitHub Pages artifact として upload する。
 - local preview 手順が README または maintainer docs に残る。
 
@@ -339,33 +341,7 @@ publish directory は当面 `_site` のまま維持する。workflow と local p
 
 - tickets 2, 3。
 
-### 5. 旧 URL redirect と公開告知を追加する
-
-目的:
-
-- 既存 `/docs/ja/...` / `/docs/en/...` の外部 link を壊さず、新 Starlight URL へ移行する。
-
-対象:
-
-- redirect generation script
-- `README.md`
-- `README.ja.md`
-- release checklist
-- docs root links
-
-受入条件:
-
-- `check-pages-site` の maintained URL list に載っている旧 `/docs/ja/` / `/docs/en/` URL が新 URL へ redirect する。
-- docs source から生成できる旧 `/docs/{ja,en}/**/*.html` は、可能な範囲で一括 redirect stub を生成する。
-- canonical は新 URL を指す。
-- README / root page / docs 内 link は新 URL を使う。
-- release checklist に URL 変更の確認項目がある。
-
-依存:
-
-- ticket 4。
-
-### 6. 独自 docs generator を削除する
+### 5. 独自 docs generator を削除する
 
 目的:
 
@@ -381,8 +357,9 @@ publish directory は当面 `_site` のまま維持する。workflow と local p
 
 - Starlight build と examples generation だけで公開 site が再現できる。
 - `build-github-pages.mjs` に残っていた必要機能が別 script に移管済み。
+- 旧 docs URL redirect / canonical / stub generation が残っていない。
 - `npm run build:pages`、`npm run check:pages-site`、`npm run audit:examples` が通る。
 
 依存:
 
-- tickets 4, 5。
+- ticket 4。
