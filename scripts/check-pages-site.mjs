@@ -258,13 +258,13 @@ expectNotContains(guideDocumentStructureHtml, "* { box-sizing: border-box; }", "
 expectNotContains(guideDocumentStructureHtml, "旧", "_site/docs/ja/guide/document-structure.html should not describe itself as an old document.");
 expectNotContains(guideDocumentStructureHtml, "docs/user", "_site/docs/ja/guide/document-structure.html should not point readers to the removed user path.");
 const guideActionsHtml = readSiteFile("docs/ja/guide/actions.html");
-expectContains(guideActionsHtml, "A-Save", "_site/docs/ja/guide/actions.html should include a minimal action example.");
+expectContains(guideActionsHtml, "A-SubmitRequest", "_site/docs/ja/guide/actions.html should include a minimal action example.");
 expectContains(guideActionsHtml, "examples/showcase/form-submit-flow.html", "_site/docs/ja/guide/actions.html should link to the form submit showcase.");
 expectContains(guideActionsHtml, "reference/index.html", "_site/docs/ja/guide/actions.html should link to reference.");
 const guidePartialsHtml = readSiteFile("docs/ja/guide/partial-updates.html");
 expectContains(guidePartialsHtml, "mode: replace", "_site/docs/ja/guide/partial-updates.html should include partial update replacement semantics.");
 expectContains(guidePartialsHtml, "profile-summary.partial.html", "_site/docs/ja/guide/partial-updates.html should link to the partial showcase.");
-expectContains(readSiteFile("docs/en/guide/actions.html"), "A-SubmitLogin", "_site/docs/en/guide/actions.html should include a minimal action example.");
+expectContains(readSiteFile("docs/en/guide/actions.html"), "A-SubmitRequest", "_site/docs/en/guide/actions.html should include a minimal action example.");
 const enGuideDocumentStructureHtml = readSiteFile("docs/en/guide/document-structure.html");
 expectContains(enGuideDocumentStructureHtml, "MarkVSpec Document Structure", "_site/docs/en/guide/document-structure.html should preserve the visual document structure guide.");
 expectContains(enGuideDocumentStructureHtml, 'aria-current="page">MarkVSpec Document Structure</a>', "_site/docs/en/guide/document-structure.html sidebar should mark the current page.");

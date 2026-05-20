@@ -13,16 +13,16 @@ Put the work under `Process Pn:`. For a server request, use `server:`; for scree
 ```markdown
 ## Actions
 
-### A-SubmitLogin Submit login
+### A-SubmitRequest Submit request
 
-- Process P1: Send login request
-  - server:
-    - POST /login
+- From
+  - idle
+- Process P1: Submit subscription
   - case: sent
     - state: submitting
 ```
 
-The button connection lives on `E-SignInButton` with `action: A-SubmitLogin`. This example records the request start flow that needs review without depending on implementation function names.
+The button connection lives on `E-SubmitButton` with `action: A-SubmitRequest`. This example records the request start flow that needs review without depending on implementation function names.
 
 ## Common Patterns
 
@@ -39,41 +39,39 @@ The button connection lives on `E-SignInButton` with `action: A-SubmitLogin`. Th
 ```markdown
 ## Actions
 
-### A-SubmitProfile Submit profile
+### A-SubmitRequest Submit request
 
 - From
   - idle
-- Process P1: Send profile request
-  - server:
-    - POST /profile
-    - params:
-      - name: E-NameInput.value
-      - email: E-EmailInput.value
+- Process P1: Check validation
+  - receive:
+    - validation: V-SubmitRequest.result
+  - case: invalid
+    - display:
+      - target: E-EmailInput.error
+      - message: V-SubmitRequest.messages
+    - stop
+- Process P2: Submit subscription
   - case: sent
     - state: submitting
 
-### A-HandleProfileResponse Handle profile response
+### A-HandleSubmitResponse Handle submit response
 
 - From
   - submitting
-- Process P1: Apply profile response
+- Process P1: Handle server response
   - receive:
-    - response: A-SubmitProfile.P1.response
+    - response: A-SubmitRequest.P2.response
   - case: success
-    - state: saved
-    - display:
-      - target: L-MessageArea
-      - content: Saved message
-  - case: validation-error
-    - state: input-error
-    - display:
-      - target: L-MessageArea
-      - content: Validation error message
+    - navigate: SCR-THANK-YOU
   - case: failure
-    - state: error
+    - state: idle
+    - display:
+      - target: L-MessageArea
+      - element: E-SubmitError
 ```
 
-This keeps request parameters, in-flight state, and result-specific UI changes in one place. In VS Code preview, you can switch states and verify which case creates which UI.
+This keeps validation, request start, response handling, and result-specific UI changes in one place. In VS Code preview, you can switch states and verify which case creates which UI.
 
 ![Form Submit Flow action preview](../../assets/vscode-previews/form-submit-flow-vscode-preview.png)
 

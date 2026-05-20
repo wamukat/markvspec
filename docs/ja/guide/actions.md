@@ -7,25 +7,31 @@ button や link には `action: A-*` を付けます。`## Actions` には、そ
 ## まずこれだけ
 
 ```markdown
-### E-SaveButton Button
+### E-SubmitButton Button
 
-- label: Save
-- action: A-Save
+- label: Submit
+- action: A-SubmitRequest
 
 ## Actions
 
-### A-Save Save
+### A-SubmitRequest Submit request
 
 - From
   - idle
-- Process P1: Send save request
-  - server:
-    - POST /settings
+- Process P1: Check validation
+  - receive:
+    - validation: V-SubmitRequest.result
+  - case: invalid
+    - display:
+      - target: E-EmailInput.error
+      - message: V-SubmitRequest.messages
+    - stop
+- Process P2: Submit subscription
   - case: sent
-    - state: saving
+    - state: submitting
 ```
 
-preview では、`Save` button と `A-Save` のつながり、`idle` から `saving` への変化を確認できます。
+preview では、`Submit` button と `A-SubmitRequest` のつながり、validation error の表示差し替え、`idle` から `submitting` への変化を確認できます。
 
 ![Form Submit Flow の action preview](../../assets/vscode-previews/form-submit-flow-vscode-preview.png)
 
@@ -42,23 +48,20 @@ preview では、`Save` button と `A-Save` のつながり、`idle` から `sav
 ## よく使う形
 
 ```markdown
-### A-HandleSaveResponse Handle save response
+### A-HandleSubmitResponse Handle submit response
 
 - From
-  - saving
-- Process P1: Apply response
+  - submitting
+- Process P1: Handle server response
   - receive:
-    - response: A-Save.P1.response
+    - response: A-SubmitRequest.P2.response
   - case: success
-    - state: saved
-    - display:
-      - target: L-MessageArea
-      - content: Saved message
+    - navigate: SCR-THANK-YOU
   - case: failure
-    - state: error
+    - state: idle
     - display:
       - target: L-MessageArea
-      - content: Save error message
+      - element: E-SubmitError
 ```
 
 ここで重要なのは、実装関数名ではなく「ユーザーに見える結果」が読めることです。
