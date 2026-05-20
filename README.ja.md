@@ -42,17 +42,6 @@ repository を clone していなくても試せます。
 - [Reference](https://wamukat.github.io/markvspec/docs/ja/reference/)
 - [Recipes](https://wamukat.github.io/markvspec/docs/ja/recipes/)
 
-## Tools
-
-- VS Code 拡張: `wamukat.markvspec`
-- CLI package: `@markvspec/cli`
-
-```sh
-npx @markvspec/cli@latest validate hello.vspec.md
-npx @markvspec/cli@latest export html hello.vspec.md --out markvspec-html
-npx @markvspec/cli@latest export pdf hello.vspec.md --out markvspec-pdf
-```
-
 ## 開発者向け
 
 repository を clone して開発する人向けです。利用者が preview を試すだけなら、この section は不要です。

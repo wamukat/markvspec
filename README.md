@@ -43,17 +43,6 @@ You do not need to clone this repository to try MarkVSpec.
 - [Reference](https://wamukat.github.io/markvspec/docs/en/reference/)
 - [Recipes](https://wamukat.github.io/markvspec/docs/en/recipes/)
 
-## Tools
-
-- VS Code extension: `wamukat.markvspec`
-- CLI package: `@markvspec/cli`
-
-```sh
-npx @markvspec/cli@latest validate hello.vspec.md
-npx @markvspec/cli@latest export html hello.vspec.md --out markvspec-html
-npx @markvspec/cli@latest export pdf hello.vspec.md --out markvspec-pdf
-```
-
 ## For Contributors
 
 This section is for people cloning the repository to develop MarkVSpec. You do not need it to try the extension.
