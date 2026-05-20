@@ -15,6 +15,8 @@ MarkVSpec: Export PDF
 
 初めて試す場合は、VS Code 拡張からの export が一番簡単です。
 
+CLI で出力したい場合の詳しい option は [CLI reference](../reference/cli.md) を参照してください。
+
 ## HTML
 
 ```bash

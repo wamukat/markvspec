@@ -99,7 +99,7 @@ MarkVSpec: Export PDF
 
 ![VS Code Command Palette で MarkVSpec の HTML / PDF export command を表示している画面](../../assets/start/vscode-export-command.png)
 
-CLI で出力したい場合は、同じ file を指定します。
+CLI で出力したい場合は、同じ file を指定します。詳しい option は [CLI reference](../reference/cli.md) を参照してください。
 
 ```bash
 npx @markvspec/cli@latest export html hello.vspec.md --out markvspec-html

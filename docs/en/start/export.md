@@ -15,6 +15,8 @@ MarkVSpec: Export PDF
 
 For a first run, exporting from the VS Code extension is the simplest path.
 
+If you prefer the CLI, see [CLI reference](../reference/cli.md) for options.
+
 ## HTML
 
 ```bash

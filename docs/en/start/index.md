@@ -99,7 +99,7 @@ MarkVSpec: Export PDF
 
 ![VS Code Command Palette showing MarkVSpec HTML and PDF export commands](../../assets/start/vscode-export-command.png)
 
-If you prefer the CLI, pass the same file.
+If you prefer the CLI, pass the same file. See [CLI reference](../reference/cli.md) for options.
 
 ```bash
 npx @markvspec/cli@latest export html hello.vspec.md --out markvspec-html
