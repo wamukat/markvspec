@@ -33,11 +33,79 @@ export default defineConfig({
       ],
       sidebar: [
         {
-          label: 'Start',
+          label: 'はじめる',
           translations: {
             en: 'Start',
           },
-          items: [{ slug: 'start' }],
+          items: [
+            { slug: 'start' },
+            { slug: 'start/first-screen' },
+            { slug: 'start/preview' },
+            { slug: 'start/export' },
+          ],
+        },
+        {
+          label: 'ガイド',
+          translations: {
+            en: 'Guide',
+          },
+          items: [
+            { slug: 'guide' },
+            { slug: 'guide/markdown-model' },
+            { slug: 'guide/document-structure' },
+            { slug: 'guide/states' },
+            { slug: 'guide/layout' },
+            { slug: 'guide/elements' },
+            { slug: 'guide/actions' },
+            { slug: 'guide/validation' },
+            { slug: 'guide/scenarios' },
+            { slug: 'guide/partial-updates' },
+          ],
+        },
+        {
+          label: 'リファレンス',
+          translations: {
+            en: 'Reference',
+          },
+          items: [
+            { slug: 'reference' },
+            { slug: 'reference/file-format' },
+            { slug: 'reference/sections' },
+            { slug: 'reference/ids' },
+            { slug: 'reference/elements' },
+            { slug: 'reference/actions' },
+            { slug: 'reference/validations' },
+            { slug: 'reference/rules' },
+            { slug: 'reference/cli' },
+            { slug: 'reference/limitations' },
+          ],
+        },
+        {
+          label: 'レシピ',
+          translations: {
+            en: 'Recipes',
+          },
+          items: [
+            { slug: 'recipes' },
+            { slug: 'recipes/login-form' },
+            { slug: 'recipes/loading-error' },
+            { slug: 'recipes/server-partial-update' },
+            { slug: 'recipes/pdf-export' },
+          ],
+        },
+        {
+          label: 'サンプル',
+          translations: {
+            en: 'Examples',
+          },
+          items: [{ slug: 'examples' }],
+        },
+        {
+          label: 'コンセプト',
+          translations: {
+            en: 'Concepts',
+          },
+          items: [{ slug: 'concepts' }],
         },
       ],
     }),
