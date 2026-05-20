@@ -141,9 +141,8 @@ with `isResolved: false`; the user verifies the result before resolving it.
   installed.
 - [ ] README and docs links are current in both English and Japanese.
 - [ ] The README preview screenshot
-  `docs/assets/readme-hello-screen-preview.png` is an actual generated view
-  composed from the current `examples/01-basics/hello-screen.vspec.md` Markdown
-  source and generated static HTML.
+  `docs/assets/start/vscode-preview-clean.png` is an actual VS Code preview
+  capture, and the README copy describes it as VS Code preview.
 - [ ] After npm publish, `npx @markvspec/cli@latest validate ...` and
   `npx @markvspec/cli@latest export html ...` work with the published package.
 - [ ] Kanbalone ticket process is followed: implementation, verification,
@@ -195,30 +194,17 @@ The automated VSIX smoke writes logs under `.work/vscode-vsix-smoke/`. It uses
 the generated `dist/markvspec-<version>.vsix`; set `MARKVSPEC_VSIX_PATH` to test
 a different artifact.
 
-## Updating the README Preview Screenshot
+## Updating The README Preview Screenshot
 
-The README screenshot must be composed from the actual Markdown source and
-MarkVSpec-generated static HTML, not from a hand-drawn mock. Keep Markdown on
-the left and the generated wireframe on the right.
+The README screenshot must come from the actual VS Code screen, not from a
+hand-drawn mock. Keep `hello.vspec.md` Markdown source on the left and the
+MarkVSpec preview on the right. Save it as
+`docs/assets/start/vscode-preview-clean.png` so Start, Guide, and README share
+the same real capture.
 
-```bash
-rm -rf .work/readme-preview
-mkdir -p .work/readme-preview docs/assets
-node packages/cli/dist/index.js export html examples/01-basics/hello-screen.vspec.md --out .work/readme-preview
-node scripts/create-readme-preview-page.mjs \
-  --source examples/01-basics/hello-screen.vspec.md \
-  --html .work/readme-preview/hello-screen.html \
-  --out .work/readme-preview/readme-preview-capture.html
-agent-browser --session markvspec-readme open "file://$PWD/.work/readme-preview/readme-preview-capture.html"
-agent-browser --session markvspec-readme wait --load networkidle
-agent-browser --session markvspec-readme screenshot "$PWD/docs/assets/readme-hello-screen-preview.png"
-agent-browser --session markvspec-readme close
-```
-
-After capturing it, inspect the image and confirm that it shows the generated
-HTML for `Hello Screen` next to the Markdown source, that the wireframe is
-immediately visible, and that README copy describes it as a static HTML preview
-rather than the VS Code preview itself.
+After capturing it, inspect the image and confirm that the source, preview
+toolbar, and wireframe are immediately visible, and that README copy describes
+it as VS Code preview.
 
 For a direct Extension Development Host smoke run, build the extension first and
 then use:

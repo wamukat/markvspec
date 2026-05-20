@@ -76,7 +76,6 @@ const requiredFiles = [
   "docs/en/examples/index.html",
   "docs/ja/concepts/index.html",
   "docs/en/concepts/index.html",
-  "docs/assets/readme-hello-screen-preview.png",
   "docs/assets/start/vscode-preview-clean.png",
   "docs/assets/start/vscode-export-command.png"
 ];
@@ -173,6 +172,8 @@ expectContains(rootHtml, 'href="docs/ja/"', "_site/index.html should link to the
 expectContains(rootHtml, 'href="docs/en/"', "_site/index.html should link to the English documentation root.");
 expectContains(rootHtml, 'href="favicon.svg"', "_site/index.html should set the MarkVSpec favicon.");
 expectContains(rootHtml, 'src="assets/markvspec-icon.svg"', "_site/index.html should show the MarkVSpec icon.");
+expectContains(rootHtml, 'src="docs/assets/start/vscode-preview-clean.png"', "_site/index.html should show the actual VS Code preview screenshot.");
+expectNotContains(rootHtml, "readme-hello-screen-preview.png", "_site/index.html should not use the old mock README preview image.");
 expectOccurrenceCount(rootHtml, 'href="docs/ja/"', 1, "_site/index.html should expose the Japanese documentation link once.");
 expectOccurrenceCount(rootHtml, 'href="docs/en/"', 1, "_site/index.html should expose the English documentation link once.");
 expectOccurrenceCount(rootHtml, 'href="examples/"', 1, "_site/index.html should expose the examples link once.");
