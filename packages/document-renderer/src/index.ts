@@ -494,7 +494,7 @@ function renderStaticStateFlowSection(result: MarkVSpecParseResult, messages: Re
   if (!diagram) {
     return "";
   }
-  return `<section class="doc-section state-flow-section"><h2>${escapeHtml(messages.stateFlow)}</h2><pre class="mermaid-source" data-mermaid-source><code class="language-mermaid">${escapeHtml(diagram)}</code></pre></section>`;
+  return `<section class="doc-section state-flow-section"><h2>${escapeHtml(messages.stateFlow)}</h2>${renderStaticStateMessagesBox(result, messages)}<pre class="mermaid-source" data-mermaid-source><code class="language-mermaid">${escapeHtml(diagram)}</code></pre></section>`;
 }
 
 function renderStaticActionTransitionsSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
@@ -511,7 +511,17 @@ function renderStaticActionTransitionsSection(result: MarkVSpecParseResult, mess
   if (rows.length === 0) {
     return "";
   }
-  return `<section class="doc-section" id="state-transition-table"><h2>${escapeHtml(messages.actionTransitions)}</h2>${renderTable([messages.from, messages.to, messages.case, messages.triggeredBy], rows)}</section>`;
+  return `<section class="doc-section" id="state-transition-table"><h2>${escapeHtml(messages.actionTransitions)}</h2>${renderStaticStateMessagesBox(result, messages)}${renderTable([messages.from, messages.to, messages.case, messages.triggeredBy], rows)}</section>`;
+}
+
+function renderStaticStateMessagesBox(result: MarkVSpecParseResult, messages: RendererMessages): string {
+  const rows = result.states
+    .filter((state) => state.message)
+    .map((state) => [renderStaticStateLabel(state.name), escapeHtml(state.message ?? "")]);
+  if (rows.length === 0) {
+    return "";
+  }
+  return `<section class="state-messages-section"><h3>${escapeHtml(messages.state)} ${escapeHtml(messages.message)}</h3>${renderTable([messages.state, messages.message], rows)}</section>`;
 }
 
 function renderStaticActionDetailsSection(result: MarkVSpecParseResult, messages: RendererMessages): string {

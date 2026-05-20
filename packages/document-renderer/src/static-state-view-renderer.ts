@@ -92,6 +92,7 @@ function renderStateScreenSection(
     : `${support.escapeHtml(messages.default)} ${support.escapeHtml(messages.view)}`;
   const scenarioOverview = support.renderStaticEntityOverview(result, model.scenarioOverview);
   const scenarioNotes = support.renderStaticEntityNotes(result, model.scenarioNotes);
+  const stateMessage = model.message ? `<p class="spec-empty state-message">${support.escapeHtml(model.message)}</p>` : "";
   const wireframe = renderMarkVSpecHtml(result, {
     includeStyles,
     markerVisibility: { layout: true, element: true, action: true },
@@ -108,6 +109,7 @@ function renderStateScreenSection(
   return `<section class="doc-section state-screen-section"${stateViewTitleAttr}${stateAttrs}${viewportAttrs}>
   <section class="wireframe-print-section">
     <h4 class="state-screen-heading">${stateHeading}</h4>
+    ${stateMessage}
     ${scenarioOverview}
     <h5 class="state-screen-subheading">${support.escapeHtml(messages.wireframe)}</h5>
     <section class="wireframe-section">${wireframe}</section>
@@ -147,17 +149,32 @@ function renderStaticLayoutsSpecBox(
     }
     controlledPlacementsByLayoutId.set(placement.layoutId, [...controlledPlacementsByLayoutId.get(placement.layoutId) ?? [], placement]);
   }
+  const showOverview = layouts.some((layout) => (layout.overview?.length ?? 0) > 0);
   const rows = layouts.map((layout) => [
     renderStaticLayoutReference(result, layout, unplacedLayoutIds.has(layout.id), controlledPlacementsByLayoutId.get(layout.id) ?? [], messages, support),
     support.escapeHtml(layout.kind || ""),
+    ...(showOverview ? [support.renderStaticEntityOverview(result, layout.overview ?? [])] : []),
     renderStaticLayoutSettingItems(result, layout, messages, support),
     renderStaticLayoutConditions(layout, messages, Boolean(controlledPlacementsByLayoutId.get(layout.id)?.length), support),
     renderStaticLayoutNotes(result, layout, support)
   ]);
+  const sectionProse = result.sectionProse.filter((candidate) => candidate.kind === "Layout" && candidate.viewport === model.viewport);
+  const sectionOverview = support.renderStaticEntityOverview(result, sectionProse.flatMap((candidate) => candidate.overview));
+  const sectionNotes = support.renderStaticEntityNotes(result, sectionProse.flatMap((candidate) => candidate.notes));
+  const headers = [
+    `${messages.marker}/${messages.id}`,
+    messages.kind,
+    ...(showOverview ? [messages.overview] : []),
+    messages.settingItems,
+    messages.condition,
+    messages.notes
+  ];
 
   return `<section class="layout-spec-fragment">
     <h5 class="state-screen-subheading">${support.escapeHtml(messages.layouts)}</h5>
-    ${support.renderTable([`${messages.marker}/${messages.id}`, messages.kind, messages.settingItems, messages.condition, messages.notes], rows, messages.none)}
+    ${sectionOverview}
+    ${support.renderTable(headers, rows, messages.none)}
+    ${sectionNotes}
   </section>`;
 }
 

@@ -289,6 +289,10 @@ test("renders parse coverage sentinel fields in static HTML export", () => {
     "View Context Samples section notes sentinel",
     "<code>false</code>",
     "<code>${view.isHelpOpen}</code>: false",
+    "State idle message sentinel",
+    "State loaded message sentinel",
+    "Layout section overview sentinel",
+    "Layout entity overview sentinel",
     "Layout entity notes sentinel",
     "Form Groups section overview sentinel",
     "Form group overview sentinel",
@@ -319,6 +323,14 @@ test("renders parse coverage sentinel fields in static HTML export", () => {
   ]) {
     assert.match(html, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
+  const stateFlow = html.match(/<section class="doc-section state-flow-section">[\s\S]*?<\/section>/)?.[0] ?? "";
+  const transitionTable = html.match(/<section class="doc-section" id="state-transition-table">[\s\S]*?<\/section>/)?.[0] ?? "";
+  const wireframes = html.match(/<section class="wireframe-section">[\s\S]*?<\/section>/g)?.join("\n") ?? "";
+
+  assert.match(stateFlow, /State idle message sentinel/);
+  assert.match(transitionTable, /State idle message sentinel/);
+  assert.doesNotMatch(wireframes, /State idle message sentinel|Layout entity overview sentinel/);
+  assert((html.match(/State idle message sentinel/g) ?? []).length >= 3);
 });
 
 test("renders static Layouts table with combined Setting/Items column", () => {
