@@ -740,7 +740,7 @@ title: Responsive State Dedup
 
 - From
   - init
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -864,7 +864,7 @@ title: Scenario Base Selection
   - E-Shared.click
 - From
   - idle
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - from: idle
     - state: loaded
@@ -1048,7 +1048,7 @@ title: All Repeated State Specs
 - From
   - idle
   - loaded
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: loaded
 `;
@@ -1283,7 +1283,7 @@ title: Repeated System Events
   - screen.load
 - From
   - idle
-- Process: ServerCall
+- Process P1: Call server service
   - LoadService.fetch()
 `;
   const result = parseMarkVSpec(source);
@@ -1348,7 +1348,7 @@ title: System Event From
   - screen.load
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: background
     - from: loading
     - state: idle
@@ -1501,7 +1501,7 @@ title: Repeated Diff System Events
   - E-IdleText.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: loading
 
@@ -1511,7 +1511,7 @@ title: Repeated Diff System Events
   - A-Submit.P1.response
 - From
   - loading
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - response: 200
     - state: idle
@@ -1750,10 +1750,10 @@ title: Markerless
   - E-SubmitButton.click
 - From
   - idle
-- Process: HttpRequest
+- Process P1: Send request
   - POST /login
     - email: E-メールアドレス入力.value
-- Process: Immediate
+- Process P2: Apply immediate effect
   - Effects
     - state: authenticating
 `;

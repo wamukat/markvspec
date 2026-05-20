@@ -518,7 +518,7 @@ overview code block
   - E-NextPageButton.click
 - From
   - idle
-- Process: HttpRequest
+- Process P1: Send request
   - GET /users
     - page: \${model.requestedPage}
 - Process P1: Submit request
@@ -1472,7 +1472,7 @@ title: Users
   - E-OpenDetail.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: SCR-USER-DETAIL
 `;
@@ -1504,7 +1504,7 @@ title: User Detail
   assert.deepEqual(result.diagnostics, []);
 });
 
-test("loads partial documents with self PartialRequest without circular dependency diagnostics", () => {
+test("reports self display.partial without partial host metadata", () => {
   const projectSource = `---
 id: PRJ-PARTIAL-SELF
 type: project
@@ -1575,13 +1575,15 @@ title: Points Content
   - E-Refresh.click
 - From
   - loaded
-- Process: PartialRequest
-  - request: GET /points/content
-  - partial: PRT-POINTS-CONTENT
-- Process: Immediate
-  - update:
-    - target: L-PointsContent
-    - mode: replace
+- Process P1: Request partial
+  - request:
+    - method: GET
+    - path: /points/content
+  - case: success
+    - Effects
+      - display:
+        - target: L-PointsContent
+        - partial: PRT-POINTS-CONTENT
 `;
   const files = new Map([
     ["project/screens/points.vspec.md", screenSource],
@@ -1592,7 +1594,13 @@ title: Points Content
     readFile: (path) => files.get(path)
   });
 
-  assert.deepEqual(result.diagnostics, []);
+  assert.deepEqual(result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message]), [
+    [
+      "error",
+      "Action A-Refresh process step P1 Request partial case success display.partial PRT-POINTS-CONTENT targets L-PointsContent, but layout L-PointsContent is not a partial host with partial.id."
+    ],
+    ["error", "Partial reference PRT-POINTS-CONTENT is not defined in Front Matter references.partials."]
+  ]);
   assert.deepEqual(
     result.documentGraph.edges.filter((edge) => edge.kind === "document-partial").map((edge) => [edge.fromPath, edge.toPath, edge.documentId]),
     [["project/screens/points.vspec.md", "project/partials/points-content.vspec.md", "PRT-POINTS-CONTENT"]]
@@ -2308,7 +2316,7 @@ title: Users Actual
   - E-OpenMissing.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: SCR-NOT-IN-PROJECT
 `;
@@ -2370,7 +2378,7 @@ title: List
   - E-お知らせリンク.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - params:
       - noticeId: \${model.notice.noticeId}
@@ -2383,7 +2391,7 @@ title: List
   - E-お知らせリンク.click
 - From
   - idle
-- Process: HttpRequest
+- Process P1: Send request
   - GET /notices/current
   - case: success
     - params:
@@ -2481,7 +2489,7 @@ route: /users/:userId
   - screen.load
 - From
   - loading
-- Process: HttpRequest
+- Process P1: Send request
   - GET /users/:userId
     - userId: \${route.missingUserId}
 
@@ -2582,7 +2590,7 @@ title: Users
   - E-OpenDetail.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: SCR-USER-DETAIL
 
@@ -2592,7 +2600,7 @@ title: Users
   - E-NewUser.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: /users/new
 `;
@@ -2682,7 +2690,7 @@ title: Users
   - E-OpenMissing.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: SCR-MISSING
 `;
@@ -3445,10 +3453,13 @@ title: Japanese IDs
   - E-保存ボタン.click
 - From
   - idle
-- Process: HttpRequest
-  - POST /save
-    - email: E-メール入力.value
-- Process: Immediate
+- Process P1: Send request
+  - request:
+    - method: POST
+    - path: /save
+    - params:
+      - email: E-メール入力.value
+- Process P2: Apply immediate effect
   - Effects
     - state: validation-error
 `;
@@ -3462,8 +3473,8 @@ title: Japanese IDs
   assert.equal(result.elements.find((element) => element.id === "E-メール入力")?.properties["value"], "\${model.email}");
   assert.equal(result.elements.find((element) => element.id === "E-メール入力")?.properties["initial value"], "taro@example.com");
   assert.deepEqual(result.actions[0]?.trigger, { elementId: "E-保存ボタン", event: "click" });
-  assert.deepEqual(result.actions[0]?.processSteps.find((step) => step.name === "HttpRequest")?.details.filter((detail) => detail.key !== "request").map((detail) => [detail.key, detail.value]), [
-    ["email", "E-メール入力.value"]
+  assert.deepEqual(result.actions[0]?.processSteps.find((step) => step.name === "Send request")?.details.filter((detail) => detail.key.includes(".params.")).map((detail) => [detail.key, detail.value]), [
+    ["request.params.email", "E-メール入力.value"]
   ]);
 });
 
@@ -3616,15 +3627,15 @@ title: Broken
   - E-999.click
 - From
   - idle
-- Process: Preprocess
+- Process P1: Preprocess
   - update:
     - target: L-999
     - content: Missing
-- Process: Render
+- Process P2: Render
   - update:
     - target: F-001
     - content: Invalid form target
-- Process: Immediate
+- Process P3: Apply immediate effect
   - Effects
     - state: missing
 `;
@@ -4240,8 +4251,9 @@ title: Input Contract
   - E-メールアドレス入力.submit
 - From
   - idle
-- Process: Validate: V-メール形式.result
-- Process: Immediate
+- Process P1: Check validation
+  - validate: V-メール形式.result
+- Process P2: Apply immediate effect
   - case: validationError
     - error code: ERR-EMAIL-FORMAT
     - Effects
@@ -4293,7 +4305,7 @@ title: Input Contract
   assert.equal(result.errorCodes[0]?.properties["marker"], "ER1");
   assert.equal(result.errorCodes[0]?.properties["business rule"], "R-EMAIL");
   assert.equal(result.actions[0]?.processSteps[0]?.details[0]?.value, "V-メール形式.result");
-  assert.deepEqual(result.actions[0]?.processSteps.find((step) => step.name === "Immediate")?.outcomes[0]?.errorCodes, ["ERR-EMAIL-FORMAT"]);
+  assert.deepEqual(result.actions[0]?.processSteps.find((step) => step.name === "Apply immediate effect")?.outcomes[0]?.errorCodes, ["ERR-EMAIL-FORMAT"]);
 });
 
 test("preserves free-form business rules and validates error code contract fields", () => {
@@ -4479,7 +4491,7 @@ title: Missing Trigger
 
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -4579,7 +4591,7 @@ title: Event
   - E-001.hover
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -4618,7 +4630,7 @@ title: Outcome
 
 - Triggered
   - service.response
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: failure
     - Effects
       - update:
@@ -4637,7 +4649,7 @@ title: Outcome
       ],
       [
         "warning",
-        "Action A-Submit process step Immediate defines failure outcome details but has no failure transition.",
+        "Action A-Submit process step Apply immediate effect defines failure outcome details but has no failure transition.",
         lineNumber(source, "        - target: L-Message")
       ]
     ]
@@ -4678,10 +4690,10 @@ title: Nested Action
     - E-Submit.click
 - From
     - idle
-- Process: HttpRequest
+- Process P1: Send request
     - POST /submit
         - email: E-Submit.value
-- Process: Immediate
+- Process P2: Apply immediate effect
     - case: failure
         - description: 400
         - Effects
@@ -4694,10 +4706,10 @@ title: Nested Action
   const action = result.actions.find((candidate) => candidate.id === "A-Submit");
 
   assert.equal(result.diagnostics.length, 0);
-  assert.deepEqual(action?.processSteps.find((step) => step.name === "HttpRequest")?.details.filter((detail) => detail.key !== "request").map((detail) => [detail.key, detail.value]), [["email", "E-Submit.value"]]);
+  assert.deepEqual(action?.processSteps.find((step) => step.name === "Send request")?.details.filter((detail) => detail.key !== "request").map((detail) => [detail.key, detail.value]), [["email", "E-Submit.value"]]);
   assert.deepEqual(action?.responses, []);
   assert.deepEqual(action?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [["idle", "failure", "error"]]);
-  assert.deepEqual(action?.processSteps.find((step) => step.name === "Immediate")?.outcomes.map((outcome) => [outcome.result, outcome.target, outcome.content]), [
+  assert.deepEqual(action?.processSteps.find((step) => step.name === "Apply immediate effect")?.outcomes.map((outcome) => [outcome.result, outcome.target, outcome.content]), [
     ["failure", "L-MessageArea", "Failure message"]
   ]);
 });
@@ -4920,7 +4932,7 @@ title: Legacy Action DSL
       - sent:
         - state: loading
 - Resolve: load-group
-- Process: ServerCall
+- Process P1: Call server service
   - Service.call()
   - case: success
     - \${model.member.loaded}: true
@@ -4936,20 +4948,14 @@ title: Legacy Action DSL
   assert(messages.includes("Action A-Legacy has unsupported top-level entry: Cases. Use From, Process P1: <name>, or Otherwise."));
   assert(messages.includes("Action A-Legacy has unsupported top-level entry: Process. Use From, Process P1: <name>, or Otherwise."));
   assert(messages.includes("Action A-Legacy has unsupported top-level entry: Resolve: load-group. Use From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Action A-Legacy process step ServerCall uses removed cases block syntax. Use direct case: <name> entries under Process: ServerCall."));
-  assert(messages.includes("Action A-Legacy has unsupported process step ServerCall case success entry: ${model.member.loaded}: true. Use description, state, navigate, response, from, params, update, stop, or continue."));
   assert.equal(
     result.diagnostics.find((diagnostic) => diagnostic.message.includes("unsupported top-level entry: Effects"))?.line,
     lineNumber(source, "- Effects")
   );
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("removed cases block syntax"))?.line,
-    lineNumber(source, "  - cases:")
-  );
-  assert.deepEqual(action?.transitions, []);
+  assert.deepEqual(action?.transitions.map((transition) => [transition.from, transition.to, transition.raw]), [["idle", "done", "state: done"]]);
   assert.deepEqual(action?.sideEffects, []);
   assert.deepEqual(action?.outcomes, []);
-  assert.deepEqual(action?.processSteps.find((step) => step.name === "ServerCall")?.outcomes.find((outcome) => outcome.result === "success")?.sideEffects, []);
+  assert.deepEqual(action?.processSteps.find((step) => step.name === "Call server service")?.outcomes.find((outcome) => outcome.result === "success")?.sideEffects, []);
 });
 
 test("reports process condition references on the leaf line", () => {
@@ -4983,7 +4989,7 @@ title: Condition Ref
   - E-Submit.click
 - From
   - idle
-- Process: Preprocess
+- Process P1: Preprocess
   - when: E-Missing is not empty
 `;
   const result = parseMarkVSpec(source);
@@ -5025,9 +5031,11 @@ title: Server Call
   - screen.load
 - From
   - idle
-- Process: ServerCall
-  - MemberQueryService.findSelfProfile()
-    - includePreferences: true
+- Process P1: Call server service
+  - server:
+    - MemberQueryService.findSelfProfile()
+    - params:
+      - includePreferences: true
   - case: success
     - description: ApiBridgeResult.Success<MemberProfileDto>
     - Effects
@@ -5040,10 +5048,10 @@ title: Server Call
 
   assert.equal(result.diagnostics.length, 0);
   assert.equal(action?.triggeredBy, "screen.load");
-  assert.equal(clientCall?.name, "ServerCall");
+  assert.equal(clientCall?.name, "Call server service");
   assert.deepEqual(clientCall?.details.map((detail) => [detail.key, detail.value]), [
-    ["call", "MemberQueryService.findSelfProfile()"],
-    ["includePreferences", "true"]
+    ["server", "MemberQueryService.findSelfProfile()"],
+    ["server.params.includePreferences", "true"]
   ]);
   assert.deepEqual(success?.description ? [["success", success.description]] : [], [
     ["success", "ApiBridgeResult.Success<MemberProfileDto>"]
@@ -5212,67 +5220,67 @@ title: Action Events
 
 ### A-MarkChanged Mark changed
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
 ### A-ValidateEmail Validate email
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
 ### A-SubmitPreferences Submit preferences
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
 ### A-ShowHelp Show help
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
 ### A-CloseDialog Close dialog
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
 ### A-SelectProfileTab Select profile tab
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
 ### A-SelectBillingTab Select billing tab
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
 ### A-SelectKeyboardProfileTab Select keyboard profile tab
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
 ### A-ToggleProfileFilters Toggle profile filters
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
 ### A-ToggleShippingDetails Toggle shipping details
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
 ### A-EditRow Edit row
 
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -5361,7 +5369,7 @@ title: Page Load Pre Initial
 
 - From
   - before-load
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: initializing
 
@@ -5369,7 +5377,7 @@ title: Page Load Pre Initial
 
 - From
   - initializing
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: loaded
 
@@ -5377,7 +5385,7 @@ title: Page Load Pre Initial
 
 - From
   - before-load
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: loaded
 `;
@@ -5425,7 +5433,7 @@ title: Page Load No Pre Initial
 
 - From
   - initializing
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: initializing
 `;
@@ -5438,53 +5446,6 @@ title: Page Load No Pre Initial
       lineNumber(source, "- page.load: A-Load")
     ]
   ]);
-});
-
-test("rejects removed ClientCall process step alias", () => {
-  const source = `---
-id: SCR-CLIENT-CALL-REMOVED
-type: screen
-title: Client Call Removed
----
-
-# SCR-CLIENT-CALL-REMOVED Client Call Removed
-
-## Actions
-
-### A-Load Load
-
-- Process: ClientCall
-  - MemberQueryService.findSelfProfile()
-  - includePreferences: true
-`;
-  const result = parseMarkVSpec(source);
-  const action = result.actions.find((candidate) => candidate.id === "A-Load");
-
-  assert.equal(action?.processSteps.length, 0);
-  assert(result.diagnostics.some((diagnostic) => diagnostic.message === "Action A-Load process step ClientCall is not supported. Use ServerCall instead."));
-});
-
-test("rejects labeled ServerCall client entries", () => {
-  const source = `---
-id: SCR-SERVER-CALL-CLIENT-LABEL
-type: screen
-title: Server Call Client Label
----
-
-# SCR-SERVER-CALL-CLIENT-LABEL Server Call Client Label
-
-## Actions
-
-### A-Load Load
-
-- Process: ServerCall
-  - client: MemberQueryService.findSelfProfile()
-`;
-  const result = parseMarkVSpec(source);
-  const action = result.actions.find((candidate) => candidate.id === "A-Load");
-
-  assert.deepEqual(action?.processSteps[0]?.details, []);
-  assert(result.diagnostics.some((diagnostic) => diagnostic.message === "Action A-Load process step ServerCall has unsupported entry: client: MemberQueryService.findSelfProfile(). Use an unlabeled call line such as Service.method()."));
 });
 
 test("parses partial documents with partial render actions", () => {
@@ -5525,7 +5486,7 @@ route: /mypage/partials/notices
   - partial.render
 - From
   - loaded
-- Process: ServerCall
+- Process P1: Call server service
   - NoticeQueryService.findLatest()
   - case: success
     - description: 200 notices
@@ -5570,13 +5531,13 @@ title: Process Refs
   - E-Submit.click
 - From
   - idle
-- Process: Preprocess
+- Process P1: Preprocess
   - when: E-Missing is present
   - skip when: E-Other is hidden
   - update:
     - target: L-Missing
     - content: Missing
-- Process: Immediate
+- Process P2: Apply immediate effect
   - Effects
     - state: done
 `;
@@ -5645,14 +5606,14 @@ title: Viewport Targets
   - E-Submit.click
 - From
   - idle
-- Process: Preprocess
+- Process P1: Preprocess
   - update:
     - target: L-Message
     - content: Clear
-- Process: Immediate
+- Process P2: Apply immediate effect
   - Effects
     - state: error
-- Process: Immediate
+- Process P3: Apply immediate effect
   - case: failure
     - transition: idle -> error
     - Effects
@@ -5664,7 +5625,7 @@ title: Viewport Targets
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
   assert(messages.includes("Action A-Submit process step Preprocess targets layout L-Message, but it is missing from viewport desktop."));
-  assert(messages.includes("Action A-Submit process step Immediate failure outcome targets layout L-Message, but it is missing from viewport desktop."));
+  assert(messages.includes("Action A-Submit process step Apply immediate effect failure outcome targets layout L-Message, but it is missing from viewport desktop."));
 });
 
 test("allows action partial update targets inside slot content", () => {
@@ -5712,7 +5673,7 @@ title: Slot Target
   - screen.load
 - From
   - initializing
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - description: ok
     - Effects
@@ -5747,20 +5708,23 @@ title: Params
   - service.submit
 - From
   - idle
-- Process: HttpRequest
-  - POST /login
-    - email: E-Missing.value
-- Process: Submit account
+- Process P1: Send request
+  - request:
+    - method: POST
+    - path: /login
+    - params:
+      - email: E-Missing.value
+- Process P2: Submit account
   - server:
     - AccountService.save()
     - params:
       - email: E-ServerMissing.value
-- Process: SyncService
+- Process P3: SyncService
   - sync:
     - AccountSync.push()
     - params:
       - email: E-CustomMissing.value
-- Process: Immediate
+- Process P4: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -5776,17 +5740,17 @@ title: Params
       ],
       [
         "error",
-        "Action A-Submit process step HttpRequest parameter email references missing source E-Missing.",
-        lineNumber(source, "    - email: E-Missing.value")
+        "Action A-Submit process step P1 Send request parameter request.params.email references missing source E-Missing.",
+        lineNumber(source, "      - email: E-Missing.value")
       ],
       [
         "error",
-        "Action A-Submit process step Submit account parameter server.params.email references missing source E-ServerMissing.",
+        "Action A-Submit process step P2 Submit account parameter server.params.email references missing source E-ServerMissing.",
         lineNumber(source, "      - email: E-ServerMissing.value")
       ],
       [
         "error",
-        "Action A-Submit process step SyncService parameter sync.params.email references missing source E-CustomMissing.",
+        "Action A-Submit process step P3 SyncService parameter sync.params.email references missing source E-CustomMissing.",
         lineNumber(source, "      - email: E-CustomMissing.value")
       ]
     ]
@@ -5820,7 +5784,7 @@ title: Route Params
   - E-Link.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - params:
       - id: E-Missing.value
@@ -5834,7 +5798,7 @@ title: Route Params
     [
       [
         "error",
-        "Action A-Open process step Immediate case success route parameter id references missing source E-Missing.",
+        "Action A-Open process step Apply immediate effect case success route parameter id references missing source E-Missing.",
         lineNumber(source, "      - id: E-Missing.value")
       ]
     ]
@@ -5862,7 +5826,7 @@ title: Response
   - service.response
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - response: 2xx
   - case: failure
@@ -5881,12 +5845,7 @@ title: Response
       ],
       [
         "warning",
-        "Action A-Submit process step Immediate case success uses response without receiving a response. Use description for validation, branching, sent, send-failed, or other non-response case explanations.",
-        lineNumber(source, "    - response: 2xx")
-      ],
-      [
-        "warning",
-        "Action A-Submit process step Immediate defines success response but has no success transition.",
+        "Action A-Submit process step P1 Apply immediate effect case success uses response without receiving a response. Use description for validation, branching, sent, send-failed, or other non-response case explanations.",
         lineNumber(source, "    - response: 2xx")
       ]
     ]
@@ -5924,9 +5883,11 @@ title: Incomplete Action
   - E-Submit.click
 - From
   - idle
-- Process: HttpRequest
-  - email: E-メールアドレス入力.value
-- Process: Immediate
+- Process P1: Send request
+  - request:
+    - params:
+      - email: E-メールアドレス入力.value
+- Process P2: Apply immediate effect
   - case: success
     - stop
 `;
@@ -5939,11 +5900,11 @@ title: Incomplete Action
       [
         "warning",
         "Action A-Submit HttpRequest step has no request line such as POST /path.",
-        lineNumber(source, "- Process: HttpRequest")
+        lineNumber(source, "- Process P1: Send request")
       ]
     ]
   );
-  assert.equal(action?.processSteps.find((step) => step.name === "Immediate")?.outcomes.find((outcome) => outcome.result === "success")?.flow, "stop");
+  assert.equal(action?.processSteps.find((step) => step.name === "Apply immediate effect")?.outcomes.find((outcome) => outcome.result === "success")?.flow, "stop");
 });
 
 test("validates process case flow directive placement", () => {
@@ -5968,7 +5929,7 @@ title: Flow Placement
   - screen.load
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - Effects
       - state: done
@@ -5980,7 +5941,7 @@ title: Flow Placement
   - screen.load
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: under-effects
     - Effects
       - state: done
@@ -5997,10 +5958,10 @@ title: Flow Placement
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
   assert(!messages.some((message) => message.includes("A-Valid") && message.includes("flow")));
-  assert(messages.includes("Action A-Invalid process step Immediate case under-effects has stop under Effects. Put stop directly under the case as the final entry."));
-  assert(messages.includes("Action A-Invalid process step Immediate case non-final has entries after stop. Put stop as the final entry in the case."));
-  assert(messages.includes("Action A-Invalid process step Immediate case both has both stop and continue. Use only one flow directive."));
-  assert(messages.includes("Action A-Invalid process step Immediate case both has entries after continue. Put continue as the final entry in the case."));
+  assert(messages.includes("Action A-Invalid process step Apply immediate effect case under-effects has stop under Effects. Put stop directly under the case as the final entry."));
+  assert(messages.includes("Action A-Invalid process step Apply immediate effect case non-final has entries after stop. Put stop as the final entry in the case."));
+  assert(messages.includes("Action A-Invalid process step Apply immediate effect case both has both stop and continue. Use only one flow directive."));
+  assert(messages.includes("Action A-Invalid process step Apply immediate effect case both has entries after continue. Put continue as the final entry in the case."));
   assert.equal(
     result.diagnostics.find((diagnostic) => diagnostic.message.includes("under-effects has stop under Effects"))?.line,
     lineNumber(source, "      - stop")
@@ -6042,10 +6003,14 @@ title: Incomplete Request Step
   - E-Submit.click
 - From
   - idle
-- Process: HttpRequest
-  - page: \${model.page}
-- Process: HttpRequest
-  - GET /users
+- Process P1: Send request
+  - request:
+    - params:
+      - page: \${model.page}
+- Process P2: Send request
+  - request:
+    - method: GET
+    - path: /users
 `;
   const result = parseMarkVSpec(source);
 
@@ -6055,7 +6020,7 @@ title: Incomplete Request Step
       [
         "warning",
         "Action A-Submit HttpRequest step has no request line such as POST /path.",
-        lineNumber(source, "- Process: HttpRequest")
+        lineNumber(source, "- Process P1: Send request")
       ]
     ]
   );
@@ -7444,7 +7409,7 @@ title: Bad Presentation Panel
   - screen.load
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - Effects
       - update:
@@ -7457,7 +7422,7 @@ title: Bad Presentation Panel
   assert(messages.includes("Presentation panel P-Fields ignores marker. Use an L-* Layout when a layout marker is needed."));
   assert(messages.includes("Presentation panel P-Fields cannot use visible when. Use an L-* Layout when visibility or disabled control is needed."));
   assert(messages.includes("Presentation panel P-Fields cannot use disabled when. Use an L-* Layout when visibility or disabled control is needed."));
-  assert(messages.includes("Action A-Refresh process step Immediate success outcome cannot target presentation panel P-Fields. Use an L-* Layout when a targetable layout is needed."));
+  assert(messages.includes("Action A-Refresh process step Apply immediate effect success outcome cannot target presentation panel P-Fields. Use an L-* Layout when a targetable layout is needed."));
 });
 
 test("keeps stack buttons and links from stretching without overriding row alignment", () => {
@@ -7725,7 +7690,7 @@ title: Markers
   - E-One.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
@@ -7735,7 +7700,7 @@ title: Markers
   - E-Two.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -7814,7 +7779,7 @@ title: Marker Shape
   - E-Title.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -7962,6 +7927,8 @@ title: Partial Metadata
 
 - stack
 - partial:
+  - id: PRT-PROFILE
+- partial:
   - id: NOTICE-LIST
   - states:
     - idel: loaded
@@ -8042,27 +8009,25 @@ title: Partial Reference
   - screen.load
 - From
   - idle
-- Process: PartialRequest
-  - request: GET /partials/notices
-  - partial: PRT-OTHER-LIST
-- Process: Immediate
+- Process P1: Request partial
+  - request:
+    - method: GET
+    - path: /partials/notices
   - case: success
     - Effects
       - state: idle
-      - update:
+      - display:
         - target: L-PartialHost
-        - mode: replace
-        - content: PRT-RESULT-LIST
+        - partial: PRT-OTHER-LIST
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
   assert(messages.includes("Partial reference PRT-NOTICE-LIST is not defined in Front Matter references.partials."));
   assert(messages.includes("Partial reference PRT-OTHER-LIST is not defined in Front Matter references.partials."));
-  assert(messages.includes("Partial reference PRT-RESULT-LIST is not defined in Front Matter references.partials."));
 });
 
-test("allows partial documents to request themselves without Front Matter references", () => {
+test("requires partial documents to declare self display.partial references", () => {
   const source = `---
 id: PRT-SELF
 type: partial
@@ -8100,17 +8065,20 @@ title: Self Partial
   - E-Refresh.click
 - From
   - idle
-- Process: PartialRequest
-  - request: GET /partials/self
-  - partial: PRT-SELF
-- Process: Immediate
-  - update:
-    - target: L-Self
-    - mode: replace
+- Process P1: Request partial
+  - request:
+    - method: GET
+    - path: /partials/self
+  - case: success
+    - Effects
+      - display:
+        - target: L-Self
+        - partial: PRT-SELF
 `;
   const result = parseMarkVSpec(source);
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert.deepEqual(result.diagnostics, []);
+  assert(messages.includes("Partial reference PRT-SELF is not defined in Front Matter references.partials."));
 });
 
 test("still requires Front Matter references for non-request self partial references", () => {
@@ -8317,7 +8285,7 @@ default-state: loaded
   - E-お知らせタイトル.click
 - From
   - loaded
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: SCR-NOTICE-DETAIL
 
@@ -8956,25 +8924,27 @@ title: Malformed Action
   - E-メールアドレス入力.click
 - Process: POST /login
 - Process: email: E-メールアドレス入力.value
-- Process: Preprocess
+- Process P3: Preprocess
   - request: POST /unsupported
   - target: L-MessageArea
   - update:
     - target: L-FirstMessageArea
   - target: L-SecondMessageArea
-- Process: HttpRequest
-  - POST /submit
-  - target: L-HttpMessageArea
-  - message: E-メールアドレス入力.value
-- Process: Immediate
+- Process P4: Send request
+  - request:
+    - method: POST
+    - path: /submit
+    - params:
+      - message: E-メールアドレス入力.value
+- Process P5: Apply immediate effect
   - response: 2xx authenticated user
   - case: success
   - state: done
-- Process: Immediate
+- Process P6: Apply immediate effect
   - Effects
     - request: POST /unsupported
     - target: L-MessageArea
-- Process: Immediate
+- Process P7: Apply immediate effect
   - case: failure
     - Effects
       - update:
@@ -8987,19 +8957,19 @@ title: Malformed Action
 
   assert(messages.includes("Action A-Submit has unsupported top-level entry: request: POST /login. Use From, Process P1: <name>, or Otherwise."));
   assert(messages.includes("Action A-Submit has nested entry outside a recognized block: E-メールアドレス入力.click."));
-  assert(messages.includes("Action A-Submit has malformed Process entry: POST /login. Put request lines under a marked process such as Process P1: Submit request."));
-  assert(messages.includes("Action A-Submit has malformed Process entry: email: E-メールアドレス入力.value. Start with a marked process such as Process P1: Submit request."));
+  assert(messages.includes("Action A-Submit has unsupported top-level entry: Process: POST /login. Use From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Action A-Submit has unsupported top-level entry: Process: email: E-メールアドレス入力.value. Use From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Action A-Submit process step Preprocess has unsupported entry: request: POST /unsupported. Put request method and path under a request block."));
   assert(messages.includes("Action A-Submit process step Preprocess has unsupported entry: target: L-MessageArea. Put update details under an update block."));
   assert(messages.includes("Action A-Submit process step Preprocess has unsupported entry: target: L-SecondMessageArea. Put update details under an update block."));
-  assert(messages.includes("Action A-Submit HttpRequest has unsupported entry: target: L-HttpMessageArea. Use request parameter entries or move update details under a case update block."));
-  assert(messages.includes("Action A-Submit process step Immediate has unsupported Effects entry: request: POST /unsupported. Use model, view, state, navigate, or update."));
-  assert(messages.includes("Action A-Submit process step Immediate has unsupported Effects entry: target: L-MessageArea. Put update details under an update block."));
-  assert(messages.includes("Action A-Submit has unsupported process step Immediate case failure entry: target: L-MessageArea. Put update details under an update block."));
-  assert(messages.includes("Action A-Submit has unsupported process step Immediate case failure entry: request: POST /unsupported. Use description, state, navigate, response, from, params, update, stop, or continue."));
+  assert(messages.includes("Action A-Submit process step Apply immediate effect has unsupported Effects entry: request: POST /unsupported. Use model, view, state, navigate, or update."));
+  assert(messages.includes("Action A-Submit process step Apply immediate effect has unsupported Effects entry: target: L-MessageArea. Put update details under an update block."));
+  assert(messages.includes("Action A-Submit has unsupported process step Apply immediate effect case failure entry: target: L-MessageArea. Put update details under an update block."));
+  assert(messages.includes("Action A-Submit has unsupported process step Apply immediate effect case failure entry: request: POST /unsupported. Use description, state, navigate, response, from, params, update, stop, or continue."));
   const action = result.actions.find((candidate) => candidate.id === "A-Submit");
   assert.equal(action?.target, undefined);
-  assert.deepEqual(action?.processSteps.find((step) => step.name === "HttpRequest")?.details.map((detail) => [detail.key, detail.value]), [["request", "POST /submit"], ["message", "E-メールアドレス入力.value"]]);
-  assert.deepEqual(action?.processSteps.find((step) => step.name === "Preprocess")?.details.map((detail) => [detail.key, detail.value]), [["request", "POST /unsupported"]]);
+  assert.deepEqual(action?.processSteps.find((step) => step.name === "Send request")?.details.map((detail) => [detail.key, detail.value]), [["request.method", "POST"], ["request.path", "/submit"], ["request.params.message", "E-メールアドレス入力.value"]]);
+  assert.deepEqual(action?.processSteps.find((step) => step.name === "Preprocess")?.details.map((detail) => [detail.key, detail.value]), []);
   assert.equal(action?.processSteps.find((step) => step.name === "Preprocess")?.target, "L-FirstMessageArea");
   assert.equal(action?.processSteps.flatMap((step) => step.outcomes).find((outcome) => outcome.result === "failure")?.target, "L-FirstMessageArea");
   assert.equal(
@@ -9015,20 +8985,16 @@ title: Malformed Action
     lineNumber(source, "    - request: POST /unsupported")
   );
   assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("Put request lines under a marked process"))?.line,
+    result.diagnostics.find((diagnostic) => diagnostic.message.includes("unsupported top-level entry: Process: POST /login"))?.line,
     lineNumber(source, "- Process: POST /login")
   );
   assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("email: E-メールアドレス入力.value. Start with a marked process"))?.line,
+    result.diagnostics.find((diagnostic) => diagnostic.message.includes("unsupported top-level entry: Process: email: E-メールアドレス入力.value"))?.line,
     lineNumber(source, "- Process: email: E-メールアドレス入力.value")
-  );
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("HttpRequest has unsupported entry: target: L-HttpMessageArea"))?.line,
-    lineNumber(source, "  - target: L-HttpMessageArea")
   );
 });
 
-test("parses PartialRequest update effects", () => {
+test("parses display partial update effects from request step cases", () => {
   const source = `---
 id: SCR-PARTIAL-REQUEST
 type: screen
@@ -9058,28 +9024,27 @@ references:
   - screen.load
 - From
   - initializing
-- Process: PartialRequest
-  - request: GET /partials/profile
-  - partial: PRT-PROFILE
-- Process: Immediate
+- Process P1: Request partial
+  - request:
+    - method: GET
+    - path: /partials/profile
   - case: success
     - description: 200 partial HTML
     - Effects
       - state: initializing
-      - update:
+      - display:
         - target: L-PartialHost
-        - mode: replace
-        - content: PRT-PROFILE
+        - partial: PRT-PROFILE
 `;
   const result = parseMarkVSpec(source);
   const partialAction = result.actions.find((action) => action.id === "A-LoadPartial");
 
-  assert.equal(partialAction?.processSteps[0]?.name, "PartialRequest");
+  assert.equal(partialAction?.processSteps[0]?.name, "Request partial");
   assert.deepEqual(partialAction?.processSteps[0]?.details.map((detail) => [detail.key, detail.value]), [
-    ["request", "GET /partials/profile"],
-    ["partial", "PRT-PROFILE"]
+    ["request.method", "GET"],
+    ["request.path", "/partials/profile"]
   ]);
-  assert.equal(partialAction?.processSteps[1]?.outcomes.find((outcome) => outcome.result === "success")?.mode, "replace");
+  assert.equal(partialAction?.processSteps[0]?.outcomes.find((outcome) => outcome.result === "success")?.display?.partial, "PRT-PROFILE");
 });
 
 test("parses process step cases under request steps", () => {
@@ -9106,6 +9071,8 @@ references:
 ### L-PointsPanel Points Panel
 
 - stack
+- partial:
+  - id: PRT-POINTS-PANEL
 
 ## Actions
 
@@ -9115,43 +9082,44 @@ references:
   - screen.load
 - From
   - loading
-- Process: PartialRequest
-  - request: GET /points/panel
-  - partial: PRT-POINTS-PANEL
+- Process P1: Request partial
+  - request:
+    - method: GET
+    - path: /points/panel
+    - params:
+      - page: 1
   - receive:
     - response: A-LoadPoints.response
-  - params:
-    - page: 1
   - case: success-items
     - response: HTTP 200 items > 0
     - Effects
       - state: idle
-      - update:
+      - display:
         - target: L-PointsPanel
-        - mode: replace
+        - partial: PRT-POINTS-PANEL
     - Stop
   - case: success-empty
     - response: HTTP 200 items = 0
     - Effects
       - state: empty
-      - update:
+      - display:
         - target: L-PointsPanel
-        - mode: replace
+        - partial: PRT-POINTS-PANEL
     - Continue
   - case: failure
     - response: HTTP error
     - Effects
       - state: load-error
-      - update:
+      - display:
         - target: L-PointsPanel
-        - mode: replace
+        - partial: PRT-POINTS-PANEL
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-LoadPoints");
   const step = action?.processSteps[0];
 
   assert.equal(result.diagnostics.length, 0);
-  assert.equal(step?.name, "PartialRequest");
+  assert.equal(step?.name, "Request partial");
   assert.deepEqual(step?.outcomes.map((outcome) => [outcome.result, outcome.response?.definition]), [
     ["success-items", "HTTP 200 items > 0"],
     ["success-empty", "HTTP 200 items = 0"],
@@ -9199,25 +9167,27 @@ title: Parallel Process
   - screen.load
 - From
   - loading
-- Process: ServerCall
+- Process P1: Call server service
   - group: initial-load
-  - MemberQueryService.findSelfProfile()
+  - server:
+    - MemberQueryService.findSelfProfile()
   - case: success
     - description: 200 member profile
     - continue
   - case: failure
     - description: 5xx or timeout
     - continue
-- Process: ServerCall
+- Process P2: Call server service
   - group: initial-load
-  - PointQueryService.findSelfPoints()
+  - server:
+    - PointQueryService.findSelfPoints()
   - case: success
     - description: 200 points
     - continue
   - case: failure
     - description: 5xx or timeout
     - continue
-- Process: Resolve
+- Process P3: Resolve responses
   - group: initial-load
   - case: ready
     - description: profile and points loaded
@@ -9237,10 +9207,10 @@ title: Parallel Process
   assert.deepEqual(result.diagnostics, []);
   assert.equal(profile?.parallelGroup, "initial-load");
   assert.equal(points?.parallelGroup, "initial-load");
-  assert.equal(resolve?.name, "Resolve");
+  assert.equal(resolve?.name, "Resolve responses");
   assert.equal(resolve?.resolveGroup, "initial-load");
   assert.deepEqual(profile?.details.map((detail) => [detail.key, detail.value]), [
-    ["call", "MemberQueryService.findSelfProfile()"]
+    ["server", "MemberQueryService.findSelfProfile()"]
   ]);
   assert.deepEqual(profile?.outcomes.find((outcome) => outcome.result === "success")?.sideEffects, []);
   assert.deepEqual(resolve?.outcomes.map((outcome) => [outcome.result, outcome.to, outcome.flow]), [
@@ -9346,7 +9316,7 @@ title: Case Description
   assert.equal(receiveStep?.outcomes.find((outcome) => outcome.result === "failure")?.response?.definition, "500 save failed");
 });
 
-test("warns for invalid parallel process decisions and missing resolve groups", () => {
+test("warns for invalid parallel process decisions and missing referenced resolve groups", () => {
   const source = `---
 id: SCR-BAD-PARALLEL-PROCESS
 type: screen
@@ -9369,30 +9339,29 @@ title: Bad Parallel Process
   - screen.load
 - From
   - loading
-- Process: ServerCall
+- Process P1: Call server service
   - group: initial-load
-  - MemberQueryService.findSelfProfile()
+  - server:
+    - MemberQueryService.findSelfProfile()
   - case: success
     - response: 200 member profile
     - Effects
       - state: idle
     - stop
-- Process: Resolve
+- Process P2: Resolve responses
   - group: missing-load
   - case: failed
     - description: missing group
     - Effects
       - state: load-error
     - stop
-- Process: Resolve
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Action A-InitialLoad parallel process step ServerCall case success should not set state or navigate. Use a Resolve step for final transitions."));
-  assert(messages.includes("Action A-InitialLoad parallel process step ServerCall case success should continue and leave final state decisions to a Resolve step."));
+  assert(messages.includes("Action A-InitialLoad parallel process step Call server service case success should not set state or navigate. Use a Resolve step for final transitions."));
+  assert(messages.includes("Action A-InitialLoad parallel process step Call server service case success should continue and leave final state decisions to a Resolve step."));
   assert(messages.includes("Action A-InitialLoad Resolve step references missing parallel group missing-load."));
-  assert(messages.includes("Action A-InitialLoad Resolve step must specify a parallel group with group: initial-load."));
 });
 
 test("warns for malformed headings and indented non-action bullets", () => {
@@ -9438,7 +9407,7 @@ title: Malformed Sections
   - A-Missing.response
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -9575,7 +9544,7 @@ title: Action From
   - E-EditButton.click
 - From
   - idle
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - case: done
     - Effects
       - state: editing
@@ -10993,7 +10962,7 @@ title: Bad View Context
   - screen.load
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - view: \${view.isHelpPanelOpen} = true
     - view: \${view.missingActionView} = true
@@ -11218,13 +11187,16 @@ title: Compact Action
   - E-SearchButton.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - view: \${view.selectedTab} = results
-- Process: UpdateView
+- Process P2: UpdateView
   - view: \${view.selectedTab} = results
-- Process: HttpRequest
-  - GET /search
-    - keyword: E-KeywordInput.value
+- Process P3: Send request
+  - request:
+    - method: GET
+    - path: /search
+    - params:
+      - keyword: E-KeywordInput.value
   - case: success
     - description: 200 search result
     - Effects
@@ -11234,12 +11206,13 @@ title: Compact Action
   const result = parseMarkVSpec(source);
   const action = result.actions[0];
 
-  assert.deepEqual(action.processSteps.map((step) => step.name), ["Immediate", "UpdateView", "HttpRequest"]);
+  assert.deepEqual(action.processSteps.map((step) => step.name), ["Apply immediate effect", "UpdateView", "Send request"]);
   assert.deepEqual(action.processSteps[0]?.sideEffects, ["view: ${view.selectedTab} = results"]);
   assert.deepEqual(action.processSteps[1]?.sideEffects, ["view: ${view.selectedTab} = results"]);
   assert.deepEqual(action.processSteps[2]?.details.map((detail) => [detail.key, detail.value]), [
-    ["request", "GET /search"],
-    ["keyword", "E-KeywordInput.value"]
+    ["request.method", "GET"],
+    ["request.path", "/search"],
+    ["request.params.keyword", "E-KeywordInput.value"]
   ]);
   assert.deepEqual(action.processSteps[2]?.outcomes[0]?.sideEffects, []);
   assert.deepEqual(action.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
@@ -12479,8 +12452,6 @@ title: Action Neutral Diagnostics
 - From
   - idle
 - Process P1: Missing result
-  - input:
-    - value: E-Missing.value
   - case: done
     - Effects
       - state: loaded
@@ -12528,8 +12499,6 @@ title: Action Neutral Diagnostics
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Action A-Run process step Missing result uses legacy input block syntax. Put execution values under request.params, server.params, or custom detail params instead."));
-  assert(messages.includes("Action A-Run process step P1 Missing result value references missing source E-Missing."));
   assert(messages.includes("Action A-Run has duplicate process marker P1."));
   assert(messages.includes("Action A-Run process step P1 Duplicate marker references missing process marker P9."));
   assert(messages.includes("Action A-Other trigger A-Run.response is ambiguous. Use A-ActionId.P-marker.response."));

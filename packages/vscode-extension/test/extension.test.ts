@@ -745,7 +745,7 @@ default-state: loaded
   - screen.load
 - From
   - initializing
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: loading
 
@@ -755,7 +755,7 @@ default-state: loaded
   - A-StartLoad.P1.response
 - From
   - loading
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - response: 200
     - state: loaded
@@ -770,7 +770,7 @@ default-state: loaded
 - From
   - loading
   - initializing
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: ready
 
@@ -781,7 +781,7 @@ default-state: loaded
 - From
   - loading
   - initializing
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: ready-auto
 `;
@@ -876,7 +876,7 @@ locale: en
   - screen.load
 - From
   - idle
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - model: \${model.loaded} = true
     - state: loaded
@@ -974,7 +974,7 @@ locale: en
 - From
   - idle
   - loaded
-- Process: HttpRequest
+- Process P1: Send request
   - POST /submit
 `;
   const result = parseMarkVSpec(source);
@@ -1068,7 +1068,7 @@ locale: en
 - From
   - idle
   - loaded
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: loaded
 
@@ -1078,7 +1078,7 @@ locale: en
   - screen.load
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
@@ -1088,7 +1088,7 @@ locale: en
   - screen.load
 - From
   - loaded
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -1353,7 +1353,7 @@ Author overview only.
   - E-Primary.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
@@ -1363,7 +1363,7 @@ Author overview only.
   - E-Secondary.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -1440,7 +1440,7 @@ locale: ja
   - screen.load
 - From
   - loaded
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -2894,7 +2894,7 @@ title: List
   - E-お知らせリンク.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - navigate: SCR-NOTICE-DETAIL
     - params:
@@ -2936,9 +2936,11 @@ locale: ja
   - screen.load
 - From
   - loading
-- Process: ServerCall
-  - NoticeQueryService.findNotice()
-    - noticeId: \${route.noticeId}
+- Process P1: Call server service
+  - server:
+    - NoticeQueryService.findNotice()
+    - params:
+      - noticeId: \${route.noticeId}
   - case: success
     - response: 200 お知らせ本文
     - model: \${model.notice} = NoticeDetailResult
@@ -2954,7 +2956,7 @@ locale: ja
   - manual.refresh
 - From
   - idle
-- Process: RefreshMeta
+- Process P1: RefreshMeta
   - case: success
     - model: \${model.noticeMeta} = NoticeMetaResult
 `;
@@ -2963,7 +2965,7 @@ locale: ja
   const actionDetailsSection = docSectionByHeading(html, "アクション詳細", "フォームグループ");
 
   assert.doesNotMatch(html, /<h2>モデル更新処理<\/h2>|<h2>Model Updates<\/h2>|model-update-list|model-update-group|model-update-meta/);
-  assert.match(actionDetailsSection, new RegExp(`NoticeQueryService\\.findNotice\\(\\)<ul class="spec-list spec-nested-list"><li>noticeId: ${sourceCodePattern("${route.noticeId}")}</li></ul>`));
+  assert.match(actionDetailsSection, new RegExp(`NoticeQueryService\\.findNotice\\(\\)[\\s\\S]*noticeId: ${sourceCodePattern("${route.noticeId}")}`));
   assert.doesNotMatch(actionDetailsSection, new RegExp(`model: ${sourceCodePattern("${model.notice}")} = NoticeDetailResult`));
   assert.doesNotMatch(actionDetailsSection, new RegExp(`model: ${sourceCodePattern("${model.notice.noticeId}")} = ${sourceCodePattern("${route.noticeId}")}`));
   assert.doesNotMatch(actionDetailsSection, new RegExp(`model: ${sourceCodePattern("${model.noticeMeta}")} = NoticeMetaResult`));
@@ -3014,8 +3016,10 @@ locale: ja
   - E-検索ボタン.click
 - From
   - idle
-- Process: PartialRequest
-  - request: POST /users/search
+- Process P1: Request partial
+  - request:
+    - method: POST
+    - path: /users/search
   - update
     - target: L-UserTable
     - content: 更新後のユーザー一覧
@@ -3023,7 +3027,7 @@ locale: ja
     - side effect: レスポンスのユーザー一覧を \${model.users.items} に格納する
     - side effect: レスポンスのページ番号を \${model.page} に格納する
     - side effect: \${model.error} を空にする
-- Process: Immediate
+- Process P2: Apply immediate effect
   - case: success
     - response: 200 ユーザー一覧
     - state: idle
@@ -3041,7 +3045,7 @@ locale: ja
   assert.doesNotMatch(actionDetailsSection, /<dt>部分更新<\/dt><dd>[\s\S]*<th>結果<\/th>/);
   assert.match(actionDetailsSection, new RegExp(`<dt>部分更新</dt><dd>[\\s\\S]*<ul class="spec-list spec-effect-list"><li>内容 更新後のユーザー一覧</li><li>モード replace</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>レスポンスのユーザー一覧を ${sourceCodePattern("${model.users.items}")} に格納する</li><li>レスポンスのページ番号を ${sourceCodePattern("${model.page}")} に格納する</li><li>${sourceCodePattern("${model.error}")} を空にする</li></ul></li></ul>`));
   assert.doesNotMatch(actionDetailsSection, /side effect レスポンス/);
-  assert.match(actionDetailsSection, new RegExp(`<div class="process-card-header">${processTitleGroupPattern("unplug", "PartialRequest")}</div>[\\s\\S]*<ul class="spec-list spec-effect-list"><li>リクエスト: POST /users/search</li><li>更新 ${detailLayoutRef("T1", "User table")}</li><li>モード replace</li><li>内容 更新後のユーザー一覧</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>レスポンスのユーザー一覧を ${sourceCodePattern("${model.users.items}")} に格納する</li><li>レスポンスのページ番号を ${sourceCodePattern("${model.page}")} に格納する</li><li>${sourceCodePattern("${model.error}")} を空にする</li></ul></li></ul>`));
+  assert.match(actionDetailsSection, new RegExp(`<div class="process-card-header">${processTitleGroupPattern("unplug", `${docLabel("P1", "result")} Request partial`)}</div>[\\s\\S]*レスポンスのユーザー一覧を ${sourceCodePattern("${model.users.items}")} に格納する`));
   assert.match(actionDetailsSection, new RegExp(`<li>更新 <ul class="spec-list spec-effect-list"><li>${detailLayoutRef("T1", "User table")}</li><li>内容 検索結果を表示する</li><li><span class="spec-list-label">副作用</span><ul class="spec-list spec-nested-list"><li>${sourceCodePattern("${model.audit}")} &lt; value &amp; retry</li></ul></li></ul></li>`));
 });
 
@@ -3727,7 +3731,7 @@ States section notes for the matrix.
   - E-SubmitButton.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: submitting
 
@@ -3737,7 +3741,7 @@ States section notes for the matrix.
   - A-Submit.P1.response
 - From
   - submitting
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - case: failure
     - response: 500
     - state: error
@@ -3837,7 +3841,7 @@ title: Multi Page Load
 
 - From
   - before-load
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: initializing
     - display: E-TelemetryStatus = ready
@@ -3901,7 +3905,7 @@ title: Screen Transitions
   - E-ForgotPasswordLink.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: SCR-PASSWORD-RESET
 
@@ -3911,7 +3915,7 @@ title: Screen Transitions
   - E-SubmitButton.click
 - From
   - idle
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: submitting
 
@@ -3921,10 +3925,10 @@ title: Screen Transitions
   - A-Submit.P1.response
 - From
   - submitting
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - state: submitting
-- Process P2: Immediate
+- Process P2: Apply immediate effect
   - case: success
     - response: 200
     - navigate: SCR-HOME
@@ -3940,7 +3944,7 @@ title: Screen Transitions
   - E-ForgotPasswordLink.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: https://example.com/help
 
@@ -3950,7 +3954,7 @@ title: Screen Transitions
   - E-SubmitButton.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: /settings
 `;
@@ -3989,7 +3993,7 @@ title: State Flow Aggregate
 
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: loading
 
@@ -3997,7 +4001,7 @@ title: State Flow Aggregate
 
 - From
   - loading
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - state: idle
   - case: failure
@@ -4009,7 +4013,7 @@ title: State Flow Aggregate
 
 - From
   - loading
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - state: idle
   - case: failure
@@ -4021,7 +4025,7 @@ title: State Flow Aggregate
 
 - From
   - loading
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: error
     - state: error
@@ -4030,7 +4034,7 @@ title: State Flow Aggregate
 
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: SCR-DONE
 
@@ -4038,7 +4042,7 @@ title: State Flow Aggregate
 
 - From
   - loading
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: loading
 `;
@@ -4325,7 +4329,7 @@ locale: ja
   - E-Name.change
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: editing
 
@@ -4509,7 +4513,7 @@ title: Any Model
   - screen.load
 - From
   - loading
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -4567,7 +4571,7 @@ title: Opaque Model
   - screen.load
 - From
   - loading
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - model: \${model.profile.loaded} = true
     - state: ready
@@ -4671,8 +4675,10 @@ Load profile references #{L-TopBar}.
   - screen.load
 - From
   - idle
-- Process: PartialRequest
-  - request: GET /profile-card
+- Process P1: Request partial
+  - request:
+    - method: GET
+    - path: /profile-card
   - partial: PRT-PROFILE-CARD
   - case: sent
     - model: ${"${model.profile.loaded}"} = true
@@ -4691,10 +4697,11 @@ Load profile references #{L-TopBar}.
   assert.match(html, /<div class="mm-layout-placeholder">Top bar<\/div>/);
   assert.match(html, /data-mm-id="E-WelcomeHeading"/);
   assert.doesNotMatch(html, /data-mm-id="E-Brand"/);
-  assert.match(html, /PartialRequest/);
+  assert.match(html, /Request partial/);
   assert.match(html, /Load profile references <a class="mm-ref-chip mm-ref-chip-layout" href="#state-views"[^>]*data-mm-ref-id="L-TopBar"/);
   assert.match(html, /data-state-view-title="idle"[\s\S]*Load profile references <a class="mm-ref-chip mm-ref-chip-layout" href="#state-views"[^>]*data-mm-ref-id="L-TopBar"/);
-  assert.match(html, /GET \/profile-card/);
+  assert.match(html, /method[\s\S]*GET/);
+  assert.match(html, /path[\s\S]*\/profile-card/);
   assert.match(html, /partial: PRT-PROFILE-CARD/);
   assert.doesNotMatch(html, new RegExp(`model: ${sourceCodePattern("${model.profile.loaded}")} = true`));
   assert.doesNotMatch(html, /partial-update-meta|partial-update-group/);
@@ -5463,8 +5470,8 @@ references:
   }
 });
 
-test("loads partial preview dependencies for self PartialRequest without circular diagnostics", () => {
-  const root = mkdtempSync(join(tmpdir(), "markvspec-self-partial-request-"));
+test("loads partial preview dependencies for self partial host without circular diagnostics", () => {
+  const root = mkdtempSync(join(tmpdir(), "markvspec-self-partial-host-"));
   try {
     const screenPath = join(root, "screens", "points.vspec.md");
     const partialPath = join(root, "partials", "points-content.vspec.md");
@@ -5506,12 +5513,10 @@ title: Points Content
   - E-Refresh.click
 - From
   - loaded
-- Process: PartialRequest
-  - request: GET /points/content
-  - partial: PRT-POINTS-CONTENT
-  - update:
-    - target: L-PointsContent
-    - mode: replace
+- Process P1: Refresh content
+  - request:
+    - method: GET
+    - path: /points/content
 `);
     const source = `---
 id: SCR-POINTS
@@ -5542,8 +5547,7 @@ references:
     const html = renderDesignDocumentHtml(loaded.result, "", loaded.focus ? { focus: loaded.focus } : undefined);
     const messages = loaded.result.diagnostics.map((diagnostic) => diagnostic.message);
 
-    assert.match(html, /data-mm-partial-id="PRT-POINTS-CONTENT"/);
-    assert.match(html, /Refresh/);
+    assert.match(html, /Points/);
     assert(!messages.some((message) => message.includes("Circular partial reference detected")));
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -6275,7 +6279,7 @@ route: /users
   - E-OpenDetail.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: success
     - navigate: SCR-USER-DETAIL
     - params:
@@ -6474,7 +6478,7 @@ test("derives static HTML export names for screens and projects", () => {
   assert.equal(defaultExportHtmlBaseName("/workspace/vspec.project.md"), "vspec.project");
 });
 
-test("renders HttpRequest details inside each process step", () => {
+test("renders Send request details inside each process step", () => {
   const source = `---
 id: SCR-MULTI-REQUEST
 type: screen
@@ -6501,17 +6505,23 @@ title: Multi Request
   - E-NextPageButton.click
 - From
   - idle
-- Process: HttpRequest
-  - GET /users?filter=<active>
-    - page: \${model.requestedPage}
+- Process P1: Send request
+  - request:
+    - method: GET
+    - path: /users?filter=<active>
+    - params:
+      - page: \${model.requestedPage}
   - case: success
     - response: HTTP 200 users
     - model: \${model.requestedPage} = \${model.nextPage}
     - state: loaded
     - stop
-- Process: HttpRequest
-  - GET /roles
-    - requestedPage: \${model.requestedPage}
+- Process P2: Send request
+  - request:
+    - method: GET
+    - path: /roles
+    - params:
+      - requestedPage: \${model.requestedPage}
   - case: success
     - response: HTTP 200 roles
     - state: roles-loaded
@@ -6527,8 +6537,8 @@ title: Multi Request
 
   assert.doesNotMatch(actionDetail, /<dt>Request<\/dt>|<dt>Parameters<\/dt>/);
   assert.doesNotMatch(actionDetail, /<dt>Overview<\/dt>/);
-  assert.match(actionDetail, new RegExp(`<dt>Process</dt><dd><div class="process-flow" role="list">[\\s\\S]*<span class="process-card-title">HttpRequest</span>[\\s\\S]*<li>request: GET /users\\?filter=&lt;active&gt;<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>page: ${sourceCodePattern("${model.requestedPage}")}</li></ul></li></ul></li><li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 users[\\s\\S]*effect set state ${docLabel("loaded", "state")}[\\s\\S]*stop process`));
-  assert.match(actionDetail, new RegExp(`<span class="process-card-title">HttpRequest</span>[\\s\\S]*<li>request: GET /roles<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>requestedPage: ${sourceCodePattern("${model.requestedPage}")}</li></ul></li></ul></li><li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 roles[\\s\\S]*effect set state ${docLabel("roles-loaded", "state")}[\\s\\S]*<strong>${docLabel("failure", "result")}</strong>[\\s\\S]*response HTTP error`));
+  assert.match(actionDetail, new RegExp(`<dt>Process</dt><dd><div class="process-flow" role="list">[\\s\\S]*${processTitleGroupPattern("unplug", `${docLabel("P1", "result")} Send request`)}[\\s\\S]*<li>path: /users\\?filter=&lt;active&gt;</li>[\\s\\S]*<li>page: ${sourceCodePattern("${model.requestedPage}")}</li>[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 users[\\s\\S]*effect set state ${docLabel("loaded", "state")}[\\s\\S]*stop process`));
+  assert.match(actionDetail, new RegExp(`${processTitleGroupPattern("unplug", `${docLabel("P2", "result")} Send request`)}[\\s\\S]*<li>path: /roles</li>[\\s\\S]*<li>requestedPage: ${sourceCodePattern("${model.requestedPage}")}</li>[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 roles[\\s\\S]*effect set state ${docLabel("roles-loaded", "state")}[\\s\\S]*<strong>${docLabel("failure", "result")}</strong>[\\s\\S]*response HTTP error`));
   assert.doesNotMatch(actionDetail, /flow (?:stop|continue)/);
   assert.doesNotMatch(actionDetail, /<dt>Case success<\/dt>|<dt>Case failure<\/dt>|<dt>Responses<\/dt>/);
   assert.doesNotMatch(actionDetail, /<active>/);
@@ -6634,11 +6644,11 @@ title: Process Icons
   - idle
 - Process P1: Check validation
   - validation: V-Email.result
-- Process P2: HttpRequest
+- Process P2: Send request
   - request:
     - method: GET
     - path: /account
-- Process P3: ServerCall
+- Process P3: Call server service
   - call: AccountService.load()
 - Process P4: Receive response
   - receive:
@@ -6650,11 +6660,12 @@ title: Process Icons
 - Process P7: Set loaded
   - state: loaded
 - Process P8: Failure handler
-- Process: ServerCall
+- Process P1: Call server service
   - group: initial-load
-  - ProfileService.load()
+  - server:
+    - ProfileService.load()
   - continue
-- Process: Resolve
+- Process P2: Resolve responses
   - group: initial-load
   - case: ready
     - Effects
@@ -6666,15 +6677,14 @@ title: Process Icons
   const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Run">[\s\S]*?<\/article>/)?.[0] ?? "";
 
   assert.match(actionDetail, new RegExp(processTitleGroupPattern("square-check-big", `${docLabel("P1", "result")} Check validation`)));
-  assert.match(actionDetail, new RegExp(processTitleGroupPattern("unplug", `${docLabel("P2", "result")} HttpRequest`)));
-  assert.match(actionDetail, new RegExp(processTitleGroupPattern("cog", `${docLabel("P3", "result")} ServerCall`)));
+  assert.match(actionDetail, new RegExp(processTitleGroupPattern("unplug", `${docLabel("P2", "result")} Send request`)));
+  assert.match(actionDetail, new RegExp(processTitleGroupPattern("cog", `${docLabel("P3", "result")} Call server service`)));
   assert.match(actionDetail, new RegExp(processTitleGroupPattern("satellite-dish", `${docLabel("P4", "result")} Receive response`)));
   assert.match(actionDetail, new RegExp(processTitleGroupPattern("panels-top-left", `${docLabel("P5", "result")} Show display`)));
   assert.match(actionDetail, new RegExp(processTitleGroupPattern("waypoints", `${docLabel("P6", "result")} Navigate away`)));
   assert.match(actionDetail, new RegExp(processTitleGroupPattern("refresh-cw", `${docLabel("P7", "result")} Set loaded`)));
-  assert.match(actionDetail, new RegExp(processTitleGroupPattern("circle-x", `${docLabel("P8", "result")} Failure handler`)));
   assert.match(actionDetail, new RegExp(processTitleGroupPattern("split", "Parallel group: initial-load")));
-  assert.match(actionDetail, new RegExp(processTitleGroupPattern("merge", "Resolve initial-load")));
+  assert.match(actionDetail, new RegExp(processTitleGroupPattern("merge", `${docLabel("P2", "result")} Resolve responses initial-load`)));
 });
 
 test("localizes generated Japanese action detail process labels without translating author text", () => {
@@ -6729,7 +6739,7 @@ locale: ja
   - E-RunButton.click
 - From
   - idle
-- Process: ServerCall
+- Process P1: Call server service
   - group: initial-load
   - when: E-RunButton is enabled
   - skip when: E-RunButton is hidden
@@ -6740,15 +6750,15 @@ locale: ja
       - target: L-MessageArea
       - element: E-Message
     - continue
-- Process: Resolve
+- Process P2: Resolve responses
   - group: initial-load
   - case: ready
     - response: all done
     - state: loaded
     - stop
-- Process: Immediate
+- Process P3: Apply immediate effect
   - navigate: SCR-NEXT
-- Process: Immediate
+- Process P4: Apply immediate effect
   - display:
     - element: E-SavedToast
 `;
@@ -6803,7 +6813,7 @@ title: Nested Process Details
   - E-SubmitButton.click
 - From
   - idle
-- Process: SubmitSubscription
+- Process P1: SubmitSubscription
   - request:
     - method: POST
     - path: /subscriptions
@@ -6821,7 +6831,7 @@ title: Nested Process Details
       - plan: E-PlanSelect.value
   - result:
     - subscription request
-- Process: ServerCall
+- Process P2: Call server service
   - server:
     - SubscriptionService.persist()
     - params:
@@ -6841,9 +6851,9 @@ title: Nested Process Details
   const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Submit">[\s\S]*?<\/article>/)?.[0] ?? "";
 
   assert.match(actionDetail, new RegExp(`<li>request<ul class="spec-list spec-nested-list">[\\s\\S]*<li>method: POST</li>[\\s\\S]*<li>path: /subscriptions</li>[\\s\\S]*<li>Parameters<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li><li>plan: ${detailElementRef("2", "E-PlanSelect")}\\.value</li></ul></li>[\\s\\S]*</ul></li>`));
-  assert.match(actionDetail, new RegExp(`<li>server: SubscriptionService\\.prepare\\(\\)<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
-  assert.match(actionDetail, new RegExp(`<li>sync: SubscriptionService\\.create\\(\\)<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li><li>plan: ${detailElementRef("2", "E-PlanSelect")}\\.value</li></ul></li></ul></li>`));
-  assert.match(actionDetail, new RegExp(`<span class="process-card-title">ServerCall</span>[\\s\\S]*<li>server: SubscriptionService\\.persist\\(\\)<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
+  assert.match(actionDetail, new RegExp(`SubscriptionService\\.prepare\\(\\)[\\s\\S]*email: ${detailElementRef("1", "E-EmailInput")}\\.value`));
+  assert.match(actionDetail, new RegExp(`sync[\\s\\S]*SubscriptionService\\.create\\(\\)[\\s\\S]*email: ${detailElementRef("1", "E-EmailInput")}\\.value[\\s\\S]*plan: ${detailElementRef("2", "E-PlanSelect")}\\.value`));
+  assert.match(actionDetail, new RegExp(`<span class="process-card-title">${docLabel("P2", "result")} Call server service</span>[\\s\\S]*SubscriptionService\\.persist\\(\\)[\\s\\S]*email: ${detailElementRef("1", "E-EmailInput")}\\.value`));
   assert.match(actionDetail, /<li>response: HTTP 200 persisted subscription<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>subscriptionId: response\.id<\/li><\/ul><\/li><\/ul><\/li>/);
   assert.match(actionDetail, new RegExp(`<li>Validation: ${refMessageChip("V-SubscriptionForm", "V-SubscriptionForm", "V-SubscriptionForm")}\\.result<ul class="spec-list spec-nested-list"><li>Parameters<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li></ul></li></ul></li>`));
   assert.doesNotMatch(actionDetail, /request\.params|server\.params|sync\.params|response\.params|validation\.params/);
@@ -6872,19 +6882,21 @@ title: Parallel Process
   - screen.load
 - From
   - loading
-- Process: ServerCall
+- Process P1: Call server service
   - group: initial-load
-  - MemberQueryService.findSelfProfile()
+  - server:
+    - MemberQueryService.findSelfProfile()
   - case: success
     - response: 200 member profile
     - continue
-- Process: ServerCall
+- Process P2: Call server service
   - group: initial-load
-  - PointQueryService.findSelfPoints()
+  - server:
+    - PointQueryService.findSelfPoints()
   - case: success
     - response: 200 points
     - continue
-- Process: Resolve
+- Process P3: Resolve responses
   - group: initial-load
   - case: ready
     - response: profile and points loaded
@@ -6901,9 +6913,9 @@ title: Parallel Process
   const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-InitialLoad">[\s\S]*?<\/article>/)?.[0] ?? "";
 
   assert.match(actionDetail, /<div class="process-card process-parallel-group-card" role="listitem" data-process-group="initial-load">[\s\S]*<span class="process-card-title">Parallel group: initial-load<\/span>/);
-  assert.match(actionDetail, /<span class="process-card-title">ServerCall<\/span>[\s\S]*<li>MemberQueryService\.findSelfProfile\(\)<\/li>[\s\S]*continue process/);
-  assert.match(actionDetail, /<span class="process-card-title">ServerCall<\/span>[\s\S]*<li>PointQueryService\.findSelfPoints\(\)<\/li>[\s\S]*continue process/);
-  assert.match(actionDetail, new RegExp(`<div class="process-flow-connector" aria-hidden="true"></div><div class="process-card process-step-card process-resolve-card" role="listitem" data-resolve-group="initial-load">[\\s\\S]*${processTitleGroupPattern("merge", "Resolve initial-load")}<span class="process-card-meta">group initial-load</span>[\\s\\S]*<li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("ready", "result")}</strong>[\\s\\S]*effect set state ${docLabel("idle", "state")}[\\s\\S]*stop process`));
+  assert.match(actionDetail, /<span class="process-card-title"><code class="mm-doc-label mm-doc-label-result">P1<\/code> Call server service<\/span>[\s\S]*<li>MemberQueryService\.findSelfProfile\(\)<\/li>[\s\S]*continue process/);
+  assert.match(actionDetail, /<span class="process-card-title"><code class="mm-doc-label mm-doc-label-result">P2<\/code> Call server service<\/span>[\s\S]*<li>PointQueryService\.findSelfPoints\(\)<\/li>[\s\S]*continue process/);
+  assert.match(actionDetail, new RegExp(`<div class="process-flow-connector" aria-hidden="true"></div><div class="process-card process-step-card process-resolve-card" role="listitem" data-resolve-group="initial-load">[\\s\\S]*${processTitleGroupPattern("merge", `${docLabel("P3", "result")} Resolve responses initial-load`)}<span class="process-card-meta">group initial-load</span>[\\s\\S]*<li>Case<ul class="spec-list spec-nested-list">[\\s\\S]*<strong>${docLabel("ready", "result")}</strong>[\\s\\S]*effect set state ${docLabel("idle", "state")}[\\s\\S]*stop process`));
   assert.doesNotMatch(actionDetail, /flow (?:stop|continue)/);
 });
 
@@ -6950,9 +6962,9 @@ title: Entity Notes
   - E-NextPageButton.click
 - From
   - idle
-- Process: HttpRequest
+- Process P1: Send request
   - GET /users
-- Process: Immediate
+- Process P2: Apply immediate effect
   - Effects
     - state: loading
 
@@ -7016,7 +7028,7 @@ Action overview.
   - E-EmailInput.submit
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
@@ -7308,7 +7320,7 @@ title: Action Anchors
   - E-SubmitButton.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -7360,7 +7372,7 @@ locale: en
   - screen.load
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 `;
@@ -7399,7 +7411,7 @@ locale: en
   - idle
   - empty
   - load-error
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: loading
     - navigate: SCR-RESULTS
@@ -7477,9 +7489,9 @@ locale: en
 - From
   - idle
   - error
-- Process: HttpRequest
+- Process P1: Send request
   - POST /submit
-- Process: Immediate
+- Process P2: Apply immediate effect
   - case: failure
     - from: idle
     - response: 400 invalid
@@ -7492,7 +7504,7 @@ locale: en
 
 - Triggered
   - E-OutcomeOnlyButton.click
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: failure
     - response: 422 invalid
     - state: error
@@ -7556,7 +7568,7 @@ locale: en
 
 - Triggered
   - E-SubmitButton.click
-- Process: Immediate
+- Process P1: Apply immediate effect
   - case: retry
     - from: error
     - state: loading
@@ -7611,10 +7623,10 @@ locale: en
   - E-SubmitButton.click
 - From
   - idle
-- Process P1: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: loading
-- Process P2: Immediate
+- Process P2: Apply immediate effect
   - case: success
     - navigate: SCR-DONE
     - params:
@@ -7628,7 +7640,7 @@ locale: en
   - E-SubmitButton.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: https://example.com/help
 
@@ -7638,7 +7650,7 @@ locale: en
   - E-SubmitButton.click
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - navigate: /settings
 `;
@@ -7899,7 +7911,7 @@ Use **strong** text, *emphasis*, [help](./my_file_name.md), and \`token\`.
   - form.submit
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 
@@ -7968,7 +7980,7 @@ Refer to #{R-Eligibility}; keep \`#{E-NameInput}\`, \`\`#{A-Submit}\`\`, and \`\
   - E-NameInput.change
 - From
   - idle
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: idle
 

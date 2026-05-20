@@ -3167,17 +3167,13 @@ function processStepIconName(
     return "merge";
   }
 
-  const normalizedName = normalizeProcessStepName(step.name);
-  if (/error|fail/u.test(normalizedName)) {
-    return "circle-x";
-  }
-  if (normalizedName === "httprequest" || normalizedName === "partialrequest" || step.details.some((detail) => detail.key === "request")) {
+  if (step.details.some((detail) => processDetailRoot(detail.key) === "request")) {
     return "unplug";
   }
-  if (normalizedName === "servercall" || step.details.some((detail) => detail.key === "server" || detail.key === "call")) {
+  if (step.details.some((detail) => processDetailRoot(detail.key) === "server")) {
     return "cog";
   }
-  if (/validation|validate/u.test(normalizedName) || step.details.some((detail) => detail.key === "validation")) {
+  if (step.details.some((detail) => processDetailRoot(detail.key) === "validation")) {
     return "square-check-big";
   }
   if (step.receives.length > 0 || step.details.some((detail) => detail.key === "receive" || detail.key === "response")) {
@@ -3222,21 +3218,17 @@ function renderProcessStepDetails(
   detailedReferences: boolean
 ): string[] {
   const renderDetail = (detail: typeof step.details[number]) => renderProcessStepDetail(result, detail, detailedReferences);
-  const normalizedName = normalizeProcessStepName(step.name);
 
-  if (normalizedName !== "httprequest") {
-    if (normalizedName === "servercall") {
-      return renderServerCallDetails(result, step, detailedReferences, renderDetail);
-    }
-    return renderNestedProcessDetails(result, step.details, detailedReferences);
+  const requestDetail = step.details.find((detail) => processDetailRoot(detail.key) === "request");
+  if (requestDetail) {
+    return renderNestedProcessDetails(result, normalizeHttpRequestDetails(step.details, requestDetail), detailedReferences);
   }
 
-  const requestDetail = step.details.find((detail) => detail.key === "request");
-  if (!requestDetail) {
-    return renderNestedProcessDetails(result, step.details, detailedReferences);
+  if (step.details.some((detail) => processDetailRoot(detail.key) === "server")) {
+    return renderServerCallDetails(result, step, detailedReferences, renderDetail);
   }
 
-  return renderNestedProcessDetails(result, normalizeHttpRequestDetails(step.details, requestDetail), detailedReferences);
+  return renderNestedProcessDetails(result, step.details, detailedReferences);
 }
 
 function renderProcessStepDetail(
@@ -3255,7 +3247,7 @@ function renderServerCallDetails(
   detailedReferences: boolean,
   renderDetail: (detail: ReturnType<typeof parseMarkVSpec>["actions"][number]["processSteps"][number]["details"][number]) => string
 ): string[] {
-  const callDetail = step.details.find((detail) => detail.key === "call");
+  const callDetail = step.details.find((detail) => detail.key === "call" || processDetailRoot(detail.key) === "server");
   if (!callDetail) {
     return renderNestedProcessDetails(result, step.details, detailedReferences);
   }
@@ -3278,6 +3270,11 @@ function normalizeHttpRequestDetails(
     }
     return { ...detail, key: `request.params.${detail.key}` };
   });
+}
+
+function processDetailRoot(key: string): string {
+  const root = key.split(".")[0]?.trim() ?? "";
+  return root === "call" ? "server" : root;
 }
 
 interface ProcessDetailNode {
@@ -3569,10 +3566,6 @@ function processStepDetail(
   key: string
 ): string {
   return step.details.find((detail) => detail.key === key)?.value ?? "";
-}
-
-function normalizeProcessStepName(name: string): string {
-  return name.toLowerCase().replace(/[\s_-]+/g, "");
 }
 
 function renderTransitionEffect(result: ReturnType<typeof parseMarkVSpec>, target: string): string {

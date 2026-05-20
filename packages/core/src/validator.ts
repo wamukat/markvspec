@@ -43,7 +43,6 @@ import {
 } from "./action-envelope-read-model.js";
 import {
   processStepLabel,
-  validatePartialRequestStep,
   validateProcessBusinessRulePlacement,
   validateProcessCaseFlowPlacement,
   validateProcessDataReferences,
@@ -640,20 +639,6 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
             line: detail.location.line
           });
         }
-      }
-
-      if (processReadModel.kind === "PartialRequest") {
-        validatePartialRequestStep(action.id, step, diagnostics);
-        const partialDetail = step.details.find((detail) => detail.key === "partial");
-        const isSelfPartialRequest = result.screen.type === "partial" && partialDetail?.value === result.screen.id;
-        if (isSelfPartialRequest) {
-          continue;
-        }
-        collectPartialReference(
-          partialDetail?.value,
-          partialDetail?.location ?? step.location,
-          referencedPartialIds
-        );
       }
 
       if (processReadModel.kind === "Resolve") {

@@ -972,9 +972,12 @@ title: Action AST
   - E-SubmitButton.click
 - From
   - idle
-- Process: HttpRequest
-  - POST /login
-    - email: E-メールアドレス入力.value
+- Process P1: Send request
+  - request:
+    - method: POST
+    - path: /login
+    - params:
+      - email: E-メールアドレス入力.value
   - case: success
     - response: 2xx authenticated
     - params:
@@ -989,10 +992,11 @@ title: Action AST
     - from: idle
     - Effects
       - state: error
-- Process: ServerCall
-  - ProfileService.load()
-  - params:
-    - memberId: E-MemberId.value
+- Process P2: Call server service
+  - server:
+    - ProfileService.load()
+    - params:
+      - memberId: E-MemberId.value
 `;
   const diagnostics: MarkVSpecDiagnostic[] = [];
   const document = parseMarkdownDocument(source, diagnostics);
@@ -1008,8 +1012,8 @@ title: Action AST
   assert.deepEqual(action?.trigger, { elementId: "E-SubmitButton", event: "click" });
   assert.deepEqual(action?.fromStates, ["idle"]);
   assert.deepEqual(action?.processSteps.map((step) => [step.name, step.details.map((detail) => [detail.key, detail.value])]), [
-    ["HttpRequest", [["request", "POST /login"], ["email", "E-メールアドレス入力.value"]]],
-    ["ServerCall", [["call", "ProfileService.load()"], ["params", ""], ["memberId", "E-MemberId.value"]]]
+    ["Send request", [["request.method", "POST"], ["request.path", "/login"], ["request.params.email", "E-メールアドレス入力.value"]]],
+    ["Call server service", [["server", "ProfileService.load()"], ["server.params.memberId", "E-MemberId.value"]]]
   ]);
   assert.deepEqual(action?.responses, []);
   assert.deepEqual(action?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
@@ -1027,8 +1031,11 @@ title: Action AST
   assert.deepEqual(action?.propertyLocations["marker"], [{ line: lineNumber(source, "### main:A-Submit Submit") }]);
   assert.equal(action?.propertyLocations["request"], undefined);
   assert.equal(action?.propertyLocations["param email"], undefined);
-  assert.deepEqual(action?.processSteps[0]?.propertyLocations["request"], [{ line: lineNumber(source, "  - POST /login") }]);
-  assert.deepEqual(action?.processSteps[0]?.propertyLocations["email"], [{ line: lineNumber(source, "    - email: E-メールアドレス入力.value") }]);
+  assert.deepEqual(action?.processSteps[0]?.propertyLocations["request"], [
+    { line: lineNumber(source, "    - method: POST") },
+    { line: lineNumber(source, "    - path: /login") }
+  ]);
+  assert.deepEqual(action?.processSteps[0]?.propertyLocations["request.params"], [{ line: lineNumber(source, "      - email: E-メールアドレス入力.value") }]);
   assert.deepEqual(parseResult.actions, astResult.actions);
   assert.deepEqual(astResult.sectionResults.map((result) => [result.sectionId, result.renderKeys]), [
     ["section:Actions", ["actions:list", "action:A-Submit"]]
@@ -1075,7 +1082,7 @@ title: Action AST Diagnostics
     ["warning", "Malformed Action heading. Expected ### [<marker>:]A-* <name>.", lineNumber(source, "### Submit without ID")],
     ["warning", "Action A-Submit has unsupported top-level entry: request: POST /login. Use From, Process P1: <name>, or Otherwise.", lineNumber(source, "- request: POST /login")],
     ["warning", "Action A-Submit has nested entry outside a recognized block: E-メールアドレス入力.click.", lineNumber(source, "  - E-メールアドレス入力.click")],
-    ["warning", "Action A-Submit has malformed Process entry: POST /login. Put request lines under a marked process such as Process P1: Submit request.", lineNumber(source, "- Process: POST /login")]
+    ["warning", "Action A-Submit has unsupported top-level entry: Process: POST /login. Use From, Process P1: <name>, or Otherwise.", lineNumber(source, "- Process: POST /login")]
   ];
 
   assert.deepEqual(

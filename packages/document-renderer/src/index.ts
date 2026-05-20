@@ -636,16 +636,13 @@ function renderStaticProcessStepDetails(
   messages: RendererMessages,
   step: MarkVSpecParseResult["actions"][number]["processSteps"][number]
 ): string[] {
-  const normalizedName = normalizeStaticProcessStepName(step.name);
-  if (normalizedName === "servercall") {
-    const call = step.details.find((detail) => detail.key === "call");
+  const call = step.details.find((detail) => detail.key === "call" || staticProcessDetailRoot(detail.key) === "server");
+  if (call) {
     const parameters = step.details.filter((detail) => detail !== call);
-    if (call) {
-      const nestedParams = parameters.length > 0
-        ? `<ul class="spec-list spec-nested-list"><li>${escapeHtml(messages.parameters)}<ul class="spec-list spec-nested-list">${parameters.map((detail) => `<li>${renderStaticProcessStepDetail(detail)}</li>`).join("")}</ul></li></ul>`
-        : "";
-      return [`${escapeHtml(call.value)}${nestedParams}`];
-    }
+    const nestedParams = parameters.length > 0
+      ? `<ul class="spec-list spec-nested-list"><li>${escapeHtml(messages.parameters)}<ul class="spec-list spec-nested-list">${parameters.map((detail) => `<li>${renderStaticProcessStepDetail(detail)}</li>`).join("")}</ul></li></ul>`
+      : "";
+    return [`${escapeHtml(call.value)}${nestedParams}`];
   }
   return step.details.map(renderStaticProcessStepDetail);
 }
@@ -705,17 +702,13 @@ function staticProcessStepIconName(step: MarkVSpecParseResult["actions"][number]
   if (step.resolveGroup) {
     return "merge";
   }
-  const normalizedName = normalizeStaticProcessStepName(step.name);
-  if (/error|fail/u.test(normalizedName)) {
-    return "circle-x";
-  }
-  if (normalizedName === "httprequest" || normalizedName === "partialrequest" || step.details.some((detail) => detail.key === "request")) {
+  if (step.details.some((detail) => staticProcessDetailRoot(detail.key) === "request")) {
     return "unplug";
   }
-  if (normalizedName === "servercall" || step.details.some((detail) => detail.key === "server" || detail.key === "call")) {
+  if (step.details.some((detail) => staticProcessDetailRoot(detail.key) === "server")) {
     return "cog";
   }
-  if (/validation|validate/u.test(normalizedName) || step.details.some((detail) => detail.key === "validation")) {
+  if (step.details.some((detail) => staticProcessDetailRoot(detail.key) === "validation")) {
     return "square-check-big";
   }
   if (step.receives.length > 0 || step.details.some((detail) => detail.key === "receive" || detail.key === "response")) {
@@ -730,8 +723,9 @@ function staticProcessStepIconName(step: MarkVSpecParseResult["actions"][number]
   return undefined;
 }
 
-function normalizeStaticProcessStepName(name: string): string {
-  return name.toLowerCase().replace(/[\s_-]+/gu, "");
+function staticProcessDetailRoot(key: string): string {
+  const root = key.split(".")[0]?.trim() ?? "";
+  return root === "call" ? "server" : root;
 }
 
 function renderStaticMermaidStateDiagram(result: MarkVSpecParseResult): string {

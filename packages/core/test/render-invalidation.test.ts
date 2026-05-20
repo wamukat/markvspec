@@ -485,7 +485,7 @@ title: Invalidation Action
   - E-Submit.click
 - From
   - idle
-- Process: ServerCall
+- Process P1: Call server service
   - submit form
 `;
   const current = previous.replace("  - submit form", "  - submit updated form");

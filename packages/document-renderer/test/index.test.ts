@@ -807,7 +807,7 @@ title: Static Transitions
 
 - From
   - before-load
-- Process: Immediate
+- Process P1: Apply immediate effect
   - Effects
     - state: initializing
     - display: E-TelemetryStatus = ready
@@ -889,11 +889,11 @@ title: Static Process Icons
   - idle
 - Process P1: Check validation
   - validation: V-Email.result
-- Process P2: HttpRequest
+- Process P2: Send request
   - request:
     - method: GET
     - path: /account
-- Process P3: ServerCall
+- Process P3: Call server service
   - call: AccountService.load()
 - Process P4: Receive response
   - receive:
@@ -905,11 +905,12 @@ title: Static Process Icons
 - Process P7: Set loaded
   - state: loaded
 - Process P8: Failure handler
-- Process: ServerCall
+- Process P1: Call server service
   - group: initial-load
-  - ProfileService.load()
+  - server:
+    - ProfileService.load()
   - continue
-- Process: Resolve
+- Process P2: Resolve responses
   - group: initial-load
   - case: ready
     - Effects
@@ -919,7 +920,7 @@ title: Static Process Icons
   const html = renderStaticDesignDocumentHtml(result);
 
   assert.match(html, /<h2>Action Details<\/h2>/);
-  for (const name of ["square-check-big", "unplug", "cog", "satellite-dish", "panels-top-left", "waypoints", "refresh-cw", "circle-x", "split", "merge"]) {
+  for (const name of ["square-check-big", "unplug", "cog", "satellite-dish", "panels-top-left", "waypoints", "refresh-cw", "split", "merge"]) {
     assert.match(html, iconPattern(name), name);
   }
 });

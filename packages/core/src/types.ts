@@ -481,7 +481,7 @@ export interface MarkVSpecProcessStepDetail {
   location: SourceLocation;
 }
 
-export type MarkVSpecProcessStepKind = "HttpRequest" | "ServerCall" | "Validate" | "Resolve" | "PartialRequest" | "Immediate" | "Generic";
+export type MarkVSpecProcessStepKind = "HttpRequest" | "ServerCall" | "Validate" | "Resolve" | "Immediate" | "Generic";
 
 export interface MarkVSpecProcessStepExecutionReadModel {
   kind: MarkVSpecProcessStepKind;
