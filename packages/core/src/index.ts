@@ -209,6 +209,14 @@ export type {
   MarkVSpecPropertyOwner,
   MarkVSpecPropertyValue
 } from "./property-accessor.js";
+export {
+  entityMarkerReadModel,
+  entityMarkerReadModels
+} from "./entity-marker-read-model.js";
+export type {
+  EntityMarkerReadModel,
+  MarkVSpecMarkerEntity
+} from "./entity-marker-read-model.js";
 export { tableColumnSampleKeys } from "./table-columns.js";
 export { renderMarkVSpecHtml };
 export { renderMarkVSpecHtmlFragment, renderMarkVSpecHtmlFragments } from "./renderer.js";

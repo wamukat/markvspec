@@ -51,6 +51,7 @@ import {
   propertyLocation,
   propertyString
 } from "./property-accessor.js";
+import { entityMarkerReadModels } from "./entity-marker-read-model.js";
 import {
   anchoredOverlayReference,
   controlledPanelReferences,
@@ -131,115 +132,63 @@ export function validateMarkVSpec(result: MarkVSpecParseResult): MarkVSpecDiagno
   checkDuplicateLayoutMarkers(result.layoutGroups.filter((group) => !isPresentationPanelId(group.id)), diagnostics);
   checkConsistentLayoutMarkers(result.layoutGroups.filter((group) => !isPresentationPanelId(group.id)), diagnostics);
   checkMarkers(
-    allLayoutGroups.filter((group) => !isPresentationPanelId(group.id)).map((group) => ({
-      id: group.id,
-      marker: propertyString(group, "marker"),
-      location: firstPropertyLine(group, "marker") ? { line: firstPropertyLine(group, "marker") ?? group.location.line } : group.location
-    })),
+    entityMarkerReadModels(allLayoutGroups.filter((group) => !isPresentationPanelId(group.id))),
     "layout",
     diagnostics
   );
   checkMarkers(
-    result.formGroups.map((formGroup) => ({
-      id: formGroup.id,
-      marker: firstStringProperty(formGroup.properties["marker"]),
-      location: firstPropertyLine(formGroup, "marker") ? { line: firstPropertyLine(formGroup, "marker") ?? formGroup.location.line } : formGroup.location
-    })),
+    entityMarkerReadModels(result.formGroups),
     "form group",
     diagnostics
   );
   checkMarkers(
     [
-      ...result.validations.map((validation) => ({
-        id: validation.id,
-        marker: firstStringProperty(validation.properties["marker"]),
-        location: firstPropertyLine(validation, "marker") ? { line: firstPropertyLine(validation, "marker") ?? validation.location.line } : validation.location
-      })),
-      ...result.rules.map((rule) => ({
-        id: rule.id,
-        marker: firstStringProperty(rule.properties["marker"]),
-        location: firstPropertyLine(rule, "marker") ? { line: firstPropertyLine(rule, "marker") ?? rule.location.line } : rule.location
-      }))
+      ...entityMarkerReadModels(result.validations),
+      ...entityMarkerReadModels(result.rules)
     ],
     "message",
     diagnostics
   );
   checkMarkers(
-    result.errorCodes.map((errorCode) => ({
-      id: errorCode.id,
-      marker: firstStringProperty(errorCode.properties["marker"]),
-      location: firstPropertyLine(errorCode, "marker") ? { line: firstPropertyLine(errorCode, "marker") ?? errorCode.location.line } : errorCode.location
-    })),
+    entityMarkerReadModels(result.errorCodes),
     "error code",
     diagnostics
   );
   checkMarkers(
-    result.elements.map((element) => ({
-      id: element.id,
-      marker: stringProperty(element, "marker"),
-      location: firstPropertyLine(element, "marker") ? { line: firstPropertyLine(element, "marker") ?? element.location.line } : element.location
-    })),
+    entityMarkerReadModels(result.elements),
     "element",
     diagnostics
   );
   checkMarkers(
-    result.actions.map((action) => ({
-      id: action.id,
-      marker: propertyString(action, "marker"),
-      location: firstPropertyLine(action, "marker") ? { line: firstPropertyLine(action, "marker") ?? action.location.line } : action.location
-    })),
+    entityMarkerReadModels(result.actions),
     "action",
     diagnostics
   );
   checkDuplicateMarkers(
-    result.formGroups.map((formGroup) => ({
-      id: formGroup.id,
-      marker: firstStringProperty(formGroup.properties["marker"]),
-      location: firstPropertyLine(formGroup, "marker") ? { line: firstPropertyLine(formGroup, "marker") ?? formGroup.location.line } : formGroup.location
-    })),
+    entityMarkerReadModels(result.formGroups),
     "form group",
     diagnostics
   );
   checkDuplicateMarkers(
     [
-      ...result.validations.map((validation) => ({
-        id: validation.id,
-        marker: firstStringProperty(validation.properties["marker"]),
-        location: firstPropertyLine(validation, "marker") ? { line: firstPropertyLine(validation, "marker") ?? validation.location.line } : validation.location
-      })),
-      ...result.rules.map((rule) => ({
-        id: rule.id,
-        marker: firstStringProperty(rule.properties["marker"]),
-        location: firstPropertyLine(rule, "marker") ? { line: firstPropertyLine(rule, "marker") ?? rule.location.line } : rule.location
-      }))
+      ...entityMarkerReadModels(result.validations),
+      ...entityMarkerReadModels(result.rules)
     ],
     "message",
     diagnostics
   );
   checkDuplicateMarkers(
-    result.errorCodes.map((errorCode) => ({
-      id: errorCode.id,
-      marker: firstStringProperty(errorCode.properties["marker"]),
-      location: firstPropertyLine(errorCode, "marker") ? { line: firstPropertyLine(errorCode, "marker") ?? errorCode.location.line } : errorCode.location
-    })),
+    entityMarkerReadModels(result.errorCodes),
     "error code",
     diagnostics
   );
   checkDuplicateMarkers(
-    result.elements.map((element) => ({
-      id: element.id,
-      marker: stringProperty(element, "marker"),
-      location: firstPropertyLine(element, "marker") ? { line: firstPropertyLine(element, "marker") ?? element.location.line } : element.location
-    })),
+    entityMarkerReadModels(result.elements),
     "element",
     diagnostics
   );
   checkDuplicateMarkers(
-    result.actions.map((action) => ({
-      id: action.id,
-      marker: propertyString(action, "marker"),
-      location: firstPropertyLine(action, "marker") ? { line: firstPropertyLine(action, "marker") ?? action.location.line } : action.location
-    })),
+    entityMarkerReadModels(result.actions),
     "action",
     diagnostics
   );

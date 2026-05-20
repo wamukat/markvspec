@@ -1,7 +1,7 @@
 import {
-  displaySummaryForElement,
-  layoutDisplaySettings,
+  entityMarkerReadModel,
   preferredLayoutGroupForViewport,
+  type MarkVSpecMarkerEntity,
   type MarkVSpecParseResult
 } from "@markvspec/core";
 import {
@@ -88,22 +88,22 @@ export function isDocumentRefId(value: string): boolean {
 export function findMarker(result: MarkVSpecParseResult, id: string): string | undefined {
   const layout = preferredLayoutById(result, id);
   if (layout) {
-    return layoutDisplaySettings(layout).marker;
+    return markerForEntity(layout);
   }
 
   const element = result.elements.find((candidate) => candidate.id === id);
   if (element) {
-    return displaySummaryForElement(element).marker;
+    return markerForEntity(element);
   }
 
   const action = result.actions.find((candidate) => candidate.id === id);
   if (action) {
-    return action.properties["marker"];
+    return markerForEntity(action);
   }
 
   const formGroup = result.formGroups.find((candidate) => candidate.id === id);
   if (formGroup) {
-    return firstStringProperty(formGroup.properties["marker"]);
+    return markerForEntity(formGroup);
   }
 
   return undefined;
@@ -209,7 +209,7 @@ export function referenceChipForId(result: MarkVSpecParseResult, id: string, lin
     return renderEntityRefChip({
       id,
       category: "message",
-      marker: firstStringProperty(validation?.properties["marker"]) || firstStringProperty(rule?.properties["marker"]) || id,
+      marker: markerForEntity(validation) || markerForEntity(rule) || id,
       label: validation?.name || rule?.name || id,
       href: linkEntity && validation ? `#${validationRulesAnchor()}` : linkEntity && rule ? `#${businessRulesAnchor()}` : undefined,
       displaySource: id
@@ -221,7 +221,7 @@ export function referenceChipForId(result: MarkVSpecParseResult, id: string, lin
     return renderEntityRefChip({
       id,
       category: "error-code",
-      marker: firstStringProperty(errorCode?.properties["marker"]) || id,
+      marker: markerForEntity(errorCode) || id,
       label: errorCode?.name || id,
       href: linkEntity && errorCode ? `#${errorCodesAnchor()}` : undefined
     });
@@ -283,9 +283,6 @@ function preferredSlotContentLayoutGroupForViewport(
   return candidates.find((group) => !group.viewport) ?? candidates[0];
 }
 
-function firstStringProperty(value: string | string[] | true | undefined): string | undefined {
-  if (typeof value === "string") {
-    return value;
-  }
-  return Array.isArray(value) ? value.find((item) => item.length > 0) : undefined;
+function markerForEntity(entity: MarkVSpecMarkerEntity | undefined): string | undefined {
+  return entity ? entityMarkerReadModel(entity).marker : undefined;
 }
