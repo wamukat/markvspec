@@ -22,13 +22,10 @@ import {
   isProjectReferenceAllowed,
   isMarkVSpecSourceType,
   layoutDisplaySettings,
-  sourceTypeForElement,
   anchoredOverlayReference,
   controlledPanelReferences,
   displayLabelForElement,
   displaySummaryForElement,
-  displaySummaryForElementProperties,
-  elementDomainFor,
   isElementDisplaySampleValue,
   businessRuleMessages,
   validationDomainFor,
@@ -50,7 +47,6 @@ import type {
 } from "@markvspec/core";
 import { messagesForLocale, resolveLocale } from "@markvspec/core";
 import {
-  firstEntityProseParagraph,
   joinProseLineGroups,
   renderEntityNotes as renderEntityNotesBase,
   renderEntityOverview as renderEntityOverviewBase,
@@ -65,7 +61,6 @@ import {
   renderTable,
   renderTableWithCells,
   rowspanPrefixCells,
-  stringProperty,
   text
 } from "./design-document-renderer.js";
 import type { TableCell } from "./design-document-renderer.js";
@@ -118,6 +113,12 @@ import {
   renderPreviewMermaidScriptTag,
   type PreviewHtmlTarget
 } from "./preview-client-script.js";
+import {
+  createElementSpecSummaryRenderer,
+  renderElementTypeSummary,
+  renderElementValueSummary,
+  renderSpecSections
+} from "./element-spec-summary-renderer.js";
 import { renderProjectPreviewStyles, renderScreenPreviewStyles } from "./preview-document-styles.js";
 import {
   addDocumentSectionNumberHtml,
@@ -2294,6 +2295,14 @@ function stateViewsRenderContext(
   result: ReturnType<typeof parseMarkVSpec>,
   markdownResult: ReturnType<typeof parseMarkVSpec> = result
 ): StateViewsRenderContext {
+  const elementSpec = createElementSpecSummaryRenderer({
+    label: (key) => label(result, key),
+    renderEntityNotes: (notes) => renderEntityNotes(markdownResult, notes),
+    renderExpressionTokens,
+    renderParamSource: (source) => renderParamSource(result, source),
+    renderSourceSummary,
+    renderValueWithOptionalSource
+  });
   const specTables = createStateViewSpecTableRenderer(result, {
     label: (key) => label(result, key),
     conditionLabel: (key) => conditionLabel(result, key),
@@ -2313,16 +2322,16 @@ function stateViewsRenderContext(
     renderEntityNotes: (notes) => renderEntityNotes(markdownResult, notes),
     renderElementTypeSummary,
     renderElementActionReferences: (element) => renderElementActionReferences(result, element),
-    renderElementDescription: (element) => renderElementDescription(markdownResult, element),
-    renderRequiredSpec: (element) => renderRequiredSpec(result, element),
-    renderFormControlValue: (element, sampleValue) => renderFormControlValue(element, sampleValue),
-    renderFormControlSource: (element) => renderFormControlSource(element),
-    renderInputSpec: (element) => renderInputSpec(result, element),
+    renderElementDescription: elementSpec.renderElementDescription,
+    renderRequiredSpec: elementSpec.renderRequiredSpec,
+    renderFormControlValue: elementSpec.renderFormControlValue,
+    renderFormControlSource: elementSpec.renderFormControlSource,
+    renderInputSpec: elementSpec.renderInputSpec,
     renderElementConditionSummary: (element) => renderElementConditionSummary(result, element),
     renderContentElementState: (element) => renderContentElementState(result, element),
     renderDisplayContentValue,
     renderSourceSummary,
-    renderElementLabelSummary,
+    renderElementLabelSummary: elementSpec.renderElementLabelSummary,
     renderElementValueSummary,
     renderConditionList: (groups) => renderConditionList(result, groups),
     renderActionOverview: (action) => renderActionOverview(markdownResult, action),
@@ -4526,34 +4535,6 @@ function firstStringProperty(value: string | string[] | true | undefined): strin
   return Array.isArray(value) ? value.find((item) => item.length > 0) : undefined;
 }
 
-function renderElementLabelSummary(properties: Record<string, string | true>): string {
-  const summary = displaySummaryForElementProperties(properties);
-  const labelValue = summary.label;
-  const labelSource = renderSourceSummary(summary.labelSource);
-  return [labelValue, labelSource].filter(Boolean).join("<br>");
-}
-
-function renderElementDescription(result: ReturnType<typeof parseMarkVSpec>, element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
-  const domain = elementDomainFor(element);
-  const overlay = domain.anchoredOverlay();
-  const summary = domain.displaySummary();
-  const description = summary.description
-    || summary.purpose
-    || firstEntityProseParagraph(element.overview)
-    || (domain.is("Tabs") && summary.active ? `active tab: ${summary.active}` : "")
-    || (domain.is("Accordion") && summary.open ? `open item: ${summary.open}` : "")
-    || (domain.is("Disclosure") && summary.open ? `open: ${summary.open}` : "")
-    || (domain.is("ActionMenu") && summary.open ? `open: ${summary.open}` : "")
-    || (overlay?.anchorId ? `anchor: ${overlay.anchorId}` : "")
-    || "";
-  const notes = renderEntityNotes(result, element.notes);
-  return [description ? text(description) : "", notes].filter(Boolean).join("<br>");
-}
-
-function renderElementTypeSummary(element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
-  return text(element.type);
-}
-
 function renderElementDisplayName(
   result: ReturnType<typeof parseMarkVSpec>,
   element: ReturnType<typeof parseMarkVSpec>["elements"][number]
@@ -4584,112 +4565,6 @@ function renderElementSampleSummary(element: ReturnType<typeof parseMarkVSpec>["
   }
 
   return sample ?? "";
-}
-
-function renderFormControlValue(
-  element: ReturnType<typeof parseMarkVSpec>["elements"][number],
-  sampleValue: string | undefined
-): string {
-  const summary = displaySummaryForElement(element);
-  const initialValue = summary.initialValue ?? "";
-  const value = summary.value ?? "";
-  const renderedValue = sampleValue ?? (initialValue || value);
-  return renderedValue ? renderExpressionTokens(renderedValue) : "";
-}
-
-function renderFormControlSource(element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
-  const valueMetadata = element.propertyMetadata["value"];
-  const sourceKind = valueMetadata?.kind ?? sourceTypeForElement(element);
-  const sourceDetail = valueMetadata?.source;
-  return [renderSourceSummary(sourceKind), sourceDetail ? renderSourceSummary(sourceDetail) : ""].filter(Boolean).join("<br>");
-}
-
-function renderInputSpec(
-  result: ReturnType<typeof parseMarkVSpec>,
-  element: ReturnType<typeof parseMarkVSpec>["elements"][number]
-): string {
-  const inputRows = [
-    ...["type", "mode"].map((key) => {
-      const value = rawStringProperty(element.properties[key]);
-      return value ? `${text(key)}: ${renderParamSource(result, value)}` : "";
-    }),
-    element.selectOptions.length > 0
-      ? `${text(label(result, "options"))}: ${element.selectOptions.map((option) => renderValueWithOptionalSource(option.label, option.source)).join(", ")}`
-      : ""
-  ].filter(Boolean);
-  const constraintRows = [
-    ...element.inputRules
-      .filter((rule) => !isRequiredInputRule(rule))
-      .map((rule) => rule.value ? `${text(rule.key)}: ${renderParamSource(result, rule.value)}` : text(rule.key)),
-    ...["min", "max", "step", "min length", "max length", "accept", "multiple"].map((key) => {
-      const property = element.properties[key];
-      const value = rawStringProperty(property);
-      if (value) {
-        return `${text(key)}: ${renderParamSource(result, value)}`;
-      }
-      return property === true ? text(key) : "";
-    }),
-    element.properties["readonly"] === true || stringProperty(element.properties["readonly"]) ? text(label(result, "readonly")).toLowerCase() : ""
-  ].filter(Boolean);
-  const format = rawStringProperty(element.properties["format"]);
-  return renderSpecSections([
-    { title: label(result, "input"), rows: inputRows },
-    { title: label(result, "constraints"), rows: constraintRows },
-    { title: label(result, "format"), rows: format ? [renderParamSource(result, format)] : [] }
-  ]);
-}
-
-function renderSpecSections(sections: Array<{ title: string; rows: string[] }>): string {
-  const visibleSections = sections.filter((section) => section.rows.length > 0);
-  if (visibleSections.length === 0) {
-    return "";
-  }
-  return visibleSections.map((section) => (
-    `<div class="spec-section"><strong>${text(section.title)}</strong><ul class="spec-list">${section.rows.map((row) => `<li>${row}</li>`).join("")}</ul></div>`
-  )).join("");
-}
-
-function renderRequiredSpec(
-  result: ReturnType<typeof parseMarkVSpec>,
-  element: ReturnType<typeof parseMarkVSpec>["elements"][number]
-): string {
-  const requiredWhenRows = element.inputRules.flatMap((rule) => {
-    if (!isRequiredWhenInputRule(rule)) {
-      return [];
-    }
-    const condition = requiredWhenValue(rule);
-    return condition ? [`${label(result, "conditionWhenShort")}: ${renderParamSource(result, condition)}`] : [];
-  });
-  const rows = [
-    isRequiredProperty(element.properties["required"]) || element.inputRules.some(isRequiredBooleanInputRule) ? text(label(result, "requiredYes")) : requiredWhenRows.length === 0 ? text(label(result, "requiredNo")) : "",
-    ...requiredWhenRows
-  ].filter(Boolean);
-
-  return rows.length === 1 ? rows[0] ?? "" : rows.length > 1 ? `<ul class="spec-list">${rows.map((row) => `<li>${row}</li>`).join("")}</ul>` : "";
-}
-
-function isRequiredProperty(value: string | true | undefined): boolean {
-  return value === true || rawStringProperty(value)?.toLowerCase() === "true";
-}
-
-function isRequiredInputRule(rule: ReturnType<typeof parseMarkVSpec>["elements"][number]["inputRules"][number]): boolean {
-  return rule.key.trim().toLowerCase() === "required" || isRequiredWhenInputRule(rule);
-}
-
-function isRequiredBooleanInputRule(rule: ReturnType<typeof parseMarkVSpec>["elements"][number]["inputRules"][number]): boolean {
-  return rule.key.trim().toLowerCase() === "required" && (!rule.value || rule.value.trim().toLowerCase() === "true");
-}
-
-function isRequiredWhenInputRule(rule: ReturnType<typeof parseMarkVSpec>["elements"][number]["inputRules"][number]): boolean {
-  return rule.key.trim().toLowerCase() === "required when" || rule.key.trim().toLowerCase().startsWith("required when ");
-}
-
-function requiredWhenValue(rule: ReturnType<typeof parseMarkVSpec>["elements"][number]["inputRules"][number]): string {
-  const key = rule.key.trim();
-  if (key.toLowerCase() === "required when") {
-    return rule.value.trim();
-  }
-  return key.slice("required when".length).trim();
 }
 
 function renderActionableDisplayValue(
@@ -4902,10 +4777,6 @@ function semanticChipTone(tone: string | undefined): "neutral" | "info" | "succe
     return tone;
   }
   return "neutral";
-}
-
-function renderElementValueSummary(properties: Record<string, string | true>): string {
-  return displaySummaryForElementProperties(properties).valueSummary ?? "";
 }
 
 function renderElementContentSummary(element: ReturnType<typeof parseMarkVSpec>["elements"][number]): string {
