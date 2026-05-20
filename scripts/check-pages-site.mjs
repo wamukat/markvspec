@@ -32,6 +32,7 @@ const requiredFiles = [
   "docs/ja/guide/elements.html",
   "docs/ja/guide/actions.html",
   "docs/ja/guide/validation.html",
+  "docs/ja/guide/scenarios.html",
   "docs/ja/guide/partial-updates.html",
   "docs/en/guide/index.html",
   "docs/en/guide/document-structure.html",
@@ -41,6 +42,7 @@ const requiredFiles = [
   "docs/en/guide/elements.html",
   "docs/en/guide/actions.html",
   "docs/en/guide/validation.html",
+  "docs/en/guide/scenarios.html",
   "docs/en/guide/partial-updates.html",
   "docs/ja/reference/index.html",
   "docs/ja/reference/file-format.html",
@@ -250,8 +252,10 @@ for (const startPath of [
 const guideIndexHtml = readSiteFile("docs/ja/guide/index.html");
 expectContains(guideIndexHtml, "markdown-model.html", "_site/docs/ja/guide/index.html should link to markdown-model guide.");
 expectContains(guideIndexHtml, "document-structure.html", "_site/docs/ja/guide/index.html should link to document structure guide.");
+expectContains(guideIndexHtml, "scenarios.html", "_site/docs/ja/guide/index.html should link to scenarios guide.");
 expectContains(guideIndexHtml, "partial-updates.html", "_site/docs/ja/guide/index.html should link to partial-updates guide.");
 expectContains(guideIndexHtml, "examples/showcase/hello-screen.html", "_site/docs/ja/guide/index.html should link to example showcases.");
+expectContains(guideIndexHtml, "examples/showcase/scenario-samples.html", "_site/docs/ja/guide/index.html should link to scenario showcase.");
 const guideDocumentStructureHtml = readSiteFile("docs/ja/guide/document-structure.html");
 expectContains(guideDocumentStructureHtml, "MarkVSpec 文書構造", "_site/docs/ja/guide/document-structure.html should preserve the visual document structure guide.");
 expectContains(guideDocumentStructureHtml, 'class="docs-sidebar"', "_site/docs/ja/guide/document-structure.html should use the standard docs sidebar.");
@@ -267,6 +271,17 @@ const guidePartialsHtml = readSiteFile("docs/ja/guide/partial-updates.html");
 expectContains(guidePartialsHtml, "partial: PRT-PROFILE-SUMMARY", "_site/docs/ja/guide/partial-updates.html should include partial update replacement semantics.");
 expectContains(guidePartialsHtml, "profile-summary.partial.html", "_site/docs/ja/guide/partial-updates.html should link to the partial showcase.");
 expectContains(readSiteFile("docs/en/guide/actions.html"), "A-SubmitRequest", "_site/docs/en/guide/actions.html should include a minimal action example.");
+expectContains(readSiteFile("docs/en/guide/index.html"), "scenarios.html", "_site/docs/en/guide/index.html should link to scenarios guide.");
+const guideScenariosHtml = readSiteFile("docs/ja/guide/scenarios.html");
+expectContains(guideScenariosHtml, "## Preview Scenarios", "_site/docs/ja/guide/scenarios.html should explain Preview Scenarios syntax.");
+expectContains(guideScenariosHtml, "cases:", "_site/docs/ja/guide/scenarios.html should include cases for action/validation results.");
+expectContains(guideScenariosHtml, "examples/showcase/scenario-samples.html", "_site/docs/ja/guide/scenarios.html should link to the scenario showcase.");
+expectContains(guideScenariosHtml, 'aria-current="page">シナリオ</a>', "_site/docs/ja/guide/scenarios.html sidebar should mark the current page.");
+const enGuideScenariosHtml = readSiteFile("docs/en/guide/scenarios.html");
+expectContains(enGuideScenariosHtml, "## Preview Scenarios", "_site/docs/en/guide/scenarios.html should explain Preview Scenarios syntax.");
+expectContains(enGuideScenariosHtml, "cases:", "_site/docs/en/guide/scenarios.html should include cases for action/validation results.");
+expectContains(enGuideScenariosHtml, "examples/showcase/scenario-samples.html", "_site/docs/en/guide/scenarios.html should link to the scenario showcase.");
+expectContains(enGuideScenariosHtml, 'aria-current="page">Scenarios</a>', "_site/docs/en/guide/scenarios.html sidebar should mark the current page.");
 const enGuideDocumentStructureHtml = readSiteFile("docs/en/guide/document-structure.html");
 expectContains(enGuideDocumentStructureHtml, "MarkVSpec Document Structure", "_site/docs/en/guide/document-structure.html should preserve the visual document structure guide.");
 expectContains(enGuideDocumentStructureHtml, 'aria-current="page">MarkVSpec Document Structure</a>', "_site/docs/en/guide/document-structure.html sidebar should mark the current page.");
@@ -350,6 +365,8 @@ expectOrder(
 expectContains(examplesHtml, "Teaches: Front Matter", "_site/examples/index.html should show teaches metadata.");
 expectContains(examplesHtml, '<span class="pill">template</span>', "_site/examples/index.html should identify template examples.");
 expectContains(examplesHtml, '<span class="pill">partial</span>', "_site/examples/index.html should identify partial examples.");
+const scenarioShowcaseHtml = readSiteFile("examples/showcase/scenario-samples.html");
+expectContains(scenarioShowcaseHtml, "Guide / Scenarios", "_site/examples/showcase/scenario-samples.html should link the scenario guide.");
 
 const docsEnExamplesHtml = readSiteFile("docs/en/examples/index.html");
 expectNotContains(docsEnExamplesHtml, "Stub", "_site/docs/en/examples/index.html should not be a stub.");
@@ -368,6 +385,7 @@ for (const filePath of [
   "docs/en/guide/elements.html",
   "docs/en/guide/actions.html",
   "docs/en/guide/validation.html",
+  "docs/en/guide/scenarios.html",
   "docs/en/guide/partial-updates.html",
   "docs/en/reference/index.html",
   "docs/en/reference/file-format.html",

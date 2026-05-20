@@ -75,9 +75,14 @@ This keeps validation, request start, response handling, and result-specific UI 
 
 ![Form Submit Flow action preview](../../assets/vscode-previews/form-submit-flow-vscode-preview.png)
 
+Use [Scenarios](scenarios.md) when you want to pin a named preview case to one
+of these action results, such as `A-SubmitRequest.P1.invalid` or a toast shown
+after success.
+
 ## Next Reading
 
 - [States](states.md)
+- [Scenarios](scenarios.md)
 - [Partial Updates](partial-updates.md)
 - [Form Submit Flow](../../../examples/showcase/form-submit-flow.html)
 - [Reference](../reference/index.md)

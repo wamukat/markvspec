@@ -139,11 +139,13 @@ validation は判定だけでは不十分です。ユーザーに見える表示
 - 複数 field や業務条件を見るなら `## Business Rules`。
 - server response で決まるなら `## Actions` の `case:`。
 - ユーザーに何を見せるかは `display` と error element で書く。
+- review で error case を preview したいなら、該当する `case:` を指す [シナリオ](scenarios.md) を追加する。
 
 ## 次に読むもの
 
 - [Elements](elements.md)
 - [Actions](actions.md)
+- [シナリオ](scenarios.md)
 - [Business Rules](../reference/rules.md)
 - [Validation Reference](../reference/validations.md)
 - [Single Field Validation](../../../examples/showcase/single-field-validation.html)

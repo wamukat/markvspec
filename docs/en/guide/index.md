@@ -13,7 +13,8 @@ Detailed syntax belongs in [Reference](../reference/index.md). Guide pages stay 
 5. [Elements](elements.md): Describe UI elements such as Heading, Input, and Button. Prefer role, label, and action over visual detail.
 6. [Actions](actions.md): Connect triggers, processes, and cases. This makes API behavior, navigation, and state changes reviewable.
 7. [Validation](validation.md): Capture input constraints and error behavior in the source. Separate field rules from business rules.
-8. [Partial Updates](partial-updates.md): Describe server-rendered partial updates as intent. Write the request and update semantics, not raw attributes.
+8. [Scenarios](scenarios.md): Name reviewable preview cases such as validation errors, empty data, toast/dialog results, and direct links.
+9. [Partial Updates](partial-updates.md): Describe server-rendered partial updates as intent. Write the request and update semantics, not raw attributes.
 
 ## How To Use This Guide
 
@@ -25,6 +26,7 @@ MarkVSpec source is plain text. It works well with Git diff reviews, AI edits, a
 
 - [Hello Screen](../../../examples/showcase/hello-screen.html)
 - [Form Submit Flow](../../../examples/showcase/form-submit-flow.html)
+- [Scenario Preview Data](../../../examples/showcase/scenario-samples.html)
 - [Profile Page With Template](../../../examples/showcase/profile-page-with-template.html)
 
 ## Next Reading

@@ -49,8 +49,12 @@ state は `## States` の下に bullet で書き、初期状態には `*` を1�
 
 この DSL を見れば、「どの結果でどの state になるか」が分かります。長い文章で説明しなくてかまいません。
 
+同じ state の validation error、empty data、direct link などを名前付きで review したいだけなら、
+state を増やさず [シナリオ](scenarios.md) を使います。
+
 ## 見る例
 
 - [Async Fetching](../../../examples/showcase/async-loading.html)
+- [シナリオ](scenarios.md)
 - [Loading And Error](../recipes/loading-error.md)
 - [States Reference](../reference/sections.md)

@@ -1030,7 +1030,7 @@ const docsNavigation = [
   },
   {
     title: "Guide",
-    paths: ["guide/index.md", "guide/markdown-model.md", "guide/document-structure.html", "guide/states.md", "guide/layout.md", "guide/elements.md", "guide/actions.md", "guide/validation.md", "guide/partial-updates.md"]
+    paths: ["guide/index.md", "guide/markdown-model.md", "guide/document-structure.html", "guide/states.md", "guide/layout.md", "guide/elements.md", "guide/actions.md", "guide/validation.md", "guide/scenarios.md", "guide/partial-updates.md"]
   },
   {
     title: "Reference",

@@ -66,8 +66,12 @@ preview では、`Submit` button と `A-SubmitRequest` のつながり、validat
 
 ここで重要なのは、実装関数名ではなく「ユーザーに見える結果」が読めることです。
 
+`A-SubmitRequest.P1.invalid` や success toast のような action result を名前付き preview case
+として固定したい場合は、[シナリオ](scenarios.md) を使います。
+
 ## 見る例
 
 - [Form Submit Flow](../../../examples/showcase/form-submit-flow.html)
 - [Display Updates](../../../examples/showcase/display-effects.html)
+- [シナリオ](scenarios.md)
 - [Actions Reference](../reference/actions.md)

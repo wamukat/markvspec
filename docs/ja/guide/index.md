@@ -13,6 +13,7 @@ Guide では細かい構文を説明しません。まず「何を書くと、pr
 - `## Elements`: 表示される部品。まずは [Elements](elements.md)。
 - `## Actions`: 操作と結果。まずは [Actions](actions.md)。
 - `## Business Rules`: 画面固有の判断条件。まずは [Validation](validation.md)。
+- `## Preview Scenarios`: review したい表示 case。まずは [シナリオ](scenarios.md)。
 
 ## 読み方
 
@@ -50,6 +51,7 @@ Guide では細かい構文を説明しません。まず「何を書くと、pr
 - [Hello Screen](../../../examples/showcase/hello-screen.html): 最小構成。
 - [Form Submit Flow](../../../examples/showcase/form-submit-flow.html): form submit と error 表示。
 - [Async Fetching](../../../examples/showcase/async-loading.html): loading / empty / error。
+- [Scenario Preview Data](../../../examples/showcase/scenario-samples.html): 同じ画面の preview case。
 - [Profile Page With Template](../../../examples/showcase/profile-page-with-template.html): partial update。
 
 ## 詳細を引く

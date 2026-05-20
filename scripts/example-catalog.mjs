@@ -4,7 +4,7 @@ import { basename, join } from "node:path";
 const validKinds = new Set(["screen", "template", "partial"]);
 const validDocGroups = new Set(["guide", "reference", "recipes"]);
 const validDocKeys = {
-  guide: new Set(["markdown-model", "states", "layout", "elements", "actions", "validation", "partial-updates"]),
+  guide: new Set(["markdown-model", "states", "layout", "elements", "actions", "validation", "scenarios", "partial-updates"]),
   reference: new Set(["file-format", "sections", "elements", "actions", "validations", "rules", "ids", "cli", "limitations"]),
   recipes: new Set(["login-form", "loading-error", "server-partial-update", "pdf-export"])
 };
