@@ -1,11 +1,11 @@
 import {
-  displaySummaryForElement,
   displaySummaryForElementProperties,
   elementDomainFor,
-  sourceTypeForElement
+  formControlDisplayValue,
+  formControlSpecForElement
 } from "@markvspec/core";
 import type { MarkVSpecElement, MarkVSpecParseResult, MessageKey } from "@markvspec/core";
-import { rawStringProperty, stringProperty, text } from "./design-document-renderer.js";
+import { text } from "./design-document-renderer.js";
 import { firstEntityProseParagraph } from "./markdown-renderer.js";
 
 type ParsedElement = MarkVSpecParseResult["elements"][number];
@@ -57,65 +57,43 @@ export function createElementSpecSummaryRenderer(
     },
 
     renderFormControlValue(element, sampleValue) {
-      const summary = displaySummaryForElement(element);
-      const initialValue = summary.initialValue ?? "";
-      const value = summary.value ?? "";
-      const renderedValue = sampleValue ?? (initialValue || value);
+      const renderedValue = formControlDisplayValue(element, sampleValue);
       return renderedValue ? dependencies.renderExpressionTokens(renderedValue) : "";
     },
 
     renderFormControlSource(element) {
-      const valueMetadata = element.propertyMetadata["value"];
-      const sourceKind = valueMetadata?.kind ?? sourceTypeForElement(element);
-      const sourceDetail = valueMetadata?.source;
+      const spec = formControlSpecForElement(element);
       return [
-        dependencies.renderSourceSummary(sourceKind),
-        sourceDetail ? dependencies.renderSourceSummary(sourceDetail) : ""
+        dependencies.renderSourceSummary(spec.sourceKind),
+        spec.sourceDetail ? dependencies.renderSourceSummary(spec.sourceDetail) : ""
       ].filter(Boolean).join("<br>");
     },
 
     renderInputSpec(element) {
+      const spec = formControlSpecForElement(element);
       const inputRows = [
-        ...["type", "mode"].map((key) => {
-          const value = rawStringProperty(element.properties[key]);
-          return value ? `${text(key)}: ${dependencies.renderParamSource(value)}` : "";
-        }),
-        element.selectOptions.length > 0
-          ? `${text(dependencies.label("options"))}: ${element.selectOptions.map((option) => dependencies.renderValueWithOptionalSource(option.label, option.source)).join(", ")}`
+        ...spec.inputProperties.map((property) => `${text(property.key)}: ${dependencies.renderParamSource(property.value ?? "")}`),
+        spec.options.length > 0
+          ? `${text(dependencies.label("options"))}: ${spec.options.map((option) => dependencies.renderValueWithOptionalSource(option.label, option.source)).join(", ")}`
           : ""
       ].filter(Boolean);
       const constraintRows = [
-        ...element.inputRules
-          .filter((rule) => !isRequiredInputRule(rule))
-          .map((rule) => rule.value ? `${text(rule.key)}: ${dependencies.renderParamSource(rule.value)}` : text(rule.key)),
-        ...["min", "max", "step", "min length", "max length", "accept", "multiple"].map((key) => {
-          const property = element.properties[key];
-          const value = rawStringProperty(property);
-          if (value) {
-            return `${text(key)}: ${dependencies.renderParamSource(value)}`;
-          }
-          return property === true ? text(key) : "";
-        }),
-        element.properties["readonly"] === true || stringProperty(element.properties["readonly"]) ? text(dependencies.label("readonly")).toLowerCase() : ""
+        ...spec.constraintProperties.map((property) => property.value ? `${text(property.key)}: ${dependencies.renderParamSource(property.value)}` : text(property.key)),
+        spec.readonly ? text(dependencies.label("readonly")).toLowerCase() : ""
       ].filter(Boolean);
-      const format = rawStringProperty(element.properties["format"]);
       return renderSpecSections([
         { title: dependencies.label("input"), rows: inputRows },
         { title: dependencies.label("constraints"), rows: constraintRows },
-        { title: dependencies.label("format"), rows: format ? [dependencies.renderParamSource(format)] : [] }
+        { title: dependencies.label("format"), rows: spec.format ? [dependencies.renderParamSource(spec.format)] : [] }
       ]);
     },
 
     renderRequiredSpec(element) {
-      const requiredWhenRows = element.inputRules.flatMap((rule) => {
-        if (!isRequiredWhenInputRule(rule)) {
-          return [];
-        }
-        const condition = requiredWhenValue(rule);
-        return condition ? [`${dependencies.label("conditionWhenShort")}: ${dependencies.renderParamSource(condition)}`] : [];
-      });
+      const spec = formControlSpecForElement(element);
+      const requiredWhenRows = spec.requiredWhen
+        .map((condition) => `${dependencies.label("conditionWhenShort")}: ${dependencies.renderParamSource(condition)}`);
       const rows = [
-        isRequiredProperty(element.properties["required"]) || element.inputRules.some(isRequiredBooleanInputRule) ? text(dependencies.label("requiredYes")) : requiredWhenRows.length === 0 ? text(dependencies.label("requiredNo")) : "",
+        spec.required ? text(dependencies.label("requiredYes")) : requiredWhenRows.length === 0 ? text(dependencies.label("requiredNo")) : "",
         ...requiredWhenRows
       ].filter(Boolean);
 
@@ -140,28 +118,4 @@ export function renderSpecSections(sections: Array<{ title: string; rows: string
   return visibleSections.map((section) => (
     `<div class="spec-section"><strong>${text(section.title)}</strong><ul class="spec-list">${section.rows.map((row) => `<li>${row}</li>`).join("")}</ul></div>`
   )).join("");
-}
-
-function isRequiredProperty(value: string | true | undefined): boolean {
-  return value === true || rawStringProperty(value)?.toLowerCase() === "true";
-}
-
-function isRequiredInputRule(rule: ParsedElement["inputRules"][number]): boolean {
-  return rule.key.trim().toLowerCase() === "required" || isRequiredWhenInputRule(rule);
-}
-
-function isRequiredBooleanInputRule(rule: ParsedElement["inputRules"][number]): boolean {
-  return rule.key.trim().toLowerCase() === "required" && (!rule.value || rule.value.trim().toLowerCase() === "true");
-}
-
-function isRequiredWhenInputRule(rule: ParsedElement["inputRules"][number]): boolean {
-  return rule.key.trim().toLowerCase() === "required when" || rule.key.trim().toLowerCase().startsWith("required when ");
-}
-
-function requiredWhenValue(rule: ParsedElement["inputRules"][number]): string {
-  const key = rule.key.trim();
-  if (key.toLowerCase() === "required when") {
-    return rule.value.trim();
-  }
-  return key.slice("required when".length).trim();
 }

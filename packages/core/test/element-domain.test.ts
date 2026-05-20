@@ -12,6 +12,8 @@ import {
   elementDomainFor,
   elementSizePreset,
   elementWidthPreset,
+  formControlDisplayValue,
+  formControlSpecForElement,
   isChoiceControlElement,
   isContentDisplayElement,
   isControlledPanelElement,
@@ -207,6 +209,56 @@ test("element domain builds display summary from semantic element properties", (
   assert.equal(displaySummaryForElementProperties({ value: "Published", "initial value": "Draft" }).valueSummary, "Published {Draft}");
   assert.equal(displaySummaryForElementProperties({ label: "", text: "Title" }).contentSummary, "Title");
   assert.equal(displaySummaryForElementProperties({ value: "", "initial value": "Draft" }).valueSummary, "Draft");
+});
+
+test("element domain exposes form control display spec accessors", () => {
+  const input = element("Input", {
+    value: "${route.email}",
+    "initial value": "guest@example.com",
+    source: "route",
+    type: "email",
+    mode: "search",
+    required: true,
+    readonly: "preview",
+    format: "lowercase",
+    "min length": "3"
+  });
+  input.propertyMetadata.value = {
+    kind: "route",
+    source: "route:email",
+    locations: {}
+  };
+  input.inputRules.push(
+    { key: "required when", value: "${state.editing}", location: { line: 2 }, raw: "required when: ${state.editing}" },
+    { key: "max length", value: "80", location: { line: 3 }, raw: "max length: 80" }
+  );
+
+  assert.deepEqual(formControlSpecForElement(input), {
+    value: "${route.email}",
+    initialValue: "guest@example.com",
+    sourceKind: "route",
+    sourceDetail: "route:email",
+    required: true,
+    requiredWhen: ["${state.editing}"],
+    inputProperties: [
+      { key: "type", value: "email" },
+      { key: "mode", value: "search" }
+    ],
+    constraintProperties: [
+      { key: "max length", value: "80" },
+      { key: "min length", value: "3" }
+    ],
+    readonly: true,
+    format: "lowercase",
+    options: []
+  });
+  assert.equal(formControlDisplayValue(input), "guest@example.com");
+  assert.equal(elementDomainFor(input).formControlSpec().sourceDetail, "route:email");
+  assert.equal(formControlDisplayValue(input, "sample@example.com"), "sample@example.com");
+
+  const bareInputMetadata = formControlSpecForElement(element("Input", { type: true, mode: true, multiple: true }));
+  assert.deepEqual(bareInputMetadata.inputProperties, []);
+  assert.deepEqual(bareInputMetadata.constraintProperties, [{ key: "multiple" }]);
 });
 
 test("element domain exposes anchored overlay references", () => {

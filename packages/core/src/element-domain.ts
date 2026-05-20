@@ -1,4 +1,5 @@
-import { propertyFirstString, propertyString } from "./property-accessor.js";
+import { propertyBoolean, propertyFirstString, propertyString } from "./property-accessor.js";
+import { sourceTypeForElement } from "./source-types.js";
 import type { MarkVSpecElement, SourceLocation } from "./types.js";
 
 export type MarkVSpecElementKind =
@@ -58,6 +59,25 @@ export interface ElementDisplaySummary {
   items?: string;
   contentSummary?: string;
   valueSummary?: string;
+}
+
+export interface ElementFormControlSpecProperty {
+  key: string;
+  value?: string;
+}
+
+export interface ElementFormControlSpec {
+  value?: string;
+  initialValue?: string;
+  sourceKind: string;
+  sourceDetail?: string;
+  required: boolean;
+  requiredWhen: string[];
+  inputProperties: ElementFormControlSpecProperty[];
+  constraintProperties: ElementFormControlSpecProperty[];
+  readonly: boolean;
+  format?: string;
+  options: MarkVSpecElement["selectOptions"];
 }
 
 export interface ActiveControlledPanelOptions {
@@ -143,6 +163,8 @@ export const elementTypeRegistry = new Map<string, ElementTypeDefinition>([
 const optionElementTypes = new Set(["Select", "MultiSelect", "RadioGroup", "CheckboxGroup"]);
 const widthPresets = new Set(["short", "medium", "long", "full"]);
 const sizePresets = new Set(["small", "medium", "large"]);
+const formControlInputPropertyKeys = ["type", "mode"] as const;
+const formControlConstraintPropertyKeys = ["min", "max", "step", "min length", "max length", "accept", "multiple"] as const;
 
 function elementDefinition(kind: MarkVSpecElementKind, properties: string[] = [], options: Pick<ElementTypeDefinition, "width" | "size"> = {}): ElementTypeDefinition {
   return {
@@ -280,6 +302,61 @@ export function displaySummaryForElementProperties(properties: MarkVSpecElement[
 export function isElementDisplaySampleValue(element: MarkVSpecElement, value: string): boolean {
   const summary = displaySummaryForElement(element);
   return element.type === "Badge" && (value === summary.dataSample || value === summary.text);
+}
+
+export function formControlSpecForElement(element: MarkVSpecElement): ElementFormControlSpec {
+  const summary = displaySummaryForElement(element);
+  return {
+    value: summary.value,
+    initialValue: summary.initialValue,
+    sourceKind: element.propertyMetadata["value"]?.kind ?? sourceTypeForElement(element),
+    sourceDetail: element.propertyMetadata["value"]?.source,
+    required: propertyBoolean(element, "required") || element.inputRules.some(isRequiredBooleanInputRule),
+    requiredWhen: element.inputRules.map(requiredWhenValue).filter((value): value is string => Boolean(value)),
+    inputProperties: formControlInputPropertyKeys.flatMap((key) => specProperty(element, key, { allowBare: false })),
+    constraintProperties: [
+      ...element.inputRules
+        .filter((rule) => !isRequiredInputRule(rule))
+        .map((rule) => ({ key: rule.key, ...(rule.value ? { value: rule.value } : {}) })),
+      ...formControlConstraintPropertyKeys.flatMap((key) => specProperty(element, key, { allowBare: true }))
+    ],
+    readonly: propertyBoolean(element, "readonly") || Boolean(propertyString(element, "readonly")),
+    format: summary.format,
+    options: element.selectOptions
+  };
+}
+
+export function formControlDisplayValue(element: MarkVSpecElement, sampleValue?: string): string | undefined {
+  const spec = formControlSpecForElement(element);
+  return sampleValue ?? spec.initialValue ?? spec.value;
+}
+
+function specProperty(element: MarkVSpecElement, key: string, options: { allowBare: boolean }): ElementFormControlSpecProperty[] {
+  const value = propertyString(element, key);
+  if (value) {
+    return [{ key, value }];
+  }
+  return options.allowBare && element.properties[key] === true ? [{ key }] : [];
+}
+
+function isRequiredInputRule(rule: MarkVSpecElement["inputRules"][number]): boolean {
+  return rule.key.trim().toLowerCase() === "required" || isRequiredWhenInputRule(rule);
+}
+
+function isRequiredBooleanInputRule(rule: MarkVSpecElement["inputRules"][number]): boolean {
+  return rule.key.trim().toLowerCase() === "required" && (!rule.value || rule.value.trim().toLowerCase() === "true");
+}
+
+function isRequiredWhenInputRule(rule: MarkVSpecElement["inputRules"][number]): boolean {
+  return rule.key.trim().toLowerCase() === "required when" || rule.key.trim().toLowerCase().startsWith("required when ");
+}
+
+function requiredWhenValue(rule: MarkVSpecElement["inputRules"][number]): string | undefined {
+  const key = rule.key.trim();
+  if (key.toLowerCase() === "required when") {
+    return rule.value.trim();
+  }
+  return key.toLowerCase().startsWith("required when ") ? key.slice("required when".length).trim() : undefined;
 }
 
 function nonEmpty(value: string | undefined): string | undefined {
@@ -436,6 +513,10 @@ export class ElementDomain {
 
   displaySummary(): ElementDisplaySummary {
     return displaySummaryForElement(this.element);
+  }
+
+  formControlSpec(): ElementFormControlSpec {
+    return formControlSpecForElement(this.element);
   }
 
   anchoredOverlay(): AnchoredOverlayReference | undefined {

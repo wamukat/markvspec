@@ -1,8 +1,8 @@
 import {
+  formControlDisplayValue,
+  formControlSpecForElement,
   isMarkVSpecSourceType,
-  propertyBoolean,
   propertyString as corePropertyString,
-  sourceTypeForElement,
   stateScreenElementGroups,
   stateScreenElementsForModel
 } from "@markvspec/core";
@@ -15,7 +15,6 @@ import type {
 } from "@markvspec/core";
 
 type StaticElement = MarkVSpecParseResult["elements"][number];
-type StaticInputRule = StaticElement["inputRules"][number];
 type StaticTableCell = string | undefined | null | {
   html: string | undefined;
   rowspan?: number;
@@ -73,11 +72,10 @@ export function renderStaticFormControlValue(
   model: StateScreenReadModel,
   support: StaticElementSpecRenderingSupport
 ): string {
+  const spec = formControlSpecForElement(element);
   const sampleValue = model.scenarioSamples.find((sample) => sample.elementId === element.id && sample.value !== undefined)?.value
-    ?? routeResolvedValue(rawStringProperty(element.properties["value"]), model);
-  const initialValue = rawStringProperty(element.properties["initial value"]);
-  const value = rawStringProperty(element.properties["value"]);
-  const renderedValue = sampleValue ?? (initialValue || value);
+    ?? routeResolvedValue(spec.value ?? "", model);
+  const renderedValue = formControlDisplayValue(element, sampleValue);
   return renderedValue ? support.renderExpressionTokens(renderedValue) : "";
 }
 
@@ -93,10 +91,8 @@ export function renderStaticFormControlSource(
   element: StaticElement,
   support: StaticElementSpecRenderingSupport
 ): string {
-  const valueMetadata = element.propertyMetadata["value"];
-  const sourceKind = valueMetadata?.kind ?? sourceTypeForElement(element);
-  const sourceDetail = valueMetadata?.source;
-  return [renderSourceSummary(sourceKind, support), sourceDetail ? renderSourceSummary(sourceDetail, support) : ""].filter(Boolean).join("<br>");
+  const spec = formControlSpecForElement(element);
+  return [renderSourceSummary(spec.sourceKind, support), spec.sourceDetail ? renderSourceSummary(spec.sourceDetail, support) : ""].filter(Boolean).join("<br>");
 }
 
 export function renderStaticRequiredSpec(
@@ -104,15 +100,11 @@ export function renderStaticRequiredSpec(
   messages: RendererMessages,
   support: StaticElementSpecRenderingSupport
 ): string {
-  const requiredWhenRows = element.inputRules.flatMap((rule) => {
-    if (!isRequiredWhenInputRule(rule)) {
-      return [];
-    }
-    const condition = requiredWhenValue(rule);
-    return condition ? [`${support.escapeHtml(messages.conditionWhenShort)}: ${support.renderCondition(condition)}`] : [];
-  });
+  const spec = formControlSpecForElement(element);
+  const requiredWhenRows = spec.requiredWhen
+    .map((condition) => `${support.escapeHtml(messages.conditionWhenShort)}: ${support.renderCondition(condition)}`);
   const rows = [
-    isRequiredProperty(element.properties["required"]) || element.inputRules.some(isRequiredBooleanInputRule) ? support.escapeHtml(messages.requiredYes) : requiredWhenRows.length === 0 ? support.escapeHtml(messages.requiredNo) : "",
+    spec.required ? support.escapeHtml(messages.requiredYes) : requiredWhenRows.length === 0 ? support.escapeHtml(messages.requiredNo) : "",
     ...requiredWhenRows
   ].filter(Boolean);
   return rows.length === 1 ? rows[0] ?? "" : support.renderStaticSpecList(rows);
@@ -123,34 +115,21 @@ export function renderStaticInputSpec(
   messages: RendererMessages,
   support: StaticElementSpecRenderingSupport
 ): string {
+  const spec = formControlSpecForElement(element);
   const inputRows = [
-    ...["type", "mode"].map((key) => {
-      const value = rawStringProperty(element.properties[key]);
-      return value ? `${support.escapeHtml(key)}: ${support.renderExpressionTokens(value)}` : "";
-    }),
-    element.selectOptions.length > 0
-      ? `${support.escapeHtml(messages.options)}: ${element.selectOptions.map((option) => renderStaticValueWithOptionalSource(option.label, option.source, support)).join(", ")}`
+    ...spec.inputProperties.map((property) => `${support.escapeHtml(property.key)}: ${support.renderExpressionTokens(property.value ?? "")}`),
+    spec.options.length > 0
+      ? `${support.escapeHtml(messages.options)}: ${spec.options.map((option) => renderStaticValueWithOptionalSource(option.label, option.source, support)).join(", ")}`
       : ""
   ].filter(Boolean);
   const constraintRows = [
-    ...element.inputRules
-      .filter((rule) => !isRequiredInputRule(rule))
-      .map((rule) => rule.value ? `${support.escapeHtml(rule.key)}: ${support.renderExpressionTokens(rule.value)}` : support.escapeHtml(rule.key)),
-    ...["min", "max", "step", "min length", "max length", "accept", "multiple"].map((key) => {
-      const property = element.properties[key];
-      const value = rawStringProperty(property);
-      if (value) {
-        return `${support.escapeHtml(key)}: ${support.renderExpressionTokens(value)}`;
-      }
-      return property === true ? support.escapeHtml(key) : "";
-    }),
-    element.properties["readonly"] === true || rawStringProperty(element.properties["readonly"]) ? support.escapeHtml(messages.readonly).toLowerCase() : ""
+    ...spec.constraintProperties.map((property) => property.value ? `${support.escapeHtml(property.key)}: ${support.renderExpressionTokens(property.value)}` : support.escapeHtml(property.key)),
+    spec.readonly ? support.escapeHtml(messages.readonly).toLowerCase() : ""
   ].filter(Boolean);
-  const format = rawStringProperty(element.properties["format"]);
   return support.renderStaticSpecSections([
     [messages.input, inputRows],
     [messages.constraints, constraintRows],
-    [messages.format, format ? [support.renderExpressionTokens(format)] : []]
+    [messages.format, spec.format ? [support.renderExpressionTokens(spec.format)] : []]
   ]);
 }
 
@@ -161,30 +140,6 @@ function renderStaticValueWithOptionalSource(
 ): string {
   const renderedSource = renderSourceSummary(source, support);
   return renderedSource ? `${support.escapeHtml(value)} (${renderedSource})` : support.escapeHtml(value);
-}
-
-function isRequiredProperty(value: string | true | undefined): boolean {
-  return propertyBoolean({ properties: { value } }, "value");
-}
-
-function isRequiredInputRule(rule: StaticInputRule): boolean {
-  return rule.key.trim().toLowerCase() === "required" || isRequiredWhenInputRule(rule);
-}
-
-function isRequiredBooleanInputRule(rule: StaticInputRule): boolean {
-  return rule.key.trim().toLowerCase() === "required" && (!rule.value || rule.value.trim().toLowerCase() === "true");
-}
-
-function isRequiredWhenInputRule(rule: StaticInputRule): boolean {
-  return rule.key.trim().toLowerCase() === "required when" || rule.key.trim().toLowerCase().startsWith("required when ");
-}
-
-function requiredWhenValue(rule: StaticInputRule): string {
-  const key = rule.key.trim();
-  if (key.toLowerCase() === "required when") {
-    return rule.value.trim();
-  }
-  return key.slice("required when".length).trim();
 }
 
 export function renderDisplayContentSpecBox(

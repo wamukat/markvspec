@@ -6,7 +6,7 @@ import {
   type TableCell
 } from "./design-document-renderer.js";
 import {
-  displaySummaryForElement,
+  formControlSpecForElement,
   layoutConditionValues,
   layoutDisplaySettings,
   stateScreenElementGroups,
@@ -153,7 +153,7 @@ export function createStateViewSpecTableRenderer(
       [markerIdHeader(), helpers.label("type"), helpers.label("inputRequired"), helpers.label("initialValueSource"), helpers.label("displaySource"), helpers.label("inputSpec"), helpers.label("condition")],
       elements.map((element) => {
         const sampleValue = model?.scenarioSamples.find((sample) => sample.elementId === element.id && sample.value !== undefined)?.value
-          ?? routeResolvedValue(displaySummaryForElement(element).value ?? "", model);
+          ?? routeResolvedValue(formControlSpecForElement(element).value ?? "", model);
         return [
           renderRepeatedEntityRefCell(element.id, Boolean(repeatedElementIds?.has(element.id))),
           helpers.text(element.type),

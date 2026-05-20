@@ -138,6 +138,8 @@ export {
   elementSizePreset,
   elementTypeRegistry,
   elementWidthPreset,
+  formControlDisplayValue,
+  formControlSpecForElement,
   isChoiceControlElement,
   isContentDisplayElement,
   isControlledPanelElement,
@@ -150,6 +152,8 @@ export type {
   AnchoredOverlayReference,
   ControlledPanelReference,
   ElementDisplaySummary,
+  ElementFormControlSpec,
+  ElementFormControlSpecProperty,
   ElementTypeDefinition,
   MarkVSpecElementKind
 } from "./element-domain.js";
