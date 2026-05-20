@@ -1,5 +1,6 @@
 import {
   displaySummaryForElement,
+  layoutDisplaySettings,
   preferredLayoutGroupForViewport,
   type MarkVSpecParseResult
 } from "@markvspec/core";
@@ -87,7 +88,7 @@ export function isDocumentRefId(value: string): boolean {
 export function findMarker(result: MarkVSpecParseResult, id: string): string | undefined {
   const layout = preferredLayoutById(result, id);
   if (layout) {
-    return layout.properties["marker"];
+    return layoutDisplaySettings(layout).marker;
   }
 
   const element = result.elements.find((candidate) => candidate.id === id);

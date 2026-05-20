@@ -1,4 +1,5 @@
 import { parseMarkdownDocument, topLevelProseLines } from "./markdown-document.js";
+import { layoutConditionValues } from "./layout-domain.js";
 import { collectSectionAst, type BlockAst, type SectionAst } from "./markdown-section-ast.js";
 import {
   parseActionSectionSemantics,
@@ -518,11 +519,11 @@ function unsafeLayoutContextReasons(layoutGroups: MarkVSpecLayoutGroup[], elemen
   const contextualLayouts = layoutGroups.filter((group) =>
     parentLayoutIds.has(group.id) &&
     (
-      Boolean(group.properties["visible when"]) ||
-      Boolean(group.properties["hidden when"]) ||
-      Boolean(group.properties["disabled when"]) ||
-      Boolean(group.properties["selected when"]) ||
-      Boolean(group.properties["active when"])
+      layoutConditionValues(group, "visible when").length > 0 ||
+      layoutConditionValues(group, "hidden when").length > 0 ||
+      layoutConditionValues(group, "disabled when").length > 0 ||
+      layoutConditionValues(group, "selected when").length > 0 ||
+      layoutConditionValues(group, "active when").length > 0
     )
   );
   if (contextualLayouts.length === 0) {

@@ -7,6 +7,8 @@ import {
 } from "./design-document-renderer.js";
 import {
   displaySummaryForElement,
+  layoutConditionValues,
+  layoutDisplaySettings,
   stateScreenElementGroups,
   stateScreenControlledPanelPlacementsForModel,
   stateScreenLayoutsForModel,
@@ -258,24 +260,26 @@ export function createStateViewSpecTableRenderer(
       [helpers.label("items"), layoutItemSummaryItems(layout)]
     ]);
 
-  const layoutSettingSummaryItems = (layout: ParsedLayout): string[] =>
-    [
-      ["align", layout.properties["align"]],
-      ["justify", layout.properties["justify"]],
-      ["overlay", layout.properties["overlay"]],
-      ["gap", layout.properties["gap"]]
+  const layoutSettingSummaryItems = (layout: ParsedLayout): string[] => {
+    const settings = layoutDisplaySettings(layout);
+    return [
+      ["align", settings.align],
+      ["justify", settings.justify],
+      ["overlay", settings.overlay],
+      ["gap", settings.gap]
     ]
       .filter(([, value]) => value)
       .map(([key, value]) => `${helpers.text(key)}: ${helpers.text(value)}`);
+  };
 
   const renderLayoutConditionsSummary = (layout: ParsedLayout, controlledPanel = false): string => {
     const conditions = [
-      [helpers.conditionLabel("visible"), layoutPropertyList(layout, "visible when").join(", ")],
-      [helpers.conditionLabel("hidden"), layoutPropertyList(layout, "hidden when").join(", ")],
-      [helpers.conditionLabel("disabled"), layoutPropertyList(layout, "disabled when").join(", ")],
-      [helpers.conditionLabel("enabled"), layoutPropertyList(layout, "enabled when").join(", ")],
-      [helpers.conditionLabel("selected"), layoutPropertyList(layout, "selected when").join(", ")],
-      [helpers.conditionLabel("active"), layoutPropertyList(layout, "active when").join(", ")]
+      [helpers.conditionLabel("visible"), layoutConditionValues(layout, "visible when").join(", ")],
+      [helpers.conditionLabel("hidden"), layoutConditionValues(layout, "hidden when").join(", ")],
+      [helpers.conditionLabel("disabled"), layoutConditionValues(layout, "disabled when").join(", ")],
+      [helpers.conditionLabel("enabled"), layoutConditionValues(layout, "enabled when").join(", ")],
+      [helpers.conditionLabel("selected"), layoutConditionValues(layout, "selected when").join(", ")],
+      [helpers.conditionLabel("active"), layoutConditionValues(layout, "active when").join(", ")]
     ].filter(([, value]) => value);
     return conditions.length > 0
       ? renderSpecList(conditions.map(([key, value]) => `${helpers.text(key)}: ${helpers.text(value)}`))
@@ -339,12 +343,6 @@ function renderSpecSections(sections: Array<[string, string[]]>): string {
     .filter(([, items]) => items.length > 0)
     .map(([title, items]) => `<div class="spec-section"><strong>${title}</strong>${renderSpecList(items)}</div>`)
     .join("");
-}
-
-function layoutPropertyList(layout: ParsedLayout, key: string): string[] {
-  return layout.items
-    .filter((item) => item.type === "property" && item.scope === "metadata" && item.key === key)
-    .map((item) => item.type === "property" ? item.value : "");
 }
 
 function isPresentationPanelId(id: string): boolean {

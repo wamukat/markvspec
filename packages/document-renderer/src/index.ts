@@ -1,4 +1,4 @@
-import { buildViewportStateScreenReadModels, effectiveHistoryFields, isMarkVSpecSourceType, latestHistoryBasicInfo, messagesForLocale, propertyBoolean, propertyString as corePropertyString, renderMarkVSpecHtml, resolveMarkVSpecEntityReference, sampleRowsAnchorId, scenarioRouteValues, sourceTypeForElement, stateScreenControlledPanelPlacementsForModel, stateScreenElementGroups, stateScreenElementsForModel, stateScreenLayoutsForModel, stateScreenUnplacedLayoutIdsForModel, tableColumnSampleKeys } from "@markvspec/core";
+import { buildViewportStateScreenReadModels, effectiveHistoryFields, isMarkVSpecSourceType, latestHistoryBasicInfo, layoutConditionValues, layoutDisplaySettings, messagesForLocale, propertyBoolean, propertyString as corePropertyString, renderMarkVSpecHtml, resolveMarkVSpecEntityReference, sampleRowsAnchorId, scenarioRouteValues, sourceTypeForElement, stateScreenControlledPanelPlacementsForModel, stateScreenElementGroups, stateScreenElementsForModel, stateScreenLayoutsForModel, stateScreenUnplacedLayoutIdsForModel, tableColumnSampleKeys } from "@markvspec/core";
 import type { ControlledPanelPlacement, DisplayContentSpecRow, DisplayContentSpecSampleRowsRef, MarkVSpecParseResult, RendererMessages, StateScreenReadModel } from "@markvspec/core";
 
 export type MarkVSpecDocumentViewport = "mobile" | "tablet" | "desktop" | string;
@@ -820,11 +820,12 @@ function renderStaticLayoutSettingItems(result: MarkVSpecParseResult, layout: St
 }
 
 function staticLayoutSettingItems(layout: StaticParsedLayout, messages: RendererMessages): string[] {
+  const settings = layoutDisplaySettings(layout);
   const entries = [
-    ["align", layout.properties["align"]],
-    ["justify", layout.properties["justify"]],
-    ["overlay", layout.properties["overlay"]],
-    ["gap", layout.properties["gap"]]
+    ["align", settings.align],
+    ["justify", settings.justify],
+    ["overlay", settings.overlay],
+    ["gap", settings.gap]
   ].filter(([, value]) => value) as Array<[string, string | true]>;
   return entries.map(([key, value]) => `${escapeHtml(key)}: ${escapeHtml(value === true ? messages.requiredYes : value)}`);
 }
@@ -854,12 +855,12 @@ function renderStaticEntityReferenceById(result: MarkVSpecParseResult, id: strin
 
 function renderStaticLayoutConditions(layout: StaticParsedLayout, messages: RendererMessages, controlledPanel = false): string {
   const conditions = [
-    [messages.conditionVisibleShort, staticLayoutPropertyList(layout, "visible when").join(", ")],
-    [messages.conditionHiddenShort, staticLayoutPropertyList(layout, "hidden when").join(", ")],
-    [messages.conditionDisabledShort, staticLayoutPropertyList(layout, "disabled when").join(", ")],
-    [messages.conditionEnabledShort, staticLayoutPropertyList(layout, "enabled when").join(", ")],
-    ["selected", staticLayoutPropertyList(layout, "selected when").join(", ")],
-    ["active", staticLayoutPropertyList(layout, "active when").join(", ")]
+    [messages.conditionVisibleShort, layoutConditionValues(layout, "visible when").join(", ")],
+    [messages.conditionHiddenShort, layoutConditionValues(layout, "hidden when").join(", ")],
+    [messages.conditionDisabledShort, layoutConditionValues(layout, "disabled when").join(", ")],
+    [messages.conditionEnabledShort, layoutConditionValues(layout, "enabled when").join(", ")],
+    ["selected", layoutConditionValues(layout, "selected when").join(", ")],
+    ["active", layoutConditionValues(layout, "active when").join(", ")]
   ].filter(([, value]) => value);
   return conditions.length > 0
     ? renderStaticSpecList(conditions.map(([key, value]) => `${escapeHtml(key)}: ${escapeHtml(value)}`))
@@ -883,12 +884,6 @@ function renderStaticSpecList(items: string[]): string {
   return items.length > 0
     ? `<ul class="spec-list">${items.map((item) => `<li>${item}</li>`).join("")}</ul>`
     : "";
-}
-
-function staticLayoutPropertyList(layout: StaticParsedLayout, key: string): string[] {
-  return layout.items
-    .filter((item) => item.type === "property" && item.scope === "metadata" && item.key === key)
-    .map((item) => item.type === "property" ? item.value : "");
 }
 
 function isStaticPresentationPanelId(id: string): boolean {

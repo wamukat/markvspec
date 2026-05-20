@@ -175,6 +175,20 @@ export {
   propertyMarker,
   propertyString
 } from "./property-accessor.js";
+export {
+  layoutConditionValues,
+  layoutDisplaySettings,
+  layoutDomainFor,
+  layoutHasVisibilityConditions,
+  layoutMetadataPropertyValues,
+  layoutPropertyValue,
+  LayoutDomain
+} from "./layout-domain.js";
+export type {
+  LayoutConditionKey,
+  LayoutDisplaySettingKey,
+  LayoutDisplaySettings
+} from "./layout-domain.js";
 export type {
   MarkVSpecPropertyOwner,
   MarkVSpecPropertyValue

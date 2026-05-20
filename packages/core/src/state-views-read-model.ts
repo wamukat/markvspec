@@ -8,6 +8,10 @@ import {
   parseDisplayMessageReference
 } from "./display-effect.js";
 import { activeControlledPanelReferences, controlledPanelReferences, isFormControlElement } from "./element-domain.js";
+import {
+  layoutConditionValues,
+  layoutHasVisibilityConditions
+} from "./layout-domain.js";
 import { resolveLayoutGroupsForViewport } from "./layout-resolution.js";
 import { stateViewLayoutSignature } from "./state-view-signatures.js";
 import type { MarkVSpecParseResult } from "./types.js";
@@ -1581,7 +1585,7 @@ function stateScreenRootLayouts(layoutGroups: ParsedLayout[], layoutById: Map<st
 }
 
 function isStateScreenRootAlternative(group: ParsedLayout): boolean {
-  return Boolean(group.properties["visible when"] || group.properties["hidden when"]);
+  return layoutHasVisibilityConditions(group);
 }
 
 function stateScreenSlotContentsByName(slotContents: ParsedSlotContent[]): Map<string, ParsedSlotContent[]> {
@@ -1627,26 +1631,15 @@ function isStateScreenLayoutVisible(
   stateNames: Set<string>,
   options: StateScreenConditionOptions
 ): boolean {
-  const visibleWhen = layoutPropertyValues(group, "visible when");
+  const visibleWhen = layoutConditionValues(group, "visible when");
   if (visibleWhen.length > 0 && !visibleWhen.some((condition) => isStateScreenShownForCondition(condition, activeState, stateNames, options))) {
     return false;
   }
-  const hiddenWhen = layoutPropertyValues(group, "hidden when");
+  const hiddenWhen = layoutConditionValues(group, "hidden when");
   if (hiddenWhen.some((condition) => isStateScreenActiveCondition(condition, activeState, stateNames, options))) {
     return false;
   }
   return true;
-}
-
-function layoutPropertyValues(group: ParsedLayout, key: string): string[] {
-  const values = group.items
-    .filter((item) => item.type === "property" && item.scope === "metadata" && item.key === key)
-    .map((item) => item.type === "property" ? item.value : "");
-  if (values.length > 0) {
-    return values;
-  }
-  const value = group.properties[key];
-  return typeof value === "string" ? [value] : [];
 }
 
 function isStateScreenShownForCondition(

@@ -21,6 +21,7 @@ import {
   resolveProjectPath,
   isProjectReferenceAllowed,
   isMarkVSpecSourceType,
+  layoutDisplaySettings,
   sourceTypeForElement,
   anchoredOverlayReference,
   controlledPanelReferences,
@@ -1171,7 +1172,7 @@ function createDocumentSymbol(
 }
 
 function layoutSymbolName(group: ReturnType<typeof parseMarkVSpec>["layoutGroups"][number]): string {
-  return `${formatMarkerPrefix(group.properties["marker"])}${group.id}${group.name ? ` ${group.name}` : ""}`;
+  return `${formatMarkerPrefix(layoutDisplaySettings(group).marker)}${group.id}${group.name ? ` ${group.name}` : ""}`;
 }
 
 function isLineInSection(line: number, section: SectionHeading): boolean {
@@ -2305,7 +2306,7 @@ function stateViewsRenderContext(
     renderLayoutRef: (layout) => renderEntityRefChip({
       id: layout.id,
       category: "layout",
-      marker: firstStringProperty(layout.properties["marker"]) || layout.id,
+      marker: layoutDisplaySettings(layout).marker || layout.id,
       label: layout.name || layout.id
     }),
     renderIcon: renderPreviewIcon,
@@ -4767,7 +4768,7 @@ function renderLayoutReferenceForId(result: ReturnType<typeof parseMarkVSpec>, i
   return renderEntityRefChip({
     id: layout.id,
     category: "layout",
-    marker: firstStringProperty(layout.properties["marker"]) || layout.id,
+    marker: layoutDisplaySettings(layout).marker || layout.id,
     label: layout.name || layout.id
   });
 }

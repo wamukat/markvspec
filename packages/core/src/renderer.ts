@@ -7,6 +7,11 @@ import type { ElementRenderContext } from "./element-renderer.js";
 import {
   controlledPanelReferences,
 } from "./element-domain.js";
+import {
+  layoutConditionValues,
+  layoutDisplaySettings,
+  layoutHasVisibilityConditions
+} from "./layout-domain.js";
 import type {
   MarkVSpecAction,
   MarkVSpecElement,
@@ -401,7 +406,7 @@ function rootLayoutGroups(
 }
 
 function isRootLayoutAlternative(group: MarkVSpecLayoutGroup): boolean {
-  return layoutPropertyValues(group, "visible when").length > 0 || layoutPropertyValues(group, "hidden when").length > 0;
+  return layoutHasVisibilityConditions(group);
 }
 
 function renderLayoutGroup(
@@ -452,16 +457,17 @@ function renderLayoutGroupOnce(
   nextVisited.add(group.id);
   const kind = group.kind ?? "stack";
   const presentationPanel = isPresentationPanelId(group.id);
+  const settings = layoutDisplaySettings(group);
   const classes = [
     "mm-layout",
     presentationPanel ? "mm-layout-presentation" : "",
     cssClass("mm-layout", kind),
-    group.properties["align"] ? cssClass("mm-align", group.properties["align"]) : "",
-    group.properties["justify"] ? cssClass("mm-justify", group.properties["justify"]) : "",
-    group.properties["gap"] ? cssClass("mm-gap", group.properties["gap"]) : "",
-    group.properties["variant"] ? cssClass("mm-variant", group.properties["variant"]) : "",
-    group.properties["overlay"] ? "mm-layout-overlay" : "",
-    group.properties["overlay"] ? cssClass("mm-layout-overlay", group.properties["overlay"]) : "",
+    settings.align ? cssClass("mm-align", settings.align) : "",
+    settings.justify ? cssClass("mm-justify", settings.justify) : "",
+    settings.gap ? cssClass("mm-gap", settings.gap) : "",
+    settings.variant ? cssClass("mm-variant", settings.variant) : "",
+    settings.overlay ? "mm-layout-overlay" : "",
+    settings.overlay ? cssClass("mm-layout-overlay", settings.overlay) : "",
     isLayoutDisabled(group, activeState, stateNames, options) ? "mm-layout-disabled" : "",
     isLayoutSelected(group, activeState, stateNames, options) ? "mm-layout-selected" : "",
     isLayoutActive(group, activeState, stateNames, options) ? "mm-layout-active" : "",
@@ -811,12 +817,12 @@ function layoutRenderKey(group: MarkVSpecLayoutGroup, context: RenderContext): s
 }
 
 function isLayoutVisible(group: MarkVSpecLayoutGroup, activeState: string | undefined, stateNames: Set<string>, options: MarkVSpecRenderOptions): boolean {
-  const visibleWhen = layoutPropertyValues(group, "visible when");
+  const visibleWhen = layoutConditionValues(group, "visible when");
   if (visibleWhen.length > 0 && !visibleWhen.some((condition) => isShownForCondition(condition, activeState, stateNames, options))) {
     return false;
   }
 
-  const hiddenWhen = layoutPropertyValues(group, "hidden when");
+  const hiddenWhen = layoutConditionValues(group, "hidden when");
   if (hiddenWhen.some((condition) => isActiveCondition(condition, activeState, stateNames, options))) {
     return false;
   }
@@ -856,32 +862,21 @@ function renderControlledPanelLayout(
 }
 
 function isLayoutDisabled(group: MarkVSpecLayoutGroup, activeState: string | undefined, stateNames: Set<string>, options: MarkVSpecRenderOptions): boolean {
-  const disabledWhen = layoutPropertyValues(group, "disabled when");
+  const disabledWhen = layoutConditionValues(group, "disabled when");
   if (disabledWhen.some((condition) => isActiveCondition(condition, activeState, stateNames, options))) {
     return true;
   }
-  const enabledWhen = layoutPropertyValues(group, "enabled when");
+  const enabledWhen = layoutConditionValues(group, "enabled when");
   const evaluableEnabledWhen = enabledWhen.filter((condition) => isPreviewEvaluableCondition(condition, stateNames));
   return evaluableEnabledWhen.length > 0 && !evaluableEnabledWhen.some((condition) => isActiveCondition(condition, activeState, stateNames, options));
 }
 
 function isLayoutSelected(group: MarkVSpecLayoutGroup, activeState: string | undefined, stateNames: Set<string>, options: MarkVSpecRenderOptions): boolean {
-  return layoutPropertyValues(group, "selected when").some((condition) => isActiveCondition(condition, activeState, stateNames, options));
+  return layoutConditionValues(group, "selected when").some((condition) => isActiveCondition(condition, activeState, stateNames, options));
 }
 
 function isLayoutActive(group: MarkVSpecLayoutGroup, activeState: string | undefined, stateNames: Set<string>, options: MarkVSpecRenderOptions): boolean {
-  return layoutPropertyValues(group, "active when").some((condition) => isActiveCondition(condition, activeState, stateNames, options));
-}
-
-function layoutPropertyValues(group: MarkVSpecLayoutGroup, key: string): string[] {
-  const values = group.items
-    .filter((item) => item.type === "property" && item.scope === "metadata" && item.key === key)
-    .map((item) => item.type === "property" ? item.value : "");
-  if (values.length > 0) {
-    return values;
-  }
-  const value = group.properties[key];
-  return value ? [value] : [];
+  return layoutConditionValues(group, "active when").some((condition) => isActiveCondition(condition, activeState, stateNames, options));
 }
 
 function isShownForCondition(condition: string | undefined, activeState: string | undefined, stateNames: Set<string>, options: MarkVSpecRenderOptions): boolean {
