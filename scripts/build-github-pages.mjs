@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
+import { loadExampleCatalog, validateExampleCatalog } from "./example-catalog.mjs";
 
 const root = process.cwd();
 const githubBlobBaseUrl = "https://github.com/wamukat/markvspec/blob/main/";
@@ -877,6 +878,15 @@ mkdirSync(examplesShowcaseOutDir, { recursive: true });
 
 const files = collectVspecFiles(examplesDir);
 assertUniqueOutputNames(files);
+const catalog = loadExampleCatalog(root);
+const { errors: catalogErrors, warnings: catalogWarnings } = validateExampleCatalog(catalog, { root, exampleFiles: files });
+if (catalogErrors.length > 0) {
+  throw new Error(`Example catalog validation failed:\n- ${catalogErrors.join("\n- ")}`);
+}
+for (const warning of catalogWarnings) {
+  console.warn(`Example catalog warning: ${warning}`);
+}
+console.log(`Loaded ${catalog.examples.length} example catalog entries.`);
 execFileSync("node", ["packages/cli/dist/index.js", "export", "html", "examples/**/*.vspec.md", "--out", examplesOutDir], {
   stdio: "inherit"
 });

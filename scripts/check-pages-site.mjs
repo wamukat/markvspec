@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, normalize } from "node:path";
+import { loadExampleCatalog, validateExampleCatalog } from "./example-catalog.mjs";
 
 const root = process.cwd();
 const siteDir = join(root, "_site");
@@ -52,6 +53,16 @@ const newIaIndexFiles = [
 ];
 
 const failures = [];
+
+const catalog = loadExampleCatalog(root);
+const exampleSources = collectFiles(join(root, "examples"), (filePath) => filePath.endsWith(".vspec.md"));
+const { errors: catalogErrors, warnings: catalogWarnings } = validateExampleCatalog(catalog, { root, exampleFiles: exampleSources });
+for (const failure of catalogErrors) {
+  failures.push(`examples/catalog.yml: ${failure}`);
+}
+for (const warning of catalogWarnings) {
+  console.warn(`examples/catalog.yml warning: ${warning}`);
+}
 
 for (const filePath of requiredFiles) {
   expectFile(filePath);
@@ -196,4 +207,18 @@ function artifactPathForPagesUrl(url) {
     return relativePath;
   }
   return undefined;
+}
+
+function collectFiles(dir, predicate) {
+  const entries = readdirSync(dir, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const fullPath = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...collectFiles(fullPath, predicate));
+    } else if (entry.isFile() && predicate(fullPath)) {
+      files.push(fullPath);
+    }
+  }
+  return files.sort((a, b) => a.localeCompare(b));
 }
