@@ -19,4 +19,3 @@ A MarkVSpec document keeps readable Markdown and structured DSL sections in the 
 5. Check the result in VS Code preview.
 
 Related: [Markdown Model](/markvspec/en/guide/markdown-model/)
-

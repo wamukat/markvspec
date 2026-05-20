@@ -19,4 +19,3 @@ MarkVSpec の文書は、読める Markdown と構造化された DSL section �
 5. VS Code preview で結果を見る。
 
 関連: [Markdown Model](/markvspec/ja/guide/markdown-model/)
-
