@@ -49,12 +49,12 @@ export. They do not claim full static project-site parity.
 | `historyFields.key`, `label`, `required`, `type`, `rawType` | `rendered-preview`, `rendered-static-export` | History table schema. |
 | `historyEntries.version`, `fields`, `bodyLines` | `rendered-preview`, `rendered-static-export` | History section. |
 | `notes.title`, `lines` | `rendered-preview`, `rendered-static-export` | Custom Notes sections render in static single-document export. |
-| `sectionProse.overview`, `sectionProse.notes` | `rendered-preview`, `rendered-static-export`, `follow-up` | Static export renders lead/notes for Layout, Form Groups, Actions, Validations, Business Rules, Error Codes, View Context, View Context Samples, and Preview Scenarios. Remaining follow-ups are tracked by section-specific tickets such as #1231. |
+| `sectionProse.overview`, `sectionProse.notes` | `rendered-preview`, `rendered-static-export`, `follow-up` | Static single-document export renders lead/notes for Layout, Form Groups, Actions, Validations, Business Rules, Error Codes, View Context, View Context Samples, and Preview Scenarios. Remaining follow-ups are section-specific and do not imply a third static screen parity phase. |
 | `sectionProse.renderKeys` | `internal-metadata` | Routing metadata used by preview fragments. |
 | `viewContexts.name`, `type`, `values`, `defaultValue`, `properties`, `overview`, `notes` | `rendered-preview`, `rendered-static-export` | View Context definition section and state-view evaluation. |
 | `viewContextSamples.name`, `values`, `overview`, `notes` | `rendered-preview`, `rendered-static-export` | View Context Samples section and scenario/state-view evaluation. |
 | `previewScenarios.name`, `state`, `model`, `view`, `before`, `route`, `samples`, `cases`, `properties` | `rendered-preview`, `rendered-static-export` | State-view variants and sample tables. |
-| `previewScenarios.overview`, `previewScenarios.notes` | `follow-up` | Known gap tracked by #1231. |
+| `previewScenarios.overview`, `previewScenarios.notes` | `rendered-preview`, `rendered-static-export` | Preview Scenario section lead/notes and scenario lead/notes render in preview and static single-document HTML export. Static project-site parity is intentionally outside this matrix. |
 | `modelSampleGroups`, `modelSamples` | `unsupported/deprecated` | Legacy Model Samples are intentionally warned and omitted from canonical output. |
 | `diagnostics` | `diagnostic` | Diagnostics table and editor diagnostics. |
 
@@ -73,7 +73,8 @@ export. They do not claim full static project-site parity.
 
 ## Follow-Up Log
 
-- #1231: Preview Scenario entity lead/notes must be surfaced consistently.
+- #1231: Preview Scenario section lead/notes and scenario lead/notes are
+  surfaced in preview and static single-document HTML export.
 - #1233: View Context / View Context Samples prose and values are surfaced as
   generated-document sections.
 - #1235: Static single-document export now renders Form Groups, action prose,
