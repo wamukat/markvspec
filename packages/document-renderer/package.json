@@ -20,6 +20,6 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@markvspec/core": "file:../core"
+    "@markvspec/core": "0.5.0"
   }
 }

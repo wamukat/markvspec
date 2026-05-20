@@ -1,8 +1,8 @@
 # Release Checklist
 
 This document defines the verification gate for the MarkVSpec `0.5.0` release.
-The release target is a VS Code Marketplace package plus the npm package
-`@markvspec/cli`.
+The release target is a VS Code Marketplace package plus npm packages under the
+`@markvspec` scope, including the CLI package `@markvspec/cli`.
 
 ## Release Scope
 
@@ -120,7 +120,7 @@ with `isResolved: false`; the user verifies the result before resolving it.
 - [ ] `@markvspec/cli` package metadata, `bin.markvspec`, `files`, repository,
   homepage, bugs, and `publishConfig.access=public` are suitable for publishing.
 - [ ] `npm pack --dry-run -w @markvspec/cli` limits published content to
-  `dist/index.js` and package metadata.
+  `dist/**` and package metadata.
 - [ ] CLI package content does not include `.work`, test fixtures, unnecessary
   source files, or old `MarkMock` / `markmock` names.
 - [ ] The packed CLI passes smoke tests for `markvspec validate`,
@@ -153,6 +153,28 @@ with `isResolved: false`; the user verifies the result before resolving it.
   `acceptance` with `isResolved: false` for user verification.
 
 ## Manual CLI npm Package Smoke Steps
+
+### npm Workspace Package Dependency Policy
+
+Registry-published MarkVSpec packages use the same exact version for internal
+package dependencies. For the `0.5.0` release, publish packages in this order:
+
+1. `@markvspec/core`
+2. `@markvspec/document-renderer`
+3. `@markvspec/exporter`
+4. `@markvspec/cli`
+
+Use exact ranges such as `"@markvspec/core": "0.5.0"` in published package
+manifests. Do not use `file:` dependencies in npm-published packages; they only
+work in the repository workspace. Do not use `workspace:*` for this release,
+because the packed tarball must already contain registry-installable dependency
+ranges without a publish-time manifest rewrite. Do not add a publish manifest
+conversion step unless the release process grows a dedicated, tested manifest
+generation script.
+
+The VS Code extension is packaged as a bundled VSIX from this repository and is
+not published as an npm library. Its local `file:` workspace dependencies are
+kept separate from the npm package dependency policy.
 
 1. Run `npm run build -w @markvspec/cli`.
 2. Run `npm pack --dry-run -w @markvspec/cli` and inspect the package contents.

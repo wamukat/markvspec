@@ -20,7 +20,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@markvspec/core": "file:../core",
-    "@markvspec/document-renderer": "file:../document-renderer"
+    "@markvspec/core": "0.5.0",
+    "@markvspec/document-renderer": "0.5.0"
   }
 }
