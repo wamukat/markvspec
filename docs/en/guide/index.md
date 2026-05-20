@@ -7,6 +7,7 @@ Detailed syntax belongs in [Reference](../reference/index.md). Guide pages stay 
 ## Reading Order
 
 - [Markdown Model](markdown-model.md): Basic `.vspec.md` structure.
+- [Document Structure](document-structure.html): Where prose and structured DSL content belong.
 - [States](states.md): Screen states.
 - [Layout](layout.md): Layout groups and items.
 - [Elements](elements.md): UI elements.

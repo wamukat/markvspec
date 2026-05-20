@@ -22,6 +22,7 @@ const requiredFiles = [
   "docs/en/start/preview.html",
   "docs/en/start/export.html",
   "docs/ja/guide/index.html",
+  "docs/ja/guide/document-structure.html",
   "docs/ja/guide/markdown-model.html",
   "docs/ja/guide/states.html",
   "docs/ja/guide/layout.html",
@@ -30,6 +31,7 @@ const requiredFiles = [
   "docs/ja/guide/validation.html",
   "docs/ja/guide/partial-updates.html",
   "docs/en/guide/index.html",
+  "docs/en/guide/document-structure.html",
   "docs/en/guide/markdown-model.html",
   "docs/en/guide/states.html",
   "docs/en/guide/layout.html",
@@ -237,8 +239,13 @@ for (const startPath of [
 
 const guideIndexHtml = readSiteFile("docs/ja/guide/index.html");
 expectContains(guideIndexHtml, "markdown-model.html", "_site/docs/ja/guide/index.html should link to markdown-model guide.");
+expectContains(guideIndexHtml, "document-structure.html", "_site/docs/ja/guide/index.html should link to document structure guide.");
 expectContains(guideIndexHtml, "partial-updates.html", "_site/docs/ja/guide/index.html should link to partial-updates guide.");
 expectContains(guideIndexHtml, "examples/showcase/hello-screen.html", "_site/docs/ja/guide/index.html should link to example showcases.");
+const guideDocumentStructureHtml = readSiteFile("docs/ja/guide/document-structure.html");
+expectContains(guideDocumentStructureHtml, "MarkVSpec 文書構造", "_site/docs/ja/guide/document-structure.html should preserve the visual document structure guide.");
+expectNotContains(guideDocumentStructureHtml, "旧", "_site/docs/ja/guide/document-structure.html should not describe itself as an old document.");
+expectNotContains(guideDocumentStructureHtml, "docs/user", "_site/docs/ja/guide/document-structure.html should not point readers to the removed user path.");
 const guideActionsHtml = readSiteFile("docs/ja/guide/actions.html");
 expectContains(guideActionsHtml, "A-SubmitLogin", "_site/docs/ja/guide/actions.html should include a minimal action example.");
 expectContains(guideActionsHtml, "examples/showcase/form-submit-flow.html", "_site/docs/ja/guide/actions.html should link to the form submit showcase.");
@@ -247,6 +254,7 @@ const guidePartialsHtml = readSiteFile("docs/ja/guide/partial-updates.html");
 expectContains(guidePartialsHtml, "mode: replace", "_site/docs/ja/guide/partial-updates.html should include partial update replacement semantics.");
 expectContains(guidePartialsHtml, "profile-summary.partial.html", "_site/docs/ja/guide/partial-updates.html should link to the partial showcase.");
 expectContains(readSiteFile("docs/en/guide/actions.html"), "A-SubmitLogin", "_site/docs/en/guide/actions.html should include a minimal action example.");
+expectContains(readSiteFile("docs/en/guide/document-structure.html"), "MarkVSpec Document Structure", "_site/docs/en/guide/document-structure.html should preserve the visual document structure guide.");
 expectContains(readSiteFile("docs/en/guide/actions.html"), "examples/showcase/form-submit-flow.html", "_site/docs/en/guide/actions.html should link to the form submit showcase.");
 expectContains(readSiteFile("docs/en/guide/partial-updates.html"), "mode: replace", "_site/docs/en/guide/partial-updates.html should include partial update replacement semantics.");
 expectContains(readSiteFile("docs/en/guide/partial-updates.html"), "profile-summary.partial.html", "_site/docs/en/guide/partial-updates.html should link to the partial showcase.");

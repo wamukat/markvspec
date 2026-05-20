@@ -7,6 +7,7 @@ MarkVSpec の基本を、example と往復しながら順に学ぶための入�
 ## 読む順番
 
 - [Markdown Model](markdown-model.md): `.vspec.md` の基本構造。
+- [Document Structure](document-structure.html): prose と構造化 DSL の位置関係。
 - [States](states.md): 画面状態の分け方。
 - [Layout](layout.md): layout group と items。
 - [Elements](elements.md): UI element の書き方。
