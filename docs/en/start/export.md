@@ -1,6 +1,7 @@
 # Export
 
-MarkVSpec can export HTML / PDF from `.vspec.md`.
+MarkVSpec can export HTML / PDF from `.vspec.md`. It can also export a
+`.vspec.project.md` project file when you need one artifact for multiple screens.
 
 ## VS Code
 
@@ -31,6 +32,12 @@ who do not need to read Markdown.
 
 Static HTML includes the structured specification that reviewers need outside VS Code: states, layout, elements, actions, Form Groups, Business Rules, Validations, Error Codes, custom Notes, and section/entity lead or notes prose. Treat it as a review artifact generated from the `.vspec.md` source, not as a separate document to edit.
 
+For a project file, HTML/PDF export loads the listed screens and writes one
+shareable output that contains those screen specifications. It is different from
+project preview: project preview explains the project overview, notes,
+screen/template list, and transition graph; project export packages the loaded
+screens for sharing.
+
 For a compact inventory of screens, templates, and referenced partials in a
 project file, use CLI `export document-list`. See [CLI reference](../reference/cli.md).
 
@@ -50,9 +57,11 @@ artifacts.
 ## Before Exporting
 
 - Check in preview that the main states, elements, and actions are readable.
+- For a project file, check that the project preview lists the intended screens, templates, and transition graph before exporting.
 - Check that Form Groups, Business Rules, Validations, Error Codes, and Notes that matter to the review appear in the HTML output.
 - Keep the source in a Git-managed location.
 - Share `.vspec.md` when recipients need to edit; share HTML / PDF when they only need to read.
+- Use `.vspec.project.md` when recipients need one artifact for a related screen set. Use `document-list` when they only need the inventory.
 - For CLI export of multiple files, pass an explicit output directory.
 
 ## Next

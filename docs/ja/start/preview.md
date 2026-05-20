@@ -22,6 +22,15 @@ MarkVSpec: Open Preview
 
 preview は source の変更に追従します。Markdown を編集しながら、状態、レイアウト、要素、アクションの見え方を確認します。
 
+## Project preview
+
+複数画面をまとめて確認したい場合は、同じ command で `.vspec.project.md` を開きます。
+Project preview には project overview、notes、screen list、template list、
+project transition diagram、transition table、diagnostics が表示されます。
+
+project 全体の確認には project preview を使います。screen の wireframe や詳細 section を
+確認したい場合は、各 `.vspec.md` screen を開きます。
+
 ## 見る場所
 
 - source の見出しが preview のセクションになる。
@@ -52,3 +61,4 @@ preview は pixel-perfect なデザイン確認ではありません。次のよ
 ## 次
 
 - [Export](export.md)
+- [File Format](../reference/file-format.md)

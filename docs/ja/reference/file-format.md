@@ -66,7 +66,13 @@ templates:
 navigation と共通 shell の変更を同じ場所で確認します。
 ```
 
-Project preview では project lead と `## Notes` が表示され、screen / template list や transition graph と一緒に project intent を確認できます。CLI の [document-list export](cli.md) は一覧性を優先するため、Project document の長い lead / notes prose は含めません。
+Project preview では project lead と `## Notes` が表示され、screen / template list や transition graph と一緒に project intent を確認できます。HTML/PDF export でも project file を指定でき、列挙された screen を読み込んで1つの artifact にまとめます。CLI の [document-list export](cli.md) は一覧性を優先するため、Project document の長い lead / notes prose は含めません。
+
+関連:
+
+- [Preview](../start/preview.md): project preview の表示内容。
+- [Export](../start/export.md): project HTML/PDF export。
+- [CLI](cli.md): 一覧用の `export document-list`。
 
 ### Body
 

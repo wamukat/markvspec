@@ -112,6 +112,10 @@ npx @markvspec/cli@latest export pdf hello.vspec.md --out markvspec-pdf
 - [Preview](preview.md): VS Code live preview の開き方。
 - [Export](export.md): HTML / PDF export の使い方。
 
+最初は1画面につき1つの `.vspec.md` で始めます。複数の screen / template をまとめて
+確認したくなったら、後から `.vspec.project.md` を追加します。project file は
+[File Format](../reference/file-format.md) で説明しています。
+
 ## 次に読む
 
 - [Examples](../examples/index.md): 追加で読める example。

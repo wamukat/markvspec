@@ -331,6 +331,12 @@ expectContains(cliReferenceHtml, "0 errors / 0 warnings", "_site/docs/ja/referen
 expectContains(readSiteFile("docs/en/reference/cli.html"), "export document-list", "_site/docs/en/reference/cli.html should document document-list export.");
 expectContains(readSiteFile("docs/en/recipes/index.html"), "document-list", "_site/docs/en/recipes/index.html should not describe CLI reference as HTML/PDF only.");
 expectContains(readSiteFile("docs/ja/recipes/index.html"), "document-list", "_site/docs/ja/recipes/index.html should not describe CLI reference as HTML/PDF only.");
+expectContains(readSiteFile("docs/en/start/preview.html"), "Project Preview", "_site/docs/en/start/preview.html should explain project preview.");
+expectContains(readSiteFile("docs/ja/start/preview.html"), "Project preview", "_site/docs/ja/start/preview.html should explain project preview.");
+expectContains(readSiteFile("docs/en/start/export.html"), ".vspec.project.md", "_site/docs/en/start/export.html should explain project file export.");
+expectContains(readSiteFile("docs/ja/start/export.html"), ".vspec.project.md", "_site/docs/ja/start/export.html should explain project file export.");
+expectContains(readSiteFile("docs/en/reference/file-format.html"), "project HTML/PDF export", "_site/docs/en/reference/file-format.html should link project files to export.");
+expectContains(readSiteFile("docs/ja/reference/file-format.html"), "project HTML/PDF export", "_site/docs/ja/reference/file-format.html should link project files to export.");
 expectContains(readSiteFile("docs/ja/guide/index.html"), "<ol>", "_site/docs/ja/guide/index.html should render ordered reading steps as an ordered list.");
 const referenceActionsHtml = readSiteFile("docs/ja/reference/actions.html");
 expectContains(referenceActionsHtml, "request:", "_site/docs/ja/reference/actions.html should document request process syntax.");

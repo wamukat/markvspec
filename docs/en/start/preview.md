@@ -22,6 +22,16 @@ MarkVSpec: Open Preview
 
 The preview follows source changes. Edit Markdown and check how states, layout, elements, and actions appear.
 
+## Project Preview
+
+Open a `.vspec.project.md` file with the same command when you need to review
+multiple screens together. Project preview shows the project overview, notes,
+screen list, template list, project transition diagram, transition table, and
+diagnostics.
+
+Use project preview for project-level review. Open each `.vspec.md` screen when
+you need the screen wireframe and detailed screen sections.
+
 ## What To Look At
 
 - Source headings become preview sections.
@@ -53,3 +63,4 @@ the Markdown diff together with the preview makes specification reviews easier.
 ## Next
 
 - [Export](export.md)
+- [File Format](../reference/file-format.md)

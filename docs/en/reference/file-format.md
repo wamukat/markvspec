@@ -66,7 +66,13 @@ Use this project to review the account screens together.
 Keep navigation and shared shell changes visible in one place.
 ```
 
-Project preview renders the project lead and `## Notes` so reviewers can read the project intent beside the screen/template list and transition graph. CLI [document-list export](cli.md) intentionally keeps the output compact and does not include long project lead / notes prose.
+Project preview renders the project lead and `## Notes` so reviewers can read the project intent beside the screen/template list and transition graph. HTML/PDF export can also accept a project file; it loads the listed screens and packages those screen specifications into one artifact. CLI [document-list export](cli.md) intentionally keeps the output compact and does not include long project lead / notes prose.
+
+Related:
+
+- [Preview](../start/preview.md): project preview contents.
+- [Export](../start/export.md): project HTML/PDF export.
+- [CLI](cli.md): `export document-list` for a compact inventory.
 
 ### Body
 
