@@ -208,6 +208,9 @@ if (rootHtml.includes("Generated static HTML previews for the shipped MarkVSpec 
 expectContains(rootHtml, 'href="examples/"', "_site/index.html should link to /examples/.");
 expectContains(rootHtml, 'href="docs/ja/"', "_site/index.html should link to the Japanese documentation root.");
 expectContains(rootHtml, 'href="docs/en/"', "_site/index.html should link to the English documentation root.");
+expectOccurrenceCount(rootHtml, 'href="docs/ja/"', 1, "_site/index.html should expose the Japanese documentation link once.");
+expectOccurrenceCount(rootHtml, 'href="docs/en/"', 1, "_site/index.html should expose the English documentation link once.");
+expectOccurrenceCount(rootHtml, 'href="examples/"', 1, "_site/index.html should expose the examples link once.");
 for (const languageDeepLink of [
   'href="docs/ja/start/"',
   'href="docs/en/start/"',
@@ -474,6 +477,13 @@ function expectContains(content, needle, message) {
 function expectNotContains(content, needle, message) {
   if (content.includes(needle)) {
     failures.push(message);
+  }
+}
+
+function expectOccurrenceCount(content, needle, expectedCount, message) {
+  const actualCount = content.split(needle).length - 1;
+  if (actualCount !== expectedCount) {
+    failures.push(`${message} Expected ${expectedCount}, found ${actualCount}.`);
   }
 }
 
