@@ -4,11 +4,12 @@
   "description": "Command line tools for validating and exporting MarkVSpec screen specifications.",
   "license": "MIT",
   "type": "module",
+  "types": "./dist/index.d.ts",
   "bin": {
     "markvspec": "dist/index.js"
   },
   "files": [
-    "dist/index.js"
+    "dist/**"
   ],
   "repository": {
     "type": "git",
