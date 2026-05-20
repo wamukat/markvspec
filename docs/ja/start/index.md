@@ -1,23 +1,54 @@
 # Start
 
-このセクションは、MarkVSpec を初めて試す人のための入口です。
+MarkVSpec を初めて試す人向けの最短ルートです。
 
-> Stub: このページ群は後続チケットで本文化します。現時点では新しい
-> documentation IA の受け皿として、移行先と既存文書への導線だけを置いています。
+5分で、VS Code 拡張のインストール、Hello Screen の確認、live preview、HTML / PDF export まで進めます。
 
-## 次に読むページ
+## 5分で試す
 
-- `first-screen.md`: Hello Screen を開いて最初の `.vspec.md` を確認する。
-- `preview.md`: VS Code live preview を開く。
-- `export.md`: HTML / PDF export を確認する。
+### Step 1: 拡張を入れる
 
-## 既存文書
+[MarkVSpec for VS Code](https://marketplace.visualstudio.com/items?itemName=wamukat.markvspec) を VS Code Marketplace から入れます。
 
-- [サンプルギャラリー](../user/example-gallery.md)
-- [PDF 出力と共有](../user/pdf-export.md)
-- [既知の制限](../user/limitations.md)
+CLI で入れる場合:
 
-## Examples
+```bash
+code --install-extension wamukat.markvspec
+```
 
-- [Hello Screen](../../../examples/01-basics/hello-screen.vspec.md)
-- [Login Basic](../../../examples/04-real-world-screens/login-basic.vspec.md)
+### Step 2: Hello Screen を開く
+
+repository を開き、[Hello Screen](../../../examples/01-basics/hello-screen.vspec.md) を開きます。
+
+```bash
+code examples/01-basics/hello-screen.vspec.md
+```
+
+### Step 3: preview を開く
+
+Command Palette で次を実行します。
+
+```text
+MarkVSpec: Open Preview
+```
+
+### Step 4: HTML / PDF を出力する
+
+必要なら CLI で HTML / PDF を出力します。
+
+```bash
+npx @markvspec/cli@latest export html examples/01-basics/hello-screen.vspec.md --out markvspec-html
+npx @markvspec/cli@latest export pdf examples/01-basics/hello-screen.vspec.md --out markvspec-pdf
+```
+
+## 詳細
+
+- [First Screen](first-screen.md): Hello Screen の読み方。
+- [Preview](preview.md): VS Code live preview の開き方。
+- [Export](export.md): HTML / PDF export の使い方。
+
+## 次に読む
+
+- [Examples](../examples/index.md): 学習順に並んだ example。
+- [Guide](../guide/index.md): MarkVSpec の基本。
+- [Reference](../reference/index.md): 記法の詳細。

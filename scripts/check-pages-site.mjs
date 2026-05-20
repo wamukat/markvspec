@@ -21,7 +21,13 @@ const requiredFiles = [
   "docs/ja/index.html",
   "docs/en/index.html",
   "docs/ja/start/index.html",
+  "docs/ja/start/first-screen.html",
+  "docs/ja/start/preview.html",
+  "docs/ja/start/export.html",
   "docs/en/start/index.html",
+  "docs/en/start/first-screen.html",
+  "docs/en/start/preview.html",
+  "docs/en/start/export.html",
   "docs/ja/guide/index.html",
   "docs/en/guide/index.html",
   "docs/ja/reference/index.html",
@@ -39,7 +45,13 @@ const newIaIndexFiles = [
   "docs/ja/index.html",
   "docs/en/index.html",
   "docs/ja/start/index.html",
+  "docs/ja/start/first-screen.html",
+  "docs/ja/start/preview.html",
+  "docs/ja/start/export.html",
   "docs/en/start/index.html",
+  "docs/en/start/first-screen.html",
+  "docs/en/start/preview.html",
+  "docs/en/start/export.html",
   "docs/ja/guide/index.html",
   "docs/en/guide/index.html",
   "docs/ja/reference/index.html",
@@ -84,6 +96,37 @@ expectContains(rootHtml, 'href="docs/ja/recipes/"', "_site/index.html should lin
 expectContains(rootHtml, 'href="docs/en/recipes/"', "_site/index.html should link to the English recipes.");
 expectContains(rootHtml, 'href="docs/ja/reference/"', "_site/index.html should link to the Japanese reference.");
 expectContains(rootHtml, 'href="docs/en/reference/"', "_site/index.html should link to the English reference.");
+
+const jaStartHtml = readSiteFile("docs/ja/start/index.html");
+expectContains(jaStartHtml, "5分で試す", "_site/docs/ja/start/index.html should provide a short quick start.");
+expectContains(jaStartHtml, "<h3>Step 1: 拡張を入れる</h3>", "_site/docs/ja/start/index.html should render quick start steps as headings.");
+expectContains(jaStartHtml, "VS Code Marketplace", "_site/docs/ja/start/index.html should mention marketplace install.");
+expectContains(jaStartHtml, "MarkVSpec: Open Preview", "_site/docs/ja/start/index.html should mention the preview command.");
+expectContains(jaStartHtml, "export html", "_site/docs/ja/start/index.html should mention HTML export.");
+expectContains(jaStartHtml, "export pdf", "_site/docs/ja/start/index.html should mention PDF export.");
+
+const enStartHtml = readSiteFile("docs/en/start/index.html");
+expectContains(enStartHtml, "Try It In 5 Minutes", "_site/docs/en/start/index.html should provide a short quick start.");
+expectContains(enStartHtml, "<h3>Step 1: Install The Extension</h3>", "_site/docs/en/start/index.html should render quick start steps as headings.");
+expectContains(enStartHtml, "VS Code Marketplace", "_site/docs/en/start/index.html should mention marketplace install.");
+expectContains(enStartHtml, "MarkVSpec: Open Preview", "_site/docs/en/start/index.html should mention the preview command.");
+expectContains(enStartHtml, "export html", "_site/docs/en/start/index.html should mention HTML export.");
+expectContains(enStartHtml, "export pdf", "_site/docs/en/start/index.html should mention PDF export.");
+
+expectContains(readSiteFile("docs/ja/start/first-screen.html"), "Hello Screen", "_site/docs/ja/start/first-screen.html should explain the first screen.");
+expectContains(readSiteFile("docs/ja/start/preview.html"), "MarkVSpec: Open Preview", "_site/docs/ja/start/preview.html should explain live preview.");
+expectContains(readSiteFile("docs/ja/start/export.html"), "Chrome", "_site/docs/ja/start/export.html should mention PDF browser requirements.");
+expectContains(readSiteFile("docs/en/start/first-screen.html"), "Hello Screen", "_site/docs/en/start/first-screen.html should explain the first screen.");
+expectContains(readSiteFile("docs/en/start/preview.html"), "MarkVSpec: Open Preview", "_site/docs/en/start/preview.html should explain live preview.");
+expectContains(readSiteFile("docs/en/start/export.html"), "Chrome", "_site/docs/en/start/export.html should mention PDF browser requirements.");
+for (const startPath of [
+  "docs/ja/start/index.html",
+  "docs/ja/start/preview.html",
+  "docs/en/start/index.html",
+  "docs/en/start/preview.html"
+]) {
+  expectNotContains(readSiteFile(startPath), "<p>1. ", `${startPath} should not render ordered Markdown steps as plain paragraphs.`);
+}
 
 const examplesHtml = readSiteFile("examples/index.html");
 expectContains(examplesHtml, "MarkVSpec Examples", "_site/examples/index.html should be the examples index.");
@@ -184,6 +227,12 @@ function readSiteFile(filePath) {
 
 function expectContains(content, needle, message) {
   if (!content.includes(needle)) {
+    failures.push(message);
+  }
+}
+
+function expectNotContains(content, needle, message) {
+  if (content.includes(needle)) {
     failures.push(message);
   }
 }

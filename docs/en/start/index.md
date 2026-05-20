@@ -1,23 +1,54 @@
 # Start
 
-This section is the entry point for trying MarkVSpec for the first time.
+This is the shortest path for trying MarkVSpec for the first time.
 
-> Stub: These pages will be expanded in follow-up tickets. For now, they provide
-> the new documentation IA paths and links to the existing documents.
+In about five minutes, you can install the VS Code extension, inspect Hello Screen, open the live preview, and export HTML / PDF.
 
-## Next Pages
+## Try It In 5 Minutes
 
-- `first-screen.md`: Open Hello Screen and inspect the first `.vspec.md` file.
-- `preview.md`: Open the VS Code live preview.
-- `export.md`: Export HTML / PDF.
+### Step 1: Install The Extension
 
-## Existing Documents
+Install [MarkVSpec for VS Code](https://marketplace.visualstudio.com/items?itemName=wamukat.markvspec) from VS Code Marketplace.
 
-- [Example gallery](../user/example-gallery.md)
-- [PDF export approach](../user/pdf-export.md)
-- [Known limitations](../user/limitations.md)
+Or install it from the command line:
 
-## Examples
+```bash
+code --install-extension wamukat.markvspec
+```
 
-- [Hello Screen](../../../examples/01-basics/hello-screen.vspec.md)
-- [Login Basic](../../../examples/04-real-world-screens/login-basic.vspec.md)
+### Step 2: Open Hello Screen
+
+Open this repository, then open [Hello Screen](../../../examples/01-basics/hello-screen.vspec.md).
+
+```bash
+code examples/01-basics/hello-screen.vspec.md
+```
+
+### Step 3: Open Preview
+
+Run this from the Command Palette.
+
+```text
+MarkVSpec: Open Preview
+```
+
+### Step 4: Export HTML / PDF
+
+Export HTML / PDF when you need shareable output.
+
+```bash
+npx @markvspec/cli@latest export html examples/01-basics/hello-screen.vspec.md --out markvspec-html
+npx @markvspec/cli@latest export pdf examples/01-basics/hello-screen.vspec.md --out markvspec-pdf
+```
+
+## Details
+
+- [First Screen](first-screen.md): Read Hello Screen.
+- [Preview](preview.md): Open the VS Code live preview.
+- [Export](export.md): Export HTML / PDF.
+
+## Next
+
+- [Examples](../examples/index.md): Examples ordered as a learning path.
+- [Guide](../guide/index.md): MarkVSpec basics.
+- [Reference](../reference/index.md): Syntax details.
