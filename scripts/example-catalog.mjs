@@ -134,16 +134,6 @@ export function resolveDocKey(root, lang, group, key) {
     return { path: starlightGroupIndexPath, fallback: true };
   }
 
-  const specificPath = join(root, "docs", lang, group, `${key}.md`);
-  if (existsSync(specificPath)) {
-    return { path: specificPath, fallback: false };
-  }
-
-  const indexPath = join(root, "docs", lang, group, "index.md");
-  if (existsSync(indexPath)) {
-    return { path: indexPath, fallback: true };
-  }
-
   return undefined;
 }
 
