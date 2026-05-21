@@ -74,9 +74,9 @@ structured body.
 
 ## Read Next
 
-- [Start](../start/)
+- [Start](/markvspec/en/start/)
 - [Guide: Document Structure](/markvspec/en/guide/document-structure/)
 - [Guide: Markdown Model](/markvspec/en/guide/markdown-model/)
 - [Guide: Actions](/markvspec/en/guide/actions/)
-- [Reference](../reference/)
+- [Reference](/markvspec/en/reference/)
 - [Examples](/markvspec/examples/)

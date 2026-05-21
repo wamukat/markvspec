@@ -39,6 +39,9 @@ jobs:
       - name: Build CLI
         run: npm run build -w @markvspec/cli
 
+      - name: Check docs-site sync
+        run: npm run check:docs-sync
+
       - name: Build Pages site
         run: npm run build:pages
 

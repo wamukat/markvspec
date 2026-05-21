@@ -64,7 +64,9 @@ Astro Starlight を採用候補の第一順位とする。
 Starlight app は `docs-site/` に置く。
 
 旧 `site/` は root landing page や手書き HTML docs の source 置き場だった。Starlight 移行後は
-`docs-site/` が公開 site の source of truth になり、旧 `site/` は削除する。
+`docs-site/` が公開 site app の置き場になり、旧 `site/` は削除する。
+利用者向け Markdown 本文の正本は `docs/` に置き、`docs-site/src/content/docs/` は
+Starlight 公開用に同期する。
 
 推奨構成:
 

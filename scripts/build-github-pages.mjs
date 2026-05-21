@@ -89,6 +89,10 @@ console.log(`Preparing ${files.length} generated example HTML artifacts.`);
 prepareExampleArtifacts(files);
 prepareBrandAssets();
 
+execFileSync("node", ["scripts/sync-docs-site-content.mjs"], {
+  stdio: "inherit",
+});
+
 execFileSync("npm", ["--prefix", "docs-site", "run", "build"], {
   stdio: "inherit",
 });

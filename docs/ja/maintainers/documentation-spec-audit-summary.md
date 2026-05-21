@@ -5,10 +5,9 @@
 この文書は、2026-05-21 に実施した MarkVSpec 利用者向けドキュメントの
 仕様一致性監査の結果をまとめる保守者向け記録です。
 
-対象は `docs-site/src/content/docs/{ja,en}`、`docs/{ja,en}`、README、
-examples showcase への導線です。公開サイトの正本は
-`docs-site/src/content/docs/` であり、`docs/` は repository 上で読める
-Markdown mirror として扱います。
+対象は `docs/{ja,en}`、`docs-site/src/content/docs/{ja,en}`、README、
+examples showcase への導線です。利用者向け Markdown の正本は `docs/` であり、
+`docs-site/src/content/docs/` は Starlight 公開用の同期先として扱います。
 README.md / README.ja.md は旧構文、未実装構文、利用者入口としての表現を
 検索対象に含め、必要な日本語表現とリンクラベルを修正しました。
 
@@ -18,22 +17,22 @@ README.md / README.ja.md は旧構文、未実装構文、利用者入口とし�
 - 未実装構文、古い構文、創作 DSL、実装予定を現在仕様として書かない。
 - 完全な `.vspec.md` 例は、parse、validate、preview、export のいずれかで確認する。
 - 断片例は、対応する parser、validator、renderer、test、example の根拠を明記する。
-- 日本語と英語で同じ仕様を説明し、`docs-site` と `docs/` の同名内容を矛盾させない。
+- 日本語と英語で同じ仕様を説明し、`docs/` と `docs-site` の同期内容を矛盾させない。
 
 ## 領域別結果
 
 | Ticket | 領域 | 主な主張 | 根拠 | 修正 | 残リスク |
 | --- | --- | --- | --- | --- | --- |
-| #1339 | docs source of truth | 公開サイトの正本は `docs-site`、`docs/` は mirror。 | `scripts/build-github-pages.mjs`, `scripts/check-pages-site.mjs`, `scripts/example-catalog.mjs` | `docs/ja/maintainers/documentation-architecture.md` に方針を追記。 | なし。 |
+| #1339 | docs source of truth | 当時は公開サイトの正本を `docs-site`、`docs/` を mirror とした。 | `scripts/build-github-pages.mjs`, `scripts/check-pages-site.mjs`, `scripts/example-catalog.mjs` | `docs/ja/maintainers/documentation-architecture.md` に方針を追記。 | #1354 で `docs/` 正本へ反転。 |
 | #1340 | Elements | 要素は意味で書き、低レベル styling や raw width を仕様化しない。 | element parser / renderer / examples | Element docs を実装済み type/property に合わせ、raw width の扱いを制限事項へ整理。 | なし。 |
-| #1341 | Layout / Slots / Templates | `stack`, `row`, `grid`, `inline` と `Items` / `Slots` / `P-*` を現在仕様として扱う。 | layout renderer / presentation panel example / targeted tests | 未対応の `column` などを除去し、P-* と mirror docs を同期。 | なし。 |
+| #1341 | Layout / Slots / Templates | `stack`, `row`, `grid`, `inline` と `Items` / `Slots` / `P-*` を現在仕様として扱う。 | layout renderer / presentation panel example / targeted tests | 未対応の `column` などを除去し、P-* と docs を同期。 | なし。 |
 | #1342 | Actions / Events / Process / case | Action は `Process Pn:`、`request`、`receive`、`case:`、`display` で操作と結果を書く。 | action process read model tests / examples | `request: POST /login` など、実装と合わない説明を修正。 | なし。 |
 | #1343 | Field Validations / Cross-field Validations | 単項目は `## Field Validations`、複合項目は `## Cross-field Validations` と `F-*` を使う。 | validation-domain tests / markdown-section-semantic tests | Element に validation rule があるように見える説明を整理し、Business Rules との境界を明確化。 | なし。 |
 | #1344 | Business Rules / Error Codes | 業務判断は `## Business Rules`、Action 結果は `case: business-rule-violation` と `business rule:` で参照する。 | validation-domain / action process tests | Error Codes の required fields と display 値を実装に合わせた。 | なし。 |
 | #1345 | Preview Scenarios / State Views | state と同名 scenario、`samples:`、`rows:`、`route:`、Action case 参照を現在仕様として扱う。 | preview scenario tests / sample rows tests | `before:` の意味、validation result と action case の混同を修正。 | なし。 |
 | #1346 | CLI / Export / VS Code | CLI は `--version`, `validate`, `diagnose input`, `export html/pdf`, `export document-list` を説明対象にする。 | CLI 実行結果 / targeted export commands | CLI reference と start/recipes の説明を実装済みコマンドへ追従。 | example PDF 配布物は別途 #1351 で削除済み。 |
 | #1347 | Examples と docs | examples は学習順と画面パターンから探す導線として扱う。 | `examples/catalog.yml`, `scripts/example-catalog.mjs`, `npm run audit:examples` | 日本語入口文と examples link を整理し、部分更新の入口を `Profile Home` に統一。 | なし。 |
-| #1348 | 英日差分 / mirror | `docs-site` と `docs/` の user-facing 同名ページは矛盾させない。 | file list comparison / docs mirror link check / HTTP 200 | `docs/{ja,en}` を `docs-site` 正本へ同期し、`guide/document-structure.md` を mirror に追加。 | `document-structure.md` は raw `<style>` を含むため、GitHub Markdown では Starlight 表示と完全一致しない。mirror としては許容。 |
+| #1348 | 英日差分 / 同期 | `docs-site` と `docs/` の user-facing 同名ページは矛盾させない。 | file list comparison / docs link check / HTTP 200 | 当時の `docs-site` 正本に `docs/{ja,en}` を同期し、`guide/document-structure.md` を追加。 | #1354 以降は `docs/` 正本、`docs-site` 同期先として扱う。 |
 | #1351 | build 軽量化 | example PDF 配布物は docs-site build 成果物に含めない。 | build/check-pages / link search | PDF artifacts と example からの PDF link を削除。 | CLI / VS Code の PDF 出力機能自体は残す。 |
 
 ## 確認したコマンド
@@ -65,6 +64,6 @@ Starlight のフル build は、設計書監査中の反復では時間短縮の
 古い `Triggered` / `Effects` / `Cases` 形式、創作 DSL、または実装予定を
 現在仕様として扱う記述は確認していません。
 
-今後ドキュメントを更新する場合は、`docs-site/src/content/docs/` を先に直し、
-同じ commit で `docs/` mirror を追従させます。仕様を追加する場合は、対応する
+今後ドキュメントを更新する場合は、`docs/` を先に直し、`npm run sync:docs-site` で
+`docs-site/src/content/docs/` を追従させます。仕様を追加する場合は、対応する
 実装、test、example、または明示的な follow-up ticket を根拠として残します。

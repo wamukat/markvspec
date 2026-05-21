@@ -70,9 +70,9 @@ MarkVSpec のソースはプレーンテキストです。これは、人間だ�
 
 ## 次に読むもの
 
-- [はじめる](../start/)
+- [はじめる](/markvspec/ja/start/)
 - [ガイド: 文書構造](/markvspec/ja/guide/document-structure/)
 - [ガイド: Markdownモデル](/markvspec/ja/guide/markdown-model/)
 - [ガイド: アクション](/markvspec/ja/guide/actions/)
-- [リファレンス](../reference/)
+- [リファレンス](/markvspec/ja/reference/)
 - [サンプル](/markvspec/examples/)
