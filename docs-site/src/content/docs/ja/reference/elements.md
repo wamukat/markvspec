@@ -19,8 +19,6 @@ title: "要素"
 - label: Email
 - value: email
 - type: email
-- input rule:
-  - type: email
 
 ### E-SignInButton Button
 
@@ -89,6 +87,8 @@ examples には次の専用コントロールも出ます。画面の意味を�
 | `required` | `- required` | 入力欄を必須として表示する |
 | `variant` | `- variant: primary` | 優先度。`primary`、`secondary`、`tertiary` |
 | `tone` | `- tone: danger` | 意味上の意図。`neutral`、`info`、`success`、`warning`、`danger` |
+| `width` | `- width: medium` | 入力系、選択系、ファイル系要素の幅。`short`、`medium`、`long`、`full` |
+| `size` | `- size: small` | `Button` のサイズ。`small`、`medium`、`large` |
 | `action` | `- action: A-SubmitLogin` | 発火するアクション ID |
 | `href` | `- href: /settings` | リンク先 |
 | `options` | `- options:` | 選択肢 |
@@ -96,9 +96,12 @@ examples には次の専用コントロールも出ます。画面の意味を�
 | `visible when` | `- visible when: error` | 要素が表示される状態 |
 | `hidden when` | `- hidden when: loading` | 要素が非表示になる状態 |
 | `disabled when` | `- disabled when: submitting` | コントロールが無効になる状態 |
-| `loading when` | `- loading when: submitting` | 読み込み中のフィードバックを出す状態 |
-| `open when` | `- open when: dialog-open` | dialog、popover、accordion、disclosure が開く状態 |
-| `placement` | `- placement: below E-HelpIcon` | tooltip、popover、menu の表示位置 |
+| `open when` | `- open when: menu-open` | `Disclosure` / `ActionMenu` が開く状態 |
+| `placement` | `- placement: bottom-start` | `Tooltip`、`Popover`、`ActionMenu`、`Toast` の表示位置 |
+
+`Accordion` の開閉条件は、要素直下ではなく `items` の各項目に `open when` を書きます。
+`Dialog` や `Popover` の状態ごとの表示は `visible when` / `hidden when` で表します。
+`loading when` は現在の Elements 構文ではありません。
 
 入力値の検証ルールとエラーメッセージは `## Field Validations` に書きます。`Input` 要素直下の `constraints` や `error:` は現在の構文ではありません。
 
@@ -147,7 +150,7 @@ examples には次の専用コントロールも出ます。画面の意味を�
 - 見出しは `H1` や `H2` ではなく、`Heading` と `level: 1..6` で書きます。
 - `variant` は優先度です。色名ではありません。
 - `tone` は意味です。生の色指定ではありません。
-- CSS class、width、height、pixel value、生の色指定は主要 DSL に書きません。
+- CSS class、height、pixel value、生の色指定は主要 DSL に書きません。
 - ボタンの click 処理は要素に直接書き込まず、`action: A-*` で `## Actions` に接続します。
 - `Text` は短い表示、`Paragraph` は文として読む説明に使います。
 

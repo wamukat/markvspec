@@ -17,8 +17,6 @@
 - label: Email
 - value: email
 - type: email
-- input rule:
-  - type: email
 
 ### E-SignInButton Button
 
@@ -88,6 +86,8 @@ needs the distinction; otherwise prefer `Input`, `Select`, `Button`, `Text`, or
 | `required` | `- required` | Mark the input as required |
 | `variant` | `- variant: primary` | Priority: `primary`, `secondary`, `tertiary` |
 | `tone` | `- tone: danger` | Semantic intent: `neutral`, `info`, `success`, `warning`, `danger` |
+| `width` | `- width: medium` | Width preset for input, choice, and file elements: `short`, `medium`, `long`, `full` |
+| `size` | `- size: small` | Button size: `small`, `medium`, `large` |
 | `action` | `- action: A-SubmitLogin` | Action ID to trigger |
 | `href` | `- href: /settings` | Link target |
 | `options` | `- options:` | Selectable values for choice controls |
@@ -95,9 +95,12 @@ needs the distinction; otherwise prefer `Input`, `Select`, `Button`, `Text`, or
 | `visible when` | `- visible when: error` | State where the element appears |
 | `hidden when` | `- hidden when: loading` | State where the element is hidden |
 | `disabled when` | `- disabled when: submitting` | State where the control is disabled |
-| `loading when` | `- loading when: submitting` | State where the element shows loading feedback |
-| `open when` | `- open when: dialog-open` | State where dialog, popover, accordion, or disclosure is open |
-| `placement` | `- placement: below E-HelpIcon` | Placement for tooltip, popover, or menu |
+| `open when` | `- open when: menu-open` | State where `Disclosure` or `ActionMenu` is open |
+| `placement` | `- placement: bottom-start` | Placement for `Tooltip`, `Popover`, `ActionMenu`, or `Toast` |
+
+For `Accordion`, write `open when` on each item under `items`, not on the element itself.
+For state-dependent `Dialog` and `Popover` display, use `visible when` / `hidden when`.
+`loading when` is not current Elements syntax.
 
 Write validation rules and error messages in `## Field Validations`. Element-level `constraints` and `error:` are not current MarkVSpec syntax.
 
@@ -146,7 +149,7 @@ kind of UI is intended.
 - Use `Heading` with `level: 1..6`, not `H1` or `H2` element types.
 - `variant` means priority. It is not a color name.
 - `tone` means semantic intent. It is not a raw color.
-- Do not write CSS classes, width, height, pixel values, or raw colors in the primary DSL.
+- Do not write CSS classes, height, pixel values, or raw colors in the primary DSL.
 - Connect button behavior to `## Actions` with `action: A-*` instead of embedding behavior directly in the element.
 - Use `Text` for compact display text and `Paragraph` for prose.
 

@@ -17,8 +17,6 @@
 - label: Email
 - value: email
 - type: email
-- input rule:
-  - type: email
 
 ### E-SignInButton Button
 
@@ -87,6 +85,8 @@ examples には次の specialized control も出ます。画面の意味を区�
 | `required` | `- required` | 入力欄を必須として表示する |
 | `variant` | `- variant: primary` | priority。`primary`、`secondary`、`tertiary` |
 | `tone` | `- tone: danger` | semantic intent。`neutral`、`info`、`success`、`warning`、`danger` |
+| `width` | `- width: medium` | 入力系、選択系、ファイル系 element の幅。`short`、`medium`、`long`、`full` |
+| `size` | `- size: small` | `Button` の size。`small`、`medium`、`large` |
 | `action` | `- action: A-SubmitLogin` | 発火する action ID |
 | `href` | `- href: /settings` | link 先 |
 | `options` | `- options:` | choice control の選択肢 |
@@ -94,9 +94,12 @@ examples には次の specialized control も出ます。画面の意味を区�
 | `visible when` | `- visible when: error` | element が表示される state |
 | `hidden when` | `- hidden when: loading` | element が非表示になる state |
 | `disabled when` | `- disabled when: submitting` | control が disabled になる state |
-| `loading when` | `- loading when: submitting` | loading feedback を出す state |
-| `open when` | `- open when: dialog-open` | dialog、popover、accordion、disclosure が開く state |
-| `placement` | `- placement: below E-HelpIcon` | tooltip、popover、menu の表示位置 |
+| `open when` | `- open when: menu-open` | `Disclosure` / `ActionMenu` が開く state |
+| `placement` | `- placement: bottom-start` | `Tooltip`、`Popover`、`ActionMenu`、`Toast` の表示位置 |
+
+`Accordion` の開閉条件は、element 直下ではなく `items` の各項目に `open when` を書きます。
+`Dialog` や `Popover` の state ごとの表示は `visible when` / `hidden when` で表します。
+`loading when` は現在の Elements 構文ではありません。
 
 入力値の検証ルールと error message は `## Field Validations` に書きます。`Input` element 直下の `constraints` や `error:` は現在の構文ではありません。
 
@@ -145,7 +148,7 @@ preview が判断しづらくなります。
 - 見出しは `H1` や `H2` ではなく、`Heading` と `level: 1..6` で書きます。
 - `variant` は priority です。色名ではありません。
 - `tone` は意味です。raw color ではありません。
-- CSS class、width、height、pixel value、raw color は primary DSL に書きません。
+- CSS class、height、pixel value、raw color は primary DSL に書きません。
 - button の click 処理は element に直接書き込まず、`action: A-*` で `## Actions` に接続します。
 - `Text` は短い表示、`Paragraph` は文として読む説明に使います。
 

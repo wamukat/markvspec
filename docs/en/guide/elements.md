@@ -32,7 +32,7 @@ This example defines only a heading and a primary button. The `action` property 
 - Use `Heading` with `level: 1..6` for headings.
 - Use `Text` for short labels and values.
 - Use `variant` for priority and `tone` for semantic intent.
-- Keep input label, placeholder, type, and min/max metadata on the input element.
+- Keep input label, placeholder, type, initial value, and width metadata on the input element.
 - Put validation rules and error messages in `## Field Validations`.
 - Add `action: A-*` to buttons and links when they trigger behavior.
 - Express warning, error, and success semantics with `tone`, not raw colors.
@@ -48,8 +48,6 @@ This example defines only a heading and a primary button. The `action` property 
 - label: Email
 - placeholder: name@example.com
 - type: email
-- input rule:
-  - type: email
 
 ### E-ErrorBanner Banner
 

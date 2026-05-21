@@ -34,7 +34,7 @@ Element は「画面に何があるか」と「ユーザーにとって何をす
 - 見出しは `Heading` と `level: 1..6` を使う。
 - 短いラベルや値は `Text` を使う。
 - `variant` は優先度、`tone` は意味上の意図として使う。
-- 入力項目は label、placeholder、type、min/max などの UI メタデータを element に置く。
+- 入力項目は label、placeholder、type、initial value、width などの UI メタデータを element に置く。
 - 検証ルールとエラーメッセージは `## Field Validations` に分ける。
 - `Button` や `Link` には、必要に応じて `action: A-*` を付ける。
 - warning、error、success などの意味は生の色指定ではなく `tone` で表す。
@@ -50,8 +50,6 @@ Element は「画面に何があるか」と「ユーザーにとって何をす
 - label: Email
 - placeholder: name@example.com
 - type: email
-- input rule:
-  - type: email
 
 ### E-ErrorBanner Banner
 
