@@ -21,7 +21,7 @@ Write semantic DSL instead of implementation details.
 | --- | --- | --- |
 | Raw color | Depends on design tokens or implementation themes | Semantic intent such as `tone: danger` |
 | CSS class | Implementation detail, not a stable specification contract | Element type, variant, and tone |
-| Width/height/pixels | Depends on layout implementation | Meaning such as `stack`, `row`, `gap`, and `align` |
+| Raw width/height/pixel values | Depends on layout implementation | Meaning such as `stack`, `row`, `gap`, and `align`. For input width, use `width: short`, `medium`, `long`, or `full` |
 | JSON source | Not the authoring format | Markdown headings and bullets |
 | Markdown table as source | Not the canonical parsed structure | Headings, bullets, and subsections |
 | Component implementation | The primary model is screen-first | Screens, layout groups, elements, and actions |

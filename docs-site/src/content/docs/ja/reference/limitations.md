@@ -23,7 +23,7 @@ MarkVSpec では、実装詳細ではなく意味を持つ DSL を書きます�
 | --- | --- | --- |
 | 生の色指定 | デザイントークンや実装テーマに依存するため | `tone: danger` などの意味上の意図 |
 | CSS class | 実装詳細であり仕様の安定した約束ではないため | 要素の種類、variant、tone |
-| width/height/pixel | レイアウト実装に依存するため | `stack`、`row`、`gap`、`align` などの意味 |
+| 生の width / height / pixel 値 | レイアウト実装に依存するため | `stack`、`row`、`gap`、`align` などの意味。入力幅が必要な場合は `width: short` / `medium` / `long` / `full` |
 | JSON ソース | 作成用フォーマットではないため | Markdown の見出しと箇条書き |
 | Markdown table をソースにすること | 解析対象の正本構造にしないため | 見出し、箇条書き、サブセクション |
 | component implementation | 主要なモデルは画面単位のため | 画面、レイアウトグループ、要素、アクション |

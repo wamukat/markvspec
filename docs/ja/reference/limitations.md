@@ -21,7 +21,7 @@ MarkVSpec では、実装詳細ではなく意味を持つ DSL を書きます�
 | --- | --- | --- |
 | raw color | design token や実装 theme に依存するため | `tone: danger` などの semantic intent |
 | CSS class | 実装詳細であり spec の stable contract ではないため | element type、variant、tone |
-| width/height/pixel | layout 実装に依存するため | `stack`、`row`、`gap`、`align` などの意味 |
+| 生の width / height / pixel 値 | layout 実装に依存するため | `stack`、`row`、`gap`、`align` などの意味。入力幅が必要な場合は `width: short` / `medium` / `long` / `full` |
 | JSON source | authoring format ではないため | Markdown headings と bullets |
 | Markdown table as source | parse 対象の canonical structure にしないため | headings、bullets、subsections |
 | component implementation | primary model は screen-first のため | screen、layout group、element、action |
