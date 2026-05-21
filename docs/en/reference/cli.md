@@ -13,6 +13,15 @@ You do not need to clone this repository to use the CLI against your own `.vspec
 
 ## Syntax You Can Write
 
+### Version
+
+```bash
+npx @markvspec/cli@latest --version
+npx @markvspec/cli@latest -v
+```
+
+Print the installed `@markvspec/cli` version.
+
 ### Validate
 
 ```bash

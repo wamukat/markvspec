@@ -15,6 +15,15 @@ CLI は、VS Code 拡張の外でソースファイルを検証したり、レ�
 
 ## 書ける構文
 
+### バージョン
+
+```bash
+npx @markvspec/cli@latest --version
+npx @markvspec/cli@latest -v
+```
+
+インストールされている `@markvspec/cli` のバージョンを表示します。
+
 ### 検証
 
 ```bash

@@ -1,8 +1,8 @@
-# Start
+# はじめる
 
 MarkVSpec を初めて使う人向けの最短ルートです。
 
-repository を clone していなくても進められる手順です。5分で、VS Code 拡張のインストール、最小 screen file の作成、live preview、HTML / PDF export まで確認します。
+リポジトリを clone していなくても進められる手順です。5分で、VS Code 拡張のインストール、最小画面ファイルの作成、ライブプレビュー、HTML / PDF 出力まで確認します。
 
 ## 5分で試す
 
@@ -18,7 +18,7 @@ code --install-extension wamukat.markvspec
 
 ### Step 2: Hello Screen を作る
 
-VS Code で空の folder を開き、`hello.vspec.md` を作ります。次の内容を貼り付けて保存します。
+VS Code で空のフォルダーを開き、`hello.vspec.md` を作ります。次の内容を貼り付けて保存します。
 
 ```markdown
 ---
@@ -76,30 +76,30 @@ locale: ja
   - state: idle
 ```
 
-### Step 3: preview を開く
+### Step 3: プレビューを開く
 
-Command Palette で次を実行します。
+コマンドパレットで次を実行します。
 
 ```text
 MarkVSpec: Open Preview
 ```
 
-source の右側に preview が開き、Markdown から生成された画面仕様を確認できます。
+ソースの右側にプレビューが開き、Markdown から生成された画面仕様を確認できます。
 
-![VS Code で hello.vspec.md と MarkVSpec preview を並べて表示している画面](../../assets/start/vscode-preview-clean.png)
+![VS Code で hello.vspec.md と MarkVSpec プレビューを並べて表示している画面](../../assets/start/vscode-preview-clean.png)
 
 ### Step 4: HTML / PDF を出力する
 
-必要なら VS Code の Command Palette から HTML / PDF を出力します。
+必要なら VS Code のコマンドパレットから HTML / PDF を出力します。
 
 ```text
 MarkVSpec: Export Static HTML
 MarkVSpec: Export PDF
 ```
 
-![VS Code Command Palette で MarkVSpec の HTML / PDF export command を表示している画面](../../assets/start/vscode-export-command.png)
+![VS Code コマンドパレットで MarkVSpec の HTML / PDF 出力コマンドを表示している画面](../../assets/start/vscode-export-command.png)
 
-CLI で出力したい場合は、同じ file を指定します。詳しい option は [CLI reference](../reference/cli.md) を参照してください。
+CLI で出力したい場合は、同じファイルを指定します。詳しいオプションは [CLI](../reference/cli.md) を参照してください。
 
 ```bash
 npx @markvspec/cli@latest export html hello.vspec.md --out markvspec-html
@@ -108,16 +108,16 @@ npx @markvspec/cli@latest export pdf hello.vspec.md --out markvspec-pdf
 
 ## 詳細
 
-- [First Screen](first-screen.md): Hello Screen の読み方。
-- [Preview](preview.md): VS Code live preview の開き方。
-- [Export](export.md): HTML / PDF export の使い方。
+- [最初の画面](first-screen.md): Hello Screen の読み方。
+- [プレビュー](preview.md): VS Code ライブプレビューの開き方。
+- [出力](export.md): HTML / PDF 出力の使い方。
 
-最初は1画面につき1つの `.vspec.md` で始めます。複数の screen / template をまとめて
-確認したくなったら、後から `.vspec.project.md` を追加します。project file は
-[File Format](../reference/file-format.md) で説明しています。
+最初は1画面につき1つの `.vspec.md` で始めます。複数の画面 / テンプレートをまとめて
+確認したくなったら、後から `.vspec.project.md` を追加します。プロジェクトファイルは
+[ファイル形式](../reference/file-format.md) で説明しています。
 
 ## 次に読む
 
-- [Examples](../examples/index.md): 追加で読める example。
-- [Guide](../guide/index.md): MarkVSpec の基本。
-- [Reference](../reference/index.md): 記法の詳細。
+- [サンプル](../examples/index.md): 追加で読める例。
+- [ガイド](../guide/index.md): MarkVSpec の基本。
+- [リファレンス](../reference/index.md): 記法の詳細。
