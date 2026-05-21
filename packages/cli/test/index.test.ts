@@ -5,6 +5,26 @@ import { join } from "node:path";
 import test from "node:test";
 import { main } from "../src/index.js";
 
+test("prints package version", async () => {
+  const originalLog = console.log;
+  const logs: string[] = [];
+  const expectedVersion = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version as string;
+  try {
+    console.log = (message?: unknown) => {
+      logs.push(String(message));
+    };
+
+    assert.equal(await main(["--version"]), 0);
+    assert.deepEqual(logs, [expectedVersion]);
+
+    logs.length = 0;
+    assert.equal(await main(["-v"]), 0);
+    assert.deepEqual(logs, [expectedVersion]);
+  } finally {
+    console.log = originalLog;
+  }
+});
+
 test("validate returns zero for valid files and non-zero for invalid files", async () => {
   const dir = mkdtempSync(join(tmpdir(), "markvspec-cli-"));
   try {

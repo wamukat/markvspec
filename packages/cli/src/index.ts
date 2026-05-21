@@ -16,11 +16,17 @@ interface ParsedArgs {
   outDir?: string;
   failOnWarnings: boolean;
   messagesPath?: string;
+  version: boolean;
 }
 
 export async function main(argv = process.argv.slice(2)): Promise<number> {
   const args = parseArgs(argv);
   try {
+    if (args.version) {
+      console.log(readPackageVersion());
+      return 0;
+    }
+
     if (args.command === "validate") {
       return runValidate(args);
     }
@@ -114,9 +120,15 @@ function parseArgs(argv: string[]): ParsedArgs {
     command,
     subcommand: command === "export" || command === "diagnose" ? maybeSubcommand : undefined,
     patterns: [],
-    failOnWarnings: false
+    failOnWarnings: false,
+    version: false
   };
   const values = command === "export" || command === "diagnose" ? rest : [maybeSubcommand, ...rest].filter((value): value is string => Boolean(value));
+
+  if (command === "--version" || command === "-v") {
+    args.version = true;
+    return args;
+  }
 
   for (let index = 0; index < values.length; index += 1) {
     const value = values[index];
@@ -128,6 +140,8 @@ function parseArgs(argv: string[]): ParsedArgs {
       index += 1;
     } else if (value === "--fail-on-warnings") {
       args.failOnWarnings = true;
+    } else if (value === "--version" || value === "-v") {
+      args.version = true;
     } else {
       args.patterns.push(value);
     }
@@ -154,11 +168,20 @@ function printDiagnostics(files: ReturnType<typeof validateMarkVSpecFiles>["file
 
 function printUsage(): void {
   console.error(`Usage:
+  markvspec --version
   markvspec validate <file-or-glob> [--fail-on-warnings]
   markvspec diagnose input <markdown-file>
   markvspec export document-list <project-file> --out <dir>
   markvspec export html <file-or-glob> --out <dir> [--messages <path>]
   markvspec export pdf <file-or-glob> --out <dir> [--messages <path>]`);
+}
+
+function readPackageVersion(): string {
+  const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as { version?: unknown };
+  if (typeof packageJson.version !== "string" || !packageJson.version) {
+    throw new Error("Unable to read @markvspec/cli package version.");
+  }
+  return packageJson.version;
 }
 
 function isCliEntryPoint(): boolean {
