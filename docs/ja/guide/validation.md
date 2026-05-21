@@ -4,17 +4,18 @@ Validation は「入力を受け付けてよいか」と「エラーをどう見
 
 まず、判定場所と対象を分けて考えます。
 
-## 4つに分ける
+## 5つに分ける
 
 | 種類 | 例 | 書く場所 |
 | --- | --- | --- |
 | クライアント単項目チェック | 必須、email形式、文字数、数値範囲 | `## Field Validations` |
 | 入力欄の metadata | type、placeholder、min/max、HTML入力制約のヒント | `## Elements` の input |
-| クライアント複合項目チェック | password確認、開始日 <= 終了日 | `## Cross-field Validations`、`## Business Rules`、または submit前 action |
+| クライアント複合項目チェック | password確認、開始日 <= 終了日 | `## Cross-field Validations` |
+| クライアント業務ルール | 年齢制限、送信前のプラン制約 | `## Business Rules` |
 | サーバ単項目チェック | email重複、商品コード不存在 | `## Actions` の response case と対象 field |
 | サーバ複合項目チェック | 在庫不足、権限不足、契約状態による不可 | `## Actions` の response case と `## Business Rules` |
 
-Business Rule は、入力形式そのものではなく、画面や業務の判断条件を表します。
+Business Rule は、入力形式そのものや単純な field 比較ではなく、画面や業務の判断条件を表します。
 
 ## クライアント単項目チェック
 
@@ -52,15 +53,23 @@ preview や review では、入力欄の metadata と検証ルールが別々に
 複数 field を見る条件は、単一 element に押し込まず、rule として分けます。
 
 ```markdown
-## Business Rules
+## Form Groups
 
-### R-PasswordMatches Password matches
+### F-PasswordForm Password form
 
-- when:
-  - E-PasswordInput.value is present
-  - E-PasswordConfirmInput.value differs from E-PasswordInput.value
-- appliesTo:
+- fields:
+  - E-PasswordInput
   - E-PasswordConfirmInput
+
+## Cross-field Validations
+
+### V-PasswordMatches Password matches
+
+- target: F-PasswordForm
+- inputs:
+  - E-PasswordInput
+  - E-PasswordConfirmInput
+- check: E-PasswordInput.value equals E-PasswordConfirmInput.value
 - message: Password confirmation does not match.
 ```
 
@@ -145,8 +154,9 @@ validation は判定だけでは不十分です。ユーザーに見える表示
 
 ## 迷ったとき
 
-- 1つの field だけで判定できるなら `## Elements`。
-- 複数 field や業務条件を見るなら `## Business Rules`。
+- 1つの field だけで判定できるなら `## Field Validations`。
+- 複数 field を比較するなら `## Cross-field Validations`。
+- 業務条件を見るなら `## Business Rules`。
 - server response で決まるなら `## Actions` の `case:`。
 - ユーザーに何を見せるかは `display` と error element で書く。
 - review で error case を preview したいなら、該当する `case:` を指す [シナリオ](scenarios.md) を追加する。

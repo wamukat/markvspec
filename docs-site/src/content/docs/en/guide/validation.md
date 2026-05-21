@@ -6,17 +6,18 @@ Validation explains what input is accepted and how errors appear.
 
 Start by separating where the decision is made and what it checks.
 
-## Four Buckets
+## Five Buckets
 
 | Kind | Examples | Write it in |
 | --- | --- | --- |
 | Client single-field check | required, email format, text length, numeric range | `## Field Validations` |
 | Input metadata | type, placeholder, min/max, browser-facing input hints | `## Elements` on the input |
-| Client cross-field check | password confirmation, start date <= end date | `## Cross-field Validations`, `## Business Rules`, or a pre-submit action |
+| Client cross-field check | password confirmation, start date <= end date | `## Cross-field Validations` |
+| Client product rule | age gate, plan restriction before submit | `## Business Rules` |
 | Server field check | duplicate email, unknown product code | `## Actions` response `case:` with the affected field |
 | Server business check | stock shortage, missing permission, contract restriction | `## Actions` response `case:` and `## Business Rules` |
 
-Business Rules are for product decisions. They are not the place for basic input shape such as required, format, min, or max.
+Business Rules are for product decisions. They are not the place for basic input shape such as required, format, min, max, or simple field comparison.
 
 ![Single Field Validation preview](../../assets/vscode-previews/single-field-validation-vscode-preview.png)
 
@@ -54,15 +55,23 @@ In preview and review, the reader can inspect the input metadata and validation 
 Rules that compare multiple inputs should not be hidden on one element.
 
 ```markdown
-## Business Rules
+## Form Groups
 
-### R-PasswordMatches Password matches
+### F-PasswordForm Password form
 
-- when:
-  - E-PasswordInput.value is present
-  - E-PasswordConfirmInput.value differs from E-PasswordInput.value
-- appliesTo:
+- fields:
+  - E-PasswordInput
   - E-PasswordConfirmInput
+
+## Cross-field Validations
+
+### V-PasswordMatches Password matches
+
+- target: F-PasswordForm
+- inputs:
+  - E-PasswordInput
+  - E-PasswordConfirmInput
+- check: E-PasswordInput.value equals E-PasswordConfirmInput.value
 - message: Password confirmation does not match.
 ```
 
@@ -147,8 +156,9 @@ Put display elements in `## Elements` as `Text`, `Paragraph`, or `Banner` with `
 
 ## When Unsure
 
-- One field decides it: write it in `## Elements`.
-- Multiple fields or a product condition decide it: write it in `## Business Rules`.
+- One field decides it: write it in `## Field Validations`.
+- Multiple fields are compared: write it in `## Cross-field Validations`.
+- A product condition decides it: write it in `## Business Rules`.
 - A server response decides it: write it in `## Actions` as a `case:`.
 - The user sees it: write a `display` target and message.
 - Reviewers need to see the error case in preview: add a [Scenario](/markvspec/en/guide/scenarios/) that points to the relevant `case:`.

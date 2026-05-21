@@ -9,7 +9,8 @@ title: "ログインフォーム"
 - `idle`: email、password、Sign in ボタン。
 - `submitting`: 送信中の状態。
 - `auth-error`: 認証エラーメッセージ。
-- required などの単項目制約は入力の近くに書く。
+- `required` などの入力メタデータは入力要素に書く。
+- 明示的なエラーメッセージが必要な検証は `## Field Validations` に書く。
 - locked account などの業務判断は `## Business Rules` に分ける。
 
 [Login example をプレビューで見る](/markvspec/examples/showcase/login-basic.html)
@@ -78,7 +79,7 @@ title: "ログインフォーム"
 ## ここを見る
 
 - ボタンが何を起こすか: `E-SignInButton` の `action`。
-- 入力フィールドの制約: `E-EmailInput` / `E-PasswordInput` の `required`。
+- 入力フィールドのメタデータ: `E-EmailInput` / `E-PasswordInput` の `required`。
 - 送信先: `request:` の下に書く `POST /login`。
 - 送信する値: `params`。
 - 成功時: `case: success`。
@@ -89,6 +90,7 @@ title: "ログインフォーム"
 
 - `action: submit` だけで終わらせる。
 - required や format を文章だけで説明する。
+- 明示的なエラーメッセージが必要な検証を `## Field Validations` に書かない。
 - 単なる required を `## Business Rules` に置く。
 - success / failure を文章だけで説明する。
 - CSS class やボタン色を書く。

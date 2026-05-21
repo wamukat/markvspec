@@ -7,7 +7,8 @@
 - `idle`: email、password、Sign in button。
 - `submitting`: 送信中の状態。
 - `auth-error`: 認証エラー message。
-- required などの単項目制約は input の近くに書く。
+- `required` などの入力メタデータは input に書く。
+- 明示的な error message が必要な検証は `## Field Validations` に書く。
 - locked account などの業務判断は `## Business Rules` に分ける。
 
 [Login example を preview で見る](../../../examples/showcase/login-basic.html)
@@ -76,7 +77,7 @@
 ## ここを見る
 
 - button が何を起こすか: `E-SignInButton` の `action`。
-- 入力 field の制約: `E-EmailInput` / `E-PasswordInput` の `required`。
+- 入力 field の metadata: `E-EmailInput` / `E-PasswordInput` の `required`。
 - 送信先: `request:` の下に書く `POST /login`。
 - 送信する値: `params`。
 - 成功時: `case: success`。
@@ -87,6 +88,7 @@
 
 - `action: submit` だけで終わらせる。
 - required や format を prose だけで説明する。
+- 明示的な error message が必要な検証を `## Field Validations` に書かない。
 - 単なる required を `## Business Rules` に置く。
 - success / failure を文章だけで説明する。
 - CSS class や button 色を書く。
