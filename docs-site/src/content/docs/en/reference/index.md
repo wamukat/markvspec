@@ -10,6 +10,7 @@ Learning-oriented explanations live in [Guide](/markvspec/en/guide/). Reference 
 
 - Check the shape of a source file: [File Format](/markvspec/en/reference/file-format/)
 - Check sections such as `## Layout: mobile`, `## Form Groups`, and `## Preview Scenarios`: [Sections](/markvspec/en/reference/sections/)
+- Check the canonical parser-facing syntax: [Grammar](/markvspec/en/reference/grammar/)
 - Check UI element types and properties: [Elements](/markvspec/en/reference/elements/)
 - Check clicks, requests, state changes, and partial updates: [Actions](/markvspec/en/reference/actions/)
 - Check input constraints and error display: [Validations](/markvspec/en/reference/validations/)
@@ -23,6 +24,7 @@ Learning-oriented explanations live in [Guide](/markvspec/en/guide/). Reference 
 | Page | Covers |
 | --- | --- |
 | [File Format](/markvspec/en/reference/file-format/) | `.vspec.md`, Front Matter, document type, and body shape |
+| [Grammar](/markvspec/en/reference/grammar/) | Canonical EBNF, semantic constraints, and non-canonical forms |
 | [Sections](/markvspec/en/reference/sections/) | Recognized sections, including layout, events, form groups, validations, slots, error codes, and history |
 | [Elements](/markvspec/en/reference/elements/) | Elements such as `Heading`, `Paragraph`, `Text`, `Input`, and `Button` |
 | [Actions](/markvspec/en/reference/actions/) | `action: A-*`, `## Events`, `Process Pn:`, `request`, `receive`, `case:`, and `display` |
@@ -35,6 +37,7 @@ Learning-oriented explanations live in [Guide](/markvspec/en/guide/). Reference 
 ## Common Lookups
 
 - Write the smallest useful screen: [File Format](/markvspec/en/reference/file-format/), [Sections](/markvspec/en/reference/sections/), [Elements](/markvspec/en/reference/elements/)
+- Check parser-facing canonical syntax: [Grammar](/markvspec/en/reference/grammar/)
 - Write a form: [Elements](/markvspec/en/reference/elements/), [Validations](/markvspec/en/reference/validations/), [Actions](/markvspec/en/reference/actions/)
 - Write form groups, preview scenarios, slots, or error codes: [Sections](/markvspec/en/reference/sections/)
 - Write an HTTP request: [Actions](/markvspec/en/reference/actions/), [Business Rules](/markvspec/en/reference/rules/), [IDs](/markvspec/en/reference/ids/)

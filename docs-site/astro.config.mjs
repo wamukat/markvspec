@@ -70,6 +70,7 @@ export default defineConfig({
           items: [
             { slug: 'reference' },
             { slug: 'reference/file-format' },
+            { slug: 'reference/grammar' },
             { slug: 'reference/sections' },
             { slug: 'reference/ids' },
             { slug: 'reference/elements' },

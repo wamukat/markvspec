@@ -10,6 +10,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 
 - ファイル全体の形を確認する: [ファイル形式](/markvspec/ja/reference/file-format/)
 - `## Layout: mobile`、`## Form Groups`、`## Preview Scenarios` などのセクションを確認する: [セクション](/markvspec/ja/reference/sections/)
+- parser 実装の基準になる canonical syntax を確認する: [Grammar](/markvspec/ja/reference/grammar/)
 - UI 部品の種類と項目を確認する: [要素](/markvspec/ja/reference/elements/)
 - クリック、リクエスト、状態変化、部分更新を確認する: [アクション](/markvspec/ja/reference/actions/)
 - 入力制約とエラー表示を確認する: [バリデーション](/markvspec/ja/reference/validations/)
@@ -23,6 +24,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 | ページ | 内容 |
 | --- | --- |
 | [ファイル形式](/markvspec/ja/reference/file-format/) | `.vspec.md`、Front Matter、文書タイプ、本文の基本形 |
+| [Grammar](/markvspec/ja/reference/grammar/) | canonical EBNF、semantic constraints、non-canonical forms |
 | [セクション](/markvspec/ja/reference/sections/) | レイアウト、イベント、フォームグループ、バリデーション、slot、エラーコード、履歴などのセクション |
 | [要素](/markvspec/ja/reference/elements/) | `Heading`、`Paragraph`、`Text`、`Input`、`Button` などの要素 |
 | [アクション](/markvspec/ja/reference/actions/) | `action: A-*`、`## Events`、`Process Pn:`、`request`、`receive`、`case:`、`display` |
@@ -35,6 +37,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 ## よく見る組み合わせ
 
 - 最小の画面を書く: [ファイル形式](/markvspec/ja/reference/file-format/)、[セクション](/markvspec/ja/reference/sections/)、[要素](/markvspec/ja/reference/elements/)
+- parser-facing canonical syntax を確認する: [Grammar](/markvspec/ja/reference/grammar/)
 - フォームを書く: [要素](/markvspec/ja/reference/elements/)、[バリデーション](/markvspec/ja/reference/validations/)、[アクション](/markvspec/ja/reference/actions/)
 - フォームグループ、プレビューシナリオ、slot、エラーコードを書く: [セクション](/markvspec/ja/reference/sections/)
 - HTTP リクエストを書く: [アクション](/markvspec/ja/reference/actions/)、[ビジネスルール](/markvspec/ja/reference/rules/)、[ID](/markvspec/ja/reference/ids/)
