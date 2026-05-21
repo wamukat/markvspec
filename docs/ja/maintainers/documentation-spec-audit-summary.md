@@ -9,6 +9,8 @@
 examples showcase への導線です。公開サイトの正本は
 `docs-site/src/content/docs/` であり、`docs/` は repository 上で読める
 Markdown mirror として扱います。
+README.md / README.ja.md は旧構文、未実装構文、利用者入口としての表現を
+検索対象に含め、必要な日本語表現とリンクラベルを修正しました。
 
 ## 監査方針
 
