@@ -1,0 +1,202 @@
+#!/usr/bin/env node
+import { execFileSync } from "node:child_process";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { join, relative } from "node:path";
+
+const root = process.cwd();
+const docsRoots = ["docs/en/reference", "docs/ja/reference"];
+const tempDir = join(root, ".work", "docs-code-audit");
+
+function toPosixPath(filePath) {
+  return filePath.split(/[\\/]/u).join("/");
+}
+
+function collectMarkdownFiles(dir) {
+  const entries = readdirSync(dir, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const fullPath = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...collectMarkdownFiles(fullPath));
+    } else if (entry.isFile() && entry.name.endsWith(".md")) {
+      files.push(fullPath);
+    }
+  }
+  return files.sort((a, b) => a.localeCompare(b));
+}
+
+function fencedBlocks(markdown) {
+  const blocks = [];
+  const pattern = /```([^\n]*)\n([\s\S]*?)```/gu;
+  for (const match of markdown.matchAll(pattern)) {
+    blocks.push({
+      info: match[1].trim(),
+      body: match[2],
+      offset: match.index ?? 0,
+    });
+  }
+  return blocks;
+}
+
+function lineNumberForOffset(text, offset) {
+  return text.slice(0, offset).split("\n").length;
+}
+
+function parseInfo(info) {
+  const tokens = info.split(/\s+/u).filter(Boolean);
+  const attributes = new Map();
+  for (const token of tokens) {
+    const match = /^([A-Za-z0-9_-]+)=([A-Za-z0-9_-]+)$/u.exec(token);
+    if (match) {
+      attributes.set(match[1], match[2]);
+    }
+  }
+  return {
+    tokens,
+    attributes,
+    isMarkVSpec: tokens.includes("markvspec") || tokens.includes("vspec"),
+    isFragment: tokens.includes("markvspec-fragment"),
+    isExplicitSkip: tokens.includes("markvspec-skip"),
+  };
+}
+
+function sectionHeading(section) {
+  switch (section) {
+    case "actions":
+      return "## Actions";
+    case "business-rules":
+      return "## Business Rules";
+    case "elements":
+      return "## Elements";
+    case "events":
+      return "## Events";
+    case "field-validations":
+      return "## Field Validations";
+    case "form-groups":
+      return "## Form Groups";
+    case "layout":
+      return "## Layout: mobile";
+    case "preview-scenarios":
+      return "## Preview Scenarios";
+    case "states":
+      return "## States";
+    case "view-context":
+      return "## View Context";
+    default:
+      throw new Error(`Unsupported markvspec-fragment section: ${section}`);
+  }
+}
+
+function fragmentWrapper(body, section) {
+  const trimmedBody = body.trimEnd();
+  const fragment = section && !/^##\s/u.test(trimmedBody)
+    ? `${sectionHeading(section)}\n\n${trimmedBody}`
+    : trimmedBody;
+  return `---
+id: SCR-DOCS-CODE-AUDIT
+type: screen
+title: Docs Code Audit
+route: /docs-code-audit
+locale: en
+---
+
+# SCR-DOCS-CODE-AUDIT Docs Code Audit
+
+${fragment}
+`;
+}
+
+function writeAuditFile(rel, index, body) {
+  const safeName = rel.replace(/[\\/]/gu, "__").replace(/[^A-Za-z0-9_.-]/gu, "_");
+  const outputPath = join(tempDir, `${safeName}-${index}.vspec.md`);
+  writeFileSync(outputPath, body.trimEnd() + "\n");
+  return outputPath;
+}
+
+function main() {
+  if (!existsSync(join(root, "packages/cli/dist/index.js"))) {
+    throw new Error("Missing built CLI. Run `npm run build -w @markvspec/cli` before audit:docs-code.");
+  }
+
+  rmSync(tempDir, { recursive: true, force: true });
+  mkdirSync(tempDir, { recursive: true });
+
+  const files = docsRoots.flatMap((dir) => collectMarkdownFiles(join(root, dir)));
+  const targets = [];
+  const skipped = new Map();
+  const explicitSkips = new Map();
+  const errors = [];
+
+  for (const filePath of files) {
+    const markdown = readFileSync(filePath, "utf8");
+    const rel = toPosixPath(relative(root, filePath));
+    for (const [index, block] of fencedBlocks(markdown).entries()) {
+      const info = parseInfo(block.info);
+      if (info.isFragment) {
+        try {
+          targets.push(writeAuditFile(rel, index, fragmentWrapper(block.body, info.attributes.get("section"))));
+        } catch (error) {
+          errors.push(`${rel}:${lineNumberForOffset(markdown, block.offset)} ${error instanceof Error ? error.message : String(error)}`);
+        }
+        continue;
+      }
+      if (info.isMarkVSpec) {
+        targets.push(writeAuditFile(rel, index, block.body));
+        continue;
+      }
+      if (info.isExplicitSkip) {
+        const reason = info.attributes.get("reason") ?? "unspecified";
+        explicitSkips.set(reason, (explicitSkips.get(reason) ?? 0) + 1);
+        continue;
+      }
+
+      const key = block.info || "plain";
+      skipped.set(key, (skipped.get(key) ?? 0) + 1);
+      if (block.info.includes("markvspec")) {
+        errors.push(`${rel}:${lineNumberForOffset(markdown, block.offset)} unsupported MarkVSpec code fence info: ${block.info}`);
+      }
+    }
+  }
+
+  if (targets.length === 0) {
+    errors.push("No MarkVSpec code blocks were marked for validation.");
+  }
+
+  if (errors.length === 0) {
+    try {
+      execFileSync("node", ["packages/cli/dist/index.js", "validate", "--fail-on-warnings", ...targets], {
+        cwd: root,
+        stdio: "pipe",
+      });
+    } catch (error) {
+      errors.push(`Marked docs code validation failed:\n${error.stdout?.toString() ?? ""}${error.stderr?.toString() ?? ""}`.trim());
+    }
+  }
+
+  if (errors.length > 0) {
+    console.error("Docs code audit failed.");
+    console.error(errors.map((error) => `- ${error}`).join("\n"));
+    process.exit(1);
+  }
+
+  console.log(`Docs code audit passed for ${targets.length} marked MarkVSpec code block(s) in ${files.length} file(s).`);
+  const explicitSkipSummary = [...explicitSkips.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([reason, count]) => `${reason}: ${count}`)
+    .join(", ");
+  console.log(`Explicit MarkVSpec skips: ${explicitSkipSummary || "none"}.`);
+  const skippedSummary = [...skipped.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([info, count]) => `${info}: ${count}`)
+    .join(", ");
+  console.log(`Skipped fences: ${skippedSummary || "none"}.`);
+}
+
+main();

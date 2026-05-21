@@ -16,7 +16,7 @@ Validations は入力値の検証契約とエラー表示を扱います。入�
 
 ## 書ける構文
 
-```markdown
+```markdown markvspec-fragment
 ## Elements
 
 ### E-EmailInput Input
@@ -55,7 +55,7 @@ Validations は入力値の検証契約とエラー表示を扱います。入�
 
 複数フィールドを見る検証は、対象フィールドを `## Form Groups` でまとめ、`## Cross-field Validations` から参照します。
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Form Groups
 
 ### F-PasswordForm Password form
@@ -82,7 +82,7 @@ Validations は入力値の検証契約とエラー表示を扱います。入�
 
 エラーメッセージは `## Field Validations` の各制約に `message` として書きます。
 
-```markdown
+```markdown markvspec-skip reason=context
 - constraints:
   - required:
     - message: Password is required.
@@ -92,7 +92,7 @@ Validations は入力値の検証契約とエラー表示を扱います。入�
 
 ## 小さな例
 
-```markdown
+```markdown markvspec-skip reason=context
 ### E-QuantityInput Input
 
 - label: Quantity

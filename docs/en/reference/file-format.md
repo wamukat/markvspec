@@ -5,7 +5,7 @@ A `.vspec.project.md` file describes a project index that points to screen and t
 
 ## Syntax You Can Write
 
-```markdown
+```markdown markvspec
 ---
 id: SCR-LOGIN
 type: screen
@@ -44,7 +44,7 @@ Do not put element properties, actions, or layout items in Front Matter. Put the
 
 Use a project file when you want one preview to list related screens and templates.
 
-```markdown
+```markdown markvspec-skip reason=context
 ---
 id: PRJ-ACCOUNT
 type: project
@@ -88,7 +88,7 @@ JSON is not the authoring format. Tools may use JSON internally or in exports, b
 
 ## Small Example
 
-```markdown
+```markdown markvspec
 ---
 id: SCR-HELLO
 type: screen

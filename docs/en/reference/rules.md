@@ -6,7 +6,7 @@ Use Business Rules when the decision depends on product meaning: permissions, ac
 
 ## Syntax You Can Write
 
-```markdown
+```markdown markvspec-fragment section=business-rules
 ## Business Rules
 
 ### R-AccountLocked Locked account
@@ -28,7 +28,7 @@ Use Business Rules when the decision depends on product meaning: permissions, ac
 
 Declare a rule with the `### R-* Name` form.
 
-```markdown
+```markdown markvspec-fragment section=business-rules
 ### R-PasswordPolicy Password policy
 ```
 
@@ -44,7 +44,7 @@ Declare a rule with the `### R-* Name` form.
 
 ## Small Example
 
-```markdown
+```markdown markvspec-skip reason=context
 ### R-EmptyResult Empty search result
 
 - when: search returns no items
@@ -60,7 +60,7 @@ When an action result is a business rule violation, put `business rule:` under
 `case: business-rule-violation`. Other case names with `business rule:` are
 reported as non-canonical.
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Actions
 
 ### A-Submit Submit

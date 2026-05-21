@@ -5,7 +5,7 @@
 
 ## 書ける構文
 
-```markdown
+```markdown markvspec
 ---
 id: SCR-LOGIN
 type: screen
@@ -44,7 +44,7 @@ Front Matter には要素の項目、アクション、レイアウト項目は�
 
 複数の画面とテンプレートを1つのプレビューで確認したい場合はプロジェクトファイルを使います。
 
-```markdown
+```markdown markvspec-skip reason=context
 ---
 id: PRJ-ACCOUNT
 type: project
@@ -88,7 +88,7 @@ JSON は作成用フォーマットではありません。ツールの内部表
 
 ## 小さな例
 
-```markdown
+```markdown markvspec
 ---
 id: SCR-HELLO
 type: screen

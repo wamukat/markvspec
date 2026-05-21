@@ -48,6 +48,9 @@ jobs:
       - name: Audit reference docs
         run: npm run audit:docs-reference
 
+      - name: Audit docs code blocks
+        run: npm run audit:docs-code
+
       - name: Build Pages site
         run: npm run build:pages
 

@@ -6,7 +6,7 @@
 
 ## 書ける構文
 
-```markdown
+```markdown markvspec-fragment section=business-rules
 ## Business Rules
 
 ### R-AccountLocked Locked account
@@ -28,7 +28,7 @@
 
 Rule は `### R-* Name` の形で宣言します。
 
-```markdown
+```markdown markvspec-fragment section=business-rules
 ### R-PasswordPolicy Password policy
 ```
 
@@ -44,7 +44,7 @@ Rule は `### R-* Name` の形で宣言します。
 
 ## 小さな例
 
-```markdown
+```markdown markvspec-skip reason=context
 ### R-EmptyResult Empty search result
 
 - when: search returns no items
@@ -60,7 +60,7 @@ Rule は `### R-* Name` の形で宣言します。
 `case: business-rule-violation` の下に書きます。他の case 名で
 `business rule:` を書くと、非 canonical な記述として診断されます。
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Actions
 
 ### A-Submit Submit

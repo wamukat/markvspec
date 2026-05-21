@@ -31,8 +31,18 @@ validate と照合します。
 - Actions / Validations / Business Rules の主要 key が現行構文と合っていること。
 - Markdown code block を完全な `.vspec.md` 例と断片例に分け、完全例は CLI validate に通すこと。
 
+#1361 で、Reference の明示 marker 付き code block を `validate --fail-on-warnings`
+に通す `npm run audit:docs-code` を追加しました。
+
+- `markdown markvspec` は完全な `.vspec.md` として検証します。
+- `markdown markvspec-fragment` は監査用の最小 `.vspec.md` に包んで検証します。
+  Section なしの断片は `section=elements` のように補助 section を明示します。
+- `markdown markvspec-skip reason=...` は、文脈依存の断片や「書いてはいけない例」など、
+  CLI validate にそのまま通せない block として明示的に対象外にします。
+- 通常の `markdown` は MarkVSpec 以外の Markdown として扱います。
+
 `docs/` を正本にする運用を保つため、Pages CI でも `npm run audit:docs-reference`
-を実行します。
+と `npm run audit:docs-code` を実行します。
 
 ## 照合した根拠
 

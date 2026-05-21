@@ -6,7 +6,7 @@ MarkVSpec is a text-first screen specification format. It is not a visual design
 
 Write semantic DSL instead of implementation details.
 
-```markdown
+```markdown markvspec-skip reason=context
 ### E-Submit Button
 
 - label: Submit
@@ -30,7 +30,7 @@ Write semantic DSL instead of implementation details.
 
 Avoid:
 
-```markdown
+```markdown markvspec-skip reason=context
 ### E-Submit Button
 
 - class: btn btn-blue w-240
@@ -40,7 +40,7 @@ Avoid:
 
 Prefer:
 
-```markdown
+```markdown markvspec-skip reason=context
 ### E-Submit Button
 
 - label: Submit

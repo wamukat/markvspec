@@ -4,7 +4,7 @@ Sections are top-level headings in the `.vspec.md` body. MarkVSpec uses the sect
 
 ## Syntax You Can Write
 
-```markdown
+```markdown markvspec-skip reason=context
 ## States
 
 - idle*
@@ -29,7 +29,7 @@ Sections are top-level headings in the `.vspec.md` body. MarkVSpec uses the sect
 Use `L-*` for meaningful regions. Use `P-*` only for a helper group that adjusts
 visual arrangement.
 
-```markdown
+```markdown markvspec-skip reason=context
 ### L-Form Form
 
 - stack
@@ -87,7 +87,7 @@ MarkVSpec recognizes these top-level sections.
 Write states as bullets under `## States`. Add `*` to exactly one state when you
 want to mark the initial state explicitly.
 
-```markdown
+```markdown markvspec-skip reason=context
 ## States
 
 - idle*
@@ -102,7 +102,7 @@ notes.
 
 Use `## Form Groups` when several inputs are validated or submitted together.
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Form Groups
 
 ### F-LoginForm Login form
@@ -121,7 +121,7 @@ Use it for login, search, profile, and settings forms. See
 
 Use `## Events` for lifecycle events that are not clicked from an element.
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Events
 
 - page.load: A-LoadPreferences
@@ -137,7 +137,7 @@ Use `## View Context` and `## View Context Samples` when tabs, selected rows,
 open help panels, or similar display context changes without creating another
 state.
 
-```markdown
+```markdown markvspec-fragment
 ## View Context
 
 ### selectedTab
@@ -168,7 +168,7 @@ preview/export rendering. It includes scalar Element display values, Element
 `sample rows:`, Preview Scenario `samples:`, Preview Scenario `route:`, and
 `## View Context Samples`.
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Preview Scenarios
 
 ### idle-validation-error
@@ -187,7 +187,7 @@ states. `samples:` is Scenario Preview Data for Element-specific values. Use
 `E-ElementId: value` for ordinary elements and `rows:` for `Table` / `List`.
 Use `rows: []` for an empty repeated view.
 
-```markdown
+```markdown markvspec-skip reason=context
 - samples:
   - E-Users:
     - rows:
@@ -218,7 +218,7 @@ and [Display Effects](../../../examples/showcase/display-effects.html).
 Use `## Field Validations` for one input. Use `## Cross-field Validations` when
 the check depends on multiple inputs or a form group.
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Field Validations
 
 ### V-EmailRules Email rules
@@ -247,7 +247,7 @@ and [Login Basic](../../../examples/showcase/login-basic.html).
 Use `## Slots` in a template to declare the slot. Use `## Slot: name` in a page
 or partial to provide content for that slot.
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Slots
 
 ### content Main content
@@ -275,7 +275,7 @@ display style. Each error code must define `business rule`, `target`, `message`,
 and `display`. Recognized `display` values are `inline`, `form`, `global`,
 `banner`, `toast`, `dialog`, and `none`.
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Business Rules
 
 ### R-EmailMustBeUnique Email must be unique
@@ -300,7 +300,7 @@ See [Form Submit Flow](../../../examples/showcase/form-submit-flow.html).
 Use `## History Fields` to define structured fields, then write release entries
 under `## History`.
 
-```markdown
+```markdown markvspec-skip reason=context
 ## History Fields
 
 - date
@@ -321,7 +321,7 @@ Use it for specification files that need review history. See
 
 ## Small Example
 
-```markdown
+```markdown markvspec-fragment
 ## Elements
 
 ### E-Message Paragraph

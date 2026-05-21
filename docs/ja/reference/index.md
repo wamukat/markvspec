@@ -41,7 +41,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 
 ## 小さな例
 
-```markdown
+```markdown markvspec
 ---
 id: SCR-HELLO
 type: screen

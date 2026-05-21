@@ -4,7 +4,7 @@ ID は対象を安定して参照するための名前です。表示ラベル�
 
 ## 書ける構文
 
-```markdown
+```markdown markvspec-skip reason=context
 ---
 id: SCR-LOGIN
 type: screen
@@ -51,7 +51,7 @@ title: Login
 
 対象見出しには、プレビュー用マーカーを ID の前に付けられます。
 
-```markdown
+```markdown markvspec-skip reason=context
 ### 5:E-SignInButton Button
 
 ### A1:A-SubmitLogin Submit login
@@ -65,13 +65,13 @@ title: Login
 
 プレビュー用マーカーが不要な場合は、省略できます。
 
-```markdown
+```markdown markvspec-skip reason=context
 ### E-SignInButton Button
 ```
 
 ## 小さな例
 
-```markdown
+```markdown markvspec-skip reason=context
 ### 1:E-RememberMe Checkbox
 
 - label: Remember me

@@ -4,7 +4,7 @@
 
 ## Syntax You Can Write
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Elements
 
 ### E-Title Heading
@@ -30,7 +30,7 @@
 Declare an element with `### E-* Name Type`. When you want the preview to show
 a marker, write `### marker:E-* Name Type`.
 
-```markdown
+```markdown markvspec-skip reason=duplicate-marker-forms
 ### E-HelpText Paragraph
 
 ### 3:E-HelpText Paragraph
@@ -128,7 +128,7 @@ kind of UI is intended.
 
 ## Small Example
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Elements
 
 ### E-ErrorMessage Paragraph

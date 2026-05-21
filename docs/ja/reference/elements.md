@@ -4,7 +4,7 @@
 
 ## 書ける構文
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Elements
 
 ### E-Title Heading
@@ -30,7 +30,7 @@
 要素は `### E-* Name Type` で宣言します。プレビューにマーカーを出したい場合は
 `### marker:E-* Name Type` と書きます。
 
-```markdown
+```markdown markvspec-skip reason=duplicate-marker-forms
 ### E-HelpText Paragraph
 
 ### 3:E-HelpText Paragraph
@@ -127,7 +127,7 @@ examples には次の専用コントロールも出ます。画面の意味を�
 
 ## 小さな例
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Elements
 
 ### E-ErrorMessage Paragraph
