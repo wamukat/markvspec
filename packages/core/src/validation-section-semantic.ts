@@ -1,6 +1,7 @@
 import type { BlockAst, SectionAst, SectionKind } from "./markdown-section-ast.js";
 import { addAccumulatedSectionProperty } from "./section-property-accumulator.js";
 import { createUnsupportedStructuredItemDiagnostic } from "./source-text-diagnostics.js";
+import { grammarAllowedStructuredItemKeys, grammarStructuredItemForContext } from "./grammar-definition.js";
 import type {
   MarkVSpecDiagnostic,
   MarkVSpecSectionProse,
@@ -44,21 +45,7 @@ export interface ValidationSectionSemanticResult {
   dependencies: ValidationSectionDependency[];
 }
 
-const validationPropertyKeys = new Set([
-  "marker",
-  "description",
-  "target",
-  "scope",
-  "run",
-  "inputs",
-  "rules",
-  "constraints",
-  "check",
-  "when",
-  "message",
-  "messages",
-  "error code"
-]);
+const validationPropertyKeys = grammarAllowedStructuredItemKeys("validation.property");
 
 export function parseValidationsSection(
   section: SectionAst,
@@ -149,7 +136,7 @@ export function parseValidationsSection(
             context: `Validation ${current.id}`,
             text: bullet.text,
             location: bullet.location,
-            allowed: [...validationPropertyKeys].join(", ")
+            allowed: validationPropertyKeys.join(", ")
           }));
         }
         continue;
@@ -248,7 +235,7 @@ function applyValidationBullet(
 
   const normalizedKey = key.trim();
   const normalizedValue = value.trim();
-  if (!validationPropertyKeys.has(normalizedKey)) {
+  if (!grammarStructuredItemForContext("validation.property", normalizedKey).represented) {
     return false;
   }
   validation.bullets.push({ text, location });

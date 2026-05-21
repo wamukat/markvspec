@@ -284,34 +284,6 @@ export const grammarStructuredItemDefinitionsByContext: Partial<Record<GrammarSt
 
 export const grammarDefinitionHardCodeInventory = [
   inventory(
-    "packages/core/src/validation-section-semantic.ts",
-    "validationPropertyKeys",
-    1371,
-    "Validations / Field Validations / Cross-field Validations",
-    "Validation structured item keys are still owned by the semantic parser."
-  ),
-  inventory(
-    "packages/core/src/markdown-section-semantic.ts",
-    "formGroupPropertyKeys",
-    1371,
-    "Form Groups",
-    "Form Group property keys are still owned by the semantic parser."
-  ),
-  inventory(
-    "packages/core/src/markdown-section-semantic.ts",
-    "businessRulePropertyKeys",
-    1371,
-    "Business Rules",
-    "Business Rule property keys are still owned by the semantic parser."
-  ),
-  inventory(
-    "packages/core/src/markdown-section-semantic.ts",
-    "errorCodePropertyKeys",
-    1371,
-    "Error Codes",
-    "Error Code property keys are still owned by the semantic parser."
-  ),
-  inventory(
     "packages/core/src/markdown-section-semantic.ts",
     "viewContextPropertyKeys",
     1372,

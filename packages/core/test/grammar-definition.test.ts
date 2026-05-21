@@ -61,16 +61,12 @@ test("grammar hard-code inventory maps parser-local structured items to follow-u
   for (const entry of grammarDefinitionHardCodeInventory) {
     assert.match(entry.source, /^packages\/core\/src\//);
     assert.match(entry.owner, /\S/);
-    assert.ok(entry.targetTicket >= 1371);
+    assert.ok(entry.targetTicket >= 1372);
     assert.match(entry.scope, /\S/);
     assert.match(entry.note, /\S/);
   }
 
-  assert.ok(
-    grammarDefinitionHardCodeInventory.some((entry) =>
-      entry.source === "packages/core/src/validation-section-semantic.ts" && entry.owner === "validationPropertyKeys"
-    )
-  );
+  assert.equal(grammarDefinitionHardCodeInventory.some((entry) => entry.targetTicket === 1371), false);
   assert.ok(
     grammarDefinitionHardCodeInventory.some((entry) =>
       entry.source === "packages/core/src/preview-scenario-section-semantic.ts" && entry.owner === "previewScenarioPropertyKeys"

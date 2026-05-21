@@ -52,7 +52,7 @@ import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
 import { createUnsupportedStructuredItemDiagnostic } from "./source-text-diagnostics.js";
 import { isMarkVSpecSourceType } from "./source-types.js";
 import { addAccumulatedSectionProperty, addPropertyLocation } from "./section-property-accumulator.js";
-import { grammarSectionOrderRank, grammarSectionOrderText } from "./grammar-definition.js";
+import { grammarAllowedStructuredItemKeys, grammarSectionOrderRank, grammarSectionOrderText, grammarStructuredItemForContext } from "./grammar-definition.js";
 
 export interface SemanticDependency {
   source: { type: "entity" | "section" | "render"; id: string };
@@ -177,9 +177,9 @@ const accordionItemPropertyKeys = new Set(["panel", "action", "open when"]);
 const panelItemPropertyKeys = new Set([...tabItemPropertyKeys, ...accordionItemPropertyKeys]);
 const actionMenuItemPropertyKeys = new Set(["action", "tone", "disabled when"]);
 const viewContextPropertyKeys = new Set(["type", "values"]);
-const formGroupPropertyKeys = new Set(["marker", "description", "purpose", "fields", "submit"]);
-const errorCodePropertyKeys = new Set(["marker", "business rule", "target", "message", "display", "tone", "description"]);
-const businessRulePropertyKeys = new Set(["marker", "description", "when", "effect", "message", "messages", "appliesTo", "priority"]);
+const formGroupPropertyKeys = grammarAllowedStructuredItemKeys("form-group.property");
+const errorCodePropertyKeys = grammarAllowedStructuredItemKeys("error-code.property");
+const businessRulePropertyKeys = grammarAllowedStructuredItemKeys("business-rule.property");
 const previewScenarioSectionSemanticSupport: PreviewScenarioSectionSemanticSupport = {
   appendEntityProseLines,
   isEntityNoteBlock,
@@ -1285,7 +1285,7 @@ function parseFormGroupsSection(section: SectionAst): Pick<SectionSemanticResult
           context: `FormGroup ${current.id}`,
           text: bullet.text,
           location,
-          allowed: [...formGroupPropertyKeys].join(", ")
+          allowed: formGroupPropertyKeys.join(", ")
         }));
       }
     }
@@ -2255,19 +2255,19 @@ function applyFormGroupBullet(formGroup: MarkVSpecFormGroup, text: string, locat
       context: `FormGroup ${formGroup.id}`,
       text,
       location,
-      allowed: [...formGroupPropertyKeys].join(", ")
+      allowed: formGroupPropertyKeys.join(", ")
     }));
     return undefined;
   }
 
   const normalizedKey = key.trim();
   const normalizedValue = value.trim();
-  if (!formGroupPropertyKeys.has(normalizedKey)) {
+  if (!grammarStructuredItemForContext("form-group.property", normalizedKey).represented) {
     diagnostics.push(createUnsupportedStructuredItemDiagnostic({
       context: `FormGroup ${formGroup.id}`,
       text,
       location,
-      allowed: [...formGroupPropertyKeys].join(", ")
+      allowed: formGroupPropertyKeys.join(", ")
     }));
     return undefined;
   }
@@ -2317,19 +2317,19 @@ function applyErrorCodeBullet(errorCode: MarkVSpecErrorCode, text: string, locat
       context: `Error Code ${errorCode.id}`,
       text,
       location,
-      allowed: [...errorCodePropertyKeys].join(", ")
+      allowed: errorCodePropertyKeys.join(", ")
     }));
     return;
   }
 
   const normalizedKey = key.trim();
   const normalizedValue = value.trim();
-  if (!errorCodePropertyKeys.has(normalizedKey)) {
+  if (!grammarStructuredItemForContext("error-code.property", normalizedKey).represented) {
     diagnostics.push(createUnsupportedStructuredItemDiagnostic({
       context: `Error Code ${errorCode.id}`,
       text,
       location,
-      allowed: [...errorCodePropertyKeys].join(", ")
+      allowed: errorCodePropertyKeys.join(", ")
     }));
     return;
   }
@@ -2464,12 +2464,12 @@ function applyRuleBullet(rule: MarkVSpecRule, text: string, location: SourceLoca
   }
   const normalizedKey = key.trim();
   const normalizedValue = value.trim();
-  if (!businessRulePropertyKeys.has(normalizedKey)) {
+  if (!grammarStructuredItemForContext("business-rule.property", normalizedKey).represented) {
     diagnostics.push(createUnsupportedStructuredItemDiagnostic({
       context: `Business Rule ${rule.id}`,
       text,
       location,
-      allowed: [...businessRulePropertyKeys].join(", ")
+      allowed: businessRulePropertyKeys.join(", ")
     }));
     return;
   }
@@ -2483,7 +2483,7 @@ function applyRuleBullet(rule: MarkVSpecRule, text: string, location: SourceLoca
 function appendRuleBodyLinesForSupportedItems(rule: MarkVSpecRule, block: Extract<BlockAst, { type: "list" }>): void {
   const lines = block.children.flatMap((item) => {
     const [key, value] = splitKeyValue(item.text);
-    if (value !== undefined && !businessRulePropertyKeys.has(key.trim())) {
+    if (value !== undefined && !grammarStructuredItemForContext("business-rule.property", key.trim()).represented) {
       return [];
     }
     return item.sourceLines && item.sourceLines.length > 0 ? item.sourceLines : [`- ${item.text}`];
