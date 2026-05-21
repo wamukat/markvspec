@@ -21,7 +21,10 @@ export type GrammarStructuredItemContext =
   | "slot.definition"
   | "form-group.property"
   | "view-context.property"
+  | "view-context-sample.property"
   | "preview-scenario.property"
+  | "preview-scenario.route-property"
+  | "preview-scenario.sample-property"
   | "validation.property"
   | "business-rule.property"
   | "error-code.property"
@@ -208,7 +211,75 @@ export const grammarStructuredItemDefinitionsByContext: Partial<Record<GrammarSt
   ),
   "slot.definition": slotDefinitionPropertyKeys.map((key) =>
     item(key, "canonical", true, "Slot definition property.", "Slot definition property。")
-  )
+  ),
+  "form-group.property": canonicalItems(
+    ["marker", "description", "purpose", "fields", "submit"],
+    "Form Group property.",
+    "Form Group property。"
+  ),
+  "view-context.property": canonicalItems(
+    ["type", "values"],
+    "View Context property.",
+    "View Context property。"
+  ),
+  "view-context-sample.property": [
+    item("view context key", "represented-extension", true, "Sample value keyed by View Context definition.", "View Context 定義によって key が決まる sample value。")
+  ],
+  "preview-scenario.property": canonicalItems(
+    ["state", "model", "view", "route", "samples", "before", "cases"],
+    "Preview Scenario property.",
+    "Preview Scenario property。"
+  ),
+  "preview-scenario.route-property": [
+    item("route parameter key", "represented-extension", true, "Route sample value keyed by screen route parameters.", "screen route parameter によって key が決まる route sample value。")
+  ],
+  "preview-scenario.sample-property": [
+    item("element id", "represented-extension", true, "Sample value keyed by Element id.", "Element id によって key が決まる sample value。"),
+    item("source row key", "represented-extension", true, "Sample row value keyed by source data columns.", "source data column によって key が決まる sample row value。")
+  ],
+  "validation.property": canonicalItems(
+    ["marker", "description", "target", "scope", "run", "inputs", "rules", "constraints", "check", "when", "message", "messages", "error code"],
+    "Validation property.",
+    "Validation property。"
+  ),
+  "business-rule.property": canonicalItems(
+    ["marker", "description", "when", "effect", "message", "messages", "appliesTo", "priority"],
+    "Business Rule property.",
+    "Business Rule property。"
+  ),
+  "error-code.property": canonicalItems(
+    ["marker", "business rule", "target", "message", "display", "tone", "description"],
+    "Error Code property.",
+    "Error Code property。"
+  ),
+  "element.tab-item.property": canonicalItems(
+    ["panel", "action", "active when"],
+    "Tabs item property.",
+    "Tabs item property。"
+  ),
+  "element.accordion-item.property": canonicalItems(
+    ["panel", "action", "open when"],
+    "Accordion item property.",
+    "Accordion item property。"
+  ),
+  "element.action-menu-item.property": canonicalItems(
+    ["action", "tone", "disabled when"],
+    "ActionMenu item property.",
+    "ActionMenu item property。"
+  ),
+  "element.display-value-metadata": canonicalItems(
+    ["text", "value", "sample", "content", "message", "source", "src", "initial value"],
+    "Display value metadata property.",
+    "Display value metadata property。"
+  ),
+  "history-field.property": canonicalItems(
+    ["label", "required", "type"],
+    "History Field property.",
+    "History Field property。"
+  ),
+  "history-entry.property": [
+    item("field key", "represented-extension", true, "History entry metadata keyed by History Fields.", "History Fields によって定義される History entry metadata。")
+  ]
 };
 
 export const grammarDefinitionHardCodeInventory = [
@@ -379,6 +450,14 @@ function item(
     diagnosticSeverity: classification === "canonical" ? undefined : classification === "represented-extension" ? "info" : "warning",
     description: { en, ja }
   };
+}
+
+function canonicalItems(
+  keys: readonly string[],
+  en: string,
+  ja: string
+): GrammarStructuredItemDefinition[] {
+  return keys.map((key) => item(key, "canonical", true, en, ja));
 }
 
 function inventory(

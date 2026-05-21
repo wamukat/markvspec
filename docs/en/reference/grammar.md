@@ -156,7 +156,7 @@ The marker prefix is optional. It is used when previews or generated reference v
 
 ## Structured Item Classification
 
-This section is generated from `packages/core/src/grammar-definition.ts`. Semantic parsers use the same definition for structured item classification in the scoped areas.
+This section is generated from `packages/core/src/grammar-definition.ts`. Definition coverage spans every structured section. Semantic parser migration is incremental; migrated scopes use the same definition.
 
 ### Action Top-Level Items
 
@@ -262,6 +262,150 @@ Undefined layout metadata is a preserved extension item and receives an informat
 - `description`
 
 Undefined slot definition properties do not enter the render model and receive warning diagnostics.
+
+### Section Structured Items
+
+#### Form Groups
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `marker` | canonical | yes | - | Form Group property. |
+| `description` | canonical | yes | - | Form Group property. |
+| `purpose` | canonical | yes | - | Form Group property. |
+| `fields` | canonical | yes | - | Form Group property. |
+| `submit` | canonical | yes | - | Form Group property. |
+
+#### View Context
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `type` | canonical | yes | - | View Context property. |
+| `values` | canonical | yes | - | View Context property. |
+
+#### View Context Samples
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `view context key` | represented-extension | yes | info | Sample value keyed by View Context definition. |
+
+#### Preview Scenarios
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `state` | canonical | yes | - | Preview Scenario property. |
+| `model` | canonical | yes | - | Preview Scenario property. |
+| `view` | canonical | yes | - | Preview Scenario property. |
+| `route` | canonical | yes | - | Preview Scenario property. |
+| `samples` | canonical | yes | - | Preview Scenario property. |
+| `before` | canonical | yes | - | Preview Scenario property. |
+| `cases` | canonical | yes | - | Preview Scenario property. |
+
+#### Preview Scenario Route Entries
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `route parameter key` | represented-extension | yes | info | Route sample value keyed by screen route parameters. |
+
+#### Preview Scenario Sample Entries
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `element id` | represented-extension | yes | info | Sample value keyed by Element id. |
+| `source row key` | represented-extension | yes | info | Sample row value keyed by source data columns. |
+
+#### Validations
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `marker` | canonical | yes | - | Validation property. |
+| `description` | canonical | yes | - | Validation property. |
+| `target` | canonical | yes | - | Validation property. |
+| `scope` | canonical | yes | - | Validation property. |
+| `run` | canonical | yes | - | Validation property. |
+| `inputs` | canonical | yes | - | Validation property. |
+| `rules` | canonical | yes | - | Validation property. |
+| `constraints` | canonical | yes | - | Validation property. |
+| `check` | canonical | yes | - | Validation property. |
+| `when` | canonical | yes | - | Validation property. |
+| `message` | canonical | yes | - | Validation property. |
+| `messages` | canonical | yes | - | Validation property. |
+| `error code` | canonical | yes | - | Validation property. |
+
+#### Business Rules
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `marker` | canonical | yes | - | Business Rule property. |
+| `description` | canonical | yes | - | Business Rule property. |
+| `when` | canonical | yes | - | Business Rule property. |
+| `effect` | canonical | yes | - | Business Rule property. |
+| `message` | canonical | yes | - | Business Rule property. |
+| `messages` | canonical | yes | - | Business Rule property. |
+| `appliesTo` | canonical | yes | - | Business Rule property. |
+| `priority` | canonical | yes | - | Business Rule property. |
+
+#### Error Codes
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `marker` | canonical | yes | - | Error Code property. |
+| `business rule` | canonical | yes | - | Error Code property. |
+| `target` | canonical | yes | - | Error Code property. |
+| `message` | canonical | yes | - | Error Code property. |
+| `display` | canonical | yes | - | Error Code property. |
+| `tone` | canonical | yes | - | Error Code property. |
+| `description` | canonical | yes | - | Error Code property. |
+
+#### Element Tabs Items
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `panel` | canonical | yes | - | Tabs item property. |
+| `action` | canonical | yes | - | Tabs item property. |
+| `active when` | canonical | yes | - | Tabs item property. |
+
+#### Element Accordion Items
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `panel` | canonical | yes | - | Accordion item property. |
+| `action` | canonical | yes | - | Accordion item property. |
+| `open when` | canonical | yes | - | Accordion item property. |
+
+#### Element ActionMenu Items
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `action` | canonical | yes | - | ActionMenu item property. |
+| `tone` | canonical | yes | - | ActionMenu item property. |
+| `disabled when` | canonical | yes | - | ActionMenu item property. |
+
+#### Element Display Value Metadata
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `text` | canonical | yes | - | Display value metadata property. |
+| `value` | canonical | yes | - | Display value metadata property. |
+| `sample` | canonical | yes | - | Display value metadata property. |
+| `content` | canonical | yes | - | Display value metadata property. |
+| `message` | canonical | yes | - | Display value metadata property. |
+| `source` | canonical | yes | - | Display value metadata property. |
+| `src` | canonical | yes | - | Display value metadata property. |
+| `initial value` | canonical | yes | - | Display value metadata property. |
+
+#### History Fields
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `label` | canonical | yes | - | History Field property. |
+| `required` | canonical | yes | - | History Field property. |
+| `type` | canonical | yes | - | History Field property. |
+
+#### History
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `field key` | represented-extension | yes | info | History entry metadata keyed by History Fields. |
 
 ## Action Grammar
 

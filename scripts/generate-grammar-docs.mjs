@@ -7,6 +7,7 @@ import {
   commonElementPropertyKeys,
   grammarSectionDefinitions,
   grammarSectionOrderText,
+  grammarStructuredItemDefinitionsByContext,
   layoutGroupMetadataPropertyKeys,
   slotDefinitionPropertyKeys
 } from "../packages/core/dist/grammar-definition.js";
@@ -149,8 +150,8 @@ ${ja
 ## Structured Item Classification
 
 ${ja
-    ? "この節は `packages/core/src/grammar-definition.ts` から生成されます。semantic parser は対象範囲の structured item 判定で同じ definition を参照します。"
-    : "This section is generated from `packages/core/src/grammar-definition.ts`. Semantic parsers use the same definition for structured item classification in the scoped areas."}
+    ? "この節は `packages/core/src/grammar-definition.ts` から生成されます。definition coverage は全 structured section を対象にします。semantic parser の移行は段階的に進めており、移行済み範囲は同じ definition を参照します。"
+    : "This section is generated from `packages/core/src/grammar-definition.ts`. Definition coverage spans every structured section. Semantic parser migration is incremental; migrated scopes use the same definition."}
 
 ### Action Top-Level Items
 
@@ -183,6 +184,10 @@ ${keyList(slotDefinitionPropertyKeys)}
 ${ja
     ? "未定義 slot definition property は render model に入らないため warning diagnostic の対象です。"
     : "Undefined slot definition properties do not enter the render model and receive warning diagnostics."}
+
+### Section Structured Items
+
+${contextTables(ja)}
 
 ## Action Grammar
 
@@ -293,6 +298,29 @@ ${rows.join("\n")}`;
 
 function keyList(keys) {
   return keys.map((key) => `- \`${key}\``).join("\n");
+}
+
+function contextTables(ja) {
+  const labels = {
+    "form-group.property": "Form Groups",
+    "view-context.property": "View Context",
+    "view-context-sample.property": "View Context Samples",
+    "preview-scenario.property": "Preview Scenarios",
+    "preview-scenario.route-property": "Preview Scenario Route Entries",
+    "preview-scenario.sample-property": "Preview Scenario Sample Entries",
+    "validation.property": "Validations",
+    "business-rule.property": "Business Rules",
+    "error-code.property": "Error Codes",
+    "element.tab-item.property": "Element Tabs Items",
+    "element.accordion-item.property": "Element Accordion Items",
+    "element.action-menu-item.property": "Element ActionMenu Items",
+    "element.display-value-metadata": "Element Display Value Metadata",
+    "history-field.property": "History Fields",
+    "history-entry.property": "History"
+  };
+  return Object.entries(labels)
+    .map(([context, label]) => `#### ${label}\n\n${itemTable(grammarStructuredItemDefinitionsByContext[context] ?? [], ja)}`)
+    .join("\n\n");
 }
 
 function nonCanonicalList(ja) {

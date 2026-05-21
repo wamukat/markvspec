@@ -38,6 +38,24 @@ test("grammar query API exposes allowed keys and canonical checks by context", (
   assert.ok(grammarStructuredItemContexts().includes("element.common-property"));
 });
 
+test("grammar definition covers structured section property contexts", () => {
+  assert.deepEqual(grammarAllowedStructuredItemKeys("form-group.property"), ["marker", "description", "purpose", "fields", "submit"]);
+  assert.deepEqual(grammarAllowedStructuredItemKeys("view-context.property"), ["type", "values"]);
+  assert.deepEqual(grammarAllowedStructuredItemKeys("view-context-sample.property"), ["view context key"]);
+  assert.ok(grammarAllowedStructuredItemKeys("preview-scenario.property").includes("samples"));
+  assert.deepEqual(grammarAllowedStructuredItemKeys("preview-scenario.route-property"), ["route parameter key"]);
+  assert.deepEqual(grammarAllowedStructuredItemKeys("preview-scenario.sample-property"), ["element id", "source row key"]);
+  assert.ok(grammarAllowedStructuredItemKeys("validation.property").includes("error code"));
+  assert.ok(grammarAllowedStructuredItemKeys("business-rule.property").includes("messages"));
+  assert.ok(grammarAllowedStructuredItemKeys("error-code.property").includes("business rule"));
+  assert.deepEqual(grammarAllowedStructuredItemKeys("history-field.property"), ["label", "required", "type"]);
+
+  const historyEntry = grammarStructuredItemForContext("history-entry.property", "field key");
+  assert.equal(historyEntry.classification, "represented-extension");
+  assert.equal(historyEntry.represented, true);
+  assert.equal(historyEntry.diagnosticSeverity, "info");
+});
+
 test("grammar hard-code inventory maps parser-local structured items to follow-up tickets", () => {
   assert.ok(grammarDefinitionHardCodeInventory.length >= 1);
   for (const entry of grammarDefinitionHardCodeInventory) {

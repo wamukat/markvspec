@@ -158,7 +158,7 @@ marker prefix は任意です。preview や generated reference views に短い 
 
 ## Structured Item Classification
 
-この節は `packages/core/src/grammar-definition.ts` から生成されます。semantic parser は対象範囲の structured item 判定で同じ definition を参照します。
+この節は `packages/core/src/grammar-definition.ts` から生成されます。definition coverage は全 structured section を対象にします。semantic parser の移行は段階的に進めており、移行済み範囲は同じ definition を参照します。
 
 ### Action Top-Level Items
 
@@ -264,6 +264,150 @@ Element type 固有 property は `elementTypeRegistry` とこの grammar definit
 - `description`
 
 未定義 slot definition property は render model に入らないため warning diagnostic の対象です。
+
+### Section Structured Items
+
+#### Form Groups
+
+| item | classification | output | diagnostic | 説明 |
+| --- | --- | --- | --- | --- |
+| `marker` | canonical | yes | - | Form Group property。 |
+| `description` | canonical | yes | - | Form Group property。 |
+| `purpose` | canonical | yes | - | Form Group property。 |
+| `fields` | canonical | yes | - | Form Group property。 |
+| `submit` | canonical | yes | - | Form Group property。 |
+
+#### View Context
+
+| item | classification | output | diagnostic | 説明 |
+| --- | --- | --- | --- | --- |
+| `type` | canonical | yes | - | View Context property。 |
+| `values` | canonical | yes | - | View Context property。 |
+
+#### View Context Samples
+
+| item | classification | output | diagnostic | 説明 |
+| --- | --- | --- | --- | --- |
+| `view context key` | represented-extension | yes | info | View Context 定義によって key が決まる sample value。 |
+
+#### Preview Scenarios
+
+| item | classification | output | diagnostic | 説明 |
+| --- | --- | --- | --- | --- |
+| `state` | canonical | yes | - | Preview Scenario property。 |
+| `model` | canonical | yes | - | Preview Scenario property。 |
+| `view` | canonical | yes | - | Preview Scenario property。 |
+| `route` | canonical | yes | - | Preview Scenario property。 |
+| `samples` | canonical | yes | - | Preview Scenario property。 |
+| `before` | canonical | yes | - | Preview Scenario property。 |
+| `cases` | canonical | yes | - | Preview Scenario property。 |
+
+#### Preview Scenario Route Entries
+
+| item | classification | output | diagnostic | 説明 |
+| --- | --- | --- | --- | --- |
+| `route parameter key` | represented-extension | yes | info | screen route parameter によって key が決まる route sample value。 |
+
+#### Preview Scenario Sample Entries
+
+| item | classification | output | diagnostic | 説明 |
+| --- | --- | --- | --- | --- |
+| `element id` | represented-extension | yes | info | Element id によって key が決まる sample value。 |
+| `source row key` | represented-extension | yes | info | source data column によって key が決まる sample row value。 |
+
+#### Validations
+
+| item | classification | output | diagnostic | 説明 |
+| --- | --- | --- | --- | --- |
+| `marker` | canonical | yes | - | Validation property。 |
+| `description` | canonical | yes | - | Validation property。 |
+| `target` | canonical | yes | - | Validation property。 |
+| `scope` | canonical | yes | - | Validation property。 |
+| `run` | canonical | yes | - | Validation property。 |
+| `inputs` | canonical | yes | - | Validation property。 |
+| `rules` | canonical | yes | - | Validation property。 |
+| `constraints` | canonical | yes | - | Validation property。 |
+| `check` | canonical | yes | - | Validation property。 |
+| `when` | canonical | yes | - | Validation property。 |
+| `message` | canonical | yes | - | Validation property。 |
+| `messages` | canonical | yes | - | Validation property。 |
+| `error code` | canonical | yes | - | Validation property。 |
+
+#### Business Rules
+
+| item | classification | output | diagnostic | 説明 |
+| --- | --- | --- | --- | --- |
+| `marker` | canonical | yes | - | Business Rule property。 |
+| `description` | canonical | yes | - | Business Rule property。 |
+| `when` | canonical | yes | - | Business Rule property。 |
+| `effect` | canonical | yes | - | Business Rule property。 |
+| `message` | canonical | yes | - | Business Rule property。 |
+| `messages` | canonical | yes | - | Business Rule property。 |
+| `appliesTo` | canonical | yes | - | Business Rule property。 |
+| `priority` | canonical | yes | - | Business Rule property。 |
+
+#### Error Codes
+
+| item | classification | output | diagnostic | 説明 |
+| --- | --- | --- | --- | --- |
+| `marker` | canonical | yes | - | Error Code property。 |
+| `business rule` | canonical | yes | - | Error Code property。 |
+| `target` | canonical | yes | - | Error Code property。 |
+| `message` | canonical | yes | - | Error Code property。 |
+| `display` | canonical | yes | - | Error Code property。 |
+| `tone` | canonical | yes | - | Error Code property。 |
+| `description` | canonical | yes | - | Error Code property。 |
+
+#### Element Tabs Items
+
+| item | classification | output | diagnostic | 説明 |
+| --- | --- | --- | --- | --- |
+| `panel` | canonical | yes | - | Tabs item property。 |
+| `action` | canonical | yes | - | Tabs item property。 |
+| `active when` | canonical | yes | - | Tabs item property。 |
+
+#### Element Accordion Items
+
+| item | classification | output | diagnostic | 説明 |
+| --- | --- | --- | --- | --- |
+| `panel` | canonical | yes | - | Accordion item property。 |
+| `action` | canonical | yes | - | Accordion item property。 |
+| `open when` | canonical | yes | - | Accordion item property。 |
+
+#### Element ActionMenu Items
+
+| item | classification | output | diagnostic | 説明 |
+| --- | --- | --- | --- | --- |
+| `action` | canonical | yes | - | ActionMenu item property。 |
+| `tone` | canonical | yes | - | ActionMenu item property。 |
+| `disabled when` | canonical | yes | - | ActionMenu item property。 |
+
+#### Element Display Value Metadata
+
+| item | classification | output | diagnostic | 説明 |
+| --- | --- | --- | --- | --- |
+| `text` | canonical | yes | - | Display value metadata property。 |
+| `value` | canonical | yes | - | Display value metadata property。 |
+| `sample` | canonical | yes | - | Display value metadata property。 |
+| `content` | canonical | yes | - | Display value metadata property。 |
+| `message` | canonical | yes | - | Display value metadata property。 |
+| `source` | canonical | yes | - | Display value metadata property。 |
+| `src` | canonical | yes | - | Display value metadata property。 |
+| `initial value` | canonical | yes | - | Display value metadata property。 |
+
+#### History Fields
+
+| item | classification | output | diagnostic | 説明 |
+| --- | --- | --- | --- | --- |
+| `label` | canonical | yes | - | History Field property。 |
+| `required` | canonical | yes | - | History Field property。 |
+| `type` | canonical | yes | - | History Field property。 |
+
+#### History
+
+| item | classification | output | diagnostic | 説明 |
+| --- | --- | --- | --- | --- |
+| `field key` | represented-extension | yes | info | History Fields によって定義される History entry metadata。 |
 
 ## Action Grammar
 
