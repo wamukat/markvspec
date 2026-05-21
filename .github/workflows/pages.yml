@@ -42,6 +42,9 @@ jobs:
       - name: Check docs-site sync
         run: npm run check:docs-sync
 
+      - name: Check docs links
+        run: npm run check:docs-links
+
       - name: Audit reference docs
         run: npm run audit:docs-reference
 

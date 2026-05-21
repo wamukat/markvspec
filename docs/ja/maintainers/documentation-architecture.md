@@ -96,6 +96,9 @@ site top は、README と同じ IA を共有します。ただし、README よ�
 - `scripts/sync-docs-site-content.mjs` は `docs/{ja,en}` から
   `docs-site/src/content/docs/{ja,en}` を生成する。
 - `npm run check:docs-sync` は `docs/` と `docs-site` の drift を検出する。
+- `npm run check:docs-links` は full build を待たずに、`docs/` の相対リンク、
+  同期後 `docs-site` の `/markvspec/...` リンク、examples catalog の related docs
+  解決を検出する。
 - `scripts/build-github-pages.mjs` は Starlight build 前に同期を実行し、
   `docs-site/dist` を `_site` にコピーする。
 - `scripts/check-pages-site.mjs` は同期後の `docs-site/src/content/docs/{ja,en}` の
@@ -107,7 +110,8 @@ site top は、README と同じ IA を共有します。ただし、README よ�
 したがって、利用者が読む公開サイトの内容を修正する場合は、まず
 `docs/ja` / `docs/en` を編集する。その後 `npm run sync:docs-site` を実行し、
 生成された `docs-site/src/content/docs/` の差分を同じ commit に含める。
-Pages CI と release check では `npm run check:docs-sync` により同期漏れを検出する。
+Pages CI と release check では `npm run check:docs-sync` により同期漏れを検出し、
+`npm run check:docs-links` により build 前に主要リンク切れを検出する。
 
 `docs/ja/maintainers` と `docs/en/maintainers` は保守者向け記録として `docs/` 配下に
 残す。通常の利用者導線には出さない。
@@ -369,6 +373,16 @@ catalog は次の出力に使います。
 - examples index / showcase が catalog、generated preview、related docs を正しく参照している。
 - 主要な Start / Guide / Reference / Recipes / Examples / Concepts ページが出力されている。
 - `_site/docs` は生成されていない。
+
+`scripts/check-docs-links.mjs` は次を確認します。
+
+- `docs/{ja,en}` の Markdown リンクが、同じ `docs/` 配下の Markdown、画像などの
+  repository file、または存在する example showcase slug を指している。
+- `docs-site/src/content/docs/{ja,en}` に同期された `/markvspec/...` リンクが、
+  Starlight docs route、examples route、public assets のいずれかに解決できる。
+- `examples/catalog.yml` の source path、next path、related docs key が存在する。
+- #1352 の動的レンダリング検討とは独立した静的リンク監視であり、example HTML の
+  生成方式そのものは変更しない。
 
 `scripts/sync-docs-site-content.mjs` は次を担当します。
 
