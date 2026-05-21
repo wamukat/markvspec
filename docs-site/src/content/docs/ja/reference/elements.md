@@ -151,8 +151,8 @@ examples には次の専用コントロールも出ます。画面の意味を�
 
 ## 関連ページ
 
-- [Sections](/markvspec/ja/reference/sections/)
+- [セクション](/markvspec/ja/reference/sections/)
 - [アクション](/markvspec/ja/reference/actions/)
-- [Validations](/markvspec/ja/reference/validations/)
-- [IDs](/markvspec/ja/reference/ids/)
+- [バリデーション](/markvspec/ja/reference/validations/)
+- [ID](/markvspec/ja/reference/ids/)
 - [Source Kind Metadata](/markvspec/examples/showcase/source-kind-metadata.html)
