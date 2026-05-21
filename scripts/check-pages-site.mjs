@@ -53,13 +53,13 @@ expectSameList(jaDocs, enDocs, "docs-site ja/en content paths should match");
 
 const examplesHtml = readSiteFile("examples/index.html");
 expectContains(examplesHtml, "MarkVSpec Examples", "_site/examples/index.html should be the examples index.");
-expectContains(examplesHtml, "Source + Preview", "_site/examples/index.html should label showcase links.");
-expectContains(examplesHtml, ">Preview<", "_site/examples/index.html should keep preview-only links.");
-expectContains(examplesHtml, ">PDF<", "_site/examples/index.html should link generated PDFs.");
 expectContains(examplesHtml, "examples/01-basics/hello-screen.vspec.md", "_site/examples/index.html should show the source path.");
 expectContains(examplesHtml, `${base}/examples/showcase/hello-screen.html`, "_site/examples/index.html should link to the Hello Screen showcase.");
-expectContains(examplesHtml, `${base}/examples/generated/hello-screen.html`, "_site/examples/index.html should link to generated HTML artifacts.");
-expectContains(examplesHtml, `${base}/examples/generated/hello-screen.pdf`, "_site/examples/index.html should link to generated PDF artifacts.");
+expectNotContains(examplesHtml, "Source + Preview", "_site/examples/index.html should not duplicate showcase link labels on cards.");
+expectNotContains(examplesHtml, ">Preview<", "_site/examples/index.html should not expose preview-only card links.");
+expectNotContains(examplesHtml, ">PDF<", "_site/examples/index.html should not expose PDF card links.");
+expectNotContains(examplesHtml, `${base}/examples/generated/hello-screen.html`, "_site/examples/index.html should not link generated HTML artifacts from cards.");
+expectNotContains(examplesHtml, `${base}/examples/generated/hello-screen.pdf`, "_site/examples/index.html should not link generated PDF artifacts from cards.");
 expectContains(examplesHtml, "Learning Path", "_site/examples/index.html should expose the catalog learning path.");
 expectContains(examplesHtml, "Step 1", "_site/examples/index.html should number learning path examples.");
 expectOrder(
@@ -161,6 +161,12 @@ function readSiteFile(filePath) {
 
 function expectContains(value, expected, message) {
   if (!value.includes(expected)) {
+    failures.push(message);
+  }
+}
+
+function expectNotContains(value, expected, message) {
+  if (value.includes(expected)) {
     failures.push(message);
   }
 }

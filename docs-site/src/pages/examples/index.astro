@@ -4,8 +4,6 @@ import {
   getLearningPath,
   groupExamplesByKind,
   groupExamplesByStage,
-  githubBlobBaseUrl,
-  generatedPdfExists,
 } from '../../lib/example-data.js';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -176,16 +174,6 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
         text-decoration: none;
       }
       a:hover { text-decoration: underline; }
-      .actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-      .source {
-        font-size: 13px;
-        font-weight: 750;
-      }
-      .primary { color: #115e59; }
     </style>
   </head>
   <body>
@@ -218,7 +206,7 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
         <img src={`${base}/assets/markvspec-icon.svg`} alt="" width="38" height="38" />
         <h1>MarkVSpec Examples</h1>
       </div>
-      <p>Browse examples by the screen pattern you want to copy. Open Source + Preview to compare the Markdown source with the generated output, or use Preview when you only need the rendered document.</p>
+      <p>Browse examples by the screen pattern you want to copy. Open a title to compare the Markdown source with the generated output.</p>
 
       <section>
         <h2>Learning Path</h2>
@@ -233,12 +221,6 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
               <p class="summary">{example.summary}</p>
               {example.teaches.length ? <p class="teaches">Teaches: {example.teaches.join(', ')}</p> : null}
               <p class="path">{example.repoPath}</p>
-              <div class="actions">
-                <a class="source primary" href={`${base}/examples/showcase/${example.slug}.html`}>Source + Preview</a>
-                <a class="source" href={`${base}/examples/generated/${example.slug}.html`}>Preview</a>
-                {generatedPdfExists(example.slug) ? <a class="source" href={`${base}/examples/generated/${example.slug}.pdf`}>PDF</a> : null}
-                <a class="source" href={`${githubBlobBaseUrl}${example.repoPath}`}>Source</a>
-              </div>
             </li>
           ))}
         </ul>
@@ -260,12 +242,6 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
                     <p class="summary">{example.summary}</p>
                     {example.teaches.length ? <p class="teaches">Teaches: {example.teaches.join(', ')}</p> : null}
                     <p class="path">{example.repoPath}</p>
-                    <div class="actions">
-                      <a class="source primary" href={`${base}/examples/showcase/${example.slug}.html`}>Source + Preview</a>
-                      <a class="source" href={`${base}/examples/generated/${example.slug}.html`}>Preview</a>
-                      {generatedPdfExists(example.slug) ? <a class="source" href={`${base}/examples/generated/${example.slug}.pdf`}>PDF</a> : null}
-                      <a class="source" href={`${githubBlobBaseUrl}${example.repoPath}`}>Source</a>
-                    </div>
                   </li>
                 ))}
               </ul>
