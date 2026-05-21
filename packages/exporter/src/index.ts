@@ -188,7 +188,7 @@ export function renderStandaloneHtmlForFile(sourcePath: string, options: MarkVSp
       `<h1>${escapeHtml(title)}</h1>`,
       project.screens
         .map((screen) => screen.result
-          ? `<section class="mm-export-section"><h2>${escapeHtml(screen.result.screen.title ?? screen.result.screen.id ?? screen.index.id ?? resolvedMessages.messages.screen)}</h2>${renderStaticDesignDocumentHtml(screen.result, { messages: resolvedMessages.messages })}</section>`
+          ? `<section class="mm-export-section"><h2>${escapeHtml(screen.result.screen.title ?? screen.result.screen.id ?? screen.index.id ?? resolvedMessages.messages.screen)}</h2>${renderStaticDesignDocumentHtml(screen.result, { messages: resolvedMessages.messages, documentResult: screen.sourceResult })}</section>`
           : "")
         .join(""),
       renderDiagnostics(diagnostics, resolvedMessages.messages, resolvedMessages.locale)
@@ -204,8 +204,10 @@ export function renderStandaloneHtmlForFile(sourcePath: string, options: MarkVSp
     };
   }
 
-  const result = loadScreenResultForFile(source, sourcePath);
-  const frontMatterMessages = resolveFrontMatterMessagesPath(sourcePath, result.screen.frontMatter["messages"]);
+  const loaded = loadScreenResultForFile(source, sourcePath);
+  const result = loaded.result;
+  const documentResult = loaded.documentResult;
+  const frontMatterMessages = resolveFrontMatterMessagesPath(sourcePath, documentResult.screen.frontMatter["messages"]);
   const resolvedMessages = resolveExportRendererMessages({
     sourcePath,
     locale: result.screen.locale,
@@ -220,7 +222,7 @@ export function renderStandaloneHtmlForFile(sourcePath: string, options: MarkVSp
   const title = result.screen.title ?? result.screen.id ?? basename(sourcePath);
   const content = [
     `<h1>${escapeHtml(title)}</h1>`,
-    renderStaticDesignDocumentHtml(result, { messages: resolvedMessages.messages }),
+    renderStaticDesignDocumentHtml(result, { messages: resolvedMessages.messages, documentResult }),
     renderDiagnostics(diagnostics, resolvedMessages.messages, resolvedMessages.locale)
   ].join("\n");
   return {
@@ -353,7 +355,7 @@ function diagnosticsForFile(sourcePath: string): { diagnostics: MarkVSpecDiagnos
     return { diagnostics: result.diagnostics, locale: result.project.project.frontMatter["locale"] };
   }
 
-  const result = loadScreenResultForFile(source, sourcePath);
+  const { result } = loadScreenResultForFile(source, sourcePath);
   return { diagnostics: result.diagnostics, locale: result.screen.locale };
 }
 
@@ -534,12 +536,12 @@ function markdownTableCell(value: string): string {
   return value.replace(/\\/gu, "\\\\").replace(/\|/gu, "\\|").replace(/\r?\n/gu, " ");
 }
 
-function loadScreenResultForFile(source: string, sourcePath: string): MarkVSpecParseResult {
+function loadScreenResultForFile(source: string, sourcePath: string): { result: MarkVSpecParseResult; documentResult: MarkVSpecParseResult } {
   const screen = parseMarkVSpec(source);
   const templateRef = screen.screen.template;
   const templateSrc = screen.screen.templateSrc;
   if (!templateRef && !templateSrc) {
-    return screen;
+    return { result: screen, documentResult: screen };
   }
 
   const templateReference = resolveTemplatePath(sourcePath, templateRef, templateSrc);
@@ -548,7 +550,7 @@ function loadScreenResultForFile(source: string, sourcePath: string): MarkVSpecP
       severity: "error",
       message: `Template reference ${templateRef ?? templateSrc} could not be resolved for ${basename(sourcePath)}.`
     });
-    return screen;
+    return { result: screen, documentResult: screen };
   }
 
   const templateSource = readTextFile(templateReference.path);
@@ -557,7 +559,7 @@ function loadScreenResultForFile(source: string, sourcePath: string): MarkVSpecP
       severity: "error",
       message: `Template file ${templateReference.path} could not be read.`
     });
-    return screen;
+    return { result: screen, documentResult: screen };
   }
 
   const template = parseMarkVSpec(templateSource);
@@ -567,17 +569,17 @@ function loadScreenResultForFile(source: string, sourcePath: string): MarkVSpecP
       severity: "error",
       message: `Template reference ${templateReference.expectedId} points to file with template ID ${template.screen.id ?? "missing"}.`
     });
-    return screen;
+    return { result: screen, documentResult: screen };
   }
   if (template.screen.type !== "template") {
     screen.diagnostics.push({
       severity: "error",
       message: `Template reference ${templateRef} points to a ${template.screen.type} document.`
     });
-    return screen;
+    return { result: screen, documentResult: screen };
   }
 
-  return composeMarkVSpecTemplate(template, screen);
+  return { result: composeMarkVSpecTemplate(template, screen), documentResult: screen };
 }
 
 function resolveMarkVSpecFileInputs(patterns: readonly string[]): { files: string[]; diagnostics: Array<{ sourcePath: string; diagnostic: MarkVSpecDiagnostic }> } {

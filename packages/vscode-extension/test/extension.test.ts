@@ -5076,6 +5076,85 @@ template:
   }
 });
 
+test("renders composed template screens with screen-owned document history", () => {
+  const root = mkdtempSync(join(tmpdir(), "markvspec-template-history-"));
+  try {
+    const screenPath = join(root, "screens", "home.vspec.md");
+    const templatePath = join(root, "templates", "shell.vspec.md");
+    mkdirSync(join(root, "screens"), { recursive: true });
+    mkdirSync(join(root, "templates"), { recursive: true });
+    writeFileSync(templatePath, `---
+id: TPL-SHELL
+type: template
+title: Shell
+---
+
+# TPL-SHELL Shell
+
+## History
+
+### 9.9.9
+
+- date: 2099-01-01
+- author: Template Author
+- Template history entry.
+
+## Layout: desktop
+
+### L-Shell Shell
+
+- stack
+
+#### Items
+
+- slot: content
+
+## Slots
+
+### content Main Content
+`);
+    const source = `---
+id: SCR-HOME
+type: screen
+title: Home
+template:
+  id: TPL-SHELL
+  src: ../templates/shell.vspec.md
+---
+
+# SCR-HOME Home
+
+## History
+
+### 1.2.3
+
+- date: 2026-05-21
+- author: Screen Author
+- Screen history entry.
+
+## Slot: content
+
+### L-Content Content
+
+- stack
+`;
+
+    const loaded = loadScreenDocumentResult(createTextDocument(source, screenPath) as vscode.TextDocument);
+    const html = renderStandaloneHtml(loaded, undefined);
+
+    assert.match(html, /Screen history entry\./);
+    assert.match(html, /1\.2\.3/);
+    assert.match(html, /Screen Author/);
+    assert.doesNotMatch(html, /Template history entry\./);
+    assert.doesNotMatch(html, /9\.9\.9/);
+    assert.doesNotMatch(html, /Template Author/);
+    assert.match(html, /data-mm-id="L-Shell"/);
+    assert.match(html, /data-mm-id="L-Content"/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("loads nested partial previews and reports invalid nested references", () => {
   const root = mkdtempSync(join(tmpdir(), "markvspec-nested-partials-"));
   try {

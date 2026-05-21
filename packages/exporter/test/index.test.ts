@@ -201,6 +201,86 @@ template:
   }
 });
 
+test("exports template screens with screen-owned document history and composed state views", () => {
+  const dir = mkdtempSync(join(tmpdir(), "markvspec-template-history-html-"));
+  try {
+    const templatePath = join(dir, "template.vspec.md");
+    const sourcePath = join(dir, "screen.vspec.md");
+    const outDir = join(dir, "out");
+    writeFileSync(templatePath, `---
+id: TPL-SHELL
+type: template
+title: Shell
+---
+
+# TPL-SHELL Shell
+
+## History
+
+### 9.9.9
+
+- date: 2099-01-01
+- author: Template Author
+- Template history entry.
+
+## Layout: desktop
+
+### L-Shell Shell
+
+- stack
+
+#### Items
+
+- slot: content
+
+## Slots
+
+### content Main Content
+`);
+    writeFileSync(sourcePath, `---
+id: SCR-TEMPLATE
+type: screen
+title: Template screen
+template:
+  id: TPL-SHELL
+  src: ./template.vspec.md
+---
+
+# SCR-TEMPLATE Template screen
+
+## History
+
+### 1.2.3
+
+- date: 2026-05-21
+- author: Screen Author
+- Screen history entry.
+
+## Slot: content
+
+### L-Content Content
+
+- stack
+`);
+
+    const results = exportMarkVSpecHtmlFiles([sourcePath], outDir);
+
+    assert.equal(results.length, 1);
+    const html = readFileSync(join(outDir, "screen.html"), "utf8");
+    assert.match(html, /Screen history entry\./);
+    assert.match(html, /1\.2\.3/);
+    assert.match(html, /Screen Author/);
+    assert.doesNotMatch(html, /Template history entry\./);
+    assert.doesNotMatch(html, /9\.9\.9/);
+    assert.doesNotMatch(html, /Template Author/);
+    assert.match(html, /data-mm-id="L-Shell"/);
+    assert.match(html, /data-mm-id="L-Content"/);
+    assert(!results[0]?.diagnostics.some((diagnostic) => diagnostic.severity === "error"));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("exports standalone HTML files", () => {
   const dir = mkdtempSync(join(tmpdir(), "markvspec-html-"));
   try {

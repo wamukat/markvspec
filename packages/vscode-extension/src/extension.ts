@@ -142,6 +142,7 @@ export {
 type MarkerCategory = "layout" | "element" | "action";
 interface ScreenDocumentResult {
   result: ReturnType<typeof parseMarkVSpec>;
+  documentResult?: ReturnType<typeof parseMarkVSpec>;
   focus?: FocusScope;
   messages?: RendererMessages;
 }
@@ -1060,10 +1061,12 @@ export function loadScreenDocumentResult(document: vscode.TextDocument): ScreenD
   }
   const loaded = {
     result: composed,
+    documentResult: screen,
     focus: focusScopeForScreen(screen),
     messages: resolveRendererMessagesForDocument(document, composed)
   };
   rendererMessagesByResult.set(composed, loaded.messages);
+  rendererMessagesByResult.set(screen, loaded.messages);
   setCachedScreenDocumentResult(document, loaded);
   return loaded;
 }
@@ -1303,21 +1306,22 @@ export interface PreviewUpdateTelemetry {
 
 type PreviewDesignFragmentRenderer = (context: {
   result: ReturnType<typeof parseMarkVSpec>;
+  documentResult?: ReturnType<typeof parseMarkVSpec>;
   focus: FocusScope | undefined;
   renderKey: string;
 }) => string[];
 
 const previewDesignFragmentRenderers = new Map<string, PreviewDesignFragmentRenderer>([
-  ["elements:list", ({ result, focus, renderKey }) => {
-    const scope = buildDocumentScope(result, focus);
+  ["elements:list", ({ result, documentResult, focus, renderKey }) => {
+    const scope = buildDocumentScope(result, focus, documentResult);
     return extractRenderKeyFragments(renderViewportStateScreensSpec(scope), renderKey);
   }],
-  ["form-groups:list", ({ result, focus, renderKey }) => {
-    const scope = buildDocumentScope(result, focus);
+  ["form-groups:list", ({ result, documentResult, focus, renderKey }) => {
+    const scope = buildDocumentScope(result, focus, documentResult);
     return extractRenderKeyFragments(renderFormGroupsSpec(scope.specResult, scope.sourceResult), renderKey);
   }],
-  ["layouts:list", ({ result, focus, renderKey }) => {
-    const scope = buildDocumentScope(result, focus);
+  ["layouts:list", ({ result, documentResult, focus, renderKey }) => {
+    const scope = buildDocumentScope(result, focus, documentResult);
     return extractRenderKeyFragments(renderViewportStateScreensSpec(scope), renderKey);
   }]
 ]);
@@ -1415,7 +1419,8 @@ export function renderPreviewFragmentUpdates(
   invalidation: Pick<ReturnType<typeof computeMarkVSpecRenderInvalidation>, "wireframeRenderKeys" | "previewDocumentRenderKeys">
 ): PreviewFragmentUpdate[] {
   const { result, focus } = normalizeScreenDocumentResult(screen);
-  const scope = buildDocumentScope(result, focus);
+  const documentResult = "documentResult" in screen ? screen.documentResult : undefined;
+  const scope = buildDocumentScope(result, focus, documentResult);
   const wireframeHtml = renderViewportStateScreensSpec(scope);
   const wireframeFragments = invalidation.wireframeRenderKeys
     .map((renderKey) => ({
@@ -1426,7 +1431,7 @@ export function renderPreviewFragmentUpdates(
   const documentFragments = invalidation.previewDocumentRenderKeys
     .map((renderKey) => ({
       renderKey,
-      html: renderPreviewDesignKeyFragments(result, focus, renderKey)
+      html: renderPreviewDesignKeyFragments(result, documentResult, focus, renderKey)
     }))
     .filter((fragment) => fragment.html.length > 0);
   return [...wireframeFragments, ...documentFragments];
@@ -1434,10 +1439,11 @@ export function renderPreviewFragmentUpdates(
 
 function renderPreviewDesignKeyFragments(
   result: ReturnType<typeof parseMarkVSpec>,
+  documentResult: ReturnType<typeof parseMarkVSpec> | undefined,
   focus: FocusScope | undefined,
   renderKey: string
 ): string[] {
-  return previewDesignFragmentRenderers.get(renderKey)?.({ result, focus, renderKey }) ?? [];
+  return previewDesignFragmentRenderers.get(renderKey)?.({ result, documentResult, focus, renderKey }) ?? [];
 }
 
 export function extractRenderKeyFragments(html: string, renderKey: string): string[] {
@@ -1541,9 +1547,13 @@ function renderScreenPreviewHtml(
   options: ScreenPreviewHtmlOptions
 ): string {
   const { result, focus } = normalizeScreenDocumentResult(screen);
+  const documentResult = "documentResult" in screen ? screen.documentResult : undefined;
   const messages = "messages" in screen && screen.messages ? screen.messages : rendererMessagesForResult(result);
   rendererMessagesByResult.set(result, messages);
-  const document = renderDesignDocumentHtml(result, "", { focus, messages });
+  if (documentResult) {
+    rendererMessagesByResult.set(documentResult, messages);
+  }
+  const document = renderDesignDocumentHtml(result, "", { focus, messages, documentResult });
   const title = result.screen.title ?? result.screen.id ?? "Untitled MarkVSpec Screen";
   const resolvedLocale = resolveLocale(result.screen.locale);
   const clientMessages = previewClientMessages(messages);
@@ -1855,8 +1865,8 @@ function renderSectionNumber(sectionNumber: string): string {
   return `<span class="section-number">${escapeHtml(sectionNumber)}.</span>`;
 }
 
-export function buildDocumentScope(result: ReturnType<typeof parseMarkVSpec>, focus?: FocusScope): DocumentScope {
-  return buildDocumentScopeBase(result, focus);
+export function buildDocumentScope(result: ReturnType<typeof parseMarkVSpec>, focus?: FocusScope, documentResult?: ReturnType<typeof parseMarkVSpec>): DocumentScope {
+  return buildDocumentScopeBase(result, focus, documentResult);
 }
 
 function renderInlineTableOfContents(result: ReturnType<typeof parseMarkVSpec>): string {
