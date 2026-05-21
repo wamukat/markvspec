@@ -1,6 +1,6 @@
 import type { RendererMessages } from "./renderer-messages.js";
 
-export type MarkVSpecDiagnosticSeverity = "error" | "warning";
+export type MarkVSpecDiagnosticSeverity = "error" | "warning" | "info";
 
 export interface SourceLocation {
   line: number;

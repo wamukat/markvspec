@@ -37,7 +37,7 @@ import {
   shouldUseIncrementalPreviewUpdate,
   renderStandaloneProjectHtml
 } from "../src/extension.js";
-import { MarkVSpecDiagnosticsController } from "../src/diagnostics.js";
+import { MarkVSpecDiagnosticsController, vscodeDiagnosticSeverityForMarkVSpec } from "../src/diagnostics.js";
 import { renderEntityNotes, renderInlineMarkdown } from "../src/markdown-renderer.js";
 import {
   escapeRegExp,
@@ -341,6 +341,10 @@ test("maps unrepresented source text warnings to VS Code diagnostics", () => {
   const diagnostic = calls[0]?.diagnostics.find((item) => item.message.includes("Encode request body"));
   assert.equal(diagnostic?.severity, vscode.DiagnosticSeverity.Warning);
   assert.equal(diagnostic?.range.start.line, lineNumber(source, "  - Encode request body") - 1);
+});
+
+test("maps info diagnostics to VS Code information severity", () => {
+  assert.equal(vscodeDiagnosticSeverityForMarkVSpec("info"), vscode.DiagnosticSeverity.Information);
 });
 
 test("renders generated design document sections without launching VS Code", () => {

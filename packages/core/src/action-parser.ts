@@ -1,4 +1,8 @@
-import { createUnrepresentedSourceTextDiagnostic, createUnsupportedStructuredItemDiagnostic } from "./source-text-diagnostics.js";
+import {
+  createRepresentedExtensionItemDiagnostic,
+  createUnrepresentedSourceTextDiagnostic,
+  createUnsupportedStructuredItemDiagnostic
+} from "./source-text-diagnostics.js";
 import type { MarkVSpecAction, MarkVSpecActionOutcome, MarkVSpecDiagnostic, MarkVSpecProcessStep, MarkVSpecRouteParam, SourceLocation } from "./types.js";
 
 export interface ActionBulletInput {
@@ -267,12 +271,18 @@ function applyProcessStepBullet(
       if (!isProcessDetailBlockLabel(normalized) && normalized !== "params") {
         step.details.push({ key: currentNestedBlock, value: bullet.text, location: bullet.location });
         addPropertyLocation(step.propertyLocations, currentNestedBlock, bullet.location);
+        if (isCustomProcessDetailKey(currentNestedBlock)) {
+          diagnostics.push(processExtensionItemDiagnostic(action, step, bullet));
+        }
       }
       return;
     }
 
     step.details.push({ key: `${currentNestedBlock}.${key}`, value, location: bullet.location });
     addPropertyLocation(step.propertyLocations, currentNestedBlock, bullet.location);
+    if (isCustomProcessDetailKey(currentNestedBlock)) {
+      diagnostics.push(processExtensionItemDiagnostic(action, step, bullet));
+    }
     return;
   }
 
@@ -325,6 +335,12 @@ function applyProcessStepBullet(
     return;
   }
 
+  if (isHttpRequestMethodPath(bullet.text)) {
+    step.details.push({ key: "request", value: bullet.text, location: bullet.location });
+    addPropertyLocation(step.propertyLocations, "request", bullet.location);
+    return;
+  }
+
   if (normalizeBlockLabel(step.name) === "validate" && (key === "Validate" || key === "validate")) {
     step.details.push({
       key: "validation",
@@ -332,6 +348,26 @@ function applyProcessStepBullet(
       location: bullet.location
     });
     addPropertyLocation(step.propertyLocations, "validation", bullet.location);
+    return;
+  }
+
+  if (key === "validate") {
+    step.details.push({
+      key: "validate",
+      value,
+      location: bullet.location
+    });
+    addPropertyLocation(step.propertyLocations, "validate", bullet.location);
+    return;
+  }
+
+  if (key === "server" && /^[A-Za-z_][A-Za-z0-9_.]*\([^)]*\)$/u.test(value)) {
+    step.details.push({
+      key: "server",
+      value,
+      location: bullet.location
+    });
+    addPropertyLocation(step.propertyLocations, "server", bullet.location);
     return;
   }
 
@@ -377,6 +413,31 @@ function applyProcessStepBullet(
     location: bullet.location
   });
   addPropertyLocation(step.propertyLocations, key, bullet.location);
+  if (!isImplicitProcessParameter(key, value)) {
+    diagnostics.push(processExtensionItemDiagnostic(action, step, bullet));
+  }
+}
+
+function processExtensionItemDiagnostic(
+  action: MarkVSpecAction,
+  step: MarkVSpecProcessStep,
+  bullet: ActionBulletInput
+): MarkVSpecDiagnostic {
+  return createRepresentedExtensionItemDiagnostic({
+    context: `Action ${action.id} process step ${step.name}`,
+    text: bullet.text,
+    location: bullet.location
+  });
+}
+
+function isCustomProcessDetailKey(key: string): boolean {
+  return !isKnownProcessDetailBlock(key) && key !== "params" && key !== "display-content" && !key.includes(".");
+}
+
+function isImplicitProcessParameter(key: string, value: string): boolean {
+  const trimmedValue = value.trim();
+  return /^[A-Za-z_][A-Za-z0-9_-]*$/u.test(key) &&
+    (trimmedValue.startsWith("${") || /^[A-Z]+-[\p{L}\p{N}_-]+(?:\.[A-Za-z][A-Za-z0-9_]*)?$/u.test(trimmedValue));
 }
 
 function applyProcessStepDirectCaseBullet(

@@ -5783,6 +5783,11 @@ title: Params
         lineNumber(source, "- Triggered")
       ],
       [
+        "info",
+        "Extension item in Action A-Submit process step SyncService: AccountSync.push(). This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output.",
+        lineNumber(source, "    - AccountSync.push()")
+      ],
+      [
         "warning",
         "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.",
         lineNumber(source, "### A-Submit submit")
@@ -6325,7 +6330,7 @@ title: Controlled Panel Diagnostics
   assert(messages.includes('Element E-SettingsTabs tab item Profile active when condition "selected profile" cannot be evaluated in preview. Use a state name, state is ..., or a namespaced condition such as ${state.*}, ${view.*}, or ${route.*}.'));
   assert(messages.includes("Condition references missing view context missingTab."));
   assert(messages.includes("Element E-SettingsTabs tab item Profile has unsupported property open when. Use panel, action, active when."));
-  assert(messages.includes("Element E-PanelText of type Text uses unsupported property open when."));
+  assert(messages.includes("Extension item in Element E-PanelText: open when: idle. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
   assert(messages.includes("Layout L-SharedPanel is used both as a controlled panel for Element E-SettingsTabs and as a normal layout item. Preview keeps the normal layout display and does not expand it inside the component."));
   assert(messages.includes("Element E-SettingsTabs Tabs active when matches multiple items for state idle: Billing, Support. Preview uses the first matching item."));
 });
@@ -6615,7 +6620,7 @@ title: Compact Select
 `;
   const result = parseMarkVSpec(source);
   const html = renderMarkVSpecHtml(result, { includeStyles: false });
-  const diagnostic = result.diagnostics.find((item) => item.message === "Element E-ロール選択 of type Select uses unsupported property options.");
+  const diagnostic = result.diagnostics.find((item) => item.message === "Extension item in Element E-ロール選択: options: viewer=Viewer, admin=Administrator. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output.");
 
   assert(diagnostic);
   assert.equal(diagnostic.line, lineNumber(source, "- options: viewer=Viewer, admin=Administrator"));
@@ -6946,9 +6951,9 @@ title: Users
   const result = parseMarkVSpec(source);
   const html = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true });
 
-  assert(result.diagnostics.some((item) => item.message === "Element E-Users of type Table uses unsupported property columns."));
-  assert(result.diagnostics.some((item) => item.message === "Element E-UsersTypo of type Table uses unsupported property Columns."));
-  assert(result.diagnostics.some((item) => item.message === "Element E-UsersTypo of type Table uses unsupported property Sample Rows."));
+  assert(result.diagnostics.some((item) => item.severity === "info" && item.message === "Extension item in Element E-Users: columns: Name, Role. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
+  assert(result.diagnostics.some((item) => item.severity === "info" && item.message === "Extension item in Element E-UsersTypo: Columns: Name, Role. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
+  assert(result.diagnostics.some((item) => item.severity === "info" && item.message === "Extension item in Element E-UsersTypo: Sample Rows: Alice|Admin. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
   assert.doesNotMatch(html, /<th>Name<\/th>/);
   assert.doesNotMatch(html, /<td>Alice<\/td>/);
 });
@@ -8156,7 +8161,8 @@ title: Self Partial Host
 
 test("evaluates diagnostics as a CI-ready validation gate", () => {
   const diagnostics = [
-    { severity: "warning" as const, message: "Review this." }
+    { severity: "warning" as const, message: "Review this." },
+    { severity: "info" as const, message: "For awareness." }
   ];
 
   assert.deepEqual(evaluateMarkVSpecDiagnostics(diagnostics), {
@@ -8174,6 +8180,75 @@ test("evaluates diagnostics as a CI-ready validation gate", () => {
     exitCode: 1
   });
   assert.equal(evaluateMarkVSpecDiagnostics([{ severity: "error", message: "Broken." }]).exitCode, 1);
+});
+
+test("classifies retained extension items as info diagnostics while unrepresented structured items stay warnings", () => {
+  const source = `---
+id: SCR-EXTENSION-INFO
+type: screen
+title: Extension Info
+---
+
+# SCR-EXTENSION-INFO Extension Info
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Page Page
+
+- stack
+- analytics scope: login
+
+#### Items
+
+- E-Submit
+
+## Elements
+
+### E-Submit Button
+
+- label: Submit
+- action: A-Submit
+- analytics event: submit_clicked
+
+## Actions
+
+### A-Submit Submit
+
+- Tliggered
+- From
+  - idle
+- Process P1: Submit
+  - correlation id: request.id
+  - sync:
+    - AuditService.record()
+  - result:
+    - submit request
+  - case: sent
+    - state: idle
+`;
+
+  const result = parseMarkVSpec(source);
+  const infoMessages = result.diagnostics.filter((diagnostic) => diagnostic.severity === "info").map((diagnostic) => diagnostic.message);
+  const warningMessages = result.diagnostics.filter((diagnostic) => diagnostic.severity === "warning").map((diagnostic) => diagnostic.message);
+  const action = result.actions.find((item) => item.id === "A-Submit");
+  const step = action?.processSteps[0];
+
+  assert(infoMessages.includes("Extension item in Layout L-Page: analytics scope: login. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
+  assert(infoMessages.includes("Extension item in Element E-Submit: analytics event: submit_clicked. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
+  assert(infoMessages.includes("Extension item in Action A-Submit process step Submit: correlation id: request.id. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
+  assert(infoMessages.includes("Extension item in Action A-Submit process step Submit: AuditService.record(). This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
+  assert(warningMessages.includes("Unknown structured item in Action A-Submit: Tliggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
+  assert.equal(result.layoutGroups.find((layout) => layout.id === "L-Page")?.properties["analytics scope"], "login");
+  assert.equal(result.elements.find((element) => element.id === "E-Submit")?.properties["analytics event"], "submit_clicked");
+  assert.deepEqual(step?.details.map((detail) => [detail.key, detail.value]), [
+    ["correlation id", "request.id"],
+    ["sync", "AuditService.record()"]
+  ]);
+  assert.equal(action?.triggeredBy, "E-Submit.click");
 });
 
 test("ignores layout groups in bare Layout sections", () => {
@@ -8635,10 +8710,10 @@ title: Unsupported Props
 - placeholder: Save button
 `;
   const result = parseMarkVSpec(source);
-  const diagnostic = result.diagnostics.find((item) => item.message === "Element E-保存ボタン of type Button uses unsupported property placeholder.");
+  const diagnostic = result.diagnostics.find((item) => item.message === "Extension item in Element E-保存ボタン: placeholder: Save button. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output.");
 
   assert(diagnostic);
-  assert.equal(diagnostic.severity, "warning");
+  assert.equal(diagnostic.severity, "info");
   assert.equal(diagnostic.line, lineNumber(source, "- placeholder: Save button"));
 });
 
@@ -11268,7 +11343,6 @@ locale: ja
       "action.process.mixesResultClassificationAndImmediateEffects",
       "action.process.multipleExecutionDetails",
       "element.unknownType",
-      "element.unsupportedProperty",
       "frontMatter.missingRequired",
       "frontMatter.missingYaml",
       "layout.groupIgnoredWithoutViewport",
@@ -11393,24 +11467,6 @@ locale: ja
 ### E-Widget Widget
 
 - value: Widget
-`
-    },
-    {
-      code: "element.unsupportedProperty",
-      ja: "canonical property",
-      source: `---
-id: SCR-ELEMENT-PROP-DIAG
-type: screen
-title: Element Property Diagnostic
-locale: ja
----
-# SCR-ELEMENT-PROP-DIAG Element Property Diagnostic
-
-## Elements
-
-### E-Button Button
-
-- placeholder: Bad
 `
     },
     {
@@ -11982,7 +12038,16 @@ title: Custom Process Detail
   const result = parseMarkVSpec(source);
   const step = result.actions[0]?.processSteps[0];
 
-  assert.deepEqual(result.diagnostics, []);
+  assert.deepEqual(
+    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+    [
+      [
+        "info",
+        "Extension item in Action A-Submit process step Submit with project sync: SubscriptionService.create(). This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output.",
+        lineNumber(source, "    - SubscriptionService.create()")
+      ]
+    ]
+  );
   assert.deepEqual(step?.details.map((detail) => [detail.key, detail.value]), [
     ["sync", "SubscriptionService.create()"],
     ["sync.params.email", "E-EmailInput.value"]

@@ -13,6 +13,12 @@ export interface UnsupportedStructuredItemInput {
   allowed?: string;
 }
 
+export interface RepresentedExtensionItemInput {
+  context: string;
+  text: string;
+  location: SourceLocation;
+}
+
 export function createUnrepresentedSourceTextDiagnostic(
   input: UnrepresentedSourceTextInput
 ): MarkVSpecDiagnostic {
@@ -30,6 +36,16 @@ export function createUnsupportedStructuredItemDiagnostic(
   return {
     severity: "warning",
     message: `Unknown structured item in ${input.context}: ${input.text}. This item is not represented in MarkVSpec output.${input.allowed ? ` Use ${input.allowed}.` : ""}`,
+    line: input.location.line
+  };
+}
+
+export function createRepresentedExtensionItemDiagnostic(
+  input: RepresentedExtensionItemInput
+): MarkVSpecDiagnostic {
+  return {
+    severity: "info",
+    message: `Extension item in ${input.context}: ${input.text}. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output.`,
     line: input.location.line
   };
 }

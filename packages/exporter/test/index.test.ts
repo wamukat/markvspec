@@ -106,6 +106,35 @@ test("exports unrepresented source text warnings in diagnostics section", () => 
   }
 });
 
+test("exports retained extension item info in diagnostics section", () => {
+  const dir = mkdtempSync(join(tmpdir(), "markvspec-exporter-extension-info-"));
+  try {
+    const sourcePath = join(dir, "extension-info.vspec.md");
+    writeFileSync(sourcePath, `---
+id: SCR-EXPORT-INFO
+type: screen
+title: Export Info
+---
+# SCR-EXPORT-INFO Export Info
+
+## Elements
+
+### E-Submit Button
+
+- label: Submit
+- analytics event: submit_clicked
+`);
+
+    const result = renderStandaloneHtmlForFile(sourcePath);
+
+    assert.equal(result.diagnostics.filter((diagnostic) => diagnostic.severity === "info").length, 1);
+    assert.match(result.html, /Extension item in Element E-Submit: analytics event: submit_clicked\./);
+    assert.match(result.html, /<span class="mm-diagnostic-severity mm-diagnostic-severity-info">/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("validation reports broken standalone template references", () => {
   const dir = mkdtempSync(join(tmpdir(), "markvspec-template-"));
   try {

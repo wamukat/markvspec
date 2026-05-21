@@ -98,6 +98,43 @@ test("validate prints unrepresented source text warnings and fail-on-warnings fa
   }
 });
 
+test("validate prints retained extension item info without failing fail-on-warnings", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "markvspec-cli-extension-info-"));
+  const originalLog = console.log;
+  const logs: string[] = [];
+  try {
+    const sourcePath = join(dir, "extension-info.vspec.md");
+    writeFileSync(sourcePath, `---
+id: SCR-CLI-INFO
+type: screen
+title: CLI Info
+---
+# SCR-CLI-INFO CLI Info
+
+## Elements
+
+### E-Submit Button
+
+- label: Submit
+- analytics event: submit_clicked
+`);
+    console.log = (message?: unknown) => {
+      logs.push(String(message));
+    };
+
+    assert.equal(await main(["validate", sourcePath]), 0);
+    assert(logs.some((line) => line.includes("info: Extension item in Element E-Submit: analytics event: submit_clicked.")));
+    assert(logs.some((line) => line.includes("0 error(s), 0 warning(s).")));
+
+    logs.length = 0;
+    assert.equal(await main(["validate", sourcePath, "--fail-on-warnings"]), 0);
+    assert(logs.some((line) => line.includes("0 error(s), 0 warning(s).")));
+  } finally {
+    console.log = originalLog;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("export html writes an HTML file", async () => {
   const dir = mkdtempSync(join(tmpdir(), "markvspec-cli-html-"));
   try {

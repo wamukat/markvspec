@@ -8,7 +8,6 @@ export type MarkVSpecDiagnosticCode =
   | "layout.groupIgnoredWithoutViewport"
   | "layout.unsupportedItemsEntry"
   | "element.unknownType"
-  | "element.unsupportedProperty"
   | "action.missingTrigger"
   | "action.invalidTrigger"
   | "action.process.multipleExecutionDetails"
@@ -42,8 +41,6 @@ const diagnosticMessageTemplates: Record<DiagnosticLocale, Record<MarkVSpecDiagn
       `Layout ${param(params, "layoutId")} has unsupported Items entry: ${param(params, "entry")}.`,
     "element.unknownType": (params) =>
       `Unknown element type: ${param(params, "type")}.`,
-    "element.unsupportedProperty": (params) =>
-      `Element ${param(params, "elementId")} of type ${param(params, "type")} uses unsupported property ${param(params, "property")}.`,
     "action.missingTrigger": (params) =>
       `Action ${param(params, "actionId")} has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.`,
     "action.invalidTrigger": (params) =>
@@ -84,8 +81,6 @@ const diagnosticMessageTemplates: Record<DiagnosticLocale, Record<MarkVSpecDiagn
       `Layout ${param(params, "layoutId")} の Items entry ${param(params, "entry")} はサポートされていません。Items には L-* または E-* を指定してください。`,
     "element.unknownType": (params) =>
       `Element type ${param(params, "type")} は未定義です。Button/Input/Text/Table などのサポート済み type を使ってください。`,
-    "element.unsupportedProperty": (params) =>
-      `Element ${param(params, "elementId")} (${param(params, "type")}) の property ${param(params, "property")} はサポートされていません。低レベルな style や未定義 property は削除し、対応する canonical property を使ってください。`,
     "action.missingTrigger": (params) =>
       `Action ${param(params, "actionId")} に trigger がありません。Element action:、## Events の page.load / partial.render、または receive A-ActionId.P-marker.response を追加してください。`,
     "action.invalidTrigger": (params) =>

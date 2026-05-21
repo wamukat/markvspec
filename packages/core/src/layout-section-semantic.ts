@@ -8,7 +8,7 @@ import type {
   SourceLocation
 } from "./types.js";
 import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
-import { createUnsupportedStructuredItemDiagnostic } from "./source-text-diagnostics.js";
+import { createRepresentedExtensionItemDiagnostic, createUnsupportedStructuredItemDiagnostic } from "./source-text-diagnostics.js";
 import { elementIdPattern, isLayoutItemId, layoutGroupIdPattern } from "./ids.js";
 import type { MarkdownDocument } from "./markdown-document.js";
 import {
@@ -19,6 +19,24 @@ import {
 import type { SemanticDependency } from "./markdown-section-semantic.js";
 
 const slotDefinitionPropertyKeys = new Set(["required", "default", "purpose", "description"]);
+const layoutGroupMetadataPropertyKeys = new Set([
+  "active when",
+  "align",
+  "columns",
+  "description",
+  "disabled when",
+  "enabled when",
+  "gap",
+  "hidden when",
+  "justify",
+  "marker",
+  "overlay",
+  "partial",
+  "purpose",
+  "selected when",
+  "variant",
+  "visible when"
+]);
 
 interface ListItemView {
   text: string;
@@ -292,7 +310,7 @@ function parseLayoutOrSlotSection(section: SectionAst, support: LayoutSectionSem
         applyLayoutItemBullet(currentLayout, bullet, support);
         addLayoutItemDependency(currentLayout, currentLayout.items[currentLayout.items.length - 1], dependencies);
       } else {
-        currentLayoutNestedProperty = applyLayoutMetadataBullet(currentLayout, bullet, support);
+        currentLayoutNestedProperty = applyLayoutMetadataBullet(currentLayout, bullet, support, diagnostics);
         addPartialDependencies(currentLayout, dependencies);
       }
     }
@@ -416,7 +434,8 @@ function parseSlotsSection(section: SectionAst, support: LayoutSectionSemanticSu
 function applyLayoutMetadataBullet(
   layout: MarkVSpecLayoutGroup,
   bullet: ParsedBullet,
-  support: LayoutSectionSemanticSupport
+  support: LayoutSectionSemanticSupport,
+  diagnostics: MarkVSpecDiagnostic[]
 ): string | undefined {
   const [key, value] = support.splitKeyValue(bullet.text);
   if (key.trim() === "partial" && value !== undefined && value.trim() === "") {
@@ -442,6 +461,13 @@ function applyLayoutMetadataBullet(
     const normalizedValue = value.trim();
     layout.properties[normalizedKey] = normalizedValue;
     support.addPropertyLocation(layout.propertyLocations, normalizedKey, bullet.location);
+    if (!layoutGroupMetadataPropertyKeys.has(normalizedKey)) {
+      diagnostics.push(createRepresentedExtensionItemDiagnostic({
+        context: `Layout ${layout.id}`,
+        text: bullet.text,
+        location: bullet.location
+      }));
+    }
     layout.items.push({
       type: "property",
       key: normalizedKey,
