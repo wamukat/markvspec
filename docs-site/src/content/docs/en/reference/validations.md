@@ -40,6 +40,28 @@ Validations cover validation contracts and error display. Put input metadata in 
     - message: Enter a valid email address.
 ```
 
+### Structured Properties
+
+<!-- markvspec-generated:reference-validations:start -->
+This block is generated from `packages/core/src/grammar-definition.ts`. Do not hand-edit it; update the grammar definition and regenerate the docs.
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `marker` | `canonical` | represented | - | Validation property. |
+| `description` | `canonical` | represented | - | Validation property. |
+| `target` | `canonical` | represented | - | Validation property. |
+| `scope` | `canonical` | represented | - | Validation property. |
+| `run` | `canonical` | represented | - | Validation property. |
+| `inputs` | `canonical` | represented | - | Validation property. |
+| `rules` | `canonical` | represented | - | Validation property. |
+| `constraints` | `canonical` | represented | - | Validation property. |
+| `check` | `canonical` | represented | - | Validation property. |
+| `when` | `canonical` | represented | - | Validation property. |
+| `message` | `canonical` | represented | - | Validation property. |
+| `messages` | `canonical` | represented | - | Validation property. |
+| `error code` | `canonical` | represented | - | Validation property. |
+<!-- markvspec-generated:reference-validations:end -->
+
 ### Common Constraints
 
 | Constraint | Example | Use |

@@ -80,25 +80,53 @@ examples には次の専用コントロールも出ます。画面の意味を�
 
 ### 主な項目
 
-| 項目 | 書き方 | 用途 |
-| --- | --- | --- |
-| `text` | `- text: Hello` | `Heading`、`Paragraph`、`Text`、`Banner`、`Toast` の表示文 |
-| `label` | `- label: Sign in` | `Button`、`Input`、`Select`、`Checkbox`、`Link` などのコントロール / リンク名 |
-| `value` | `- value: email` | フィールドの値やデータバインド名。表示ラベルではない |
-| `placeholder` | `- placeholder: name@example.com` | 入力例 |
-| `required` | `- required` | 入力欄を必須として表示する |
-| `variant` | `- variant: primary` | 優先度。`primary`、`secondary`、`tertiary` |
-| `tone` | `- tone: danger` | 意味上の意図。`neutral`、`info`、`success`、`warning`、`danger` |
-| `action` | `- action: A-SubmitLogin` | 発火するアクション ID |
-| `href` | `- href: /settings` | リンク先 |
-| `options` | `- options:` | 選択肢 |
-| `columns` / `sample rows` | `- columns:` / `- sample rows:` | テーブルの構造と代表行 |
-| `visible when` | `- visible when: error` | 要素が表示される状態 |
-| `hidden when` | `- hidden when: loading` | 要素が非表示になる状態 |
-| `disabled when` | `- disabled when: submitting` | コントロールが無効になる状態 |
-| `loading when` | `- loading when: submitting` | 読み込み中のフィードバックを出す状態 |
-| `open when` | `- open when: dialog-open` | dialog、popover、accordion、disclosure が開く状態 |
-| `placement` | `- placement: below E-HelpIcon` | tooltip、popover、menu の表示位置 |
+<!-- markvspec-generated:reference-elements:start -->
+この block は `packages/core/src/grammar-definition.ts` から生成されます。手編集せず、grammar definition を更新して再生成してください。
+
+| Item | 分類 | 出力 | 診断 | 説明 |
+| --- | --- | --- | --- | --- |
+| `marker` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `label` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `label src` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `placeholder src` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `description` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `help` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `help src` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `hint` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `message` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `message src` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `sample` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `source` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `purpose` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `text` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `value` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `src` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `format` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `initial value` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `required` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `readonly` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `optional` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `visible when` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `hidden when` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `disabled when` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `variant` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `tone` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `validation` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `input rule` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `error text` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `action` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `action event` | `canonical` | 出力対象 | - | Element 共通 property。 |
+
+Element type 固有の item property は以下の context で定義します。
+
+| Context | Keys |
+| --- | --- |
+| `element.tab-item.property` | `panel`, `action`, `active when` |
+| `element.accordion-item.property` | `panel`, `action`, `open when` |
+| `element.action-menu-item.property` | `action`, `tone`, `disabled when` |
+| `element.display-value-property` | `value`, `label`, `placeholder`, `text`, `message`, `hint`, `href`, `src`, `alt` |
+| `element.display-value-metadata` | `kind`, `source`, `format` |
+<!-- markvspec-generated:reference-elements:end -->
 
 入力値の検証ルールとエラーメッセージは `## Field Validations` に書きます。`Input` 要素直下の `constraints` や `error:` は現在の構文ではありません。
 

@@ -55,12 +55,48 @@ action marker, write `### marker:A-* Name`.
 
 ### Blocks
 
-| Block | Use |
-| --- | --- |
-| `From` | State where the action is available |
-| `Process Pn: ...` | Request, calculation, local process, or response handling |
-| `request` / `receive` / `sync` / `server` | Process input or execution detail |
-| `case: ...` | Result-specific behavior such as success, failure, or empty |
+<!-- markvspec-generated:reference-actions:start -->
+This block is generated from `packages/core/src/grammar-definition.ts`. Do not hand-edit it; update the grammar definition and regenerate the docs.
+
+#### Action Top-Level Structured Items
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `From` | `canonical` | represented | - | Action source states. |
+| `Process Pn:` | `canonical` | represented | - | Marked process step. |
+| `Otherwise` | `canonical` | represented | - | Fallback outcome. |
+| `Triggered` | `non-canonical` | not represented | `warning` | Legacy trigger wrapper. Use Element action or Events. |
+
+#### Process Structured Items
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `request` | `canonical` | represented | - | HTTP request block. |
+| `receive` | `canonical` | represented | - | External result block. |
+| `sync` | `canonical` | represented | - | Synchronous service or calculation detail. |
+| `server` | `canonical` | represented | - | Server-side service call detail. HTTP method/path belongs under request. |
+| `response` | `canonical` | represented | - | Response classification detail. |
+| `validation` | `canonical` | represented | - | Validation process detail. |
+| `when` | `canonical` | represented | - | Process guard. |
+| `skip when` | `canonical` | represented | - | Skip guard. |
+| `parallel` | `canonical` | represented | - | Parallel process group. |
+| `resolve` | `canonical` | represented | - | Resolve process group. |
+| `case` | `canonical` | represented | - | Process result branch. |
+| `state` | `canonical` | represented | - | Immediate state transition effect. |
+| `navigate` | `canonical` | represented | - | Immediate navigation effect. |
+| `display` | `canonical` | represented | - | Display effect block. |
+| `update` | `canonical` | represented | - | Partial update effect block. |
+| `model` | `canonical` | represented | - | Structured model side effect. |
+| `view` | `canonical` | represented | - | Structured view side effect. |
+| `stop` | `canonical` | represented | - | Process case flow directive. |
+| `continue` | `canonical` | represented | - | Process case flow directive. |
+| `Effects` | `non-canonical` | not represented | `warning` | Legacy effect wrapper. |
+| `input` | `non-canonical` | not represented | `warning` | Old process wrapper label. |
+| `inputs` | `non-canonical` | not represented | `warning` | Old process wrapper label. |
+| `condition` | `non-canonical` | not represented | `warning` | Old process wrapper label. |
+| `conditions` | `non-canonical` | not represented | `warning` | Old process wrapper label. |
+| `cases` | `non-canonical` | not represented | `warning` | Old process wrapper label. |
+<!-- markvspec-generated:reference-actions:end -->
 
 ### HTTP Request
 

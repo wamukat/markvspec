@@ -34,13 +34,34 @@ Rule は `### R-* Name` の形で宣言します。
 
 ### Common Properties
 
-| Property | 用途 |
-| --- | --- |
-| `when` | 条件。単一行または nested bullet で書く |
-| `effect` | 条件が満たされたときの画面上の影響 |
-| `message` | 利用者に見せる説明や error |
-| `appliesTo` | 対象 element、layout、action |
-| `priority` | rule が複数ある場合の優先度 |
+<!-- markvspec-generated:reference-rules:start -->
+この block は `packages/core/src/grammar-definition.ts` から生成されます。手編集せず、grammar definition を更新して再生成してください。
+
+#### Business Rule property
+
+| Item | 分類 | 出力 | 診断 | 説明 |
+| --- | --- | --- | --- | --- |
+| `marker` | `canonical` | 出力対象 | - | Business Rule property。 |
+| `description` | `canonical` | 出力対象 | - | Business Rule property。 |
+| `when` | `canonical` | 出力対象 | - | Business Rule property。 |
+| `effect` | `canonical` | 出力対象 | - | Business Rule property。 |
+| `message` | `canonical` | 出力対象 | - | Business Rule property。 |
+| `messages` | `canonical` | 出力対象 | - | Business Rule property。 |
+| `appliesTo` | `canonical` | 出力対象 | - | Business Rule property。 |
+| `priority` | `canonical` | 出力対象 | - | Business Rule property。 |
+
+#### Error Code property
+
+| Item | 分類 | 出力 | 診断 | 説明 |
+| --- | --- | --- | --- | --- |
+| `marker` | `canonical` | 出力対象 | - | Error Code property。 |
+| `business rule` | `canonical` | 出力対象 | - | Error Code property。 |
+| `target` | `canonical` | 出力対象 | - | Error Code property。 |
+| `message` | `canonical` | 出力対象 | - | Error Code property。 |
+| `display` | `canonical` | 出力対象 | - | Error Code property。 |
+| `tone` | `canonical` | 出力対象 | - | Error Code property。 |
+| `description` | `canonical` | 出力対象 | - | Error Code property。 |
+<!-- markvspec-generated:reference-rules:end -->
 
 ## 小さな例
 

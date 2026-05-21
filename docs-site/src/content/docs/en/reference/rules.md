@@ -36,13 +36,34 @@ Declare a rule with the `### R-* Name` form.
 
 ### Common Properties
 
-| Property | Use |
-| --- | --- |
-| `when` | Condition, written as one line or nested bullets |
-| `effect` | Screen effect when the condition is true |
-| `message` | Explanation or error shown to the user |
-| `appliesTo` | Target element, layout, or action |
-| `priority` | Priority when multiple rules may apply |
+<!-- markvspec-generated:reference-rules:start -->
+This block is generated from `packages/core/src/grammar-definition.ts`. Do not hand-edit it; update the grammar definition and regenerate the docs.
+
+#### Business Rule Properties
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `marker` | `canonical` | represented | - | Business Rule property. |
+| `description` | `canonical` | represented | - | Business Rule property. |
+| `when` | `canonical` | represented | - | Business Rule property. |
+| `effect` | `canonical` | represented | - | Business Rule property. |
+| `message` | `canonical` | represented | - | Business Rule property. |
+| `messages` | `canonical` | represented | - | Business Rule property. |
+| `appliesTo` | `canonical` | represented | - | Business Rule property. |
+| `priority` | `canonical` | represented | - | Business Rule property. |
+
+#### Error Code Properties
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `marker` | `canonical` | represented | - | Error Code property. |
+| `business rule` | `canonical` | represented | - | Error Code property. |
+| `target` | `canonical` | represented | - | Error Code property. |
+| `message` | `canonical` | represented | - | Error Code property. |
+| `display` | `canonical` | represented | - | Error Code property. |
+| `tone` | `canonical` | represented | - | Error Code property. |
+| `description` | `canonical` | represented | - | Error Code property. |
+<!-- markvspec-generated:reference-rules:end -->
 
 ## Small Example
 

@@ -81,25 +81,53 @@ needs the distinction; otherwise prefer `Input`, `Select`, `Button`, `Text`, or
 
 ### Common Properties
 
-| Property | Syntax | Use |
-| --- | --- | --- |
-| `text` | `- text: Hello` | Display copy for `Heading`, `Paragraph`, `Text`, `Banner`, and `Toast` |
-| `label` | `- label: Sign in` | Control or link label for `Button`, `Input`, `Select`, `Checkbox`, and `Link` |
-| `value` | `- value: email` | Field value or data binding name; not a display label |
-| `placeholder` | `- placeholder: name@example.com` | Input example |
-| `required` | `- required` | Mark the input as required |
-| `variant` | `- variant: primary` | Priority: `primary`, `secondary`, `tertiary` |
-| `tone` | `- tone: danger` | Semantic intent: `neutral`, `info`, `success`, `warning`, `danger` |
-| `action` | `- action: A-SubmitLogin` | Action ID to trigger |
-| `href` | `- href: /settings` | Link target |
-| `options` | `- options:` | Selectable values for choice controls |
-| `columns` / `sample rows` | `- columns:` / `- sample rows:` | Table structure and representative rows |
-| `visible when` | `- visible when: error` | State where the element appears |
-| `hidden when` | `- hidden when: loading` | State where the element is hidden |
-| `disabled when` | `- disabled when: submitting` | State where the control is disabled |
-| `loading when` | `- loading when: submitting` | State where the element shows loading feedback |
-| `open when` | `- open when: dialog-open` | State where dialog, popover, accordion, or disclosure is open |
-| `placement` | `- placement: below E-HelpIcon` | Placement for tooltip, popover, or menu |
+<!-- markvspec-generated:reference-elements:start -->
+This block is generated from `packages/core/src/grammar-definition.ts`. Do not hand-edit it; update the grammar definition and regenerate the docs.
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `marker` | `canonical` | represented | - | Common element property. |
+| `label` | `canonical` | represented | - | Common element property. |
+| `label src` | `canonical` | represented | - | Common element property. |
+| `placeholder src` | `canonical` | represented | - | Common element property. |
+| `description` | `canonical` | represented | - | Common element property. |
+| `help` | `canonical` | represented | - | Common element property. |
+| `help src` | `canonical` | represented | - | Common element property. |
+| `hint` | `canonical` | represented | - | Common element property. |
+| `message` | `canonical` | represented | - | Common element property. |
+| `message src` | `canonical` | represented | - | Common element property. |
+| `sample` | `canonical` | represented | - | Common element property. |
+| `source` | `canonical` | represented | - | Common element property. |
+| `purpose` | `canonical` | represented | - | Common element property. |
+| `text` | `canonical` | represented | - | Common element property. |
+| `value` | `canonical` | represented | - | Common element property. |
+| `src` | `canonical` | represented | - | Common element property. |
+| `format` | `canonical` | represented | - | Common element property. |
+| `initial value` | `canonical` | represented | - | Common element property. |
+| `required` | `canonical` | represented | - | Common element property. |
+| `readonly` | `canonical` | represented | - | Common element property. |
+| `optional` | `canonical` | represented | - | Common element property. |
+| `visible when` | `canonical` | represented | - | Common element property. |
+| `hidden when` | `canonical` | represented | - | Common element property. |
+| `disabled when` | `canonical` | represented | - | Common element property. |
+| `variant` | `canonical` | represented | - | Common element property. |
+| `tone` | `canonical` | represented | - | Common element property. |
+| `validation` | `canonical` | represented | - | Common element property. |
+| `input rule` | `canonical` | represented | - | Common element property. |
+| `error text` | `canonical` | represented | - | Common element property. |
+| `action` | `canonical` | represented | - | Common element property. |
+| `action event` | `canonical` | represented | - | Common element property. |
+
+Element type-specific item properties are defined by these contexts.
+
+| Context | Keys |
+| --- | --- |
+| `element.tab-item.property` | `panel`, `action`, `active when` |
+| `element.accordion-item.property` | `panel`, `action`, `open when` |
+| `element.action-menu-item.property` | `action`, `tone`, `disabled when` |
+| `element.display-value-property` | `value`, `label`, `placeholder`, `text`, `message`, `hint`, `href`, `src`, `alt` |
+| `element.display-value-metadata` | `kind`, `source`, `format` |
+<!-- markvspec-generated:reference-elements:end -->
 
 Write validation rules and error messages in `## Field Validations`. Element-level `constraints` and `error:` are not current MarkVSpec syntax.
 

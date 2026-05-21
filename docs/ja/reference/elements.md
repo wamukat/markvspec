@@ -78,25 +78,53 @@ examples には次の specialized control も出ます。画面の意味を区�
 
 ### Common Properties
 
-| Property | 書き方 | 用途 |
-| --- | --- | --- |
-| `text` | `- text: Hello` | `Heading`、`Paragraph`、`Text`、`Banner`、`Toast` の表示文 |
-| `label` | `- label: Sign in` | `Button`、`Input`、`Select`、`Checkbox`、`Link` などの control / link 名 |
-| `value` | `- value: email` | field の値や data binding 名。表示 label ではない |
-| `placeholder` | `- placeholder: name@example.com` | input の入力例 |
-| `required` | `- required` | 入力欄を必須として表示する |
-| `variant` | `- variant: primary` | priority。`primary`、`secondary`、`tertiary` |
-| `tone` | `- tone: danger` | semantic intent。`neutral`、`info`、`success`、`warning`、`danger` |
-| `action` | `- action: A-SubmitLogin` | 発火する action ID |
-| `href` | `- href: /settings` | link 先 |
-| `options` | `- options:` | choice control の選択肢 |
-| `columns` / `sample rows` | `- columns:` / `- sample rows:` | table の構造と代表 row |
-| `visible when` | `- visible when: error` | element が表示される state |
-| `hidden when` | `- hidden when: loading` | element が非表示になる state |
-| `disabled when` | `- disabled when: submitting` | control が disabled になる state |
-| `loading when` | `- loading when: submitting` | loading feedback を出す state |
-| `open when` | `- open when: dialog-open` | dialog、popover、accordion、disclosure が開く state |
-| `placement` | `- placement: below E-HelpIcon` | tooltip、popover、menu の表示位置 |
+<!-- markvspec-generated:reference-elements:start -->
+この block は `packages/core/src/grammar-definition.ts` から生成されます。手編集せず、grammar definition を更新して再生成してください。
+
+| Item | 分類 | 出力 | 診断 | 説明 |
+| --- | --- | --- | --- | --- |
+| `marker` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `label` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `label src` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `placeholder src` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `description` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `help` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `help src` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `hint` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `message` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `message src` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `sample` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `source` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `purpose` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `text` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `value` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `src` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `format` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `initial value` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `required` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `readonly` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `optional` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `visible when` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `hidden when` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `disabled when` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `variant` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `tone` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `validation` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `input rule` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `error text` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `action` | `canonical` | 出力対象 | - | Element 共通 property。 |
+| `action event` | `canonical` | 出力対象 | - | Element 共通 property。 |
+
+Element type 固有の item property は以下の context で定義します。
+
+| Context | Keys |
+| --- | --- |
+| `element.tab-item.property` | `panel`, `action`, `active when` |
+| `element.accordion-item.property` | `panel`, `action`, `open when` |
+| `element.action-menu-item.property` | `action`, `tone`, `disabled when` |
+| `element.display-value-property` | `value`, `label`, `placeholder`, `text`, `message`, `hint`, `href`, `src`, `alt` |
+| `element.display-value-metadata` | `kind`, `source`, `format` |
+<!-- markvspec-generated:reference-elements:end -->
 
 入力値の検証ルールと error message は `## Field Validations` に書きます。`Input` element 直下の `constraints` や `error:` は現在の構文ではありません。
 

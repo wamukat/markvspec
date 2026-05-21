@@ -26,25 +26,34 @@ Sections are top-level headings in the `.vspec.md` body. MarkVSpec uses the sect
 
 MarkVSpec recognizes these top-level sections.
 
-| Section | What To Write |
-| --- | --- |
-| `## States` | Screen state names |
-| `## Layout: mobile` | Layout groups and item order |
-| `## Elements` | UI element meaning, labels, values, and actions |
-| `## Actions` | Triggers, requests, effects, and cases |
-| `## Events` | Page or lifecycle events that call actions |
-| `## Form Groups` | Form-level field groups and submit action |
-| `## Field Validations` | Single-field constraints and messages |
-| `## Cross-field Validations` | Multi-field or form-level checks |
-| `## Preview Scenarios` | Named preview cases for state, validation, and action results |
-| `## Business Rules` | Business rules and screen-specific decisions |
-| `## Error Codes` | Reusable error definitions and display targets |
-| `## Slots` | Template slot declarations |
-| `## Slot: name` | Slot content supplied by a page or partial |
-| `## History Fields` | Structured fields used by history entries |
-| `## History` | Revision history entries |
-| `## Notes` | Additional notes, implementation context, and intent |
-| `## Open Questions` | Unresolved questions |
+<!-- markvspec-generated:reference-sections:start -->
+This block is generated from `packages/core/src/grammar-definition.ts`. Do not hand-edit it; update the grammar definition and regenerate the docs.
+
+| Section | Heading Pattern | Order |
+| --- | --- | --- |
+| `## States` | `"States"` | 1 |
+| `## Layout` | `"Layout" \| "Layout:" viewport` | 2 |
+| `## Slot` | `"Slot:" slot_name [":" viewport]` | 2 |
+| `## Slots` | `"Slots"` | 3 |
+| `## Elements` | `"Elements"` | 4 |
+| `## Form Groups` | `"Form Groups"` | 5 |
+| `## Events` | `"Events"` | 6 |
+| `## Actions` | `"Actions"` | 7 |
+| `## View Context` | `"View Context"` | 8 |
+| `## View Context Samples` | `"View Context Samples"` | 9 |
+| `## Preview Scenarios` | `"Preview Scenarios"` | 10 |
+| `## Field Validations` | `"Field Validations"` | 11 |
+| `## Cross-field Validations` | `"Cross-field Validations"` | 12 |
+| `## Validations` | `"Validations"` | 13 |
+| `## Business Rules` | `"Business Rules"` | 14 |
+| `## Error Codes` | `"Error Codes"` | 15 |
+| `## History Fields` | `"History Fields"` | 16 |
+| `## History` | `"History"` | 17 |
+
+Recommended section order: `States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Events, Actions, View Context, View Context Samples, Preview Scenarios, Field Validations, Cross-field Validations, Validations, Business Rules, Error Codes, History Fields, History`
+
+`## Notes` and `## Open Questions` are not recognized sections in the structured render model; they remain hand-written prose.
+<!-- markvspec-generated:reference-sections:end -->
 
 ### States
 

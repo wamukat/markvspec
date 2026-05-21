@@ -57,25 +57,34 @@ title: "セクション"
 
 認識される最上位セクションは次の通りです。
 
-| セクション | 書く内容 |
-| --- | --- |
-| `## States` | 画面状態の名前 |
-| `## Layout: mobile` | レイアウトグループと項目の並び |
-| `## Elements` | UI 要素の意味、ラベル、値、アクション |
-| `## Actions` | トリガー、リクエスト、効果、ケース |
-| `## Events` | page load など要素 click ではないイベント |
-| `## Form Groups` | フォーム単位のフィールドグループと送信アクション |
-| `## Field Validations` | 単一フィールドの制約とメッセージ |
-| `## Cross-field Validations` | 複数フィールドまたはフォーム単位のチェック |
-| `## Preview Scenarios` | 状態、バリデーション、アクション結果を組み合わせたプレビューケース |
-| `## Business Rules` | ビジネスルールと画面固有の判断条件 |
-| `## Error Codes` | 再利用するエラー定義と表示先 |
-| `## Slots` | テンプレートが受け取る slot 宣言 |
-| `## Slot: name` | ページ / partial から渡す slot 内容 |
-| `## History Fields` | 履歴項目に使う構造化フィールド |
-| `## History` | 変更履歴 |
-| `## Notes` | 補足、実装メモ、意図 |
-| `## Open Questions` | 未決事項 |
+<!-- markvspec-generated:reference-sections:start -->
+この block は `packages/core/src/grammar-definition.ts` から生成されます。手編集せず、grammar definition を更新して再生成してください。
+
+| Section | Heading pattern | Order |
+| --- | --- | --- |
+| `## States` | `"States"` | 1 |
+| `## Layout` | `"Layout" \| "Layout:" viewport` | 2 |
+| `## Slot` | `"Slot:" slot_name [":" viewport]` | 2 |
+| `## Slots` | `"Slots"` | 3 |
+| `## Elements` | `"Elements"` | 4 |
+| `## Form Groups` | `"Form Groups"` | 5 |
+| `## Events` | `"Events"` | 6 |
+| `## Actions` | `"Actions"` | 7 |
+| `## View Context` | `"View Context"` | 8 |
+| `## View Context Samples` | `"View Context Samples"` | 9 |
+| `## Preview Scenarios` | `"Preview Scenarios"` | 10 |
+| `## Field Validations` | `"Field Validations"` | 11 |
+| `## Cross-field Validations` | `"Cross-field Validations"` | 12 |
+| `## Validations` | `"Validations"` | 13 |
+| `## Business Rules` | `"Business Rules"` | 14 |
+| `## Error Codes` | `"Error Codes"` | 15 |
+| `## History Fields` | `"History Fields"` | 16 |
+| `## History` | `"History"` | 17 |
+
+推奨 section order: `States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Events, Actions, View Context, View Context Samples, Preview Scenarios, Field Validations, Cross-field Validations, Validations, Business Rules, Error Codes, History Fields, History`
+
+`## Notes` と `## Open Questions` は structured render model に入る recognized section ではなく、手書き prose として扱います。
+<!-- markvspec-generated:reference-sections:end -->
 
 ### States
 

@@ -62,12 +62,48 @@ title: "アクション"
 
 ### ブロック
 
-| ブロック | 用途 |
-| --- | --- |
-| `From` | アクションが有効な状態 |
-| `Process Pn: ...` | リクエスト、計算、ローカル処理、応答処理 |
-| `request` / `receive` / `sync` / `server` | 処理の入力や実行内容 |
-| `case: ...` | success/failure/empty など、処理結果別の挙動 |
+<!-- markvspec-generated:reference-actions:start -->
+この block は `packages/core/src/grammar-definition.ts` から生成されます。手編集せず、grammar definition を更新して再生成してください。
+
+#### Action 直下の structured item
+
+| Item | 分類 | 出力 | 診断 | 説明 |
+| --- | --- | --- | --- | --- |
+| `From` | `canonical` | 出力対象 | - | Action の遷移元 state。 |
+| `Process Pn:` | `canonical` | 出力対象 | - | marker 付き process step。 |
+| `Otherwise` | `canonical` | 出力対象 | - | fallback outcome。 |
+| `Triggered` | `non-canonical` | 出力対象外 | `warning` | legacy trigger wrapper。Element の action または Events を使います。 |
+
+#### Process 配下の structured item
+
+| Item | 分類 | 出力 | 診断 | 説明 |
+| --- | --- | --- | --- | --- |
+| `request` | `canonical` | 出力対象 | - | HTTP request block。 |
+| `receive` | `canonical` | 出力対象 | - | 外部 result block。 |
+| `sync` | `canonical` | 出力対象 | - | 同期 service / calculation detail。 |
+| `server` | `canonical` | 出力対象 | - | server-side service call detail。HTTP method/path は request 配下に置きます。 |
+| `response` | `canonical` | 出力対象 | - | response classification detail。 |
+| `validation` | `canonical` | 出力対象 | - | validation process detail。 |
+| `when` | `canonical` | 出力対象 | - | process guard。 |
+| `skip when` | `canonical` | 出力対象 | - | skip guard。 |
+| `parallel` | `canonical` | 出力対象 | - | parallel process group。 |
+| `resolve` | `canonical` | 出力対象 | - | resolve process group。 |
+| `case` | `canonical` | 出力対象 | - | process result branch。 |
+| `state` | `canonical` | 出力対象 | - | immediate state transition effect。 |
+| `navigate` | `canonical` | 出力対象 | - | immediate navigation effect。 |
+| `display` | `canonical` | 出力対象 | - | display effect block。 |
+| `update` | `canonical` | 出力対象 | - | partial update effect block。 |
+| `model` | `canonical` | 出力対象 | - | structured model side effect。 |
+| `view` | `canonical` | 出力対象 | - | structured view side effect。 |
+| `stop` | `canonical` | 出力対象 | - | process case flow directive。 |
+| `continue` | `canonical` | 出力対象 | - | process case flow directive。 |
+| `Effects` | `non-canonical` | 出力対象外 | `warning` | legacy effect wrapper。 |
+| `input` | `non-canonical` | 出力対象外 | `warning` | 古い process wrapper label。 |
+| `inputs` | `non-canonical` | 出力対象外 | `warning` | 古い process wrapper label。 |
+| `condition` | `non-canonical` | 出力対象外 | `warning` | 古い process wrapper label。 |
+| `conditions` | `non-canonical` | 出力対象外 | `warning` | 古い process wrapper label。 |
+| `cases` | `non-canonical` | 出力対象外 | `warning` | 古い process wrapper label。 |
+<!-- markvspec-generated:reference-actions:end -->
 
 ### HTTP リクエスト
 

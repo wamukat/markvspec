@@ -38,6 +38,28 @@ Validations は入力値の検証契約と error 表示を扱います。入力�
     - message: Enter a valid email address.
 ```
 
+### Structured Properties
+
+<!-- markvspec-generated:reference-validations:start -->
+この block は `packages/core/src/grammar-definition.ts` から生成されます。手編集せず、grammar definition を更新して再生成してください。
+
+| Item | 分類 | 出力 | 診断 | 説明 |
+| --- | --- | --- | --- | --- |
+| `marker` | `canonical` | 出力対象 | - | Validation property。 |
+| `description` | `canonical` | 出力対象 | - | Validation property。 |
+| `target` | `canonical` | 出力対象 | - | Validation property。 |
+| `scope` | `canonical` | 出力対象 | - | Validation property。 |
+| `run` | `canonical` | 出力対象 | - | Validation property。 |
+| `inputs` | `canonical` | 出力対象 | - | Validation property。 |
+| `rules` | `canonical` | 出力対象 | - | Validation property。 |
+| `constraints` | `canonical` | 出力対象 | - | Validation property。 |
+| `check` | `canonical` | 出力対象 | - | Validation property。 |
+| `when` | `canonical` | 出力対象 | - | Validation property。 |
+| `message` | `canonical` | 出力対象 | - | Validation property。 |
+| `messages` | `canonical` | 出力対象 | - | Validation property。 |
+| `error code` | `canonical` | 出力対象 | - | Validation property。 |
+<!-- markvspec-generated:reference-validations:end -->
+
 ### Common Constraints
 
 | Constraint | 例 | 用途 |

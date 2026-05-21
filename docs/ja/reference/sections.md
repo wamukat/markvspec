@@ -26,25 +26,34 @@ Sections は `.vspec.md` の本文を分割する top-level heading です。Mar
 
 認識される top-level section は次の通りです。
 
-| Section | 書く内容 |
-| --- | --- |
-| `## States` | screen state の名前 |
-| `## Layout: mobile` | layout group と item の並び |
-| `## Elements` | UI element の意味、label、value、action |
-| `## Actions` | trigger、request、effect、case |
-| `## Events` | page load など element click ではない event |
-| `## Form Groups` | form 単位の field group と submit action |
-| `## Field Validations` | 単一 field の constraint と message |
-| `## Cross-field Validations` | 複数 field または form 単位の check |
-| `## Preview Scenarios` | state、validation、action result を組み合わせた preview case |
-| `## Business Rules` | business rule と画面固有の判断条件 |
-| `## Error Codes` | 再利用する error 定義と表示先 |
-| `## Slots` | template が受け取る slot 宣言 |
-| `## Slot: name` | page / partial から渡す slot content |
-| `## History Fields` | history entry に使う structured field |
-| `## History` | revision history entry |
-| `## Notes` | 補足、実装メモ、意図 |
-| `## Open Questions` | 未決事項 |
+<!-- markvspec-generated:reference-sections:start -->
+この block は `packages/core/src/grammar-definition.ts` から生成されます。手編集せず、grammar definition を更新して再生成してください。
+
+| Section | Heading pattern | Order |
+| --- | --- | --- |
+| `## States` | `"States"` | 1 |
+| `## Layout` | `"Layout" \| "Layout:" viewport` | 2 |
+| `## Slot` | `"Slot:" slot_name [":" viewport]` | 2 |
+| `## Slots` | `"Slots"` | 3 |
+| `## Elements` | `"Elements"` | 4 |
+| `## Form Groups` | `"Form Groups"` | 5 |
+| `## Events` | `"Events"` | 6 |
+| `## Actions` | `"Actions"` | 7 |
+| `## View Context` | `"View Context"` | 8 |
+| `## View Context Samples` | `"View Context Samples"` | 9 |
+| `## Preview Scenarios` | `"Preview Scenarios"` | 10 |
+| `## Field Validations` | `"Field Validations"` | 11 |
+| `## Cross-field Validations` | `"Cross-field Validations"` | 12 |
+| `## Validations` | `"Validations"` | 13 |
+| `## Business Rules` | `"Business Rules"` | 14 |
+| `## Error Codes` | `"Error Codes"` | 15 |
+| `## History Fields` | `"History Fields"` | 16 |
+| `## History` | `"History"` | 17 |
+
+推奨 section order: `States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Events, Actions, View Context, View Context Samples, Preview Scenarios, Field Validations, Cross-field Validations, Validations, Business Rules, Error Codes, History Fields, History`
+
+`## Notes` と `## Open Questions` は structured render model に入る recognized section ではなく、手書き prose として扱います。
+<!-- markvspec-generated:reference-sections:end -->
 
 ### States
 
