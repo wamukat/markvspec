@@ -800,17 +800,15 @@ title: Static Transitions
     - path: /account
   - case: sent
     - response: account request sent
-    - Effects
-      - state: initializing
+    - state: initializing
 
 ### A2:A-PrimeTelemetry Prime telemetry
 
 - From
   - before-load
 - Process P1: Apply immediate effect
-  - Effects
-    - state: initializing
-    - display: E-TelemetryStatus = ready
+  - state: initializing
+  - display: E-TelemetryStatus = ready
 
 ### A3:A-HandleAccountResponse Handle account response
 
@@ -821,12 +819,10 @@ title: Static Transitions
     - response: A-LoadAccount.P1.response
   - case: success
     - response: 200
-    - Effects
-      - state: loaded
+    - state: loaded
   - case: failure
     - response: 500
-    - Effects
-      - state: initialize-error
+    - state: initialize-error
 `);
   const html = renderStaticDesignDocumentHtml(result);
   const loadAction = result.actions.find((action) => action.id === "A-LoadAccount");
@@ -913,8 +909,7 @@ title: Static Process Icons
 - Process P2: Resolve responses
   - group: initial-load
   - case: ready
-    - Effects
-      - state: loaded
+    - state: loaded
     - stop
 `);
   const html = renderStaticDesignDocumentHtml(result);

@@ -954,16 +954,14 @@ title: Action AST
     - response: 2xx authenticated
     - params:
       - id: E-UserId.value
-    - Effects
-      - state: done
-      - update:
-        - target: L-Message
-        - mode: replace
-        - content: PRT-SUCCESS
+    - state: done
+    - update:
+      - target: L-Message
+      - mode: replace
+      - content: PRT-SUCCESS
   - case: failure
     - from: idle
-    - Effects
-      - state: error
+    - state: error
 - Process P2: Call server service
   - server:
     - ProfileService.load()

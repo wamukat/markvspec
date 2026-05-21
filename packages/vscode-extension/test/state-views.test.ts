@@ -226,10 +226,9 @@ title: Scenario Display
   - editing
 - Process P1: Show help
   - case: help
-    - Effects
-      - display:
-        - target: L-Message
-        - element: E-HelpText
+    - display:
+      - target: L-Message
+      - element: E-HelpText
 
 ### A-ReplaceStatus Replace status
 
@@ -239,10 +238,9 @@ title: Scenario Display
   - editing
 - Process P1: Replace status
   - case: changed
-    - Effects
-      - display:
-        - target: E-Status
-        - element: E-StatusDraft
+    - display:
+      - target: E-Status
+      - element: E-StatusDraft
 
 ### A-ReplaceStatusAgain Replace status again
 
@@ -252,10 +250,9 @@ title: Scenario Display
   - editing
 - Process P1: Replace status again
   - case: changed
-    - Effects
-      - display:
-        - target: E-Status
-        - element: E-StatusFinal
+    - display:
+      - target: E-Status
+      - element: E-StatusFinal
 
 ## Preview Scenarios
 
@@ -345,15 +342,13 @@ title: Field Error Preview
   - receive:
     - validation: V-EmailRequired.result
   - case: invalid
-    - Effects
-      - display:
-        - target: E-EmailInput.error
-        - message: V-EmailRequired.messages
+    - display:
+      - target: E-EmailInput.error
+      - message: V-EmailRequired.messages
   - case: invalid-summary
-    - Effects
-      - display:
-        - target: L-MessageArea
-        - message: V-EmailRequired.messages
+    - display:
+      - target: L-MessageArea
+      - message: V-EmailRequired.messages
 
 ## Preview Scenarios
 
@@ -474,10 +469,9 @@ title: Cross-field Preview
   - receive:
     - validation: V-LoginFormRequired.result
   - case: invalid
-    - Effects
-      - display:
-        - target: L-MessageArea
-        - message: V-LoginFormRequired.messages
+    - display:
+      - target: L-MessageArea
+      - message: V-LoginFormRequired.messages
 
 ## Preview Scenarios
 
@@ -561,10 +555,9 @@ title: Business Rule Display
   - case: business-rule-violation
     - description: 409 duplicate email
     - business rule: R-EmailMustBeUnique
-    - Effects
-      - display:
-        - target: E-EmailInput.error
-        - message: R-EmailMustBeUnique.messages
+    - display:
+      - target: E-EmailInput.error
+      - message: R-EmailMustBeUnique.messages
 
 ## Preview Scenarios
 
@@ -741,8 +734,7 @@ title: Responsive State Dedup
 - From
   - init
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -1049,8 +1041,7 @@ title: All Repeated State Specs
   - idle
   - loaded
 - Process P1: Apply immediate effect
-  - Effects
-    - state: loaded
+  - state: loaded
 `;
   const result = parseMarkVSpec(source);
   const loadedModel = buildViewportStateScreenReadModels(result, result)
@@ -1419,8 +1410,7 @@ title: Hidden Element Trigger
   - idle
 - Process P1: Load
   - case: done
-    - Effects
-      - state: idle
+    - state: idle
 
 ### A2:A-ForgotPassword Open password reset
 
@@ -1429,8 +1419,7 @@ title: Hidden Element Trigger
 - From
   - idle
 - Process P1: Navigate
-  - Effects
-    - navigate: SCR-PASSWORD-RESET
+  - navigate: SCR-PASSWORD-RESET
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -1502,8 +1491,7 @@ title: Repeated Diff System Events
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: loading
+  - state: loading
 
 ### A2:A-HandleSubmitResponse Handle submit response
 
@@ -1754,8 +1742,7 @@ title: Markerless
   - POST /login
     - email: E-メールアドレス入力.value
 - Process P2: Apply immediate effect
-  - Effects
-    - state: authenticating
+  - state: authenticating
 `;
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });

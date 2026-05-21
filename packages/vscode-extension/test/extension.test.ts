@@ -591,7 +591,7 @@ locale: ja
   assert.match(html, new RegExp(escapeRegExp(localizedMessage)));
   assert.match(html, /<span class="mm-diagnostic-severity mm-diagnostic-severity-warning"><svg class="mm-icon mm-icon-triangle-alert" aria-hidden="true" viewBox="0 0 24 24">[\s\S]*?<\/svg>warning<\/span>/);
   assert.doesNotMatch(html, /mixes result classification with direct immediate effects/);
-  assert.equal(localizedMessage, "Action A-Invalid の Process step P1 Validate and update で、result 分類と直接の immediate effect が混在しています。分類された result には case Effects を使ってください。");
+  assert.equal(localizedMessage, "Action A-Invalid の Process step P1 Validate and update で、result 分類と直接の immediate effect が混在しています。effect は分類された case 配下へ移してください。");
 });
 
 test("keeps presentation panels out of generated layout specs", () => {
@@ -834,8 +834,7 @@ default-state: loaded
 - From
   - initializing
 - Process P1: Apply immediate effect
-  - Effects
-    - state: loading
+  - state: loading
 
 ### A2:A-HandleLoadResponse Handle load response
 
@@ -859,8 +858,7 @@ default-state: loaded
   - loading
   - initializing
 - Process P1: Apply immediate effect
-  - Effects
-    - state: ready
+  - state: ready
 
 ### A4:A-ResolveReadyAuto Resolve ready automatically
 
@@ -870,8 +868,7 @@ default-state: loaded
   - loading
   - initializing
 - Process P1: Apply immediate effect
-  - Effects
-    - state: ready-auto
+  - state: ready-auto
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -1157,8 +1154,7 @@ locale: en
   - idle
   - loaded
 - Process P1: Apply immediate effect
-  - Effects
-    - state: loaded
+  - state: loaded
 
 ### A2:A-Removed Removed action
 
@@ -1167,8 +1163,7 @@ locale: en
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 ### A3:A-New New action
 
@@ -1177,8 +1172,7 @@ locale: en
 - From
   - loaded
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -1442,8 +1436,7 @@ Author overview only.
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 ### A2:A-Secondary Secondary
 
@@ -1452,8 +1445,7 @@ Author overview only.
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -1529,8 +1521,7 @@ locale: ja
 - From
   - loaded
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -1967,11 +1958,10 @@ title: Scenario Display
   - result:
     - request result
   - case: failure
-    - Effects
-      - state: failed
-      - display:
-        - target: E-Message
-        - content: Request failed message
+    - state: failed
+    - display:
+      - target: E-Message
+      - content: Request failed message
 
 ## Preview Scenarios
 
@@ -2059,9 +2049,8 @@ title: Dialog Scenario
   - idle
 - Process P1: Apply immediate effect
   - case: done
-    - Effects
-      - display:
-        - element: E-ConfirmDialog
+    - display:
+      - element: E-ConfirmDialog
     - stop
 
 ### A-CancelDialog Cancel dialog
@@ -2170,9 +2159,8 @@ title: Toast Scenario
   - idle
 - Process P1: Save settings
   - case: success
-    - Effects
-      - display:
-        - element: E-SavedToast
+    - display:
+      - element: E-SavedToast
     - stop
 
 ### A-QueueSync Queue sync
@@ -2183,9 +2171,8 @@ title: Toast Scenario
   - idle
 - Process P1: Queue sync
   - case: done
-    - Effects
-      - display:
-        - element: E-SyncToast
+    - display:
+      - element: E-SyncToast
     - stop
 
 ## Preview Scenarios
@@ -2328,10 +2315,9 @@ title: Scenario Unplaced Layout
   - idle
 - Process P1: Show deferred
   - case: shown
-    - Effects
-      - display:
-        - target: L-Page
-        - element: L-DeferredPanel
+    - display:
+      - target: L-Page
+      - element: L-DeferredPanel
 
 ## Preview Scenarios
 
@@ -3628,8 +3614,7 @@ States section notes for the matrix.
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: submitting
+  - state: submitting
 
 ### A2:A-SubmitResponse Submit response
 
@@ -3730,17 +3715,15 @@ title: Multi Page Load
     - path: /account
   - case: sent
     - response: account request sent
-    - Effects
-      - state: initializing
+    - state: initializing
 
 ### A2:A-PrimeTelemetry Prime telemetry
 
 - From
   - before-load
 - Process P1: Apply immediate effect
-  - Effects
-    - state: initializing
-    - display: E-TelemetryStatus = ready
+  - state: initializing
+  - display: E-TelemetryStatus = ready
 
 ### A3:A-HandleAccountResponse Handle account response
 
@@ -3751,8 +3734,7 @@ title: Multi Page Load
     - response: A-LoadAccount.P1.response
   - case: success
     - response: 200
-    - Effects
-      - state: loaded
+    - state: loaded
 `);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
   const stateFlow = html.match(/<section class="doc-section state-flow-section"[^>]*>[\s\S]*?(?=<section class="doc-section state-views-section")/)?.[0] ?? "";
@@ -3802,8 +3784,7 @@ title: Screen Transitions
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - navigate: SCR-PASSWORD-RESET
+  - navigate: SCR-PASSWORD-RESET
 
 ### A2:A-Submit Submit login
 
@@ -3812,8 +3793,7 @@ title: Screen Transitions
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: submitting
+  - state: submitting
 
 ### A3:A-SubmitResponse Handle response
 
@@ -3841,8 +3821,7 @@ title: Screen Transitions
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - navigate: https://example.com/help
+  - navigate: https://example.com/help
 
 ### A5:A-OpenSettings Open settings
 
@@ -3851,8 +3830,7 @@ title: Screen Transitions
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - navigate: /settings
+  - navigate: /settings
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -3890,8 +3868,7 @@ title: State Flow Aggregate
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: loading
+  - state: loading
 
 ### A2:A-PollResponse Poll response
 
@@ -3922,25 +3899,22 @@ title: State Flow Aggregate
 - From
   - loading
 - Process P1: Apply immediate effect
-  - Effects
-    - state: error
-    - state: error
+  - state: error
+  - state: error
 
 ### A5:A-Cancel Cancel
 
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - navigate: SCR-DONE
+  - navigate: SCR-DONE
 
 ### A6:A-KeepLoading Keep loading
 
 - From
   - loading
 - Process P1: Apply immediate effect
-  - Effects
-    - state: loading
+  - state: loading
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -4226,8 +4200,7 @@ locale: ja
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: editing
+  - state: editing
 
 ## Validations
 
@@ -4410,8 +4383,7 @@ title: Any Model
 - From
   - loading
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, "");
@@ -4825,10 +4797,9 @@ references:
 - Process P1: Handle profile summary response
   - case: success
     - description: 200 profile summary partial
-    - Effects
-      - display:
-        - target: L-ProfileSummaryHost
-        - partial: PRT-PROFILE-SUMMARY
+    - display:
+      - target: L-ProfileSummaryHost
+      - partial: PRT-PROFILE-SUMMARY
 
 ## Preview Scenarios
 
@@ -6631,8 +6602,7 @@ title: Process Icons
 - Process P2: Resolve responses
   - group: initial-load
   - case: ready
-    - Effects
-      - state: loaded
+    - state: loaded
     - stop
 `;
   const result = parseMarkVSpec(source);
@@ -6928,8 +6898,7 @@ title: Entity Notes
 - Process P1: Send request
   - GET /users
 - Process P2: Apply immediate effect
-  - Effects
-    - state: loading
+  - state: loading
 
 備考をこういうところに書きたいよね。
 `;
@@ -6992,8 +6961,7 @@ Action overview.
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 Action notes.
 
@@ -7284,8 +7252,7 @@ title: Action Anchors
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -7336,8 +7303,7 @@ locale: en
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -7375,9 +7341,8 @@ locale: en
   - empty
   - load-error
 - Process P1: Apply immediate effect
-  - Effects
-    - state: loading
-    - navigate: SCR-RESULTS
+  - state: loading
+  - navigate: SCR-RESULTS
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -7587,8 +7552,7 @@ locale: en
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: loading
+  - state: loading
 - Process P2: Apply immediate effect
   - case: success
     - navigate: SCR-DONE
@@ -7604,8 +7568,7 @@ locale: en
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - navigate: https://example.com/help
+  - navigate: https://example.com/help
 
 ### A-Settings Settings
 
@@ -7614,8 +7577,7 @@ locale: en
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - navigate: /settings
+  - navigate: /settings
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -7875,8 +7837,7 @@ Use **strong** text, *emphasis*, [help](./my_file_name.md), and \`token\`.
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 ![Diagram](./diagram.png)
 
@@ -7944,8 +7905,7 @@ Refer to #{R-Eligibility}; keep \`#{E-NameInput}\`, \`\`#{A-Submit}\`\`, and \`\
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 ## Business Rules
 

@@ -43,11 +43,9 @@ title: Action Envelope
     - method: POST
     - path: /submit
   - case: success
-    - Effects
-      - state: ready
+    - state: ready
   - case: failure
-    - Effects
-      - state: failed
+    - state: failed
 `);
 
   const action = result.actions[0];
@@ -115,8 +113,7 @@ title: Action Response
     - path: /profile
   - case: success
     - response: 200 profile
-    - Effects
-      - state: loading
+    - state: loading
 
 ### A-Resolve Resolve response
 
@@ -127,8 +124,7 @@ title: Action Response
 - Process P2: Resolve responses
   - receive: A-Load.P1.response
   - case: success
-    - Effects
-      - state: ready
+    - state: ready
 `);
 
   const action = result.actions.find((candidate) => candidate.id === "A-Resolve");
@@ -179,8 +175,7 @@ title: Long Process Marker
     - path: /profile
   - case: success
     - response: 200 profile
-    - Effects
-      - state: loading
+    - state: loading
 
 ### A-Resolve Resolve response
 
@@ -191,8 +186,7 @@ title: Long Process Marker
 - Process P1: Resolve responses
   - receive: A-Load.PLongMarker13.response
   - case: success
-    - Effects
-      - state: ready
+    - state: ready
 `);
 
   const action = result.actions.find((candidate) => candidate.id === "A-Resolve");

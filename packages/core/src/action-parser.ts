@@ -128,6 +128,7 @@ export function applyActionBulletToContext(
       }
 
       if (normalizeBlockLabel(bullet.text) === "effects") {
+        diagnostics.push(createDeprecatedEffectsWrapperDiagnostic(action.id, bullet.location.line));
         return { block: context.block, processStep: context.processStep, processEffectsIndent: bullet.indent };
       }
 
@@ -395,6 +396,7 @@ function applyProcessStepDirectCaseBullet(
 
   const normalized = normalizeBlockLabel(bullet.text);
   if (normalized === "effects") {
+    diagnostics.push(createDeprecatedEffectsWrapperDiagnostic(action.id, bullet.location.line));
     return {
       block: "process",
       processStep: step,
@@ -428,6 +430,14 @@ function applyProcessStepCaseEffect(
 ): void {
   const outcome = getProcessStepOutcome(step, result, bullet.location);
   applyStructuredEffectToOutcome(action, outcome, result, bullet, currentNestedBlock, diagnostics, `process step ${step.name} case ${result}`, flowUnderEffects);
+}
+
+function createDeprecatedEffectsWrapperDiagnostic(actionId: string, line: number): MarkVSpecDiagnostic {
+  return {
+    severity: "warning",
+    message: `Action ${actionId} uses non-canonical Effects wrapper. Put state, display, navigate, view, or other effects directly under Process Pn: or case:.`,
+    line
+  };
 }
 
 function applyProcessStepEffect(
@@ -495,7 +505,7 @@ function applyProcessStepEffect(
 
     diagnostics.push({
       severity: "warning",
-      message: `Action ${action.id} process step ${step.name} has unsupported Effects entry: ${bullet.text}. Put update details under an update block.`,
+      message: `Action ${action.id} process step ${step.name} has unsupported effect entry: ${bullet.text}. Put update details under an update block.`,
       line: bullet.location.line
     });
     return;
@@ -503,7 +513,7 @@ function applyProcessStepEffect(
 
   diagnostics.push({
     severity: "warning",
-    message: `Action ${action.id} process step ${step.name} has unsupported Effects entry: ${bullet.text}. Use model, view, state, navigate, or update.`,
+    message: `Action ${action.id} process step ${step.name} has unsupported effect entry: ${bullet.text}. Use model, view, state, navigate, or update.`,
     line: bullet.location.line
   });
 }
@@ -613,7 +623,7 @@ function applyActionStructuredEffect(
 
     diagnostics.push({
       severity: "warning",
-      message: `Action ${action.id} has unsupported ${result ? `case ${result}` : "Effects"} entry: ${bullet.text}. Put update details under an update block.`,
+      message: `Action ${action.id} has unsupported ${result ? `case ${result}` : "effect"} entry: ${bullet.text}. Put update details under an update block.`,
       line: bullet.location.line
     });
     return;
@@ -621,7 +631,7 @@ function applyActionStructuredEffect(
 
   diagnostics.push({
     severity: "warning",
-    message: `Action ${action.id} has unsupported Effects entry: ${bullet.text}. Use description, state, navigate, response, from, params, or update.`,
+    message: `Action ${action.id} has unsupported effect entry: ${bullet.text}. Use description, state, navigate, response, from, params, or update.`,
     line: bullet.location.line
   });
 }

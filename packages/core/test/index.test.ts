@@ -561,8 +561,7 @@ overview code block
     - page: \${model.requestedPage}
 - Process P1: Submit request
   - case: success
-    - Effects
-      - state: loading
+    - state: loading
 
 備考をこういうところに書きたいよね。
 `;
@@ -606,8 +605,7 @@ Use **strong** text and [help](./help.md).
 - From
   - idle
 - Process P1: Submit request
-  - Effects
-    - state: idle
+  - state: idle
 
 #### Additional note
 
@@ -675,8 +673,7 @@ Visible action overview <!-- inline comment remains visible source -->.
 - From
   - idle
 - Process P1: Submit request
-  - Effects
-    - state: idle
+  - state: idle
 
 <div>non-comment html keeps existing prose behavior</div>
 
@@ -1402,8 +1399,7 @@ title: Users
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - navigate: SCR-USER-DETAIL
+  - navigate: SCR-USER-DETAIL
 `;
   const detailSource = `---
 id: SCR-USER-DETAIL
@@ -1509,10 +1505,9 @@ title: Points Content
     - method: GET
     - path: /points/content
   - case: success
-    - Effects
-      - display:
-        - target: L-PointsContent
-        - partial: PRT-POINTS-CONTENT
+    - display:
+      - target: L-PointsContent
+      - partial: PRT-POINTS-CONTENT
 `;
   const files = new Map([
     ["project/screens/points.vspec.md", screenSource],
@@ -2246,8 +2241,7 @@ title: Users Actual
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - navigate: SCR-NOT-IN-PROJECT
+  - navigate: SCR-NOT-IN-PROJECT
 `;
   const result = loadMarkVSpecProject(projectSource, {
     projectPath: "project/vspec.project.md",
@@ -2259,7 +2253,7 @@ title: Users Actual
     [
       ["error", "Project screen SCR-USERS points to file with screen ID SCR-USERS-ACTUAL.", lineNumber(projectSource, "  - id: SCR-USERS")],
       ["error", "Project screen SCR-MISSING-FILE file not found: screens/missing.vspec.md.", lineNumber(projectSource, "    path: screens/missing.vspec.md")],
-      ["error", "Project transition from SCR-USERS-ACTUAL action A-OpenMissing targets missing screen SCR-NOT-IN-PROJECT.", lineNumber(usersSource, "    - navigate: SCR-NOT-IN-PROJECT")]
+      ["error", "Project transition from SCR-USERS-ACTUAL action A-OpenMissing targets missing screen SCR-NOT-IN-PROJECT.", lineNumber(usersSource, "  - navigate: SCR-NOT-IN-PROJECT")]
     ]
   );
 });
@@ -2311,8 +2305,7 @@ title: List
   - case: success
     - params:
       - noticeId: \${model.notice.noticeId}
-    - Effects
-      - navigate: SCR-DETAIL
+    - navigate: SCR-DETAIL
 
 ### A-StepOpenNotice Open notice after request
 
@@ -2325,8 +2318,7 @@ title: List
   - case: success
     - params:
       - extra: \${model.notice.extra}
-    - Effects
-      - navigate: SCR-DETAIL
+    - navigate: SCR-DETAIL
 `;
   const detailSource = `---
 id: SCR-DETAIL
@@ -2355,7 +2347,7 @@ route: /notices/:noticeId
     [
       ["error", "Project navigation from SCR-LIST element E-お知らせリンク to SCR-DETAIL is missing route parameter noticeId.", lineNumber(listSource, "  - extra: \${model.notice.extra}")],
       ["warning", "Project navigation from SCR-LIST element E-お知らせリンク to SCR-DETAIL defines route parameter extra, but target route /notices/:noticeId has no matching placeholder.", lineNumber(listSource, "  - extra: \${model.notice.extra}")],
-      ["error", "Project navigation from SCR-LIST action A-StepOpenNotice to SCR-DETAIL is missing route parameter noticeId.", lineNumber(listSource, "      - navigate: SCR-DETAIL", 2)],
+      ["error", "Project navigation from SCR-LIST action A-StepOpenNotice to SCR-DETAIL is missing route parameter noticeId.", lineNumber(listSource, "    - navigate: SCR-DETAIL", 2)],
       ["warning", "Project navigation from SCR-LIST action A-StepOpenNotice to SCR-DETAIL defines route parameter extra, but target route /notices/:noticeId has no matching placeholder.", lineNumber(listSource, "      - extra: \${model.notice.extra}")]
     ]
   );
@@ -2520,8 +2512,7 @@ title: Users
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - navigate: SCR-USER-DETAIL
+  - navigate: SCR-USER-DETAIL
 
 ### A6:A-OpenNewUser Open new user
 
@@ -2530,8 +2521,7 @@ title: Users
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - navigate: /users/new
+  - navigate: /users/new
 `;
   const detailSource = `---
 id: SCR-USER-DETAIL
@@ -2620,8 +2610,7 @@ title: Users
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - navigate: SCR-MISSING
+  - navigate: SCR-MISSING
 `;
   const project = loadMarkVSpecProject(projectSource, {
     projectPath: "project/vspec.project.md",
@@ -3364,8 +3353,7 @@ title: Japanese IDs
     - params:
       - email: E-メール入力.value
 - Process P2: Apply immediate effect
-  - Effects
-    - state: validation-error
+  - state: validation-error
 `;
   const result = parseMarkVSpec(source);
 
@@ -3540,8 +3528,7 @@ title: Broken
     - target: F-001
     - content: Invalid form target
 - Process P3: Apply immediate effect
-  - Effects
-    - state: missing
+  - state: missing
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
@@ -4133,8 +4120,7 @@ title: Input Contract
 - Process P2: Apply immediate effect
   - case: validationError
     - error code: ERR-EMAIL-FORMAT
-    - Effects
-      - state: idle
+    - state: idle
 
 ## Field Validations
 
@@ -4369,8 +4355,7 @@ title: Missing Trigger
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
 
@@ -4440,8 +4425,7 @@ title: Event
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
 
@@ -4480,10 +4464,9 @@ title: Outcome
   - service.response
 - Process P1: Apply immediate effect
   - case: failure
-    - Effects
-      - update:
-        - target: L-Message
-        - content: Failure message
+    - update:
+      - target: L-Message
+      - content: Failure message
 `;
   const result = parseMarkVSpec(source);
 
@@ -4498,7 +4481,7 @@ title: Outcome
       [
         "warning",
         "Action A-Submit process step Apply immediate effect defines failure outcome details but has no failure transition.",
-        lineNumber(source, "        - target: L-Message")
+        lineNumber(source, "      - target: L-Message")
       ]
     ]
   );
@@ -4544,11 +4527,10 @@ title: Nested Action
 - Process P2: Apply immediate effect
     - case: failure
         - description: 400
-        - Effects
-            - state: error
-            - update:
-                - target: L-MessageArea
-                - content: Failure message
+          - state: error
+          - update:
+              - target: L-MessageArea
+              - content: Failure message
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-Submit");
@@ -4598,8 +4580,7 @@ title: Otherwise
 - From
   - idle
 - Process P1: Submit request
-  - Effects
-    - state: authenticating
+  - state: authenticating
 - Otherwise
   - state: validation-error
   - update:
@@ -4768,8 +4749,7 @@ title: Server Call
       - includePreferences: true
   - case: success
     - description: ApiBridgeResult.Success<MemberProfileDto>
-    - Effects
-      - state: idle
+    - state: idle
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-Load");
@@ -4819,11 +4799,9 @@ title: Events
     - method: GET
     - path: /items
   - case: sent
-    - Effects
-      - state: initializing
+    - state: initializing
   - case: success
-    - Effects
-      - state: idle
+    - state: idle
 
 ### A-RefreshPartial Refresh partial
 
@@ -4834,8 +4812,7 @@ title: Events
     - method: GET
     - path: /summary
   - case: success
-    - Effects
-      - state: idle
+    - state: idle
 `;
   const result = parseMarkVSpec(source);
 
@@ -4951,68 +4928,57 @@ title: Action Events
 ### A-MarkChanged Mark changed
 
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 ### A-ValidateEmail Validate email
 
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 ### A-SubmitPreferences Submit preferences
 
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 ### A-ShowHelp Show help
 
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 ### A-CloseDialog Close dialog
 
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 ### A-SelectProfileTab Select profile tab
 
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 ### A-SelectBillingTab Select billing tab
 
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 ### A-SelectKeyboardProfileTab Select keyboard profile tab
 
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 ### A-ToggleProfileFilters Toggle profile filters
 
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 ### A-ToggleShippingDetails Toggle shipping details
 
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 ### A-EditRow Edit row
 
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
   const triggers = new Map(result.actions.map((action) => [action.id, action.triggeredBy]));
@@ -5100,24 +5066,21 @@ title: Page Load Pre Initial
 - From
   - before-load
 - Process P1: Apply immediate effect
-  - Effects
-    - state: initializing
+  - state: initializing
 
 ### A-MissingFrom Missing From
 
 - From
   - initializing
 - Process P1: Apply immediate effect
-  - Effects
-    - state: loaded
+  - state: loaded
 
 ### A-MissingInitial Missing Initial
 
 - From
   - before-load
 - Process P1: Apply immediate effect
-  - Effects
-    - state: loaded
+  - state: loaded
 `;
   const result = parseMarkVSpec(source);
 
@@ -5164,8 +5127,7 @@ title: Page Load No Pre Initial
 - From
   - initializing
 - Process P1: Apply immediate effect
-  - Effects
-    - state: initializing
+  - state: initializing
 `;
   const result = parseMarkVSpec(source);
 
@@ -5220,8 +5182,7 @@ route: /mypage/partials/notices
   - NoticeQueryService.findLatest()
   - case: success
     - description: 200 notices
-    - Effects
-      - state: loaded
+    - state: loaded
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-Build");
@@ -5268,8 +5229,7 @@ title: Process Refs
     - target: L-Missing
     - content: Missing
 - Process P2: Apply immediate effect
-  - Effects
-    - state: done
+  - state: done
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
@@ -5341,15 +5301,13 @@ title: Viewport Targets
     - target: L-Message
     - content: Clear
 - Process P2: Apply immediate effect
-  - Effects
-    - state: error
+  - state: error
 - Process P3: Apply immediate effect
   - case: failure
     - transition: idle -> error
-    - Effects
-      - update:
-        - target: L-Message
-        - content: Failed
+    - update:
+      - target: L-Message
+      - content: Failed
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
@@ -5406,11 +5364,10 @@ title: Slot Target
 - Process P1: Apply immediate effect
   - case: success
     - description: ok
-    - Effects
-      - state: idle
-      - update:
-        - target: L-Card
-        - content: Ready content
+    - state: idle
+    - update:
+      - target: L-Card
+      - content: Ready content
 `;
   const result = parseMarkVSpec(source);
 
@@ -5455,8 +5412,7 @@ title: Params
     - params:
       - email: E-CustomMissing.value
 - Process P4: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
 
@@ -5518,8 +5474,7 @@ title: Route Params
   - case: success
     - params:
       - id: E-Missing.value
-    - Effects
-      - navigate: SCR-DETAIL
+    - navigate: SCR-DETAIL
 `;
   const result = parseMarkVSpec(source);
 
@@ -5560,8 +5515,7 @@ title: Response
   - case: success
     - response: 2xx
   - case: failure
-    - Effects
-      - state: idle
+    - state: idle
 `;
   const result = parseMarkVSpec(source);
 
@@ -5661,8 +5615,7 @@ title: Flow Placement
   - idle
 - Process P1: Apply immediate effect
   - case: success
-    - Effects
-      - state: done
+    - state: done
     - stop
 
 ### A-Invalid Invalid flow
@@ -5678,8 +5631,7 @@ title: Flow Placement
       - stop
   - case: non-final
     - stop
-    - Effects
-      - state: done
+    - state: done
   - case: both
     - continue
     - stop
@@ -5688,17 +5640,17 @@ title: Flow Placement
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
   assert(!messages.some((message) => message.includes("A-Valid") && message.includes("flow")));
-  assert(messages.includes("Action A-Invalid process step Apply immediate effect case under-effects has stop under Effects. Put stop directly under the case as the final entry."));
+  assert(messages.includes("Action A-Invalid process step Apply immediate effect case under-effects has stop under an Effects wrapper. Put stop directly under the case as the final entry."));
   assert(messages.includes("Action A-Invalid process step Apply immediate effect case non-final has entries after stop. Put stop as the final entry in the case."));
   assert(messages.includes("Action A-Invalid process step Apply immediate effect case both has both stop and continue. Use only one flow directive."));
   assert(messages.includes("Action A-Invalid process step Apply immediate effect case both has entries after continue. Put continue as the final entry in the case."));
   assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("under-effects has stop under Effects"))?.line,
+    result.diagnostics.find((diagnostic) => diagnostic.message.includes("under-effects has stop under an Effects wrapper"))?.line,
     lineNumber(source, "      - stop")
   );
   assert.equal(
     result.diagnostics.find((diagnostic) => diagnostic.message.includes("non-final has entries after stop"))?.line,
-    lineNumber(source, "      - state: done", 3)
+    lineNumber(source, "    - state: done", 2)
   );
   assert.equal(
     result.diagnostics.find((diagnostic) => diagnostic.message.includes("both has both stop and continue"))?.line,
@@ -6805,9 +6757,8 @@ title: Toast Display
   - idle
 - Process P1: Save
   - case: success
-    - Effects
-      - display:
-        - element: E-SavedToast
+    - display:
+      - element: E-SavedToast
     - stop
 
 ### A-Other Other
@@ -6818,9 +6769,8 @@ title: Toast Display
   - idle
 - Process P1: Other
   - case: done
-    - Effects
-      - display:
-        - element: E-OtherText
+    - display:
+      - element: E-OtherText
     - stop
 `;
   const result = parseMarkVSpec(source);
@@ -7139,10 +7089,9 @@ title: Bad Presentation Panel
   - idle
 - Process P1: Apply immediate effect
   - case: success
-    - Effects
-      - update:
-        - target: P-Fields
-        - content: refreshed fields
+    - update:
+      - target: P-Fields
+      - content: refreshed fields
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
@@ -7419,8 +7368,7 @@ title: Markers
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 ### Do:A-Two two
 
@@ -7429,8 +7377,7 @@ title: Markers
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
@@ -7508,8 +7455,7 @@ title: Marker Shape
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
@@ -7742,11 +7688,10 @@ title: Partial Reference
     - method: GET
     - path: /partials/notices
   - case: success
-    - Effects
-      - state: idle
-      - display:
-        - target: L-PartialHost
-        - partial: PRT-OTHER-LIST
+    - state: idle
+    - display:
+      - target: L-PartialHost
+      - partial: PRT-OTHER-LIST
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
@@ -7798,10 +7743,9 @@ title: Self Partial
     - method: GET
     - path: /partials/self
   - case: success
-    - Effects
-      - display:
-        - target: L-Self
-        - partial: PRT-SELF
+    - display:
+      - target: L-Self
+      - partial: PRT-SELF
 `;
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
@@ -8390,14 +8334,12 @@ title: Malformed Action
   - case: success
   - state: done
 - Process P6: Apply immediate effect
-  - Effects
-    - request: POST /unsupported
-    - target: L-MessageArea
+  - request: POST /unsupported
+  - target: L-MessageArea
 - Process P7: Apply immediate effect
   - case: failure
-    - Effects
-      - update:
-        - target: L-FirstMessageArea
+    - update:
+      - target: L-FirstMessageArea
     - target: L-MessageArea
     - request: POST /unsupported
 `;
@@ -8411,8 +8353,8 @@ title: Malformed Action
   assert(messages.includes("Action A-Submit process step Preprocess has unsupported entry: request: POST /unsupported. Put request method and path under a request block."));
   assert(messages.includes("Action A-Submit process step Preprocess has unsupported entry: target: L-MessageArea. Put update details under an update block."));
   assert(messages.includes("Action A-Submit process step Preprocess has unsupported entry: target: L-SecondMessageArea. Put update details under an update block."));
-  assert(messages.includes("Action A-Submit process step Apply immediate effect has unsupported Effects entry: request: POST /unsupported. Use model, view, state, navigate, or update."));
-  assert(messages.includes("Action A-Submit process step Apply immediate effect has unsupported Effects entry: target: L-MessageArea. Put update details under an update block."));
+  assert(messages.includes("Action A-Submit process step Apply immediate effect has unsupported entry: request: POST /unsupported. Put request method and path under a request block."));
+  assert(messages.includes("Action A-Submit process step Apply immediate effect has unsupported entry: target: L-MessageArea. Put update details under an update block."));
   assert(messages.includes("Action A-Submit has unsupported process step Apply immediate effect case failure entry: target: L-MessageArea. Put update details under an update block."));
   assert(messages.includes("Action A-Submit has unsupported process step Apply immediate effect case failure entry: request: POST /unsupported. Use description, state, navigate, response, from, params, update, stop, or continue."));
   const action = result.actions.find((candidate) => candidate.id === "A-Submit");
@@ -8430,8 +8372,8 @@ title: Malformed Action
     lineNumber(source, "  - E-メールアドレス入力.click")
   );
   assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("unsupported Effects entry: request: POST /unsupported"))?.line,
-    lineNumber(source, "    - request: POST /unsupported")
+    result.diagnostics.find((diagnostic) => diagnostic.message.includes("Apply immediate effect has unsupported entry: request: POST /unsupported"))?.line,
+    lineNumber(source, "  - request: POST /unsupported", 2)
   );
   assert.equal(
     result.diagnostics.find((diagnostic) => diagnostic.message.includes("unsupported top-level entry: Process: POST /login"))?.line,
@@ -8440,6 +8382,67 @@ title: Malformed Action
   assert.equal(
     result.diagnostics.find((diagnostic) => diagnostic.message.includes("unsupported top-level entry: Process: email: E-メールアドレス入力.value"))?.line,
     lineNumber(source, "- Process: email: E-メールアドレス入力.value")
+  );
+});
+
+test("warns for non-canonical Effects wrappers while preserving parsed effects", () => {
+  const source = `---
+id: SCR-EFFECTS-WRAPPER
+type: screen
+title: Effects Wrapper
+---
+
+# SCR-EFFECTS-WRAPPER Effects Wrapper
+
+## States
+
+- idle*
+- saving
+- done
+- failed
+
+## Actions
+
+### A-Save Save
+
+- From
+  - idle
+- Process P1: Start save
+  - Effects
+    - state: saving
+- Process P2: Handle response
+  - case: success
+    - Effects
+      - state: done
+  - case: failure
+    - Effects
+      - state: failed
+`;
+
+  const result = parseMarkVSpec(source);
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+  const action = result.actions.find((candidate) => candidate.id === "A-Save");
+
+  assert.equal(action?.processSteps[0]?.to, "saving");
+  assert.equal(action?.processSteps[1]?.outcomes.find((outcome) => outcome.result === "success")?.to, "done");
+  assert.equal(action?.processSteps[1]?.outcomes.find((outcome) => outcome.result === "failure")?.to, "failed");
+  assert.equal(
+    messages.filter((message) => message.includes("uses non-canonical Effects wrapper")).length,
+    3
+  );
+  assert.equal(
+    result.diagnostics.find((diagnostic) => diagnostic.message.includes("uses non-canonical Effects wrapper"))?.line,
+    lineNumber(source, "  - Effects")
+  );
+  assert.deepEqual(
+    result.diagnostics
+      .filter((diagnostic) => diagnostic.message.includes("uses non-canonical Effects wrapper"))
+      .map((diagnostic) => diagnostic.line),
+    [
+      lineNumber(source, "  - Effects"),
+      lineNumber(source, "    - Effects"),
+      lineNumber(source, "    - Effects", 2)
+    ]
   );
 });
 
@@ -8479,11 +8482,10 @@ references:
     - path: /partials/profile
   - case: success
     - description: 200 partial HTML
-    - Effects
-      - state: initializing
-      - display:
-        - target: L-PartialHost
-        - partial: PRT-PROFILE
+    - state: initializing
+    - display:
+      - target: L-PartialHost
+      - partial: PRT-PROFILE
 `;
   const result = parseMarkVSpec(source);
   const partialAction = result.actions.find((action) => action.id === "A-LoadPartial");
@@ -8541,27 +8543,24 @@ references:
     - response: A-LoadPoints.response
   - case: success-items
     - response: HTTP 200 items > 0
-    - Effects
-      - state: idle
-      - display:
-        - target: L-PointsPanel
-        - partial: PRT-POINTS-PANEL
+    - state: idle
+    - display:
+      - target: L-PointsPanel
+      - partial: PRT-POINTS-PANEL
     - Stop
   - case: success-empty
     - response: HTTP 200 items = 0
-    - Effects
-      - state: empty
-      - display:
-        - target: L-PointsPanel
-        - partial: PRT-POINTS-PANEL
+    - state: empty
+    - display:
+      - target: L-PointsPanel
+      - partial: PRT-POINTS-PANEL
     - Continue
   - case: failure
     - response: HTTP error
-    - Effects
-      - state: load-error
-      - display:
-        - target: L-PointsPanel
-        - partial: PRT-POINTS-PANEL
+    - state: load-error
+    - display:
+      - target: L-PointsPanel
+      - partial: PRT-POINTS-PANEL
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-LoadPoints");
@@ -8640,13 +8639,11 @@ title: Parallel Process
   - group: initial-load
   - case: ready
     - description: profile and points loaded
-    - Effects
-      - state: idle
+    - state: idle
     - stop
   - case: failed
     - description: one or more calls failed
-    - Effects
-      - state: load-error
+    - state: load-error
     - stop
 `;
   const result = parseMarkVSpec(source);
@@ -8713,34 +8710,28 @@ title: Case Description
     - save request send result
   - case: sent
     - description: request accepted for sending
-    - Effects
-      - state: saving
+    - state: saving
   - case: send-failed
     - response: network error
-    - Effects
-      - state: save-error
+    - state: save-error
   - case: skipped
     - result: already clean
-    - Effects
-      - state: idle
+    - state: idle
 - Process P2: Handle save response
   - receive:
     - response: A-Save.P1.response
   - case: failure
     - response: 500 save failed
-    - Effects
-      - state: save-error
+    - state: save-error
 - Process P3: Check validation result
   - receive:
     - validation: V-SaveForm.result
   - case: invalid
     - response: required field missing
-    - Effects
-      - state: validation-error
+    - state: validation-error
   - case: branch
     - response: branch selected
-    - Effects
-      - state: idle
+    - state: idle
 
 ## Validations
 
@@ -8794,15 +8785,13 @@ title: Bad Parallel Process
     - MemberQueryService.findSelfProfile()
   - case: success
     - response: 200 member profile
-    - Effects
-      - state: idle
+    - state: idle
     - stop
 - Process P2: Resolve responses
   - group: missing-load
   - case: failed
     - description: missing group
-    - Effects
-      - state: load-error
+    - state: load-error
     - stop
 `;
   const result = parseMarkVSpec(source);
@@ -8857,8 +8846,7 @@ title: Malformed Sections
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
 
@@ -8909,8 +8897,7 @@ title: Action Lifecycle
 - From
   - idle
 - Process P1: Submit request
-  - Effects
-    - state: wait
+  - state: wait
 
 ### A-HandleResponse Handle response
 
@@ -8919,8 +8906,7 @@ title: Action Lifecycle
 - From
   - wait
 - Process P1: Handle response
-  - Effects
-    - state: idle
+  - state: idle
 
 ### A-HandleProgress Handle progress
 
@@ -8929,8 +8915,7 @@ title: Action Lifecycle
 - From
   - wait
 - Process P1: Handle progress
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
 
@@ -8995,8 +8980,7 @@ title: Action From
   - idle
 - Process P1: Apply immediate effect
   - case: done
-    - Effects
-      - state: editing
+    - state: editing
 `;
   const result = parseMarkVSpec(source);
   const idleHtml = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true, state: "idle", viewport: "desktop" });
@@ -10479,9 +10463,8 @@ title: Bad View Context
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - view: \${view.isHelpPanelOpen} = true
-    - view: \${view.missingActionView} = true
+  - view: \${view.isHelpPanelOpen} = true
+  - view: \${view.missingActionView} = true
 `;
 
   const messages = parseMarkVSpec(source).diagnostics.map((diagnostic) => diagnostic.message);
@@ -10586,16 +10569,14 @@ title: Process Model Propagation
 - From
   - idle
 - Process P1: Prepare unrelated model flag
-  - Effects
-    - model: \${model.unrelated.ready} = true
+  - model: \${model.unrelated.ready} = true
 - Process P2: Send request
   - request:
     - method: POST
     - path: /submit
   - case: sent
-    - Effects
-      - model: \${model.related.ready} = true
-      - state: waiting
+    - model: \${model.related.ready} = true
+    - state: waiting
 
 ### A-HandleResponse Handle response
 
@@ -10608,8 +10589,7 @@ title: Process Model Propagation
     - response: A-Submit.P2.response
   - case: success
     - response: 200 submitted
-    - Effects
-      - state: ready
+    - state: ready
 `;
   const result = parseMarkVSpec(source);
 
@@ -10715,8 +10695,7 @@ title: Compact Action
       - keyword: E-KeywordInput.value
   - case: success
     - description: 200 search result
-    - Effects
-      - state: loaded
+    - state: loaded
 `;
 
   const result = parseMarkVSpec(source);
@@ -10816,7 +10795,7 @@ title: Process Granularity
   assert.equal(validStep?.display?.target, "L-Message");
   assert.equal(validStep?.display?.element, "E-OpenedMessage");
   assert.deepEqual(result.actions.find((action) => action.id === "A-Open")?.transitions.map((transition) => [transition.from, transition.to]), [["idle", "opened"]]);
-  assert(!messages.some((message) => message.includes("unsupported Effects entry: display")));
+  assert(!messages.some((message) => message.includes("unsupported effect entry: display")));
   assert(messages.includes("Action A-Invalid process step P1 Mixed request and direct effect mixes an execution detail with direct immediate effects. Move effects under a case or split the Process."));
   assert(messages.includes("Action A-Invalid process step P2 Multiple calls contains multiple execution detail blocks (request, sync). Split them into separate Process steps."));
   assert(messages.includes("Action A-Invalid process step P3 Custom detail and direct effect mixes an execution detail with direct immediate effects. Move effects under a case or split the Process."));
@@ -10878,8 +10857,8 @@ locale: ja
   const mixed = result.diagnostics.find((diagnostic) => diagnostic.code === "action.process.mixesResultClassificationAndImmediateEffects");
   const multiple = result.diagnostics.find((diagnostic) => diagnostic.code === "action.process.multipleExecutionDetails");
 
-  assert.equal(mixed?.message, "Action A-Invalid process step P1 Validate and update mixes result classification with direct immediate effects. Use case Effects for classified results.");
-  assert.equal(renderDiagnosticMessageForLocale(mixed!, result.screen.locale), "Action A-Invalid の Process step P1 Validate and update で、result 分類と直接の immediate effect が混在しています。分類された result には case Effects を使ってください。");
+  assert.equal(mixed?.message, "Action A-Invalid process step P1 Validate and update mixes result classification with direct immediate effects. Put effects under the classified case.");
+  assert.equal(renderDiagnosticMessageForLocale(mixed!, result.screen.locale), "Action A-Invalid の Process step P1 Validate and update で、result 分類と直接の immediate effect が混在しています。effect は分類された case 配下へ移してください。");
   assert.equal(renderDiagnosticMessageForLocale(multiple!, "en"), "Action A-Invalid process step P2 Multiple calls contains multiple execution detail blocks (request, sync). Split them into separate Process steps.");
   assert.deepEqual(
     supportedDiagnosticMessageCodes().sort(),
@@ -11281,11 +11260,10 @@ references:
     - next search page request
   - case: sent
     - description: request was sent
-    - Effects
-      - state: loading
-      - display:
-        - target: L-SearchResultsArea
-        - element: E-LoadingResults
+    - state: loading
+    - display:
+      - target: L-SearchResultsArea
+      - element: E-LoadingResults
     - continue
 - Process P2: Handle search results response
   - receive:
@@ -11293,18 +11271,16 @@ references:
     - validation: V-SearchResult.result
   - case: success
     - response: 200 search results partial
-    - Effects
-      - state: loaded
-      - display:
-        - target: L-SearchResultsArea
-        - element: L-SearchResultsList
+    - state: loaded
+    - display:
+      - target: L-SearchResultsArea
+      - element: L-SearchResultsList
   - case: empty
     - response: 200 empty result partial
-    - Effects
-      - state: empty
-      - display:
-        - target: L-MessageArea
-        - element: E-NoResults
+    - state: empty
+    - display:
+      - target: L-MessageArea
+      - element: E-NoResults
 
 ## Preview Scenarios
 
@@ -11434,10 +11410,9 @@ references:
 - Process P1: Handle profile summary response
   - case: success
     - description: 200 profile summary partial
-    - Effects
-      - display:
-        - target: L-ProfileSummaryHost
-        - partial: PRT-PROFILE-SUMMARY
+    - display:
+      - target: L-ProfileSummaryHost
+      - partial: PRT-PROFILE-SUMMARY
 
 ## Preview Scenarios
 
@@ -11522,53 +11497,46 @@ references:
   - partial: PRT-PROFILE
 - Process P2: Missing target
   - case: done
-    - Effects
-      - display:
-        - partial: PRT-PROFILE
+    - display:
+      - partial: PRT-PROFILE
 - Process P3: Element target
   - case: done
-    - Effects
-      - display:
-        - target: E-Target
-        - partial: PRT-PROFILE
+    - display:
+      - target: E-Target
+      - partial: PRT-PROFILE
 - Process P4: Missing layout target
   - case: done
-    - Effects
-      - display:
-        - target: L-Missing
-        - partial: PRT-PROFILE
+    - display:
+      - target: L-Missing
+      - partial: PRT-PROFILE
 - Process P5: Non partial host
   - case: done
-    - Effects
-      - display:
-        - target: L-PlainHost
-        - partial: PRT-PROFILE
+    - display:
+      - target: L-PlainHost
+      - partial: PRT-PROFILE
 - Process P6: Mismatched partial host
   - case: done
-    - Effects
-      - display:
-        - target: L-OtherHost
-        - partial: PRT-PROFILE
+    - display:
+      - target: L-OtherHost
+      - partial: PRT-PROFILE
 - Process P7: Combined content sources
   - case: done
-    - Effects
-      - display:
-        - target: L-OtherHost
-        - partial: PRT-OTHER
-        - element: E-Target
-        - message: V-Required.messages
+    - display:
+      - target: L-OtherHost
+      - partial: PRT-OTHER
+      - element: E-Target
+      - message: V-Required.messages
 - Process P8: Invalid partial id
   - case: done
-    - Effects
-      - display:
-        - target: L-OtherHost
-        - partial: E-Target
+    - display:
+      - target: L-OtherHost
+      - partial: E-Target
 `;
 
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Action A-InvalidPartial process step P1 Direct partial alias has unsupported process-level partial PRT-PROFILE. Put returned partial content under Effects display.partial on the response case."));
+  assert(messages.includes("Action A-InvalidPartial process step P1 Direct partial alias has unsupported process-level partial PRT-PROFILE. Put returned partial content under display.partial on the response case."));
   assert(messages.includes("Action A-InvalidPartial process step P2 Missing target case done display.partial PRT-PROFILE requires target to reference an L-* partial host."));
   assert(messages.includes("Action A-InvalidPartial process step P3 Element target case done display.partial PRT-PROFILE targets E-Target, but target must be an existing L-* partial host (element)."));
   assert(messages.includes("Action A-InvalidPartial process step P4 Missing layout target case done display.partial PRT-PROFILE targets L-Missing, but target must be an existing L-* partial host (missing layout)."));
@@ -11623,8 +11591,7 @@ title: Custom Process Detail
   - result:
     - subscription creation request
   - case: sent
-    - Effects
-      - state: submitting
+    - state: submitting
 `;
   const result = parseMarkVSpec(source);
   const step = result.actions[0]?.processSteps[0];
@@ -11686,46 +11653,38 @@ title: Field Error Display
   - receive:
     - validation: V-EmailRules.result
   - case: invalid
-    - Effects
-      - display:
-        - target: E-EmailInput.error
-        - message: V-EmailRules.messages
+    - display:
+      - target: E-EmailInput.error
+      - message: V-EmailRules.messages
   - case: invalid-rich
-    - Effects
-      - display:
-        - target: E-Title.error
-        - element: E-SubmitButton
-        - message: V-Missing.messages
+    - display:
+      - target: E-Title.error
+      - element: E-SubmitButton
+      - message: V-Missing.messages
   - case: invalid-missing-target
-    - Effects
-      - display:
-        - target: E-MissingInput.error
-        - message: V-EmailRules.messages
+    - display:
+      - target: E-MissingInput.error
+      - message: V-EmailRules.messages
   - case: invalid-business-rule
-    - Effects
-      - display:
-        - target: L-Form
-        - message: R-RequiredFields.messages
+    - display:
+      - target: L-Form
+      - message: R-RequiredFields.messages
   - case: invalid-missing-rule
-    - Effects
-      - display:
-        - target: L-Form
-        - message: R-Missing.messages
+    - display:
+      - target: L-Form
+      - message: R-Missing.messages
   - case: invalid-validation-without-message
-    - Effects
-      - display:
-        - target: L-Form
-        - message: V-NoMessage.messages
+    - display:
+      - target: L-Form
+      - message: V-NoMessage.messages
   - case: invalid-rule-without-message
-    - Effects
-      - display:
-        - target: L-Form
-        - message: R-Empty.messages
+    - display:
+      - target: L-Form
+      - message: R-Empty.messages
   - case: invalid-unsupported-message
-    - Effects
-      - display:
-        - target: L-Form
-        - message: EmailRules.messages
+    - display:
+      - target: L-Form
+      - message: EmailRules.messages
 
 ## Field Validations
 
@@ -11808,10 +11767,9 @@ title: Unmarked Display Message
   - receive:
     - validation: V-Unmarked.result
   - case: invalid
-    - Effects
-      - display:
-        - target: L-Message
-        - message: V-Unmarked.messages
+    - display:
+      - target: L-Message
+      - message: V-Unmarked.messages
 
 ## Preview Scenarios
 
@@ -11879,10 +11837,9 @@ title: Unmarked Rule Message
     - subscription creation request
   - case: business-rule-violation
     - business rule: R-Unmarked
-    - Effects
-      - display:
-        - target: L-Message
-        - message: R-Unmarked.messages
+    - display:
+      - target: L-Message
+      - message: R-Unmarked.messages
 
 ## Preview Scenarios
 
@@ -12001,24 +11958,22 @@ title: Action Neutral Diagnostics
   - idle
 - Process P1: Missing result
   - case: done
-    - Effects
-      - state: loaded
-      - display:
-        - target: L-Target
-        - element: E-Button
-        - element: E-Other
+    - state: loaded
+    - display:
+      - target: L-Target
+      - element: E-Button
+      - element: E-Other
 - Process P1: Duplicate marker
   - receive:
     - response: A-Run.P9.response
     - external: A-Other.P9.result
   - case: done
-    - Effects
-      - display:
-        - target: L-Missing
-        - element: E-Button E-Other
-        - elements: E-Button, E-Other
-        - content:
-          - partial: PRT-Missing
+    - display:
+      - target: L-Missing
+      - element: E-Button E-Other
+      - elements: E-Button, E-Other
+      - content:
+        - partial: PRT-Missing
 
 ### A-Other Other
 
@@ -12030,10 +11985,9 @@ title: Action Neutral Diagnostics
   - receive:
     - validation: V-SearchResult.result
   - case: done
-    - Effects
-      - state: loaded
-      - display:
-        - element: E-Other
+    - state: loaded
+    - display:
+      - element: E-Other
 
 ## Preview Scenarios
 

@@ -53,7 +53,7 @@ const diagnosticMessageTemplates: Record<DiagnosticLocale, Record<MarkVSpecDiagn
     "action.process.mixesExecutionDetailAndImmediateEffects": (params) =>
       `Action ${param(params, "actionId")} process step ${param(params, "stepLabel")} mixes an execution detail with direct immediate effects. Move effects under a case or split the Process.`,
     "action.process.mixesResultClassificationAndImmediateEffects": (params) =>
-      `Action ${param(params, "actionId")} process step ${param(params, "stepLabel")} mixes result classification with direct immediate effects. Use case Effects for classified results.`,
+      `Action ${param(params, "actionId")} process step ${param(params, "stepLabel")} mixes result classification with direct immediate effects. Put effects under the classified case.`,
     "action.parallelProcess.caseShouldNotSetStateOrNavigate": (params) =>
       `Action ${param(params, "actionId")} parallel process step ${param(params, "stepName")} case ${param(params, "result")} should not set state or navigate. Use a Resolve step for final transitions.`,
     "action.process.caseResponseWithoutReceive": (params) =>
@@ -95,7 +95,7 @@ const diagnosticMessageTemplates: Record<DiagnosticLocale, Record<MarkVSpecDiagn
     "action.process.mixesExecutionDetailAndImmediateEffects": (params) =>
       `Action ${param(params, "actionId")} の Process step ${param(params, "stepLabel")} で、実行 detail と直接の immediate effect が混在しています。effect は case 配下へ移すか、Process を分けてください。`,
     "action.process.mixesResultClassificationAndImmediateEffects": (params) =>
-      `Action ${param(params, "actionId")} の Process step ${param(params, "stepLabel")} で、result 分類と直接の immediate effect が混在しています。分類された result には case Effects を使ってください。`,
+      `Action ${param(params, "actionId")} の Process step ${param(params, "stepLabel")} で、result 分類と直接の immediate effect が混在しています。effect は分類された case 配下へ移してください。`,
     "action.parallelProcess.caseShouldNotSetStateOrNavigate": (params) =>
       `Action ${param(params, "actionId")} の parallel Process step ${param(params, "stepName")} case ${param(params, "result")} では state や navigate を設定しないでください。最終遷移は Resolve step に任せてください。`,
     "action.process.caseResponseWithoutReceive": (params) =>

@@ -21,8 +21,7 @@ title: Multi Request
 - From
   - idle
 - Process P1: PreparePage
-  - Effects
-    - view: \${view.selectedTab} = users
+  - view: \${view.selectedTab} = users
 - Process P2: Send request
   - request:
     - method: GET
@@ -97,17 +96,15 @@ title: Process Read Model
       - memberId: \${model.memberId}
   - case: success
     - response: 200 profile
-    - Effects
-      - update:
-        - target: L-ProfilePanel
-        - mode: replace
-      - continue
+    - update:
+      - target: L-ProfilePanel
+      - mode: replace
+    - continue
 - Process P4: Resolve responses
   - group: initial-load
   - case: ready
     - response: all data ready
-    - Effects
-      - state: idle
+    - state: idle
     - stop
 - Process P5: Request partial
   - request:
@@ -116,8 +113,7 @@ title: Process Read Model
   - display:
     - partial: PRT-PROFILE-PANEL
 - Process P6: Apply immediate effect
-  - Effects
-    - state: load-error
+  - state: load-error
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions[0];
