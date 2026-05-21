@@ -204,39 +204,41 @@ README と site は入口、docs は本文、examples は動く証拠として�
 
 ## 推奨ページ構成
 
-初期移行では、すべての既存文書を一度に書き換えません。
-まず次のページを作り、そこへ導線を集約します。
+この節の当初案は `docs/ja` / `docs/en` を主対象としていましたが、現在の公開サイトは
+Starlight 移行済みです。現行の主対象は `docs-site/src/content/docs/{ja,en}` です。
+`docs/ja` / `docs/en` に同名の user-facing Markdown がある場合は mirror として
+追従させます。
 
 ```text
-docs/ja/start/index.md
-docs/ja/start/first-screen.md
-docs/ja/start/preview.md
-docs/ja/start/export.md
+docs-site/src/content/docs/ja/start/index.md
+docs-site/src/content/docs/ja/start/first-screen.md
+docs-site/src/content/docs/ja/start/preview.md
+docs-site/src/content/docs/ja/start/export.md
 
-docs/ja/guide/index.md
-docs/ja/guide/markdown-model.md
-docs/ja/guide/states.md
-docs/ja/guide/layout.md
-docs/ja/guide/elements.md
-docs/ja/guide/actions.md
-docs/ja/guide/validation.md
-docs/ja/guide/partial-updates.md
+docs-site/src/content/docs/ja/guide/index.md
+docs-site/src/content/docs/ja/guide/markdown-model.md
+docs-site/src/content/docs/ja/guide/states.md
+docs-site/src/content/docs/ja/guide/layout.md
+docs-site/src/content/docs/ja/guide/elements.md
+docs-site/src/content/docs/ja/guide/actions.md
+docs-site/src/content/docs/ja/guide/validation.md
+docs-site/src/content/docs/ja/guide/partial-updates.md
 
-docs/ja/reference/index.md
-docs/ja/reference/file-format.md
-docs/ja/reference/sections.md
-docs/ja/reference/elements.md
-docs/ja/reference/actions.md
-docs/ja/reference/validations.md
-docs/ja/reference/ids.md
-docs/ja/reference/cli.md
-docs/ja/reference/limitations.md
+docs-site/src/content/docs/ja/reference/index.md
+docs-site/src/content/docs/ja/reference/file-format.md
+docs-site/src/content/docs/ja/reference/sections.md
+docs-site/src/content/docs/ja/reference/elements.md
+docs-site/src/content/docs/ja/reference/actions.md
+docs-site/src/content/docs/ja/reference/validations.md
+docs-site/src/content/docs/ja/reference/ids.md
+docs-site/src/content/docs/ja/reference/cli.md
+docs-site/src/content/docs/ja/reference/limitations.md
 
-docs/ja/recipes/index.md
-docs/ja/recipes/login-form.md
-docs/ja/recipes/loading-error.md
-docs/ja/recipes/server-partial-update.md
-docs/ja/recipes/pdf-export.md
+docs-site/src/content/docs/ja/recipes/index.md
+docs-site/src/content/docs/ja/recipes/login-form.md
+docs-site/src/content/docs/ja/recipes/loading-error.md
+docs-site/src/content/docs/ja/recipes/server-partial-update.md
+docs-site/src/content/docs/ja/recipes/pdf-export.md
 ```
 
 日本語版と英語版は、最終的に同じファイル構造を維持します。移行中に日本語版を
@@ -245,9 +247,10 @@ docs/ja/recipes/pdf-export.md
 追従 ticket が明示され、Pages check の対象から一時除外する理由が記録されている
 場合に限ります。
 
-ja/en の本文品質は段階的に揃えてよいですが、directory / filename の構造差分は
-短期間の移行状態として扱います。構造追加 ticket の受入条件には、対応する
-`docs/en/` path の作成または追従 ticket の登録を含めます。
+ja/en の本文品質は段階的に揃えてよいですが、`docs-site/src/content/docs/ja` と
+`docs-site/src/content/docs/en` の directory / filename の構造差分は短期間の
+移行状態として扱います。構造追加 ticket の受入条件には、対応する
+`docs-site/src/content/docs/en` path の作成または追従 ticket の登録を含めます。
 
 ## 既存文書の移行方針
 
@@ -297,10 +300,11 @@ examples:
       - examples/02-states/async-loading.vspec.md
 ```
 
-`docs` 配下は、`docs/ja/...` のような言語固定 path ではなく、言語非依存の
-document key を持ちます。Pages 生成時に `ja` / `en` の実 path へ解決します。
-言語ごとに対応ページが未作成の場合は、その言語の stub または index page に
-fallback し、欠落を check 結果に出します。
+`docs` field は、`docs/ja/...` のような言語固定 path ではなく、言語非依存の
+document key を持ちます。現在の `scripts/example-catalog.mjs` は、
+`docs-site/src/content/docs/<lang>/<group>/<key>.md` または
+`docs-site/src/content/docs/<lang>/<group>/<key>/index.md` へ解決します。
+対応ページが未作成の場合は fallback せず、catalog validation の error として扱います。
 
 catalog の初期 schema は次を想定します。
 
@@ -323,7 +327,8 @@ catalog は次の出力に使います。
 
 - `examples/index.html`
 - `examples/showcase/*.html`
-- `docs/ja/examples/index.md` / `docs/en/examples/index.md`
+- `docs-site/src/content/docs/ja/examples/index.md`
+- `docs-site/src/content/docs/en/examples/index.md`
 - README の代表 example リンク
 - Pages site の example 導線
 
@@ -342,26 +347,30 @@ catalog は次の出力に使います。
 
 ## Pages 生成方針
 
-`scripts/build-github-pages.mjs` は、site、docs、examples を同じ IA で出力します。
+現在の `scripts/build-github-pages.mjs` は、Starlight build の前に generated examples
+と brand assets を `docs-site/public/` へ用意し、`npm --prefix docs-site run build`
+を実行してから `docs-site/dist` を `_site` へコピーします。
 
-必要な拡張:
+現行の責務:
 
-- `examples/catalog.yml` を読み込む。
-- example index を stage / learning path 別に表示する。
-- showcase page に teaches、related guide、related reference、related recipes、next examples を表示する。
-- site top から Start / Guide / Recipes / Reference / Examples へリンクする。
-- docs の Markdown 変換時に、README、site、examples、docs index の主要導線が切れていないか check する。
-- 移行済みの `user/` artifact が再生成されていないことを check する。
+- `examples/catalog.yml` を検証する。
+- `examples/**/*.vspec.md` から generated HTML / PDF artifact を作る。
+- generated examples と brand assets を `docs-site/public/` に配置する。
+- Starlight docs と Astro examples pages を `docs-site` として build する。
+- `docs-site/dist` を GitHub Pages upload 用の `_site` にコピーする。
 
 `scripts/check-pages-site.mjs` は次を確認します。
 
-- site top に主要導線がある。
-- examples index に catalog metadata が表示される。
-- showcase に source、preview、related docs、next examples がある。
-- README の Pages URL が存在する artifact を指している。
-- 主要な Start / Guide / Reference / Recipes ページが出力されている。
+- `_site` に Starlight docs、examples、assets、Pagefind artifact がある。
+- `docs-site/src/content/docs/ja` と `docs-site/src/content/docs/en` の Markdown path が一致している。
+- examples index / showcase が catalog、generated preview、PDF、related docs を正しく参照している。
+- 主要な Start / Guide / Reference / Recipes / Examples / Concepts ページが出力されている。
+- `_site/docs` は生成されていない。
 
-## 移行ステップ
+## 移行ステップの履歴
+
+次の項目は、Starlight 移行前に使っていた履歴です。現在の新規作業では、
+`docs-site/src/content/docs` を主対象、`docs/ja` / `docs/en` を mirror として扱います。
 
 1. この設計書を追加する。
 2. `docs/ja/` と `docs/en/` に新 IA の index / stub を同時に作る。
@@ -376,9 +385,11 @@ catalog は次の出力に使います。
 11. 英語版 stub を本文へ追従させる。
 12. 移行済みの旧 `docs/*/user/` ページを削除し、利用者導線を新体系へ一本化する。
 
-## Ticket 分割方針
+## 現在の Ticket 分割方針
 
-Kanbalone ticket は、利用者に見える導線単位で分けます。
+Kanbalone ticket は、利用者に見える導線または仕様領域単位で分けます。
+対象ファイルは `docs-site/src/content/docs` を主対象とし、同名の `docs/ja` /
+`docs/en` が残る場合は mirror として同じ変更に追従させます。
 
 - IA 設計と docs portal 更新。
 - Example catalog の導入。
