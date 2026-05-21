@@ -39,6 +39,39 @@ Layout section では、画面をどの UI のまとまりとして読むかを�
 - responsive の指定は CSS breakpoints ではなく、`mobile`、`desktop` などの layout intent として書く。
 - 同じ element を複数 group に置かない。状態ごとの見せ分けが必要な場合は state 条件を説明する。
 
+## 見た目だけを整える P-* パネル
+
+`P-*` は presentation panel（表示調整パネル）です。ユーザーが意味を認識するまとまりではなく、
+フォーム内の2項目を横並びにするなど、プレビュー上の見た目だけを整えたいときに使います。
+
+```markdown
+### L-ProfileForm Profile form
+
+- stack
+
+#### Items
+
+- P-NameFields
+- "Email": E-EmailInput
+
+### P-NameFields Name fields
+
+- row
+- gap: sm
+
+#### Items
+
+- "First name": E-FirstNameInput
+- "Last name": E-LastNameInput
+```
+
+`L-*` はレビュー対象になる意味のあるレイアウトです。`P-*` は枠やマーカーを出さず、
+子要素の並びだけを調整します。表示条件、無効化、部分更新の差し替え先、アクションの
+`target` が必要な場合は `P-*` ではなく `L-*` を使います。
+
+[Presentation Panel](../../../examples/showcase/presentation-panel.html) で、
+`P-NameFields` が余計な枠やレイアウトマーカーを出さずに2項目を並べる様子を確認できます。
+
 ## 例: ページ構造を分ける
 
 ```markdown

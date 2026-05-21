@@ -24,6 +24,35 @@ Sections は `.vspec.md` の本文を分割する top-level heading です。Mar
 - E-Submit
 ```
 
+### Layout と P-* パネル
+
+意味のある領域は `L-*` で書きます。見た目だけを整える補助グループは `P-*` で書けます。
+
+```markdown
+### L-Form Form
+
+- stack
+
+#### Items
+
+- P-NameFields
+- E-SubmitButton
+
+### P-NameFields Name fields
+
+- row
+
+#### Items
+
+- E-FirstNameInput
+- E-LastNameInput
+```
+
+`P-*` はレイアウト項目として使えますが、レイアウトマーカーを表示しません。
+`marker` は無視され、`visible when` / `hidden when` / `disabled when` /
+`enabled when` / `partial` / action や display の `target` には使えません。
+対象にしたい領域は `L-*` にしてください。
+
 レイアウト種別として認識される値は `stack`、`row`、`grid`、`inline` です。
 縦に積む一般的なグループは `stack` を使います。
 
