@@ -107,7 +107,7 @@ site top は、README と同じ IA を共有します。ただし、README よ�
 したがって、利用者が読む公開サイトの内容を修正する場合は、まず
 `docs/ja` / `docs/en` を編集する。その後 `npm run sync:docs-site` を実行し、
 生成された `docs-site/src/content/docs/` の差分を同じ commit に含める。
-PR / CI では `npm run check:docs-sync` により同期漏れを検出する。
+Pages CI と release check では `npm run check:docs-sync` により同期漏れを検出する。
 
 `docs/ja/maintainers` と `docs/en/maintainers` は保守者向け記録として `docs/` 配下に
 残す。通常の利用者導線には出さない。

@@ -84,9 +84,9 @@ docs-site/
     pages/
 ```
 
-現在は Starlight 移行済みのため、公開サイトに出る user-facing docs の source of truth は
-`docs-site/src/content/docs` とする。`docs/ja` と `docs/en` に同名の user-facing
-Markdown が残っている間は、repository 上の矛盾を避けるため同じ変更を追従させる。
+現在は Starlight 移行済みだが、利用者向け Markdown 本文の source of truth は
+`docs/ja` と `docs/en` とする。公開用の `docs-site/src/content/docs` は
+`npm run sync:docs-site` で生成し、直接編集した差分は `npm run check:docs-sync` で検出する。
 保守者向け記録は `docs/*/maintainers` に残し、通常の利用者導線には出さない。
 
 ## URL 方針

@@ -23,7 +23,7 @@ README.md / README.ja.md は旧構文、未実装構文、利用者入口とし�
 
 | Ticket | 領域 | 主な主張 | 根拠 | 修正 | 残リスク |
 | --- | --- | --- | --- | --- | --- |
-| #1339 | docs source of truth | 当時は公開サイトの正本を `docs-site`、`docs/` を mirror とした。 | `scripts/build-github-pages.mjs`, `scripts/check-pages-site.mjs`, `scripts/example-catalog.mjs` | `docs/ja/maintainers/documentation-architecture.md` に方針を追記。 | #1354 で `docs/` 正本へ反転。 |
+| #1339 | docs source of truth | Starlight 移行直後は `docs-site` を編集対象としていた。 | `scripts/build-github-pages.mjs`, `scripts/check-pages-site.mjs`, `scripts/example-catalog.mjs` | `docs/ja/maintainers/documentation-architecture.md` に方針を追記。 | #1354 で `docs/` 正本へ反転。 |
 | #1340 | Elements | 要素は意味で書き、低レベル styling や raw width を仕様化しない。 | element parser / renderer / examples | Element docs を実装済み type/property に合わせ、raw width の扱いを制限事項へ整理。 | なし。 |
 | #1341 | Layout / Slots / Templates | `stack`, `row`, `grid`, `inline` と `Items` / `Slots` / `P-*` を現在仕様として扱う。 | layout renderer / presentation panel example / targeted tests | 未対応の `column` などを除去し、P-* と docs を同期。 | なし。 |
 | #1342 | Actions / Events / Process / case | Action は `Process Pn:`、`request`、`receive`、`case:`、`display` で操作と結果を書く。 | action process read model tests / examples | `request: POST /login` など、実装と合わない説明を修正。 | なし。 |
@@ -32,7 +32,7 @@ README.md / README.ja.md は旧構文、未実装構文、利用者入口とし�
 | #1345 | Preview Scenarios / State Views | state と同名 scenario、`samples:`、`rows:`、`route:`、Action case 参照を現在仕様として扱う。 | preview scenario tests / sample rows tests | `before:` の意味、validation result と action case の混同を修正。 | なし。 |
 | #1346 | CLI / Export / VS Code | CLI は `--version`, `validate`, `diagnose input`, `export html/pdf`, `export document-list` を説明対象にする。 | CLI 実行結果 / targeted export commands | CLI reference と start/recipes の説明を実装済みコマンドへ追従。 | example PDF 配布物は別途 #1351 で削除済み。 |
 | #1347 | Examples と docs | examples は学習順と画面パターンから探す導線として扱う。 | `examples/catalog.yml`, `scripts/example-catalog.mjs`, `npm run audit:examples` | 日本語入口文と examples link を整理し、部分更新の入口を `Profile Home` に統一。 | なし。 |
-| #1348 | 英日差分 / 同期 | `docs-site` と `docs/` の user-facing 同名ページは矛盾させない。 | file list comparison / docs link check / HTTP 200 | 当時の `docs-site` 正本に `docs/{ja,en}` を同期し、`guide/document-structure.md` を追加。 | #1354 以降は `docs/` 正本、`docs-site` 同期先として扱う。 |
+| #1348 | 英日差分 / 同期 | `docs-site` と `docs/` の user-facing 同名ページは矛盾させない。 | file list comparison / docs link check / HTTP 200 | 当時の編集対象に `docs/{ja,en}` を同期し、`guide/document-structure.md` を追加。 | #1354 以降は `docs/` 正本、`docs-site` 同期先として扱う。 |
 | #1351 | build 軽量化 | example PDF 配布物は docs-site build 成果物に含めない。 | build/check-pages / link search | PDF artifacts と example からの PDF link を削除。 | CLI / VS Code の PDF 出力機能自体は残す。 |
 
 ## 確認したコマンド
