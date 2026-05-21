@@ -58,8 +58,10 @@ expectContains(examplesHtml, `${base}/examples/showcase/hello-screen.html`, "_si
 expectNotContains(examplesHtml, "Source + Preview", "_site/examples/index.html should not duplicate showcase link labels on cards.");
 expectNotContains(examplesHtml, ">Preview<", "_site/examples/index.html should not expose preview-only card links.");
 expectNotContains(examplesHtml, ">PDF<", "_site/examples/index.html should not expose PDF card links.");
+expectNotContains(examplesHtml, `${base}/examples/generated/`, "_site/examples/index.html should not link generated artifacts from cards.");
 expectNotContains(examplesHtml, `${base}/examples/generated/hello-screen.html`, "_site/examples/index.html should not link generated HTML artifacts from cards.");
 expectNotContains(examplesHtml, `${base}/examples/generated/hello-screen.pdf`, "_site/examples/index.html should not link generated PDF artifacts from cards.");
+expectNotContains(examplesHtml, "github.com/wamukat/markvspec/blob/", "_site/examples/index.html should not link GitHub source blobs from cards.");
 expectContains(examplesHtml, "Learning Path", "_site/examples/index.html should expose the catalog learning path.");
 expectContains(examplesHtml, "Step 1", "_site/examples/index.html should number learning path examples.");
 expectOrder(
