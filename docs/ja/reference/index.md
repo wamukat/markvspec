@@ -8,6 +8,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 
 - ファイル全体の形を確認する: [File Format](file-format.md)
 - `## Layout: mobile`、`## Form Groups`、`## Preview Scenarios` などの section を確認する: [Sections](sections.md)
+- parser 実装の基準になる canonical syntax を確認する: [Grammar](grammar.md)
 - UI 部品の type と property を確認する: [Elements](elements.md)
 - click、request、state change、partial update を確認する: [Actions](actions.md)
 - 入力制約と error 表示を確認する: [Validations](validations.md)
@@ -21,6 +22,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 | Page | 内容 |
 | --- | --- |
 | [File Format](file-format.md) | `.vspec.md`、Front Matter、document type、本文の基本形 |
+| [Grammar](grammar.md) | canonical EBNF、semantic constraints、non-canonical forms |
 | [Sections](sections.md) | layout、events、form groups、validations、slots、error codes、history などの section |
 | [Elements](elements.md) | `Heading`、`Paragraph`、`Text`、`Input`、`Button` などの element |
 | [Actions](actions.md) | `action: A-*`、`## Events`、`Process Pn:`、`request`、`receive`、`case:`、`display` |
@@ -33,6 +35,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 ## よく見る組み合わせ
 
 - 最小の screen を書く: [File Format](file-format.md)、[Sections](sections.md)、[Elements](elements.md)
+- parser-facing canonical syntax を確認する: [Grammar](grammar.md)
 - form を書く: [Elements](elements.md)、[Validations](validations.md)、[Actions](actions.md)
 - form group、preview scenario、slot、error code を書く: [Sections](sections.md)
 - HTTP request を書く: [Actions](actions.md)、[Business Rules](rules.md)、[IDs](ids.md)

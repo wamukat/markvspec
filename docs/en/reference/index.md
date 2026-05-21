@@ -8,6 +8,7 @@ Learning-oriented explanations live in [Guide](../guide/index.md). Reference is 
 
 - Check the shape of a source file: [File Format](file-format.md)
 - Check sections such as `## Layout: mobile`, `## Form Groups`, and `## Preview Scenarios`: [Sections](sections.md)
+- Check the canonical parser-facing syntax: [Grammar](grammar.md)
 - Check UI element types and properties: [Elements](elements.md)
 - Check clicks, requests, state changes, and partial updates: [Actions](actions.md)
 - Check input constraints and error display: [Validations](validations.md)
@@ -21,6 +22,7 @@ Learning-oriented explanations live in [Guide](../guide/index.md). Reference is 
 | Page | Covers |
 | --- | --- |
 | [File Format](file-format.md) | `.vspec.md`, Front Matter, document type, and body shape |
+| [Grammar](grammar.md) | Canonical EBNF, semantic constraints, and non-canonical forms |
 | [Sections](sections.md) | Recognized sections, including layout, events, form groups, validations, slots, error codes, and history |
 | [Elements](elements.md) | Elements such as `Heading`, `Paragraph`, `Text`, `Input`, and `Button` |
 | [Actions](actions.md) | `action: A-*`, `## Events`, `Process Pn:`, `request`, `receive`, `case:`, and `display` |
@@ -33,6 +35,7 @@ Learning-oriented explanations live in [Guide](../guide/index.md). Reference is 
 ## Common Lookups
 
 - Write the smallest useful screen: [File Format](file-format.md), [Sections](sections.md), [Elements](elements.md)
+- Check parser-facing canonical syntax: [Grammar](grammar.md)
 - Write a form: [Elements](elements.md), [Validations](validations.md), [Actions](actions.md)
 - Write form groups, preview scenarios, slots, or error codes: [Sections](sections.md)
 - Write an HTTP request: [Actions](actions.md), [Business Rules](rules.md), [IDs](ids.md)
