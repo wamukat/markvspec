@@ -13,7 +13,7 @@ Put the work under `Process Pn:`. For an HTTP request, use `request:`; for scree
 This is an `## Actions` snippet. A complete screen file also defines the states,
 layout, elements, and the button that calls the action.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-state-action-definitions
 ## Actions
 
 ### A-SubmitRequest Submit request
@@ -42,7 +42,7 @@ The button connection lives on `E-SubmitButton` with `action: A-SubmitRequest`. 
 This snippet focuses on action flow. The complete screen also defines the
 referenced states, elements, layout groups, and validation result.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-validation-context
 ## Actions
 
 ### A-SubmitRequest Submit request

@@ -15,7 +15,7 @@ This keeps the UI specification reviewable whether the implementation uses Thyme
 This is an `## Actions` snippet. A complete screen file also defines the target
 layout group, caller element, and any states used by the result cases.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-partial-context
 ## Actions
 
 ### A-RefreshProfile Refresh profile
@@ -49,7 +49,7 @@ This snippet shows the relevant layout and action sections only. A complete
 screen file also includes front matter, a screen heading, state definitions, and
 the referenced elements.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-partial-context
 ## Layout: mobile
 
 ### L-SearchPanel Search Panel

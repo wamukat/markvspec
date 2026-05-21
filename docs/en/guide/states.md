@@ -44,7 +44,7 @@ these names can be used as action results and preview targets.
 The following snippet belongs inside `## Actions`; `idle`, `loading`, `success`,
 `empty`, and `error` are states already defined in `## States`.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-state-action-definitions
 ## Actions
 
 ### A-LoadOrders Load orders

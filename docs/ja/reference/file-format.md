@@ -44,7 +44,7 @@ Front Matter には要素の項目、アクション、レイアウト項目は�
 
 複数の画面とテンプレートを1つのプレビューで確認したい場合はプロジェクトファイルを使います。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=project-file-example
 ---
 id: PRJ-ACCOUNT
 type: project

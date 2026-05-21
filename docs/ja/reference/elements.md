@@ -4,7 +4,7 @@
 
 ## 書ける構文
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-action-definitions
 ## Elements
 
 ### E-Title Heading
@@ -127,7 +127,7 @@ examples には次の専用コントロールも出ます。画面の意味を�
 
 ## 小さな例
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-fragment
 ## Elements
 
 ### E-ErrorMessage Paragraph

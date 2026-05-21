@@ -6,7 +6,7 @@ MarkVSpec はテキストから書く画面仕様フォーマットです。視�
 
 MarkVSpec では、実装詳細ではなく意味を持つ DSL を書きます。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-elements-context
 ### E-Submit Button
 
 - label: Submit
@@ -30,7 +30,7 @@ MarkVSpec では、実装詳細ではなく意味を持つ DSL を書きます�
 
 避ける例:
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=noncanonical-example
 ### E-Submit Button
 
 - class: btn btn-blue w-240
@@ -40,7 +40,7 @@ MarkVSpec では、実装詳細ではなく意味を持つ DSL を書きます�
 
 推奨:
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-elements-context
 ### E-Submit Button
 
 - label: Submit

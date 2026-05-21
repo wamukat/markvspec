@@ -44,7 +44,7 @@ Declare a rule with the `### R-* Name` form.
 
 ## Small Example
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-fragment section=business-rules
 ### R-EmptyResult Empty search result
 
 - when: search returns no items
@@ -60,7 +60,7 @@ When an action result is a business rule violation, put `business rule:` under
 `case: business-rule-violation`. Other case names with `business rule:` are
 reported as non-canonical.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-rule-error-context
 ## Actions
 
 ### A-Submit Submit

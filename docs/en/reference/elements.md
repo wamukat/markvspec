@@ -4,7 +4,7 @@
 
 ## Syntax You Can Write
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-action-definitions
 ## Elements
 
 ### E-Title Heading
@@ -128,7 +128,7 @@ kind of UI is intended.
 
 ## Small Example
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-fragment
 ## Elements
 
 ### E-ErrorMessage Paragraph

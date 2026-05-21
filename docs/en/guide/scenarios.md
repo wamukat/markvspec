@@ -17,7 +17,7 @@ review cases inside those states.
 
 ## Minimal Example
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-preview-context
 ## Preview Scenarios
 
 ### invalid-email
@@ -55,7 +55,7 @@ or new action. Keep the real screen behavior in `## States`, `## Elements`, and
 When a scenario name is exactly the same as a state name and omits `state:`, it
 adds sample data to that state's normal preview.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-preview-context
 ## States
 
 - idle*
@@ -79,7 +79,7 @@ This `loaded` entry is not an additional scenario. It is baseline data for the
 If you need another review case for the same `loaded` state, give the scenario a
 distinct name and write `state:`.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-preview-scenarios-context
 ### loaded-empty
 
 - state: loaded
@@ -92,7 +92,7 @@ distinct name and write `state:`.
 
 For ordinary elements, write the element ID and value.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-preview-scenario-heading
 - samples:
   - E-EmailInput: invalid@example
 ```
@@ -100,7 +100,7 @@ For ordinary elements, write the element ID and value.
 For repeated content such as `Table` or `List`, use `rows:`. Use `rows: []` when
 the scenario needs to show an empty result.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-preview-scenario-heading
 - samples:
   - E-Users:
     - rows:
@@ -114,7 +114,7 @@ the scenario needs to show an empty result.
 `cases:` references an Action result. Use the
 `A-ActionId.P-marker.case-name` form.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-preview-scenario-heading
 - cases:
   - A-SubmitLogin.P1.invalid
 ```
@@ -122,7 +122,7 @@ the scenario needs to show an empty result.
 `route:` must be a block. Keys other than `hash` should match a `:param` in the
 screen `route:`.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-preview-scenario-heading
 - route:
   - memberId: M-100
   - hash: details

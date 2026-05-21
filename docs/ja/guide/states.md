@@ -37,7 +37,7 @@ state は `## States` の下に箇条書きで書き、初期状態には `*` �
 以下は `## Actions` 内の抜粋です。`idle`、`loading`、`empty`、`error` は
 `## States` に定義済みの状態として読んでください。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-actions-context
 ### A-LoadOrders Load orders
 
 - From

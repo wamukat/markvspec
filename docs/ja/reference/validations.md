@@ -55,7 +55,7 @@ Validations は入力値の検証契約とエラー表示を扱います。入�
 
 複数フィールドを見る検証は、対象フィールドを `## Form Groups` でまとめ、`## Cross-field Validations` から参照します。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-validation-context
 ## Form Groups
 
 ### F-PasswordForm Password form
@@ -82,7 +82,7 @@ Validations は入力値の検証契約とエラー表示を扱います。入�
 
 エラーメッセージは `## Field Validations` の各制約に `message` として書きます。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-validation-heading
 - constraints:
   - required:
     - message: Password is required.
@@ -92,7 +92,7 @@ Validations は入力値の検証契約とエラー表示を扱います。入�
 
 ## 小さな例
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-validation-context
 ### E-QuantityInput Input
 
 - label: Quantity

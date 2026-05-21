@@ -8,7 +8,7 @@ This is an `## Actions` section snippet. The referenced states, layouts,
 elements, validations, and messages are assumed to be defined in the same screen
 document.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-validation-context
 ## Actions
 
 ### A-SubmitLogin Submit login
@@ -53,7 +53,7 @@ action marker, write `### marker:A-* Name`.
 
 These are heading snippets only.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-actions-context
 ### A-RefreshList Refresh list
 
 ### A1:A-RefreshList Refresh list
@@ -74,7 +74,7 @@ Put HTTP request details under `request:` inside `Process Pn:`, then write the m
 
 This is a `Process` snippet inside an action.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-action-heading
 - Process P1: Load profile
   - request:
     - GET /profile
@@ -88,7 +88,7 @@ Describe server-rendered partial updates with `display` inside a result case, no
 
 This is a `Process` snippet inside an action.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-action-heading
 - Process P1: Apply profile response
   - case: success
     - response: 200 profile partial
@@ -113,7 +113,7 @@ the user-visible result with MarkVSpec IDs and semantic messages.
 This is a single-action snippet. In an actual screen, also define the caller
 element and any valid states.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-actions-context
 ### A-OpenSettings Open settings
 
 - Process P1: Navigate to settings

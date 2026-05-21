@@ -44,7 +44,7 @@ Do not put element properties, actions, or layout items in Front Matter. Put the
 
 Use a project file when you want one preview to list related screens and templates.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=project-file-example
 ---
 id: PRJ-ACCOUNT
 type: project

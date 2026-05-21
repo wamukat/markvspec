@@ -10,7 +10,7 @@ Use `L-*` layout groups for meaningful units such as forms, headers, lists, deta
 
 ## Minimal Example
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-element-definitions
 ## Layout: mobile
 
 ### L-Form Login Form
@@ -45,7 +45,7 @@ This example defines a login form as one layout group and fixes the order of the
 region for reviewers, but only a visual arrangement helper, such as placing two
 form fields on the same row.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-layout-context
 ### L-ProfileForm Profile form
 
 - stack
@@ -77,7 +77,7 @@ visible panel marker.
 
 ## Example: Split Page Structure
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-element-definitions
 ## Layout: mobile
 
 ### L-Page Settings Page

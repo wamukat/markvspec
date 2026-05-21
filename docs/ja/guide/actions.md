@@ -9,7 +9,7 @@ Action は「操作したら何が起きるか」を書く場所です。
 以下は要素と `## Actions` の抜粋です。完全な画面ファイルでは、`## States`、
 `## Layout`、入力要素、バリデーション定義も同じ `.vspec.md` に置きます。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-state-action-definitions
 ### E-SubmitButton Button
 
 - label: Submit
@@ -53,7 +53,7 @@ Action は「操作したら何が起きるか」を書く場所です。
 以下はサーバー応答を受け取るアクションの抜粋です。`submitting` 状態、
 `L-MessageArea`、`E-SubmitError` は同じ画面内で定義済みのものとして読んでください。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-actions-context
 ### A-HandleSubmitResponse Handle submit response
 
 - From

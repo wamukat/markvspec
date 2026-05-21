@@ -4,7 +4,7 @@
 
 ## 書ける構文
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-element-definitions
 ## States
 
 - idle*
@@ -28,7 +28,7 @@
 
 意味のある領域は `L-*` で書きます。見た目だけを整える補助グループは `P-*` で書けます。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-layout-context
 ### L-Form Form
 
 - stack
@@ -86,7 +86,7 @@
 state は `## States` の下に箇条書きで書きます。初期状態を明示したい場合は、
 1つの状態にだけ `*` を付けます。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-fragment
 ## States
 
 - idle*
@@ -100,7 +100,7 @@ state は `## States` の下に箇条書きで書きます。初期状態を明�
 
 複数入力をまとめてバリデーション / 送信する場合は `## Form Groups` を使います。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-validation-context
 ## Form Groups
 
 ### F-LoginForm Login form
@@ -119,7 +119,7 @@ state は `## States` の下に箇条書きで書きます。初期状態を明�
 
 要素 click ではなくライフサイクルからアクションを呼ぶ場合は `## Events` を使います。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-event-action-context
 ## Events
 
 - page.load: A-LoadPreferences
@@ -162,7 +162,7 @@ Preview Data は、MarkVSpec がプレビューや出力に渡す表示用デー
 要素の単一表示値、要素の `sample rows:`、Preview Scenario の
 `samples:`、Preview Scenario の `route:`、`## View Context Samples` が含まれます。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-preview-context
 ## Preview Scenarios
 
 ### idle-validation-error
@@ -181,7 +181,7 @@ Preview Data は、MarkVSpec がプレビューや出力に渡す表示用デー
 `E-ElementId: value`、`Table` / `List` には `rows:` を使います。
 空の繰り返し表示は `rows: []` と書きます。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-preview-scenario-heading
 - samples:
   - E-Users:
     - rows:
@@ -210,7 +210,7 @@ Preview Data は、MarkVSpec がプレビューや出力に渡す表示用デー
 1つの入力の制約は `## Field Validations`、複数入力またはフォームグループに
 またがるチェックは `## Cross-field Validations` に書きます。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-validation-context
 ## Field Validations
 
 ### V-EmailRules Email rules
@@ -239,7 +239,7 @@ Preview Data は、MarkVSpec がプレビューや出力に渡す表示用デー
 テンプレート側で slot を宣言する場合は `## Slots`、ページ / partial 側で slot 内容を
 渡す場合は `## Slot: name` を使います。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-slot-context
 ## Slots
 
 ### content Main content
@@ -267,7 +267,7 @@ viewport ごとの slot 内容は `## Slot: name: viewport` と書きます。
 `display` は `inline`、`form`、`global`、`banner`、`toast`、`dialog`、`none`
 を認識します。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-rule-error-context
 ## Business Rules
 
 ### R-EmailMustBeUnique Email must be unique
@@ -292,7 +292,7 @@ viewport ごとの slot 内容は `## Slot: name: viewport` と書きます。
 履歴項目のフィールドを定義する場合は `## History Fields`、変更履歴は
 `## History` に書きます。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-fragment
 ## History Fields
 
 - date

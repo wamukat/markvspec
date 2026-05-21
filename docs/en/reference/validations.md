@@ -55,7 +55,7 @@ Write a rule name under `constraints`. The current implementation does not restr
 
 When a validation reads multiple fields, group those fields in `## Form Groups` and target that group from `## Cross-field Validations`.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-validation-context
 ## Form Groups
 
 ### F-PasswordForm Password form
@@ -82,7 +82,7 @@ Do not write `scope`. The section name decides whether the validation is field-l
 
 Write error messages as `message` rows under each `## Field Validations` constraint.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-validation-heading
 - constraints:
   - required:
     - message: Password is required.
@@ -92,7 +92,7 @@ Write error messages as `message` rows under each `## Field Validations` constra
 
 ## Small Example
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-validation-context
 ### E-QuantityInput Input
 
 - label: Quantity

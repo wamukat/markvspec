@@ -52,7 +52,7 @@ In preview and review, the reader can inspect the input metadata and validation 
 
 Rules that compare multiple inputs should not be hidden on one element.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-validation-context
 ## Form Groups
 
 ### F-PasswordForm Password form
@@ -79,7 +79,7 @@ Name the fields the rule reads and where the error is shown.
 
 Errors that only the server can decide belong to response cases.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-validation-context
 ## Elements
 
 ### E-EmailInput Input
@@ -116,7 +116,7 @@ Errors that only the server can decide belong to response cases.
 
 Stock, permission, contract, or plan restrictions usually need both a rule and a response case.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-rule-error-context
 ## Business Rules
 
 ### R-PlanAllowsExport Plan allows export

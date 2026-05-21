@@ -37,8 +37,12 @@ validate と照合します。
 - `markdown markvspec` は完全な `.vspec.md` として検証します。
 - `markdown markvspec-fragment` は監査用の最小 `.vspec.md` に包んで検証します。
   Section なしの断片は `section=elements` のように補助 section を明示します。
+  補助 section なしで top-level section も持たない断片は、文脈から外れて
+  検証済みに見える危険があるため監査失敗にします。
 - `markdown markvspec-skip reason=...` は、文脈依存の断片や「書いてはいけない例」など、
   CLI validate にそのまま通せない block として明示的に対象外にします。
+  `reason=context` のような汎用理由は禁止し、`requires-element-definitions` や
+  `requires-preview-context` のように、足りない文脈が分かる理由を書きます。
 - 通常の `markdown` は MarkVSpec 以外の Markdown として扱います。
 
 `docs/` を正本にする運用を保つため、Pages CI でも `npm run audit:docs-reference`

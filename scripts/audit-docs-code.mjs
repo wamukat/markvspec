@@ -174,8 +174,15 @@ function main() {
       stats.total += 1;
       const info = parseInfo(block.info);
       if (info.isFragment) {
+        const section = info.attributes.get("section");
+        if (!section && !/^##\s/u.test(block.body.trimStart())) {
+          errors.push(
+            `${rel}:${lineNumberForOffset(markdown, block.offset)} markvspec-fragment must include a top-level section or an explicit section=... wrapper`,
+          );
+          continue;
+        }
         try {
-          targets.push(writeAuditFile(rel, index, fragmentWrapper(block.body, info.attributes.get("section"))));
+          targets.push(writeAuditFile(rel, index, fragmentWrapper(block.body, section)));
           stats.fragment += 1;
         } catch (error) {
           errors.push(`${rel}:${lineNumberForOffset(markdown, block.offset)} ${error instanceof Error ? error.message : String(error)}`);
@@ -189,6 +196,11 @@ function main() {
       }
       if (info.isExplicitSkip) {
         const reason = info.attributes.get("reason") ?? "unspecified";
+        if (reason === "context") {
+          errors.push(
+            `${rel}:${lineNumberForOffset(markdown, block.offset)} avoid generic markvspec-skip reason=context; use a specific reason such as requires-element-definitions or requires-preview-context`,
+          );
+        }
         explicitSkips.set(reason, (explicitSkips.get(reason) ?? 0) + 1);
         explicitSkipDetails.push(`${rel}:${lineNumberForOffset(markdown, block.offset)} ${reason}`);
         stats.explicitSkip += 1;

@@ -7,7 +7,7 @@
 以下は `## Actions` セクションの抜粋です。参照している状態、レイアウト、要素、
 バリデーション、メッセージは同じ画面文書内で定義されている前提です。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-validation-context
 ## Actions
 
 ### A-SubmitLogin Submit login
@@ -52,7 +52,7 @@
 
 以下は見出しだけの抜粋です。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-actions-context
 ### A-RefreshList Refresh list
 
 ### A1:A-RefreshList Refresh list
@@ -73,7 +73,7 @@ HTTP リクエストは `Process Pn:` の `request:` の下に置き、メソッ
 
 以下はアクション内の `Process` 抜粋です。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-action-heading
 - Process P1: Load profile
   - request:
     - GET /profile
@@ -87,7 +87,7 @@ HTTP リクエストは `Process Pn:` の `request:` の下に置き、メソッ
 
 以下はアクション内の `Process` 抜粋です。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-action-heading
 - Process P1: Apply profile response
   - case: success
     - response: 200 profile partial
@@ -111,7 +111,7 @@ HTTP リクエストは `Process Pn:` の `request:` の下に置き、メソッ
 以下はアクション 1件だけの抜粋です。実際の画面では、このアクションを呼ぶ要素や
 有効な状態も合わせて書きます。
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-actions-context
 ### A-OpenSettings Open settings
 
 - Process P1: Navigate to settings

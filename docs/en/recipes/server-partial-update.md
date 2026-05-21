@@ -10,7 +10,7 @@ A Refresh button or filter change sends a server request. The returned summary p
 
 ## Minimal Shape
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-partial-context
 ## Layout: mobile
 
 ### L-ProfileSummary Profile summary

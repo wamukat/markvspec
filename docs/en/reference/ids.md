@@ -4,7 +4,7 @@ IDs are stable names for referring to objects. Keep IDs stable when display labe
 
 ## Syntax You Can Write
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-validation-context
 ---
 id: SCR-LOGIN
 type: screen
@@ -52,7 +52,7 @@ or partial host behavior.
 
 Object headings may include a preview marker before the ID.
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-elements-context
 ### 5:E-SignInButton Button
 
 ### A1:A-SubmitLogin Submit login
@@ -67,13 +67,13 @@ Write `P-*` panels without a marker prefix, such as `### P-NameFields Name field
 
 You can omit the marker when you do not need preview labels:
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-fragment section=elements
 ### E-SignInButton Button
 ```
 
 ## Small Example
 
-```markdown markvspec-skip reason=context
+```markdown markvspec-skip reason=requires-elements-context
 ### 1:E-RememberMe Checkbox
 
 - label: Remember me
