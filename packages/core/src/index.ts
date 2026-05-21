@@ -125,22 +125,30 @@ export {
   actionProcessDetailItemDefinitions,
   actionTopLevelItemDefinitions,
   commonElementPropertyKeys,
+  grammarAllowedStructuredItemKeys,
+  grammarDefinitionHardCodeInventory,
   grammarSectionDefinitions,
   grammarSectionForTitle,
   grammarSectionOrderRank,
   grammarSectionOrderText,
   grammarStructuredItem,
+  grammarStructuredItemContexts,
+  grammarStructuredItemForContext,
   layoutGroupMetadataPropertyKeys,
+  isGrammarStructuredItemCanonical,
   normalizeGrammarKey,
   processDetailBlockKeys,
   processSyntaxOnlyBlockKeys,
   slotDefinitionPropertyKeys
 } from "./grammar-definition.js";
 export type {
+  GrammarHardCodeInventoryEntry,
   GrammarItemClassification,
   GrammarSectionDefinition,
   GrammarSectionKind,
-  GrammarStructuredItemDefinition
+  GrammarStructuredItemContext,
+  GrammarStructuredItemDefinition,
+  GrammarStructuredItemQueryResult
 } from "./grammar-definition.js";
 export {
   anchoredOverlayReference,

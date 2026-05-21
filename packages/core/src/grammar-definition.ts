@@ -13,6 +13,38 @@ export interface GrammarStructuredItemDefinition {
   };
 }
 
+export type GrammarStructuredItemContext =
+  | "action.top-level"
+  | "action.process-detail"
+  | "element.common-property"
+  | "layout.metadata"
+  | "slot.definition"
+  | "form-group.property"
+  | "view-context.property"
+  | "preview-scenario.property"
+  | "validation.property"
+  | "business-rule.property"
+  | "error-code.property"
+  | "element.tab-item.property"
+  | "element.accordion-item.property"
+  | "element.action-menu-item.property"
+  | "element.display-value-metadata"
+  | "history-field.property"
+  | "history-entry.property";
+
+export interface GrammarStructuredItemQueryResult extends GrammarStructuredItemDefinition {
+  context: GrammarStructuredItemContext;
+  known: boolean;
+}
+
+export interface GrammarHardCodeInventoryEntry {
+  source: string;
+  owner: string;
+  targetTicket: number;
+  scope: string;
+  note: string;
+}
+
 export interface GrammarSectionDefinition {
   kind: GrammarSectionKind;
   title: string;
@@ -165,6 +197,86 @@ export const layoutGroupMetadataPropertyKeys = [
 
 export const slotDefinitionPropertyKeys = ["required", "default", "purpose", "description"] as const;
 
+export const grammarStructuredItemDefinitionsByContext: Partial<Record<GrammarStructuredItemContext, readonly GrammarStructuredItemDefinition[]>> = {
+  "action.top-level": actionTopLevelItemDefinitions,
+  "action.process-detail": actionProcessDetailItemDefinitions,
+  "element.common-property": commonElementPropertyKeys.map((key) =>
+    item(key, "canonical", true, "Common element property.", "Element 共通 property。")
+  ),
+  "layout.metadata": layoutGroupMetadataPropertyKeys.map((key) =>
+    item(key, "canonical", true, "Layout group metadata property.", "Layout group metadata property。")
+  ),
+  "slot.definition": slotDefinitionPropertyKeys.map((key) =>
+    item(key, "canonical", true, "Slot definition property.", "Slot definition property。")
+  )
+};
+
+export const grammarDefinitionHardCodeInventory = [
+  inventory(
+    "packages/core/src/validation-section-semantic.ts",
+    "validationPropertyKeys",
+    1371,
+    "Validations / Field Validations / Cross-field Validations",
+    "Validation structured item keys are still owned by the semantic parser."
+  ),
+  inventory(
+    "packages/core/src/markdown-section-semantic.ts",
+    "formGroupPropertyKeys",
+    1371,
+    "Form Groups",
+    "Form Group property keys are still owned by the semantic parser."
+  ),
+  inventory(
+    "packages/core/src/markdown-section-semantic.ts",
+    "businessRulePropertyKeys",
+    1371,
+    "Business Rules",
+    "Business Rule property keys are still owned by the semantic parser."
+  ),
+  inventory(
+    "packages/core/src/markdown-section-semantic.ts",
+    "errorCodePropertyKeys",
+    1371,
+    "Error Codes",
+    "Error Code property keys are still owned by the semantic parser."
+  ),
+  inventory(
+    "packages/core/src/markdown-section-semantic.ts",
+    "viewContextPropertyKeys",
+    1372,
+    "View Context",
+    "View Context property keys and arbitrary values must be separated in grammar definition."
+  ),
+  inventory(
+    "packages/core/src/preview-scenario-section-semantic.ts",
+    "previewScenarioPropertyKeys",
+    1372,
+    "Preview Scenarios",
+    "Preview Scenario property keys and model/view arbitrary keys must be separated in grammar definition."
+  ),
+  inventory(
+    "packages/core/src/markdown-section-semantic.ts",
+    "tabItemPropertyKeys / accordionItemPropertyKeys / actionMenuItemPropertyKeys",
+    1373,
+    "Element nested items",
+    "Nested item metadata for Tabs, Accordion, and ActionMenu is still parser-local."
+  ),
+  inventory(
+    "packages/core/src/markdown-section-semantic.ts",
+    "displayValueProperties",
+    1373,
+    "Element display value metadata",
+    "Display value metadata keys are still parser-local."
+  ),
+  inventory(
+    "packages/core/src/action-parser.ts",
+    "processSyntaxOnlyBlockKeys / processDetailBlockKeys",
+    1373,
+    "Actions",
+    "Action process block classification still exposes specialized parser-local sets."
+  )
+] as const satisfies readonly GrammarHardCodeInventoryEntry[];
+
 export function normalizeGrammarKey(value: string): string {
   return value.trim().replace(/:$/, "").trim().toLowerCase();
 }
@@ -205,6 +317,41 @@ export function grammarStructuredItem(
   return definitions.find((definition) => normalizeGrammarKey(definition.key) === normalized);
 }
 
+export function grammarStructuredItemForContext(
+  context: GrammarStructuredItemContext,
+  key: string
+): GrammarStructuredItemQueryResult {
+  const definition = grammarStructuredItem(grammarStructuredItemDefinitionsByContext[context] ?? [], key);
+  if (definition) {
+    return { ...definition, context, known: true };
+  }
+
+  return {
+    key,
+    context,
+    known: false,
+    classification: "unsupported",
+    represented: false,
+    diagnosticSeverity: "warning",
+    description: {
+      en: `Unsupported structured item for ${context}.`,
+      ja: `${context} では未対応の structured item。`
+    }
+  };
+}
+
+export function grammarAllowedStructuredItemKeys(context: GrammarStructuredItemContext): string[] {
+  return [...(grammarStructuredItemDefinitionsByContext[context] ?? [])].map((definition) => definition.key);
+}
+
+export function grammarStructuredItemContexts(): GrammarStructuredItemContext[] {
+  return Object.keys(grammarStructuredItemDefinitionsByContext) as GrammarStructuredItemContext[];
+}
+
+export function isGrammarStructuredItemCanonical(context: GrammarStructuredItemContext, key: string): boolean {
+  return grammarStructuredItemForContext(context, key).classification === "canonical";
+}
+
 function section(kind: GrammarSectionKind, title: string, order: number, pattern: string): GrammarSectionDefinition {
   return {
     kind,
@@ -232,4 +379,14 @@ function item(
     diagnosticSeverity: classification === "canonical" ? undefined : classification === "represented-extension" ? "info" : "warning",
     description: { en, ja }
   };
+}
+
+function inventory(
+  source: string,
+  owner: string,
+  targetTicket: number,
+  scope: string,
+  note: string
+): GrammarHardCodeInventoryEntry {
+  return { source, owner, targetTicket, scope, note };
 }

@@ -4,8 +4,8 @@ import {
   createUnsupportedStructuredItemDiagnostic
 } from "./source-text-diagnostics.js";
 import {
-  actionTopLevelItemDefinitions,
-  grammarStructuredItem,
+  grammarStructuredItemForContext,
+  isGrammarStructuredItemCanonical,
   nonCanonicalProcessBlockKeys,
   normalizeGrammarKey,
   processDetailBlockKeys,
@@ -160,7 +160,7 @@ export function applyActionBulletToContext(
 
 function parseActionBlock(text: string): ActionBlock | undefined {
   const normalized = normalizeBlockLabel(text);
-  const definition = grammarStructuredItem(actionTopLevelItemDefinitions, normalized);
+  const definition = grammarStructuredItemForContext("action.top-level", normalized);
   if (definition?.classification !== "canonical") {
     return undefined;
   }
@@ -992,7 +992,7 @@ function nextNestedContext(bullet: ActionBulletInput, context: ActionParseContex
 }
 
 function isKnownProcessDetailBlock(normalized: string): boolean {
-  return processDetailBlockKeys.has(normalized);
+  return processDetailBlockKeys.has(normalized) && isGrammarStructuredItemCanonical("action.process-detail", normalized);
 }
 
 function isProcessDetailBlockLabel(normalized: string): boolean {

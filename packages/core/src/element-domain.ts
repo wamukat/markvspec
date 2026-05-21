@@ -1,5 +1,5 @@
 import { propertyBoolean, propertyFirstString, propertyString } from "./property-accessor.js";
-import { commonElementPropertyKeys } from "./grammar-definition.js";
+import { grammarAllowedStructuredItemKeys } from "./grammar-definition.js";
 import { sourceTypeForElement } from "./source-types.js";
 import type { MarkVSpecElement, SourceLocation } from "./types.js";
 
@@ -87,7 +87,7 @@ export interface ActiveControlledPanelOptions {
 
 const customElementTypeRegex = /^custom:[A-Za-z][A-Za-z0-9_-]*$/u;
 
-export const commonElementProperties: ReadonlySet<string> = new Set(commonElementPropertyKeys);
+export const commonElementProperties: ReadonlySet<string> = new Set(grammarAllowedStructuredItemKeys("element.common-property"));
 
 const emptyProperties = new Set<string>();
 

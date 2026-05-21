@@ -17,13 +17,10 @@ import {
   type SectionAst
 } from "./markdown-section-ast.js";
 import type { SemanticDependency } from "./markdown-section-semantic.js";
-import {
-  layoutGroupMetadataPropertyKeys as grammarLayoutGroupMetadataPropertyKeys,
-  slotDefinitionPropertyKeys as grammarSlotDefinitionPropertyKeys
-} from "./grammar-definition.js";
+import { grammarAllowedStructuredItemKeys } from "./grammar-definition.js";
 
-const slotDefinitionPropertyKeys: ReadonlySet<string> = new Set(grammarSlotDefinitionPropertyKeys);
-const layoutGroupMetadataPropertyKeys: ReadonlySet<string> = new Set(grammarLayoutGroupMetadataPropertyKeys);
+const slotDefinitionPropertyKeys: ReadonlySet<string> = new Set(grammarAllowedStructuredItemKeys("slot.definition"));
+const layoutGroupMetadataPropertyKeys: ReadonlySet<string> = new Set(grammarAllowedStructuredItemKeys("layout.metadata"));
 
 interface ListItemView {
   text: string;
