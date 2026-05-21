@@ -371,9 +371,11 @@ These constraints are intentionally outside the EBNF body:
 - View Context definitions are limited to `boolean` or `enum`.
 - `server:` does not model an HTTP request; `request:` does.
 
-## Current Follow-Up
+## Sync Diagnostics
 
-`sync:` is canonical in this grammar and in the Actions reference, but the
-current diagnostics can still classify some `sync:` process details as extension
-items. Track that as a parser/diagnostics synchronization task rather than
-changing parser behavior in this documentation ticket.
+`sync:` is canonical in this grammar and in the Actions reference. Value-less
+service or calculation entries under `sync:`, and key/value entries under
+`sync:`, are standard process details and should not produce extension-item
+information diagnostics. Unknown process detail blocks outside the canonical
+Action EBNF may still be retained as extension data with information
+diagnostics.

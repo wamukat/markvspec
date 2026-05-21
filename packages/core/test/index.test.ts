@@ -5783,11 +5783,6 @@ title: Params
         lineNumber(source, "- Triggered")
       ],
       [
-        "info",
-        "Extension item in Action A-Submit process step SyncService: AccountSync.push(). This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output.",
-        lineNumber(source, "    - AccountSync.push()")
-      ],
-      [
         "warning",
         "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.",
         lineNumber(source, "### A-Submit submit")
@@ -8229,6 +8224,11 @@ title: Extension Info
     - submit request
   - case: sent
     - state: idle
+- Process P2: Extension audit
+  - audit:
+    - AuditService.record()
+    - params:
+      - requestId: request.id
 `;
 
   const result = parseMarkVSpec(source);
@@ -8240,13 +8240,18 @@ title: Extension Info
   assert(infoMessages.includes("Extension item in Layout L-Page: analytics scope: login. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
   assert(infoMessages.includes("Extension item in Element E-Submit: analytics event: submit_clicked. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
   assert(infoMessages.includes("Extension item in Action A-Submit process step Submit: correlation id: request.id. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
-  assert(infoMessages.includes("Extension item in Action A-Submit process step Submit: AuditService.record(). This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
+  assert(!infoMessages.includes("Extension item in Action A-Submit process step Submit: AuditService.record(). This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
+  assert(infoMessages.includes("Extension item in Action A-Submit process step Extension audit: AuditService.record(). This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
   assert(warningMessages.includes("Unknown structured item in Action A-Submit: Tliggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
   assert.equal(result.layoutGroups.find((layout) => layout.id === "L-Page")?.properties["analytics scope"], "login");
   assert.equal(result.elements.find((element) => element.id === "E-Submit")?.properties["analytics event"], "submit_clicked");
   assert.deepEqual(step?.details.map((detail) => [detail.key, detail.value]), [
     ["correlation id", "request.id"],
     ["sync", "AuditService.record()"]
+  ]);
+  assert.deepEqual(action?.processSteps[1]?.details.map((detail) => [detail.key, detail.value]), [
+    ["audit", "AuditService.record()"],
+    ["audit.params.requestId", "request.id"]
   ]);
   assert.equal(action?.triggeredBy, "E-Submit.click");
 });
@@ -12028,6 +12033,7 @@ title: Custom Process Detail
 - Process P1: Submit with project sync
   - sync:
     - SubscriptionService.create()
+    - mode: immediate
     - params:
       - email: E-EmailInput.value
   - result:
@@ -12038,18 +12044,10 @@ title: Custom Process Detail
   const result = parseMarkVSpec(source);
   const step = result.actions[0]?.processSteps[0];
 
-  assert.deepEqual(
-    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
-    [
-      [
-        "info",
-        "Extension item in Action A-Submit process step Submit with project sync: SubscriptionService.create(). This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output.",
-        lineNumber(source, "    - SubscriptionService.create()")
-      ]
-    ]
-  );
+  assert.deepEqual(result.diagnostics, []);
   assert.deepEqual(step?.details.map((detail) => [detail.key, detail.value]), [
     ["sync", "SubscriptionService.create()"],
+    ["sync.mode", "immediate"],
     ["sync.params.email", "E-EmailInput.value"]
   ]);
 });

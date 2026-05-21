@@ -370,9 +370,10 @@ information diagnostic を出力します。
 - View Context definition は `boolean` または `enum` に限定します。
 - `server:` は HTTP request を表しません。HTTP request は `request:` で表します。
 
-## Current Follow-Up
+## Sync Diagnostics
 
-この grammar と Actions reference では `sync:` を canonical としていますが、現在の
-diagnostics は一部の `sync:` process detail を extension item として分類し得ます。
-この documentation ticket では parser behavior を変えず、parser/diagnostics の同期を
-別 task として扱います。
+`sync:` はこの grammar と Actions reference の canonical syntax です。`sync:` 配下の
+value-less service / calculation entry と key/value entry は standard process detail
+であり、extension item information diagnostic の対象にしません。canonical Action EBNF
+外の未知 process detail block は、引き続き extension data として保持し、information
+diagnostic を出力できます。

@@ -980,7 +980,7 @@ function nextNestedContext(bullet: ActionBulletInput, context: ActionParseContex
 }
 
 function isKnownProcessDetailBlock(normalized: string): boolean {
-  return normalized === "request" || normalized === "server" || normalized === "response" || normalized === "validation";
+  return normalized === "request" || normalized === "server" || normalized === "sync" || normalized === "response" || normalized === "validation";
 }
 
 function isProcessDetailBlockLabel(normalized: string): boolean {
