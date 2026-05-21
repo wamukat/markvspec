@@ -135,7 +135,7 @@ Edge、Brave、Chromium を探します。CI では先にどれかを入れて�
 
 ## 関連ページ
 
-- [ファイル形式](file-format.md)
-- [セクション](sections.md)
-- [制限事項](limitations.md)
+- [ファイル形式](./file-format.md)
+- [セクション](./sections.md)
+- [制限事項](./limitations.md)
 - [Hello Screen](../../../examples/showcase/hello-screen.html)

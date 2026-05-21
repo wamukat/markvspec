@@ -1,10 +1,13 @@
-# Actions
+# アクション
 
 Action は「操作したら何が起きるか」を書く場所です。
 
-button や link には `action: A-*` を付けます。`## Actions` には、その action が state を変えるのか、request を送るのか、別画面へ移るのかを書きます。
+ボタンやリンクには `action: A-*` を付けます。`## Actions` には、そのアクションが状態を変えるのか、リクエストを送るのか、別画面へ移るのかを書きます。
 
 ## まずこれだけ
+
+以下は要素と `## Actions` の抜粋です。完全な画面ファイルでは、`## States`、
+`## Layout`、入力要素、バリデーション定義も同じ `.vspec.md` に置きます。
 
 ```markdown
 ### E-SubmitButton Button
@@ -31,21 +34,24 @@ button や link には `action: A-*` を付けます。`## Actions` には、そ
     - state: submitting
 ```
 
-preview では、`Submit` button と `A-SubmitRequest` のつながり、validation error の表示差し替え、`idle` から `submitting` への変化を確認できます。
+プレビューでは、`Submit` ボタンと `A-SubmitRequest` のつながり、バリデーションエラーの表示差し替え、`idle` から `submitting` への変化を確認できます。
 
-![Form Submit Flow の action preview](../../assets/vscode-previews/form-submit-flow-vscode-preview.png)
+![Form Submit Flow のアクションプレビュー](../../assets/vscode-previews/form-submit-flow-vscode-preview.png)
 
 ## 書く判断
 
-- button から action を呼ぶ: element の `action: A-*`。
-- 画面読み込みで action を呼ぶ: `## Events`。
-- action が有効な state を絞る: `From`。
-- HTTP request を書く: `Process Pn:` の `request:`。
+- ボタンからアクションを呼ぶ: 要素の `action: A-*`。
+- 画面読み込みでアクションを呼ぶ: `## Events`。
+- アクションが有効な状態を絞る: `From`。
+- HTTP リクエストを書く: `Process Pn:` の `request:`。
 - 結果で分岐する: `case:`。
 - 表示を差し替える: `display`。
 - 画面を移動する: `navigate`。
 
 ## よく使う形
+
+以下はサーバー応答を受け取るアクションの抜粋です。`submitting` 状態、
+`L-MessageArea`、`E-SubmitError` は同じ画面内で定義済みのものとして読んでください。
 
 ```markdown
 ### A-HandleSubmitResponse Handle submit response
@@ -66,12 +72,12 @@ preview では、`Submit` button と `A-SubmitRequest` のつながり、validat
 
 ここで重要なのは、実装関数名ではなく「ユーザーに見える結果」が読めることです。
 
-`A-SubmitRequest.P1.invalid` や success toast のような action result を名前付き preview case
-として固定したい場合は、[シナリオ](scenarios.md) を使います。
+`A-SubmitRequest.P1.invalid` や成功トーストのようなアクション結果を名前付きプレビューケース
+として固定したい場合は、[シナリオ](./scenarios.md) を使います。
 
 ## 見る例
 
 - [Form Submit Flow](../../../examples/showcase/form-submit-flow.html)
 - [Display Updates](../../../examples/showcase/display-effects.html)
-- [シナリオ](scenarios.md)
-- [Actions Reference](../reference/actions.md)
+- [シナリオ](./scenarios.md)
+- [アクションリファレンス](../reference/actions.md)

@@ -130,8 +130,8 @@ screen `route:`.
 
 ## Next Reading
 
-- [States](states.md)
-- [Actions](actions.md)
-- [Validation](validation.md)
+- [States](./states.md)
+- [Actions](./actions.md)
+- [Validation](./validation.md)
 - [Preview Scenarios Reference](../reference/sections.md)
 - [Scenario Preview Data Example](../../../examples/showcase/scenario-samples.html)

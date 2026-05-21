@@ -1,18 +1,18 @@
-# Validations
+# バリデーション
 
-Validations は入力値の検証契約と error 表示を扱います。入力欄そのものの metadata は `## Elements`、検証ルールと message は `## Field Validations`、画面や業務の判断条件は [Business Rules](rules.md) に分けます。
+Validations は入力値の検証契約とエラー表示を扱います。入力欄そのもののメタデータは `## Elements`、検証ルールとメッセージは `## Field Validations`、画面や業務の判断条件は [ビジネスルール](./rules.md) に分けます。
 
 ## 境界
 
 | 判定対象 | 書く場所 |
 | --- | --- |
-| 入力欄の required 表示 | `Input` element の `required` または `input rule` |
-| 入力欄の format、length、range、pattern metadata | `Input` element の `input rule`、または `NumberInput` の `min` / `max` / `step` |
-| 検証ルールと user-visible な error message | `## Field Validations` |
-| 複数 field の比較 | `## Cross-field Validations` |
-| client 側の業務ルール | `## Business Rules` |
-| server response で決まる field error | `## Actions` の `case:` と field error への `display` |
-| 権限、在庫、契約状態などの業務判断 | `## Business Rules` と server response の `case:` |
+| 入力欄の required 表示 | `Input` 要素の `required` または `input rule` |
+| 入力欄の形式、長さ、範囲、パターンのメタデータ | `Input` 要素の `input rule`、または `NumberInput` の `min` / `max` / `step` |
+| 検証ルールとユーザーに見せるエラーメッセージ | `## Field Validations` |
+| 複数フィールドの比較 | `## Cross-field Validations` |
+| クライアント側の業務ルール | `## Business Rules` |
+| サーバー応答で決まるフィールドエラー | `## Actions` の `case:` とフィールドエラーへの `display` |
+| 権限、在庫、契約状態などの業務判断 | `## Business Rules` とサーバー応答の `case:` |
 
 ## 書ける構文
 
@@ -78,9 +78,9 @@ Validations は入力値の検証契約と error 表示を扱います。入力�
 
 `scope` は書きません。`## Field Validations` と `## Cross-field Validations` のどちらに置くかで決まります。`run` も通常は書きません。現行実装で認識する実行場所は `client` だけです。
 
-### Error Messages
+### エラーメッセージ
 
-error message は `## Field Validations` の各 constraint に `message` として書きます。
+エラーメッセージは `## Field Validations` の各制約に `message` として書きます。
 
 ```markdown
 - constraints:
@@ -123,24 +123,24 @@ error message は `## Field Validations` の各 constraint に `message` とし�
     - message: Age must be between 13 and 120.
 ```
 
-![Single Field Validation の validation preview](../../assets/vscode-previews/single-field-validation-vscode-preview.png)
+![Single Field Validation のバリデーションプレビュー](../../assets/vscode-previews/single-field-validation-vscode-preview.png)
 
 ## 注意点
 
-- `Input` element 直下の `constraints` と `error:` は現在の実装で扱う構文ではありません。
-- validation は `V-*` として `## Field Validations` に書きます。
+- `Input` 要素直下の `constraints` と `error:` は現在の実装で扱う構文ではありません。
+- バリデーションは `V-*` として `## Field Validations` に書きます。
 - 複数フィールドの検証は `F-*` のフォームグループを `target` にします。`L-*` のレイアウトを複合検証の対象にしません。
-- `## Business Rules` は business rule や画面固有条件を扱います。
-- validator diagnostics は tool output であり、source に書く validation 仕様とは別です。
-- error 表示用の element がある場合は、`tone: danger` の `Paragraph` や `Text` として `## Elements` に書けます。
-- server response による error 表示は `## Actions` の `case:` と `display` で書くと、request との関係が明確になります。
-- user-visible な error text は `display` の `message` に書きます。既存 element や partial を表示する場合は `element` または `partial` を使います。
+- `## Business Rules` はビジネスルールや画面固有条件を扱います。
+- バリデーション診断はツール出力であり、ソースに書くバリデーション仕様とは別です。
+- エラー表示用の要素がある場合は、`tone: danger` の `Paragraph` や `Text` として `## Elements` に書けます。
+- サーバー応答によるエラー表示は `## Actions` の `case:` と `display` で書くと、リクエストとの関係が明確になります。
+- ユーザーに見えるエラー文は `display` の `message` に書きます。既存要素や partial を表示する場合は `element` または `partial` を使います。
 
 ## 関連ページ
 
-- [Guide: Validation](../guide/validation.md)
-- [Elements](elements.md)
-- [Actions](actions.md)
-- [Business Rules](rules.md)
+- [ガイド: バリデーション](../guide/validation.md)
+- [要素](./elements.md)
+- [アクション](./actions.md)
+- [ビジネスルール](./rules.md)
 - [Single Field Validation](../../../examples/showcase/single-field-validation.html)
 - [Login](../../../examples/showcase/login-basic.html)

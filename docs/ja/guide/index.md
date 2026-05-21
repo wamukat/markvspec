@@ -8,13 +8,13 @@ MarkVSpec は、画面仕様を Markdown で書き、すぐプレビューで確
 
 ## まず覚えること
 
-- 文書全体の置き方: [文書構造](document-structure.md)。
-- `## States`: 画面の状態。まずは [状態](states.md)。
-- `## Layout`: 画面の骨格。まずは [レイアウト](layout.md)。
-- `## Elements`: 表示される部品。まずは [要素](elements.md)。
-- `## Actions`: 操作と結果。まずは [アクション](actions.md)。
-- `## Business Rules`: 画面固有の判断条件。まずは [バリデーション](validation.md)。
-- `## Preview Scenarios`: 確認したい表示パターン。まずは [シナリオ](scenarios.md)。
+- 文書全体の置き方: [文書構造](./document-structure.md)。
+- `## States`: 画面の状態。まずは [状態](./states.md)。
+- `## Layout`: 画面の骨格。まずは [レイアウト](./layout.md)。
+- `## Elements`: 表示される部品。まずは [要素](./elements.md)。
+- `## Actions`: 操作と結果。まずは [アクション](./actions.md)。
+- `## Business Rules`: 画面固有の判断条件。まずは [バリデーション](./validation.md)。
+- `## Preview Scenarios`: 確認したい表示パターン。まずは [シナリオ](./scenarios.md)。
 
 ## 読み方
 

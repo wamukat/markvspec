@@ -1,25 +1,25 @@
-# Loading And Error
+# 読み込みとエラー
 
 ## いつ使うか
 
-画面表示時や検索条件変更時に data を読み込み、loading、loaded、empty、error を user に見せ分ける画面で使います。非同期処理を prose で説明するだけではなく、screen state と action case に分けて書くことで、preview と review で user-visible result を判断しやすくします。
+画面表示時や検索条件変更時にデータを読み込み、読み込み中、取得済み、空、エラーをユーザーに見せ分ける画面で使います。非同期処理を文章で説明するだけではなく、画面状態とアクション分岐に分けて書くことで、プレビューとレビューでユーザーに見える結果を判断しやすくします。
 
 ## 完成イメージ
 
-画面表示時に request を開始する。待機中は loading state を表示し、data があれば loaded state、data がなければ empty state、request が失敗したら error state を表示します。Retry button がある場合は、同じ load action を再実行できるようにします。
+画面表示時にリクエストを開始します。待機中は読み込み中の状態を表示し、データがあれば取得済み、データがなければ空、リクエストが失敗したらエラーの状態を表示します。再試行ボタンがある場合は、同じ読み込みアクションを再実行できるようにします。
 
 ## 最小の書き方
+
+以下は画面本文の例です。新規 `.vspec.md` では、先頭メタデータと `# SCR-* ...` の下に置きます。
 
 ```markdown
 ## States
 
-### loading
-
-### loaded
-
-### empty
-
-### error
+- before-load+
+- loading*
+- loaded
+- empty
+- error
 
 ## Layout: mobile
 
@@ -27,6 +27,13 @@
 
 - stack
 - gap: md
+
+#### Items
+
+- E-LoadingMessage
+- E-EmptyMessage
+- E-ErrorMessage
+- E-RetryButton
 
 ## Elements
 
@@ -59,11 +66,18 @@
 
 ### A-LoadItems Load items
 
+- From
+  - before-load
+  - loaded
+  - empty
+  - error
 - Process P1: Request items
   - request:
     - GET /items
   - case: sent
     - state: loading
+  - case: send-failed
+    - state: error
 
 ### A-HandleItemsResponse Handle items response
 
@@ -85,37 +99,37 @@
 
 ## 書き方の要点
 
-- `loading` は request 前後の一時状態として明示する。
-- empty は failure ではありません。data がない正常系として別 `case:` にします。
-- error message、empty message、retry button は element として置き場所を分かるようにします。
-- retry がある場合は、Retry button の `action: A-*` で同じ load action に接続します。
+- `loading` はリクエスト前後の一時状態として明示する。
+- empty は failure ではありません。データがない正常系として別 `case:` にします。
+- エラーメッセージ、空表示メッセージ、再試行ボタンは要素として置き場所を分かるようにします。
+- 再試行がある場合は、再試行ボタンの `action: A-*` で同じ読み込みアクションに接続します。
 - 初期表示で読み込む場合は `## Events` に `page.load` を書きます。
 
 ## よくある落とし穴
 
-- loading を省くと、request 中の画面が未定義になります。
-- empty と error を同じ state にすると、user に出す message と実装時の response handling が曖昧になります。
-- `success` だけを書いて失敗時を prose に逃がすと、review で failure path が抜けます。
-- spinner のサイズや animation duration は MarkVSpec の主目的ではありません。user に見える意味を `E-LoadingMessage` や `state: loading` で表します。
-- response の詳細を API 仕様のように書き込みすぎず、画面の分岐に必要な条件へ絞ります。
+- loading を省くと、リクエスト中の画面が未定義になります。
+- empty と error を同じ状態にすると、ユーザーに出すメッセージと実装時の応答処理が曖昧になります。
+- `success` だけを書いて失敗時を文章に逃がすと、レビューで失敗経路が抜けます。
+- spinner のサイズやアニメーション時間は MarkVSpec の主目的ではありません。ユーザーに見える意味を `E-LoadingMessage` や `state: loading` で表します。
+- 応答の詳細を API 仕様のように書き込みすぎず、画面の分岐に必要な条件へ絞ります。
 
-## 関連 example
+## 関連サンプル
 
-- [Async Fetching](../../../examples/showcase/async-loading.html): request、loading、loaded、empty、error の state を一通り確認する例。
-- [Display Updates](../../../examples/showcase/display-effects.html): message、toast、dialog などの user-visible feedback を確認する例。
+- [Async Fetching](../../../examples/showcase/async-loading.html): リクエスト、読み込み中、取得済み、空、エラーの状態を一通り確認する例。
+- [Display Updates](../../../examples/showcase/display-effects.html): メッセージ、トースト、ダイアログなどのユーザーに見えるフィードバックを確認する例。
 
-## 関連 reference
+## 関連リファレンス
 
-- [States Guide](../guide/states.md)
-- [Actions Guide](../guide/actions.md)
-- [Elements Reference](../reference/elements.md)
-- [Actions Reference](../reference/actions.md)
-- [Limitations Reference](../reference/limitations.md)
+- [状態ガイド](../guide/states.md)
+- [アクションガイド](../guide/actions.md)
+- [要素リファレンス](../reference/elements.md)
+- [アクションリファレンス](../reference/actions.md)
+- [制限事項リファレンス](../reference/limitations.md)
 
 ## 確認方法
 
-- request 前後の state が読める。
+- リクエスト前後の状態が読める。
 - loading、loaded、empty、error が別々に追える。
 - empty と failure が別 case になっている。
-- user に表示される message と retry の置き場所が分かる。
-- 初期表示、retry、検索条件変更など trigger が必要な分だけ書かれている。
+- ユーザーに表示されるメッセージと再試行の置き場所が分かる。
+- 初期表示、再試行、検索条件変更などのトリガーが必要な分だけ書かれている。

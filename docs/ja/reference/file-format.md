@@ -1,7 +1,7 @@
-# File Format
+# ファイル形式
 
-`.vspec.md` は MarkVSpec の authoring source です。1ファイルは原則として1つの screen、template、partial を表します。
-`.vspec.project.md` は、複数の screen / template file を参照する project index を表します。
+`.vspec.md` は MarkVSpec の作成元です。1ファイルは原則として1つの画面、テンプレート、partial を表します。
+`.vspec.project.md` は、複数の画面ファイルやテンプレートファイルを参照するプロジェクトインデックスを表します。
 
 ## 書ける構文
 
@@ -28,21 +28,21 @@ locale: ja
 
 ### Front Matter
 
-Front Matter は document-level metadata だけを書きます。
+Front Matter は文書全体のメタデータだけを書きます。
 
-| Field | 必須 | 値 |
+| 項目 | 必須 | 値 |
 | --- | --- | --- |
-| `id` | yes | `SCR-*`、または document type に合う stable ID |
+| `id` | yes | `SCR-*`、または文書タイプに合う安定した ID |
 | `type` | yes | `screen`、`template`、`partial`、`project` |
 | `title` | yes | 人が読む画面名 |
-| `route` | no | screen の URL path |
-| `locale` | no | `ja`、`en` などの locale |
+| `route` | no | 画面の URL パス |
+| `locale` | no | `ja`、`en` などの言語 |
 
-Front Matter には element property、action、layout item は書きません。それらは Markdown 本文に書きます。
+Front Matter には要素の項目、アクション、レイアウト項目は書きません。それらは Markdown 本文に書きます。
 
-### Project files
+### プロジェクトファイル
 
-複数の screen と template を1つの preview で確認したい場合は project file を使います。
+複数の画面とテンプレートを1つのプレビューで確認したい場合はプロジェクトファイルを使います。
 
 ```markdown
 ---
@@ -59,32 +59,32 @@ templates:
 
 # PRJ-ACCOUNT Account Project
 
-アカウント関連画面をまとめて確認するための project です。
+アカウント関連画面をまとめて確認するためのプロジェクトです。
 
 ## Notes
 
-navigation と共通 shell の変更を同じ場所で確認します。
+ナビゲーションと共通シェルの変更を同じ場所で確認します。
 ```
 
-Project preview では project lead と `## Notes` が表示され、screen / template list や transition graph と一緒に project intent を確認できます。HTML/PDF export でも project file を指定でき、列挙された screen を読み込んで1つの artifact にまとめます。CLI の [document-list export](cli.md) は一覧性を優先するため、Project document の長い lead / notes prose は含めません。
+プロジェクトプレビューではプロジェクト概要と `## Notes` が表示され、画面 / テンプレート一覧や遷移図と一緒にプロジェクトの意図を確認できます。HTML/PDF 出力でもプロジェクトファイルを指定でき、列挙された画面を読み込んで1つの成果物にまとめます。CLI の [document-list 出力](./cli.md) は一覧性を優先するため、プロジェクト文書の長い概要やメモ本文は含めません。
 
 関連:
 
-- [Preview](../start/preview.md): project preview の表示内容。
-- [Export](../start/export.md): project HTML/PDF export。
-- [CLI](cli.md): 一覧用の `export document-list`。
+- [プレビュー](../start/preview.md): プロジェクトプレビューの表示内容。
+- [出力](../start/export.md): プロジェクト HTML/PDF 出力。
+- [CLI](./cli.md): 一覧用の `export document-list`。
 
-### Body
+### 本文
 
 本文は Markdown 見出しと箇条書きで書きます。
 
-- `##` は top-level section。
-- `###` は object 宣言。
-- `####` は object 内の subsection。
-- bullet は property、rule、condition、transition を表します。
-- `###` の object heading は `### ID Name` または `### marker:ID Name` で書けます。
+- `##` は最上位セクション。
+- `###` は対象の宣言。
+- `####` は対象内のサブセクション。
+- 箇条書きは項目、ルール、条件、遷移を表します。
+- `###` の対象見出しは `### ID Name` または `### marker:ID Name` で書けます。
 
-JSON は authoring format ではありません。tool の内部表現や export 結果として使われることはありますが、利用者が source として書く形式ではありません。
+JSON は作成用フォーマットではありません。ツールの内部表現や出力結果として使われることはありますが、利用者がソースとして書く形式ではありません。
 
 ## 小さな例
 
@@ -104,21 +104,21 @@ route: /hello
 - text: Hello MarkVSpec
 ```
 
-![Hello Screen の file format 例と生成 preview](../../assets/vscode-previews/hello-screen-vscode-preview.png)
+![Hello Screen のファイル形式例と生成プレビュー](../../assets/vscode-previews/hello-screen-vscode-preview.png)
 
 ## 注意点
 
-- file extension は `.vspec.md` を使います。
-- 画面をまたぐ仕様は、複数の screen file に分けます。
+- ファイル拡張子は `.vspec.md` を使います。
+- 画面をまたぐ仕様は、複数の画面ファイルに分けます。
 - Front Matter は YAML ですが、本文を YAML や JSON に寄せないでください。
-- Markdown table は説明用には使えますが、canonical source にはしません。
-- `type: partial` は server-rendered partial や画面断片を表す場合に使います。
-- `type: project` は、関連する screen と template を列挙する `.vspec.project.md` にだけ使います。
-- state は `## States` の下に bullet で書き、初期状態には `*` を1つだけ付けます。
+- Markdown table は説明用には使えますが、正本にはしません。
+- `type: partial` はサーバー生成 partial や画面断片を表す場合に使います。
+- `type: project` は、関連する画面とテンプレートを列挙する `.vspec.project.md` にだけ使います。
+- state は `## States` の下に箇条書きで書き、初期状態には `*` を1つだけ付けます。
 
 ## 関連ページ
 
-- [Sections](sections.md)
-- [IDs](ids.md)
-- [Limitations](limitations.md)
+- [セクション](./sections.md)
+- [ID](./ids.md)
+- [制限事項](./limitations.md)
 - [Hello Screen](../../../examples/showcase/hello-screen.html)

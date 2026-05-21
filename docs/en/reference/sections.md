@@ -316,8 +316,8 @@ Use it for specification files that need review history. See
 
 ## Related Pages
 
-- [File Format](file-format.md)
-- [Elements](elements.md)
-- [Actions](actions.md)
-- [Business Rules](rules.md)
+- [File Format](./file-format.md)
+- [Elements](./elements.md)
+- [Actions](./actions.md)
+- [Business Rules](./rules.md)
 - [Hello Screen](../../../examples/showcase/hello-screen.html)

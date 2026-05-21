@@ -58,9 +58,9 @@ This example has screen metadata and only three sections: `States`, `Layout`, an
 
 ## Next Reading
 
-- [Document Structure](document-structure.html)
-- [States](states.md)
-- [Layout](layout.md)
+- [Document Structure](./document-structure.md)
+- [States](./states.md)
+- [Layout](./layout.md)
 
 - [Hello Screen](../../../examples/showcase/hello-screen.html)
 - [Reference](../reference/index.md)

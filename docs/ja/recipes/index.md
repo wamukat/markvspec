@@ -8,10 +8,10 @@ MarkVSpec は、画面の状態、要素、アクション、結果を意味で�
 
 | 目的 | レシピ | 主な概念 |
 | --- | --- | --- |
-| ログイン、バリデーション、認証リクエストを1画面に書く | [ログインフォーム](login-form.md) | `Elements`, `Business Rules`, `Actions`, `case:` |
-| 初期読み込み、読み込み中、空、エラー、成功を扱う | [読み込みとエラー](loading-error.md) | `States`, `page.load`, `case:` |
-| サーバー生成の部分更新を指定する | [サーバー部分更新](server-partial-update.md) | `request`, `display`, `target`, `partial` |
-| `.vspec.md` を HTML / PDF として共有する | [PDF出力](pdf-export.md) | VS Code 出力, CLI 出力 |
+| ログイン、バリデーション、認証リクエストを1画面に書く | [ログインフォーム](./login-form.md) | `Elements`, `Business Rules`, `Actions`, `case:` |
+| 初期読み込み、読み込み中、空、エラー、成功を扱う | [読み込みとエラー](./loading-error.md) | `States`, `page.load`, `case:` |
+| サーバー生成の部分更新を指定する | [サーバー部分更新](./server-partial-update.md) | `request`, `display`, `target`, `partial` |
+| `.vspec.md` を HTML / PDF として共有する | [PDF出力](./pdf-export.md) | VS Code 出力, CLI 出力 |
 
 ## 読む順番
 

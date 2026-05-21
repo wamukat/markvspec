@@ -73,8 +73,8 @@ structured body.
 ## Read Next
 
 - [Start](../start/)
-- [Guide: Document Structure](../guide/document-structure.html)
+- [Guide: Document Structure](../guide/document-structure.md)
 - [Guide: Markdown Model](../guide/markdown-model.md)
 - [Guide: Actions](../guide/actions.md)
 - [Reference](../reference/)
-- [Examples](../examples/)
+- [Examples](../../../examples/)

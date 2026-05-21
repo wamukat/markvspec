@@ -155,8 +155,8 @@ kind of UI is intended.
 
 ## Related Pages
 
-- [Sections](sections.md)
-- [Actions](actions.md)
-- [Validations](validations.md)
-- [IDs](ids.md)
+- [Sections](./sections.md)
+- [Actions](./actions.md)
+- [Validations](./validations.md)
+- [IDs](./ids.md)
 - [Source Kind Metadata](../../../examples/showcase/source-kind-metadata.html)

@@ -62,5 +62,5 @@ the Markdown diff together with the preview makes specification reviews easier.
 
 ## Next
 
-- [Export](export.md)
+- [Export](./export.md)
 - [File Format](../reference/file-format.md)

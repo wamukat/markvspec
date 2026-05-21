@@ -159,13 +159,13 @@ Put display elements in `## Elements` as `Text`, `Paragraph`, or `Banner` with `
 - A product condition decides it: write it in `## Business Rules`.
 - A server response decides it: write it in `## Actions` as a `case:`.
 - The user sees it: write a `display` target and message.
-- Reviewers need to see the error case in preview: add a [Scenario](scenarios.md) that points to the relevant `case:`.
+- Reviewers need to see the error case in preview: add a [Scenario](./scenarios.md) that points to the relevant `case:`.
 
 ## Next Reading
 
-- [Elements](elements.md)
-- [Actions](actions.md)
-- [Scenarios](scenarios.md)
+- [Elements](./elements.md)
+- [Actions](./actions.md)
+- [Scenarios](./scenarios.md)
 - [Business Rules](../reference/rules.md)
 - [Validation Reference](../reference/validations.md)
 - [Single Field Validation](../../../examples/showcase/single-field-validation.html)

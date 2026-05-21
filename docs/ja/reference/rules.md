@@ -1,8 +1,8 @@
-# Business Rules
+# ビジネスルール
 
-`## Business Rules` は business rule や画面固有の判断条件を書く section です。入力形式の validation、tool が出す diagnostics、実装コードの if 文とは分けて扱います。
+`## Business Rules` は、ビジネスルールや画面固有の判断条件を書くセクションです。入力形式のバリデーション、ツールが出す診断、実装コードの if 文とは分けて扱います。
 
-権限、account status、plan 制約、在庫、複数値を読んで決める業務判断など、product meaning によって決まる条件を書く場所です。required、format、min、max、単純な field 比較はここに置きません。そうした check は [Validations](validations.md) に書きます。
+権限、アカウント状態、プラン制約、在庫、複数値を読んで決める業務判断など、プロダクト上の意味によって決まる条件を書く場所です。required、format、min、max、単純なフィールド比較はここに置きません。そうしたチェックは [バリデーション](./validations.md) に書きます。
 
 ## 書ける構文
 
@@ -24,7 +24,7 @@
 - message: Additional verification is required.
 ```
 
-### Rule Heading
+### ルール見出し
 
 Rule は `### R-* Name` の形で宣言します。
 
@@ -32,15 +32,15 @@ Rule は `### R-* Name` の形で宣言します。
 ### R-PasswordPolicy Password policy
 ```
 
-### Common Properties
+### 主な項目
 
-| Property | 用途 |
+| 項目 | 用途 |
 | --- | --- |
 | `when` | 条件。単一行または nested bullet で書く |
 | `effect` | 条件が満たされたときの画面上の影響 |
-| `message` | 利用者に見せる説明や error |
-| `appliesTo` | 対象 element、layout、action |
-| `priority` | rule が複数ある場合の優先度 |
+| `message` | 利用者に見せる説明やエラー |
+| `appliesTo` | 対象要素、レイアウト、アクション |
+| `priority` | ルールが複数ある場合の優先度 |
 
 ## 小さな例
 
@@ -52,13 +52,13 @@ Rule は `### R-* Name` の形で宣言します。
 - message: No matching results.
 ```
 
-![History And Errors の business rules preview](../../assets/vscode-previews/history-and-errors-vscode-preview.png)
+![History And Errors のビジネスルールプレビュー](../../assets/vscode-previews/history-and-errors-vscode-preview.png)
 
 ## アクション結果ケース
 
-action result が business rule violation の場合は、`business rule:` を
+アクション結果がビジネスルール違反の場合は、`business rule:` を
 `case: business-rule-violation` の下に書きます。他の case 名で
-`business rule:` を書くと、non-canonical な記述として診断されます。
+`business rule:` を書くと、非 canonical な記述として診断されます。
 
 ```markdown
 ## Actions
@@ -74,24 +74,24 @@ action result が business rule violation の場合は、`business rule:` を
       - message: R-EmailMustBeUnique.messages
 ```
 
-## Validator Diagnostics との違い
+## バリデーション診断との違い
 
-Validator Diagnostics は parser / validator が source の不足や矛盾を見つけて出す tool output です。`## Business Rules` は author が画面仕様として書く判断条件です。
+バリデーション診断は、パーサーやバリデーターがソースの不足や矛盾を見つけて出すツール出力です。`## Business Rules` は、作成者が画面仕様として書く判断条件です。
 
 ## 注意点
 
-- field の必須、format、range は [Validations](validations.md) に書きます。
-- 単純な複数 field 比較は [Validations](validations.md) の `## Cross-field Validations` に書きます。
-- server response による error は [Actions](actions.md) の response `case:` と `display` に書きます。
-- action の request/response 分岐は [Actions](actions.md) の `case:` に書きます。
-- `## Business Rules` は人が読む仕様です。Validator Diagnostics の出力先ではありません。
-- rule から element や action を参照するときは `E-*`、`A-*` などの stable ID を使います。
-- CSS や implementation branch の詳細ではなく、画面仕様として意味のある条件を書きます。
+- フィールドの必須、format、range は [バリデーション](./validations.md) に書きます。
+- 単純な複数フィールド比較は [バリデーション](./validations.md) の `## Cross-field Validations` に書きます。
+- サーバー応答によるエラーは [アクション](./actions.md) の response `case:` と `display` に書きます。
+- アクションのリクエスト/応答分岐は [アクション](./actions.md) の `case:` に書きます。
+- `## Business Rules` は人が読む仕様です。バリデーション診断の出力先ではありません。
+- ルールから要素やアクションを参照するときは `E-*`、`A-*` などの安定した ID を使います。
+- CSS や実装分岐の詳細ではなく、画面仕様として意味のある条件を書きます。
 
 ## 関連ページ
 
-- [Actions](actions.md)
-- [Validations](validations.md)
-- [IDs](ids.md)
-- [Limitations](limitations.md)
+- [アクション](./actions.md)
+- [バリデーション](./validations.md)
+- [ID](./ids.md)
+- [制限事項](./limitations.md)
 - [Account Settings](../../../examples/showcase/history-and-errors.html)

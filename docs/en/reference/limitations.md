@@ -60,7 +60,7 @@ Prefer:
 
 ## Related Pages
 
-- [File Format](file-format.md)
-- [Elements](elements.md)
-- [Actions](actions.md)
+- [File Format](./file-format.md)
+- [Elements](./elements.md)
+- [Actions](./actions.md)
 - [Guide](../guide/index.md)

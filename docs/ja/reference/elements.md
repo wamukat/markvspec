@@ -1,6 +1,6 @@
-# Elements
+# 要素
 
-`## Elements` は UI element を意味で記述する section です。MarkVSpec では、見た目の実装詳細ではなく、element type、label、text、value、variant、tone、action などを書きます。
+`## Elements` は UI 要素を意味で記述するセクションです。MarkVSpec では、見た目の実装詳細ではなく、要素の種類、ラベル、文言、値、優先度、意味、アクションなどを書きます。
 
 ## 書ける構文
 
@@ -25,9 +25,9 @@
 - action: A-SubmitLogin
 ```
 
-### Element Heading
+### 要素見出し
 
-Element は `### E-* Name Type` で宣言します。preview に marker を出したい場合は
+要素は `### E-* Name Type` で宣言します。プレビューにマーカーを出したい場合は
 `### marker:E-* Name Type` と書きます。
 
 ```markdown
@@ -36,36 +36,36 @@ Element は `### E-* Name Type` で宣言します。preview に marker を出�
 ### 3:E-HelpText Paragraph
 ```
 
-- `E-*` は stable ID。
-- `3` は任意の preview marker。
-- `HelpText` は人が読む object 名。
-- `Paragraph` は element type。
+- `E-*` は安定した ID。
+- `3` は任意のプレビュー用マーカー。
+- `HelpText` は人が読む対象名。
+- `Paragraph` は要素の種類。
 
-### Common Types
+### 主な種類
 
-| Type | 用途 |
+| 種類 | 用途 |
 | --- | --- |
-| `Heading` | 画面や section の見出し。`level: 1..6` を必ず併用します。 |
-| `Paragraph` | 説明文、長めの prose。 |
-| `Text` | 短い label、値、補足表示。 |
+| `Heading` | 画面やセクションの見出し。`level: 1..6` を必ず併用します。 |
+| `Paragraph` | 説明文、長めの文章。 |
+| `Text` | 短いラベル、値、補足表示。 |
 | `Input` | text/email/password/search などの入力。 |
-| `Button` | action を発火する操作。 |
+| `Button` | アクションを発火する操作。 |
 | `Link` | 別画面や外部 URL への移動。 |
-| `Image` | 意味のある画像や avatar。 |
-| `List` | 繰り返し項目や menu。 |
-| `Spinner` | 処理中 state の loading indicator。 |
-| `Banner` | error、warning、success、info などの page / section message。 |
-| `Badge` | status、role、category の短い label。 |
-| `Table` | row / column を持つ構造化された一覧。 |
-| `Select` | option から1つ選ぶ入力。 |
-| `Dialog` | 確認や中断を伴う modal prompt。 |
-| `Toast` | action 後に一時的に出す feedback。 |
-| `Tabs` | 1画面内で排他的に切り替える panel。 |
-| `ActionMenu` | row や item に紐づく context action。 |
+| `Image` | 意味のある画像やアバター。 |
+| `List` | 繰り返し項目やメニュー。 |
+| `Spinner` | 処理中状態の読み込み表示。 |
+| `Banner` | エラー、警告、成功、情報などのページ / セクションメッセージ。 |
+| `Badge` | 状態、役割、カテゴリの短いラベル。 |
+| `Table` | 行 / 列を持つ構造化された一覧。 |
+| `Select` | 選択肢から1つ選ぶ入力。 |
+| `Dialog` | 確認や中断を伴うモーダル。 |
+| `Toast` | アクション後に一時的に出すフィードバック。 |
+| `Tabs` | 1画面内で排他的に切り替えるパネル。 |
+| `ActionMenu` | 行や項目に紐づく文脈メニュー。 |
 
-### その他の showcase type
+### その他のサンプルで使う種類
 
-examples には次の specialized control も出ます。画面の意味を区別したい場合に使い、
+examples には次の専用コントロールも出ます。画面の意味を区別したい場合に使い、
 不要なら `Input`、`Select`、`Button`、`Text`、`Paragraph` を優先します。
 
 - `Checkbox`、`CheckboxGroup`、`RadioGroup`、`Switch`
@@ -74,56 +74,56 @@ examples には次の specialized control も出ます。画面の意味を区�
 - `Accordion`、`Disclosure`、`Popover`、`Tooltip`
 - `Icon`、`Divider`
 
-### Common Properties
+### 主な項目
 
-| Property | 書き方 | 用途 |
+| 項目 | 書き方 | 用途 |
 | --- | --- | --- |
 | `text` | `- text: Hello` | `Heading`、`Paragraph`、`Text`、`Banner`、`Toast` の表示文 |
-| `label` | `- label: Sign in` | `Button`、`Input`、`Select`、`Checkbox`、`Link` などの control / link 名 |
-| `value` | `- value: email` | field の値や data binding 名。表示 label ではない |
-| `placeholder` | `- placeholder: name@example.com` | input の入力例 |
+| `label` | `- label: Sign in` | `Button`、`Input`、`Select`、`Checkbox`、`Link` などのコントロール / リンク名 |
+| `value` | `- value: email` | フィールドの値やデータバインド名。表示ラベルではない |
+| `placeholder` | `- placeholder: name@example.com` | 入力例 |
 | `required` | `- required` | 入力欄を必須として表示する |
-| `variant` | `- variant: primary` | priority。`primary`、`secondary`、`tertiary` |
-| `tone` | `- tone: danger` | semantic intent。`neutral`、`info`、`success`、`warning`、`danger` |
-| `width` | `- width: medium` | 入力系、選択系、ファイル系 element の幅。`short`、`medium`、`long`、`full` |
-| `size` | `- size: small` | `Button` の size。`small`、`medium`、`large` |
-| `action` | `- action: A-SubmitLogin` | 発火する action ID |
-| `href` | `- href: /settings` | link 先 |
-| `options` | `- options:` | choice control の選択肢 |
-| `columns` / `sample rows` | `- columns:` / `- sample rows:` | table の構造と代表 row |
-| `visible when` | `- visible when: error` | element が表示される state |
-| `hidden when` | `- hidden when: loading` | element が非表示になる state |
-| `disabled when` | `- disabled when: submitting` | control が disabled になる state |
-| `open when` | `- open when: menu-open` | `Disclosure` / `ActionMenu` が開く state |
+| `variant` | `- variant: primary` | 優先度。`primary`、`secondary`、`tertiary` |
+| `tone` | `- tone: danger` | 意味上の意図。`neutral`、`info`、`success`、`warning`、`danger` |
+| `width` | `- width: medium` | 入力系、選択系、ファイル系要素の幅。`short`、`medium`、`long`、`full` |
+| `size` | `- size: small` | `Button` のサイズ。`small`、`medium`、`large` |
+| `action` | `- action: A-SubmitLogin` | 発火するアクション ID |
+| `href` | `- href: /settings` | リンク先 |
+| `options` | `- options:` | 選択肢 |
+| `columns` / `sample rows` | `- columns:` / `- sample rows:` | テーブルの構造と代表行 |
+| `visible when` | `- visible when: error` | 要素が表示される状態 |
+| `hidden when` | `- hidden when: loading` | 要素が非表示になる状態 |
+| `disabled when` | `- disabled when: submitting` | コントロールが無効になる状態 |
+| `open when` | `- open when: menu-open` | `Disclosure` / `ActionMenu` が開く状態 |
 | `placement` | `- placement: bottom-start` | `Tooltip`、`Popover`、`ActionMenu`、`Toast` の表示位置 |
 
-`Accordion` の開閉条件は、element 直下ではなく `items` の各項目に `open when` を書きます。
-`Dialog` や `Popover` の state ごとの表示は `visible when` / `hidden when` で表します。
+`Accordion` の開閉条件は、要素直下ではなく `items` の各項目に `open when` を書きます。
+`Dialog` や `Popover` の状態ごとの表示は `visible when` / `hidden when` で表します。
 `loading when` は現在の Elements 構文ではありません。
 
-入力値の検証ルールと error message は `## Field Validations` に書きます。`Input` element 直下の `constraints` や `error:` は現在の構文ではありません。
+入力値の検証ルールとエラーメッセージは `## Field Validations` に書きます。`Input` 要素直下の `constraints` や `error:` は現在の構文ではありません。
 
 ### Text、Label、Value
 
 この3つは用途を分けます。
 
-- `text`: read-only な表示文。新しい `Heading`、`Paragraph`、`Text`、`Banner`、
+- `text`: 読み取り専用の表示文。新しい `Heading`、`Paragraph`、`Text`、`Banner`、
   `Toast` ではこれを使います。
-- `label`: control や link の表示名。`Button`、`Input`、`Select`、`Checkbox`、
+- `label`: コントロールやリンクの表示名。`Button`、`Input`、`Select`、`Checkbox`、
   `RadioGroup`、`Switch`、`Link` で使います。
-- `value`: input 系 element の現在値、binding 名、sample value。表示 label ではありません。
+- `value`: 入力系要素の現在値、バインド名、サンプル値。表示ラベルではありません。
 
-`Heading` は `level` と `text` を使います。`label` は名前を持つ control と link にだけ使います。
+`Heading` は `level` と `text` を使います。`label` は名前を持つコントロールとリンクにだけ使います。
 
-### Message type
+### Message 型
 
-新しい source では `Message` を使わないでください。広すぎて、どの UI として見せたいのか
-preview が判断しづらくなります。
+新しいソースでは `Message` を使わないでください。広すぎて、どの UI として見せたいのか
+プレビューが判断しづらくなります。
 
-- page / form 全体の feedback は `Banner`。
-- inline の短い message は `Text`。
+- ページ / フォーム全体のフィードバックは `Banner`。
+- インラインの短いメッセージは `Text`。
 - 長めの説明文は `Paragraph`。
-- action 後の一時的な feedback は `Toast`。
+- アクション後の一時的なフィードバックは `Toast`。
 
 ## 小さな例
 
@@ -141,21 +141,21 @@ preview が判断しづらくなります。
 - href: /signup
 ```
 
-![Source Kind Metadata の elements preview](../../assets/vscode-previews/source-kind-metadata-vscode-preview.png)
+![Source Kind Metadata の要素プレビュー](../../assets/vscode-previews/source-kind-metadata-vscode-preview.png)
 
 ## 注意点
 
 - 見出しは `H1` や `H2` ではなく、`Heading` と `level: 1..6` で書きます。
-- `variant` は priority です。色名ではありません。
-- `tone` は意味です。raw color ではありません。
-- CSS class、height、pixel value、raw color は primary DSL に書きません。
-- button の click 処理は element に直接書き込まず、`action: A-*` で `## Actions` に接続します。
+- `variant` は優先度です。色名ではありません。
+- `tone` は意味です。生の色指定ではありません。
+- CSS class、height、pixel value、生の色指定は主要 DSL に書きません。
+- ボタンの click 処理は要素に直接書き込まず、`action: A-*` で `## Actions` に接続します。
 - `Text` は短い表示、`Paragraph` は文として読む説明に使います。
 
 ## 関連ページ
 
-- [Sections](sections.md)
-- [Actions](actions.md)
-- [Validations](validations.md)
-- [IDs](ids.md)
+- [セクション](./sections.md)
+- [アクション](./actions.md)
+- [バリデーション](./validations.md)
+- [ID](./ids.md)
 - [Source Kind Metadata](../../../examples/showcase/source-kind-metadata.html)

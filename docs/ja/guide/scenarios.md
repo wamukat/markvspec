@@ -124,8 +124,8 @@ Preview Scenarios はプレビューデータです。新しい画面、状態�
 
 ## 次に読むもの
 
-- [状態](states.md)
-- [アクション](actions.md)
-- [バリデーション](validation.md)
+- [状態](./states.md)
+- [アクション](./actions.md)
+- [バリデーション](./validation.md)
 - [Preview Scenarios リファレンス](../reference/sections.md)
 - [Scenario Preview Data Example](../../../examples/showcase/scenario-samples.html)

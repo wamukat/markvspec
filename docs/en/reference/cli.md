@@ -137,7 +137,7 @@ output before debugging browser-specific page breaks or fonts.
 
 ## Related Pages
 
-- [File Format](file-format.md)
-- [Sections](sections.md)
-- [Limitations](limitations.md)
+- [File Format](./file-format.md)
+- [Sections](./sections.md)
+- [Limitations](./limitations.md)
 - [Hello Screen](../../../examples/showcase/hello-screen.html)

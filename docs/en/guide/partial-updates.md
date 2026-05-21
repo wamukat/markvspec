@@ -12,6 +12,9 @@ This keeps the UI specification reviewable whether the implementation uses Thyme
 
 ## Minimal Example
 
+This is an `## Actions` snippet. A complete screen file also defines the target
+layout group, caller element, and any states used by the result cases.
+
 ```markdown
 ## Actions
 
@@ -41,6 +44,10 @@ This example says that clicking a refresh button fetches a summary partial and r
 - In failure cases, update a message area or state separately from the normal target.
 
 ## Example: Update Search Results
+
+This snippet shows the relevant layout and action sections only. A complete
+screen file also includes front matter, a screen heading, state definitions, and
+the referenced elements.
 
 ```markdown
 ## Layout: mobile
@@ -87,8 +94,8 @@ Search results, empty results, and errors are separate cases. Writing update tar
 
 ## Next Reading
 
-- [Actions](actions.md)
-- [Layout](layout.md)
+- [Actions](./actions.md)
+- [Layout](./layout.md)
 - [Profile Home](../../../examples/showcase/profile-page-with-template.html)
 - [Profile Summary Partial](../../../examples/showcase/profile-summary.partial.html)
 - [Reference](../reference/index.md)

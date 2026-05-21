@@ -6,38 +6,38 @@ Learning-oriented explanations live in [Guide](../guide/index.md). Reference is 
 
 ## How To Use This Reference
 
-- Check the shape of a source file: [File Format](file-format.md)
-- Check sections such as `## Layout: mobile`, `## Form Groups`, and `## Preview Scenarios`: [Sections](sections.md)
-- Check UI element types and properties: [Elements](elements.md)
-- Check clicks, requests, state changes, and partial updates: [Actions](actions.md)
-- Check input constraints and error display: [Validations](validations.md)
-- Check screen-specific decisions: [Business Rules](rules.md)
-- Check ID prefixes and references: [IDs](ids.md)
-- Check CLI validation, HTML/PDF export, and project document-list export: [CLI](cli.md)
-- Check what MarkVSpec intentionally does not model: [Limitations](limitations.md)
+- Check the shape of a source file: [File Format](./file-format.md)
+- Check sections such as `## Layout: mobile`, `## Form Groups`, and `## Preview Scenarios`: [Sections](./sections.md)
+- Check UI element types and properties: [Elements](./elements.md)
+- Check clicks, requests, state changes, and partial updates: [Actions](./actions.md)
+- Check input constraints and error display: [Validations](./validations.md)
+- Check screen-specific decisions: [Business Rules](./rules.md)
+- Check ID prefixes and references: [IDs](./ids.md)
+- Check CLI validation, HTML/PDF export, and project document-list export: [CLI](./cli.md)
+- Check what MarkVSpec intentionally does not model: [Limitations](./limitations.md)
 
 ## Reference Pages
 
 | Page | Covers |
 | --- | --- |
-| [File Format](file-format.md) | `.vspec.md`, Front Matter, document type, and body shape |
-| [Sections](sections.md) | Recognized sections, including layout, events, form groups, validations, slots, error codes, and history |
-| [Elements](elements.md) | Elements such as `Heading`, `Paragraph`, `Text`, `Input`, and `Button` |
-| [Actions](actions.md) | `action: A-*`, `## Events`, `Process Pn:`, `request`, `receive`, `case:`, and `display` |
-| [Validations](validations.md) | `## Field Validations`, `constraints`, and validation messages |
-| [Business Rules](rules.md) | Business rules and screen-specific conditions in `## Business Rules` |
-| [IDs](ids.md) | How to use `SCR-*`, `L-*`, `E-*`, `A-*`, and `R-*` |
-| [CLI](cli.md) | `validate`, HTML/PDF export, and project `document-list` export |
-| [Limitations](limitations.md) | Markdown tables, JSON, visual design, and implementation details |
+| [File Format](./file-format.md) | `.vspec.md`, Front Matter, document type, and body shape |
+| [Sections](./sections.md) | Recognized sections, including layout, events, form groups, validations, slots, error codes, and history |
+| [Elements](./elements.md) | Elements such as `Heading`, `Paragraph`, `Text`, `Input`, and `Button` |
+| [Actions](./actions.md) | `action: A-*`, `## Events`, `Process Pn:`, `request`, `receive`, `case:`, and `display` |
+| [Validations](./validations.md) | `## Field Validations`, `constraints`, and validation messages |
+| [Business Rules](./rules.md) | Business rules and screen-specific conditions in `## Business Rules` |
+| [IDs](./ids.md) | How to use `SCR-*`, `L-*`, `E-*`, `A-*`, and `R-*` |
+| [CLI](./cli.md) | `validate`, HTML/PDF export, and project `document-list` export |
+| [Limitations](./limitations.md) | Markdown tables, JSON, visual design, and implementation details |
 
 ## Common Lookups
 
-- Write the smallest useful screen: [File Format](file-format.md), [Sections](sections.md), [Elements](elements.md)
-- Write a form: [Elements](elements.md), [Validations](validations.md), [Actions](actions.md)
-- Write form groups, preview scenarios, slots, or error codes: [Sections](sections.md)
-- Write an HTTP request: [Actions](actions.md), [Business Rules](rules.md), [IDs](ids.md)
-- Write a partial update: [Actions](actions.md), [Elements](elements.md)
-- Export output: [CLI](cli.md), [Limitations](limitations.md)
+- Write the smallest useful screen: [File Format](./file-format.md), [Sections](./sections.md), [Elements](./elements.md)
+- Write a form: [Elements](./elements.md), [Validations](./validations.md), [Actions](./actions.md)
+- Write form groups, preview scenarios, slots, or error codes: [Sections](./sections.md)
+- Write an HTTP request: [Actions](./actions.md), [Business Rules](./rules.md), [IDs](./ids.md)
+- Write a partial update: [Actions](./actions.md), [Elements](./elements.md)
+- Export output: [CLI](./cli.md), [Limitations](./limitations.md)
 
 ## Small Example
 

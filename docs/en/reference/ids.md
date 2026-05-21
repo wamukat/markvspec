@@ -38,9 +38,15 @@ title: Login
 | --- | --- | --- |
 | `SCR-*` | Screen | `SCR-LOGIN` |
 | `L-*` | Layout group | `L-LoginForm` |
+| `P-*` | Presentation-only panel | `P-NameFields` |
 | `E-*` | Element | `E-EmailInput` |
 | `A-*` | Action | `A-SubmitLogin` |
 | `R-*` | Rule | `R-CanSubmit` |
+
+`P-*` can be used inside `Items`, but it is not a semantic layout ID. Preview
+does not show layout chrome or layout markers for it; it only arranges child
+items. Use `L-*` when the region needs a `target`, visibility, disabled state,
+or partial host behavior.
 
 ## Marker-Prefixed Headings
 
@@ -57,6 +63,7 @@ Object headings may include a preview marker before the ID.
 The part before `:` is the marker shown in preview. The stable ID is the part
 after `:`. Use the stable ID in references such as `Items`, `action`, `target`,
 and `navigate`.
+Write `P-*` panels without a marker prefix, such as `### P-NameFields Name fields`.
 
 You can omit the marker when you do not need preview labels:
 
@@ -90,8 +97,8 @@ You can omit the marker when you do not need preview labels:
 
 ## Related Pages
 
-- [File Format](file-format.md)
-- [Sections](sections.md)
-- [Elements](elements.md)
-- [Actions](actions.md)
+- [File Format](./file-format.md)
+- [Sections](./sections.md)
+- [Elements](./elements.md)
+- [Actions](./actions.md)
 - [Hello Screen](../../../examples/showcase/hello-screen.html)

@@ -2,7 +2,7 @@
 
 `## Business Rules` describes business rules and screen-specific decisions. Keep it separate from input validation, tool diagnostics, and implementation-level if statements.
 
-Use Business Rules when the decision depends on product meaning: permissions, account status, plan restrictions, stock, or a business decision that reads multiple values. Do not use this section for basic input shape such as required, format, min, max, or simple field comparison. Use [Validations](validations.md) for those checks.
+Use Business Rules when the decision depends on product meaning: permissions, account status, plan restrictions, stock, or a business decision that reads multiple values. Do not use this section for basic input shape such as required, format, min, max, or simple field comparison. Use [Validations](./validations.md) for those checks.
 
 ## Syntax You Can Write
 
@@ -80,18 +80,18 @@ Validator Diagnostics are tool output from parser / validator checks. `## Busine
 
 ## Notes
 
-- Put required fields, formats, and ranges in [Validations](validations.md).
-- Put simple multi-field comparisons in [Validations](validations.md) as `## Cross-field Validations`.
-- Put server response errors in [Actions](actions.md) response `case:` entries with `display`.
-- Put request/response branches in `case:` entries under [Actions](actions.md).
+- Put required fields, formats, and ranges in [Validations](./validations.md).
+- Put simple multi-field comparisons in [Validations](./validations.md) as `## Cross-field Validations`.
+- Put server response errors in [Actions](./actions.md) response `case:` entries with `display`.
+- Put request/response branches in `case:` entries under [Actions](./actions.md).
 - `## Business Rules` is human-authored specification content. It is not where Validator Diagnostics are written.
 - Use stable IDs such as `E-*` and `A-*` when a rule refers to elements or actions.
 - Write conditions that matter to the screen specification, not CSS or implementation branches.
 
 ## Related Pages
 
-- [Actions](actions.md)
-- [Validations](validations.md)
-- [IDs](ids.md)
-- [Limitations](limitations.md)
+- [Actions](./actions.md)
+- [Validations](./validations.md)
+- [IDs](./ids.md)
+- [Limitations](./limitations.md)
 - [Account Settings](../../../examples/showcase/history-and-errors.html)

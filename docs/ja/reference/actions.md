@@ -1,8 +1,11 @@
-# Actions
+# アクション
 
-`## Actions` は user interaction、HTTP request、state change、navigation、partial update を結びます。button や link は element の `action: A-*` から参照し、画面読み込みなどの lifecycle event は `## Events` で接続します。
+`## Actions` はユーザー操作、HTTP リクエスト、状態変化、画面遷移、部分更新を結びます。ボタンやリンクは要素の `action: A-*` から参照し、画面読み込みなどのライフサイクルイベントは `## Events` で接続します。
 
 ## 書ける構文
+
+以下は `## Actions` セクションの抜粋です。参照している状態、レイアウト、要素、
+バリデーション、メッセージは同じ画面文書内で定義されている前提です。
 
 ```markdown
 ## Actions
@@ -42,10 +45,12 @@
       - message: Authentication error message
 ```
 
-### Action Heading
+### アクション見出し
 
-Action は `### A-* Name` で宣言します。preview に action marker を出したい場合は
+アクションは `### A-* Name` で宣言します。プレビューにアクションマーカーを出したい場合は
 `### marker:A-* Name` と書きます。
+
+以下は見出しだけの抜粋です。
 
 ```markdown
 ### A-RefreshList Refresh list
@@ -53,18 +58,20 @@ Action は `### A-* Name` で宣言します。preview に action marker を出�
 ### A1:A-RefreshList Refresh list
 ```
 
-### Blocks
+### ブロック
 
-| Block | 用途 |
+| ブロック | 用途 |
 | --- | --- |
-| `From` | action が有効な state |
-| `Process Pn: ...` | request、calculation、local process、response handling |
-| `request` / `receive` / `sync` / `server` | process の入力や実行内容 |
-| `case: ...` | success/failure/empty など、process result 別の挙動 |
+| `From` | アクションが有効な状態 |
+| `Process Pn: ...` | リクエスト、計算、ローカル処理、応答処理 |
+| `request` / `receive` / `sync` / `server` | 処理の入力や実行内容 |
+| `case: ...` | success/failure/empty など、処理結果別の挙動 |
 
-### HTTP Request
+### HTTP リクエスト
 
-HTTP request は `Process Pn:` の `request:` の下に置き、method/path と request parameter を書きます。`server:` は必要な場合だけ、サーバ側の service call など HTTP request ではない処理を書くために使います。
+HTTP リクエストは `Process Pn:` の `request:` の下に置き、メソッド、パス、リクエストパラメータを書きます。`server:` は必要な場合だけ、サーバー側のサービス呼び出しなど HTTP リクエストではない処理を書くために使います。
+
+以下はアクション内の `Process` 抜粋です。
 
 ```markdown
 - Process P1: Load profile
@@ -74,9 +81,11 @@ HTTP request は `Process Pn:` の `request:` の下に置き、method/path と 
       - userId: route.userId
 ```
 
-### Partial Update
+### 部分更新
 
-server-rendered partial update は raw htmx 属性ではなく、結果 case の `display` で意味を書きます。
+サーバー生成 partial の更新は、生の htmx 属性ではなく、結果ケースの `display` で意味を書きます。
+
+以下はアクション内の `Process` 抜粋です。
 
 ```markdown
 - Process P1: Apply profile response
@@ -87,17 +96,20 @@ server-rendered partial update は raw htmx 属性ではなく、結果 case の
       - partial: PRT-PROFILE-SUMMARY
 ```
 
-`display` の field は次のように使い分けます。
+`display` の項目は次のように使い分けます。
 
-- `target`: 更新する MarkVSpec の layout ID または element ID。
-- `message`: semantic message text または message reference。
-- `element`: 既存 element を表示する場合の `E-*` ID。
-- `partial`: referenced partial file で target を置き換える場合の `PRT-*` document ID。
+- `target`: 更新する MarkVSpec のレイアウト ID または要素 ID。
+- `message`: 意味を持つメッセージ文、またはメッセージ参照。
+- `element`: 既存要素を表示する場合の `E-*` ID。
+- `partial`: 参照する partial ファイルで差し替え先を置き換える場合の `PRT-*` 文書 ID。
 
-`display` には raw HTML、CSS selector、htmx 属性を書きません。MarkVSpec の ID と
-semantic message で、ユーザーに見える結果を書きます。
+`display` には生の HTML、CSS selector、htmx 属性を書きません。MarkVSpec の ID と
+意味を持つメッセージで、ユーザーに見える結果を書きます。
 
 ## 小さな例
+
+以下はアクション 1件だけの抜粋です。実際の画面では、このアクションを呼ぶ要素や
+有効な状態も合わせて書きます。
 
 ```markdown
 ### A-OpenSettings Open settings
@@ -106,23 +118,23 @@ semantic message で、ユーザーに見える結果を書きます。
   - navigate: SCR-SETTINGS
 ```
 
-![Form Submit Flow の actions preview](../../assets/vscode-previews/form-submit-flow-vscode-preview.png)
+![Form Submit Flow のアクションプレビュー](../../assets/vscode-previews/form-submit-flow-vscode-preview.png)
 
 ## 注意点
 
-- action の ID は `A-*` を使います。
-- click などの element event は、対象 element の `action: A-*` で接続します。
-- 画面読み込みなどの lifecycle event は `## Events` に書きます。
-- state 名は `## States` に書いた名前と合わせます。
+- アクションの ID は `A-*` を使います。
+- click などの要素イベントは、対象要素の `action: A-*` で接続します。
+- 画面読み込みなどのライフサイクルイベントは `## Events` に書きます。
+- 状態名は `## States` に書いた名前と合わせます。
 - `partial` は partial replacement の意味であり、`hx-*` 属性を書く指示ではありません。
-- display payload は `message`、`element`、`partial` のいずれかで書きます。
-- request の parameter は element value への参照として書くと、AI と reviewer が追いやすくなります。
+- display の内容は `message`、`element`、`partial` のいずれかで書きます。
+- リクエストのパラメータは要素の値への参照として書くと、AI とレビュー担当者が追いやすくなります。
 - 結果分岐は `Process Pn:` 配下の `case:` として書きます。
 
 ## 関連ページ
 
-- [Elements](elements.md)
-- [Business Rules](rules.md)
-- [Validations](validations.md)
-- [IDs](ids.md)
+- [要素](./elements.md)
+- [ビジネスルール](./rules.md)
+- [バリデーション](./validations.md)
+- [ID](./ids.md)
 - [Form Submit Flow](../../../examples/showcase/form-submit-flow.html)

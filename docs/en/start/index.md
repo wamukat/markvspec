@@ -108,9 +108,9 @@ npx @markvspec/cli@latest export pdf hello.vspec.md --out markvspec-pdf
 
 ## Details
 
-- [First Screen](first-screen.md): Read Hello Screen.
-- [Preview](preview.md): Open the VS Code live preview.
-- [Export](export.md): Export HTML / PDF.
+- [First Screen](./first-screen.md): Read Hello Screen.
+- [Preview](./preview.md): Open the VS Code live preview.
+- [Export](./export.md): Export HTML / PDF.
 
 For one screen, start with one `.vspec.md` file. When you need to review a group
 of screens and templates together, add a `.vspec.project.md` project file later.

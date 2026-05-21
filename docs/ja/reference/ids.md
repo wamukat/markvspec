@@ -1,6 +1,6 @@
-# IDs
+# ID
 
-ID は object を安定して参照するための名前です。表示 label や文言が変わっても、ID はできるだけ変えないようにします。
+ID は対象を安定して参照するための名前です。表示ラベルや文言が変わっても、ID はできるだけ変えないようにします。
 
 ## 書ける構文
 
@@ -32,19 +32,24 @@ title: Login
 ### A1:A-SubmitLogin Submit login
 ```
 
-## Prefixes
+## 接頭辞
 
-| Prefix | 対象 | 例 |
+| 接頭辞 | 対象 | 例 |
 | --- | --- | --- |
-| `SCR-*` | screen | `SCR-LOGIN` |
-| `L-*` | layout group | `L-LoginForm` |
-| `E-*` | element | `E-EmailInput` |
-| `A-*` | action | `A-SubmitLogin` |
-| `R-*` | rule | `R-CanSubmit` |
+| `SCR-*` | 画面 | `SCR-LOGIN` |
+| `L-*` | レイアウトグループ | `L-LoginForm` |
+| `P-*` | 表示調整用パネル | `P-NameFields` |
+| `E-*` | 要素 | `E-EmailInput` |
+| `A-*` | アクション | `A-SubmitLogin` |
+| `R-*` | ルール | `R-CanSubmit` |
 
-## Marker 付き heading
+`P-*` は `Items` に置けますが、意味を持つレイアウト ID ではありません。
+プレビューでは枠やレイアウトマーカーを出さず、子要素の並びだけを調整します。
+`target`、表示条件、無効化、partial host が必要な領域には `L-*` を使います。
 
-object heading には、preview marker を ID の前に付けられます。
+## マーカー付き見出し
+
+対象見出しには、プレビュー用マーカーを ID の前に付けられます。
 
 ```markdown
 ### 5:E-SignInButton Button
@@ -54,10 +59,11 @@ object heading には、preview marker を ID の前に付けられます。
 ### L1:L-LoginForm Login form
 ```
 
-`:` より前が preview に表示される marker です。安定した ID は `:` より後ろです。
-`Items`、`action`、`target`、`navigate` などの参照では、marker ではなく ID を使います。
+`:` より前がプレビューに表示されるマーカーです。安定した ID は `:` より後ろです。
+`Items`、`action`、`target`、`navigate` などの参照では、マーカーではなく ID を使います。
+`P-*` はマーカーを付けず、`### P-NameFields Name fields` のように書きます。
 
-preview marker が不要な場合は、省略できます。
+プレビュー用マーカーが不要な場合は、省略できます。
 
 ```markdown
 ### E-SignInButton Button
@@ -76,21 +82,21 @@ preview marker が不要な場合は、省略できます。
   - state: idle
 ```
 
-![Hello Screen の ID 付き preview](../../assets/vscode-previews/hello-screen-ids-vscode-preview.png)
+![Hello Screen の ID 付きプレビュー](../../assets/vscode-previews/hello-screen-ids-vscode-preview.png)
 
 ## 注意点
 
 - ID は参照用、`label` や `text` は表示用です。
-- ID は大文字 prefix と意味のある名前で書きます。
-- 同じ file 内で ID を重複させないでください。
-- `Items`、`action`、`target`、`navigate` などは marker ではなく ID を参照します。
-- screen を分割しても参照が壊れないよう、rename は慎重に行います。
-- ID に raw route、CSS class、database primary key を混ぜないでください。
+- ID は大文字の接頭辞と意味のある名前で書きます。
+- 同じファイル内で ID を重複させないでください。
+- `Items`、`action`、`target`、`navigate` などはマーカーではなく ID を参照します。
+- 画面を分割しても参照が壊れないよう、rename は慎重に行います。
+- ID に生のルート、CSS class、データベース主キーを混ぜないでください。
 
 ## 関連ページ
 
-- [File Format](file-format.md)
-- [Sections](sections.md)
-- [Elements](elements.md)
-- [Actions](actions.md)
+- [ファイル形式](./file-format.md)
+- [セクション](./sections.md)
+- [要素](./elements.md)
+- [アクション](./actions.md)
 - [Hello Screen](../../../examples/showcase/hello-screen.html)

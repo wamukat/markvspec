@@ -1,17 +1,17 @@
-# Login Form
+# ログインフォーム
 
-ログイン画面を書くときの最小パターンです。入力 field、submit button、送信 request、成功時の遷移、失敗時の message を 1 つの screen spec にまとめます。
+ログイン画面を書くときの最小パターンです。入力フィールド、送信ボタン、送信リクエスト、成功時の遷移、失敗時のメッセージを1つの画面仕様にまとめます。
 
 ## 完成イメージ
 
-- `idle`: email、password、Sign in button。
+- `idle`: email、password、Sign in ボタン。
 - `submitting`: 送信中の状態。
-- `auth-error`: 認証エラー message。
-- `required` などの入力メタデータは input に書く。
-- 明示的な error message が必要な検証は `## Field Validations` に書く。
+- `auth-error`: 認証エラーメッセージ。
+- `required` などの入力メタデータは入力要素に書く。
+- 明示的なエラーメッセージが必要な検証は `## Field Validations` に書く。
 - locked account などの業務判断は `## Business Rules` に分ける。
 
-[Login example を preview で見る](../../../examples/showcase/login-basic.html)
+[Login example をプレビューで見る](../../../examples/showcase/login-basic.html)
 
 ## DSL
 
@@ -76,8 +76,8 @@
 
 ## ここを見る
 
-- button が何を起こすか: `E-SignInButton` の `action`。
-- 入力 field の metadata: `E-EmailInput` / `E-PasswordInput` の `required`。
+- ボタンが何を起こすか: `E-SignInButton` の `action`。
+- 入力フィールドのメタデータ: `E-EmailInput` / `E-PasswordInput` の `required`。
 - 送信先: `request:` の下に書く `POST /login`。
 - 送信する値: `params`。
 - 成功時: `case: success`。
@@ -87,17 +87,17 @@
 ## よくある間違い
 
 - `action: submit` だけで終わらせる。
-- required や format を prose だけで説明する。
-- 明示的な error message が必要な検証を `## Field Validations` に書かない。
+- required や format を文章だけで説明する。
+- 明示的なエラーメッセージが必要な検証を `## Field Validations` に書かない。
 - 単なる required を `## Business Rules` に置く。
 - success / failure を文章だけで説明する。
-- CSS class や button 色を書く。
+- CSS class やボタン色を書く。
 - API の内部仕様を書きすぎる。
 
 ## 詳細
 
-- [Actions Guide](../guide/actions.md)
-- [Validation Guide](../guide/validation.md)
-- [Validations Reference](../reference/validations.md)
-- [Actions Reference](../reference/actions.md)
-- [Business Rules Reference](../reference/rules.md)
+- [アクションガイド](../guide/actions.md)
+- [バリデーションガイド](../guide/validation.md)
+- [バリデーションリファレンス](../reference/validations.md)
+- [アクションリファレンス](../reference/actions.md)
+- [ビジネスルールリファレンス](../reference/rules.md)

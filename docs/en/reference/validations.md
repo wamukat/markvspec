@@ -1,6 +1,6 @@
 # Validations
 
-Validations cover validation contracts and error display. Put input metadata in `## Elements`, validation rules and messages in `## Field Validations`, and screen or business decisions in [Business Rules](rules.md).
+Validations cover validation contracts and error display. Put input metadata in `## Elements`, validation rules and messages in `## Field Validations`, and screen or business decisions in [Business Rules](./rules.md).
 
 ## Boundary
 
@@ -139,8 +139,8 @@ Write error messages as `message` rows under each `## Field Validations` constra
 ## Related Pages
 
 - [Guide: Validation](../guide/validation.md)
-- [Elements](elements.md)
-- [Actions](actions.md)
-- [Business Rules](rules.md)
+- [Elements](./elements.md)
+- [Actions](./actions.md)
+- [Business Rules](./rules.md)
 - [Single Field Validation](../../../examples/showcase/single-field-validation.html)
 - [Login](../../../examples/showcase/login-basic.html)

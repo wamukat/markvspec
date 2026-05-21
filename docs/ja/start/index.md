@@ -108,9 +108,9 @@ npx @markvspec/cli@latest export pdf hello.vspec.md --out markvspec-pdf
 
 ## 詳細
 
-- [最初の画面](first-screen.md): Hello Screen の読み方。
-- [プレビュー](preview.md): VS Code ライブプレビューの開き方。
-- [出力](export.md): HTML / PDF 出力の使い方。
+- [最初の画面](./first-screen.md): Hello Screen の読み方。
+- [プレビュー](./preview.md): VS Code ライブプレビューの開き方。
+- [出力](./export.md): HTML / PDF 出力の使い方。
 
 最初は1画面につき1つの `.vspec.md` で始めます。複数の画面 / テンプレートをまとめて
 確認したくなったら、後から `.vspec.project.md` を追加します。プロジェクトファイルは

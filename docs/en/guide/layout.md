@@ -116,7 +116,7 @@ Start from the large `L-Page`, then split the page into header, content, and mes
 
 ## Next Reading
 
-- [Elements](elements.md)
-- [States](states.md)
+- [Elements](./elements.md)
+- [States](./states.md)
 - [Responsive Profile](../../../examples/showcase/responsive-profile.html)
 - [Reference](../reference/index.md)

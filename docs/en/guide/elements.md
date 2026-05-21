@@ -68,7 +68,7 @@ Input metadata stays on `E-EmailInput`, while validation rules belong in `## Fie
 
 ## Next Reading
 
-- [Actions](actions.md)
-- [Validation](validation.md)
+- [Actions](./actions.md)
+- [Validation](./validation.md)
 - [Source Kind Metadata](../../../examples/showcase/source-kind-metadata.html)
 - [Reference](../reference/index.md)

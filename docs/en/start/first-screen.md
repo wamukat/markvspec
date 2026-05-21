@@ -30,7 +30,7 @@ states, elements, layout, and actions to produce a meaningful wireframe preview.
 
 ## Create It
 
-Open any folder in VS Code, create `hello.vspec.md`, paste the Hello Screen source from [Start](index.md), and save it.
+Open any folder in VS Code, create `hello.vspec.md`, paste the Hello Screen source from [Start](./index.md), and save it.
 
 A `.vspec.md` file should be readable as Markdown. Read the source first, then use preview to inspect the structure.
 
@@ -48,4 +48,4 @@ and [Recipes](../recipes/index.md) instead of stretching the Hello Screen exampl
 
 ## Next
 
-- [Preview](preview.md)
+- [Preview](./preview.md)
