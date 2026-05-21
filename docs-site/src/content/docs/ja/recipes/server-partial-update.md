@@ -77,7 +77,7 @@ Thymeleaf やサーバー生成 HTML partial を使い、画面全体ではな�
 - `target: #summary` のような CSS selector ではなく、`L-ProfileSummary` のような MarkVSpec ID を使います。
 - success だけを書くと、partial 更新に失敗したときのユーザーフィードバックが未定義になります。
 - 生の HTML だけでは意味が読めません。partial 文書、要素、メッセージの意味を参照します。
-- 複数領域を更新する場合は、`display` を複数並べ、どの差し替え先に何を表示するかを分けます。
+- 1つの `case:` で表す表示差し替え先は1つにします。独立した複数領域を差し替える場合は、別の process case または別 action に分け、target と表示内容の対応を明確にします。
 
 ## 関連サンプル
 

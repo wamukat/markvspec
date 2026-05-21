@@ -79,7 +79,7 @@ title: "ログインフォーム"
 
 - ボタンが何を起こすか: `E-SignInButton` の `action`。
 - 入力フィールドの制約: `E-EmailInput` / `E-PasswordInput` の `required`。
-- 送信先: `request: POST /login`。
+- 送信先: `request:` の下に書く `POST /login`。
 - 送信する値: `params`。
 - 成功時: `case: success`。
 - 失敗時: `case: failure`。

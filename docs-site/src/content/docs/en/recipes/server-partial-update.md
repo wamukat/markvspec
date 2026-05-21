@@ -77,7 +77,7 @@ A Refresh button or filter change sends a server request. The returned summary p
 - Do not use CSS selectors such as `target: #summary`. Use a MarkVSpec ID such as `L-ProfileSummary`.
 - Success-only partial updates leave failure feedback undefined.
 - Raw HTML is too vague. Reference the partial document, element, or message meaning.
-- If one action updates multiple regions, write multiple `display` entries and keep each target/content pair explicit.
+- One `case:` describes one display target. If a user-visible result needs several independent replacements, split them into separate process cases or separate actions so each target/content pair stays explicit.
 
 ## Related Example
 

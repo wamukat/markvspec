@@ -75,7 +75,7 @@ Refresh button や filter の変更で server に request し、返ってきた 
 - `target: #summary` のような CSS selector ではなく、`L-ProfileSummary` のような MarkVSpec ID を使います。
 - success だけを書くと、partial 更新に失敗したときの user feedback が未定義になります。
 - raw HTML だけでは意味が読めません。partial document、element、message の意味を参照します。
-- 複数領域を更新する場合は、`display` を複数並べ、どの target に何を表示するかを分けます。
+- 1つの `case:` で表す表示差し替え先は1つにします。独立した複数領域を差し替える場合は、別の process case または別 action に分け、target と表示内容の対応を明確にします。
 
 ## 関連 example
 
