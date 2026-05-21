@@ -1,8 +1,8 @@
 ---
-title: "Elements"
+title: "要素"
 ---
 
-`## Elements` は UI element を意味で記述する section です。MarkVSpec では、見た目の実装詳細ではなく、element type、label、text、value、variant、tone、action などを書きます。
+`## Elements` は UI 要素を意味で記述するセクションです。MarkVSpec では、見た目の実装詳細ではなく、element type、label、text、value、variant、tone、action などを書きます。
 
 ## 書ける構文
 
@@ -31,7 +31,7 @@ title: "Elements"
 
 ### Element Heading
 
-Element は `### E-* Name Type` で宣言します。preview に marker を出したい場合は
+要素は `### E-* Name Type` で宣言します。プレビューに marker を出したい場合は
 `### marker:E-* Name Type` と書きます。
 
 ```markdown
@@ -41,11 +41,11 @@ Element は `### E-* Name Type` で宣言します。preview に marker を出�
 ```
 
 - `E-*` は stable ID。
-- `3` は任意の preview marker。
+- `3` は任意のプレビュー用 marker。
 - `HelpText` は人が読む object 名。
 - `Paragraph` は element type。
 
-### Common Types
+### 主な type
 
 | Type | 用途 |
 | --- | --- |
@@ -78,7 +78,7 @@ examples には次の specialized control も出ます。画面の意味を区�
 - `Accordion`、`Disclosure`、`Popover`、`Tooltip`
 - `Icon`、`Divider`
 
-### Common Properties
+### 主な property
 
 | Property | 書き方 | 用途 |
 | --- | --- | --- |
@@ -88,7 +88,7 @@ examples には次の specialized control も出ます。画面の意味を区�
 | `placeholder` | `- placeholder: name@example.com` | input の入力例 |
 | `required` | `- required` | 必須入力 |
 | `variant` | `- variant: primary` | priority。`primary`、`secondary`、`tertiary` |
-| `tone` | `- tone: danger` | semantic intent。`neutral`、`info`、`success`、`warning`、`danger` |
+| `tone` | `- tone: danger` | 意味上の意図。`neutral`、`info`、`success`、`warning`、`danger` |
 | `action` | `- action: A-SubmitLogin` | 発火する action ID |
 | `href` | `- href: /settings` | link 先 |
 | `options` | `- options:` | choice control の選択肢 |
@@ -115,7 +115,7 @@ examples には次の specialized control も出ます。画面の意味を区�
 ### Message type
 
 新しい source では `Message` を使わないでください。広すぎて、どの UI として見せたいのか
-preview が判断しづらくなります。
+プレビューが判断しづらくなります。
 
 - page / form 全体の feedback は `Banner`。
 - inline の短い message は `Text`。

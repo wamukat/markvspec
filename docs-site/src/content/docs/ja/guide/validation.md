@@ -1,5 +1,5 @@
 ---
-title: "Validation"
+title: "バリデーション"
 ---
 
 Validation は「入力を受け付けてよいか」と「エラーをどう見せるか」を書くための章です。
@@ -35,7 +35,7 @@ input 自体に閉じる条件は、element の近くに書きます。
   - format: Enter a valid email address.
 ```
 
-preview や review では、「この field には何を入力できるか」がその場で読めます。
+プレビューやレビューでは、「このフィールドには何を入力できるか」がその場で読めます。
 
 ![Single Field Validation の preview](../../assets/vscode-previews/single-field-validation-vscode-preview.png)
 
@@ -141,7 +141,7 @@ validation は判定だけでは不十分です。ユーザーに見える表示
 - 複数 field や業務条件を見るなら `## Business Rules`。
 - server response で決まるなら `## Actions` の `case:`。
 - ユーザーに何を見せるかは `display` と error element で書く。
-- review で error case を preview したいなら、該当する `case:` を指す [シナリオ](/markvspec/ja/guide/scenarios/) を追加する。
+- レビューでエラーケースをプレビューしたいなら、該当する `case:` を指す [シナリオ](/markvspec/ja/guide/scenarios/) を追加する。
 
 ## 次に読むもの
 
@@ -149,6 +149,6 @@ validation は判定だけでは不十分です。ユーザーに見える表示
 - [Actions](/markvspec/ja/guide/actions/)
 - [シナリオ](/markvspec/ja/guide/scenarios/)
 - [Business Rules](/markvspec/ja/reference/rules/)
-- [Validation Reference](/markvspec/ja/reference/validations/)
+- [バリデーションリファレンス](/markvspec/ja/reference/validations/)
 - [Single Field Validation](/markvspec/examples/showcase/single-field-validation.html)
 - [Login](/markvspec/examples/showcase/login-basic.html)

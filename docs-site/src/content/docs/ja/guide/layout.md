@@ -1,12 +1,12 @@
 ---
-title: "Layout"
+title: "レイアウト"
 ---
 
 Layout は画面内のまとまりと順序を表します。低レベルな CSS ではなく、group、方向、gap、items を使って意味のある構造を残します。
 
 ## 考え方
 
-Layout section では、画面をどの UI のまとまりとして読むかを表します。目的は pixel-perfect な配置指定ではなく、preview、AI edit、review が理解できる画面の骨格を残すことです。
+レイアウトセクションでは、画面をどの UI のまとまりとして読むかを表します。目的は pixel-perfect な配置指定ではなく、プレビュー、AI編集、レビューが理解できる画面の骨格を残すことです。
 
 `L-*` の layout group は、フォーム、ヘッダー、リスト、詳細領域、メッセージ領域など、意味のある単位にします。`column`、`row`、`stack`、`grid` などの方向や並びを使い、`Items` で group の中にどの element や sub group が入るかを書きます。
 
@@ -27,7 +27,7 @@ Layout section では、画面をどの UI のまとまりとして読むかを�
 - "Submit": E-SignInButton
 ```
 
-この例では、ログインフォームを 1 つの layout group として定義し、フォーム内の順序を `Items` で固定しています。これだけで preview は「何がどの順で並ぶか」を表現できます。
+この例では、ログインフォームを 1 つのレイアウトグループとして定義し、フォーム内の順序を `Items` で固定しています。これだけでプレビューは「何がどの順で並ぶか」を表現できます。
 
 ![Responsive Profile の layout preview](../../assets/vscode-previews/responsive-profile-vscode-preview.png)
 
@@ -85,4 +85,4 @@ Layout section では、画面をどの UI のまとまりとして読むかを�
 - [Elements](/markvspec/ja/guide/elements/)
 - [States](/markvspec/ja/guide/states/)
 - [Responsive Profile](/markvspec/examples/showcase/responsive-profile.html)
-- [Reference](/markvspec/ja/reference/)
+- [リファレンス](/markvspec/ja/reference/)

@@ -1,9 +1,9 @@
 ---
-title: "Export"
+title: "出力"
 ---
 
 MarkVSpec は `.vspec.md` から HTML / PDF を出力できます。複数 screen を1つの成果物で
-共有したい場合は、`.vspec.project.md` project file も export できます。
+共有したい場合は、`.vspec.project.md` のプロジェクトファイルも出力できます。
 
 ## VS Code
 
@@ -33,12 +33,12 @@ HTML export は、ブラウザで開ける軽い成果物が必要なときに�
 
 Static HTML には、VS Code の外で review するために必要な structured specification も含まれます。states、layout、elements、actions、Form Groups、Business Rules、Validations、Error Codes、custom Notes、section / entity の lead や notes prose を確認できます。編集対象は生成 HTML ではなく、source の `.vspec.md` です。
 
-project file を HTML/PDF export すると、列挙された screen を読み込み、screen 仕様を1つの
-共有用出力にまとめます。project preview とは役割が違います。project preview は project overview、
+プロジェクトファイルを HTML/PDF 出力すると、列挙された画面を読み込み、画面仕様を1つの
+共有用出力にまとめます。プロジェクトプレビューとは役割が違います。プロジェクトプレビューはプロジェクト概要、
 notes、screen/template list、transition graph を確認する表示で、project export は
 読み込んだ screen を共有用の成果物にまとめる出力です。
 
-project file 内の screen、template、参照 partial を一覧で確認したい場合は、CLI の
+プロジェクトファイル内の画面、テンプレート、参照 partial を一覧で確認したい場合は、CLI の
 `export document-list` を使います。詳しくは [CLI reference](/markvspec/ja/reference/cli/) を参照してください。
 
 ## PDF
@@ -54,15 +54,15 @@ PDF export は、issue、仕様レビュー、非エンジニア向け共有な�
 
 ## export 前に見ること
 
-- preview で、主要な状態、要素、action が読めるか。
-- project file の場合は、export 前に project preview で対象の screen、template、transition graph を確認する。
+- プレビューで、主要な状態、要素、アクションが読めるか。
+- プロジェクトファイルの場合は、出力前にプロジェクトプレビューで対象の画面、テンプレート、遷移図を確認する。
 - review に必要な Form Groups、Business Rules、Validations、Error Codes、Notes が HTML output に出ているか。
 - source が Git に残る場所に置かれているか。
 - 共有先が編集する必要があるなら `.vspec.md`、読むだけなら HTML / PDF を渡す。
 - 関連する screen 群を1つの成果物にしたい場合は `.vspec.project.md` を使う。一覧だけなら `document-list` を使う。
-- CLI で複数 file を出す場合は、出力先 directory を明示する。
+- CLI で複数ファイルを出す場合は、出力先ディレクトリを明示する。
 
 ## 次
 
-- [Examples](/markvspec/ja/examples/)
-- [Guide](/markvspec/ja/guide/)
+- [サンプル](/markvspec/ja/examples/)
+- [ガイド](/markvspec/ja/guide/)

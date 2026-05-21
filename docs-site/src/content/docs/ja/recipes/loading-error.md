@@ -1,10 +1,10 @@
 ---
-title: "Loading And Error"
+title: "読み込みとエラー"
 ---
 
 ## いつ使うか
 
-画面表示時や検索条件変更時に data を読み込み、loading、loaded、empty、error を user に見せ分ける画面で使います。非同期処理を prose で説明するだけではなく、screen state と action case に分けて書くことで、preview と review で user-visible result を判断しやすくします。
+画面表示時や検索条件変更時にデータを読み込み、loading、loaded、empty、error をユーザーに見せ分ける画面で使います。非同期処理を文章で説明するだけではなく、画面状態とアクション分岐に分けて書くことで、プレビューとレビューでユーザーに見える結果を判断しやすくします。
 
 ## 完成イメージ
 
@@ -101,18 +101,18 @@ title: "Loading And Error"
 - spinner のサイズや animation duration は MarkVSpec の主目的ではありません。user に見える意味を `E-LoadingMessage` や `state: loading` で表します。
 - response の詳細を API 仕様のように書き込みすぎず、画面の分岐に必要な条件へ絞ります。
 
-## 関連 example
+## 関連サンプル
 
 - [Async Fetching](/markvspec/examples/showcase/async-loading.html): request、loading、loaded、empty、error の state を一通り確認する例。
 - [Display Updates](/markvspec/examples/showcase/display-effects.html): message、toast、dialog などの user-visible feedback を確認する例。
 
-## 関連 reference
+## 関連リファレンス
 
-- [States Guide](/markvspec/ja/guide/states/)
-- [Actions Guide](/markvspec/ja/guide/actions/)
-- [Elements Reference](/markvspec/ja/reference/elements/)
-- [Actions Reference](/markvspec/ja/reference/actions/)
-- [Limitations Reference](/markvspec/ja/reference/limitations/)
+- [状態ガイド](/markvspec/ja/guide/states/)
+- [アクションガイド](/markvspec/ja/guide/actions/)
+- [要素リファレンス](/markvspec/ja/reference/elements/)
+- [アクションリファレンス](/markvspec/ja/reference/actions/)
+- [制限事項リファレンス](/markvspec/ja/reference/limitations/)
 
 ## 確認方法
 

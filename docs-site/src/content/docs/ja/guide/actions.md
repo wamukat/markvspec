@@ -1,5 +1,5 @@
 ---
-title: "Actions"
+title: "アクション"
 ---
 
 Action は「操作したら何が起きるか」を書く場所です。
@@ -33,7 +33,7 @@ button や link には `action: A-*` を付けます。`## Actions` には、そ
     - state: submitting
 ```
 
-preview では、`Submit` button と `A-SubmitRequest` のつながり、validation error の表示差し替え、`idle` から `submitting` への変化を確認できます。
+プレビューでは、`Submit` ボタンと `A-SubmitRequest` のつながり、バリデーションエラーの表示差し替え、`idle` から `submitting` への変化を確認できます。
 
 ![Form Submit Flow の action preview](../../assets/vscode-previews/form-submit-flow-vscode-preview.png)
 
@@ -68,7 +68,7 @@ preview では、`Submit` button と `A-SubmitRequest` のつながり、validat
 
 ここで重要なのは、実装関数名ではなく「ユーザーに見える結果」が読めることです。
 
-`A-SubmitRequest.P1.invalid` や success toast のような action result を名前付き preview case
+`A-SubmitRequest.P1.invalid` や成功トーストのようなアクション結果を名前付きプレビューケース
 として固定したい場合は、[シナリオ](/markvspec/ja/guide/scenarios/) を使います。
 
 ## 見る例
@@ -76,4 +76,4 @@ preview では、`Submit` button と `A-SubmitRequest` のつながり、validat
 - [Form Submit Flow](/markvspec/examples/showcase/form-submit-flow.html)
 - [Display Updates](/markvspec/examples/showcase/display-effects.html)
 - [シナリオ](/markvspec/ja/guide/scenarios/)
-- [Actions Reference](/markvspec/ja/reference/actions/)
+- [アクションリファレンス](/markvspec/ja/reference/actions/)

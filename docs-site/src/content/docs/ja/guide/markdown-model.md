@@ -1,5 +1,5 @@
 ---
-title: "Markdown Model"
+title: "Markdownモデル"
 ---
 
 MarkVSpec は Markdown を source of truth にします。YAML Front Matter は文書全体の metadata、Markdown 見出しは画面内の object、箇条書きは property や振る舞いを表します。
@@ -8,7 +8,7 @@ MarkVSpec は Markdown を source of truth にします。YAML Front Matter は�
 
 `.vspec.md` は、人が読む画面仕様と tool が読む構造を同じ Markdown に置くための形式です。Front Matter には screen ID、title、role、locale などの文書全体の情報を書きます。本文では `#` に画面名、`##` に States、Layout、Elements、Actions などの主要 section、`###` に個別 object を置きます。
 
-重要なのは、Markdown を自由なメモとして使いながらも、構造化したい部分は見出しと箇条書きで安定させることです。これにより VS Code preview が読み取りやすくなり、Git diff でも「何が変わったか」が見えやすくなります。AI に修正を依頼するときも、対象 section や ID を指定できます。
+重要なのは、Markdown を自由なメモとして使いながらも、構造化したい部分は見出しと箇条書きで安定させることです。これにより VS Code プレビューが読み取りやすくなり、Git diff でも「何が変わったか」が見えやすくなります。AI に修正を依頼するときも、対象セクションや ID を指定できます。
 
 ## 最小例
 
@@ -40,7 +40,7 @@ locale: en
 - text: Hello
 ```
 
-この例は、画面 ID と title を metadata として持ち、`States`、`Layout`、`Elements` の 3 section だけで preview 可能な最小の画面を表します。最初はこのサイズで作り、preview が出ることを確認してから action や validation を追加すると、問題の切り分けが簡単です。
+この例は、画面 ID とタイトルをメタデータとして持ち、`States`、`Layout`、`Elements` の 3 セクションだけでプレビュー可能な最小の画面を表します。最初はこのサイズで作り、プレビューが出ることを確認してからアクションやバリデーションを追加すると、問題の切り分けが簡単です。
 
 ![Hello Screen の source と生成 preview](../../assets/vscode-previews/hello-screen-vscode-preview.png)
 
@@ -56,9 +56,9 @@ locale: en
 
 ## 次に読むもの
 
-- [Document Structure](/markvspec/ja/guide/document-structure/)
+- [文書構造](/markvspec/ja/guide/document-structure/)
 - [States](/markvspec/ja/guide/states/)
 - [Layout](/markvspec/ja/guide/layout/)
 
 - [Hello Screen](/markvspec/examples/showcase/hello-screen.html)
-- [Reference](/markvspec/ja/reference/)
+- [リファレンス](/markvspec/ja/reference/)

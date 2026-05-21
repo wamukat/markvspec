@@ -1,5 +1,5 @@
 ---
-title: "Limitations"
+title: "制限事項"
 ---
 
 MarkVSpec は text-first の screen specification format です。visual design tool や実装コードの置き換えではありません。
@@ -21,7 +21,7 @@ MarkVSpec では、実装詳細ではなく意味を持つ DSL を書きます�
 
 | 対象 | 理由 | 代わりに書くもの |
 | --- | --- | --- |
-| raw color | design token や実装 theme に依存するため | `tone: danger` などの semantic intent |
+| 生の色指定 | design token や実装 theme に依存するため | `tone: danger` などの意味上の意図 |
 | CSS class | 実装詳細であり spec の stable contract ではないため | element type、variant、tone |
 | width/height/pixel | layout 実装に依存するため | `stack`、`row`、`gap`、`align` などの意味 |
 | JSON source | authoring format ではないため | Markdown headings と bullets |
@@ -62,7 +62,7 @@ MarkVSpec では、実装詳細ではなく意味を持つ DSL を書きます�
 
 ## 関連ページ
 
-- [File Format](/markvspec/ja/reference/file-format/)
+- [ファイル形式](/markvspec/ja/reference/file-format/)
 - [Elements](/markvspec/ja/reference/elements/)
 - [Actions](/markvspec/ja/reference/actions/)
-- [Guide](/markvspec/ja/guide/)
+- [ガイド](/markvspec/ja/guide/)

@@ -1,48 +1,48 @@
 ---
-title: "Recipes"
+title: "レシピ"
 ---
 
-Recipes は、よくある UI 仕様パターンを目的から選ぶ入口です。
+レシピは、よくある UI 仕様パターンを目的から選ぶ入口です。
 
-MarkVSpec は screen state、elements、actions、outcome を semantic に書くための形式です。実装 code や framework 固有 attribute を書く場所ではありません。迷ったときは、近い recipe を開き、最小形から自分の画面に置き換えてください。
+MarkVSpec は、画面の状態、要素、アクション、結果を意味で書くための形式です。実装コードやフレームワーク固有の属性を書く場所ではありません。迷ったときは、近いレシピを開き、最小形から自分の画面に置き換えてください。
 
 ## 目的別
 
-| 目的 | Recipe | 主な概念 |
+| 目的 | レシピ | 主な概念 |
 | --- | --- | --- |
-| login、validation、authentication request を1画面に書く | [Login Form](/markvspec/ja/recipes/login-form/) | `Elements`, `Business Rules`, `Actions`, `case:` |
-| initial loading、loading、empty、error、success を扱う | [Loading And Error](/markvspec/ja/recipes/loading-error/) | `States`, `page.load`, `case:` |
-| server-rendered partial replacement を指定する | [Server Partial Update](/markvspec/ja/recipes/server-partial-update/) | `request`, `display`, `target`, `partial` |
-| `.vspec.md` を HTML / PDF として共有する | [PDF Export](/markvspec/ja/recipes/pdf-export/) | VS Code export, CLI export |
+| ログイン、バリデーション、認証リクエストを1画面に書く | [ログインフォーム](/markvspec/ja/recipes/login-form/) | `Elements`, `Business Rules`, `Actions`, `case:` |
+| 初期読み込み、読み込み中、空、エラー、成功を扱う | [読み込みとエラー](/markvspec/ja/recipes/loading-error/) | `States`, `page.load`, `case:` |
+| サーバー生成の部分更新を指定する | [サーバー部分更新](/markvspec/ja/recipes/server-partial-update/) | `request`, `display`, `target`, `partial` |
+| `.vspec.md` を HTML / PDF として共有する | [PDF出力](/markvspec/ja/recipes/pdf-export/) | VS Code 出力, CLI 出力 |
 
 ## 読む順番
 
-1. 画面の目的に近い recipe を選ぶ。
-2. `Minimal Shape` をそのまま写さず、ID、label、path、state name を自分の画面の言葉に置き換える。
-3. `Common Pitfalls` を確認し、implementation detail や CSS が spec に漏れていないか見る。
-4. 関連 example を開き、preview の見え方を確認する。
-5. 追加の detail が必要なときだけ guide / reference を引く。
+1. 画面の目的に近いレシピを選ぶ。
+2. 最小形をそのまま写さず、ID、ラベル、パス、状態名を自分の画面の言葉に置き換える。
+3. 注意点を確認し、実装の詳細や CSS が仕様に漏れていないか見る。
+4. 関連サンプルを開き、プレビューの見え方を確認する。
+5. 追加の詳細が必要なときだけガイドやリファレンスを引く。
 
-## Example で見る
+## サンプルで見る
 
-- [Hello Screen](/markvspec/examples/showcase/hello-screen.html): 最小 document structure。
-- [Login](/markvspec/examples/showcase/login-basic.html): form、validation、authentication flow。
-- [Async Fetching](/markvspec/examples/showcase/async-loading.html): loading / empty / error state transitions。
-- [Display Updates](/markvspec/examples/showcase/display-effects.html): messages、toasts、dialogs、field feedback。
-- [Profile Home](/markvspec/examples/showcase/profile-page-with-template.html): template と partial refresh behavior。
+- [Hello Screen](/markvspec/examples/showcase/hello-screen.html): 最小の文書構造。
+- [Login](/markvspec/examples/showcase/login-basic.html): フォーム、バリデーション、認証の流れ。
+- [Async Fetching](/markvspec/examples/showcase/async-loading.html): 読み込み / 空 / エラーの状態遷移。
+- [Display Updates](/markvspec/examples/showcase/display-effects.html): メッセージ、トースト、ダイアログ、フィールドのフィードバック。
+- [Profile Home](/markvspec/examples/showcase/profile-page-with-template.html): テンプレートと部分更新。
 
-## Reference で引く
+## リファレンスで引く
 
-- [Guide](/markvspec/ja/guide/): authoring flow を学ぶ。
-- [Actions Guide](/markvspec/ja/guide/actions/): requests、cases、effects。
-- [Partial Updates Guide](/markvspec/ja/guide/partial-updates/): server-rendered partial update model。
-- [CLI Reference](/markvspec/ja/reference/cli/): validation、HTML/PDF export、project `document-list` export。
-- [Reference](/markvspec/ja/reference/): sections、IDs、elements、rules。
+- [ガイド](/markvspec/ja/guide/): 書く流れを学ぶ。
+- [アクション](/markvspec/ja/guide/actions/): リクエスト、分岐、表示更新。
+- [部分更新](/markvspec/ja/guide/partial-updates/): サーバー生成の部分更新モデル。
+- [CLI](/markvspec/ja/reference/cli/): バリデーション、HTML/PDF 出力、プロジェクトの `document-list` 出力。
+- [リファレンス](/markvspec/ja/reference/): セクション、ID、要素、ルール。
 
 ## Recipe の使い方
 
-- screen specification の粒度で書く。implementation code、CSS classes、raw framework attributes は書かない。
-- `SCR-*`、`L-*`、`E-*`、`A-*`、`R-*` IDs を使い、screen、layout、element、action、rule を追跡できるようにする。
-- state を変える behavior は `Actions` と `case:` に置く。
-- user-visible result は `state`、`update`、`display`、`navigate` で明示する。
-- preview と export の source of truth は、1つの `.vspec.md` にする。
+- 画面仕様の粒度で書く。実装コード、CSS クラス、生のフレームワーク属性は書かない。
+- `SCR-*`、`L-*`、`E-*`、`A-*`、`R-*` ID を使い、画面、レイアウト、要素、アクション、ルールを追跡できるようにする。
+- 状態を変える振る舞いは `Actions` と `case:` に置く。
+- ユーザーに見える結果は `state`、`update`、`display`、`navigate` で明示する。
+- プレビューと出力の正本は、1つの `.vspec.md` にする。

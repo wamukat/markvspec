@@ -1,8 +1,8 @@
 ---
-title: "Preview"
+title: "プレビュー"
 ---
 
-VS Code live preview は、`.vspec.md` を低忠実度の画面仕様として確認するための入口です。
+VS Code ライブプレビューは、`.vspec.md` を低忠実度の画面仕様として確認するための入口です。
 
 ## 開く
 
@@ -14,7 +14,7 @@ VS Code で作成した `hello.vspec.md` を開きます。
 
 Command Palette を開きます。
 
-### Step 3: preview command を実行する
+### Step 3: プレビューコマンドを実行する
 
 次のコマンドを実行します。
 
@@ -22,27 +22,27 @@ Command Palette を開きます。
 MarkVSpec: Open Preview
 ```
 
-preview は source の変更に追従します。Markdown を編集しながら、状態、レイアウト、要素、アクションの見え方を確認します。
+プレビューはソースの変更に追従します。Markdown を編集しながら、状態、レイアウト、要素、アクションの見え方を確認します。
 
-## Project preview
+## プロジェクトプレビュー
 
 複数画面をまとめて確認したい場合は、同じ command で `.vspec.project.md` を開きます。
-Project preview には project overview、notes、screen list、template list、
+プロジェクトプレビューにはプロジェクト概要、メモ、画面一覧、テンプレート一覧、
 project transition diagram、transition table、diagnostics が表示されます。
 
-project 全体の確認には project preview を使います。screen の wireframe や詳細 section を
+プロジェクト全体の確認にはプロジェクトプレビューを使います。画面のワイヤーフレームや詳細セクションを
 確認したい場合は、各 `.vspec.md` screen を開きます。
 
 ## 見る場所
 
-- source の見出しが preview のセクションになる。
+- ソースの見出しがプレビューのセクションになる。
 - layout group は wireframe のまとまりとして表示される。
 - element は種類、label、variant、tone などの意味情報として表示される。
 - action は trigger、process、case の流れとして表示される。
 
-## preview で確認する判断
+## プレビューで確認する判断
 
-preview は pixel-perfect なデザイン確認ではありません。次のような仕様上の抜けや誤解を見つけるために使います。
+プレビューは pixel-perfect なデザイン確認ではありません。次のような仕様上の抜けや誤解を見つけるために使います。
 
 - 画面の主要な要素が `Elements` にそろっているか。
 - `Layout` の `Items` が、読み手に伝わる順番になっているか。
@@ -50,17 +50,17 @@ preview は pixel-perfect なデザイン確認ではありません。次のよ
 - `tone: danger` や `tone: warning` が、状態やメッセージの意図と合っているか。
 - action の `From`、`Process Pn:`、`case:` が、状態遷移として読めるか。
 
-文言や構造を変えたら、保存して preview を見直します。Markdown の diff と preview の見え方を
+文言や構造を変えたら、保存してプレビューを見直します。Markdown の diff とプレビューの見え方を
 セットで確認すると、reviewer が仕様変更を追いやすくなります。
 
-## preview が期待通りでないとき
+## プレビューが期待通りでないとき
 
 - 画面に出ない要素は、`Layout` の `Items` から参照されているか確認する。
 - button の意図が見えない場合は、`action: A-*` と `## Actions` の ID が一致しているか確認する。
 - 状態依存の表示は、`visible when`、`disabled when`、state 名の spelling を確認する。
-- 構文が曖昧な場合は [Reference](/markvspec/ja/reference/) で正確な書き方を確認する。
+- 構文が曖昧な場合は [リファレンス](/markvspec/ja/reference/) で正確な書き方を確認する。
 
 ## 次
 
 - [Export](/markvspec/ja/start/export/)
-- [File Format](/markvspec/ja/reference/file-format/)
+- [ファイル形式](/markvspec/ja/reference/file-format/)

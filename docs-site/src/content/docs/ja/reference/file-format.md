@@ -1,9 +1,9 @@
 ---
-title: "File Format"
+title: "ファイル形式"
 ---
 
-`.vspec.md` は MarkVSpec の authoring source です。1ファイルは原則として1つの screen、template、partial を表します。
-`.vspec.project.md` は、複数の screen / template file を参照する project index を表します。
+`.vspec.md` は MarkVSpec の作成元です。1ファイルは原則として1つの画面、テンプレート、partial を表します。
+`.vspec.project.md` は、複数の画面ファイルやテンプレートファイルを参照するプロジェクトインデックスを表します。
 
 ## 書ける構文
 
@@ -44,7 +44,7 @@ Front Matter には element property、action、layout item は書きません�
 
 ### Project files
 
-複数の screen と template を1つの preview で確認したい場合は project file を使います。
+複数の画面とテンプレートを1つのプレビューで確認したい場合はプロジェクトファイルを使います。
 
 ```markdown
 ---
@@ -68,12 +68,12 @@ templates:
 navigation と共通 shell の変更を同じ場所で確認します。
 ```
 
-Project preview では project lead と `## Notes` が表示され、screen / template list や transition graph と一緒に project intent を確認できます。HTML/PDF export でも project file を指定でき、列挙された screen を読み込んで1つの artifact にまとめます。CLI の [document-list export](/markvspec/ja/reference/cli/) は一覧性を優先するため、Project document の長い lead / notes prose は含めません。
+プロジェクトプレビューではプロジェクト概要と `## Notes` が表示され、画面 / テンプレート一覧や遷移図と一緒にプロジェクトの意図を確認できます。HTML/PDF 出力でもプロジェクトファイルを指定でき、列挙された画面を読み込んで1つの成果物にまとめます。CLI の [document-list 出力](/markvspec/ja/reference/cli/) は一覧性を優先するため、プロジェクト文書の長い概要やメモ本文は含めません。
 
 関連:
 
-- [Preview](/markvspec/ja/start/preview/): project preview の表示内容。
-- [Export](/markvspec/ja/start/export/): project HTML/PDF export。
+- [プレビュー](/markvspec/ja/start/preview/): プロジェクトプレビューの表示内容。
+- [出力](/markvspec/ja/start/export/): プロジェクト HTML/PDF 出力。
 - [CLI](/markvspec/ja/reference/cli/): 一覧用の `export document-list`。
 
 ### Body
@@ -110,8 +110,8 @@ route: /hello
 
 ## 注意点
 
-- file extension は `.vspec.md` を使います。
-- 画面をまたぐ仕様は、複数の screen file に分けます。
+- ファイル拡張子は `.vspec.md` を使います。
+- 画面をまたぐ仕様は、複数の画面ファイルに分けます。
 - Front Matter は YAML ですが、本文を YAML や JSON に寄せないでください。
 - Markdown table は説明用には使えますが、canonical source にはしません。
 - `type: partial` は server-rendered partial や画面断片を表す場合に使います。
@@ -120,7 +120,7 @@ route: /hello
 
 ## 関連ページ
 
-- [Sections](/markvspec/ja/reference/sections/)
-- [IDs](/markvspec/ja/reference/ids/)
-- [Limitations](/markvspec/ja/reference/limitations/)
+- [セクション](/markvspec/ja/reference/sections/)
+- [ID](/markvspec/ja/reference/ids/)
+- [制限事項](/markvspec/ja/reference/limitations/)
 - [Hello Screen](/markvspec/examples/showcase/hello-screen.html)

@@ -1,5 +1,5 @@
 ---
-title: "Business Rules"
+title: "ビジネスルール"
 ---
 
 `## Business Rules` は business rule や画面固有の判断条件を書く section です。入力形式の validation、tool が出す diagnostics、実装コードの if 文とは分けて扱います。

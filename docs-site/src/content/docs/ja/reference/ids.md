@@ -1,5 +1,5 @@
 ---
-title: "IDs"
+title: "ID"
 ---
 
 ID は object を安定して参照するための名前です。表示 label や文言が変わっても、ID はできるだけ変えないようにします。
@@ -46,7 +46,7 @@ title: Login
 
 ## Marker 付き heading
 
-object heading には、preview marker を ID の前に付けられます。
+object heading には、プレビュー用 marker を ID の前に付けられます。
 
 ```markdown
 ### 5:E-SignInButton Button
@@ -56,10 +56,10 @@ object heading には、preview marker を ID の前に付けられます。
 ### L1:L-LoginForm Login form
 ```
 
-`:` より前が preview に表示される marker です。安定した ID は `:` より後ろです。
+`:` より前がプレビューに表示される marker です。安定した ID は `:` より後ろです。
 `Items`、`action`、`target`、`navigate` などの参照では、marker ではなく ID を使います。
 
-preview marker が不要な場合は、省略できます。
+プレビュー用 marker が不要な場合は、省略できます。
 
 ```markdown
 ### E-SignInButton Button
@@ -84,14 +84,14 @@ preview marker が不要な場合は、省略できます。
 
 - ID は参照用、`label` や `text` は表示用です。
 - ID は大文字 prefix と意味のある名前で書きます。
-- 同じ file 内で ID を重複させないでください。
+- 同じファイル内で ID を重複させないでください。
 - `Items`、`action`、`target`、`navigate` などは marker ではなく ID を参照します。
 - screen を分割しても参照が壊れないよう、rename は慎重に行います。
 - ID に raw route、CSS class、database primary key を混ぜないでください。
 
 ## 関連ページ
 
-- [File Format](/markvspec/ja/reference/file-format/)
+- [ファイル形式](/markvspec/ja/reference/file-format/)
 - [Sections](/markvspec/ja/reference/sections/)
 - [Elements](/markvspec/ja/reference/elements/)
 - [Actions](/markvspec/ja/reference/actions/)

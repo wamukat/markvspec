@@ -1,5 +1,5 @@
 ---
-title: "Validations"
+title: "バリデーション"
 ---
 
 Validations は入力値の制約と error 表示を扱います。field validation は element の近くに書き、画面や業務の判断条件は [Business Rules](/markvspec/ja/reference/rules/) に分けます。
@@ -83,7 +83,7 @@ error message は constraint と対応する形で書けます。
 
 ## 関連ページ
 
-- [Guide: Validation](/markvspec/ja/guide/validation/)
+- [ガイド: バリデーション](/markvspec/ja/guide/validation/)
 - [Elements](/markvspec/ja/reference/elements/)
 - [Actions](/markvspec/ja/reference/actions/)
 - [Business Rules](/markvspec/ja/reference/rules/)

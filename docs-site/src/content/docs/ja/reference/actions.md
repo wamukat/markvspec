@@ -1,5 +1,5 @@
 ---
-title: "Actions"
+title: "アクション"
 ---
 
 `## Actions` は user interaction、HTTP request、state change、navigation、partial update を結びます。button や link は element の `action: A-*` から参照し、画面読み込みなどの lifecycle event は `## Events` で接続します。
@@ -46,7 +46,7 @@ title: "Actions"
 
 ### Action Heading
 
-Action は `### A-* Name` で宣言します。preview に action marker を出したい場合は
+アクションは `### A-* Name` で宣言します。プレビューにアクション marker を出したい場合は
 `### marker:A-* Name` と書きます。
 
 ```markdown
@@ -92,12 +92,12 @@ server-rendered partial update は raw htmx 属性ではなく、結果 case の
 `display` の field は次のように使い分けます。
 
 - `target`: 更新する MarkVSpec の layout ID または element ID。
-- `message`: semantic message text または message reference。
+- `message`: 意味を持つメッセージ文、またはメッセージ参照。
 - `element`: 既存 element を表示する場合の `E-*` ID。
-- `partial`: referenced partial file で target を置き換える場合の `PRT-*` document ID。
+- `partial`: 参照する partial ファイルで target を置き換える場合の `PRT-*` document ID。
 
 `display` には raw HTML、CSS selector、htmx 属性を書きません。MarkVSpec の ID と
-semantic message で、ユーザーに見える結果を書きます。
+意味を持つメッセージで、ユーザーに見える結果を書きます。
 
 ## 小さな例
 

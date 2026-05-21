@@ -4,7 +4,7 @@ description: MarkVSpec documentation in Japanese.
 template: splash
 hero:
   title: MarkVSpec
-  tagline: Markdown で UI 仕様を書き、VS Code で preview し、HTML / PDF に出力します。
+  tagline: Markdown で UI 仕様を書き、VS Code でプレビューし、HTML / PDF に出力します。
   actions:
     - text: はじめる
       link: /markvspec/ja/start/

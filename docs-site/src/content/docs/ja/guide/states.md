@@ -1,5 +1,5 @@
 ---
-title: "States"
+title: "状態"
 ---
 
 State は、同じ画面の見え方を分ける名前です。
@@ -17,7 +17,7 @@ State は、同じ画面の見え方を分ける名前です。
 - error
 ```
 
-`*` が付いた `idle` が初期状態です。preview では state ごとに画面を切り替えて確認できます。
+`*` が付いた `idle` が初期状態です。プレビューでは状態ごとに画面を切り替えて確認できます。
 
 ![Async Fetching の state 切り替え preview](../../assets/vscode-previews/async-loading-vscode-preview.png)
 
@@ -58,5 +58,5 @@ state を増やさず [シナリオ](/markvspec/ja/guide/scenarios/) を使い�
 
 - [Async Fetching](/markvspec/examples/showcase/async-loading.html)
 - [シナリオ](/markvspec/ja/guide/scenarios/)
-- [Loading And Error](/markvspec/ja/recipes/loading-error/)
-- [States Reference](/markvspec/ja/reference/sections/)
+- [読み込みとエラー](/markvspec/ja/recipes/loading-error/)
+- [セクションリファレンス](/markvspec/ja/reference/sections/)

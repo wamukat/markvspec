@@ -1,8 +1,8 @@
 ---
-title: "Sections"
+title: "セクション"
 ---
 
-Sections は `.vspec.md` の本文を分割する top-level heading です。MarkVSpec は section 名から、後続の object をどう読むかを判断します。
+セクションは `.vspec.md` の本文を分割する top-level heading です。MarkVSpec はセクション名から、後続の object をどう読むかを判断します。
 
 ## 書ける構文
 
@@ -30,15 +30,15 @@ Sections は `.vspec.md` の本文を分割する top-level heading です。Mar
 
 | Section | 書く内容 |
 | --- | --- |
-| `## States` | screen state の名前 |
-| `## Layout: mobile` | layout group と item の並び |
-| `## Elements` | UI element の意味、label、value、action |
+| `## States` | 画面状態の名前 |
+| `## Layout: mobile` | レイアウトグループと item の並び |
+| `## Elements` | UI 要素の意味、label、value、action |
 | `## Actions` | trigger、request、effect、case |
 | `## Events` | page load など element click ではない event |
 | `## Form Groups` | form 単位の field group と submit action |
 | `## Field Validations` | 単一 field の constraint と message |
 | `## Cross-field Validations` | 複数 field または form 単位の check |
-| `## Preview Scenarios` | state、validation、action result を組み合わせた preview case |
+| `## Preview Scenarios` | 状態、バリデーション、アクション結果を組み合わせたプレビューケース |
 | `## Business Rules` | business rule と画面固有の判断条件 |
 | `## Error Codes` | 再利用する error 定義と表示先 |
 | `## Slots` | template が受け取る slot 宣言 |
@@ -61,7 +61,7 @@ state は `## States` の下に bullet で書きます。初期状態を明示�
 - error
 ```
 
-action case、element の表示条件、preview note からは同じ state 名を参照します。
+アクション分岐、要素の表示条件、プレビューメモからは同じ状態名を参照します。
 
 ### Form Groups
 
@@ -97,10 +97,10 @@ initial load、partial initialization、screen lifecycle による data refresh 
 
 ### Preview Scenarios
 
-画面全体を複製せず、review したい preview 状態に名前を付ける場合は
+画面全体を複製せず、レビューしたいプレビュー状態に名前を付ける場合は
 `## Preview Scenarios` を使います。
 
-Preview Data は、MarkVSpec が preview/export に渡す表示用データ全体の総称です。
+Preview Data は、MarkVSpec がプレビューや出力に渡す表示用データ全体の総称です。
 Element の scalar 表示値、Element の `sample rows:`、Preview Scenario の
 `samples:`、Preview Scenario の `route:`、`## View Context Samples` が含まれます。
 
@@ -218,7 +218,7 @@ history entry の field を定義する場合は `## History Fields`、revision 
 - reason: Initial version.
 ```
 
-review history を仕様 file に残す場合に使います。
+レビュー履歴を仕様ファイルに残す場合に使います。
 [History And Errors](/markvspec/examples/showcase/history-and-errors.html) を参照してください。
 
 ## 小さな例
@@ -244,12 +244,12 @@ review history を仕様 file に残す場合に使います。
 - Markdown 見出しは object 宣言です。見た目の見出し装飾ではありません。
 - object は `### ID Name` または marker 付きの `### marker:ID Name` で宣言します。
 - `#### Items` などの subsection は、直前の object に属します。
-- 未認識 section は prose として扱われる可能性があり、preview や validation の対象にならない場合があります。
+- 未認識セクションは本文として扱われる可能性があり、プレビューやバリデーションの対象にならない場合があります。
 
 ## 関連ページ
 
-- [File Format](/markvspec/ja/reference/file-format/)
-- [Elements](/markvspec/ja/reference/elements/)
-- [Actions](/markvspec/ja/reference/actions/)
-- [Business Rules](/markvspec/ja/reference/rules/)
+- [ファイル形式](/markvspec/ja/reference/file-format/)
+- [要素](/markvspec/ja/reference/elements/)
+- [アクション](/markvspec/ja/reference/actions/)
+- [ビジネスルール](/markvspec/ja/reference/rules/)
 - [Hello Screen](/markvspec/examples/showcase/hello-screen.html)

@@ -1,5 +1,5 @@
 ---
-title: "Server Partial Update"
+title: "サーバー部分更新"
 ---
 
 ## いつ使うか
@@ -79,18 +79,18 @@ Refresh button や filter の変更で server に request し、返ってきた 
 - raw HTML だけでは意味が読めません。partial document、element、message の意味を参照します。
 - 複数領域を更新する場合は、`display` を複数並べ、どの target に何を表示するかを分けます。
 
-## 関連 example
+## 関連サンプル
 
 - [Profile Home](/markvspec/examples/showcase/profile-page-with-template.html): host screen と partial refresh の例。
 - [Profile Summary Partial](/markvspec/examples/showcase/profile-summary.partial.html): partial document の構造を確認する例。
 
-## 関連 reference
+## 関連リファレンス
 
-- [Partial Updates Guide](/markvspec/ja/guide/partial-updates/)
-- [Actions Guide](/markvspec/ja/guide/actions/)
-- [Layout Guide](/markvspec/ja/guide/layout/)
-- [Actions Reference](/markvspec/ja/reference/actions/)
-- [Sections Reference](/markvspec/ja/reference/sections/)
+- [部分更新ガイド](/markvspec/ja/guide/partial-updates/)
+- [アクションガイド](/markvspec/ja/guide/actions/)
+- [レイアウトガイド](/markvspec/ja/guide/layout/)
+- [アクションリファレンス](/markvspec/ja/reference/actions/)
+- [セクションリファレンス](/markvspec/ja/reference/sections/)
 
 ## 確認方法
 
@@ -98,5 +98,5 @@ Refresh button や filter の変更で server に request し、返ってきた 
 - 更新対象が MarkVSpec の layout ID で追える。
 - replace される content が `partial`、`element`、`message` として読める。
 - success と failure の user-visible result が分かれている。
-- htmx などの実装属性ではなく、semantic な action / display change として読める。
-- reviewer が、実装属性ではなく `semantic action/display change` として動きを確認できる。
+- htmx などの実装属性ではなく、意味を持つアクション / 表示変更として読める。
+- レビュー担当者が、実装属性ではなく「意味を持つアクション / 表示変更」として動きを確認できる。

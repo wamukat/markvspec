@@ -1,5 +1,5 @@
 ---
-title: "Login Form"
+title: "ログインフォーム"
 ---
 
 ログイン画面を書くときの最小パターンです。入力 field、submit button、送信 request、成功時の遷移、失敗時の message を 1 つの screen spec にまとめます。
@@ -12,7 +12,7 @@ title: "Login Form"
 - required などの単項目制約は input の近くに書く。
 - locked account などの業務判断は `## Business Rules` に分ける。
 
-[Login example を preview で見る](/markvspec/examples/showcase/login-basic.html)
+[Login example をプレビューで見る](/markvspec/examples/showcase/login-basic.html)
 
 ## DSL
 
@@ -96,8 +96,8 @@ title: "Login Form"
 
 ## 詳細
 
-- [Actions Guide](/markvspec/ja/guide/actions/)
-- [Validation Guide](/markvspec/ja/guide/validation/)
-- [Validations Reference](/markvspec/ja/reference/validations/)
-- [Actions Reference](/markvspec/ja/reference/actions/)
-- [Business Rules Reference](/markvspec/ja/reference/rules/)
+- [アクションガイド](/markvspec/ja/guide/actions/)
+- [バリデーションガイド](/markvspec/ja/guide/validation/)
+- [バリデーションリファレンス](/markvspec/ja/reference/validations/)
+- [アクションリファレンス](/markvspec/ja/reference/actions/)
+- [ビジネスルールリファレンス](/markvspec/ja/reference/rules/)

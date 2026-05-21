@@ -1,5 +1,5 @@
 ---
-title: "Partial Updates"
+title: "部分更新"
 ---
 
 Partial update は、画面全体ではなく一部だけを差し替える動きです。
@@ -20,7 +20,7 @@ MarkVSpec では `hx-*` や CSS selector は書きません。どの request が
       - partial: PRT-PROFILE-SUMMARY
 ```
 
-preview では、`L-ProfileSummary` が更新対象として読めます。
+プレビューでは、`L-ProfileSummary` が更新対象として読めます。
 
 ![Profile Home の partial update preview](../../assets/vscode-previews/profile-page-with-template-vscode-preview.png)
 
@@ -46,4 +46,4 @@ MarkVSpec は実装属性ではなく、画面仕様を書くためのもので�
 
 - [Profile Home](/markvspec/examples/showcase/profile-page-with-template.html)
 - [Profile Summary Partial](/markvspec/examples/showcase/profile-summary.partial.html)
-- [Server Partial Update](/markvspec/ja/recipes/server-partial-update/)
+- [サーバー部分更新](/markvspec/ja/recipes/server-partial-update/)
