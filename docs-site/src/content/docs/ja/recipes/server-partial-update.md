@@ -4,11 +4,11 @@ title: "サーバー部分更新"
 
 ## いつ使うか
 
-Thymeleaf や server-rendered HTML partial を使い、画面全体ではなく一部の領域だけを更新したいときに使います。MarkVSpec には htmx の raw 属性を書くのではなく、どの user action で request が発生し、どの領域がどんな意味の content に置き換わるかを書きます。
+Thymeleaf やサーバー生成 HTML partial を使い、画面全体ではなく一部の領域だけを更新したいときに使います。MarkVSpec には htmx の生の属性を書くのではなく、どのユーザー操作でリクエストが発生し、どの領域がどんな意味の内容に置き換わるかを書きます。
 
 ## 完成イメージ
 
-Refresh button や filter の変更で server に request し、返ってきた summary partial を `L-ProfileSummary` に replace します。失敗時は target を壊さず、message area に error feedback を表示します。
+更新ボタンやフィルター変更でサーバーへリクエストし、返ってきた summary partial を `L-ProfileSummary` に差し替えます。失敗時は差し替え先を壊さず、メッセージ領域にエラーフィードバックを表示します。
 
 ## 最小の書き方
 
@@ -64,25 +64,25 @@ Refresh button や filter の変更で server に request し、返ってきた 
 
 ## 書き方の要点
 
-- request は `Process Pn:` の `request:` に書く。
-- 差し替え先は `target` に layout ID で書く。
-- referenced partial document に対応する場合は `partial: PRT-*` を足す。
-- 既存 element を表示する場合だけ `element: E-*` を使う。
-- error feedback や単純な message replacement は `message:` で書く。
-- error case も書き、失敗時に既存 partial がどう扱われるかを読めるようにする。
+- リクエストは `Process Pn:` の `request:` に書く。
+- 差し替え先は `target` にレイアウト ID で書く。
+- 参照する partial 文書に対応する場合は `partial: PRT-*` を足す。
+- 既存要素を表示する場合だけ `element: E-*` を使う。
+- エラーフィードバックや単純なメッセージ差し替えは `message:` で書く。
+- エラーケースも書き、失敗時に既存 partial がどう扱われるかを読めるようにする。
 
 ## よくある落とし穴
 
-- `hx-get`, `hx-target`, `hx-swap` のような raw 属性を書かない。MarkVSpec は実装属性ではなく、screen behavior の仕様です。
+- `hx-get`, `hx-target`, `hx-swap` のような生の属性を書かない。MarkVSpec は実装属性ではなく、画面の振る舞いの仕様です。
 - `target: #summary` のような CSS selector ではなく、`L-ProfileSummary` のような MarkVSpec ID を使います。
-- success だけを書くと、partial 更新に失敗したときの user feedback が未定義になります。
-- raw HTML だけでは意味が読めません。partial document、element、message の意味を参照します。
-- 複数領域を更新する場合は、`display` を複数並べ、どの target に何を表示するかを分けます。
+- success だけを書くと、partial 更新に失敗したときのユーザーフィードバックが未定義になります。
+- 生の HTML だけでは意味が読めません。partial 文書、要素、メッセージの意味を参照します。
+- 複数領域を更新する場合は、`display` を複数並べ、どの差し替え先に何を表示するかを分けます。
 
 ## 関連サンプル
 
-- [Profile Home](/markvspec/examples/showcase/profile-page-with-template.html): host screen と partial refresh の例。
-- [Profile Summary Partial](/markvspec/examples/showcase/profile-summary.partial.html): partial document の構造を確認する例。
+- [Profile Home](/markvspec/examples/showcase/profile-page-with-template.html): ホスト画面と partial 更新の例。
+- [Profile Summary Partial](/markvspec/examples/showcase/profile-summary.partial.html): partial 文書の構造を確認する例。
 
 ## 関連リファレンス
 
@@ -94,9 +94,9 @@ Refresh button や filter の変更で server に request し、返ってきた 
 
 ## 確認方法
 
-- request method、path、必要な parameter が分かる。
-- 更新対象が MarkVSpec の layout ID で追える。
-- replace される content が `partial`、`element`、`message` として読める。
-- success と failure の user-visible result が分かれている。
+- リクエストメソッド、パス、必要なパラメータが分かる。
+- 更新対象が MarkVSpec のレイアウト ID で追える。
+- 差し替えられる内容が `partial`、`element`、`message` として読める。
+- success と failure のユーザーに見える結果が分かれている。
 - htmx などの実装属性ではなく、意味を持つアクション / 表示変更として読める。
 - レビュー担当者が、実装属性ではなく「意味を持つアクション / 表示変更」として動きを確認できる。

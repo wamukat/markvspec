@@ -2,9 +2,9 @@
 title: "部分更新"
 ---
 
-Partial update は、画面全体ではなく一部だけを差し替える動きです。
+部分更新は、画面全体ではなく一部だけを差し替える動きです。
 
-MarkVSpec では `hx-*` や CSS selector は書きません。どの request が、どの領域を、何に置き換えるかだけを書きます。
+MarkVSpec では `hx-*` や CSS selector は書きません。どのリクエストが、どの領域を、何に置き換えるかだけを書きます。
 
 ## まずこれだけ
 
@@ -22,15 +22,15 @@ MarkVSpec では `hx-*` や CSS selector は書きません。どの request が
 
 プレビューでは、`L-ProfileSummary` が更新対象として読めます。
 
-![Profile Home の partial update preview](../../assets/vscode-previews/profile-page-with-template-vscode-preview.png)
+![Profile Home の部分更新プレビュー](../../assets/vscode-previews/profile-page-with-template-vscode-preview.png)
 
 ## 書くもの
 
-- `request:`: 取得する request。
-- `target`: 差し替える layout / element。
-- `partial`: referenced partial document で差し替える場合の `PRT-*` ID。
-- `element`: 既存 element を表示する場合の `E-*` ID。
-- `message`: message text または message reference。
+- `request:`: 取得するリクエスト。
+- `target`: 差し替えるレイアウト / 要素。
+- `partial`: 参照する partial 文書で差し替える場合の `PRT-*` ID。
+- `element`: 既存要素を表示する場合の `E-*` ID。
+- `message`: メッセージ本文またはメッセージ参照。
 
 ## 書かないもの
 
@@ -38,7 +38,7 @@ MarkVSpec では `hx-*` や CSS selector は書きません。どの request が
 - `hx-target`
 - `hx-swap`
 - CSS selector
-- HTML fragment の中身そのもの
+- HTML 断片の中身そのもの
 
 MarkVSpec は実装属性ではなく、画面仕様を書くためのものです。
 

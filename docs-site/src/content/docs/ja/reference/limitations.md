@@ -2,7 +2,7 @@
 title: "制限事項"
 ---
 
-MarkVSpec は text-first の screen specification format です。visual design tool や実装コードの置き換えではありません。
+MarkVSpec はテキストから書く画面仕様フォーマットです。視覚デザインツールや実装コードの置き換えではありません。
 
 ## 書ける構文
 
@@ -21,12 +21,12 @@ MarkVSpec では、実装詳細ではなく意味を持つ DSL を書きます�
 
 | 対象 | 理由 | 代わりに書くもの |
 | --- | --- | --- |
-| 生の色指定 | design token や実装 theme に依存するため | `tone: danger` などの意味上の意図 |
-| CSS class | 実装詳細であり spec の stable contract ではないため | element type、variant、tone |
-| width/height/pixel | layout 実装に依存するため | `stack`、`row`、`gap`、`align` などの意味 |
-| JSON source | authoring format ではないため | Markdown headings と bullets |
-| Markdown table as source | parse 対象の canonical structure にしないため | headings、bullets、subsections |
-| component implementation | primary model は screen-first のため | screen、layout group、element、action |
+| 生の色指定 | デザイントークンや実装テーマに依存するため | `tone: danger` などの意味上の意図 |
+| CSS class | 実装詳細であり仕様の安定した約束ではないため | 要素の種類、variant、tone |
+| width/height/pixel | レイアウト実装に依存するため | `stack`、`row`、`gap`、`align` などの意味 |
+| JSON ソース | 作成用フォーマットではないため | Markdown の見出しと箇条書き |
+| Markdown table をソースにすること | 解析対象の正本構造にしないため | 見出し、箇条書き、サブセクション |
+| component implementation | 主要なモデルは画面単位のため | 画面、レイアウトグループ、要素、アクション |
 
 ## 小さな例
 
@@ -50,19 +50,19 @@ MarkVSpec では、実装詳細ではなく意味を持つ DSL を書きます�
 - action: A-Submit
 ```
 
-![Source Kind Metadata の semantic DSL preview](../../assets/vscode-previews/source-kind-metadata-vscode-preview.png)
+![Source Kind Metadata の意味的な DSL プレビュー](../../assets/vscode-previews/source-kind-metadata-vscode-preview.png)
 
 ## 注意点
 
-- MarkVSpec は low-fidelity wireframe と仕様確認に向いた形式です。
-- pixel-perfect な visual design は別の design system や UI 実装で扱います。
-- JSON は parser/export の内部表現として使われることがありますが、利用者が source として書く形式ではありません。
-- Markdown table は補足説明には使えますが、element/action/rule の canonical source にはしません。
-- componentization は実装側の関心です。MarkVSpec の primary authoring model は screen-first です。
+- MarkVSpec は低忠実度ワイヤーフレームと仕様確認に向いた形式です。
+- 細かな視覚デザインは別のデザインシステムや UI 実装で扱います。
+- JSON は解析や出力の内部表現として使われることがありますが、利用者がソースとして書く形式ではありません。
+- Markdown table は補足説明には使えますが、要素、アクション、ルールの正本にはしません。
+- コンポーネント化は実装側の関心です。MarkVSpec の主要な作成モデルは画面単位です。
 
 ## 関連ページ
 
 - [ファイル形式](/markvspec/ja/reference/file-format/)
-- [Elements](/markvspec/ja/reference/elements/)
-- [Actions](/markvspec/ja/reference/actions/)
+- [要素](/markvspec/ja/reference/elements/)
+- [アクション](/markvspec/ja/reference/actions/)
 - [ガイド](/markvspec/ja/guide/)

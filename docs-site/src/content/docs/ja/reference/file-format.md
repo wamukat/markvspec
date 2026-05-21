@@ -30,19 +30,19 @@ locale: ja
 
 ### Front Matter
 
-Front Matter は document-level metadata だけを書きます。
+Front Matter は文書全体のメタデータだけを書きます。
 
-| Field | 必須 | 値 |
+| 項目 | 必須 | 値 |
 | --- | --- | --- |
-| `id` | yes | `SCR-*`、または document type に合う stable ID |
+| `id` | yes | `SCR-*`、または文書タイプに合う安定した ID |
 | `type` | yes | `screen`、`template`、`partial`、`project` |
 | `title` | yes | 人が読む画面名 |
-| `route` | no | screen の URL path |
-| `locale` | no | `ja`、`en` などの locale |
+| `route` | no | 画面の URL パス |
+| `locale` | no | `ja`、`en` などの言語 |
 
-Front Matter には element property、action、layout item は書きません。それらは Markdown 本文に書きます。
+Front Matter には要素の項目、アクション、レイアウト項目は書きません。それらは Markdown 本文に書きます。
 
-### Project files
+### プロジェクトファイル
 
 複数の画面とテンプレートを1つのプレビューで確認したい場合はプロジェクトファイルを使います。
 
@@ -61,11 +61,11 @@ templates:
 
 # PRJ-ACCOUNT Account Project
 
-アカウント関連画面をまとめて確認するための project です。
+アカウント関連画面をまとめて確認するためのプロジェクトです。
 
 ## Notes
 
-navigation と共通 shell の変更を同じ場所で確認します。
+ナビゲーションと共通シェルの変更を同じ場所で確認します。
 ```
 
 プロジェクトプレビューではプロジェクト概要と `## Notes` が表示され、画面 / テンプレート一覧や遷移図と一緒にプロジェクトの意図を確認できます。HTML/PDF 出力でもプロジェクトファイルを指定でき、列挙された画面を読み込んで1つの成果物にまとめます。CLI の [document-list 出力](/markvspec/ja/reference/cli/) は一覧性を優先するため、プロジェクト文書の長い概要やメモ本文は含めません。
@@ -76,17 +76,17 @@ navigation と共通 shell の変更を同じ場所で確認します。
 - [出力](/markvspec/ja/start/export/): プロジェクト HTML/PDF 出力。
 - [CLI](/markvspec/ja/reference/cli/): 一覧用の `export document-list`。
 
-### Body
+### 本文
 
 本文は Markdown 見出しと箇条書きで書きます。
 
-- `##` は top-level section。
-- `###` は object 宣言。
-- `####` は object 内の subsection。
-- bullet は property、rule、condition、transition を表します。
-- `###` の object heading は `### ID Name` または `### marker:ID Name` で書けます。
+- `##` は最上位セクション。
+- `###` は対象の宣言。
+- `####` は対象内のサブセクション。
+- 箇条書きは項目、ルール、条件、遷移を表します。
+- `###` の対象見出しは `### ID Name` または `### marker:ID Name` で書けます。
 
-JSON は authoring format ではありません。tool の内部表現や export 結果として使われることはありますが、利用者が source として書く形式ではありません。
+JSON は作成用フォーマットではありません。ツールの内部表現や出力結果として使われることはありますが、利用者がソースとして書く形式ではありません。
 
 ## 小さな例
 
@@ -106,17 +106,17 @@ route: /hello
 - text: Hello MarkVSpec
 ```
 
-![Hello Screen の file format 例と生成 preview](../../assets/vscode-previews/hello-screen-vscode-preview.png)
+![Hello Screen のファイル形式例と生成プレビュー](../../assets/vscode-previews/hello-screen-vscode-preview.png)
 
 ## 注意点
 
 - ファイル拡張子は `.vspec.md` を使います。
 - 画面をまたぐ仕様は、複数の画面ファイルに分けます。
 - Front Matter は YAML ですが、本文を YAML や JSON に寄せないでください。
-- Markdown table は説明用には使えますが、canonical source にはしません。
-- `type: partial` は server-rendered partial や画面断片を表す場合に使います。
-- `type: project` は、関連する screen と template を列挙する `.vspec.project.md` にだけ使います。
-- state は `## States` の下に bullet で書き、初期状態には `*` を1つだけ付けます。
+- Markdown table は説明用には使えますが、正本にはしません。
+- `type: partial` はサーバー生成 partial や画面断片を表す場合に使います。
+- `type: project` は、関連する画面とテンプレートを列挙する `.vspec.project.md` にだけ使います。
+- state は `## States` の下に箇条書きで書き、初期状態には `*` を1つだけ付けます。
 
 ## 関連ページ
 

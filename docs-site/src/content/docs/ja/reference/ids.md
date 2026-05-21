@@ -2,7 +2,7 @@
 title: "ID"
 ---
 
-ID は object を安定して参照するための名前です。表示 label や文言が変わっても、ID はできるだけ変えないようにします。
+ID は対象を安定して参照するための名前です。表示ラベルや文言が変わっても、ID はできるだけ変えないようにします。
 
 ## 書ける構文
 
@@ -34,19 +34,19 @@ title: Login
 ### A1:A-SubmitLogin Submit login
 ```
 
-## Prefixes
+## 接頭辞
 
-| Prefix | 対象 | 例 |
+| 接頭辞 | 対象 | 例 |
 | --- | --- | --- |
-| `SCR-*` | screen | `SCR-LOGIN` |
-| `L-*` | layout group | `L-LoginForm` |
-| `E-*` | element | `E-EmailInput` |
-| `A-*` | action | `A-SubmitLogin` |
-| `R-*` | rule | `R-CanSubmit` |
+| `SCR-*` | 画面 | `SCR-LOGIN` |
+| `L-*` | レイアウトグループ | `L-LoginForm` |
+| `E-*` | 要素 | `E-EmailInput` |
+| `A-*` | アクション | `A-SubmitLogin` |
+| `R-*` | ルール | `R-CanSubmit` |
 
-## Marker 付き heading
+## マーカー付き見出し
 
-object heading には、プレビュー用 marker を ID の前に付けられます。
+対象見出しには、プレビュー用マーカーを ID の前に付けられます。
 
 ```markdown
 ### 5:E-SignInButton Button
@@ -56,10 +56,10 @@ object heading には、プレビュー用 marker を ID の前に付けられ�
 ### L1:L-LoginForm Login form
 ```
 
-`:` より前がプレビューに表示される marker です。安定した ID は `:` より後ろです。
-`Items`、`action`、`target`、`navigate` などの参照では、marker ではなく ID を使います。
+`:` より前がプレビューに表示されるマーカーです。安定した ID は `:` より後ろです。
+`Items`、`action`、`target`、`navigate` などの参照では、マーカーではなく ID を使います。
 
-プレビュー用 marker が不要な場合は、省略できます。
+プレビュー用マーカーが不要な場合は、省略できます。
 
 ```markdown
 ### E-SignInButton Button
@@ -78,21 +78,21 @@ object heading には、プレビュー用 marker を ID の前に付けられ�
   - state: idle
 ```
 
-![Hello Screen の ID 付き preview](../../assets/vscode-previews/hello-screen-ids-vscode-preview.png)
+![Hello Screen の ID 付きプレビュー](../../assets/vscode-previews/hello-screen-ids-vscode-preview.png)
 
 ## 注意点
 
 - ID は参照用、`label` や `text` は表示用です。
-- ID は大文字 prefix と意味のある名前で書きます。
+- ID は大文字の接頭辞と意味のある名前で書きます。
 - 同じファイル内で ID を重複させないでください。
-- `Items`、`action`、`target`、`navigate` などは marker ではなく ID を参照します。
-- screen を分割しても参照が壊れないよう、rename は慎重に行います。
-- ID に raw route、CSS class、database primary key を混ぜないでください。
+- `Items`、`action`、`target`、`navigate` などはマーカーではなく ID を参照します。
+- 画面を分割しても参照が壊れないよう、rename は慎重に行います。
+- ID に生のルート、CSS class、データベース主キーを混ぜないでください。
 
 ## 関連ページ
 
 - [ファイル形式](/markvspec/ja/reference/file-format/)
-- [Sections](/markvspec/ja/reference/sections/)
-- [Elements](/markvspec/ja/reference/elements/)
-- [Actions](/markvspec/ja/reference/actions/)
+- [セクション](/markvspec/ja/reference/sections/)
+- [要素](/markvspec/ja/reference/elements/)
+- [アクション](/markvspec/ja/reference/actions/)
 - [Hello Screen](/markvspec/examples/showcase/hello-screen.html)

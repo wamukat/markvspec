@@ -2,17 +2,17 @@
 title: "バリデーション"
 ---
 
-Validations は入力値の制約と error 表示を扱います。field validation は element の近くに書き、画面や業務の判断条件は [Business Rules](/markvspec/ja/reference/rules/) に分けます。
+Validations は入力値の制約とエラー表示を扱います。フィールドバリデーションは要素の近くに書き、画面や業務の判断条件は [ビジネスルール](/markvspec/ja/reference/rules/) に分けます。
 
 ## 境界
 
 | 判定対象 | 書く場所 |
 | --- | --- |
-| 必須入力 | `Input` element |
-| format、length、range、pattern | `Input` element の `constraints` |
-| 複数 field の比較 | `## Business Rules` または submit 前 action |
-| server response で決まる field error | `## Actions` の `case:` と field error への `display` |
-| 権限、在庫、契約状態などの業務判断 | `## Business Rules` と server response の `case:` |
+| 必須入力 | `Input` 要素 |
+| 形式、長さ、範囲、パターン | `Input` 要素の `constraints` |
+| 複数フィールドの比較 | `## Business Rules` または送信前アクション |
+| サーバー応答で決まるフィールドエラー | `## Actions` の `case:` とフィールドエラーへの `display` |
+| 権限、在庫、契約状態などの業務判断 | `## Business Rules` とサーバー応答の `case:` |
 
 ## 書ける構文
 
@@ -32,7 +32,7 @@ Validations は入力値の制約と error 表示を扱います。field validat
   - format: Enter a valid email address.
 ```
 
-### Common Constraints
+### 主な制約
 
 | Constraint | 例 | 用途 |
 | --- | --- | --- |
@@ -44,9 +44,9 @@ Validations は入力値の制約と error 表示を扱います。field validat
 | `max` | `- max: 99` | 数値や件数の上限 |
 | `pattern` | `- pattern: ^[A-Z0-9]+$` | domain 固有の入力形式 |
 
-### Error Messages
+### エラーメッセージ
 
-error message は constraint と対応する形で書けます。
+エラーメッセージは制約と対応する形で書けます。
 
 ```markdown
 - error:
@@ -70,22 +70,22 @@ error message は constraint と対応する形で書けます。
   - max: Quantity must be 10 or less.
 ```
 
-![Single Field Validation の validation preview](../../assets/vscode-previews/single-field-validation-vscode-preview.png)
+![Single Field Validation のバリデーションプレビュー](../../assets/vscode-previews/single-field-validation-vscode-preview.png)
 
 ## 注意点
 
-- validation は field の形式、必須、範囲などを扱います。
-- `## Business Rules` は business rule や画面固有条件を扱います。
-- validator diagnostics は tool output であり、source に書く validation 仕様とは別です。
-- error 表示用の element がある場合は、`tone: danger` の `Paragraph` や `Text` として `## Elements` に書けます。
-- server response による error 表示は `## Actions` の `case:` と `display` で書くと、request との関係が明確になります。
-- user-visible な error text は `display` の `message` に書きます。既存 element や partial を表示する場合は `element` または `partial` を使います。
+- バリデーションはフィールドの形式、必須、範囲などを扱います。
+- `## Business Rules` はビジネスルールや画面固有条件を扱います。
+- バリデーション診断はツール出力であり、ソースに書くバリデーション仕様とは別です。
+- エラー表示用の要素がある場合は、`tone: danger` の `Paragraph` や `Text` として `## Elements` に書けます。
+- サーバー応答によるエラー表示は `## Actions` の `case:` と `display` で書くと、リクエストとの関係が明確になります。
+- ユーザーに見えるエラー文は `display` の `message` に書きます。既存要素や partial を表示する場合は `element` または `partial` を使います。
 
 ## 関連ページ
 
 - [ガイド: バリデーション](/markvspec/ja/guide/validation/)
-- [Elements](/markvspec/ja/reference/elements/)
-- [Actions](/markvspec/ja/reference/actions/)
-- [Business Rules](/markvspec/ja/reference/rules/)
+- [要素](/markvspec/ja/reference/elements/)
+- [アクション](/markvspec/ja/reference/actions/)
+- [ビジネスルール](/markvspec/ja/reference/rules/)
 - [Single Field Validation](/markvspec/examples/showcase/single-field-validation.html)
 - [Login](/markvspec/examples/showcase/login-basic.html)

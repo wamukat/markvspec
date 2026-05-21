@@ -3,18 +3,18 @@ title: "シナリオ"
 ---
 
 Preview Scenarios は、1つの画面に複数のレビュー用プレビューケースを付けるために使います。
-error、empty、toast、dialog、direct link を見せるためだけに、画面仕様全体を複製しないでください。
+エラー、空表示、トースト、ダイアログ、直接リンクを見せるためだけに、画面仕様全体を複製しないでください。
 
 ## 使う場面
 
-- validation error を、画面全体を書き直さずに見せる。
-- 同じ state の empty / error / loading data を見せる。
-- action result で出る toast、dialog、message を見せる。
-- route parameter や hash fragment 付きの direct link を見せる。
+- バリデーションエラーを、画面全体を書き直さずに見せる。
+- 同じ状態の空表示、エラー、読み込み中データを見せる。
+- アクション結果で出るトースト、ダイアログ、メッセージを見せる。
+- ルートパラメータやハッシュ付きの直接リンクを見せる。
 - プレビューや HTML 出力でレビューしやすい名前付きケースを作る。
 
-State は画面の表示モードに名前を付けるものです。Preview Scenarios は、その state の中で
-review したい具体的な表示 case に名前を付けるものです。
+State は画面の表示モードに名前を付けるものです。Preview Scenarios は、その状態の中で
+レビューしたい具体的な表示ケースに名前を付けるものです。
 
 ## 最小例
 
@@ -32,25 +32,25 @@ review したい具体的な表示 case に名前を付けるものです。
   - token: expired
 ```
 
-この scenario は、`idle` state を表示し、submit invalid case を適用し、
-email input にプレビューデータを入れ、`token=expired` がある route として表示する、という意味です。
+このシナリオは、`idle` 状態を表示し、送信失敗ケースを適用し、
+メール入力にプレビューデータを入れ、`token=expired` があるルートとして表示する、という意味です。
 
 ## どこに何を書くか
 
 | 目的 | 書くもの |
 | --- | --- |
-| 表示する state | `state:` |
-| 表示したい action / validation result | `cases:` |
-| Element ごとのプレビュー値 | `samples:` |
-| route parameter や hash fragment | `route:` |
+| 表示する状態 | `state:` |
+| 表示したいアクション / バリデーション結果 | `cases:` |
+| 要素ごとのプレビュー値 | `samples:` |
+| ルートパラメータやハッシュ | `route:` |
 
 Preview Scenarios はプレビューデータです。新しい画面、状態、アクションを作るものではありません。
-実際の画面挙動は `## States`、`## Elements`、`## Actions` に書き、scenarios は review したい見え方に名前を付けるために使います。
+実際の画面挙動は `## States`、`## Elements`、`## Actions` に書き、scenarios はレビューしたい見え方に名前を付けるために使います。
 
 ## 次に読むもの
 
-- [States](/markvspec/ja/guide/states/)
-- [Actions](/markvspec/ja/guide/actions/)
-- [Validation](/markvspec/ja/guide/validation/)
+- [状態](/markvspec/ja/guide/states/)
+- [アクション](/markvspec/ja/guide/actions/)
+- [バリデーション](/markvspec/ja/guide/validation/)
 - [Preview Scenarios リファレンス](/markvspec/ja/reference/sections/)
 - [Scenario Preview Data Example](/markvspec/examples/showcase/scenario-samples.html)

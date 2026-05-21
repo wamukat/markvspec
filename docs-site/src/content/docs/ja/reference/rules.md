@@ -2,9 +2,9 @@
 title: "ビジネスルール"
 ---
 
-`## Business Rules` は business rule や画面固有の判断条件を書く section です。入力形式の validation、tool が出す diagnostics、実装コードの if 文とは分けて扱います。
+`## Business Rules` は、ビジネスルールや画面固有の判断条件を書くセクションです。入力形式のバリデーション、ツールが出す診断、実装コードの if 文とは分けて扱います。
 
-権限、account status、plan 制約、在庫、日付の関係、複数 field の関係など、product meaning によって決まる条件を書く場所です。required、format、min、max のような入力値そのものの形はここに置きません。
+権限、アカウント状態、プラン制約、在庫、日付の関係、複数フィールドの関係など、プロダクト上の意味によって決まる条件を書く場所です。required、format、min、max のような入力値そのものの形はここに置きません。
 
 ## 書ける構文
 
@@ -26,7 +26,7 @@ title: "ビジネスルール"
 - message: Additional verification is required.
 ```
 
-### Rule Heading
+### ルール見出し
 
 Rule は `### R-* Name` の形で宣言します。
 
@@ -34,15 +34,15 @@ Rule は `### R-* Name` の形で宣言します。
 ### R-PasswordPolicy Password policy
 ```
 
-### Common Properties
+### 主な項目
 
-| Property | 用途 |
+| 項目 | 用途 |
 | --- | --- |
 | `when` | 条件。単一行または nested bullet で書く |
 | `effect` | 条件が満たされたときの画面上の影響 |
-| `message` | 利用者に見せる説明や error |
-| `appliesTo` | 対象 element、layout、action |
-| `priority` | rule が複数ある場合の優先度 |
+| `message` | 利用者に見せる説明やエラー |
+| `appliesTo` | 対象要素、レイアウト、アクション |
+| `priority` | ルールが複数ある場合の優先度 |
 
 ## 小さな例
 
@@ -54,25 +54,25 @@ Rule は `### R-* Name` の形で宣言します。
 - message: No matching results.
 ```
 
-![History And Errors の business rules preview](../../assets/vscode-previews/history-and-errors-vscode-preview.png)
+![History And Errors のビジネスルールプレビュー](../../assets/vscode-previews/history-and-errors-vscode-preview.png)
 
-## Validator Diagnostics との違い
+## バリデーション診断との違い
 
-Validator Diagnostics は parser / validator が source の不足や矛盾を見つけて出す tool output です。`## Business Rules` は author が画面仕様として書く判断条件です。
+バリデーション診断は、パーサーやバリデーターがソースの不足や矛盾を見つけて出すツール出力です。`## Business Rules` は、作成者が画面仕様として書く判断条件です。
 
 ## 注意点
 
-- field の必須、format、range は [Validations](/markvspec/ja/reference/validations/) に書きます。
-- server response による error は [Actions](/markvspec/ja/reference/actions/) の response `case:` と `display` に書きます。
-- action の request/response 分岐は [Actions](/markvspec/ja/reference/actions/) の `case:` に書きます。
-- `## Business Rules` は人が読む仕様です。Validator Diagnostics の出力先ではありません。
-- rule から element や action を参照するときは `E-*`、`A-*` などの stable ID を使います。
-- CSS や implementation branch の詳細ではなく、画面仕様として意味のある条件を書きます。
+- フィールドの必須、format、range は [バリデーション](/markvspec/ja/reference/validations/) に書きます。
+- サーバー応答によるエラーは [アクション](/markvspec/ja/reference/actions/) の response `case:` と `display` に書きます。
+- アクションのリクエスト/応答分岐は [アクション](/markvspec/ja/reference/actions/) の `case:` に書きます。
+- `## Business Rules` は人が読む仕様です。バリデーション診断の出力先ではありません。
+- ルールから要素やアクションを参照するときは `E-*`、`A-*` などの安定した ID を使います。
+- CSS や実装分岐の詳細ではなく、画面仕様として意味のある条件を書きます。
 
 ## 関連ページ
 
-- [Actions](/markvspec/ja/reference/actions/)
-- [Validations](/markvspec/ja/reference/validations/)
-- [IDs](/markvspec/ja/reference/ids/)
-- [Limitations](/markvspec/ja/reference/limitations/)
+- [アクション](/markvspec/ja/reference/actions/)
+- [バリデーション](/markvspec/ja/reference/validations/)
+- [ID](/markvspec/ja/reference/ids/)
+- [制限事項](/markvspec/ja/reference/limitations/)
 - [Account Settings](/markvspec/examples/showcase/history-and-errors.html)

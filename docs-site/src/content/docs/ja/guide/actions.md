@@ -4,7 +4,7 @@ title: "アクション"
 
 Action は「操作したら何が起きるか」を書く場所です。
 
-button や link には `action: A-*` を付けます。`## Actions` には、その action が state を変えるのか、request を送るのか、別画面へ移るのかを書きます。
+ボタンやリンクには `action: A-*` を付けます。`## Actions` には、そのアクションが状態を変えるのか、リクエストを送るのか、別画面へ移るのかを書きます。
 
 ## まずこれだけ
 
@@ -35,14 +35,14 @@ button や link には `action: A-*` を付けます。`## Actions` には、そ
 
 プレビューでは、`Submit` ボタンと `A-SubmitRequest` のつながり、バリデーションエラーの表示差し替え、`idle` から `submitting` への変化を確認できます。
 
-![Form Submit Flow の action preview](../../assets/vscode-previews/form-submit-flow-vscode-preview.png)
+![Form Submit Flow のアクションプレビュー](../../assets/vscode-previews/form-submit-flow-vscode-preview.png)
 
 ## 書く判断
 
-- button から action を呼ぶ: element の `action: A-*`。
-- 画面読み込みで action を呼ぶ: `## Events`。
-- action が有効な state を絞る: `From`。
-- HTTP request を書く: `Process Pn:` の `request:`。
+- ボタンからアクションを呼ぶ: 要素の `action: A-*`。
+- 画面読み込みでアクションを呼ぶ: `## Events`。
+- アクションが有効な状態を絞る: `From`。
+- HTTP リクエストを書く: `Process Pn:` の `request:`。
 - 結果で分岐する: `case:`。
 - 表示を差し替える: `display`。
 - 画面を移動する: `navigate`。

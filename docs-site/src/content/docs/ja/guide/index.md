@@ -6,7 +6,7 @@ MarkVSpec は、画面仕様を Markdown で書き、すぐプレビューで確
 
 ガイドでは細かい構文を説明しません。まず「何を書くと、プレビューで何が見えるか」を掴んでください。詳しい項目名や制約は [リファレンス](/markvspec/ja/reference/) で確認します。
 
-![VS Code で hello.vspec.md と MarkVSpec preview を並べて表示している画面](../../assets/start/vscode-preview-clean.png)
+![VS Code で hello.vspec.md と MarkVSpec プレビューを並べて表示している画面](../../assets/start/vscode-preview-clean.png)
 
 ## まず覚えること
 
@@ -52,8 +52,8 @@ MarkVSpec は、画面仕様を Markdown で書き、すぐプレビューで確
 ## 見て理解する
 
 - [Hello Screen](/markvspec/examples/showcase/hello-screen.html): 最小構成。
-- [Form Submit Flow](/markvspec/examples/showcase/form-submit-flow.html): form submit と error 表示。
-- [Async Fetching](/markvspec/examples/showcase/async-loading.html): loading / empty / error。
+- [Form Submit Flow](/markvspec/examples/showcase/form-submit-flow.html): フォーム送信とエラー表示。
+- [Async Fetching](/markvspec/examples/showcase/async-loading.html): 読み込み中 / 空表示 / エラー。
 - [Scenario Preview Data](/markvspec/examples/showcase/scenario-samples.html): 同じ画面の確認パターン。
 - [Profile Page With Template](/markvspec/examples/showcase/profile-page-with-template.html): 部分更新。
 
