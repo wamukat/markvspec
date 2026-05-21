@@ -1,7 +1,7 @@
 import { elementIdPattern } from "./ids.js";
 import type { BlockAst, SectionAst } from "./markdown-section-ast.js";
 import { addPropertyLocation } from "./section-property-accumulator.js";
-import { createUnrepresentedSourceTextDiagnostic } from "./source-text-diagnostics.js";
+import { createUnrepresentedSourceTextDiagnostic, createUnsupportedStructuredItemDiagnostic } from "./source-text-diagnostics.js";
 import type {
   MarkVSpecDiagnostic,
   MarkVSpecPreviewScenario,
@@ -37,6 +37,8 @@ export interface PreviewScenarioSectionSemanticResult {
   sectionProse: MarkVSpecSectionProse[];
   diagnostics: MarkVSpecDiagnostic[];
 }
+
+const previewScenarioPropertyKeys = new Set(["state", "model", "view", "route", "samples", "before", "cases"]);
 
 const elementIdRegexForSamples = new RegExp(String.raw`^${elementIdPattern}$`, "u");
 
@@ -148,11 +150,12 @@ export function parsePreviewScenariosSection(
         continue;
       }
       if (value === undefined) {
-        diagnostics.push({
-          severity: "warning",
-          message: `Preview Scenario ${current.name} has malformed entry: ${bullet.text}. Use state, model, view, route, samples, before, or cases.`,
-          line: bullet.location.line
-        });
+        diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+          context: `Preview Scenario ${current.name}`,
+          text: bullet.text,
+          location: bullet.location,
+          allowed: [...previewScenarioPropertyKeys].join(", ")
+        }));
         continue;
       }
       if (key === "route") {
@@ -161,6 +164,15 @@ export function parsePreviewScenariosSection(
           message: `Preview Scenario ${current.name} route must be a block with key: value entries.`,
           line: bullet.location.line
         });
+        continue;
+      }
+      if (!previewScenarioPropertyKeys.has(key)) {
+        diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+          context: `Preview Scenario ${current.name}`,
+          text: bullet.text,
+          location: bullet.location,
+          allowed: [...previewScenarioPropertyKeys].join(", ")
+        }));
         continue;
       }
       current.properties[key] = value;

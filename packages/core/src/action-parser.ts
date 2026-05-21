@@ -1,5 +1,4 @@
-import { elementIdPattern } from "./ids.js";
-import { createUnrepresentedSourceTextDiagnostic } from "./source-text-diagnostics.js";
+import { createUnrepresentedSourceTextDiagnostic, createUnsupportedStructuredItemDiagnostic } from "./source-text-diagnostics.js";
 import type { MarkVSpecAction, MarkVSpecActionOutcome, MarkVSpecDiagnostic, MarkVSpecProcessStep, MarkVSpecRouteParam, SourceLocation } from "./types.js";
 
 export interface ActionBulletInput {
@@ -9,7 +8,6 @@ export interface ActionBulletInput {
 }
 
 type ActionBlock =
-  | "triggered"
   | "from"
   | "process"
   | "otherwise";
@@ -24,6 +22,7 @@ export interface ActionParseContext {
   nestedBlock?: ProcessNestedBlock;
   nestedBlockIndent?: number;
   processStep?: MarkVSpecProcessStep;
+  ignoredBlockIndent?: number;
   rejectedProcessStepIndent?: number;
   processOutcome?: string;
   processOutcomeIndent?: number;
@@ -40,6 +39,10 @@ export function applyActionBulletToContext(
   context: ActionParseContext,
   diagnostics: MarkVSpecDiagnostic[] = []
 ): ActionParseContext {
+  if (context.ignoredBlockIndent !== undefined && bullet.indent > context.ignoredBlockIndent) {
+    return { ignoredBlockIndent: context.ignoredBlockIndent };
+  }
+
   if (bullet.indent === 0) {
     const canonicalProcess = parseCanonicalProcessHeading(bullet.text);
     if (canonicalProcess) {
@@ -50,32 +53,26 @@ export function applyActionBulletToContext(
 
     const block = parseActionBlock(bullet.text);
     if (block) {
-      if (block === "triggered") {
-        diagnostics.push(createDeprecatedTriggeredBlockDiagnostic(action.id, bullet.location.line));
-      }
       return { block, outcome: block === "otherwise" ? "otherwise" : undefined };
     }
 
-    diagnostics.push({
-      severity: "warning",
-      message: `Action ${action.id} has unsupported top-level entry: ${bullet.text}. Use From, Process P1: <name>, or Otherwise.`,
-      line: bullet.location.line
-    });
-    return {};
+    diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+      context: `Action ${action.id}`,
+      text: bullet.text,
+      location: bullet.location,
+      allowed: "From, Process P1: <name>, or Otherwise"
+    }));
+    return { ignoredBlockIndent: bullet.indent };
   }
 
   if (!context.block) {
-    diagnostics.push({
-      severity: "warning",
-      message: `Action ${action.id} has nested entry outside a recognized block: ${bullet.text}.`,
-      line: bullet.location.line
-    });
-    return {};
-  }
-
-  if (context.block === "triggered") {
-    applyActionTrigger(action, bullet.text, bullet.location);
-    return { block: context.block };
+    diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+      context: `Action ${action.id}`,
+      text: bullet.text,
+      location: bullet.location,
+      allowed: "nest items under From, Process P1: <name>, or Otherwise"
+    }));
+    return { ignoredBlockIndent: Math.max(0, bullet.indent - 1) };
   }
 
   if (context.block === "from") {
@@ -151,9 +148,6 @@ export function applyActionBulletToContext(
 
 function parseActionBlock(text: string): ActionBlock | undefined {
   const normalized = normalizeBlockLabel(text);
-  if (normalized === "triggered") {
-    return "triggered";
-  }
   if (normalized === "from") {
     return "from";
   }
@@ -161,14 +155,6 @@ function parseActionBlock(text: string): ActionBlock | undefined {
     return "otherwise";
   }
   return undefined;
-}
-
-function createDeprecatedTriggeredBlockDiagnostic(actionId: string, line: number): MarkVSpecDiagnostic {
-  return {
-    severity: "warning",
-    message: `Action ${actionId} uses non-canonical Triggered block. Move callers to Element action: / action event:, ## Events page.load or partial.render, or process receive:.`,
-    line
-  };
 }
 
 function parseDirectCaseName(text: string): string | undefined {
@@ -226,20 +212,6 @@ function createProcessStep(name: string, indent: number, location: SourceLocatio
     propertyLocations: {},
     location
   };
-}
-
-function applyActionTrigger(action: MarkVSpecAction, value: string, location: SourceLocation): void {
-  action.triggeredBy = value;
-  action.triggeredByLocation = location;
-  action.properties["triggered"] = value;
-  addPropertyLocation(action.propertyLocations, "triggered", location);
-  const triggerParts = new RegExp(String.raw`^(${elementIdPattern})\.([A-Za-z][A-Za-z0-9_-]*)$`, "u").exec(value);
-  if (triggerParts) {
-    action.trigger = {
-      elementId: triggerParts[1],
-      event: triggerParts[2]
-    };
-  }
 }
 
 function applyProcessStepBullet(

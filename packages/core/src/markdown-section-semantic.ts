@@ -49,6 +49,7 @@ import {
 } from "./markdown-section-ast.js";
 import { filterLinesWithoutStandaloneHtmlComments, isStandaloneHtmlCommentBlock } from "./markdown-html-comments.js";
 import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
+import { createUnsupportedStructuredItemDiagnostic } from "./source-text-diagnostics.js";
 import { isMarkVSpecSourceType } from "./source-types.js";
 import { addAccumulatedSectionProperty, addPropertyLocation } from "./section-property-accumulator.js";
 
@@ -174,6 +175,10 @@ const tabItemPropertyKeys = new Set(["panel", "action", "active when"]);
 const accordionItemPropertyKeys = new Set(["panel", "action", "open when"]);
 const panelItemPropertyKeys = new Set([...tabItemPropertyKeys, ...accordionItemPropertyKeys]);
 const actionMenuItemPropertyKeys = new Set(["action", "tone", "disabled when"]);
+const viewContextPropertyKeys = new Set(["type", "values"]);
+const formGroupPropertyKeys = new Set(["marker", "description", "purpose", "fields", "submit"]);
+const errorCodePropertyKeys = new Set(["marker", "business rule", "target", "message", "display", "tone", "description"]);
+const businessRulePropertyKeys = new Set(["marker", "description", "when", "effect", "message", "messages", "appliesTo", "priority"]);
 const previewScenarioSectionSemanticSupport: PreviewScenarioSectionSemanticSupport = {
   appendEntityProseLines,
   isEntityNoteBlock,
@@ -1078,12 +1083,20 @@ function applyViewContextBullet(
     return undefined;
   }
   if (value !== undefined) {
-    context.properties[key] = value;
-    addPropertyLocation(context.propertyLocations, key, bullet.location);
+    diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+      context: `View Context ${context.name}`,
+      text: bullet.text,
+      location: bullet.location,
+      allowed: [...viewContextPropertyKeys].join(", ")
+    }));
     return undefined;
   }
-  context.properties[key] = true;
-  addPropertyLocation(context.propertyLocations, key, bullet.location);
+  diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+    context: `View Context ${context.name}`,
+    text: bullet.text,
+    location: bullet.location,
+    allowed: [...viewContextPropertyKeys].join(", ")
+  }));
   return undefined;
 }
 
@@ -1230,8 +1243,9 @@ function viewContextSampleKey(key: string): string {
   return match?.[1]?.trim() ?? key;
 }
 
-function parseFormGroupsSection(section: SectionAst): Pick<SectionSemanticResult, "formGroups" | "sectionProse" | "dependencies"> {
+function parseFormGroupsSection(section: SectionAst): Pick<SectionSemanticResult, "formGroups" | "sectionProse" | "diagnostics" | "dependencies"> {
   const formGroups: MarkVSpecFormGroup[] = [];
+  const diagnostics: MarkVSpecDiagnostic[] = [];
   const dependencies: SemanticDependency[] = [];
   let current: MarkVSpecFormGroup | undefined;
   let nestedProperty: string | undefined;
@@ -1296,13 +1310,20 @@ function parseFormGroupsSection(section: SectionAst): Pick<SectionSemanticResult
       currentHasStructuredContent = true;
       const location = locationFromBlock(bullet);
       if (bullet.depth === 0) {
-        nestedProperty = applyFormGroupBullet(current, bullet.text, location);
+        nestedProperty = applyFormGroupBullet(current, bullet.text, location, diagnostics);
         continue;
       }
       if (nestedProperty === "fields") {
         for (const field of splitReferenceList(bullet.text)) {
           addFormGroupField(current, field, location);
         }
+      } else {
+        diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+          context: `FormGroup ${current.id}`,
+          text: bullet.text,
+          location,
+          allowed: [...formGroupPropertyKeys].join(", ")
+        }));
       }
     }
   }
@@ -1319,12 +1340,14 @@ function parseFormGroupsSection(section: SectionAst): Pick<SectionSemanticResult
   return {
     formGroups,
     sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["form-groups:list", ...formGroups.map((formGroup) => formGroupRenderKey(formGroup.id))]),
+    diagnostics,
     dependencies
   };
 }
 
-function parseErrorCodesSection(section: SectionAst): Pick<SectionSemanticResult, "errorCodes" | "sectionProse" | "dependencies"> {
+function parseErrorCodesSection(section: SectionAst): Pick<SectionSemanticResult, "errorCodes" | "sectionProse" | "diagnostics" | "dependencies"> {
   const errorCodes: MarkVSpecErrorCode[] = [];
+  const diagnostics: MarkVSpecDiagnostic[] = [];
   const dependencies: SemanticDependency[] = [];
   let current: MarkVSpecErrorCode | undefined;
   let currentHasStructuredContent = false;
@@ -1381,7 +1404,7 @@ function parseErrorCodesSection(section: SectionAst): Pick<SectionSemanticResult
         currentHasStructuredContent = true;
       }
       for (const bullet of listItems([block]).filter((item) => item.depth === 0)) {
-        applyErrorCodeBullet(current, bullet.text, locationFromBlock(bullet));
+        applyErrorCodeBullet(current, bullet.text, locationFromBlock(bullet), diagnostics);
       }
       for (const target of propertyValues(current.properties["target"])) {
         dependencies.push({
@@ -1404,6 +1427,7 @@ function parseErrorCodesSection(section: SectionAst): Pick<SectionSemanticResult
   return {
     errorCodes,
     sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["error-codes:list", ...errorCodes.map((errorCode) => errorCodeRenderKey(errorCode.id))]),
+    diagnostics,
     dependencies
   };
 }
@@ -2261,15 +2285,30 @@ function referenceDependency(sourceId: string, targetId: string): SemanticDepend
   };
 }
 
-function applyFormGroupBullet(formGroup: MarkVSpecFormGroup, text: string, location: SourceLocation): string | undefined {
-  formGroup.bullets.push({ text, location });
+function applyFormGroupBullet(formGroup: MarkVSpecFormGroup, text: string, location: SourceLocation, diagnostics: MarkVSpecDiagnostic[]): string | undefined {
   const [key, value] = splitKeyValue(text);
   if (value === undefined) {
+    diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+      context: `FormGroup ${formGroup.id}`,
+      text,
+      location,
+      allowed: [...formGroupPropertyKeys].join(", ")
+    }));
     return undefined;
   }
 
   const normalizedKey = key.trim();
   const normalizedValue = value.trim();
+  if (!formGroupPropertyKeys.has(normalizedKey)) {
+    diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+      context: `FormGroup ${formGroup.id}`,
+      text,
+      location,
+      allowed: [...formGroupPropertyKeys].join(", ")
+    }));
+    return undefined;
+  }
+  formGroup.bullets.push({ text, location });
   addAccumulatedSectionProperty(formGroup, normalizedKey, normalizedValue, location);
 
   if (normalizedKey === "fields") {
@@ -2308,15 +2347,30 @@ function splitReferenceList(value: string): string[] {
     .filter(Boolean);
 }
 
-function applyErrorCodeBullet(errorCode: MarkVSpecErrorCode, text: string, location: SourceLocation): void {
-  errorCode.bullets.push({ text, location });
+function applyErrorCodeBullet(errorCode: MarkVSpecErrorCode, text: string, location: SourceLocation, diagnostics: MarkVSpecDiagnostic[]): void {
   const [key, value] = splitKeyValue(text);
   if (value === undefined) {
+    diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+      context: `Error Code ${errorCode.id}`,
+      text,
+      location,
+      allowed: [...errorCodePropertyKeys].join(", ")
+    }));
     return;
   }
 
   const normalizedKey = key.trim();
   const normalizedValue = value.trim();
+  if (!errorCodePropertyKeys.has(normalizedKey)) {
+    diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+      context: `Error Code ${errorCode.id}`,
+      text,
+      location,
+      allowed: [...errorCodePropertyKeys].join(", ")
+    }));
+    return;
+  }
+  errorCode.bullets.push({ text, location });
   addAccumulatedSectionProperty(errorCode, normalizedKey, normalizedValue, location);
 }
 
@@ -2327,8 +2381,9 @@ function propertyValues(value: string | string[] | undefined): string[] {
   return value ? [value] : [];
 }
 
-function parseRulesSection(section: SectionAst): Pick<SectionSemanticResult, "rules" | "sectionProse"> {
+function parseRulesSection(section: SectionAst): Pick<SectionSemanticResult, "rules" | "sectionProse" | "diagnostics"> {
   const rules: MarkVSpecRule[] = [];
+  const diagnostics: MarkVSpecDiagnostic[] = [];
   let current: MarkVSpecRule | undefined;
   let freeformRule: MarkVSpecRule | undefined;
   let currentHasStructuredContent = false;
@@ -2409,24 +2464,25 @@ function parseRulesSection(section: SectionAst): Pick<SectionSemanticResult, "ru
     if (current) {
       if (block.type === "list") {
         currentHasStructuredContent = true;
-        applyRuleListBlock(current, block);
+        applyRuleListBlock(current, block, diagnostics);
       }
     }
   }
   return {
     rules,
-    sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["rules:list", ...rules.map((rule) => ruleRenderKey(rule.id))])
+    sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["rules:list", ...rules.map((rule) => ruleRenderKey(rule.id))]),
+    diagnostics
   };
 }
 
-function applyRuleListBlock(rule: MarkVSpecRule, block: BlockAst): void {
+function applyRuleListBlock(rule: MarkVSpecRule, block: BlockAst, diagnostics: MarkVSpecDiagnostic[]): void {
   if (block.type !== "list") {
     return;
   }
-  appendRuleBodyLines(rule, block);
+  appendRuleBodyLinesForSupportedItems(rule, block);
 
   for (const item of block.children.filter((child): child is Extract<BlockAst, { type: "listItem" }> => child.type === "listItem")) {
-    applyRuleBullet(rule, item.text, locationFromBlock(item));
+    applyRuleBullet(rule, item.text, locationFromBlock(item), diagnostics);
     const [key, value] = splitKeyValue(item.text);
     if (value === undefined || key.trim() !== "messages" || value.trim() !== "") {
       continue;
@@ -2437,22 +2493,47 @@ function applyRuleListBlock(rule: MarkVSpecRule, block: BlockAst): void {
   }
 }
 
-function applyRuleBullet(rule: MarkVSpecRule, text: string, location: SourceLocation): void {
-  rule.bullets.push({ text, location });
+function applyRuleBullet(rule: MarkVSpecRule, text: string, location: SourceLocation, diagnostics: MarkVSpecDiagnostic[]): void {
   const [key, value] = splitKeyValue(text);
   if (value === undefined) {
+    rule.bullets.push({ text, location });
     return;
   }
   const normalizedKey = key.trim();
   const normalizedValue = value.trim();
+  if (!businessRulePropertyKeys.has(normalizedKey)) {
+    diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+      context: `Business Rule ${rule.id}`,
+      text,
+      location,
+      allowed: [...businessRulePropertyKeys].join(", ")
+    }));
+    return;
+  }
+  rule.bullets.push({ text, location });
   if (normalizedKey === "messages" && normalizedValue === "") {
     return;
   }
   addAccumulatedSectionProperty(rule, normalizedKey, normalizedValue, location);
 }
 
+function appendRuleBodyLinesForSupportedItems(rule: MarkVSpecRule, block: Extract<BlockAst, { type: "list" }>): void {
+  const lines = block.children.flatMap((item) => {
+    const [key, value] = splitKeyValue(item.text);
+    if (value !== undefined && !businessRulePropertyKeys.has(key.trim())) {
+      return [];
+    }
+    return item.sourceLines && item.sourceLines.length > 0 ? item.sourceLines : [`- ${item.text}`];
+  });
+  appendRuleBodyLineValues(rule, lines);
+}
+
 function appendRuleBodyLines(rule: MarkVSpecRule, block: BlockAst): void {
   const lines = proseBlockToLines(block);
+  appendRuleBodyLineValues(rule, lines);
+}
+
+function appendRuleBodyLineValues(rule: MarkVSpecRule, lines: string[]): void {
   if (lines.length === 0) {
     return;
   }

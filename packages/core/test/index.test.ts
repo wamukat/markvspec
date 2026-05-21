@@ -2341,8 +2341,10 @@ route: /notices/:noticeId
   assert.deepEqual(
     result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
     [
-      ["warning", "Action A-OpenNotice uses non-canonical Triggered block. Move callers to Element action: / action event:, ## Events page.load or partial.render, or process receive:.", lineNumber(listSource, "- Triggered")],
-      ["warning", "Action A-StepOpenNotice uses non-canonical Triggered block. Move callers to Element action: / action event:, ## Events page.load or partial.render, or process receive:.", lineNumber(listSource, "- Triggered", 2)],
+      ["warning", "Unknown structured item in Action A-OpenNotice: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.", lineNumber(listSource, "- Triggered")],
+      ["warning", "Unknown structured item in Action A-StepOpenNotice: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.", lineNumber(listSource, "- Triggered", 2)],
+      ["warning", "Action A-OpenNotice has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.", lineNumber(listSource, "### A-OpenNotice Open notice")],
+      ["warning", "Action A-StepOpenNotice has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.", lineNumber(listSource, "### A-StepOpenNotice Open notice after request")],
       ["error", "Project navigation from SCR-LIST element E-お知らせリンク to SCR-DETAIL is missing route parameter noticeId.", lineNumber(listSource, "  - extra: \${model.notice.extra}")],
       ["warning", "Project navigation from SCR-LIST element E-お知らせリンク to SCR-DETAIL defines route parameter extra, but target route /notices/:noticeId has no matching placeholder.", lineNumber(listSource, "  - extra: \${model.notice.extra}")],
       ["error", "Project navigation from SCR-LIST action A-StepOpenNotice to SCR-DETAIL is missing route parameter noticeId.", lineNumber(listSource, "    - navigate: SCR-DETAIL", 2)],
@@ -3536,7 +3538,8 @@ title: Broken
 
   assert(messages.includes("Layout L-001 contains missing target E-999."));
   assert(messages.includes("Element E-001 references missing action A-999."));
-  assert(messages.includes("Action A-001 trigger references missing element E-999."));
+  assert(messages.includes("Unknown structured item in Action A-001: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Action A-001 has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response."));
   assert(messages.includes("Action A-001 process step Preprocess targets missing layout or element L-999."));
   assert(messages.includes("Action A-001 process step Render cannot target FormGroup F-001. Use an L-* layout target for updates."));
   assert(messages.includes("Condition references missing ID E-404."));
@@ -4368,6 +4371,113 @@ title: Missing Trigger
   );
 });
 
+test("warns for unknown structured items across semantic sections", () => {
+  const source = `---
+id: SCR-UNKNOWN-STRUCTURED
+type: screen
+title: Unknown Structured
+---
+# SCR-UNKNOWN-STRUCTURED Unknown Structured
+
+## States
+
+- idle*
+
+## Slots
+
+### main Main
+
+- unsupported: slot
+
+## Elements
+
+### E-Name Input
+
+- label: Name
+
+## Form Groups
+
+### F-Login Login form
+
+- fields: E-Name
+- unsupported: form
+
+## Actions
+
+### A-Submit Submit
+
+- Tliggered
+  - E-Name.change
+- From
+  - idle
+
+## View Context
+
+### isAdmin Admin
+
+- type: boolean
+- values:
+  - true*
+  - false
+- unsupported: view
+
+## Preview Scenarios
+
+### Admin View
+
+- state: idle
+- unsupported: scenario
+
+## Validations
+
+### V-Name Name validation
+
+- target: E-Name
+- unsupported: validation
+
+## Business Rules
+
+### R-Policy Policy
+
+- unsupported: rule
+
+## Error Codes
+
+### ERR-NAME Name error
+
+- target: E-Name
+- business rule: R-Policy
+- unsupported: error
+`;
+  const result = parseMarkVSpec(source);
+  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+
+  assert(messages.includes("Unknown structured item in Slot main: unsupported: slot. This item is not represented in MarkVSpec output. Use required, default, purpose, description."));
+  assert(messages.includes("Unknown structured item in FormGroup F-Login: unsupported: form. This item is not represented in MarkVSpec output. Use marker, description, purpose, fields, submit."));
+  assert(messages.includes("Unknown structured item in Action A-Submit: Tliggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Unknown structured item in View Context isAdmin Admin: unsupported: view. This item is not represented in MarkVSpec output. Use type, values."));
+  assert(messages.includes("Unknown structured item in Preview Scenario Admin View: unsupported: scenario. This item is not represented in MarkVSpec output. Use state, model, view, route, samples, before, cases."));
+  assert(messages.includes("Unknown structured item in Validation V-Name: unsupported: validation. This item is not represented in MarkVSpec output. Use marker, description, target, scope, run, inputs, rules, constraints, check, when, message, messages, error code."));
+  assert(messages.includes("Unknown structured item in Business Rule R-Policy: unsupported: rule. This item is not represented in MarkVSpec output. Use marker, description, when, effect, message, messages, appliesTo, priority."));
+  assert(messages.includes("Unknown structured item in Error Code ERR-NAME: unsupported: error. This item is not represented in MarkVSpec output. Use marker, business rule, target, message, display, tone, description."));
+
+  assert.equal(result.slotDefinitions[0]?.properties["unsupported"], undefined);
+  assert.equal(result.formGroups[0]?.properties["unsupported"], undefined);
+  assert.equal(result.formGroups[0]?.bullets.some((bullet) => bullet.text === "unsupported: form"), false);
+  assert.deepEqual(result.formGroups[0]?.fields.map((field) => field.elementId), ["E-Name"]);
+  assert.equal(result.actions[0]?.triggeredBy, undefined);
+  assert.equal(result.actions[0]?.properties["triggered"], undefined);
+  assert.equal(result.viewContexts[0]?.properties["unsupported"], undefined);
+  assert.equal(result.previewScenarios[0]?.properties["unsupported"], undefined);
+  assert.equal(result.validations[0]?.properties["unsupported"], undefined);
+  assert.equal(result.validations[0]?.bullets.some((bullet) => bullet.text === "unsupported: validation"), false);
+  assert.equal(result.rules[0]?.properties["unsupported"], undefined);
+  assert.equal(result.rules[0]?.bullets.some((bullet) => bullet.text === "unsupported: rule"), false);
+  assert.equal(result.rules[0]?.bodyLines?.some((line) => line.includes("unsupported: rule")), false);
+  assert.equal(result.errorCodes[0]?.properties["unsupported"], undefined);
+  assert.equal(result.errorCodes[0]?.bullets.some((bullet) => bullet.text === "unsupported: error"), false);
+});
+
 test("reports duplicate IDs", () => {
   const source = `---
 id: SCR-DUP
@@ -4474,13 +4584,13 @@ title: Outcome
     [
       [
         "warning",
-        "Action A-Submit uses non-canonical Triggered block. Move callers to Element action: / action event:, ## Events page.load or partial.render, or process receive:.",
+        "Unknown structured item in Action A-Submit: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.",
         lineNumber(source, "- Triggered")
       ],
       [
         "warning",
-        "Action A-Submit has invalid trigger service.response. Expected Element action:, ## Events page.load or partial.render, or A-ActionId.P-marker.response.",
-        lineNumber(source, "  - service.response")
+        "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.",
+        lineNumber(source, "### A-Submit submit")
       ],
       [
         "warning",
@@ -4638,11 +4748,11 @@ title: Action Aliases
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Action A-Submit has unsupported top-level entry: Effect. Use From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Action A-Submit has unsupported top-level entry: Case. Use From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Action A-Submit has unsupported top-level entry: Else. Use From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Unknown structured item in Action A-Submit: Effect. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Unknown structured item in Action A-Submit: Case. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Unknown structured item in Action A-Submit: Else. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
   assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit has unsupported top-level entry: Effect. Use From, Process P1: <name>, or Otherwise.")?.line,
+    result.diagnostics.find((diagnostic) => diagnostic.message === "Unknown structured item in Action A-Submit: Effect. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.")?.line,
     lineNumber(source, "- Effect")
   );
 });
@@ -4669,7 +4779,7 @@ title: Unsupported Action Entry
   const result = parseMarkVSpec(source);
 
   assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit has unsupported top-level entry: request: POST /submit. Use From, Process P1: <name>, or Otherwise.")?.line,
+    result.diagnostics.find((diagnostic) => diagnostic.message === "Unknown structured item in Action A-Submit: request: POST /submit. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.")?.line,
     lineNumber(source, "- request: POST /submit")
   );
   assert.equal(result.actions.find((candidate) => candidate.id === "A-Submit")?.overview?.length ?? 0, 0);
@@ -5669,13 +5779,13 @@ title: Params
     [
       [
         "warning",
-        "Action A-Submit uses non-canonical Triggered block. Move callers to Element action: / action event:, ## Events page.load or partial.render, or process receive:.",
+        "Unknown structured item in Action A-Submit: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.",
         lineNumber(source, "- Triggered")
       ],
       [
         "warning",
-        "Action A-Submit has invalid trigger service.submit. Expected Element action:, ## Events page.load or partial.render, or A-ActionId.P-marker.response.",
-        lineNumber(source, "  - service.submit")
+        "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.",
+        lineNumber(source, "### A-Submit submit")
       ],
       [
         "error",
@@ -5776,13 +5886,13 @@ title: Response
     [
       [
         "warning",
-        "Action A-Submit uses non-canonical Triggered block. Move callers to Element action: / action event:, ## Events page.load or partial.render, or process receive:.",
+        "Unknown structured item in Action A-Submit: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.",
         lineNumber(source, "- Triggered")
       ],
       [
         "warning",
-        "Action A-Submit has invalid trigger service.response. Expected Element action:, ## Events page.load or partial.render, or A-ActionId.P-marker.response.",
-        lineNumber(source, "  - service.response")
+        "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.",
+        lineNumber(source, "### A-Submit submit")
       ],
       [
         "warning",
@@ -8608,10 +8718,9 @@ title: Malformed Action
   const result = parseMarkVSpec(source);
   const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Action A-Submit has unsupported top-level entry: request: POST /login. Use From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Action A-Submit has nested entry outside a recognized block: E-メールアドレス入力.click."));
-  assert(messages.includes("Action A-Submit has unsupported top-level entry: Process: POST /login. Use From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Action A-Submit has unsupported top-level entry: Process: email: E-メールアドレス入力.value. Use From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Unknown structured item in Action A-Submit: request: POST /login. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Unknown structured item in Action A-Submit: Process: POST /login. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Unknown structured item in Action A-Submit: Process: email: E-メールアドレス入力.value. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
   assert(messages.includes("Action A-Submit process step Preprocess has unsupported entry: request: POST /unsupported. Put request method and path under a request block."));
   assert(messages.includes("Action A-Submit process step Preprocess has unsupported entry: target: L-MessageArea. Put update details under an update block."));
   assert(messages.includes("Action A-Submit process step Preprocess has unsupported entry: target: L-SecondMessageArea. Put update details under an update block."));
@@ -8626,23 +8735,19 @@ title: Malformed Action
   assert.equal(action?.processSteps.find((step) => step.name === "Preprocess")?.target, "L-FirstMessageArea");
   assert.equal(action?.processSteps.flatMap((step) => step.outcomes).find((outcome) => outcome.result === "failure")?.target, "L-FirstMessageArea");
   assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.startsWith("Action A-Submit has unsupported top-level entry"))?.line,
+    result.diagnostics.find((diagnostic) => diagnostic.message.startsWith("Unknown structured item in Action A-Submit: request: POST /login"))?.line,
     lineNumber(source, "- request: POST /login")
-  );
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.startsWith("Action A-Submit has nested entry outside"))?.line,
-    lineNumber(source, "  - E-メールアドレス入力.click")
   );
   assert.equal(
     result.diagnostics.find((diagnostic) => diagnostic.message.includes("Apply immediate effect has unsupported entry: request: POST /unsupported"))?.line,
     lineNumber(source, "  - request: POST /unsupported", 2)
   );
   assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("unsupported top-level entry: Process: POST /login"))?.line,
+    result.diagnostics.find((diagnostic) => diagnostic.message.includes("Action A-Submit: Process: POST /login"))?.line,
     lineNumber(source, "- Process: POST /login")
   );
   assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("unsupported top-level entry: Process: email: E-メールアドレス入力.value"))?.line,
+    result.diagnostics.find((diagnostic) => diagnostic.message.includes("Action A-Submit: Process: email: E-メールアドレス入力.value"))?.line,
     lineNumber(source, "- Process: email: E-メールアドレス入力.value")
   );
 });
@@ -9146,10 +9251,14 @@ title: Malformed Sections
       ["warning", "Malformed Action heading. Expected ### [<marker>:]A-* <name>.", lineNumber(source, "### Submit without ID")],
       [
         "warning",
-        "Action A-Submit uses non-canonical Triggered block. Move callers to Element action: / action event:, ## Events page.load or partial.render, or process receive:.",
+        "Unknown structured item in Action A-Submit: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.",
         lineNumber(source, "- Triggered")
       ],
-      ["error", "Action A-Submit trigger references missing action A-Missing.", lineNumber(source, "  - A-Missing.response")]
+      [
+        "warning",
+        "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.",
+        lineNumber(source, "### A-Submit Submit")
+      ]
     ]
   );
 });
@@ -9210,10 +9319,14 @@ title: Action Lifecycle
     [
       [
         "warning",
-        "Action A-HandleProgress uses non-canonical Triggered block. Move callers to Element action: / action event:, ## Events page.load or partial.render, or process receive:.",
+        "Unknown structured item in Action A-HandleProgress: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.",
         lineNumber(source, "- Triggered")
       ],
-      ["warning", "Action A-HandleProgress uses unsupported action lifecycle event progress.", lineNumber(source, "  - A-Submit.progress")]
+      [
+        "warning",
+        "Action A-HandleProgress has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.",
+        lineNumber(source, "### A-HandleProgress Handle progress")
+      ]
     ]
   );
 });
@@ -10213,7 +10326,7 @@ title: Bad Scenario Entry
 
   const messages = parseMarkVSpec(source).diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Preview Scenario idle has malformed entry: unexpected. Use state, model, view, route, samples, before, or cases."));
+  assert(messages.includes("Unknown structured item in Preview Scenario idle: unexpected. This item is not represented in MarkVSpec output. Use state, model, view, route, samples, before, cases."));
   assert(messages.includes("Preview Scenario idle route must be a block with key: value entries."));
 });
 
@@ -11320,25 +11433,6 @@ locale: ja
 `
     },
     {
-      code: "action.invalidTrigger",
-      ja: "trigger service.response は不正",
-      source: `---
-id: SCR-ACTION-INVALID-TRIGGER
-type: screen
-title: Action Invalid Trigger
-locale: ja
----
-# SCR-ACTION-INVALID-TRIGGER Action Invalid Trigger
-
-## Actions
-
-### A-Save Save
-
-- Triggered
-  - service.response
-`
-    },
-    {
       code: "partial.referenceMissing",
       ja: "references.partials",
       source: `---
@@ -12289,7 +12383,8 @@ title: Action Neutral Diagnostics
 
   assert(messages.includes("Action A-Run has duplicate process marker P1."));
   assert(messages.includes("Action A-Run process step P1 Duplicate marker references missing process marker P9."));
-  assert(messages.includes("Action A-Other trigger A-Run.response is ambiguous. Use A-ActionId.P-marker.response."));
+  assert(messages.includes("Unknown structured item in Action A-Other: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
+  assert(messages.includes("Action A-Other has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response."));
   assert(messages.includes("Action A-Run process step P1 Missing result case done display effect must define exactly one element."));
   assert(messages.includes("Action A-Run process step P1 Duplicate marker case done display effect targets missing layout or element L-Missing."));
   assert(messages.includes("Action A-Run process step P1 Duplicate marker case done display effect element must reference one E-* element or L-* layout."));

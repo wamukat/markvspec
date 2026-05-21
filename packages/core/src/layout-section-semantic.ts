@@ -8,6 +8,7 @@ import type {
   SourceLocation
 } from "./types.js";
 import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
+import { createUnsupportedStructuredItemDiagnostic } from "./source-text-diagnostics.js";
 import { elementIdPattern, isLayoutItemId, layoutGroupIdPattern } from "./ids.js";
 import type { MarkdownDocument } from "./markdown-document.js";
 import {
@@ -16,6 +17,8 @@ import {
   type SectionAst
 } from "./markdown-section-ast.js";
 import type { SemanticDependency } from "./markdown-section-semantic.js";
+
+const slotDefinitionPropertyKeys = new Set(["required", "default", "purpose", "description"]);
 
 interface ListItemView {
   text: string;
@@ -316,6 +319,7 @@ function parseLayoutOrSlotSection(section: SectionAst, support: LayoutSectionSem
 
 function parseSlotsSection(section: SectionAst, support: LayoutSectionSemanticSupport): LayoutSectionSemanticResult {
   const slotDefinitions: MarkVSpecSlotDefinition[] = [];
+  const diagnostics: MarkVSpecDiagnostic[] = [];
   const dependencies: SemanticDependency[] = [{
     source: { type: "section", id: section.id },
     target: { type: "render", id: "slots:list" },
@@ -389,7 +393,7 @@ function parseSlotsSection(section: SectionAst, support: LayoutSectionSemanticSu
         currentSlotDefinitionHasStructuredContent = true;
       }
       for (const bullet of support.listItems([block]).filter((item) => item.depth === 0)) {
-        applySlotDefinitionBullet(currentSlotDefinition, bullet.text, support.locationFromBlock(bullet), support);
+        applySlotDefinitionBullet(currentSlotDefinition, bullet.text, support.locationFromBlock(bullet), support, diagnostics);
       }
     }
   }
@@ -403,7 +407,7 @@ function parseSlotsSection(section: SectionAst, support: LayoutSectionSemanticSu
     slotContents: [],
     slotDefinitions,
     sectionProse: support.proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, renderKeys),
-    diagnostics: support.structuredSectionOwnershipDiagnostics(section),
+    diagnostics: [...diagnostics, ...support.structuredSectionOwnershipDiagnostics(section)],
     dependencies: support.dedupeDependencies(dependencies),
     renderKeys
   };
@@ -600,16 +604,26 @@ function applySlotDefinitionBullet(
   slot: MarkVSpecSlotDefinition,
   text: string,
   location: SourceLocation,
-  support: LayoutSectionSemanticSupport
+  support: LayoutSectionSemanticSupport,
+  diagnostics: MarkVSpecDiagnostic[]
 ): void {
   const [key, value] = support.splitKeyValue(text);
+  const normalizedKey = key.trim();
+  if (!slotDefinitionPropertyKeys.has(normalizedKey)) {
+    diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+      context: `Slot ${slot.name}`,
+      text,
+      location,
+      allowed: [...slotDefinitionPropertyKeys].join(", ")
+    }));
+    return;
+  }
   if (value === undefined) {
     slot.properties[text] = true;
     support.addPropertyLocation(slot.propertyLocations, text, location);
     return;
   }
 
-  const normalizedKey = key.trim();
   slot.properties[normalizedKey] = value.trim();
   support.addPropertyLocation(slot.propertyLocations, normalizedKey, location);
 }

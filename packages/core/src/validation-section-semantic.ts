@@ -1,6 +1,8 @@
 import type { BlockAst, SectionAst, SectionKind } from "./markdown-section-ast.js";
 import { addAccumulatedSectionProperty } from "./section-property-accumulator.js";
+import { createUnsupportedStructuredItemDiagnostic } from "./source-text-diagnostics.js";
 import type {
+  MarkVSpecDiagnostic,
   MarkVSpecSectionProse,
   MarkVSpecValidationRule,
   SourceLocation
@@ -38,14 +40,32 @@ export interface ValidationSectionSemanticSupport {
 export interface ValidationSectionSemanticResult {
   validations: MarkVSpecValidationRule[];
   sectionProse: MarkVSpecSectionProse[];
+  diagnostics: MarkVSpecDiagnostic[];
   dependencies: ValidationSectionDependency[];
 }
+
+const validationPropertyKeys = new Set([
+  "marker",
+  "description",
+  "target",
+  "scope",
+  "run",
+  "inputs",
+  "rules",
+  "constraints",
+  "check",
+  "when",
+  "message",
+  "messages",
+  "error code"
+]);
 
 export function parseValidationsSection(
   section: SectionAst,
   support: ValidationSectionSemanticSupport
 ): ValidationSectionSemanticResult {
   const validations: MarkVSpecValidationRule[] = [];
+  const diagnostics: MarkVSpecDiagnostic[] = [];
   const dependencies: ValidationSectionDependency[] = [];
   const sectionScope = validationScopeForSection(section.kind);
   let current: MarkVSpecValidationRule | undefined;
@@ -122,7 +142,16 @@ export function parseValidationsSection(
         activeRule = undefined;
         const [key] = support.splitKeyValue(bullet.text);
         activeStructuredKey = key.trim();
-        applyValidationBullet(current, bullet.text, bullet.location, support);
+        const known = applyValidationBullet(current, bullet.text, bullet.location, support);
+        if (!known) {
+          activeStructuredKey = undefined;
+          diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+            context: `Validation ${current.id}`,
+            text: bullet.text,
+            location: bullet.location,
+            allowed: [...validationPropertyKeys].join(", ")
+          }));
+        }
         continue;
       }
 
@@ -165,6 +194,13 @@ export function parseValidationsSection(
         } else if (activeRule) {
           activeRule.targets.push(bullet.text.trim());
         }
+      } else {
+        diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+          context: `Validation ${current.id}`,
+          text: bullet.text,
+          location: bullet.location,
+          allowed: "nest items under rules, constraints, inputs, messages, message, target, or check"
+        }));
       }
     }
     const targets = propertyValues(current.properties["target"]);
@@ -180,6 +216,7 @@ export function parseValidationsSection(
   return {
     validations,
     sectionProse: support.proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["validations:list", ...validations.map((validation) => validationRenderKey(validation.id))]),
+    diagnostics,
     dependencies
   };
 }
@@ -203,16 +240,20 @@ function applyValidationBullet(
   text: string,
   location: SourceLocation,
   support: ValidationSectionSemanticSupport
-): void {
-  validation.bullets.push({ text, location });
+): boolean {
   const [key, value] = support.splitKeyValue(text);
   if (value === undefined) {
-    return;
+    return false;
   }
 
   const normalizedKey = key.trim();
   const normalizedValue = value.trim();
+  if (!validationPropertyKeys.has(normalizedKey)) {
+    return false;
+  }
+  validation.bullets.push({ text, location });
   addAccumulatedSectionProperty(validation, normalizedKey, normalizedValue, location);
+  return true;
 }
 
 function propertyValues(value: string | string[] | undefined): string[] {

@@ -1047,9 +1047,8 @@ title: Action AST Diagnostics
   const parseResult = parseMarkVSpec(source);
   const expectedDiagnostics = [
     ["warning", "Malformed Action heading. Expected ### [<marker>:]A-* <name>.", lineNumber(source, "### Submit without ID")],
-    ["warning", "Action A-Submit has unsupported top-level entry: request: POST /login. Use From, Process P1: <name>, or Otherwise.", lineNumber(source, "- request: POST /login")],
-    ["warning", "Action A-Submit has nested entry outside a recognized block: E-メールアドレス入力.click.", lineNumber(source, "  - E-メールアドレス入力.click")],
-    ["warning", "Action A-Submit has unsupported top-level entry: Process: POST /login. Use From, Process P1: <name>, or Otherwise.", lineNumber(source, "- Process: POST /login")]
+    ["warning", "Unknown structured item in Action A-Submit: request: POST /login. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.", lineNumber(source, "- request: POST /login")],
+    ["warning", "Unknown structured item in Action A-Submit: Process: POST /login. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.", lineNumber(source, "- Process: POST /login")]
   ];
 
   assert.deepEqual(
