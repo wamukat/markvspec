@@ -82,7 +82,10 @@ docs-site/
     pages/
 ```
 
-初期移行では、既存の `docs/ja` と `docs/en` を直接動かさず、Starlight content へ同期またはコピーする script を用意する。全面移行後に source of truth を `docs-site/src/content/docs` へ寄せるか判断する。
+現在は Starlight 移行済みのため、公開サイトに出る user-facing docs の source of truth は
+`docs-site/src/content/docs` とする。`docs/ja` と `docs/en` に同名の user-facing
+Markdown が残っている間は、repository 上の矛盾を避けるため同じ変更を追従させる。
+保守者向け記録は `docs/*/maintainers` に残し、通常の利用者導線には出さない。
 
 ## URL 方針
 

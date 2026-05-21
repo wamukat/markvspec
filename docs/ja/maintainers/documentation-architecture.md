@@ -85,9 +85,33 @@ site top に置くもの:
 site top は、README と同じ IA を共有します。ただし、README より視覚的に案内し、
 生成済み HTML docs と examples へ直接移動できることを優先します。
 
+### 現在の source of truth
+
+2026-05-21 時点では、公開サイトに出る user-facing docs の source of truth は
+`docs-site/src/content/docs/` です。
+
+根拠:
+
+- `scripts/build-github-pages.mjs` は `docs-site` を build し、`docs-site/dist` を
+  `_site` にコピーする。
+- `scripts/check-pages-site.mjs` は `docs-site/src/content/docs/{ja,en}` の対応関係と
+  `_site` artifact を確認する。
+- `scripts/example-catalog.mjs` の related docs 解決は
+  `docs-site/src/content/docs/<lang>/<group>/...` を参照する。
+- `_site/docs` は生成しないことを `check-pages-site` が確認している。
+
+したがって、利用者が読む公開サイトの内容を修正する場合は、
+`docs-site/src/content/docs/` を第一に編集する。`docs/ja` / `docs/en` に同名の
+user-facing Markdown が残っている場合は、repository 上で矛盾した仕様書が残らないよう
+同じ commit で追従させる。
+
+`docs/ja/maintainers` と `docs/en/maintainers` は保守者向け記録として `docs/` 配下に
+残す。通常の利用者導線には出さない。
+
 ### docs
 
-`docs/` は本文です。利用者向け文書と保守者向け文書を分けます。
+`docs/` は repository 内で読める Markdown mirror と保守者向け記録です。
+利用者向け文書と保守者向け文書を分けます。
 
 推奨構成:
 
