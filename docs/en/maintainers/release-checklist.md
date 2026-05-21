@@ -53,13 +53,15 @@ change, in this order:
 2. Whitespace check: run `git diff --check`.
 3. Unit / integration tests: run `npm test`.
 4. Example preview audit: run `npm run audit:examples`.
-5. Examples HTML export: run `npm run build -w @markvspec/cli`, then
+5. Generated grammar/reference docs: run `npm run check:generated-docs`.
+6. Docs site: run `npm run check:docs-site`.
+7. Examples HTML export: run `npm run build -w @markvspec/cli`, then
    `node packages/cli/dist/index.js export html "examples/**/*.vspec.md" --out .work/release-html`
    and open representative HTML files in a browser.
-6. For print or PDF-affecting changes, run `npm run check:print-regression`.
+8. For print or PDF-affecting changes, run `npm run check:print-regression`.
    If PDF export is unavailable, record that HTML artifacts were generated and
    PDF was skipped because no compatible browser was available.
-7. For README, DSL, example, or release metadata changes, also run
+9. For README, DSL, example, or release metadata changes, also run
    `npm run check:readme-release`.
 
 `npm run check:release` is the aggregate gate for the release environment. This
@@ -77,7 +79,9 @@ cd .work/release-check
 npm install
 git diff --check
 npm test
+npm run check:generated-docs
 npm run audit:examples
+npm run check:docs-site
 npm run check:print-regression
 ```
 
@@ -96,7 +100,9 @@ with `isResolved: false`; the user verifies the result before resolving it.
 - [ ] `npm run typecheck` passes.
 - [ ] `npm test` passes.
 - [ ] `npm run build` passes.
+- [ ] `npm run check:generated-docs` passes.
 - [ ] `npm run audit:examples` passes.
+- [ ] `npm run check:docs-site` passes.
 - [ ] `node packages/cli/dist/index.js export html "examples/**/*.vspec.md" --out .work/release-html`
   exports examples HTML, and representative examples have been opened in a browser.
 - [ ] `npm run check:print-regression` passes, or PDF export is explicitly skipped

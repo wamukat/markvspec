@@ -58,13 +58,15 @@ example を代表セットとして使う。
 2. whitespace 確認: `git diff --check` を実行する。
 3. unit / integration test: `npm test` を実行する。
 4. example preview audit: `npm run audit:examples` を実行する。
-5. examples HTML export: `npm run build -w @markvspec/cli` の後、
+5. generated grammar/reference docs: `npm run check:generated-docs` を実行する。
+6. docs site: `npm run check:docs-site` を実行する。
+7. examples HTML export: `npm run build -w @markvspec/cli` の後、
    `node packages/cli/dist/index.js export html "examples/**/*.vspec.md" --out .work/release-html`
    を実行し、代表 example の HTML をブラウザで開いて確認する。
-6. print / PDF に影響する変更では `npm run check:print-regression` を実行する。
+8. print / PDF に影響する変更では `npm run check:print-regression` を実行する。
    PDF export が使えない環境では、HTML artifact が出ていることと、互換ブラウザが
    ないため PDF を skip したことを記録する。
-7. README、DSL、example、release metadata に影響する変更では
+9. README、DSL、example、release metadata に影響する変更では
    `npm run check:readme-release` も実行する。
 
 `npm run check:release` は release 環境でまとめて実行する gate です。現時点では
@@ -81,7 +83,9 @@ cd .work/release-check
 npm install
 git diff --check
 npm test
+npm run check:generated-docs
 npm run audit:examples
+npm run check:docs-site
 npm run check:print-regression
 ```
 
@@ -99,7 +103,9 @@ Kanbalone の運用では、実装後に独立したサブエージェントレ�
 - [ ] `npm run typecheck` が通る。
 - [ ] `npm test` が通る。
 - [ ] `npm run build` が通る。
+- [ ] `npm run check:generated-docs` が通る。
 - [ ] `npm run audit:examples` が通る。
+- [ ] `npm run check:docs-site` が通る。
 - [ ] `node packages/cli/dist/index.js export html "examples/**/*.vspec.md" --out .work/release-html`
   で examples HTML export が通り、代表 example をブラウザで目視している。
 - [ ] `npm run check:print-regression` が通る。PDF export が使えない環境では、
