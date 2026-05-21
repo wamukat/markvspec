@@ -12,6 +12,9 @@ Use state names from the user's point of view, not implementation booleans. Pref
 
 ## Minimal Example
 
+This is only the `## States` section. In a full screen file, place it under the
+front matter and `# SCR-* ...` heading.
+
 ```markdown
 ## States
 
@@ -38,6 +41,9 @@ these names can be used as action results and preview targets.
 - When you only need named review cases for one state, use [Scenarios](/markvspec/en/guide/scenarios/) instead of creating extra states.
 
 ## Example: Connect Actions To States
+
+The following snippet belongs inside `## Actions`; `idle`, `loading`, `success`,
+`empty`, and `error` are states already defined in `## States`.
 
 ```markdown
 ## Actions

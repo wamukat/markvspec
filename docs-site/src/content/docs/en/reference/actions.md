@@ -6,6 +6,10 @@ title: "Actions"
 
 ## Syntax You Can Write
 
+This is an `## Actions` section snippet. The referenced states, layouts,
+elements, validations, and messages are assumed to be defined in the same screen
+document.
+
 ```markdown
 ## Actions
 
@@ -49,6 +53,8 @@ title: "Actions"
 Declare an action with `### A-* Name`. When you want the preview to show an
 action marker, write `### marker:A-* Name`.
 
+These are heading snippets only.
+
 ```markdown
 ### A-RefreshList Refresh list
 
@@ -68,6 +74,8 @@ action marker, write `### marker:A-* Name`.
 
 Put HTTP request details under `request:` inside `Process Pn:`, then write the method/path and request parameters. Use `server:` only when you need to describe a server-side service call that is not the HTTP request itself.
 
+This is a `Process` snippet inside an action.
+
 ```markdown
 - Process P1: Load profile
   - request:
@@ -79,6 +87,8 @@ Put HTTP request details under `request:` inside `Process Pn:`, then write the m
 ### Partial Update
 
 Describe server-rendered partial updates with `display` inside a result case, not raw htmx attributes.
+
+This is a `Process` snippet inside an action.
 
 ```markdown
 - Process P1: Apply profile response
@@ -101,6 +111,9 @@ Do not write raw HTML, CSS selectors, or htmx attributes in `display`. Describe
 the user-visible result with MarkVSpec IDs and semantic messages.
 
 ## Small Example
+
+This is a single-action snippet. In an actual screen, also define the caller
+element and any valid states.
 
 ```markdown
 ### A-OpenSettings Open settings

@@ -12,16 +12,17 @@ The screen starts a request when it loads. It shows a loading state while waitin
 
 ## Minimal Shape
 
+This is a screen body example. In a new `.vspec.md` file, place it under the
+front matter and `# SCR-* ...` screen heading.
+
 ```markdown
 ## States
 
-### loading
-
-### loaded
-
-### empty
-
-### error
+- before-load+
+- loading*
+- loaded
+- empty
+- error
 
 ## Layout: mobile
 
@@ -29,6 +30,13 @@ The screen starts a request when it loads. It shows a loading state while waitin
 
 - stack
 - gap: md
+
+#### Items
+
+- E-LoadingMessage
+- E-EmptyMessage
+- E-ErrorMessage
+- E-RetryButton
 
 ## Elements
 
@@ -61,11 +69,18 @@ The screen starts a request when it loads. It shows a loading state while waitin
 
 ### A-LoadItems Load items
 
+- From
+  - before-load
+  - loaded
+  - empty
+  - error
 - Process P1: Request items
   - request:
     - GET /items
   - case: sent
     - state: loading
+  - case: send-failed
+    - state: error
 
 ### A-HandleItemsResponse Handle items response
 

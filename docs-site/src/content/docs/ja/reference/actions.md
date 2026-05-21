@@ -6,6 +6,9 @@ title: "アクション"
 
 ## 書ける構文
 
+以下は `## Actions` セクションの抜粋です。参照している状態、レイアウト、要素、
+バリデーション、メッセージは同じ画面文書内で定義されている前提です。
+
 ```markdown
 ## Actions
 
@@ -49,6 +52,8 @@ title: "アクション"
 アクションは `### A-* Name` で宣言します。プレビューにアクションマーカーを出したい場合は
 `### marker:A-* Name` と書きます。
 
+以下は見出しだけの抜粋です。
+
 ```markdown
 ### A-RefreshList Refresh list
 
@@ -68,6 +73,8 @@ title: "アクション"
 
 HTTP リクエストは `Process Pn:` の `request:` の下に置き、メソッド、パス、リクエストパラメータを書きます。`server:` は必要な場合だけ、サーバー側のサービス呼び出しなど HTTP リクエストではない処理を書くために使います。
 
+以下はアクション内の `Process` 抜粋です。
+
 ```markdown
 - Process P1: Load profile
   - request:
@@ -79,6 +86,8 @@ HTTP リクエストは `Process Pn:` の `request:` の下に置き、メソッ
 ### 部分更新
 
 サーバー生成 partial の更新は、生の htmx 属性ではなく、結果ケースの `display` で意味を書きます。
+
+以下はアクション内の `Process` 抜粋です。
 
 ```markdown
 - Process P1: Apply profile response
@@ -100,6 +109,9 @@ HTTP リクエストは `Process Pn:` の `request:` の下に置き、メソッ
 意味を持つメッセージで、ユーザーに見える結果を書きます。
 
 ## 小さな例
+
+以下はアクション 1件だけの抜粋です。実際の画面では、このアクションを呼ぶ要素や
+有効な状態も合わせて書きます。
 
 ```markdown
 ### A-OpenSettings Open settings

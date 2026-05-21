@@ -12,16 +12,16 @@ title: "読み込みとエラー"
 
 ## 最小の書き方
 
+以下は画面本文の例です。新規 `.vspec.md` では、先頭メタデータと `# SCR-* ...` の下に置きます。
+
 ```markdown
 ## States
 
-### loading
-
-### loaded
-
-### empty
-
-### error
+- before-load+
+- loading*
+- loaded
+- empty
+- error
 
 ## Layout: mobile
 
@@ -29,6 +29,13 @@ title: "読み込みとエラー"
 
 - stack
 - gap: md
+
+#### Items
+
+- E-LoadingMessage
+- E-EmptyMessage
+- E-ErrorMessage
+- E-RetryButton
 
 ## Elements
 
@@ -61,11 +68,18 @@ title: "読み込みとエラー"
 
 ### A-LoadItems Load items
 
+- From
+  - before-load
+  - loaded
+  - empty
+  - error
 - Process P1: Request items
   - request:
     - GET /items
   - case: sent
     - state: loading
+  - case: send-failed
+    - state: error
 
 ### A-HandleItemsResponse Handle items response
 

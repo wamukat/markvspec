@@ -12,6 +12,9 @@ Put the work under `Process Pn:`. For an HTTP request, use `request:`; for scree
 
 ## Minimal Example
 
+This is an `## Actions` snippet. A complete screen file also defines the states,
+layout, elements, and the button that calls the action.
+
 ```markdown
 ## Actions
 
@@ -37,6 +40,9 @@ The button connection lives on `E-SubmitButton` with `action: A-SubmitRequest`. 
 - Do not overload one action with unrelated responsibilities. If the user operation is different, create a separate action.
 
 ## Example: Form Submit
+
+This snippet focuses on action flow. The complete screen also defines the
+referenced states, elements, layout groups, and validation result.
 
 ```markdown
 ## Actions
