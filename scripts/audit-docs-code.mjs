@@ -6,6 +6,7 @@ import {
   readFileSync,
   readdirSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { join, relative } from "node:path";
@@ -22,6 +23,10 @@ const docsRoots = [
   "docs/ja/recipes",
   "docs/en/examples",
   "docs/ja/examples",
+  "docs/en/concepts",
+  "docs/ja/concepts",
+  "README.md",
+  "README.ja.md",
 ];
 const tempDir = join(root, ".work", "docs-code-audit");
 
@@ -30,6 +35,10 @@ function toPosixPath(filePath) {
 }
 
 function collectMarkdownFiles(dir) {
+  const stat = statSync(dir);
+  if (stat.isFile()) {
+    return dir.endsWith(".md") ? [dir] : [];
+  }
   const entries = readdirSync(dir, { withFileTypes: true });
   const files = [];
   for (const entry of entries) {
