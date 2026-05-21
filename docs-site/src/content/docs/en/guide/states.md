@@ -39,6 +39,7 @@ these names can be used as action results and preview targets.
 - For in-flight API requests, use names such as `submitting` or `refreshing` so the user-facing wait state is clear.
 - Avoid duplicating the whole screen for every state. Put state-specific differences near the layout, element, message, or action case that changes.
 - When you only need named review cases for one state, use [Scenarios](/markvspec/en/guide/scenarios/) instead of creating extra states.
+- To add sample data to a state's normal preview, create a scenario with the same name as the state and omit `state:`.
 
 ## Example: Connect Actions To States
 

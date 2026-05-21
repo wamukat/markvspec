@@ -69,7 +69,7 @@ MarkVSpec recognizes these top-level sections.
 | `## Form Groups` | Form-level field groups and submit action |
 | `## Field Validations` | Single-field constraints and messages |
 | `## Cross-field Validations` | Multi-field or form-level checks |
-| `## Preview Scenarios` | Named preview cases for state, validation, and action results |
+| `## Preview Scenarios` | Named preview cases for states and Action case results |
 | `## Business Rules` | Business rules and screen-specific decisions |
 | `## Error Codes` | Reusable error definitions and display targets |
 | `## Slots` | Template slot declarations |
@@ -153,8 +153,32 @@ preview/export rendering. It includes scalar Element display values, Element
 ```
 
 Use it when a reviewer must see error, empty, dialog, toast, or direct-link
-states. `samples:` is Scenario Preview Data for Element-specific values.
-`route:` is Route Preview Data for route parameters and hash fragments.
+states. `samples:` is Scenario Preview Data for Element-specific values. Use
+`E-ElementId: value` for ordinary elements and `rows:` for `Table` / `List`.
+Use `rows: []` for an empty repeated view.
+
+```markdown
+- samples:
+  - E-Users:
+    - rows:
+      - row:
+        - name: Alice
+  - E-EmptyUsers:
+    - rows: []
+```
+
+`route:` is Route Preview Data for route parameters and hash fragments. It must
+be a block. Keys other than `hash` should match a `:param` in the screen
+metadata `route:`.
+
+`cases:` references Action results in the `A-ActionId.P-marker.case-name` form.
+`view:` references a `## View Context Samples` name. `before:` names the state
+or scenario that this scenario should appear before. `model:` is kept as the
+model name for the State View.
+
+When a scenario name is exactly the same as a state name and omits `state:`, it
+is baseline sample data for that state, not an additional scenario. In that
+form, only `samples:` and `route:` are allowed.
 
 See [Scenario Preview Data](../../../examples/showcase/scenario-samples.html)
 and [Display Effects](../../../examples/showcase/display-effects.html).

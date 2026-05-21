@@ -40,12 +40,89 @@ State は画面の表示モードに名前を付けるものです。Preview Sce
 | 目的 | 書くもの |
 | --- | --- |
 | 表示する状態 | `state:` |
-| 表示したいアクション / バリデーション結果 | `cases:` |
+| 表示したい Action の case 結果。バリデーション表示も Action の case として参照する | `cases:` |
 | 要素ごとのプレビュー値 | `samples:` |
 | ルートパラメータやハッシュ | `route:` |
+| 表示文脈のサンプル | `view:` |
+| このシナリオをその前に表示したい状態またはシナリオ | `before:` |
 
 Preview Scenarios はプレビューデータです。新しい画面、状態、アクションを作るものではありません。
-実際の画面挙動は `## States`、`## Elements`、`## Actions` に書き、scenarios はレビューしたい見え方に名前を付けるために使います。
+実際の画面挙動は `## States`、`## Elements`、`## Actions` に書き、シナリオはレビューしたい見え方に名前を付けるために使います。
+
+## 状態そのもののサンプル
+
+状態名と同じ名前のシナリオで `state:` を省略すると、その状態の通常プレビューにサンプル値を足せます。
+
+```markdown
+## States
+
+- idle*
+- loaded
+
+## Preview Scenarios
+
+### loaded
+
+- samples:
+  - E-Title: 読み込み済み
+  - E-Users:
+    - rows:
+      - row:
+        - name: Alice
+```
+
+この `loaded` は追加シナリオではありません。State Views の `loaded` に使う基準データです。
+この書き方で使えるのは `samples:` と `route:` だけです。
+
+同じ `loaded` 状態で空表示やエラー表示も見せたい場合は、別名のシナリオにして `state:` を書きます。
+
+```markdown
+### loaded-empty
+
+- state: loaded
+- samples:
+  - E-Users:
+    - rows: []
+```
+
+## サンプル値
+
+通常の要素には、要素 ID と値を書きます。
+
+```markdown
+- samples:
+  - E-EmailInput: invalid@example
+```
+
+`Table` や `List` のような繰り返し表示には `rows:` を使います。空表示を見せる場合は
+`rows: []` と書きます。
+
+```markdown
+- samples:
+  - E-Users:
+    - rows:
+      - row:
+        - name: Alice
+        - role: Admin
+```
+
+## ケースとルート
+
+`cases:` は Action の処理結果を参照します。形式は `A-ActionId.P-marker.case-name` です。
+
+```markdown
+- cases:
+  - A-SubmitLogin.P1.invalid
+```
+
+`route:` はブロックで書きます。`hash` 以外のキーは、画面の `route:` にある `:param` と
+対応している必要があります。
+
+```markdown
+- route:
+  - memberId: M-100
+  - hash: details
+```
 
 ## 次に読むもの
 

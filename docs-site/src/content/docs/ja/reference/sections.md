@@ -70,7 +70,7 @@ title: "セクション"
 | `## Form Groups` | フォーム単位のフィールドグループと送信アクション |
 | `## Field Validations` | 単一フィールドの制約とメッセージ |
 | `## Cross-field Validations` | 複数フィールドまたはフォーム単位のチェック |
-| `## Preview Scenarios` | 状態、バリデーション、アクション結果を組み合わせたプレビューケース |
+| `## Preview Scenarios` | 状態と Action の case 結果を組み合わせたプレビューケース |
 | `## Business Rules` | ビジネスルールと画面固有の判断条件 |
 | `## Error Codes` | 再利用するエラー定義と表示先 |
 | `## Slots` | テンプレートが受け取る slot 宣言 |
@@ -151,8 +151,30 @@ Preview Data は、MarkVSpec がプレビューや出力に渡す表示用デー
 ```
 
 エラー、空表示、ダイアログ、トースト、直接リンクの状態を見せたいときに使います。
-`samples:` は要素ごとの Scenario Preview Data です。`route:` はルート
-パラメータやハッシュに使う Route Preview Data です。
+`samples:` は要素ごとの Scenario Preview Data です。通常の要素には
+`E-ElementId: value`、`Table` / `List` には `rows:` を使います。
+空の繰り返し表示は `rows: []` と書きます。
+
+```markdown
+- samples:
+  - E-Users:
+    - rows:
+      - row:
+        - name: Alice
+  - E-EmptyUsers:
+    - rows: []
+```
+
+`route:` はルートパラメータやハッシュに使う Route Preview Data です。
+ブロックで書き、`hash` 以外のキーは画面メタデータの `route:` にある `:param`
+と対応させます。
+
+`cases:` は `A-ActionId.P-marker.case-name` 形式で Action の処理結果を参照します。
+`view:` は `## View Context Samples` の名前を参照します。`before:` は、このシナリオを
+その前に表示したい状態名またはシナリオ名を参照します。`model:` は状態ビューのモデル名として保持されます。
+
+シナリオ名が状態名と同じで `state:` を省略した場合、そのシナリオは追加ケースではなく
+その状態の基準サンプルです。この場合に使えるのは `samples:` と `route:` だけです。
 
 [Scenario Preview Data](/markvspec/examples/showcase/scenario-samples.html) と
 [Display Effects](/markvspec/examples/showcase/display-effects.html) を参照してください。

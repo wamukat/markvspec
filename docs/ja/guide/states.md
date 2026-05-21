@@ -1,4 +1,4 @@
-# States
+# 状態
 
 State は、同じ画面の見え方を分ける名前です。
 
@@ -15,9 +15,9 @@ State は、同じ画面の見え方を分ける名前です。
 - error
 ```
 
-`*` が付いた `idle` が初期状態です。preview では state ごとに画面を切り替えて確認できます。
+`*` が付いた `idle` が初期状態です。プレビューでは状態ごとに画面を切り替えて確認できます。
 
-![Async Fetching の state 切り替え preview](../../assets/vscode-previews/async-loading-vscode-preview.png)
+![Async Fetching の状態切り替えプレビュー](../../assets/vscode-previews/async-loading-vscode-preview.png)
 
 ## 名前の付け方
 
@@ -27,9 +27,9 @@ State は、同じ画面の見え方を分ける名前です。
 - `apiDone` ではなく `loaded`
 
 実装の変数名ではなく、画面の状態名にします。
-state は `## States` の下に bullet で書き、初期状態には `*` を1つだけ付けます。
+state は `## States` の下に箇条書きで書き、初期状態には `*` を1つだけ付けます。
 
-## Action とつなぐ
+## アクションとつなぐ
 
 ```markdown
 ### A-LoadOrders Load orders
@@ -47,14 +47,16 @@ state は `## States` の下に bullet で書き、初期状態には `*` を1�
     - state: error
 ```
 
-この DSL を見れば、「どの結果でどの state になるか」が分かります。長い文章で説明しなくてかまいません。
+この DSL を見れば、「どの結果でどの状態になるか」が分かります。長い文章で説明しなくてかまいません。
 
-同じ state の validation error、empty data、direct link などを名前付きで review したいだけなら、
-state を増やさず [シナリオ](scenarios.md) を使います。
+同じ状態のバリデーションエラー、空データ、直接リンクなどを名前付きでレビューしたいだけなら、
+状態を増やさず [シナリオ](scenarios.md) を使います。
+状態名と同じ名前のシナリオで `state:` を省略すると、その状態の通常プレビューに使う
+サンプル値を定義できます。
 
 ## 見る例
 
 - [Async Fetching](../../../examples/showcase/async-loading.html)
 - [シナリオ](scenarios.md)
-- [Loading And Error](../recipes/loading-error.md)
-- [States Reference](../reference/sections.md)
+- [読み込みとエラー](../recipes/loading-error.md)
+- [セクションリファレンス](../reference/sections.md)

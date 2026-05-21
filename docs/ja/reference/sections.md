@@ -60,7 +60,7 @@ Sections は `.vspec.md` の本文を分割する top-level heading です。Mar
 
 | Section | 書く内容 |
 | --- | --- |
-| `## States` | screen state の名前 |
+| `## States` | 画面状態の名前 |
 | `## Layout: mobile` | layout group と item の並び |
 | `## Elements` | UI element の意味、label、value、action |
 | `## Actions` | trigger、request、effect、case |
@@ -68,7 +68,7 @@ Sections は `.vspec.md` の本文を分割する top-level heading です。Mar
 | `## Form Groups` | form 単位の field group と submit action |
 | `## Field Validations` | 単一 field の constraint と message |
 | `## Cross-field Validations` | 複数 field または form 単位の check |
-| `## Preview Scenarios` | state、validation、action result を組み合わせた preview case |
+| `## Preview Scenarios` | 状態と Action の case 結果を組み合わせたプレビューケース |
 | `## Business Rules` | business rule と画面固有の判断条件 |
 | `## Error Codes` | 再利用する error 定義と表示先 |
 | `## Slots` | template が受け取る slot 宣言 |
@@ -127,11 +127,11 @@ initial load、partial initialization、screen lifecycle による data refresh 
 
 ### Preview Scenarios
 
-画面全体を複製せず、review したい preview 状態に名前を付ける場合は
+画面全体を複製せず、レビューしたいプレビュー状態に名前を付ける場合は
 `## Preview Scenarios` を使います。
 
-Preview Data は、MarkVSpec が preview/export に渡す表示用データ全体の総称です。
-Element の scalar 表示値、Element の `sample rows:`、Preview Scenario の
+Preview Data は、MarkVSpec がプレビューや出力に渡す表示用データ全体の総称です。
+要素の単一表示値、要素の `sample rows:`、Preview Scenario の
 `samples:`、Preview Scenario の `route:`、`## View Context Samples` が含まれます。
 
 ```markdown
@@ -148,17 +148,39 @@ Element の scalar 表示値、Element の `sample rows:`、Preview Scenario の
   - token: expired
 ```
 
-error、empty、dialog、toast、direct link の状態を見せたいときに使います。
-`samples:` は Element ごとの Scenario Preview Data です。`route:` は route
-parameter や hash fragment に使う Route Preview Data です。
+エラー、空表示、ダイアログ、トースト、直接リンクの状態を見せたいときに使います。
+`samples:` は要素ごとの Scenario Preview Data です。通常の要素には
+`E-ElementId: value`、`Table` / `List` には `rows:` を使います。
+空の繰り返し表示は `rows: []` と書きます。
+
+```markdown
+- samples:
+  - E-Users:
+    - rows:
+      - row:
+        - name: Alice
+  - E-EmptyUsers:
+    - rows: []
+```
+
+`route:` はルートパラメータやハッシュに使う Route Preview Data です。
+ブロックで書き、`hash` 以外のキーは画面メタデータの `route:` にある `:param`
+と対応させます。
+
+`cases:` は `A-ActionId.P-marker.case-name` 形式で Action の処理結果を参照します。
+`view:` は `## View Context Samples` の名前を参照します。`before:` は、このシナリオを
+その前に表示したい状態名またはシナリオ名を参照します。`model:` は状態ビューのモデル名として保持されます。
+
+シナリオ名が状態名と同じで `state:` を省略した場合、そのシナリオは追加ケースではなく
+その状態の基準サンプルです。この場合に使えるのは `samples:` と `route:` だけです。
 
 [Scenario Preview Data](../../../examples/showcase/scenario-samples.html) と
 [Display Effects](../../../examples/showcase/display-effects.html) を参照してください。
 
 ### Field And Cross-Field Validations
 
-1つの input の制約は `## Field Validations`、複数 input または form group に
-またがる check は `## Cross-field Validations` に書きます。
+1つの入力の制約は `## Field Validations`、複数入力またはフォームグループに
+またがるチェックは `## Cross-field Validations` に書きます。
 
 ```markdown
 ## Field Validations
