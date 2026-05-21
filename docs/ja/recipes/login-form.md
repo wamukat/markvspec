@@ -15,7 +15,7 @@
 
 ## DSL
 
-```markdown
+```markdown markvspec-skip reason=context
 ## States
 
 - idle*

@@ -18,6 +18,10 @@ const docsRoots = [
   "docs/ja/start",
   "docs/en/guide",
   "docs/ja/guide",
+  "docs/en/recipes",
+  "docs/ja/recipes",
+  "docs/en/examples",
+  "docs/ja/examples",
 ];
 const tempDir = join(root, ".work", "docs-code-audit");
 

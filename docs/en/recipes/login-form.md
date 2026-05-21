@@ -12,7 +12,7 @@ The user enters email and password, then selects Sign in. Missing input shows fi
 
 ## Minimal Shape
 
-```markdown
+```markdown markvspec-skip reason=context
 ## States
 
 - idle*

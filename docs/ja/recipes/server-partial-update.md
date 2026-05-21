@@ -10,7 +10,7 @@ Thymeleaf やサーバー生成 HTML partial を使い、画面全体ではな�
 
 ## 最小の書き方
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Layout: mobile
 
 ### L-ProfileSummary Profile summary

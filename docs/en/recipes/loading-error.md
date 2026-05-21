@@ -13,7 +13,7 @@ The screen starts a request when it loads. It shows a loading state while waitin
 This is a screen body example. In a new `.vspec.md` file, place it under the
 front matter and `# SCR-* ...` screen heading.
 
-```markdown
+```markdown markvspec-fragment
 ## States
 
 - before-load+
