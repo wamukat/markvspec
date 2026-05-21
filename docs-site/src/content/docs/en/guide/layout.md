@@ -41,6 +41,42 @@ This example defines a login form as one layout group and fixes the order of the
 - Describe responsive behavior as layout intent, such as `mobile` or `desktop`, instead of CSS breakpoints.
 - Do not place the same element in multiple groups. If it appears only in certain states, describe the state condition.
 
+## P-* Presentation Panels
+
+`P-*` is a presentation panel. Use it when the group is not a meaningful UI
+region for reviewers, but only a visual arrangement helper, such as placing two
+form fields on the same row.
+
+```markdown
+### L-ProfileForm Profile form
+
+- stack
+
+#### Items
+
+- P-NameFields
+- "Email": E-EmailInput
+
+### P-NameFields Name fields
+
+- row
+- gap: sm
+
+#### Items
+
+- "First name": E-FirstNameInput
+- "Last name": E-LastNameInput
+```
+
+Use `L-*` for meaningful layout groups that can be reviewed, marked, targeted,
+hidden, or disabled. Use `P-*` only to arrange child items without adding layout
+chrome or layout markers. When visibility, disabled state, partial replacement,
+or action targeting matters, use an `L-*` layout instead.
+
+See [Presentation Panel](/markvspec/examples/showcase/presentation-panel.html)
+for a small example where `P-NameFields` arranges two fields without adding a
+visible panel marker.
+
 ## Example: Split Page Structure
 
 ```markdown

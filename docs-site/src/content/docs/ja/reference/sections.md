@@ -26,6 +26,35 @@ title: "セクション"
 - E-Submit
 ```
 
+### Layout と P-* パネル
+
+意味のある領域は `L-*` で書きます。見た目だけを整える補助グループは `P-*` で書けます。
+
+```markdown
+### L-Form Form
+
+- stack
+
+#### Items
+
+- P-NameFields
+- E-SubmitButton
+
+### P-NameFields Name fields
+
+- row
+
+#### Items
+
+- E-FirstNameInput
+- E-LastNameInput
+```
+
+`P-*` はレイアウト項目として使えますが、レイアウトマーカーを表示しません。
+`marker` は無視され、`visible when` / `hidden when` / `disabled when` /
+`enabled when` / `partial` / action や display の `target` には使えません。
+対象にしたい領域は `L-*` にしてください。
+
 認識される最上位セクションは次の通りです。
 
 | セクション | 書く内容 |

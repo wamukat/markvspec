@@ -40,9 +40,14 @@ title: Login
 | --- | --- | --- |
 | `SCR-*` | 画面 | `SCR-LOGIN` |
 | `L-*` | レイアウトグループ | `L-LoginForm` |
+| `P-*` | 表示調整用パネル | `P-NameFields` |
 | `E-*` | 要素 | `E-EmailInput` |
 | `A-*` | アクション | `A-SubmitLogin` |
 | `R-*` | ルール | `R-CanSubmit` |
+
+`P-*` は `Items` に置けますが、意味を持つレイアウト ID ではありません。
+プレビューでは枠やレイアウトマーカーを出さず、子要素の並びだけを調整します。
+`target`、表示条件、無効化、partial host が必要な領域には `L-*` を使います。
 
 ## マーカー付き見出し
 
@@ -58,6 +63,7 @@ title: Login
 
 `:` より前がプレビューに表示されるマーカーです。安定した ID は `:` より後ろです。
 `Items`、`action`、`target`、`navigate` などの参照では、マーカーではなく ID を使います。
+`P-*` はマーカーを付けず、`### P-NameFields Name fields` のように書きます。
 
 プレビュー用マーカーが不要な場合は、省略できます。
 

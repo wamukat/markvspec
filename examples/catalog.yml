@@ -63,6 +63,25 @@ examples:
       recipes: []
     next:
       - examples/03-actions/form-submit-flow.vspec.md
+  - path: examples/02-states/presentation-panel.vspec.md
+    title: Presentation Panel
+    kind: screen
+    stage: responsive-layout
+    summary: Presentation-only panel that arranges fields without adding layout chrome or markers.
+    showcase: true
+    learningPath: false
+    teaches:
+      - Presentation panel
+      - Layout grouping
+      - Layout marker control
+    docs:
+      guide:
+        - layout
+      reference:
+        - sections
+        - ids
+      recipes: []
+    next: []
   - path: examples/02-states/scenario-samples.vspec.md
     title: Scenario Preview Data
     kind: screen

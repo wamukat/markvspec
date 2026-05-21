@@ -26,6 +26,36 @@ Sections are top-level headings in the `.vspec.md` body. MarkVSpec uses the sect
 - E-Submit
 ```
 
+### Layout And P-* Panels
+
+Use `L-*` for meaningful regions. Use `P-*` only for a helper group that adjusts
+visual arrangement.
+
+```markdown
+### L-Form Form
+
+- stack
+
+#### Items
+
+- P-NameFields
+- E-SubmitButton
+
+### P-NameFields Name fields
+
+- row
+
+#### Items
+
+- E-FirstNameInput
+- E-LastNameInput
+```
+
+`P-*` can be used as a layout item, but preview does not show a layout marker for
+it. `marker` is ignored, and `visible when` / `hidden when` / `disabled when` /
+`enabled when` / `partial` / action or display `target` are not allowed. Use
+`L-*` when a region needs to be targetable.
+
 MarkVSpec recognizes these top-level sections.
 
 | Section | What To Write |
