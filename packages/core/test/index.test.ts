@@ -538,6 +538,7 @@ title: Entity Notes
 
 ### E-NextPageButton Button
 
+- action: A-NextPage
 - label: Next
 
 このボタンは二重クリック対策を実装側で行う。
@@ -552,8 +553,6 @@ title: Entity Notes
 overview code block
 \`\`\`
 
-- Triggered
-  - E-NextPageButton.click
 - From
   - idle
 - Process P1: Send request
@@ -590,6 +589,7 @@ title: Markdown Prose
 
 ### E-SubmitButton Button
 
+- action: A-Submit
 - label: Submit
 
 ## Actions
@@ -600,8 +600,6 @@ Use **strong** text and [help](./help.md).
 
 - first item
   - nested item
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Submit request
@@ -646,6 +644,7 @@ Elements overview stays visible.
 
 ### E-SubmitButton Button
 
+- action: A-Submit
 - label: Submit
 
 ### Section Notes
@@ -668,8 +667,6 @@ multi-line hidden action note
 
 Visible action overview <!-- inline comment remains visible source -->.
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Submit request
@@ -754,6 +751,8 @@ Elements section overview.
 
 Element entity overview.
 
+- action: A-Save
+- action event: change
 - description: Short description
 - purpose: Purpose fallback
 
@@ -788,8 +787,8 @@ Actions section overview.
 
 Action overview.
 
-- Triggered
-  - E-Name.change
+- From
+  - idle
 
 Action notes.
 
@@ -1388,14 +1387,13 @@ title: Users
 
 ### E-OpenDetail Link
 
+- action: A-OpenDetail
 - label: Detail
 
 ## Actions
 
 ### A-OpenDetail Open detail
 
-- Triggered
-  - E-OpenDetail.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -1490,14 +1488,13 @@ title: Points Content
 
 ### E-Refresh Button
 
+- action: A-Refresh
 - label: Refresh
 
 ## Actions
 
 ### A-Refresh Refresh
 
-- Triggered
-  - E-Refresh.click
 - From
   - loaded
 - Process P1: Request partial
@@ -2230,14 +2227,13 @@ title: Users Actual
 
 ### E-OpenMissing Link
 
+- action: A-OpenMissing
 - label: Missing
 
 ## Actions
 
 ### A-OpenMissing Open missing
 
-- Triggered
-  - E-OpenMissing.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -2345,6 +2341,8 @@ route: /notices/:noticeId
   assert.deepEqual(
     result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
     [
+      ["warning", "Action A-OpenNotice uses non-canonical Triggered block. Move callers to Element action: / action event:, ## Events page.load or partial.render, or process receive:.", lineNumber(listSource, "- Triggered")],
+      ["warning", "Action A-StepOpenNotice uses non-canonical Triggered block. Move callers to Element action: / action event:, ## Events page.load or partial.render, or process receive:.", lineNumber(listSource, "- Triggered", 2)],
       ["error", "Project navigation from SCR-LIST element E-お知らせリンク to SCR-DETAIL is missing route parameter noticeId.", lineNumber(listSource, "  - extra: \${model.notice.extra}")],
       ["warning", "Project navigation from SCR-LIST element E-お知らせリンク to SCR-DETAIL defines route parameter extra, but target route /notices/:noticeId has no matching placeholder.", lineNumber(listSource, "  - extra: \${model.notice.extra}")],
       ["error", "Project navigation from SCR-LIST action A-StepOpenNotice to SCR-DETAIL is missing route parameter noticeId.", lineNumber(listSource, "    - navigate: SCR-DETAIL", 2)],
@@ -2389,6 +2387,7 @@ route: /users/:userId
 
 ## States
 
+- before-load+
 - loading*
 
 ## Elements
@@ -2402,14 +2401,19 @@ route: /users/:userId
 - Columns:
   - Route ID: \${route.tableUserId}
 
+## Events
+
+- page.load: A-Load
+
 ## Actions
 
 ### A-Load Load user
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - loading
+- Process P0: Enter loading
+  - state: loading
 - Process P1: Send request
   - GET /users/:userId
     - userId: \${route.missingUserId}
@@ -2497,18 +2501,18 @@ title: Users
 
 ### E-OpenDetail Link
 
+- action: A-OpenDetail
 - label: Detail
 
 ### E-NewUser Button
 
+- action: A-OpenNewUser
 - label: New user
 
 ## Actions
 
 ### A5:A-OpenDetail Open detail
 
-- Triggered
-  - E-OpenDetail.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -2516,8 +2520,6 @@ title: Users
 
 ### A6:A-OpenNewUser Open new user
 
-- Triggered
-  - E-NewUser.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -2599,14 +2601,13 @@ title: Users
 
 ### E-OpenMissing Link
 
+- action: A-OpenMissing
 - label: Missing
 
 ## Actions
 
 ### A-OpenMissing Open missing
 
-- Triggered
-  - E-OpenMissing.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -2849,14 +2850,16 @@ title: Shell
 
 - fields: E-Title
 
+## Events
+
+- page.load: A-TemplateLoad
+
 ## Actions
 
 ### A-TemplateLoad Template load
 
 Template action overview.
 
-- Triggered
-  - screen.load
 
 `);
   const screen = parseMarkVSpec(`---
@@ -3342,8 +3345,6 @@ title: Japanese IDs
 
 ### A-保存 save
 
-- Triggered
-  - E-保存ボタン.click
 - From
   - idle
 - Process P1: Send request
@@ -3682,6 +3683,8 @@ title: Validations
 
 ### E-パスワード入力 Input
 
+- action: A-SaveUser
+- action event: submit
 - value: \${model.password}
 
 ### E-PasswordConfirmInput Input
@@ -3691,9 +3694,6 @@ title: Validations
 ## Actions
 
 ### A-SaveUser Save user
-
-- Triggered
-  - E-パスワード入力.submit
 
 ## Validations
 
@@ -3903,6 +3903,8 @@ title: Validation Groups
 
 ### E-メールアドレス入力 Input
 
+- action: A-SaveUser
+- action event: submit
 - value: \${model.email}
 
 ### E-パスワード入力 Input
@@ -3916,9 +3918,6 @@ title: Validation Groups
 ## Actions
 
 ### A-SaveUser Save user
-
-- Triggered
-  - E-メールアドレス入力.submit
 
 ## Field Validations
 
@@ -4101,6 +4100,8 @@ title: Input Contract
 
 ### E-メールアドレス入力 Input*
 
+- action: A-Save
+- action event: submit
 - label: Email
 - value: \${model.email}
 - input rule:
@@ -4111,8 +4112,6 @@ title: Input Contract
 
 ### A-Save Save
 
-- Triggered
-  - E-メールアドレス入力.submit
 - From
   - idle
 - Process P1: Check validation
@@ -4414,14 +4413,14 @@ title: Event
 
 ### E-001 Button
 
+- action: A-001
+- action event: hover
 - label: Save
 
 ## Actions
 
 ### A-001 save
 
-- Triggered
-  - E-001.hover
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -4431,7 +4430,7 @@ title: Event
 
   assert.deepEqual(
     result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
-    [["warning", "Action A-001 uses unsupported event hover.", lineNumber(source, "  - E-001.hover")]]
+    [["warning", "Action A-001 uses unsupported event hover.", lineNumber(source, "- action: A-001")]]
   );
 });
 
@@ -4475,6 +4474,11 @@ title: Outcome
     [
       [
         "warning",
+        "Action A-Submit uses non-canonical Triggered block. Move callers to Element action: / action event:, ## Events page.load or partial.render, or process receive:.",
+        lineNumber(source, "- Triggered")
+      ],
+      [
+        "warning",
         "Action A-Submit has invalid trigger service.response. Expected Element action:, ## Events page.load or partial.render, or A-ActionId.P-marker.response.",
         lineNumber(source, "  - service.response")
       ],
@@ -4511,14 +4515,13 @@ title: Nested Action
 
 ### E-Submit Button
 
+- action: A-Submit
 - label: Submit
 
 ## Actions
 
 ### A-Submit submit
 
-- Triggered
-    - E-Submit.click
 - From
     - idle
 - Process P1: Send request
@@ -4569,14 +4572,13 @@ title: Otherwise
 
 ### E-Submit Button
 
+- action: A-Submit
 - label: Submit
 
 ## Actions
 
 ### A-Submit Submit
 
-- Triggered
-  - E-Submit.click
 - From
   - idle
 - Process P1: Submit request
@@ -4611,15 +4613,19 @@ title: Action Aliases
 
 ## States
 
+- before-load+
 - idle*
+
+## Events
+
+- page.load: A-Submit
 
 ## Actions
 
 ### A-Submit Submit
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Effect
   - state: loading
@@ -4692,12 +4698,12 @@ title: Condition Ref
 
 ### E-Submit Button
 
+- action: A-Submit
+
 ## Actions
 
 ### A-Submit Submit
 
-- Triggered
-  - E-Submit.click
 - From
   - idle
 - Process P1: Preprocess
@@ -4733,8 +4739,6 @@ title: Noncanonical Process Labels
 
 ### A-Submit Submit
 
-- Triggered
-  - E-Submit.click
 - From
   - idle
 - Process P1: Input
@@ -4804,8 +4808,6 @@ title: Canonical Process Labels
 
 ### A-Submit Submit
 
-- Triggered
-  - E-Submit.click
 - From
   - idle
 - Process P1: Submit
@@ -4845,6 +4847,7 @@ title: Server Call
 
 ## States
 
+- before-load+
 - idle*
 
 ## Layout: mobile
@@ -4859,13 +4862,16 @@ title: Server Call
 
 - value: Server Call
 
+## Events
+
+- page.load: A-Load
+
 ## Actions
 
 ### A-Load Load
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Process P1: Call server service
   - server:
@@ -4882,7 +4888,7 @@ title: Server Call
   const success = clientCall?.outcomes.find((outcome) => outcome.result === "success");
 
   assert.equal(result.diagnostics.length, 0);
-  assert.equal(action?.triggeredBy, "screen.load");
+  assert.equal(action?.triggeredBy, "page.load");
   assert.equal(clientCall?.name, "Call server service");
   assert.deepEqual(clientCall?.details.map((detail) => [detail.key, detail.value]), [
     ["server", "MemberQueryService.findSelfProfile()"],
@@ -4945,6 +4951,7 @@ title: Request Server
 
 ## States
 
+- before-load+
 - idle*
 
 ## Elements
@@ -4958,12 +4965,14 @@ title: Request Server
 - label: Submit
 - action: A-Submit
 
+## Events
+
+- page.load: A-Load
+
 ## Actions
 
 ### A-Submit Submit
 
-- Triggered
-  - E-Submit.click
 - From
   - idle
 - Process P1: Send login request
@@ -4976,9 +4985,8 @@ title: Request Server
 
 ### A-Load Load
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Process P1: Call account service
   - server:
@@ -5404,12 +5412,14 @@ route: /mypage/partials/notices
 
 - value: Notices
 
+## Events
+
+- partial.render: A-Build
+
 ## Actions
 
 ### A-Build Build notices
 
-- Triggered
-  - partial.render
 - From
   - loaded
 - Process P1: Call server service
@@ -5446,14 +5456,13 @@ title: Process Refs
 
 ### E-Submit Button
 
+- action: A-Submit
 - label: Submit
 
 ## Actions
 
 ### A-Submit Submit
 
-- Triggered
-  - E-Submit.click
 - From
   - idle
 - Process P1: Preprocess
@@ -5520,14 +5529,13 @@ title: Viewport Targets
 
 ### E-Submit Button
 
+- action: A-Submit
 - label: Submit
 
 ## Actions
 
 ### A-Submit Submit
 
-- Triggered
-  - E-Submit.click
 - From
   - idle
 - Process P1: Preprocess
@@ -5561,6 +5569,7 @@ title: Slot Target
 
 ## States
 
+- before-load+
 - initializing*
 - idle
 
@@ -5587,14 +5596,19 @@ title: Slot Target
 - value: Ready
 - visible when: idle
 
+## Events
+
+- page.load: A-Load
+
 ## Actions
 
 ### A-Load Load
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - initializing
+- Process P0: Enter initializing
+  - state: initializing
 - Process P1: Apply immediate effect
   - case: success
     - description: ok
@@ -5655,6 +5669,11 @@ title: Params
     [
       [
         "warning",
+        "Action A-Submit uses non-canonical Triggered block. Move callers to Element action: / action event:, ## Events page.load or partial.render, or process receive:.",
+        lineNumber(source, "- Triggered")
+      ],
+      [
+        "warning",
         "Action A-Submit has invalid trigger service.submit. Expected Element action:, ## Events page.load or partial.render, or A-ActionId.P-marker.response.",
         lineNumber(source, "  - service.submit")
       ],
@@ -5694,14 +5713,13 @@ title: Route Params
 
 ### E-Link Link
 
+- action: A-Open
 - text: Detail
 
 ## Actions
 
 ### A-Open open
 
-- Triggered
-  - E-Link.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -5758,6 +5776,11 @@ title: Response
     [
       [
         "warning",
+        "Action A-Submit uses non-canonical Triggered block. Move callers to Element action: / action event:, ## Events page.load or partial.render, or process receive:.",
+        lineNumber(source, "- Triggered")
+      ],
+      [
+        "warning",
         "Action A-Submit has invalid trigger service.response. Expected Element action:, ## Events page.load or partial.render, or A-ActionId.P-marker.response.",
         lineNumber(source, "  - service.response")
       ],
@@ -5787,6 +5810,7 @@ title: Incomplete Action
 
 ### E-Submit Button
 
+- action: A-Submit
 - label: Submit
 
 ### E-メールアドレス入力 Input
@@ -5797,8 +5821,6 @@ title: Incomplete Action
 
 ### A-Submit submit
 
-- Triggered
-  - E-Submit.click
 - From
   - idle
 - Process P1: Send request
@@ -5836,16 +5858,25 @@ title: Flow Placement
 
 ## States
 
+- before-load+
+- before-load+
 - idle*
 - done
+
+## Events
+
+- page.load: A-Invalid
+
+## Events
+
+- page.load: A-Valid
 
 ## Actions
 
 ### A-Valid Valid flow
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Process P1: Apply immediate effect
   - case: success
@@ -5854,9 +5885,8 @@ title: Flow Placement
 
 ### A-Invalid Invalid flow
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Process P1: Apply immediate effect
   - case: under-effects
@@ -5909,14 +5939,13 @@ title: Incomplete Request Step
 
 ### E-Submit Button
 
+- action: A-Submit
 - label: Submit
 
 ## Actions
 
 ### A-Submit submit
 
-- Triggered
-  - E-Submit.click
 - From
   - idle
 - Process P1: Send request
@@ -6887,8 +6916,6 @@ title: Media
 
 ### A-CancelDelete Cancel delete
 
-- Triggered
-  - E-CancelDeleteButton.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -6896,8 +6923,6 @@ title: Media
 
 ### A-ConfirmDelete Confirm delete
 
-- Triggered
-  - E-ConfirmDeleteButton.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -6962,6 +6987,8 @@ title: Toast Display
 
 ### E-SaveButton Button
 
+- action: A-Other
+- action: A-Save
 - label: Save
 
 ### E-SavedToast Toast
@@ -6985,8 +7012,6 @@ title: Toast Display
 
 ### A-Save Save
 
-- Triggered
-  - E-SaveButton.click
 - From
   - idle
 - Process P1: Save
@@ -6997,8 +7022,6 @@ title: Toast Display
 
 ### A-Other Other
 
-- Triggered
-  - E-SaveButton.click
 - From
   - idle
 - Process P1: Other
@@ -7283,6 +7306,7 @@ title: Bad Presentation Panel
 
 ## States
 
+- before-load+
 - idle*
 - ready
 
@@ -7313,13 +7337,16 @@ title: Bad Presentation Panel
 
 - label: Email
 
+## Events
+
+- page.load: A-Refresh
+
 ## Actions
 
 ### A-Refresh Refresh
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Process P1: Apply immediate effect
   - case: success
@@ -7551,11 +7578,13 @@ title: Markers
 
 ### E-One Text
 
+- action: A-One
 - marker: 1
 - value: One
 
 ### E-Two Text
 
+- action: A-Two
 - marker: 1
 - value: Two
 
@@ -7597,8 +7626,6 @@ title: Markers
 
 ### Do:A-One one
 
-- Triggered
-  - E-One.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -7606,8 +7633,6 @@ title: Markers
 
 ### Do:A-Two two
 
-- Triggered
-  - E-Two.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -7897,6 +7922,7 @@ title: Partial Reference
 
 ## States
 
+- before-load+
 - idle*
 
 ## Layout: mobile
@@ -7909,13 +7935,16 @@ title: Partial Reference
   - states:
     - idle: loaded
 
+## Events
+
+- page.load: A-LoadNotices
+
 ## Actions
 
 ### A-LoadNotices Load notices
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Process P1: Request partial
   - request:
@@ -7962,14 +7991,13 @@ title: Self Partial
 
 ### E-Refresh Button
 
+- action: A-Refresh
 - label: Refresh
 
 ## Actions
 
 ### A-Refresh Refresh
 
-- Triggered
-  - E-Refresh.click
 - From
   - idle
 - Process P1: Request partial
@@ -8694,6 +8722,7 @@ references:
 
 ## States
 
+- before-load+
 - initializing*
 
 ## Layout: mobile
@@ -8702,13 +8731,16 @@ references:
 
 - stack
 
+## Events
+
+- page.load: A-LoadPartial
+
 ## Actions
 
 ### A-LoadPartial Load partial
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - initializing
 - Process P1: Request partial
   - request:
@@ -8746,6 +8778,7 @@ references:
 
 ## States
 
+- before-load+
 - loading*
 - idle
 - empty
@@ -8759,14 +8792,19 @@ references:
 - partial:
   - id: PRT-POINTS-PANEL
 
+## Events
+
+- page.load: A-LoadPoints
+
 ## Actions
 
 ### A-LoadPoints Load points
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - loading
+- Process P0: Enter loading
+  - state: loading
 - Process P1: Request partial
   - request:
     - method: GET
@@ -8798,7 +8836,7 @@ references:
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-LoadPoints");
-  const step = action?.processSteps[0];
+  const step = action?.processSteps.find((candidate) => candidate.name === "Request partial");
 
   assert.equal(result.diagnostics.length, 0);
   assert.equal(step?.name, "Request partial");
@@ -8819,7 +8857,7 @@ references:
   ]);
   assert.deepEqual(action?.outcomes, []);
   assert.deepEqual(action?.responses, []);
-  assert.deepEqual(action?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
+  assert.deepEqual(action?.transitions.filter((transition) => transition.from === "loading" && transition.result).map((transition) => [transition.from, transition.result, transition.to]), [
     ["loading", "success-items", "idle"],
     ["loading", "success-empty", "empty"],
     ["loading", "failure", "load-error"]
@@ -8837,18 +8875,24 @@ title: Parallel Process
 
 ## States
 
+- before-load+
 - loading*
 - idle
 - load-error
+
+## Events
+
+- page.load: A-InitialLoad
 
 ## Actions
 
 ### A-InitialLoad Initial load
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - loading
+- Process P0: Enter loading
+  - state: loading
 - Process P1: Call server service
   - group: initial-load
   - server:
@@ -8882,7 +8926,7 @@ title: Parallel Process
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions.find((candidate) => candidate.id === "A-InitialLoad");
-  const [profile, points, resolve] = action?.processSteps ?? [];
+  const [, profile, points, resolve] = action?.processSteps ?? [];
 
   assert.deepEqual(result.diagnostics, []);
   assert.equal(profile?.parallelGroup, "initial-load");
@@ -8901,7 +8945,7 @@ title: Parallel Process
     ["ready", "profile and points loaded"],
     ["failed", "one or more calls failed"]
   ]);
-  assert.deepEqual(action?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
+  assert.deepEqual(action?.transitions.filter((transition) => transition.from === "loading" && transition.result).map((transition) => [transition.from, transition.result, transition.to]), [
     ["loading", "ready", "idle"],
     ["loading", "failed", "load-error"]
   ]);
@@ -8926,14 +8970,13 @@ title: Case Description
 
 ### E-SaveButton Button
 
+- action: A-Save
 - label: Save
 
 ## Actions
 
 ### A-Save Save
 
-- Triggered
-  - E-SaveButton.click
 - From
   - idle
 - Process P1: Send save request
@@ -9001,17 +9044,21 @@ title: Bad Parallel Process
 
 ## States
 
+- before-load+
 - loading*
 - idle
 - load-error
+
+## Events
+
+- page.load: A-InitialLoad
 
 ## Actions
 
 ### A-InitialLoad Initial load
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - loading
 - Process P1: Call server service
   - group: initial-load
@@ -9097,6 +9144,11 @@ title: Malformed Sections
       ["warning", "Malformed Element heading. Expected ### [<marker>:]E-* <type>.", lineNumber(source, "### Message Text")],
       ["warning", "Element E-Message has indented property entry: value: Hello. Use an unindented list item.", lineNumber(source, "  - value: Hello")],
       ["warning", "Malformed Action heading. Expected ### [<marker>:]A-* <name>.", lineNumber(source, "### Submit without ID")],
+      [
+        "warning",
+        "Action A-Submit uses non-canonical Triggered block. Move callers to Element action: / action event:, ## Events page.load or partial.render, or process receive:.",
+        lineNumber(source, "- Triggered")
+      ],
       ["error", "Action A-Submit trigger references missing action A-Missing.", lineNumber(source, "  - A-Missing.response")]
     ]
   );
@@ -9120,14 +9172,13 @@ title: Action Lifecycle
 
 ### E-Submit Button
 
+- action: A-Submit
 - label: Submit
 
 ## Actions
 
 ### A-Submit Submit
 
-- Triggered
-  - E-Submit.click
 - From
   - idle
 - Process P1: Submit request
@@ -9135,12 +9186,13 @@ title: Action Lifecycle
 
 ### A-HandleResponse Handle response
 
-- Triggered
-  - A-Submit.P1.response
 - From
   - wait
 - Process P1: Handle response
-  - state: idle
+  - receive:
+    - response: A-Submit.P1.response
+  - case: success
+    - state: idle
 
 ### A-HandleProgress Handle progress
 
@@ -9158,8 +9210,8 @@ title: Action Lifecycle
     [
       [
         "warning",
-        "Action A-HandleResponse is triggered by A-Submit.P1.response but no process receives that response.",
-        lineNumber(source, "  - A-Submit.P1.response")
+        "Action A-HandleProgress uses non-canonical Triggered block. Move callers to Element action: / action event:, ## Events page.load or partial.render, or process receive:.",
+        lineNumber(source, "- Triggered")
       ],
       ["warning", "Action A-HandleProgress uses unsupported action lifecycle event progress.", lineNumber(source, "  - A-Submit.progress")]
     ]
@@ -9208,8 +9260,6 @@ title: Action From
 
 ### A1:A-StartEdit Start edit
 
-- Triggered
-  - E-EditButton.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -10207,6 +10257,7 @@ route: /users/:userId#details
 
 ## States
 
+- before-load+
 - idle*
 - loaded
 
@@ -10241,13 +10292,16 @@ route: /users/:userId#details
 - cases:
   - A-Load.P1.success
 
+## Events
+
+- page.load: A-Load
+
 ## Actions
 
 ### A-Load Load
 
-- Triggered
-  - page.load
 - From
+  - before-load
   - idle
 - Process P1: Load
   - case: success
@@ -10654,6 +10708,7 @@ title: Bad View Context
 
 ## States
 
+- before-load+
 - idle*
 - loaded
 
@@ -10688,13 +10743,16 @@ title: Bad View Context
 - view: missing
 - before: missing-preview
 
+## Events
+
+- page.load: A-ToggleHelp
+
 ## Actions
 
 ### A-ToggleHelp Toggle help
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Process P1: Apply immediate effect
   - view: \${view.isHelpPanelOpen} = true
@@ -10792,14 +10850,13 @@ title: Process Model Propagation
 
 ### E-Submit Button
 
+- action: A-Submit
 - label: Submit
 
 ## Actions
 
 ### A-Submit Submit
 
-- Triggered
-  - E-Submit.click
 - From
   - idle
 - Process P1: Prepare unrelated model flag
@@ -10814,8 +10871,6 @@ title: Process Model Propagation
 
 ### A-HandleResponse Handle response
 
-- Triggered
-  - A-Submit.P2.response
 - From
   - waiting
 - Process P1: Receive response
@@ -10907,14 +10962,13 @@ title: Compact Action
 
 ### E-SearchButton Button
 
+- action: A-Search
 - label: Search
 
 ## Actions
 
 ### A-Search Search
 
-- Triggered
-  - E-SearchButton.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -10972,6 +11026,8 @@ title: Process Granularity
 
 ### E-OpenButton Button
 
+- action: A-Invalid
+- action: A-Open
 - label: Open
 
 ### E-OpenedMessage Text
@@ -10982,8 +11038,6 @@ title: Process Granularity
 
 ### A-Open Open
 
-- Triggered
-  - E-OpenButton.click
 - From
   - idle
 - Process P1: Open immediately
@@ -10994,8 +11048,6 @@ title: Process Granularity
 
 ### A-Invalid Invalid
 
-- Triggered
-  - E-OpenButton.click
 - From
   - idle
 - Process P1: Mixed request and direct effect
@@ -11071,8 +11123,6 @@ locale: ja
 
 ### A-Invalid Invalid
 
-- Triggered
-  - E-Submit.click
 - From
   - idle
 - Process P1: Validate and update
@@ -11461,6 +11511,7 @@ references:
 
 ### E-NextPageButton Button
 
+- action: A-NextSearchPage
 - label: Next
 - value: 2
 
@@ -11480,8 +11531,6 @@ references:
 
 ### A-NextSearchPage Show next search page
 
-- Triggered
-  - E-NextPageButton.click
 - From
   - loaded
 - Process P1: Request next search page
@@ -11613,6 +11662,7 @@ references:
 
 ## States
 
+- before-load+
 - idle*
 
 ## Layout: mobile
@@ -11633,14 +11683,19 @@ references:
   - states:
     - idle: loaded
 
+## Events
+
+- page.load: A-RefreshProfile
+
 ## Actions
 
 ### A-RefreshProfile Refresh profile
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
+- Process P0: Enter idle
+  - state: idle
 - Process P1: Handle profile summary response
   - case: success
     - description: 200 profile summary partial
@@ -11660,7 +11715,7 @@ references:
   const result = parseMarkVSpec(source);
 
   assert.deepEqual(result.diagnostics, []);
-  const display = result.actions[0]?.processSteps[0]?.outcomes[0]?.display;
+  const display = result.actions[0]?.processSteps.find((step) => step.name === "Handle profile summary response")?.outcomes[0]?.display;
   assert.equal(display?.target, "L-ProfileSummaryHost");
   assert.equal(display?.partial, "PRT-PROFILE-SUMMARY");
   assert.equal(display?.element, undefined);
@@ -11690,6 +11745,7 @@ references:
 
 ## States
 
+- before-load+
 - idle*
 
 ## Layout: mobile
@@ -11719,13 +11775,16 @@ references:
 - target: E-Target
 - message: Required.
 
+## Events
+
+- page.load: A-InvalidPartial
+
 ## Actions
 
 ### A-InvalidPartial Invalid partial
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Process P1: Direct partial alias
   - partial: PRT-PROFILE
@@ -11807,14 +11866,13 @@ title: Custom Process Detail
 
 ### E-SubmitButton Button
 
+- action: A-Submit
 - label: Submit
 
 ## Actions
 
 ### A-Submit Submit
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Submit with project sync
@@ -11868,6 +11926,7 @@ title: Field Error Display
 
 ### E-SubmitButton Button
 
+- action: A-Submit
 - label: Submit
 
 ### E-Title Heading
@@ -11879,8 +11938,6 @@ title: Field Error Display
 
 ### A-Submit Submit
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Check validation
@@ -11987,14 +12044,13 @@ title: Unmarked Display Message
 
 ### E-Button Button
 
+- action: A-Submit
 - label: Submit
 
 ## Actions
 
 ### A-Submit Submit
 
-- Triggered
-  - E-Button.click
 - From
   - idle
 - Process P1: Check validation
@@ -12054,14 +12110,13 @@ title: Unmarked Rule Message
 
 ### E-Button Button
 
+- action: A-Submit
 - label: Submit
 
 ## Actions
 
 ### A-Submit Submit
 
-- Triggered
-  - E-Button.click
 - From
   - idle
 - Process P1: Submit request
@@ -12125,8 +12180,6 @@ title: Business Rule Placement
 
 ### A-Submit Submit
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Submit request
@@ -12176,6 +12229,7 @@ title: Action Neutral Diagnostics
 
 ### E-Button Button
 
+- action: A-Run
 - label: Run
 
 ### E-Other Text
@@ -12186,8 +12240,6 @@ title: Action Neutral Diagnostics
 
 ### A-Run Run
 
-- Triggered
-  - E-Button.click
 - From
   - idle
 - Process P1: Missing result

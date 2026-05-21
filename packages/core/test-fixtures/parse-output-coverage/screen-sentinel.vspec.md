@@ -134,8 +134,6 @@ Actions section overview sentinel.
 
 Action overview sentinel.
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Immediate

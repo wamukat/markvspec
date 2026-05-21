@@ -33,14 +33,13 @@ Project screen summary sentinel for document-list export.
 
 ### E-ProjectTitle Heading
 
+- action: A-OpenProject
 - label: Project screen title sentinel
 
 ## Actions
 
 ### A-OpenProject Open project
 
-- Triggered
-  - E-ProjectTitle.click
 - From
   - idle
 - Process P1: Immediate

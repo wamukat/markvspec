@@ -50,6 +50,9 @@ export function applyActionBulletToContext(
 
     const block = parseActionBlock(bullet.text);
     if (block) {
+      if (block === "triggered") {
+        diagnostics.push(createDeprecatedTriggeredBlockDiagnostic(action.id, bullet.location.line));
+      }
       return { block, outcome: block === "otherwise" ? "otherwise" : undefined };
     }
 
@@ -158,6 +161,14 @@ function parseActionBlock(text: string): ActionBlock | undefined {
     return "otherwise";
   }
   return undefined;
+}
+
+function createDeprecatedTriggeredBlockDiagnostic(actionId: string, line: number): MarkVSpecDiagnostic {
+  return {
+    severity: "warning",
+    message: `Action ${actionId} uses non-canonical Triggered block. Move callers to Element action: / action event:, ## Events page.load or partial.render, or process receive:.`,
+    line
+  };
 }
 
 function parseDirectCaseName(text: string): string | undefined {

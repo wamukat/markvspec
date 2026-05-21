@@ -869,6 +869,7 @@ title: Static Process Icons
 
 ### E-Run Button
 
+- action: A-Run
 - label: Run
 
 ### E-Status Text
@@ -879,8 +880,6 @@ title: Static Process Icons
 
 ### A-Run Run
 
-- Triggered
-  - E-Run.click
 - From
   - idle
 - Process P1: Check validation

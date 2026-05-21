@@ -859,7 +859,7 @@ function formatSemanticSectionLines(lines: string[]): string {
     const previousLine = output[output.length - 1];
     const needsLeadingBlank = output.length > 0 && (
       /^#{2,4}\s+/u.test(line) ||
-      /^-\s+(?:Triggered|From|Effects|Otherwise)\s*$/u.test(line) ||
+      /^-\s+(?:From|Effects|Otherwise)\s*$/u.test(line) ||
       /^-\s+Process(?:\s+[A-Za-z][A-Za-z0-9_-]*)?\s*:/u.test(line) ||
       (previousLine !== undefined && /^#{2,4}\s+/u.test(previousLine))
     );

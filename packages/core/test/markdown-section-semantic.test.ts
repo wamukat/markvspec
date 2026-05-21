@@ -940,8 +940,6 @@ title: Action AST
 
 ### main:A-Submit Submit
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Send request
@@ -978,8 +976,8 @@ title: Action AST
   assert.equal(action?.id, "A-Submit");
   assert.equal(action?.name, "Submit");
   assert.equal(action?.properties["marker"], "main");
-  assert.equal(action?.triggeredBy, "E-SubmitButton.click");
-  assert.deepEqual(action?.trigger, { elementId: "E-SubmitButton", event: "click" });
+  assert.equal(action?.triggeredBy, undefined);
+  assert.equal(action?.trigger, undefined);
   assert.deepEqual(action?.fromStates, ["idle"]);
   assert.deepEqual(action?.processSteps.map((step) => [step.name, step.details.map((detail) => [detail.key, detail.value])]), [
     ["Send request", [["request.method", "POST"], ["request.path", "/login"], ["request.params.email", "E-メールアドレス入力.value"]]],
@@ -1013,7 +1011,6 @@ title: Action AST
   assert.deepEqual(astResult.sectionResults.flatMap((result) => result.dependencies).map((dependency) => [dependency.source, dependency.target, dependency.kind]), [
     [{ type: "section", id: "section:Actions" }, { type: "render", id: "actions:list" }, "renders"],
     [{ type: "section", id: "section:Actions" }, { type: "render", id: "action:A-Submit" }, "renders"],
-    [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "E-SubmitButton" }, "references"],
     [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "state:idle" }, "references"],
     [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "state:done" }, "derives"],
     [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "state:error" }, "derives"],

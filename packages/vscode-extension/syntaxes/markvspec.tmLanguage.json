@@ -163,7 +163,7 @@
       "patterns": [
         {
           "name": "meta.action-group.markvspec",
-          "match": "^(\\s*-\\s+)(Triggered|From|Otherwise)\\s*:?\\s*$",
+          "match": "^(\\s*-\\s+)(From|Otherwise)\\s*:?\\s*$",
           "captures": {
             "1": {
               "name": "punctuation.definition.list.begin.markvspec"

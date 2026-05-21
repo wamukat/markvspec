@@ -12,12 +12,16 @@ title: Multi Request
 
 # SCR-MULTI-REQUEST Multi Request
 
+## Elements
+
+### E-NextPageButton Button
+
+- action: A-NextPage
+
 ## Actions
 
 ### A-NextPage Next page
 
-- Triggered
-  - E-NextPageButton.click
 - From
   - idle
 - Process P1: PreparePage
@@ -56,6 +60,7 @@ title: Process Read Model
 
 ## States
 
+- before-load+
 - loading*
 - idle
 - load-error
@@ -72,13 +77,16 @@ title: Process Read Model
 
 - label: Email
 
+## Events
+
+- page.load: A-InitialLoad
+
 ## Actions
 
 ### A-InitialLoad Initial load
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - loading
 - Process P1: Check validation
   - validate: V-Email.result
@@ -159,13 +167,20 @@ title: Process Param Scope
 
 # SCR-PROCESS-PARAM-SCOPE Process Param Scope
 
+## States
+
+- before-load+
+
+## Events
+
+- page.load: A-Load
+
 ## Actions
 
 ### A-Load Load
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Process P1: Call server service
   - server:
@@ -204,13 +219,20 @@ title: Server Param Validation
 
 # SCR-SERVER-PARAM-VALIDATION Server Param Validation
 
+## States
+
+- before-load+
+
+## Events
+
+- page.load: A-Load
+
 ## Actions
 
 ### A-Load Load
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Process P1: Call server service
   - server:

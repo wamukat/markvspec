@@ -214,14 +214,18 @@ title: Scenario Display
 
 ### E-ShowButton Button
 
+- action: A-ShowHelp
 - label: Show
+
+## Events
+
+- partial.render: A-ReplaceStatus
+- partial.render: A-ReplaceStatusAgain
 
 ## Actions
 
 ### A-ShowHelp Show help
 
-- Triggered
-  - E-ShowButton.click
 - From
   - editing
 - Process P1: Show help
@@ -232,8 +236,6 @@ title: Scenario Display
 
 ### A-ReplaceStatus Replace status
 
-- Triggered
-  - E-ShowButton.click
 - From
   - editing
 - Process P1: Replace status
@@ -244,8 +246,6 @@ title: Scenario Display
 
 ### A-ReplaceStatusAgain Replace status again
 
-- Triggered
-  - E-ShowButton.click
 - From
   - editing
 - Process P1: Replace status again
@@ -328,14 +328,13 @@ title: Field Error Preview
 
 ### E-SubmitButton Button
 
+- action: A-Submit
 - label: Submit
 
 ## Actions
 
 ### A-Submit Submit
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Check validation
@@ -446,6 +445,7 @@ title: Cross-field Preview
 
 ### E-SubmitButton Button
 
+- action: A-Submit
 - label: Submit
 
 ## Form Groups
@@ -461,8 +461,6 @@ title: Cross-field Preview
 
 ### A-Submit Submit
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Check validation
@@ -543,8 +541,6 @@ title: Business Rule Display
 
 ### A-Submit Submit
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Submit subscription
@@ -841,6 +837,7 @@ title: Scenario Base Selection
 
 ### E-Shared Text
 
+- action: A-Submit
 - value: Shared
 
 ### E-Loaded Text
@@ -852,8 +849,6 @@ title: Scenario Base Selection
 
 ### A1:A-Submit Submit
 
-- Triggered
-  - E-Shared.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -1035,8 +1030,6 @@ title: All Repeated State Specs
 
 ### A1:A-Refresh Refresh profile
 
-- Triggered
-  - E-Submit.click
 - From
   - idle
   - loaded
@@ -1252,6 +1245,7 @@ title: Repeated System Events
 
 ## States
 
+- before-load+
 - idle*
 
 ## Layout: mobile
@@ -1266,13 +1260,16 @@ title: Repeated System Events
 
 - stack
 
+## Events
+
+- page.load: A-Load
+
 ## Actions
 
 ### A1:A-Load Load
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Process P1: Call server service
   - LoadService.fetch()
@@ -1289,9 +1286,9 @@ title: Repeated System Events
 
   assert.equal(desktopModel?.repeatedContent.systemEventsEmptyWhenRepeatedHidden, false);
   assert.match(mobileSystemEvents, /<aside class="system-events-box">/);
-  assert.match(mobileSystemEvents, new RegExp(`<li>${actionBadge("A1", "A-Load")} Load<span class="system-event-trigger">（Trigger: ${docLabel("screen.load", "trigger")}）</span></li>`));
+  assert.match(mobileSystemEvents, new RegExp(`<li>${actionBadge("A1", "A-Load")} Load<span class="system-event-trigger">（Trigger: ${docLabel("page.load", "trigger")}）</span></li>`));
   assert.match(desktopSystemEvents, /<aside class="system-events-box">/);
-  assert.match(desktopSystemEvents, new RegExp(`<li>${actionBadge("A1", "A-Load")} Load<span class="system-event-trigger">（Trigger: ${docLabel("screen.load", "trigger")}）</span></li>`));
+  assert.match(desktopSystemEvents, new RegExp(`<li>${actionBadge("A1", "A-Load")} Load<span class="system-event-trigger">（Trigger: ${docLabel("page.load", "trigger")}）</span></li>`));
 });
 
 test("uses explicit From states for system event relevance", () => {
@@ -1305,6 +1302,7 @@ title: System Event From
 
 ## States
 
+- before-load+
 - idle*
 - loading
 
@@ -1331,13 +1329,16 @@ title: System Event From
 - value: Loading
 - visible when: loading
 
+## Events
+
+- page.load: A-SystemEvent
+
 ## Actions
 
 ### A1:A-SystemEvent System event
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Process P1: Apply immediate effect
   - case: background
@@ -1349,7 +1350,7 @@ title: System Event From
   const idleSection = viewportStateSection(html, "idle", "mobile");
   const loadingSection = viewportStateSection(html, "loading", "mobile");
 
-  assert.match(idleSection, new RegExp(`<li>${actionBadge("A1", "A-SystemEvent")} System event<span class="system-event-trigger">（Trigger: ${docLabel("screen.load", "trigger")}）</span></li>`));
+  assert.match(idleSection, new RegExp(`<li>${actionBadge("A1", "A-SystemEvent")} System event<span class="system-event-trigger">（Trigger: ${docLabel("page.load", "trigger")}）</span></li>`));
   assert.doesNotMatch(loadingSection, /system-events-box/);
   assert.match(loadingSection, /<h5 class="state-screen-subheading">Actions<\/h5>\s*<p class="spec-empty">None\.<\/p>/);
 });
@@ -1365,6 +1366,7 @@ title: Hidden Element Trigger
 
 ## States
 
+- before-load+
 - idle*
 
 ## Layout: mobile
@@ -1400,13 +1402,16 @@ title: Hidden Element Trigger
 - label: Open password reset
 - action: A-ForgotPassword
 
+## Events
+
+- page.load: A-Load
+
 ## Actions
 
 ### A1:A-Load Load
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Process P1: Load
   - case: done
@@ -1414,8 +1419,6 @@ title: Hidden Element Trigger
 
 ### A2:A-ForgotPassword Open password reset
 
-- Triggered
-  - E-DesktopOnlyLink.click
 - From
   - idle
 - Process P1: Navigate
@@ -1429,7 +1432,7 @@ title: Hidden Element Trigger
   const desktopSystemEvents = desktopIdleSection.match(/<aside class="system-events-box"[\s\S]*?<\/aside>/)?.[0] ?? "";
 
   assert.match(mobileSystemEvents, /<aside class="system-events-box">/);
-  assert.match(mobileSystemEvents, new RegExp(`<li>${actionBadge("A1", "A-Load")} Load<span class="system-event-trigger">（Trigger: ${docLabel("screen.load", "trigger")}）</span></li>`));
+  assert.match(mobileSystemEvents, new RegExp(`<li>${actionBadge("A1", "A-Load")} Load<span class="system-event-trigger">（Trigger: ${docLabel("page.load", "trigger")}）</span></li>`));
   assert.doesNotMatch(mobileSystemEvents, /A-ForgotPassword|Open password reset|E-DesktopOnlyLink\.click/);
   assert.doesNotMatch(desktopSystemEvents, /A-ForgotPassword|Open password reset|E-DesktopOnlyLink\.click/);
 });
@@ -1474,6 +1477,7 @@ title: Repeated Diff System Events
 
 ### E-IdleText Text
 
+- action: A-Submit
 - value: Idle
 - visible when: idle
 
@@ -1486,8 +1490,6 @@ title: Repeated Diff System Events
 
 ### A1:A-Submit Submit
 
-- Triggered
-  - E-IdleText.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -1495,11 +1497,11 @@ title: Repeated Diff System Events
 
 ### A2:A-HandleSubmitResponse Handle submit response
 
-- Triggered
-  - A-Submit.P1.response
 - From
   - loading
 - Process P1: Apply immediate effect
+  - receive:
+    - response: A-Submit.P1.response
   - case: success
     - response: 200
     - state: idle
@@ -1734,8 +1736,6 @@ title: Markerless
 
 ### A-Submit Submit
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Send request
