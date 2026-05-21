@@ -172,10 +172,10 @@ export interface ElementSemanticResult {
 }
 
 const optionElementTypes = new Set(["Select", "MultiSelect", "RadioGroup", "CheckboxGroup"]);
-const tabItemPropertyKeys = new Set(["panel", "action", "active when"]);
-const accordionItemPropertyKeys = new Set(["panel", "action", "open when"]);
+const tabItemPropertyKeys = new Set(grammarAllowedStructuredItemKeys("element.tab-item.property"));
+const accordionItemPropertyKeys = new Set(grammarAllowedStructuredItemKeys("element.accordion-item.property"));
 const panelItemPropertyKeys = new Set([...tabItemPropertyKeys, ...accordionItemPropertyKeys]);
-const actionMenuItemPropertyKeys = new Set(["action", "tone", "disabled when"]);
+const actionMenuItemPropertyKeys = new Set(grammarAllowedStructuredItemKeys("element.action-menu-item.property"));
 const viewContextPropertyKeys = grammarAllowedStructuredItemKeys("view-context.property");
 const formGroupPropertyKeys = grammarAllowedStructuredItemKeys("form-group.property");
 const errorCodePropertyKeys = grammarAllowedStructuredItemKeys("error-code.property");
@@ -1462,6 +1462,9 @@ function parseHistoryFieldsSection(document: MarkdownDocument, sections: Section
     }
     const key = propertyMatch[1].trim().toLowerCase();
     const value = stripInlineCode(propertyMatch[2].trim());
+    if (!grammarStructuredItemForContext("history-field.property", key).represented) {
+      continue;
+    }
     if (key === "label") {
       current.label = value || current.key;
     } else if (key === "required") {
@@ -1533,6 +1536,9 @@ function parseHistorySection(document: MarkdownDocument, sections: SectionAst[],
     const metadataMatch = /^\s*-\s+([^:]+):\s*(.*?)\s*$/.exec(line.text);
     if (metadataOpen && metadataMatch) {
       const key = stripInlineCode(metadataMatch[1].trim());
+      if (!grammarStructuredItemForContext("history-entry.property", "field key").represented) {
+        continue;
+      }
       current.fields[key] = metadataMatch[2].trim();
       current.fieldLocations[key] = [...(current.fieldLocations[key] ?? []), { line: line.line }];
       current.raw = `${current.raw}\n${line.text}`;
@@ -1890,8 +1896,9 @@ function applyPanelItemProperty(
 ): void {
   const [key, value] = splitKeyValue(bullet.text);
   const normalizedKey = key.trim();
+  const context = itemKind === "tab item" ? "element.tab-item.property" : "element.accordion-item.property";
   const allowedKeys = itemKind === "tab item" ? tabItemPropertyKeys : accordionItemPropertyKeys;
-  if (!allowedKeys.has(normalizedKey)) {
+  if (!grammarStructuredItemForContext(context, normalizedKey).represented) {
     const allowedText = [...allowedKeys].join(", ");
     diagnostics.push({
       severity: "warning",
@@ -1927,7 +1934,7 @@ function applyActionMenuItemProperty(
 ): void {
   const [key, value] = splitKeyValue(bullet.text);
   const normalizedKey = key.trim();
-  if (!actionMenuItemPropertyKeys.has(normalizedKey)) {
+  if (!grammarStructuredItemForContext("element.action-menu-item.property", normalizedKey).represented) {
     diagnostics.push({
       severity: "warning",
       message: `Element ${elementId} action menu item ${item.label} has unsupported property ${normalizedKey}. Use action, tone, or disabled when.`,
@@ -1952,17 +1959,7 @@ function applyActionMenuItemProperty(
   item.propertyLocations[normalizedKey as "action" | "tone" | "disabled when"].push(bullet.location);
 }
 
-const displayValueProperties = new Set([
-  "value",
-  "label",
-  "placeholder",
-  "text",
-  "message",
-  "hint",
-  "href",
-  "src",
-  "alt"
-]);
+const displayValueProperties = new Set(grammarAllowedStructuredItemKeys("element.display-value-property"));
 
 function isDisplayValueProperty(property: string | undefined): property is string {
   return Boolean(property && displayValueProperties.has(property));
@@ -1970,7 +1967,7 @@ function isDisplayValueProperty(property: string | undefined): property is strin
 
 function isDisplayValueMetadataKey(text: string): boolean {
   const [key] = splitKeyValue(text);
-  return ["kind", "source", "format"].includes(key.trim());
+  return grammarStructuredItemForContext("element.display-value-metadata", key.trim()).represented;
 }
 
 function applyDisplayValueMetadata(
@@ -1982,10 +1979,11 @@ function applyDisplayValueMetadata(
 ): void {
   const [key, value] = splitKeyValue(bullet.text);
   const normalizedKey = key.trim();
-  if (!["kind", "source", "format"].includes(normalizedKey)) {
+  const allowedMetadataKeys = grammarAllowedStructuredItemKeys("element.display-value-metadata");
+  if (!grammarStructuredItemForContext("element.display-value-metadata", normalizedKey).represented) {
     diagnostics.push({
       severity: "warning",
-      message: `Element ${elementId} display value property ${property} has unsupported metadata ${normalizedKey}. Use kind, source, or format.`,
+      message: `Element ${elementId} display value property ${property} has unsupported metadata ${normalizedKey}. Use ${allowedMetadataKeys.slice(0, -1).join(", ")}, or ${allowedMetadataKeys.at(-1)}.`,
       line: bullet.location.line
     });
     return;
@@ -2010,10 +2008,9 @@ function applyDisplayValueMetadata(
   const metadata = "propertyMetadata" in target
     ? (target.propertyMetadata[property] ?? { locations: {} })
     : (target.metadata ?? { locations: {} });
-  if (normalizedKey === "kind" || normalizedKey === "source" || normalizedKey === "format") {
-    metadata[normalizedKey] = normalizedValue;
-    metadata.locations[normalizedKey] = bullet.location;
-  }
+  const metadataKey = normalizedKey as "kind" | "source" | "format";
+  metadata[metadataKey] = normalizedValue;
+  metadata.locations[metadataKey] = bullet.location;
   if ("propertyMetadata" in target) {
     target.propertyMetadata[property] = metadata;
   } else {

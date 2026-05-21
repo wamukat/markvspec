@@ -314,6 +314,7 @@ function contextTables(ja) {
     "element.tab-item.property": "Element Tabs Items",
     "element.accordion-item.property": "Element Accordion Items",
     "element.action-menu-item.property": "Element ActionMenu Items",
+    "element.display-value-property": "Element Display Value Properties",
     "element.display-value-metadata": "Element Display Value Metadata",
     "history-field.property": "History Fields",
     "history-entry.property": "History"

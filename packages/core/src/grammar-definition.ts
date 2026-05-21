@@ -16,6 +16,7 @@ export interface GrammarStructuredItemDefinition {
 export type GrammarStructuredItemContext =
   | "action.top-level"
   | "action.process-detail"
+  | "action.process-syntax"
   | "element.common-property"
   | "layout.metadata"
   | "slot.definition"
@@ -31,6 +32,7 @@ export type GrammarStructuredItemContext =
   | "element.tab-item.property"
   | "element.accordion-item.property"
   | "element.action-menu-item.property"
+  | "element.display-value-property"
   | "element.display-value-metadata"
   | "history-field.property"
   | "history-entry.property";
@@ -203,6 +205,11 @@ export const slotDefinitionPropertyKeys = ["required", "default", "purpose", "de
 export const grammarStructuredItemDefinitionsByContext: Partial<Record<GrammarStructuredItemContext, readonly GrammarStructuredItemDefinition[]>> = {
   "action.top-level": actionTopLevelItemDefinitions,
   "action.process-detail": actionProcessDetailItemDefinitions,
+  "action.process-syntax": canonicalItems(
+    ["content", "display", "input", "params", "receive", "result", "update"],
+    "Action process syntax-only block label.",
+    "Action process syntax-only block label。"
+  ),
   "element.common-property": commonElementPropertyKeys.map((key) =>
     item(key, "canonical", true, "Common element property.", "Element 共通 property。")
   ),
@@ -267,8 +274,13 @@ export const grammarStructuredItemDefinitionsByContext: Partial<Record<GrammarSt
     "ActionMenu item property.",
     "ActionMenu item property。"
   ),
+  "element.display-value-property": canonicalItems(
+    ["value", "label", "placeholder", "text", "message", "hint", "href", "src", "alt"],
+    "Display value property.",
+    "Display value property。"
+  ),
   "element.display-value-metadata": canonicalItems(
-    ["text", "value", "sample", "content", "message", "source", "src", "initial value"],
+    ["kind", "source", "format"],
     "Display value metadata property.",
     "Display value metadata property。"
   ),
@@ -282,29 +294,7 @@ export const grammarStructuredItemDefinitionsByContext: Partial<Record<GrammarSt
   ]
 };
 
-export const grammarDefinitionHardCodeInventory = [
-  inventory(
-    "packages/core/src/markdown-section-semantic.ts",
-    "tabItemPropertyKeys / accordionItemPropertyKeys / actionMenuItemPropertyKeys",
-    1373,
-    "Element nested items",
-    "Nested item metadata for Tabs, Accordion, and ActionMenu is still parser-local."
-  ),
-  inventory(
-    "packages/core/src/markdown-section-semantic.ts",
-    "displayValueProperties",
-    1373,
-    "Element display value metadata",
-    "Display value metadata keys are still parser-local."
-  ),
-  inventory(
-    "packages/core/src/action-parser.ts",
-    "processSyntaxOnlyBlockKeys / processDetailBlockKeys",
-    1373,
-    "Actions",
-    "Action process block classification still exposes specialized parser-local sets."
-  )
-] as const satisfies readonly GrammarHardCodeInventoryEntry[];
+export const grammarDefinitionHardCodeInventory: readonly GrammarHardCodeInventoryEntry[] = [];
 
 export function normalizeGrammarKey(value: string): string {
   return value.trim().replace(/:$/, "").trim().toLowerCase();

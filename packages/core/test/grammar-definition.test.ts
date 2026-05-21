@@ -35,6 +35,7 @@ test("grammar query API exposes allowed keys and canonical checks by context", (
   assert.deepEqual(grammarAllowedStructuredItemKeys("slot.definition"), ["required", "default", "purpose", "description"]);
   assert.equal(isGrammarStructuredItemCanonical("action.process-detail", "request"), true);
   assert.equal(isGrammarStructuredItemCanonical("action.process-detail", "Effects"), false);
+  assert.ok(grammarAllowedStructuredItemKeys("action.process-syntax").includes("params"));
   assert.ok(grammarStructuredItemContexts().includes("element.common-property"));
 });
 
@@ -57,7 +58,6 @@ test("grammar definition covers structured section property contexts", () => {
 });
 
 test("grammar hard-code inventory maps parser-local structured items to follow-up tickets", () => {
-  assert.ok(grammarDefinitionHardCodeInventory.length >= 1);
   for (const entry of grammarDefinitionHardCodeInventory) {
     assert.match(entry.source, /^packages\/core\/src\//);
     assert.match(entry.owner, /\S/);
@@ -68,4 +68,5 @@ test("grammar hard-code inventory maps parser-local structured items to follow-u
 
   assert.equal(grammarDefinitionHardCodeInventory.some((entry) => entry.targetTicket === 1371), false);
   assert.equal(grammarDefinitionHardCodeInventory.some((entry) => entry.targetTicket === 1372), false);
+  assert.equal(grammarDefinitionHardCodeInventory.some((entry) => entry.targetTicket === 1373), false);
 });

@@ -380,18 +380,27 @@ Element type 固有 property は `elementTypeRegistry` とこの grammar definit
 | `tone` | canonical | yes | - | ActionMenu item property。 |
 | `disabled when` | canonical | yes | - | ActionMenu item property。 |
 
+#### Element Display Value Properties
+
+| item | classification | output | diagnostic | 説明 |
+| --- | --- | --- | --- | --- |
+| `value` | canonical | yes | - | Display value property。 |
+| `label` | canonical | yes | - | Display value property。 |
+| `placeholder` | canonical | yes | - | Display value property。 |
+| `text` | canonical | yes | - | Display value property。 |
+| `message` | canonical | yes | - | Display value property。 |
+| `hint` | canonical | yes | - | Display value property。 |
+| `href` | canonical | yes | - | Display value property。 |
+| `src` | canonical | yes | - | Display value property。 |
+| `alt` | canonical | yes | - | Display value property。 |
+
 #### Element Display Value Metadata
 
 | item | classification | output | diagnostic | 説明 |
 | --- | --- | --- | --- | --- |
-| `text` | canonical | yes | - | Display value metadata property。 |
-| `value` | canonical | yes | - | Display value metadata property。 |
-| `sample` | canonical | yes | - | Display value metadata property。 |
-| `content` | canonical | yes | - | Display value metadata property。 |
-| `message` | canonical | yes | - | Display value metadata property。 |
+| `kind` | canonical | yes | - | Display value metadata property。 |
 | `source` | canonical | yes | - | Display value metadata property。 |
-| `src` | canonical | yes | - | Display value metadata property。 |
-| `initial value` | canonical | yes | - | Display value metadata property。 |
+| `format` | canonical | yes | - | Display value metadata property。 |
 
 #### History Fields
 

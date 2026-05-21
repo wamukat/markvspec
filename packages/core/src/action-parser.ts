@@ -8,8 +8,7 @@ import {
   isGrammarStructuredItemCanonical,
   nonCanonicalProcessBlockKeys,
   normalizeGrammarKey,
-  processDetailBlockKeys,
-  processSyntaxOnlyBlockKeys
+  processDetailBlockKeys
 } from "./grammar-definition.js";
 import type { MarkVSpecAction, MarkVSpecActionOutcome, MarkVSpecDiagnostic, MarkVSpecProcessStep, MarkVSpecRouteParam, SourceLocation } from "./types.js";
 
@@ -1007,12 +1006,12 @@ function isCustomProcessDetailBlockStart(text: string): boolean {
   const normalized = normalizeBlockLabel(trimmed);
   return /^[a-z][a-z0-9_-]*$/u.test(normalized)
     && !["triggered", "from", "process", "otherwise", "case", "effects", "receive", "result", "params"].includes(normalized)
-    && !processSyntaxOnlyBlockKeys.has(normalized)
+    && !isProcessSyntaxOnlyBlockLabel(normalized)
     && !isKnownProcessDetailBlock(normalized);
 }
 
 function isProcessSyntaxOnlyBlockLabel(normalized: string): boolean {
-  return processSyntaxOnlyBlockKeys.has(normalized);
+  return grammarStructuredItemForContext("action.process-syntax", normalized).represented;
 }
 
 function isNonCanonicalProcessBlockLabel(normalized: string): boolean {
