@@ -16,9 +16,9 @@
 
 - label: Email
 - value: email
-- required
-- constraints
-  - format: email
+- type: email
+- input rule:
+  - type: email
 
 ### E-SignInButton Button
 
@@ -85,7 +85,7 @@ needs the distinction; otherwise prefer `Input`, `Select`, `Button`, `Text`, or
 | `label` | `- label: Sign in` | Control or link label for `Button`, `Input`, `Select`, `Checkbox`, and `Link` |
 | `value` | `- value: email` | Field value or data binding name; not a display label |
 | `placeholder` | `- placeholder: name@example.com` | Input example |
-| `required` | `- required` | Required input |
+| `required` | `- required` | Mark the input as required |
 | `variant` | `- variant: primary` | Priority: `primary`, `secondary`, `tertiary` |
 | `tone` | `- tone: danger` | Semantic intent: `neutral`, `info`, `success`, `warning`, `danger` |
 | `action` | `- action: A-SubmitLogin` | Action ID to trigger |
@@ -98,6 +98,8 @@ needs the distinction; otherwise prefer `Input`, `Select`, `Button`, `Text`, or
 | `loading when` | `- loading when: submitting` | State where the element shows loading feedback |
 | `open when` | `- open when: dialog-open` | State where dialog, popover, accordion, or disclosure is open |
 | `placement` | `- placement: below E-HelpIcon` | Placement for tooltip, popover, or menu |
+
+Write validation rules and error messages in `## Field Validations`. Element-level `constraints` and `error:` are not current MarkVSpec syntax.
 
 ### Text, Label, And Value
 

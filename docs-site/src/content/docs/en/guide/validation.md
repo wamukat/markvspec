@@ -10,8 +10,9 @@ Start by separating where the decision is made and what it checks.
 
 | Kind | Examples | Write it in |
 | --- | --- | --- |
-| Client single-field check | required, email format, text length, numeric range | `## Elements` on the input |
-| Client cross-field check | password confirmation, start date <= end date | `## Business Rules` or a pre-submit action |
+| Client single-field check | required, email format, text length, numeric range | `## Field Validations` |
+| Input metadata | type, placeholder, min/max, browser-facing input hints | `## Elements` on the input |
+| Client cross-field check | password confirmation, start date <= end date | `## Cross-field Validations`, `## Business Rules`, or a pre-submit action |
 | Server field check | duplicate email, unknown product code | `## Actions` response `case:` with the affected field |
 | Server business check | stock shortage, missing permission, contract restriction | `## Actions` response `case:` and `## Business Rules` |
 
@@ -21,7 +22,7 @@ Business Rules are for product decisions. They are not the place for basic input
 
 ## Client Single-field Checks
 
-Rules that can be decided from one input belong near that input.
+Rules that can be decided from one input belong in `## Field Validations`. Keep UI metadata such as label, type, placeholder, and min/max on the input element.
 
 ```markdown
 ## Elements
@@ -29,15 +30,24 @@ Rules that can be decided from one input belong near that input.
 ### E-EmailInput Input
 
 - label: Email
-- required
-- constraints
-  - format: email
-- error:
-  - required: Email is required.
-  - format: Enter a valid email address.
+- type: email
+- placeholder: user@example.com
+- input rule:
+  - type: email
+
+## Field Validations
+
+### V-EmailRules Email rules
+
+- target: E-EmailInput
+- constraints:
+  - required:
+    - message: Email is required.
+  - email:
+    - message: Enter a valid email address.
 ```
 
-In preview and review, the reader can see what the field accepts without hunting through another section.
+In preview and review, the reader can inspect the input metadata and validation contract separately. `Element` describes the UI. `Validation` describes the check and message.
 
 ## Client Cross-field Checks
 
@@ -68,9 +78,9 @@ Errors that only the server can decide belong to response cases.
 ### E-EmailInput Input
 
 - label: Email
-- required
-- constraints
-  - format: email
+- type: email
+- input rule:
+  - type: email
 
 ### E-EmailError Text
 

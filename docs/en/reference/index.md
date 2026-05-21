@@ -24,7 +24,7 @@ Learning-oriented explanations live in [Guide](../guide/index.md). Reference is 
 | [Sections](sections.md) | Recognized sections, including layout, events, form groups, validations, slots, error codes, and history |
 | [Elements](elements.md) | Elements such as `Heading`, `Paragraph`, `Text`, `Input`, and `Button` |
 | [Actions](actions.md) | `action: A-*`, `## Events`, `Process Pn:`, `request`, `receive`, `case:`, and `display` |
-| [Validations](validations.md) | `required`, `constraints`, format/range, and error messages |
+| [Validations](validations.md) | `## Field Validations`, `constraints`, and validation messages |
 | [Business Rules](rules.md) | Business rules and screen-specific conditions in `## Business Rules` |
 | [IDs](ids.md) | How to use `SCR-*`, `L-*`, `E-*`, `A-*`, and `R-*` |
 | [CLI](cli.md) | `validate`, HTML/PDF export, and project `document-list` export |

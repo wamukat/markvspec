@@ -34,7 +34,8 @@ Element は「画面に何があるか」と「ユーザーにとって何をす
 - 見出しは `Heading` と `level: 1..6` を使う。
 - 短いラベルや値は `Text` を使う。
 - `variant` は優先度、`tone` は意味上の意図として使う。
-- 入力項目は label、placeholder、required、constraints を element に近い場所へ置く。
+- 入力項目は label、placeholder、type、min/max などの UI メタデータを element に置く。
+- 検証ルールとエラーメッセージは `## Field Validations` に分ける。
 - `Button` や `Link` には、必要に応じて `action: A-*` を付ける。
 - warning、error、success などの意味は生の色指定ではなく `tone` で表す。
 - `H1`、`H2` のような type は使わず、`Heading` と `level` で表す。
@@ -48,9 +49,9 @@ Element は「画面に何があるか」と「ユーザーにとって何をす
 
 - label: Email
 - placeholder: name@example.com
-- required
-- constraints
-  - format: email
+- type: email
+- input rule:
+  - type: email
 
 ### E-ErrorBanner Banner
 
@@ -65,7 +66,7 @@ Element は「画面に何があるか」と「ユーザーにとって何をす
 - action: A-Submit
 ```
 
-入力制約は `E-EmailInput` に近い場所へ置き、エラーバナーは `tone: danger` と状態条件で表します。これによりプレビューでも仕様レビューでも、どの部品がどの状態で意味を持つかを確認できます。
+入力欄のメタデータは `E-EmailInput` に置き、検証ルールは `## Field Validations` に分けます。エラーバナーは `tone: danger` と状態条件で表します。これによりプレビューでも仕様レビューでも、どの部品がどの状態で意味を持つかを確認できます。
 
 ![Source Kind Metadata の要素プレビュー](../../assets/vscode-previews/source-kind-metadata-vscode-preview.png)
 

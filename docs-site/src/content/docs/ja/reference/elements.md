@@ -18,9 +18,9 @@ title: "要素"
 
 - label: Email
 - value: email
-- required
-- constraints
-  - format: email
+- type: email
+- input rule:
+  - type: email
 
 ### E-SignInButton Button
 
@@ -86,7 +86,7 @@ examples には次の専用コントロールも出ます。画面の意味を�
 | `label` | `- label: Sign in` | `Button`、`Input`、`Select`、`Checkbox`、`Link` などのコントロール / リンク名 |
 | `value` | `- value: email` | フィールドの値やデータバインド名。表示ラベルではない |
 | `placeholder` | `- placeholder: name@example.com` | 入力例 |
-| `required` | `- required` | 必須入力 |
+| `required` | `- required` | 入力欄を必須として表示する |
 | `variant` | `- variant: primary` | 優先度。`primary`、`secondary`、`tertiary` |
 | `tone` | `- tone: danger` | 意味上の意図。`neutral`、`info`、`success`、`warning`、`danger` |
 | `action` | `- action: A-SubmitLogin` | 発火するアクション ID |
@@ -99,6 +99,8 @@ examples には次の専用コントロールも出ます。画面の意味を�
 | `loading when` | `- loading when: submitting` | 読み込み中のフィードバックを出す状態 |
 | `open when` | `- open when: dialog-open` | dialog、popover、accordion、disclosure が開く状態 |
 | `placement` | `- placement: below E-HelpIcon` | tooltip、popover、menu の表示位置 |
+
+入力値の検証ルールとエラーメッセージは `## Field Validations` に書きます。`Input` 要素直下の `constraints` や `error:` は現在の構文ではありません。
 
 ### Text、Label、Value
 

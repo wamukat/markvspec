@@ -34,7 +34,8 @@ This example defines only a heading and a primary button. The `action` property 
 - Use `Heading` with `level: 1..6` for headings.
 - Use `Text` for short labels and values.
 - Use `variant` for priority and `tone` for semantic intent.
-- Keep input label, placeholder, required, and constraints close to the input element.
+- Keep input label, placeholder, type, and min/max metadata on the input element.
+- Put validation rules and error messages in `## Field Validations`.
 - Add `action: A-*` to buttons and links when they trigger behavior.
 - Express warning, error, and success semantics with `tone`, not raw colors.
 - Do not use types such as `H1` or `H2`; use `Heading` plus `level`.
@@ -48,9 +49,9 @@ This example defines only a heading and a primary button. The `action` property 
 
 - label: Email
 - placeholder: name@example.com
-- required
-- constraints
-  - format: email
+- type: email
+- input rule:
+  - type: email
 
 ### E-ErrorBanner Banner
 
@@ -65,7 +66,7 @@ This example defines only a heading and a primary button. The `action` property 
 - action: A-Submit
 ```
 
-Input constraints stay near `E-EmailInput`, while the error banner uses `tone: danger` and a state condition. This lets preview and review show which UI part matters in each state.
+Input metadata stays on `E-EmailInput`, while validation rules belong in `## Field Validations`. The error banner uses `tone: danger` and a state condition. This lets preview and review show which UI part matters in each state.
 
 ![Source Kind Metadata elements preview](../../assets/vscode-previews/source-kind-metadata-vscode-preview.png)
 

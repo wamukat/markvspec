@@ -2,15 +2,16 @@
 title: "Validations"
 ---
 
-Validations cover input constraints and error display. Keep field validation near the element, and put screen or business decisions in [Business Rules](/markvspec/en/reference/rules/).
+Validations cover validation contracts and error display. Put input metadata in `## Elements`, validation rules and messages in `## Field Validations`, and screen or business decisions in [Business Rules](/markvspec/en/reference/rules/).
 
 ## Boundary
 
 | If the check is about... | Put it in |
 | --- | --- |
-| Required input | The `Input` element |
-| Format, length, range, or pattern | The `Input` element `constraints` |
-| Comparing multiple fields | `## Business Rules` or a pre-submit action |
+| Required input metadata | The `Input` element `required` or `input rule` |
+| Format, length, range, or pattern metadata | The `Input` element `input rule`, or `NumberInput` `min` / `max` / `step` |
+| Validation rules and user-facing messages | `## Field Validations` |
+| Comparing multiple fields | `## Cross-field Validations`, `## Business Rules`, or a pre-submit action |
 | A server response for one field | `## Actions` `case:` with `display` targeting the field error |
 | A product decision such as permission, stock, or contract state | `## Business Rules`, then the server response `case:` |
 
@@ -23,35 +24,42 @@ Validations cover input constraints and error display. Keep field validation nea
 
 - label: Email
 - value: email
-- required
-- constraints
-  - format: email
-  - maxLength: 255
-- error:
-  - required: Email is required.
-  - format: Enter a valid email address.
+- type: email
+- input rule:
+  - type: email
+
+## Field Validations
+
+### V-EmailRules Email rules
+
+- target: E-EmailInput
+- constraints:
+  - required:
+    - message: Email is required.
+  - email:
+    - message: Enter a valid email address.
 ```
 
 ### Common Constraints
 
 | Constraint | Example | Use |
 | --- | --- | --- |
-| `required` | `- required` | Do not allow an empty value |
-| `format` | `- format: email` | Formats such as email or URL |
-| `minLength` | `- minLength: 8` | Minimum character count |
-| `maxLength` | `- maxLength: 255` | Maximum character count |
-| `min` | `- min: 1` | Lower bound for numbers or counts |
-| `max` | `- max: 99` | Upper bound for numbers or counts |
-| `pattern` | `- pattern: ^[A-Z0-9]+$` | Domain-specific input format |
+| `required` | `- required:` | Do not allow an empty value |
+| `email` | `- email:` | Email format |
+| `length: element` | `- length: element` | Use `input rule` `min length` / `max length` metadata |
+| `range: element` | `- range: element` | Use `NumberInput` `min` / `max` / `step` metadata |
+| `pattern` | `- pattern:` | Domain-specific input format |
 
 ### Error Messages
 
-Error messages can be written in a shape that matches constraints.
+Write error messages as `message` rows under each `## Field Validations` constraint.
 
 ```markdown
-- error:
-  - required: Password is required.
-  - minLength: Use at least 8 characters.
+- constraints:
+  - required:
+    - message: Password is required.
+  - length: element
+    - message: Use at least 8 characters.
 ```
 
 ## Small Example
@@ -61,20 +69,38 @@ Error messages can be written in a shape that matches constraints.
 
 - label: Quantity
 - value: quantity
-- required
-- constraints
-  - min: 1
-  - max: 10
-- error:
-  - min: Quantity must be at least 1.
-  - max: Quantity must be 10 or less.
+- input rule:
+  - required
+
+### E-AgeInput NumberInput
+
+- label: Age
+- min: 13
+- max: 120
+
+## Field Validations
+
+### V-QuantityRules Quantity rules
+
+- target: E-QuantityInput
+- constraints:
+  - required:
+    - message: Quantity is required.
+
+### V-AgeRange Age range
+
+- target: E-AgeInput
+- constraints:
+  - range: element
+    - message: Age must be between 13 and 120.
 ```
 
 ![Single Field Validation preview](../../assets/vscode-previews/single-field-validation-vscode-preview.png)
 
 ## Notes
 
-- Validation covers field format, required status, and ranges.
+- Element-level `constraints` and `error:` are not current MarkVSpec syntax.
+- Write validation rules as `V-*` entries in `## Field Validations`.
 - `## Business Rules` covers business rules and screen-specific conditions.
 - Validator diagnostics are tool output, separate from validation requirements written in the source.
 - Error display elements can be written in `## Elements` as `Paragraph` or `Text` with `tone: danger`.

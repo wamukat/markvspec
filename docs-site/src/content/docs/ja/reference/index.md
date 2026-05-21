@@ -26,7 +26,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 | [セクション](/markvspec/ja/reference/sections/) | レイアウト、イベント、フォームグループ、バリデーション、slot、エラーコード、履歴などのセクション |
 | [要素](/markvspec/ja/reference/elements/) | `Heading`、`Paragraph`、`Text`、`Input`、`Button` などの要素 |
 | [アクション](/markvspec/ja/reference/actions/) | `action: A-*`、`## Events`、`Process Pn:`、`request`、`receive`、`case:`、`display` |
-| [バリデーション](/markvspec/ja/reference/validations/) | `required`、`constraints`、format/range、エラーメッセージ |
+| [バリデーション](/markvspec/ja/reference/validations/) | `## Field Validations`、`constraints`、検証メッセージ |
 | [ビジネスルール](/markvspec/ja/reference/rules/) | `## Business Rules` に書くビジネスルールと画面固有条件 |
 | [ID](/markvspec/ja/reference/ids/) | `SCR-*`、`L-*`、`E-*`、`A-*`、`R-*` の使い分け |
 | [CLI](/markvspec/ja/reference/cli/) | `validate`、HTML/PDF 出力、プロジェクト `document-list` 出力 |
