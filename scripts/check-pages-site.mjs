@@ -13,9 +13,7 @@ const requiredFiles = [
   "assets/markvspec-icon.svg",
   "examples/index.html",
   "examples/generated/hello-screen.html",
-  "examples/generated/hello-screen.pdf",
   "examples/hello-screen.html",
-  "examples/hello-screen.pdf",
   "examples/showcase/hello-screen.html/index.html",
   "pagefind/pagefind.js",
   "pagefind/pagefind-entry.json",
@@ -72,12 +70,12 @@ expectOrder(
 
 const generatedExamplesDir = join(siteDir, "examples", "generated");
 const generatedHtml = readdirSync(generatedExamplesDir).filter((entry) => entry.endsWith(".html") && !entry.endsWith(".pdf-source.html")).sort();
-const generatedPdf = readdirSync(generatedExamplesDir).filter((entry) => entry.endsWith(".pdf")).sort();
+const generatedPdfArtifacts = collectFiles(join(siteDir, "examples"), (filePath) => filePath.endsWith(".pdf") || filePath.endsWith(".pdf-source.html"));
 if (generatedHtml.length !== exampleSources.length) {
   failures.push(`_site/examples/generated should contain one HTML artifact per example (${exampleSources.length} expected, ${generatedHtml.length} found).`);
 }
-if (generatedPdf.length !== exampleSources.length) {
-  failures.push(`_site/examples/generated should contain one PDF artifact per example (${exampleSources.length} expected, ${generatedPdf.length} found).`);
+if (generatedPdfArtifacts.length > 0) {
+  failures.push(`_site/examples should not contain generated PDF artifacts: ${generatedPdfArtifacts.map((filePath) => toPosixPath(relative(siteDir, filePath))).join(", ")}`);
 }
 
 const pagefindIndexDir = join(siteDir, "pagefind", "index");
@@ -98,7 +96,7 @@ expectContains(helloShowcaseHtml, "Source and generated preview, side by side", 
 expectContains(helloShowcaseHtml, 'class="example-sidebar ', "_site/examples/showcase/hello-screen.html should show example navigation.");
 expectContains(helloShowcaseHtml, 'aria-current="page"', "_site/examples/showcase/hello-screen.html sidebar should mark the current example.");
 expectContains(helloShowcaseHtml, '<iframe src="/markvspec/examples/generated/hello-screen.html"', "_site/examples/showcase/hello-screen.html should embed the generated preview artifact.");
-expectContains(helloShowcaseHtml, 'href="/markvspec/examples/generated/hello-screen.pdf"', "_site/examples/showcase/hello-screen.html should link the generated PDF artifact.");
+expectNotContains(helloShowcaseHtml, 'href="/markvspec/examples/generated/hello-screen.pdf"', "_site/examples/showcase/hello-screen.html should not link generated PDF artifacts.");
 expectContains(helloShowcaseHtml, '<span class="line-no ', "_site/examples/showcase/hello-screen.html should show source line numbers.");
 expectContains(helloShowcaseHtml, "SCR-HELLO", "_site/examples/showcase/hello-screen.html should render source text.");
 expectContains(helloShowcaseHtml, "English: Guide / Markdown Model", "_site/examples/showcase/hello-screen.html should link to related English guide docs.");

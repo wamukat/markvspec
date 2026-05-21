@@ -43,7 +43,7 @@ Astro Starlight を採用候補の第一順位とする。
 
 ### MarkVSpec 固有 script として残す
 
-- `examples/**/*.vspec.md` から standalone preview HTML / PDF を生成する処理。
+- `examples/**/*.vspec.md` から standalone preview HTML を生成する処理。
 - `examples/catalog.yml` の validation。
 - generated examples gallery の metadata 作成。
 - example showcase の Source + Preview 比較ページ生成。
@@ -167,7 +167,8 @@ examples showcase は Starlight docs content にはしない。MarkVSpec 固有�
 理由:
 
 - `.vspec.md` source と generated preview を横並びで見せる UI は Starlight docs content ではなく product-specific showcase。
-- preview HTML / PDF generation は MarkVSpec CLI / renderer の regression 対象でもある。
+- preview HTML generation は MarkVSpec CLI / renderer の regression 対象でもある。
+- PDF export は CLI / VS Code / print regression の機能として維持するが、docs site の example 配布物や showcase 導線には含めない。
 - examples catalog は docs navigation ではなく、DSL coverage と学習順の metadata を持つ。
 - サイトとしては `/markvspec/` 配下に統合し、examples だけ別ルートのサイトにしない。
 
@@ -176,9 +177,9 @@ examples showcase は Starlight docs content にはしない。MarkVSpec 固有�
 - Starlight docs: `/markvspec/ja/examples/` / `/markvspec/en/examples/`
 - Astro examples index: `/markvspec/examples/`
 - Astro showcase shell: `/markvspec/examples/showcase/<name>.html`
-- generated preview / PDF artifact: `/markvspec/examples/generated/...`
+- generated preview HTML artifact: `/markvspec/examples/generated/...`
 
-Starlight build 前に `examples/catalog.yml` を検証する。generated preview HTML / PDF は Astro build output または compose step により publish directory の `/examples/generated/` 等へ配置し、Astro showcase page から参照する。
+Starlight build 前に `examples/catalog.yml` を検証する。generated preview HTML は Astro build output または compose step により publish directory の `/examples/generated/` 等へ配置し、Astro showcase page から参照する。PDF / `pdf-source.html` artifact は docs site に配布しない。
 
 ## npm scripts 方針
 
@@ -306,7 +307,7 @@ npm --prefix docs-site run preview -- --host 127.0.0.1
 
 目的:
 
-- examples の preview HTML / PDF 生成は MarkVSpec 固有処理として残す。
+- examples の preview HTML 生成は MarkVSpec 固有処理として残す。
 - examples index / showcase shell は `docs-site/src/pages/examples/` の Astro page として実装し、同じ `/markvspec/examples/` 配下で公開する。
 
 対象:
@@ -321,8 +322,9 @@ npm --prefix docs-site run preview -- --host 127.0.0.1
 
 - `/examples/` と `/examples/showcase/...` が同じ Astro/Starlight app 配下で見える。
 - examples だけ別ルートの site になっていない。
-- Source + Preview、Preview、PDF、GitHub source link が維持される。
-- generated preview HTML / PDF artifact が showcase から到達できる。
+- Source + Preview、Preview、GitHub source link が維持される。
+- generated preview HTML artifact が showcase から到達できる。
+- generated PDF / `pdf-source.html` artifact が docs site に配布されない。
 - showcase の Related docs link が Starlight 新 URL に解決される。
 - `examples/catalog.yml` の docs key validation が Starlight の Start / Guide / Reference / Recipes 構成と一致する。
 - `examples/catalog.yml` validation が `build:pages` または `check:pages-site` で実行される。
@@ -353,7 +355,8 @@ npm --prefix docs-site run preview -- --host 127.0.0.1
 
 - `npm run build:pages` が Starlight docs と generated examples を1つの publish directory に出力する。
 - Astro pages として `/examples/` / `/examples/showcase/...` が同一 app 配下で生成される。
-- standalone preview / PDF artifact が showcase から到達できる。
+- standalone preview HTML artifact が showcase から到達できる。
+- generated PDF / `pdf-source.html` artifact が docs site に配布されないことを `check:pages-site` で確認する。
 - `npm run check:pages-site` が新 URL、examples、assets、search artifact を確認する。
 - `npm run check:pages-site` が examples showcase から Starlight docs への Related docs link を確認する。
 - README / root page / docs 内 link が新 Starlight URL を使う。

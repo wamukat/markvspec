@@ -177,7 +177,3 @@ function titleize(value) {
 function toPosixPath(filePath) {
   return filePath.split(/[\\/]/u).join('/');
 }
-
-export function generatedPdfExists(slug) {
-  return existsSync(join(repoRoot, 'docs-site', 'public', 'examples', 'generated', `${slug}.pdf`));
-}

@@ -31,10 +31,6 @@ function htmlFileName(filePath) {
   return `${basename(filePath, ".vspec.md")}.html`;
 }
 
-function pdfFileName(filePath) {
-  return `${basename(filePath, ".vspec.md")}.pdf`;
-}
-
 function assertUniqueOutputNames(files) {
   const ownersByName = new Map();
   for (const filePath of files) {
@@ -58,13 +54,9 @@ function prepareExampleArtifacts(files) {
   execFileSync("node", ["packages/cli/dist/index.js", "export", "html", "examples/**/*.vspec.md", "--out", generatedExamplesDir], {
     stdio: "inherit",
   });
-  execFileSync("node", ["packages/cli/dist/index.js", "export", "pdf", "examples/**/*.vspec.md", "--out", generatedExamplesDir], {
-    stdio: "inherit",
-  });
 
   for (const filePath of files) {
     copyFileSync(join(generatedExamplesDir, htmlFileName(filePath)), join(publicExamplesDir, htmlFileName(filePath)));
-    copyFileSync(join(generatedExamplesDir, pdfFileName(filePath)), join(publicExamplesDir, pdfFileName(filePath)));
   }
 }
 
@@ -93,7 +85,7 @@ function copyBuiltDocsSite() {
 const files = collectVspecFiles(examplesDir);
 assertUniqueOutputNames(files);
 validateCatalog(files);
-console.log(`Preparing ${files.length} generated example artifacts.`);
+console.log(`Preparing ${files.length} generated example HTML artifacts.`);
 prepareExampleArtifacts(files);
 prepareBrandAssets();
 

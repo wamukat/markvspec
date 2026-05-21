@@ -341,7 +341,7 @@ catalog は次の出力に使います。
 - repository 内 Markdown では相対リンクを使う。
 - GitHub Pages に公開する主要導線では `.html` リンクを使う。
 - README からは、公開 site URL と repository 内 source のどちらへ飛ぶかを明確にする。
-- example showcase には、preview、source、PDF、関連 docs を並べる。
+- example showcase には、preview、source、関連 docs を並べる。
 - Reference ページは、該当構文を使う examples へ必ず戻れるようにする。
 - Maintainers 文書は、利用者向けページから通常導線では露出しない。
 
@@ -354,7 +354,7 @@ catalog は次の出力に使います。
 現行の責務:
 
 - `examples/catalog.yml` を検証する。
-- `examples/**/*.vspec.md` から generated HTML / PDF artifact を作る。
+- `examples/**/*.vspec.md` から generated HTML artifact を作る。
 - generated examples と brand assets を `docs-site/public/` に配置する。
 - Starlight docs と Astro examples pages を `docs-site` として build する。
 - `docs-site/dist` を GitHub Pages upload 用の `_site` にコピーする。
@@ -363,7 +363,7 @@ catalog は次の出力に使います。
 
 - `_site` に Starlight docs、examples、assets、Pagefind artifact がある。
 - `docs-site/src/content/docs/ja` と `docs-site/src/content/docs/en` の Markdown path が一致している。
-- examples index / showcase が catalog、generated preview、PDF、related docs を正しく参照している。
+- examples index / showcase が catalog、generated preview、related docs を正しく参照している。
 - 主要な Start / Guide / Reference / Recipes / Examples / Concepts ページが出力されている。
 - `_site/docs` は生成されていない。
 

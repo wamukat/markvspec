@@ -6,7 +6,6 @@ import {
   nextExamples,
   relatedDocs,
   sourceLines,
-  generatedPdfExists,
 } from '../../../lib/example-data.js';
 
 export function getStaticPaths() {
@@ -23,7 +22,6 @@ const stageGroups = groupExamplesByStage(examples);
 const related = relatedDocs(example);
 const next = nextExamples(example, examples);
 const previewHref = `${base}/examples/generated/${example.slug}.html`;
-const pdfHref = `${base}/examples/generated/${example.slug}.pdf`;
 const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
 const sourceLineItems = sourceLines(example.source);
 const currentStage = stageGroups.find((stage) => stage.items.some((item) => item.slug === example.slug));
@@ -474,7 +472,6 @@ const metaPills = [
             </div>
           </div>
           <div class="example-actions">
-            {generatedPdfExists(example.slug) ? <a class="button-link" href={pdfHref}>Download PDF</a> : null}
             <a class="nav-link" href={previewHref}>Open preview only</a>
             <a class="nav-link" href={`${githubBlobBaseUrl}${example.repoPath}`}>View on GitHub</a>
           </div>
