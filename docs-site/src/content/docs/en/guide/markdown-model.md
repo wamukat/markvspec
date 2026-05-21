@@ -30,7 +30,11 @@ locale: en
 
 ### L1:L-Main Main
 
-- column
+- stack
+
+#### Items
+
+- E-Title
 
 ## Elements
 

@@ -56,6 +56,9 @@ it. `marker` is ignored, and `visible when` / `hidden when` / `disabled when` /
 `enabled when` / `partial` / action or display `target` are not allowed. Use
 `L-*` when a region needs to be targetable.
 
+Recognized layout kinds are `stack`, `row`, `grid`, and `inline`. Use `stack`
+for common vertical groups.
+
 MarkVSpec recognizes these top-level sections.
 
 | Section | What To Write |

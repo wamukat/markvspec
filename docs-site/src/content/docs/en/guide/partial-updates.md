@@ -56,7 +56,7 @@ the referenced elements.
 
 ### L-SearchPanel Search Panel
 
-- column
+- stack
 
 #### Items
 

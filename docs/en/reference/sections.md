@@ -24,6 +24,9 @@ Sections are top-level headings in the `.vspec.md` body. MarkVSpec uses the sect
 - E-Submit
 ```
 
+Recognized layout kinds are `stack`, `row`, `grid`, and `inline`. Use `stack`
+for common vertical groups.
+
 MarkVSpec recognizes these top-level sections.
 
 | Section | What To Write |

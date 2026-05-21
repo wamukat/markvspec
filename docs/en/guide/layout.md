@@ -6,7 +6,7 @@ Layout describes screen structure and order. Prefer meaningful groups, direction
 
 The Layout section describes how the screen should be read as UI groups. Its purpose is not pixel-perfect placement. It gives preview, AI edits, and reviews a stable skeleton of the screen.
 
-Use `L-*` layout groups for meaningful units such as forms, headers, lists, detail areas, and message areas. Use direction and spacing terms such as `column`, `row`, `stack`, `grid`, and `gap`, then use `Items` to state which elements or subgroups belong inside the group.
+Use `L-*` layout groups for meaningful units such as forms, headers, lists, detail areas, and message areas. Use `stack` for vertical groups, `row` for horizontal groups, `grid` for grid-like groups, and `inline` for compact inline groups, then use `Items` to state which elements or subgroups belong inside the group.
 
 ## Minimal Example
 
@@ -15,7 +15,7 @@ Use `L-*` layout groups for meaningful units such as forms, headers, lists, deta
 
 ### L-Form Login Form
 
-- column
+- stack
 - gap: sm
 
 #### Items
@@ -33,7 +33,7 @@ This example defines a login form as one layout group and fixes the order of the
 
 - Use `L-*` IDs for layout groups.
 - Use `Items` to connect labels with element IDs.
-- Do not write width, height, or CSS class details.
+- Do not write raw width, height, pixel values, or CSS class details.
 - Write large screen regions first, such as `L-Page`, `L-Header`, `L-Main`, and `L-Aside`.
 - If nesting becomes deep, keep only the groups that users would recognize as meaningful.
 - Describe responsive behavior as layout intent, such as `mobile` or `desktop`, instead of CSS breakpoints.
@@ -46,7 +46,7 @@ This example defines a login form as one layout group and fixes the order of the
 
 ### L-Page Settings Page
 
-- column
+- stack
 - gap: md
 
 #### Items
@@ -67,7 +67,7 @@ This example defines a login form as one layout group and fixes the order of the
 
 ### L-Content Content
 
-- column
+- stack
 - gap: sm
 
 #### Items

@@ -47,7 +47,7 @@ This example says that clicking a refresh button fetches a summary partial and r
 
 ### L-SearchPanel Search Panel
 
-- column
+- stack
 
 #### Items
 

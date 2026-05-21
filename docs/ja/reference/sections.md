@@ -24,6 +24,9 @@ Sections は `.vspec.md` の本文を分割する top-level heading です。Mar
 - E-Submit
 ```
 
+レイアウト種別として認識される値は `stack`、`row`、`grid`、`inline` です。
+縦に積む一般的なグループは `stack` を使います。
+
 認識される top-level section は次の通りです。
 
 | Section | 書く内容 |

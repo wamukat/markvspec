@@ -55,6 +55,9 @@ title: "セクション"
 `enabled when` / `partial` / action や display の `target` には使えません。
 対象にしたい領域は `L-*` にしてください。
 
+レイアウト種別として認識される値は `stack`、`row`、`grid`、`inline` です。
+縦に積む一般的なグループは `stack` を使います。
+
 認識される最上位セクションは次の通りです。
 
 | セクション | 書く内容 |

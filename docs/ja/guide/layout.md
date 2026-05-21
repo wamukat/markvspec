@@ -6,7 +6,7 @@ Layout は画面内のまとまりと順序を表します。低レベルな CSS
 
 Layout section では、画面をどの UI のまとまりとして読むかを表します。目的は pixel-perfect な配置指定ではなく、preview、AI edit、review が理解できる画面の骨格を残すことです。
 
-`L-*` の layout group は、フォーム、ヘッダー、リスト、詳細領域、メッセージ領域など、意味のある単位にします。`column`、`row`、`stack`、`grid` などの方向や並びを使い、`Items` で group の中にどの element や sub group が入るかを書きます。
+`L-*` の layout group は、フォーム、ヘッダー、リスト、詳細領域、メッセージ領域など、意味のある単位にします。縦に積む場合は `stack`、横に並べる場合は `row`、表形式に近い並びは `grid`、文中に近い並びは `inline` を使い、`Items` で group の中にどの element や sub group が入るかを書きます。
 
 ## 最小例
 
@@ -15,7 +15,7 @@ Layout section では、画面をどの UI のまとまりとして読むかを�
 
 ### L-Form Login Form
 
-- column
+- stack
 - gap: sm
 
 #### Items
@@ -33,7 +33,7 @@ Layout section では、画面をどの UI のまとまりとして読むかを�
 
 - layout group は `L-*` ID を使う。
 - `Items` で label と element ID を対応させる。
-- width、height、CSS class のような実装詳細は書かない。
+- 生の width / height / pixel 値や CSS class のような実装詳細は書かない。
 - 画面の大きな領域から先に書く。例: `L-Page`、`L-Header`、`L-Main`、`L-Aside`。
 - 入れ子が深くなりすぎる場合は、ユーザーが認識するまとまりだけを group にする。
 - responsive の指定は CSS breakpoints ではなく、`mobile`、`desktop` などの layout intent として書く。
@@ -46,7 +46,7 @@ Layout section では、画面をどの UI のまとまりとして読むかを�
 
 ### L-Page Settings Page
 
-- column
+- stack
 - gap: md
 
 #### Items
@@ -67,7 +67,7 @@ Layout section では、画面をどの UI のまとまりとして読むかを�
 
 ### L-Content Content
 
-- column
+- stack
 - gap: sm
 
 #### Items
