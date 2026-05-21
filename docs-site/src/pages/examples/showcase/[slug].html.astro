@@ -25,6 +25,23 @@ const next = nextExamples(example, examples);
 const previewHref = `${base}/examples/generated/${example.slug}.html`;
 const pdfHref = `${base}/examples/generated/${example.slug}.pdf`;
 const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
+const sourceLineItems = sourceLines(example.source);
+const currentStage = stageGroups.find((stage) => stage.items.some((item) => item.slug === example.slug));
+const currentStageIndex = currentStage?.items.findIndex((item) => item.slug === example.slug) ?? -1;
+const adjacentByStage = currentStage && currentStageIndex >= 0
+  ? [currentStage.items[currentStageIndex - 1], currentStage.items[currentStageIndex + 1]].filter(Boolean)
+  : [];
+const adjacentExamples = [
+  ...next,
+  ...adjacentByStage.filter((item) => !next.some((nextItem) => nextItem.slug === item.slug)),
+];
+const pageNavItems = [
+  { href: '#learning-links', label: 'Learning links' },
+  related.length ? { href: '#related-docs', label: 'Related docs' } : null,
+  adjacentExamples.length ? { href: '#adjacent-examples', label: 'Adjacent examples' } : null,
+  { href: '#source', label: 'Source' },
+  { href: '#generated-preview', label: 'Generated preview' },
+].filter(Boolean);
 const metaPills = [
   example.id,
   example.type,
@@ -240,6 +257,38 @@ const metaPills = [
         gap: 5px;
         padding: 4px 9px;
       }
+      .page-jump-nav {
+        align-items: center;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        display: flex;
+        gap: 10px;
+        margin-bottom: 18px;
+        overflow-x: auto;
+        padding: 10px 12px;
+      }
+      .page-jump-nav strong {
+        color: var(--muted);
+        flex: 0 0 auto;
+        font-size: 11px;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+      }
+      .page-jump-nav a {
+        border: 1px solid var(--line-soft);
+        border-radius: 999px;
+        color: #334155;
+        flex: 0 0 auto;
+        font-size: 12px;
+        font-weight: 650;
+        padding: 5px 9px;
+      }
+      .learning-panel,
+      .learning-card,
+      .pane {
+        scroll-margin-top: 86px;
+      }
       .split {
         display: grid;
         gap: 16px;
@@ -357,6 +406,10 @@ const metaPills = [
           grid-template-columns: 1fr;
         }
         .example-actions { justify-content: flex-start; }
+        .page-jump-nav {
+          margin-left: -4px;
+          margin-right: -4px;
+        }
         .learning-panel { grid-template-columns: 1fr; }
         .split { grid-template-columns: 1fr; }
         .source-wrap,
@@ -427,29 +480,34 @@ const metaPills = [
           </div>
         </section>
 
-        <section class="learning-panel" aria-label="Learning links">
+        <nav class="page-jump-nav" aria-label="Sections in this example">
+          <strong>On this example</strong>
+          {pageNavItems.map((item) => <a href={item.href}>{item.label}</a>)}
+        </nav>
+
+        <section id="learning-links" class="learning-panel" aria-label="Learning links">
           <article class="learning-card">
             <h2>What this teaches</h2>
             <ul>
               {example.teaches.length ? example.teaches.map((item) => <li>{item}</li>) : <li>No catalog teaches metadata.</li>}
             </ul>
           </article>
-          <article class="learning-card">
+          <article id="related-docs" class="learning-card">
             <h2>Related docs</h2>
             <ul>
               {related.length ? related.map((doc) => <li><a href={`${base}${doc.href}`}>{doc.label}</a></li>) : <li>No related docs.</li>}
             </ul>
           </article>
-          <article class="learning-card">
-            <h2>Next examples</h2>
+          <article id="adjacent-examples" class="learning-card">
+            <h2>Adjacent examples</h2>
             <ul>
-              {next.length ? next.map((item) => <li><a href={`${base}/examples/showcase/${item.slug}.html`}>{item.title}</a></li>) : <li>No next example.</li>}
+              {adjacentExamples.length ? adjacentExamples.map((item) => <li><a href={`${base}/examples/showcase/${item.slug}.html`}>{item.title}</a></li>) : <li>No adjacent example.</li>}
             </ul>
           </article>
         </section>
 
         <section class="split" aria-label="Source and generated preview">
-          <article class="pane" aria-label="VSpec source">
+          <article id="source" class="pane" aria-label="VSpec source">
             <div class="pane-header">
               <div class="pane-title">
                 <strong>{example.slug}.vspec.md</strong>
@@ -460,13 +518,13 @@ const metaPills = [
               </div>
             </div>
             <div class="source-wrap">
-              <pre><code>{sourceLines(example.source).map((line) => (
+              <pre><code>{sourceLineItems.map((line) => (
                 <span class="line"><span class="line-no">{line.number}</span><span class="line-code">{line.text}</span></span>
               ))}</code></pre>
             </div>
           </article>
 
-          <article class="pane" aria-label="Generated HTML preview">
+          <article id="generated-preview" class="pane" aria-label="Generated HTML preview">
             <div class="pane-header">
               <div class="pane-title">
                 <strong>Generated HTML Preview</strong>
