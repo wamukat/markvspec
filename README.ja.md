@@ -8,13 +8,13 @@ Markdown で UI 仕様を書く。
 - AI が読みやすいテキスト形式
 - Git で管理しやすい UI 仕様
 
-English documentation starts at [README.md](README.md).
+英語版は [README.md](README.md) を参照してください。
 
-![Login 仕様の Markdown source と MarkVSpec VS Code preview](assets/MarkVSpec.gif)
+![Login 仕様の Markdown ソースと MarkVSpec VS Code プレビュー](assets/MarkVSpec.gif)
 
 ## まず試す
 
-repository を clone していなくても試せます。
+リポジトリを clone していなくても試せます。
 
 1. [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=wamukat.markvspec)
    から VS Code 拡張を入れます。
@@ -23,9 +23,9 @@ repository を clone していなくても試せます。
    code --install-extension wamukat.markvspec
    ```
 
-2. VS Code で任意の folder を開き、`hello.vspec.md` を作ります。
+2. VS Code で任意のフォルダを開き、`hello.vspec.md` を作ります。
 
-3. [Start guide](https://wamukat.github.io/markvspec/ja/start/) の Hello Screen source を貼り付けて保存します。
+3. [5分で試す](https://wamukat.github.io/markvspec/ja/start/) の Hello Screen ソースを貼り付けて保存します。
 
 4. 次のコマンドを実行します。
 
@@ -35,9 +35,9 @@ repository を clone していなくても試せます。
 
 ## 次に読むもの
 
-- [Website](https://wamukat.github.io/markvspec/)
+- [Webサイト](https://wamukat.github.io/markvspec/)
 - [5分で試す](https://wamukat.github.io/markvspec/ja/start/)
-- [Examples](https://wamukat.github.io/markvspec/examples/)
-- [Guide](https://wamukat.github.io/markvspec/ja/guide/)
-- [Reference](https://wamukat.github.io/markvspec/ja/reference/)
-- [Recipes](https://wamukat.github.io/markvspec/ja/recipes/)
+- [サンプル](https://wamukat.github.io/markvspec/examples/)
+- [ガイド](https://wamukat.github.io/markvspec/ja/guide/)
+- [リファレンス](https://wamukat.github.io/markvspec/ja/reference/)
+- [レシピ](https://wamukat.github.io/markvspec/ja/recipes/)

@@ -18,7 +18,7 @@ title: "サンプル"
 | はじめて書く | [Hello Screen](/markvspec/examples/showcase/hello-screen.html) | プレビューで開ける最小ファイルを知りたい。 |
 | フォームとバリデーション | [Login](/markvspec/examples/showcase/login-basic.html) | 必須項目、送信、応答ごとの分岐、エラーメッセージが必要。 |
 | 読み込み / 空 / エラー | [Async Fetching](/markvspec/examples/showcase/async-loading.html) | リクエスト中、空の結果、エラー表示を扱う。 |
-| 部分更新 | [Profile Partial](/markvspec/examples/showcase/profile-summary.partial.html) | サーバー応答で画面の一部を差し替える。 |
+| 部分更新 | [Profile Home](/markvspec/examples/showcase/profile-page-with-template.html) | サーバー応答で画面の一部を差し替える。 |
 | ナビゲーションと重ね合わせ表示 | [Action Menu](/markvspec/examples/showcase/action-menu.html) | タブ、メニュー、ダイアログ、ポップオーバー、トーストを扱う。 |
 | 再利用とテンプレート | [Account Shell](/markvspec/examples/showcase/template-shell.html) | 複数画面でシェルや slot を共有する。 |
 
@@ -35,7 +35,7 @@ title: "サンプル"
 - 近い `.vspec.md` を自分の作業ディレクトリにコピーする。
 - Front Matter の `id`、`title`、`route` を変える。
 - 状態、レイアウトグループ、要素、アクションを自分の画面名に変える。
-- フレームワーク固有の詳細を足す前に、画面で何が変わるかを意味で書く。
+- 実装方法を書く前に、画面で何が変わるかを意味で書く。
 - プレビューを開き、状態、アクション、メッセージが見えることを確認する。
 
 ## 関連ドキュメント
