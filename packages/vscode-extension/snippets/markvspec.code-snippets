@@ -201,7 +201,7 @@
       "- From",
       "  - ${4:idle}",
       "- Process ${5:P1}: ${6:Submit request}",
-      "  - server:",
+      "  - request:",
       "    - ${7|GET,POST,PUT,PATCH,DELETE|} ${8:/path}",
       "    - params:",
       "      - ${9:param}: ${10:E-Input}.value",

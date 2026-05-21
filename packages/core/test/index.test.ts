@@ -4768,6 +4768,115 @@ title: Server Call
   ]);
 });
 
+test("warns when HTTP request method paths are nested under server blocks", () => {
+  const source = `---
+id: SCR-SERVER-HTTP
+type: screen
+title: Server HTTP
+---
+
+# SCR-SERVER-HTTP Server HTTP
+
+## States
+
+- idle*
+
+## Actions
+
+### A-Submit Submit
+
+- From
+  - idle
+- Process P1: Send login request
+  - server:
+    - POST /login
+    - params:
+      - email: E-EmailInput.value
+  - case: success
+    - state: idle
+`;
+  const result = parseMarkVSpec(source);
+  const diagnostic = result.diagnostics.find((candidate) =>
+    candidate.message === "Action A-Submit process step Send login request has HTTP request entry under server: POST /login. Put HTTP method and path under a request block."
+  );
+  const action = result.actions.find((candidate) => candidate.id === "A-Submit");
+
+  assert.equal(diagnostic?.severity, "warning");
+  assert.equal(diagnostic?.line, lineNumber(source, "    - POST /login"));
+  assert.deepEqual(action?.processSteps[0]?.details.map((detail) => [detail.key, detail.value]), [
+    ["server", "POST /login"],
+    ["server.params.email", "E-EmailInput.value"]
+  ]);
+});
+
+test("keeps canonical request and server service call process details warning-free", () => {
+  const source = `---
+id: SCR-REQUEST-SERVER
+type: screen
+title: Request Server
+---
+
+# SCR-REQUEST-SERVER Request Server
+
+## States
+
+- idle*
+
+## Elements
+
+### E-EmailInput Input
+
+- label: Email
+
+### E-Submit Button
+
+- label: Submit
+- action: A-Submit
+
+## Actions
+
+### A-Submit Submit
+
+- Triggered
+  - E-Submit.click
+- From
+  - idle
+- Process P1: Send login request
+  - request:
+    - POST /login
+    - params:
+      - email: E-EmailInput.value
+  - case: success
+    - state: idle
+
+### A-Load Load
+
+- Triggered
+  - screen.load
+- From
+  - idle
+- Process P1: Call account service
+  - server:
+    - AccountService.load()
+    - Uses cached profile when available
+    - GET /accounts uses cache fallback
+  - case: success
+    - state: idle
+`;
+  const result = parseMarkVSpec(source);
+
+  assert.deepEqual(result.diagnostics, []);
+  assert.deepEqual(result.actions.find((candidate) => candidate.id === "A-Submit")?.processSteps[0]?.details.map((detail) => [detail.key, detail.value]), [
+    ["request", "POST /login"],
+    ["request.params.email", "E-EmailInput.value"]
+  ]);
+  assert.deepEqual(result.actions.find((candidate) => candidate.id === "A-Load")?.processSteps[0]?.details.map((detail) => [detail.key, detail.value]), [
+    ["server", "AccountService.load()"],
+    ["server", "Uses cached profile when available"],
+    ["server", "GET /accounts uses cache fallback"]
+  ]);
+});
+
 test("parses built-in Events lifecycle dispatches", () => {
   const source = `---
 id: SCR-EVENTS

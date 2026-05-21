@@ -263,6 +263,13 @@ function applyProcessStepBullet(
   if (isProcessDetailNestedBlock(currentNestedBlock)) {
     if (value === undefined || value === "") {
       const normalized = normalizeBlockLabel(bullet.text);
+      if (currentNestedBlock === "server" && isHttpRequestMethodPath(bullet.text)) {
+        diagnostics.push({
+          severity: "warning",
+          message: `Action ${action.id} process step ${step.name} has HTTP request entry under server: ${bullet.text}. Put HTTP method and path under a request block.`,
+          line: bullet.location.line
+        });
+      }
       if (!isProcessDetailBlockLabel(normalized) && normalized !== "params") {
         step.details.push({ key: currentNestedBlock, value: bullet.text, location: bullet.location });
         addPropertyLocation(step.propertyLocations, currentNestedBlock, bullet.location);
@@ -942,7 +949,7 @@ function isProcessSyntaxOnlyBlockLabel(normalized: string): boolean {
 
 function representedValueLessProcessDetail(text: string): { key: string; value: string } | undefined {
   const trimmed = text.trim();
-  if (/^[A-Z]+\s+\/\S*/u.test(trimmed)) {
+  if (isHttpRequestMethodPath(trimmed)) {
     return { key: "request", value: trimmed };
   }
 
@@ -951,6 +958,10 @@ function representedValueLessProcessDetail(text: string): { key: string; value: 
   }
 
   return undefined;
+}
+
+function isHttpRequestMethodPath(text: string): boolean {
+  return /^(?:GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+\/\S*$/u.test(text.trim());
 }
 
 function isProcessDetailNestedBlock(block: ProcessNestedBlock | undefined): block is string {

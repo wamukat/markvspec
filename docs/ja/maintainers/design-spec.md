@@ -315,7 +315,7 @@ HTTP request のクリック Action では、送信できたかどうかを requ
 
 MarkVSpec は htmx 属性そのものを書く場所ではありません。部分更新は意味として表します。
 
-- screen 側の `Process Pn:` / `server:`: HTTP method、path、パラメータ、送信結果。
+- screen 側の `Process Pn:` / `request:`: HTTP method、path、パラメータ、送信結果。
 - response handler Action の `case:` / `update`: レスポンス結果ごとの部分更新。
 - `target`: 更新対象の layout または element。
 - `content`: 差し替える内容の意味。
