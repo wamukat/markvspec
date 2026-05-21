@@ -10,7 +10,7 @@ Layout は画面内のまとまりと順序を表します。低レベルな CSS
 
 ## 最小例
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Layout: mobile
 
 ### L-Form Login Form
@@ -44,7 +44,7 @@ Layout は画面内のまとまりと順序を表します。低レベルな CSS
 `P-*` は presentation panel（表示調整パネル）です。ユーザーが意味を認識するまとまりではなく、
 フォーム内の2項目を横並びにするなど、プレビュー上の見た目だけを整えたいときに使います。
 
-```markdown
+```markdown markvspec-skip reason=context
 ### L-ProfileForm Profile form
 
 - stack
@@ -74,7 +74,7 @@ Layout は画面内のまとまりと順序を表します。低レベルな CSS
 
 ## 例: ページ構造を分ける
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Layout: mobile
 
 ### L-Page Settings Page

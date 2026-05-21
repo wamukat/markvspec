@@ -23,7 +23,7 @@ Business Rules are for product decisions. They are not the place for basic input
 
 Rules that can be decided from one input belong in `## Field Validations`. Keep UI metadata such as label, type, placeholder, and min/max on the input element.
 
-```markdown
+```markdown markvspec-fragment
 ## Elements
 
 ### E-EmailInput Input
@@ -52,7 +52,7 @@ In preview and review, the reader can inspect the input metadata and validation 
 
 Rules that compare multiple inputs should not be hidden on one element.
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Form Groups
 
 ### F-PasswordForm Password form
@@ -79,7 +79,7 @@ Name the fields the rule reads and where the error is shown.
 
 Errors that only the server can decide belong to response cases.
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Elements
 
 ### E-EmailInput Input
@@ -116,7 +116,7 @@ Errors that only the server can decide belong to response cases.
 
 Stock, permission, contract, or plan restrictions usually need both a rule and a response case.
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Business Rules
 
 ### R-PlanAllowsExport Plan allows export

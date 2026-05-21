@@ -10,15 +10,15 @@ MarkVSpec は Markdown を正本にします。YAML Front Matter は文書全体
 
 ## 最小例
 
-```markdown
+```markdown markvspec
 ---
 id: SCR-HELLO
+type: screen
 title: Hello Screen
-role: Example
 locale: en
 ---
 
-# Hello Screen
+# SCR-HELLO Hello Screen
 
 ## States
 

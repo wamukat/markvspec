@@ -13,7 +13,7 @@ Use state names from the user's point of view, not implementation booleans. Pref
 This is only the `## States` section. In a full screen file, place it under the
 front matter and `# SCR-* ...` heading.
 
-```markdown
+```markdown markvspec-fragment
 ## States
 
 - idle*
@@ -44,7 +44,7 @@ these names can be used as action results and preview targets.
 The following snippet belongs inside `## Actions`; `idle`, `loading`, `success`,
 `empty`, and `error` are states already defined in `## States`.
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Actions
 
 ### A-LoadOrders Load orders

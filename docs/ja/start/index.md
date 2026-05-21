@@ -20,7 +20,7 @@ code --install-extension wamukat.markvspec
 
 VS Code で空のフォルダーを開き、`hello.vspec.md` を作ります。次の内容を貼り付けて保存します。
 
-```markdown
+```markdown markvspec
 ---
 id: SCR-HELLO
 type: screen

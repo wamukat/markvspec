@@ -10,7 +10,7 @@ In low-fidelity preview, element type, label, value, variant, tone, and action p
 
 ## Minimal Example
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Elements
 
 ### E-Title Heading
@@ -40,7 +40,7 @@ This example defines only a heading and a primary button. The `action` property 
 
 ## Example: Input And Error Banner
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Elements
 
 ### E-EmailInput Input

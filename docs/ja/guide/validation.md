@@ -21,7 +21,7 @@ Business Rule は、入力形式そのものや単純なフィールド比較で
 
 入力自体に閉じる条件は `## Field Validations` に書きます。入力欄側には label、type、placeholder、min/max などの UI メタデータだけを置きます。
 
-```markdown
+```markdown markvspec-fragment
 ## Elements
 
 ### E-EmailInput Input
@@ -52,7 +52,7 @@ Business Rule は、入力形式そのものや単純なフィールド比較で
 
 複数フィールドを見る条件は、単一要素に押し込まず、ルールとして分けます。
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Form Groups
 
 ### F-PasswordForm Password form
@@ -79,7 +79,7 @@ Business Rule は、入力形式そのものや単純なフィールド比較で
 
 サーバーに送って初めて分かるフィールドエラーは、リクエストの応答ケースとして書きます。
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Elements
 
 ### E-EmailInput Input
@@ -116,7 +116,7 @@ Business Rule は、入力形式そのものや単純なフィールド比較で
 
 在庫、権限、契約状態、予約枠の空きなど、複数条件で決まるものは応答ケースとビジネスルールを対応させます。
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Business Rules
 
 ### R-PlanAllowsExport Plan allows export

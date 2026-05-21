@@ -11,7 +11,14 @@ import {
 import { join, relative } from "node:path";
 
 const root = process.cwd();
-const docsRoots = ["docs/en/reference", "docs/ja/reference"];
+const docsRoots = [
+  "docs/en/reference",
+  "docs/ja/reference",
+  "docs/en/start",
+  "docs/ja/start",
+  "docs/en/guide",
+  "docs/ja/guide",
+];
 const tempDir = join(root, ".work", "docs-code-audit");
 
 function toPosixPath(filePath) {
@@ -120,6 +127,14 @@ function writeAuditFile(rel, index, body) {
   return outputPath;
 }
 
+function rootForRel(rel) {
+  return docsRoots.find((docsRoot) => rel === docsRoot || rel.startsWith(`${docsRoot}/`)) ?? "unknown";
+}
+
+function createRootStats() {
+  return { total: 0, complete: 0, fragment: 0, explicitSkip: 0, otherSkip: 0 };
+}
+
 function main() {
   if (!existsSync(join(root, "packages/cli/dist/index.js"))) {
     throw new Error("Missing built CLI. Run `npm run build -w @markvspec/cli` before audit:docs-code.");
@@ -132,16 +147,23 @@ function main() {
   const targets = [];
   const skipped = new Map();
   const explicitSkips = new Map();
+  const explicitSkipDetails = [];
+  const rootStats = new Map();
   const errors = [];
 
   for (const filePath of files) {
     const markdown = readFileSync(filePath, "utf8");
     const rel = toPosixPath(relative(root, filePath));
+    const docsRoot = rootForRel(rel);
+    const stats = rootStats.get(docsRoot) ?? createRootStats();
+    rootStats.set(docsRoot, stats);
     for (const [index, block] of fencedBlocks(markdown).entries()) {
+      stats.total += 1;
       const info = parseInfo(block.info);
       if (info.isFragment) {
         try {
           targets.push(writeAuditFile(rel, index, fragmentWrapper(block.body, info.attributes.get("section"))));
+          stats.fragment += 1;
         } catch (error) {
           errors.push(`${rel}:${lineNumberForOffset(markdown, block.offset)} ${error instanceof Error ? error.message : String(error)}`);
         }
@@ -149,16 +171,20 @@ function main() {
       }
       if (info.isMarkVSpec) {
         targets.push(writeAuditFile(rel, index, block.body));
+        stats.complete += 1;
         continue;
       }
       if (info.isExplicitSkip) {
         const reason = info.attributes.get("reason") ?? "unspecified";
         explicitSkips.set(reason, (explicitSkips.get(reason) ?? 0) + 1);
+        explicitSkipDetails.push(`${rel}:${lineNumberForOffset(markdown, block.offset)} ${reason}`);
+        stats.explicitSkip += 1;
         continue;
       }
 
       const key = block.info || "plain";
       skipped.set(key, (skipped.get(key) ?? 0) + 1);
+      stats.otherSkip += 1;
       if (block.info.includes("markvspec")) {
         errors.push(`${rel}:${lineNumberForOffset(markdown, block.offset)} unsupported MarkVSpec code fence info: ${block.info}`);
       }
@@ -187,11 +213,22 @@ function main() {
   }
 
   console.log(`Docs code audit passed for ${targets.length} marked MarkVSpec code block(s) in ${files.length} file(s).`);
+  for (const [docsRoot, stats] of [...rootStats.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+    console.log(
+      `${docsRoot}: total ${stats.total}, complete ${stats.complete}, fragment ${stats.fragment}, explicit skip ${stats.explicitSkip}, other skip ${stats.otherSkip}.`,
+    );
+  }
   const explicitSkipSummary = [...explicitSkips.entries()]
     .sort((a, b) => a[0].localeCompare(b[0]))
     .map(([reason, count]) => `${reason}: ${count}`)
     .join(", ");
   console.log(`Explicit MarkVSpec skips: ${explicitSkipSummary || "none"}.`);
+  if (explicitSkipDetails.length > 0) {
+    console.log("Explicit skip details:");
+    for (const detail of explicitSkipDetails) {
+      console.log(`- ${detail}`);
+    }
+  }
   const skippedSummary = [...skipped.entries()]
     .sort((a, b) => a[0].localeCompare(b[0]))
     .map(([info, count]) => `${info}: ${count}`)

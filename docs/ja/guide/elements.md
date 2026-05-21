@@ -10,7 +10,7 @@ Element は「画面に何があるか」と「ユーザーにとって何をす
 
 ## 最小例
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Elements
 
 ### E-Title Heading
@@ -40,7 +40,7 @@ Element は「画面に何があるか」と「ユーザーにとって何をす
 
 ## 例: 入力とエラーバナー
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Elements
 
 ### E-EmailInput Input

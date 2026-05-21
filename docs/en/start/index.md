@@ -20,7 +20,7 @@ code --install-extension wamukat.markvspec
 
 Open an empty folder in VS Code, create `hello.vspec.md`, paste this source, and save it.
 
-```markdown
+```markdown markvspec
 ---
 id: SCR-HELLO
 type: screen

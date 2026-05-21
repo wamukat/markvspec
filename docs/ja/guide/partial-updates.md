@@ -9,7 +9,7 @@ MarkVSpec では `hx-*` や CSS selector は書きません。どのリクエス
 以下は `## Actions` 内の抜粋です。完全な画面ファイルでは、更新対象の
 `L-ProfileSummary` と、必要なボタンや状態も同じ `.vspec.md` に定義します。
 
-```markdown
+```markdown markvspec-skip reason=context
 ### A-RefreshProfile Refresh profile
 
 - Process P1: Request profile summary

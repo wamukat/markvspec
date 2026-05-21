@@ -10,15 +10,15 @@ The key is to use Markdown freely for notes while keeping structured parts stabl
 
 ## Minimal Example
 
-```markdown
+```markdown markvspec
 ---
 id: SCR-HELLO
+type: screen
 title: Hello Screen
-role: Example
 locale: en
 ---
 
-# Hello Screen
+# SCR-HELLO Hello Screen
 
 ## States
 

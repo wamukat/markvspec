@@ -25,7 +25,7 @@ MarkVSpec は、画面仕様を Markdown で書き、すぐプレビューで確
 
 ## 最小の流れ
 
-```markdown
+```markdown markvspec-fragment
 ## States
 
 - idle*

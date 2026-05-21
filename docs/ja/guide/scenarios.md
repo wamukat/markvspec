@@ -16,7 +16,7 @@ State は画面の表示モードに名前を付けるものです。Preview Sce
 
 ## 最小例
 
-```markdown
+```markdown markvspec-skip reason=context
 ## Preview Scenarios
 
 ### invalid-email
@@ -51,7 +51,7 @@ Preview Scenarios はプレビューデータです。新しい画面、状態�
 
 状態名と同じ名前のシナリオで `state:` を省略すると、その状態の通常プレビューにサンプル値を足せます。
 
-```markdown
+```markdown markvspec-skip reason=context
 ## States
 
 - idle*
@@ -74,7 +74,7 @@ Preview Scenarios はプレビューデータです。新しい画面、状態�
 
 同じ `loaded` 状態で空表示やエラー表示も見せたい場合は、別名のシナリオにして `state:` を書きます。
 
-```markdown
+```markdown markvspec-skip reason=context
 ### loaded-empty
 
 - state: loaded
@@ -87,7 +87,7 @@ Preview Scenarios はプレビューデータです。新しい画面、状態�
 
 通常の要素には、要素 ID と値を書きます。
 
-```markdown
+```markdown markvspec-skip reason=context
 - samples:
   - E-EmailInput: invalid@example
 ```
@@ -95,7 +95,7 @@ Preview Scenarios はプレビューデータです。新しい画面、状態�
 `Table` や `List` のような繰り返し表示には `rows:` を使います。空表示を見せる場合は
 `rows: []` と書きます。
 
-```markdown
+```markdown markvspec-skip reason=context
 - samples:
   - E-Users:
     - rows:
@@ -108,7 +108,7 @@ Preview Scenarios はプレビューデータです。新しい画面、状態�
 
 `cases:` は Action の処理結果を参照します。形式は `A-ActionId.P-marker.case-name` です。
 
-```markdown
+```markdown markvspec-skip reason=context
 - cases:
   - A-SubmitLogin.P1.invalid
 ```
@@ -116,7 +116,7 @@ Preview Scenarios はプレビューデータです。新しい画面、状態�
 `route:` はブロックで書きます。`hash` 以外のキーは、画面の `route:` にある `:param` と
 対応している必要があります。
 
-```markdown
+```markdown markvspec-skip reason=context
 - route:
   - memberId: M-100
   - hash: details

@@ -9,7 +9,7 @@ State は、同じ画面の見え方を分ける名前です。
 以下は `## States` セクションだけの抜粋です。画面全体の例では、先頭メタデータと
 `# SCR-* ...` の下に置きます。
 
-```markdown
+```markdown markvspec-fragment
 ## States
 
 - idle*
@@ -37,7 +37,7 @@ state は `## States` の下に箇条書きで書き、初期状態には `*` �
 以下は `## Actions` 内の抜粋です。`idle`、`loading`、`empty`、`error` は
 `## States` に定義済みの状態として読んでください。
 
-```markdown
+```markdown markvspec-skip reason=context
 ### A-LoadOrders Load orders
 
 - From
