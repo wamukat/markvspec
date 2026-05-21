@@ -1,4 +1,5 @@
 import { elementIdPattern } from "./ids.js";
+import { grammarAllowedStructuredItemKeys, grammarStructuredItemForContext } from "./grammar-definition.js";
 import type { BlockAst, SectionAst } from "./markdown-section-ast.js";
 import { addPropertyLocation } from "./section-property-accumulator.js";
 import { createUnrepresentedSourceTextDiagnostic, createUnsupportedStructuredItemDiagnostic } from "./source-text-diagnostics.js";
@@ -38,7 +39,7 @@ export interface PreviewScenarioSectionSemanticResult {
   diagnostics: MarkVSpecDiagnostic[];
 }
 
-const previewScenarioPropertyKeys = new Set(["state", "model", "view", "route", "samples", "before", "cases"]);
+const previewScenarioPropertyKeys = grammarAllowedStructuredItemKeys("preview-scenario.property");
 
 const elementIdRegexForSamples = new RegExp(String.raw`^${elementIdPattern}$`, "u");
 
@@ -154,7 +155,7 @@ export function parsePreviewScenariosSection(
           context: `Preview Scenario ${current.name}`,
           text: bullet.text,
           location: bullet.location,
-          allowed: [...previewScenarioPropertyKeys].join(", ")
+          allowed: previewScenarioPropertyKeys.join(", ")
         }));
         continue;
       }
@@ -166,12 +167,12 @@ export function parsePreviewScenariosSection(
         });
         continue;
       }
-      if (!previewScenarioPropertyKeys.has(key)) {
+      if (!grammarStructuredItemForContext("preview-scenario.property", key).represented) {
         diagnostics.push(createUnsupportedStructuredItemDiagnostic({
           context: `Preview Scenario ${current.name}`,
           text: bullet.text,
           location: bullet.location,
-          allowed: [...previewScenarioPropertyKeys].join(", ")
+          allowed: previewScenarioPropertyKeys.join(", ")
         }));
         continue;
       }
@@ -223,6 +224,9 @@ function applyPreviewScenarioRouteBullet(
     return;
   }
 
+  if (!grammarStructuredItemForContext("preview-scenario.route-property", "route parameter key").represented) {
+    return;
+  }
   scenario.route.push({
     key,
     value,
@@ -257,12 +261,16 @@ function applyPreviewScenarioSampleBullet(
   const value = valuePart?.trim();
 
   if (bullet.indent === 1) {
+    const sampleTargetDefinition = grammarStructuredItemForContext("preview-scenario.sample-property", "element id");
     if (!elementIdRegexForSamples.test(key)) {
       diagnostics.push({
         severity: "warning",
         message: `Preview Scenario ${scenario.name} has malformed sample target: ${bullet.text}. Use E-ElementId or E-ElementId: value.`,
         line: bullet.location.line
       });
+      return {};
+    }
+    if (!sampleTargetDefinition.represented) {
       return {};
     }
     const sample: MarkVSpecPreviewScenario["samples"][number] = {
@@ -308,6 +316,9 @@ function applyPreviewScenarioSampleBullet(
   }
 
   if (bullet.indent > 3 && activeSample && activeRow) {
+    if (!grammarStructuredItemForContext("preview-scenario.sample-property", "source row key").represented) {
+      return { sample: activeSample, row: activeRow };
+    }
     activeRow.fields[key] = value ?? "";
     addPropertyLocation(activeRow.fieldLocations, key, bullet.location);
     activeRow.raw = `${activeRow.raw}\n${bullet.text}`;

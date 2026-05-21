@@ -285,20 +285,6 @@ export const grammarStructuredItemDefinitionsByContext: Partial<Record<GrammarSt
 export const grammarDefinitionHardCodeInventory = [
   inventory(
     "packages/core/src/markdown-section-semantic.ts",
-    "viewContextPropertyKeys",
-    1372,
-    "View Context",
-    "View Context property keys and arbitrary values must be separated in grammar definition."
-  ),
-  inventory(
-    "packages/core/src/preview-scenario-section-semantic.ts",
-    "previewScenarioPropertyKeys",
-    1372,
-    "Preview Scenarios",
-    "Preview Scenario property keys and model/view arbitrary keys must be separated in grammar definition."
-  ),
-  inventory(
-    "packages/core/src/markdown-section-semantic.ts",
     "tabItemPropertyKeys / accordionItemPropertyKeys / actionMenuItemPropertyKeys",
     1373,
     "Element nested items",

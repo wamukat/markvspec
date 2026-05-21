@@ -176,7 +176,7 @@ const tabItemPropertyKeys = new Set(["panel", "action", "active when"]);
 const accordionItemPropertyKeys = new Set(["panel", "action", "open when"]);
 const panelItemPropertyKeys = new Set([...tabItemPropertyKeys, ...accordionItemPropertyKeys]);
 const actionMenuItemPropertyKeys = new Set(["action", "tone", "disabled when"]);
-const viewContextPropertyKeys = new Set(["type", "values"]);
+const viewContextPropertyKeys = grammarAllowedStructuredItemKeys("view-context.property");
 const formGroupPropertyKeys = grammarAllowedStructuredItemKeys("form-group.property");
 const errorCodePropertyKeys = grammarAllowedStructuredItemKeys("error-code.property");
 const businessRulePropertyKeys = grammarAllowedStructuredItemKeys("business-rule.property");
@@ -1028,6 +1028,16 @@ function applyViewContextBullet(
   const [keyPart, valuePart] = splitKeyValue(bullet.text);
   const key = keyPart.trim();
   const value = valuePart?.trim();
+  const definition = grammarStructuredItemForContext("view-context.property", key);
+  if (!definition.represented) {
+    diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+      context: `View Context ${context.name}`,
+      text: bullet.text,
+      location: bullet.location,
+      allowed: viewContextPropertyKeys.join(", ")
+    }));
+    return undefined;
+  }
   if (key === "values" && value !== undefined && value.length === 0) {
     return "values";
   }
@@ -1045,20 +1055,11 @@ function applyViewContextBullet(
     addPropertyLocation(context.propertyLocations, key, bullet.location);
     return undefined;
   }
-  if (value !== undefined) {
-    diagnostics.push(createUnsupportedStructuredItemDiagnostic({
-      context: `View Context ${context.name}`,
-      text: bullet.text,
-      location: bullet.location,
-      allowed: [...viewContextPropertyKeys].join(", ")
-    }));
-    return undefined;
-  }
   diagnostics.push(createUnsupportedStructuredItemDiagnostic({
     context: `View Context ${context.name}`,
     text: bullet.text,
     location: bullet.location,
-    allowed: [...viewContextPropertyKeys].join(", ")
+    allowed: viewContextPropertyKeys.join(", ")
   }));
   return undefined;
 }
@@ -1189,6 +1190,9 @@ function parseViewContextSamplesSection(section: SectionAst): Pick<SectionSemant
         continue;
       }
       const key = viewContextSampleKey(keyPart.trim());
+      if (!grammarStructuredItemForContext("view-context-sample.property", "view context key").represented) {
+        continue;
+      }
       current.values[key] = valuePart.trim();
       addPropertyLocation(current.valueLocations, key, bullet.location);
     }
