@@ -3,6 +3,14 @@ import {
   createUnrepresentedSourceTextDiagnostic,
   createUnsupportedStructuredItemDiagnostic
 } from "./source-text-diagnostics.js";
+import {
+  actionTopLevelItemDefinitions,
+  grammarStructuredItem,
+  nonCanonicalProcessBlockKeys,
+  normalizeGrammarKey,
+  processDetailBlockKeys,
+  processSyntaxOnlyBlockKeys
+} from "./grammar-definition.js";
 import type { MarkVSpecAction, MarkVSpecActionOutcome, MarkVSpecDiagnostic, MarkVSpecProcessStep, MarkVSpecRouteParam, SourceLocation } from "./types.js";
 
 export interface ActionBulletInput {
@@ -152,6 +160,10 @@ export function applyActionBulletToContext(
 
 function parseActionBlock(text: string): ActionBlock | undefined {
   const normalized = normalizeBlockLabel(text);
+  const definition = grammarStructuredItem(actionTopLevelItemDefinitions, normalized);
+  if (definition?.classification !== "canonical") {
+    return undefined;
+  }
   if (normalized === "from") {
     return "from";
   }
@@ -980,7 +992,7 @@ function nextNestedContext(bullet: ActionBulletInput, context: ActionParseContex
 }
 
 function isKnownProcessDetailBlock(normalized: string): boolean {
-  return normalized === "request" || normalized === "server" || normalized === "sync" || normalized === "response" || normalized === "validation";
+  return processDetailBlockKeys.has(normalized);
 }
 
 function isProcessDetailBlockLabel(normalized: string): boolean {
@@ -994,16 +1006,17 @@ function isCustomProcessDetailBlockStart(text: string): boolean {
   }
   const normalized = normalizeBlockLabel(trimmed);
   return /^[a-z][a-z0-9_-]*$/u.test(normalized)
-    && !["triggered", "from", "process", "otherwise", "case", "effects", "input", "receive", "result", "update", "params", "display", "content"].includes(normalized)
+    && !["triggered", "from", "process", "otherwise", "case", "effects", "receive", "result", "params"].includes(normalized)
+    && !processSyntaxOnlyBlockKeys.has(normalized)
     && !isKnownProcessDetailBlock(normalized);
 }
 
 function isProcessSyntaxOnlyBlockLabel(normalized: string): boolean {
-  return ["content", "display", "input", "params", "receive", "result", "update"].includes(normalized);
+  return processSyntaxOnlyBlockKeys.has(normalized);
 }
 
 function isNonCanonicalProcessBlockLabel(normalized: string): boolean {
-  return ["input", "cases", "condition", "conditions"].includes(normalized);
+  return nonCanonicalProcessBlockKeys.has(normalizeGrammarKey(normalized));
 }
 
 function representedValueLessProcessDetail(text: string): { key: string; value: string } | undefined {

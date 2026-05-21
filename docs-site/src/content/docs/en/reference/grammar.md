@@ -11,6 +11,9 @@ paragraphs. Raw indentation, line wrapping, and inline Markdown formatting are
 Markdown concerns; MarkVSpec semantics are derived from the resulting heading
 levels, section titles, list item text, and nesting.
 
+This page is generated from `packages/core/src/grammar-definition.ts`. Do not
+hand-edit it; update the grammar definition and regenerate the docs.
+
 ## EBNF Notation
 
 All productions on this page use EBNF:
@@ -23,17 +26,14 @@ All productions on this page use EBNF:
 - `{ x }` means zero or more repetitions.
 - Parentheses group alternatives.
 
-Tokens such as `inline_text` and `prose_line` are natural-language tokens. They
-are intentionally bounded by Markdown block parsing and the semantic rules
+Tokens such as `inline_text` and `prose_line` are natural-language tokens.
+They are intentionally bounded by Markdown block parsing and the semantic rules
 below, rather than by a character-level lexer.
 
 ## Lexical Tokens
 
 ```text
-letter = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M"
-       | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
-       | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m"
-       | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z" ;
+letter = "A" | ... | "Z" | "a" | ... | "z" ;
 digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
 name_char = letter | digit | "-" | "_" ;
 name = name_char , { name_char } ;
@@ -63,9 +63,6 @@ h2 = ? Markdown level-2 heading block ? ;
 h3 = ? Markdown level-3 heading block ? ;
 h4 = ? Markdown level-4 heading block ? ;
 bullet = ? Markdown bullet list item at the current semantic nesting level ? ;
-heading = h1 | h2 | h3 | h4 | ? Markdown heading level 5 or 6 ? ;
-list = ? Markdown list block ? ;
-table = ? Markdown table block ? ;
 inline_text = ? non-empty Markdown inline text after trimming ? ;
 prose_line = ? Markdown paragraph text not consumed as a structured item ? ;
 expression = ? non-empty semantic expression text ? ;
@@ -86,16 +83,15 @@ section = recognized_section | unknown_section ;
 unknown_section = h2 , inline_text , { markdown_block } ;
 ```
 
-`unknown_section` is preserved as source text where possible, but it is not part
-of the canonical render or validation model.
+`unknown_section` is preserved as source text where possible, but it does not enter the canonical render model or validation model.
 
 ## Recognized Sections
 
 ```text
 recognized_section = states_section
                    | layout_section
-                   | slots_section
                    | slot_section
+                   | slots_section
                    | elements_section
                    | form_groups_section
                    | events_section
@@ -109,23 +105,31 @@ recognized_section = states_section
                    | business_rules_section
                    | error_codes_section
                    | history_fields_section
-                   | history_section
-                   | notes_section
-                   | open_questions_section ;
+                   | history_section ;
 
-states_section = h2 , "States" , { state_item } ;
-state_item = bullet , state_name , [ "*" ] ;
-
-notes_section = h2 , "Notes" , { markdown_block } ;
-open_questions_section = h2 , "Open Questions" , { markdown_block } ;
+states_section = h2 , ( "States" ) , { section_block } ;
+layout_section = h2 , ( "Layout" | "Layout:" viewport ) , { section_block } ;
+slot_section = h2 , ( "Slot:" slot_name [":" viewport] ) , { section_block } ;
+slots_section = h2 , ( "Slots" ) , { section_block } ;
+elements_section = h2 , ( "Elements" ) , { section_block } ;
+form_groups_section = h2 , ( "Form Groups" ) , { section_block } ;
+events_section = h2 , ( "Events" ) , { section_block } ;
+actions_section = h2 , ( "Actions" ) , { section_block } ;
+view_context_section = h2 , ( "View Context" ) , { section_block } ;
+view_context_samples_section = h2 , ( "View Context Samples" ) , { section_block } ;
+preview_scenarios_section = h2 , ( "Preview Scenarios" ) , { section_block } ;
+field_validations_section = h2 , ( "Field Validations" ) , { section_block } ;
+cross_field_validations_section = h2 , ( "Cross-field Validations" ) , { section_block } ;
+validations_section = h2 , ( "Validations" ) , { section_block } ;
+business_rules_section = h2 , ( "Business Rules" ) , { section_block } ;
+error_codes_section = h2 , ( "Error Codes" ) , { section_block } ;
+history_fields_section = h2 , ( "History Fields" ) , { section_block } ;
+history_section = h2 , ( "History" ) , { section_block } ;
 ```
 
-Recommended section order is:
+The recommended section order is:
 
-`States`, `Layout:<viewport>` / `Slot:<name>`, `Slots`, `Elements`, `Form Groups`,
-`Events`, `Actions`, `View Context`, `View Context Samples`, `Preview Scenarios`,
-`Field Validations`, `Cross-field Validations`, `Validations`, `Business Rules`,
-`Error Codes`, `History Fields`, `History`.
+`States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Events, Actions, View Context, View Context Samples, Preview Scenarios, Field Validations, Cross-field Validations, Validations, Business Rules, Error Codes, History Fields, History`
 
 ## Entity Headings
 
@@ -135,61 +139,118 @@ named_heading = h3 , name , [ inline_text ] ;
 subsection_heading = h4 , inline_text ;
 ```
 
-The marker prefix is optional and is used when authors want a compact visual
-marker in preview or generated reference views.
+The marker prefix is optional. It is used when previews or generated reference views should display a short marker.
 
-## Layout And Slots
+## Structured Item Classification
 
-```text
-layout_section = h2 , "Layout" , [ ":" , viewport ] , { layout_entity | section_prose } ;
-layout_entity = layout_heading , { layout_item | layout_subsection | entity_prose } ;
-layout_heading = h3 , [ marker , ":" ] , layout_id , [ inline_text ] ;
-layout_item = bullet , ( layout_flag | key_value | reference ) ;
-layout_flag = "row" | "column" | "stack" | "grid" | "wrap" ;
-layout_subsection = h4 , "Items" , { layout_child_item } ;
-layout_child_item = bullet , ( reference | quoted_label_mapping ) ;
-quoted_label_mapping = quoted_text , ":" , reference ;
+This section is generated from `packages/core/src/grammar-definition.ts`. Semantic parsers use the same definition for structured item classification in the scoped areas.
 
-slots_section = h2 , "Slots" , { slot_declaration | section_prose } ;
-slot_declaration = h3 , [ marker , ":" ] , slot_name , [ inline_text ] ,
-                   { slot_property | entity_prose } ;
-slot_property = bullet , ( "required" | "optional" | key_value ) ;
+### Action Top-Level Items
 
-slot_section = h2 , "Slot:" , slot_name , [ ":" , viewport ] ,
-               { layout_entity | element_entity | section_prose } ;
-```
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `From` | canonical | yes | - | Action source states. |
+| `Process Pn:` | canonical | yes | - | Marked process step. |
+| `Otherwise` | canonical | yes | - | Fallback outcome. |
+| `Triggered` | non-canonical | no | warning | Legacy trigger wrapper. Use Element action or Events. |
 
-## Elements
+### Action Process Items
 
-```text
-elements_section = h2 , "Elements" , { element_entity | section_prose } ;
-element_entity = element_heading , { element_item | entity_prose } ;
-element_heading = h3 , [ marker , ":" ] , element_id , element_type , [ inline_text ] ;
-element_type = "Heading" | "Paragraph" | "Text" | "Button" | "Input" | "Link"
-             | "Image" | "Select" | "Checkbox" | "Radio" | "Table" | inline_text ;
-element_item = bullet , ( key_value | sample_rows_block | visibility_item ) ;
-sample_rows_block = "sample rows:" , { nested_key_value } ;
-visibility_item = "visible when:" , expression ;
-```
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `request` | canonical | yes | - | HTTP request block. |
+| `receive` | canonical | yes | - | External result block. |
+| `sync` | canonical | yes | - | Synchronous service or calculation detail. |
+| `server` | canonical | yes | - | Server-side service call detail. HTTP method/path belongs under request. |
+| `response` | canonical | yes | - | Response classification detail. |
+| `validation` | canonical | yes | - | Validation process detail. |
+| `when` | canonical | yes | - | Process guard. |
+| `skip when` | canonical | yes | - | Skip guard. |
+| `parallel` | canonical | yes | - | Parallel process group. |
+| `resolve` | canonical | yes | - | Resolve process group. |
+| `case` | canonical | yes | - | Process result branch. |
+| `state` | canonical | yes | - | Immediate state transition effect. |
+| `navigate` | canonical | yes | - | Immediate navigation effect. |
+| `display` | canonical | yes | - | Display effect block. |
+| `update` | canonical | yes | - | Partial update effect block. |
+| `model` | canonical | yes | - | Structured model side effect. |
+| `view` | canonical | yes | - | Structured view side effect. |
+| `stop` | canonical | yes | - | Process case flow directive. |
+| `continue` | canonical | yes | - | Process case flow directive. |
+| `Effects` | non-canonical | no | warning | Legacy effect wrapper. |
+| `input` | non-canonical | no | warning | Old process wrapper label. |
+| `inputs` | non-canonical | no | warning | Old process wrapper label. |
+| `condition` | non-canonical | no | warning | Old process wrapper label. |
+| `conditions` | non-canonical | no | warning | Old process wrapper label. |
+| `cases` | non-canonical | no | warning | Old process wrapper label. |
 
-Element types are semantic UI roles. `Heading` with `level: 1` through
-`level: 6` is canonical; `H1` through `H6` are not canonical element types.
+### Element Structured Properties
 
-## Form Groups And Events
+- `marker`
+- `label`
+- `label src`
+- `placeholder src`
+- `description`
+- `help`
+- `help src`
+- `hint`
+- `message`
+- `message src`
+- `sample`
+- `source`
+- `purpose`
+- `text`
+- `value`
+- `src`
+- `format`
+- `initial value`
+- `required`
+- `readonly`
+- `optional`
+- `visible when`
+- `hidden when`
+- `disabled when`
+- `variant`
+- `tone`
+- `validation`
+- `input rule`
+- `error text`
+- `action`
+- `action event`
 
-```text
-form_groups_section = h2 , "Form Groups" , { form_group_entity | section_prose } ;
-form_group_entity = h3 , [ marker , ":" ] , form_group_id , [ inline_text ] ,
-                    { form_group_item | entity_prose } ;
-form_group_item = bullet , ( fields_block | key_value ) ;
-fields_block = "fields:" , { bullet , element_id } ;
+Element type-specific properties are handled from `elementTypeRegistry` together with this grammar definition. Undefined properties are preserved extension items and receive information diagnostics.
 
-events_section = h2 , "Events" , { event_item | section_prose } ;
-event_item = bullet , event_name , ":" , action_id ;
-event_name = name , "." , name ;
-```
+### Layout Metadata Properties
 
-## Actions
+- `active when`
+- `align`
+- `columns`
+- `description`
+- `disabled when`
+- `enabled when`
+- `gap`
+- `hidden when`
+- `justify`
+- `marker`
+- `overlay`
+- `partial`
+- `purpose`
+- `selected when`
+- `variant`
+- `visible when`
+
+Undefined layout metadata is a preserved extension item and receives an information diagnostic.
+
+### Slot Definition Properties
+
+- `required`
+- `default`
+- `purpose`
+- `description`
+
+Undefined slot definition properties do not enter the render model and receive warning diagnostics.
+
+## Action Grammar
 
 ```text
 actions_section = h2 , "Actions" , { action_entity | section_prose } ;
@@ -205,179 +266,42 @@ process_block = bullet , "Process" , process_marker , ":" , inline_text ,
 process_item = request_block | receive_block | sync_block | server_block
              | when_item | skip_when_item | parallel_group | resolve_group ;
 request_block = bullet , "request:" , { request_item } ;
-request_item = bullet , http_method , inline_text
-             | bullet , "params:" , { nested_key_value }
-             | bullet , key_value ;
 receive_block = bullet , "receive:" , { bullet , key_value | bullet , reference } ;
 sync_block = bullet , "sync:" , { bullet , sync_detail | bullet , key_value } ;
 server_block = bullet , "server:" , { bullet , service_call | bullet , key_value } ;
-sync_detail = service_call | expression ;
-service_call = service_name , [ "(" , [ inline_text ] , ")" ] ;
-service_name = name , { "." , name } ;
-when_item = bullet , "when:" , expression ;
-skip_when_item = bullet , "skip when:" , expression ;
-parallel_group = bullet , "parallel:" , name ;
-resolve_group = bullet , "resolve:" , name ;
-
-process_case = bullet , "case:" , name , { outcome_item } ;
-outcome_item = from_item | response_item | request_item | flow_item | immediate_effect
-             | business_rule_ref | error_code_ref | route_param_block | description_item ;
-from_item = bullet , "from:" , state_name ;
-response_item = bullet , "response:" , inline_text ;
-flow_item = bullet , ( "stop" | "continue" ) ;
-business_rule_ref = bullet , "business rule:" , rule_id ;
-error_code_ref = bullet , "error code:" , error_code ;
-route_param_block = bullet , "route:" , { nested_key_value } ;
-description_item = bullet , "description:" , inline_text ;
-
-immediate_effect = state_effect | navigate_effect | display_effect | update_effect | view_effect ;
-state_effect = bullet , "state:" , state_name ;
-navigate_effect = bullet , "navigate:" , screen_id ;
-view_effect = bullet , "view:" , expression ;
-display_effect = bullet , "display:" , { display_item } ;
-update_effect = bullet , "update:" , { display_item } ;
-display_item = bullet , ( "target:" , object_id
-                       | "message:" , inline_text
-                       | "content:" , inline_text
-                       | "element:" , element_id
-                       | "partial:" , partial_id
-                       | "mode:" , name ) ;
+process_case = bullet , "case:" , name , { outcome_item | flow_directive } ;
+flow_directive = bullet , "stop" | bullet , "continue" ;
+immediate_effect = bullet , ( "state:" | "navigate:" | "display:" | "update:" | "model:" | "view:" ) , expression ;
 ```
-
-HTTP method and path entries are canonical only under `request:`. `server:` is
-for server-side service calls that are not the HTTP request itself.
-
-## View Context And Preview Scenarios
-
-```text
-view_context_section = h2 , "View Context" , { view_context_entity | section_prose } ;
-view_context_entity = named_heading , { view_context_item | entity_prose } ;
-view_context_item = bullet , ( "type:" , ( "boolean" | "enum" )
-                             | "values:" , { bullet , [ "*" ] , name } ) ;
-
-view_context_samples_section = h2 , "View Context Samples" ,
-                               { view_context_sample | section_prose } ;
-view_context_sample = named_heading , { bullet , name , ":" , name | entity_prose } ;
-
-preview_scenarios_section = h2 , "Preview Scenarios" ,
-                            { preview_scenario | section_prose } ;
-preview_scenario = named_heading , { scenario_item | entity_prose } ;
-scenario_item = bullet , ( "state:" , state_name
-                         | "view:" , name
-                         | "cases:" , { bullet , action_id , "." , process_marker , "." , name }
-                         | "samples:" , { nested_key_value }
-                         | "route:" , { nested_key_value } ) ;
-```
-
-Only the rendering inputs needed by wireframe and State Views should use
-composed template/page results. History and other document metadata remain owned
-by the viewed design document.
-
-## Validations And Rules
-
-```text
-field_validations_section = h2 , "Field Validations" ,
-                            { validation_entity | section_prose } ;
-cross_field_validations_section = h2 , "Cross-field Validations" ,
-                                  { validation_entity | section_prose } ;
-validations_section = h2 , "Validations" , { validation_entity | section_prose } ;
-validation_entity = h3 , [ marker , ":" ] , validation_id , [ inline_text ] ,
-                    { validation_item | entity_prose } ;
-validation_item = bullet , ( "target:" , object_id
-                           | "inputs:" , { bullet , object_id }
-                           | "check:" , inline_text
-                           | "message:" , inline_text
-                           | "constraints:" , { constraint_item }
-                           | key_value ) ;
-constraint_item = bullet , property_key , ":" , [ inline_text ] , { nested_key_value } ;
-
-business_rules_section = h2 , "Business Rules" , { rule_entity | section_prose } ;
-rule_entity = h3 , [ marker , ":" ] , rule_id , [ inline_text ] ,
-              { rule_item | entity_prose } ;
-rule_item = bullet , ( "statement:" , inline_text
-                     | "when:" , expression
-                     | "then:" , expression
-                     | key_value ) ;
-```
-
-## Error Codes And History
-
-```text
-error_codes_section = h2 , "Error Codes" , { error_code_entity | section_prose } ;
-error_code_entity = h3 , [ marker , ":" ] , error_code , [ inline_text ] ,
-                    { error_code_item | entity_prose } ;
-error_code_item = bullet , ( "business rule:" , rule_id
-                           | "target:" , object_id
-                           | "message:" , inline_text
-                           | "display:" , inline_text
-                           | key_value ) ;
-
-history_fields_section = h2 , "History Fields" , { history_field | section_prose } ;
-history_field = bullet , property_key , { nested_key_value } ;
-
-history_section = h2 , "History" , { history_entry | section_prose } ;
-history_entry = h3 , inline_text , { bullet , key_value | entity_prose } ;
-```
-
-## Shared Structured Items
-
-```text
-key_value = property_key , ":" , inline_text ;
-nested_key_value = bullet , property_key , ":" , inline_text ;
-section_prose = prose_line ;
-entity_prose = prose_line ;
-markdown_block = heading | list | table | prose_line ;
-quoted_text = "\"" , inline_text , "\"" ;
-```
-
-Structured sections may allow extension keys in section-specific places. Those
-extension keys are retained and should produce information diagnostics, not
-warnings. Unknown structured items that are not retained are output-excluded and
-should produce warning diagnostics.
-
-Extension process detail blocks are not part of the canonical Action EBNF above.
-When the parser retains them for compatibility, they should be represented as
-extension data and produce information diagnostics.
 
 ## Non-Canonical Forms
 
-The following forms are recognized only for diagnostics or compatibility and
-are not canonical grammar:
+The following forms are recognized only for diagnostics or compatibility and are not canonical grammar:
 
-- `- Triggered` under `## Actions`. Connect click or lifecycle triggers through
-  `action: A-*` on elements or `## Events`.
-- `- Effects` wrappers under action process steps or cases. Put `state:`,
-  `display:`, `update:`, `navigate:`, or `view:` directly under the process or
-  `case:`.
-- Old action process labels such as `input`, `inputs`, `condition`,
-  `conditions`, `case`, and `cases` when used as wrapper blocks instead of the
-  canonical process items above.
-- HTTP method/path entries such as `POST /login` under `server:`. Put them
-  under `request:`.
-- Raw htmx attributes, CSS selectors, raw colors, widths, heights, classes, and
-  implementation-level styling in authored DSL.
+- `Triggered`: Legacy trigger wrapper. Use Element action or Events.
+- `Effects`: Legacy effect wrapper.
+- `input`: Old process wrapper label.
+- `inputs`: Old process wrapper label.
+- `condition`: Old process wrapper label.
+- `conditions`: Old process wrapper label.
+- `cases`: Old process wrapper label.
+- HTTP method/path entries such as `POST /login` under `server:`. Put them under `request:`.
+- Raw htmx attributes, CSS selectors, raw colors, widths, heights, classes, and implementation-level styling in authored DSL.
 
 ## Semantic Constraints
 
 These constraints are intentionally outside the EBNF body:
 
-- A document describes one screen.
-- Exactly one state may be marked with `*`.
-- Referenced `E-*`, `L-*`, `A-*`, `R-*`, `V-*`, `ERR-*`, and `SCR-*` IDs should
-  exist in the relevant document set.
+- One document represents one screen.
+- Only one state may be marked as initial with `*`.
+- Referenced `E-*`, `L-*`, `A-*`, `R-*`, `V-*`, `ERR-*`, and `SCR-*` IDs should exist in the related document set.
 - `Heading` uses `level: 1` through `level: 6`.
-- `variant` is priority (`primary`, `secondary`, `tertiary`).
-- `tone` is semantic intent (`neutral`, `info`, `success`, `warning`, `danger`).
-- `display` and `update` describe user-visible results and partial replacement
-  semantics; they are not raw framework attributes.
+- `variant` is priority: `primary`, `secondary`, or `tertiary`.
+- `tone` is semantic intent: `neutral`, `info`, `success`, `warning`, or `danger`.
+- `display` and `update` describe user-visible results and partial replacement semantics, not raw framework attributes.
 - View Context definitions are limited to `boolean` or `enum`.
-- `server:` does not model an HTTP request; `request:` does.
+- `server:` does not represent an HTTP request. HTTP requests are written under `request:`.
 
 ## Sync Diagnostics
 
-`sync:` is canonical in this grammar and in the Actions reference. Value-less
-service or calculation entries under `sync:`, and key/value entries under
-`sync:`, are standard process details and should not produce extension-item
-information diagnostics. Unknown process detail blocks outside the canonical
-Action EBNF may still be retained as extension data with information
-diagnostics.
+`sync:` is canonical in this grammar and in the Actions reference. Value-less service or calculation entries and key/value entries under `sync:` are standard process details, not extension item information diagnostics. Unknown process detail blocks outside the canonical Action EBNF may still be retained as extension data with information diagnostics.

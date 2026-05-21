@@ -11,6 +11,9 @@ parser が headings、bullet lists、tables、paragraphs を識別した後の�
 責務であり、MarkVSpec の意味は heading level、section title、list item text、list
 nesting から読み取ります。
 
+このページは `packages/core/src/grammar-definition.ts` から生成されます。手編集
+ではなく、grammar definition を更新して再生成します。
+
 ## EBNF Notation
 
 このページの production はすべて EBNF で書きます。
@@ -30,10 +33,7 @@ nesting から読み取ります。
 ## Lexical Tokens
 
 ```text
-letter = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M"
-       | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
-       | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m"
-       | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z" ;
+letter = "A" | ... | "Z" | "a" | ... | "z" ;
 digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
 name_char = letter | digit | "-" | "_" ;
 name = name_char , { name_char } ;
@@ -63,9 +63,6 @@ h2 = ? Markdown level-2 heading block ? ;
 h3 = ? Markdown level-3 heading block ? ;
 h4 = ? Markdown level-4 heading block ? ;
 bullet = ? Markdown bullet list item at the current semantic nesting level ? ;
-heading = h1 | h2 | h3 | h4 | ? Markdown heading level 5 or 6 ? ;
-list = ? Markdown list block ? ;
-table = ? Markdown table block ? ;
 inline_text = ? non-empty Markdown inline text after trimming ? ;
 prose_line = ? Markdown paragraph text not consumed as a structured item ? ;
 expression = ? non-empty semantic expression text ? ;
@@ -86,16 +83,15 @@ section = recognized_section | unknown_section ;
 unknown_section = h2 , inline_text , { markdown_block } ;
 ```
 
-`unknown_section` は可能な範囲で source text として保持されますが、canonical render
-model や validation model には入りません。
+`unknown_section` は可能な範囲で source text として保持されますが、canonical render model や validation model には入りません。
 
 ## Recognized Sections
 
 ```text
 recognized_section = states_section
                    | layout_section
-                   | slots_section
                    | slot_section
+                   | slots_section
                    | elements_section
                    | form_groups_section
                    | events_section
@@ -109,23 +105,31 @@ recognized_section = states_section
                    | business_rules_section
                    | error_codes_section
                    | history_fields_section
-                   | history_section
-                   | notes_section
-                   | open_questions_section ;
+                   | history_section ;
 
-states_section = h2 , "States" , { state_item } ;
-state_item = bullet , state_name , [ "*" ] ;
-
-notes_section = h2 , "Notes" , { markdown_block } ;
-open_questions_section = h2 , "Open Questions" , { markdown_block } ;
+states_section = h2 , ( "States" ) , { section_block } ;
+layout_section = h2 , ( "Layout" | "Layout:" viewport ) , { section_block } ;
+slot_section = h2 , ( "Slot:" slot_name [":" viewport] ) , { section_block } ;
+slots_section = h2 , ( "Slots" ) , { section_block } ;
+elements_section = h2 , ( "Elements" ) , { section_block } ;
+form_groups_section = h2 , ( "Form Groups" ) , { section_block } ;
+events_section = h2 , ( "Events" ) , { section_block } ;
+actions_section = h2 , ( "Actions" ) , { section_block } ;
+view_context_section = h2 , ( "View Context" ) , { section_block } ;
+view_context_samples_section = h2 , ( "View Context Samples" ) , { section_block } ;
+preview_scenarios_section = h2 , ( "Preview Scenarios" ) , { section_block } ;
+field_validations_section = h2 , ( "Field Validations" ) , { section_block } ;
+cross_field_validations_section = h2 , ( "Cross-field Validations" ) , { section_block } ;
+validations_section = h2 , ( "Validations" ) , { section_block } ;
+business_rules_section = h2 , ( "Business Rules" ) , { section_block } ;
+error_codes_section = h2 , ( "Error Codes" ) , { section_block } ;
+history_fields_section = h2 , ( "History Fields" ) , { section_block } ;
+history_section = h2 , ( "History" ) , { section_block } ;
 ```
 
 推奨 section order は次の通りです。
 
-`States`, `Layout:<viewport>` / `Slot:<name>`, `Slots`, `Elements`, `Form Groups`,
-`Events`, `Actions`, `View Context`, `View Context Samples`, `Preview Scenarios`,
-`Field Validations`, `Cross-field Validations`, `Validations`, `Business Rules`,
-`Error Codes`, `History Fields`, `History`.
+`States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Events, Actions, View Context, View Context Samples, Preview Scenarios, Field Validations, Cross-field Validations, Validations, Business Rules, Error Codes, History Fields, History`
 
 ## Entity Headings
 
@@ -135,62 +139,118 @@ named_heading = h3 , name , [ inline_text ] ;
 subsection_heading = h4 , inline_text ;
 ```
 
-marker prefix は任意です。preview や generated reference views に短い marker を表示
-したい場合に使います。
+marker prefix は任意です。preview や generated reference views に短い marker を表示したい場合に使います。
 
-## Layout And Slots
+## Structured Item Classification
 
-```text
-layout_section = h2 , "Layout" , [ ":" , viewport ] , { layout_entity | section_prose } ;
-layout_entity = layout_heading , { layout_item | layout_subsection | entity_prose } ;
-layout_heading = h3 , [ marker , ":" ] , layout_id , [ inline_text ] ;
-layout_item = bullet , ( layout_flag | key_value | reference ) ;
-layout_flag = "row" | "column" | "stack" | "grid" | "wrap" ;
-layout_subsection = h4 , "Items" , { layout_child_item } ;
-layout_child_item = bullet , ( reference | quoted_label_mapping ) ;
-quoted_label_mapping = quoted_text , ":" , reference ;
+この節は `packages/core/src/grammar-definition.ts` から生成されます。semantic parser は対象範囲の structured item 判定で同じ definition を参照します。
 
-slots_section = h2 , "Slots" , { slot_declaration | section_prose } ;
-slot_declaration = h3 , [ marker , ":" ] , slot_name , [ inline_text ] ,
-                   { slot_property | entity_prose } ;
-slot_property = bullet , ( "required" | "optional" | key_value ) ;
+### Action Top-Level Items
 
-slot_section = h2 , "Slot:" , slot_name , [ ":" , viewport ] ,
-               { layout_entity | element_entity | section_prose } ;
-```
+| item | classification | output | diagnostic | 説明 |
+| --- | --- | --- | --- | --- |
+| `From` | canonical | yes | - | Action の遷移元 state。 |
+| `Process Pn:` | canonical | yes | - | marker 付き process step。 |
+| `Otherwise` | canonical | yes | - | fallback outcome。 |
+| `Triggered` | non-canonical | no | warning | legacy trigger wrapper。Element の action または Events を使います。 |
 
-## Elements
+### Action Process Items
 
-```text
-elements_section = h2 , "Elements" , { element_entity | section_prose } ;
-element_entity = element_heading , { element_item | entity_prose } ;
-element_heading = h3 , [ marker , ":" ] , element_id , element_type , [ inline_text ] ;
-element_type = "Heading" | "Paragraph" | "Text" | "Button" | "Input" | "Link"
-             | "Image" | "Select" | "Checkbox" | "Radio" | "Table" | inline_text ;
-element_item = bullet , ( key_value | sample_rows_block | visibility_item ) ;
-sample_rows_block = "sample rows:" , { nested_key_value } ;
-visibility_item = "visible when:" , expression ;
-```
+| item | classification | output | diagnostic | 説明 |
+| --- | --- | --- | --- | --- |
+| `request` | canonical | yes | - | HTTP request block。 |
+| `receive` | canonical | yes | - | 外部 result block。 |
+| `sync` | canonical | yes | - | 同期 service / calculation detail。 |
+| `server` | canonical | yes | - | server-side service call detail。HTTP method/path は request 配下に置きます。 |
+| `response` | canonical | yes | - | response classification detail。 |
+| `validation` | canonical | yes | - | validation process detail。 |
+| `when` | canonical | yes | - | process guard。 |
+| `skip when` | canonical | yes | - | skip guard。 |
+| `parallel` | canonical | yes | - | parallel process group。 |
+| `resolve` | canonical | yes | - | resolve process group。 |
+| `case` | canonical | yes | - | process result branch。 |
+| `state` | canonical | yes | - | immediate state transition effect。 |
+| `navigate` | canonical | yes | - | immediate navigation effect。 |
+| `display` | canonical | yes | - | display effect block。 |
+| `update` | canonical | yes | - | partial update effect block。 |
+| `model` | canonical | yes | - | structured model side effect。 |
+| `view` | canonical | yes | - | structured view side effect。 |
+| `stop` | canonical | yes | - | process case flow directive。 |
+| `continue` | canonical | yes | - | process case flow directive。 |
+| `Effects` | non-canonical | no | warning | legacy effect wrapper。 |
+| `input` | non-canonical | no | warning | 古い process wrapper label。 |
+| `inputs` | non-canonical | no | warning | 古い process wrapper label。 |
+| `condition` | non-canonical | no | warning | 古い process wrapper label。 |
+| `conditions` | non-canonical | no | warning | 古い process wrapper label。 |
+| `cases` | non-canonical | no | warning | 古い process wrapper label。 |
 
-Element type は semantic UI role です。canonical な見出しは `Heading` と
-`level: 1` から `level: 6` の組み合わせです。`H1` から `H6` は canonical element type
-ではありません。
+### Element Structured Properties
 
-## Form Groups And Events
+- `marker`
+- `label`
+- `label src`
+- `placeholder src`
+- `description`
+- `help`
+- `help src`
+- `hint`
+- `message`
+- `message src`
+- `sample`
+- `source`
+- `purpose`
+- `text`
+- `value`
+- `src`
+- `format`
+- `initial value`
+- `required`
+- `readonly`
+- `optional`
+- `visible when`
+- `hidden when`
+- `disabled when`
+- `variant`
+- `tone`
+- `validation`
+- `input rule`
+- `error text`
+- `action`
+- `action event`
 
-```text
-form_groups_section = h2 , "Form Groups" , { form_group_entity | section_prose } ;
-form_group_entity = h3 , [ marker , ":" ] , form_group_id , [ inline_text ] ,
-                    { form_group_item | entity_prose } ;
-form_group_item = bullet , ( fields_block | key_value ) ;
-fields_block = "fields:" , { bullet , element_id } ;
+Element type 固有 property は `elementTypeRegistry` とこの grammar definition から扱います。未定義 property は保持される extension item として information diagnostic の対象です。
 
-events_section = h2 , "Events" , { event_item | section_prose } ;
-event_item = bullet , event_name , ":" , action_id ;
-event_name = name , "." , name ;
-```
+### Layout Metadata Properties
 
-## Actions
+- `active when`
+- `align`
+- `columns`
+- `description`
+- `disabled when`
+- `enabled when`
+- `gap`
+- `hidden when`
+- `justify`
+- `marker`
+- `overlay`
+- `partial`
+- `purpose`
+- `selected when`
+- `variant`
+- `visible when`
+
+未定義 layout metadata は保持される extension item として information diagnostic の対象です。
+
+### Slot Definition Properties
+
+- `required`
+- `default`
+- `purpose`
+- `description`
+
+未定義 slot definition property は render model に入らないため warning diagnostic の対象です。
+
+## Action Grammar
 
 ```text
 actions_section = h2 , "Actions" , { action_entity | section_prose } ;
@@ -206,154 +266,27 @@ process_block = bullet , "Process" , process_marker , ":" , inline_text ,
 process_item = request_block | receive_block | sync_block | server_block
              | when_item | skip_when_item | parallel_group | resolve_group ;
 request_block = bullet , "request:" , { request_item } ;
-request_item = bullet , http_method , inline_text
-             | bullet , "params:" , { nested_key_value }
-             | bullet , key_value ;
 receive_block = bullet , "receive:" , { bullet , key_value | bullet , reference } ;
 sync_block = bullet , "sync:" , { bullet , sync_detail | bullet , key_value } ;
 server_block = bullet , "server:" , { bullet , service_call | bullet , key_value } ;
-sync_detail = service_call | expression ;
-service_call = service_name , [ "(" , [ inline_text ] , ")" ] ;
-service_name = name , { "." , name } ;
-when_item = bullet , "when:" , expression ;
-skip_when_item = bullet , "skip when:" , expression ;
-parallel_group = bullet , "parallel:" , name ;
-resolve_group = bullet , "resolve:" , name ;
-
-process_case = bullet , "case:" , name , { outcome_item } ;
-outcome_item = from_item | response_item | request_item | flow_item | immediate_effect
-             | business_rule_ref | error_code_ref | route_param_block | description_item ;
-from_item = bullet , "from:" , state_name ;
-response_item = bullet , "response:" , inline_text ;
-flow_item = bullet , ( "stop" | "continue" ) ;
-business_rule_ref = bullet , "business rule:" , rule_id ;
-error_code_ref = bullet , "error code:" , error_code ;
-route_param_block = bullet , "route:" , { nested_key_value } ;
-description_item = bullet , "description:" , inline_text ;
-
-immediate_effect = state_effect | navigate_effect | display_effect | update_effect | view_effect ;
-state_effect = bullet , "state:" , state_name ;
-navigate_effect = bullet , "navigate:" , screen_id ;
-view_effect = bullet , "view:" , expression ;
-display_effect = bullet , "display:" , { display_item } ;
-update_effect = bullet , "update:" , { display_item } ;
-display_item = bullet , ( "target:" , object_id
-                       | "message:" , inline_text
-                       | "content:" , inline_text
-                       | "element:" , element_id
-                       | "partial:" , partial_id
-                       | "mode:" , name ) ;
+process_case = bullet , "case:" , name , { outcome_item | flow_directive } ;
+flow_directive = bullet , "stop" | bullet , "continue" ;
+immediate_effect = bullet , ( "state:" | "navigate:" | "display:" | "update:" | "model:" | "view:" ) , expression ;
 ```
-
-HTTP method/path entry は `request:` 配下だけが canonical です。`server:` は HTTP
-request そのものではなく、server-side service call を表現するために使います。
-
-## View Context And Preview Scenarios
-
-```text
-view_context_section = h2 , "View Context" , { view_context_entity | section_prose } ;
-view_context_entity = named_heading , { view_context_item | entity_prose } ;
-view_context_item = bullet , ( "type:" , ( "boolean" | "enum" )
-                             | "values:" , { bullet , [ "*" ] , name } ) ;
-
-view_context_samples_section = h2 , "View Context Samples" ,
-                               { view_context_sample | section_prose } ;
-view_context_sample = named_heading , { bullet , name , ":" , name | entity_prose } ;
-
-preview_scenarios_section = h2 , "Preview Scenarios" ,
-                            { preview_scenario | section_prose } ;
-preview_scenario = named_heading , { scenario_item | entity_prose } ;
-scenario_item = bullet , ( "state:" , state_name
-                         | "view:" , name
-                         | "cases:" , { bullet , action_id , "." , process_marker , "." , name }
-                         | "samples:" , { nested_key_value }
-                         | "route:" , { nested_key_value } ) ;
-```
-
-template/page composition の結果を使うのは、wireframe と State Views の描画に必要な
-構成情報だけです。History などの document metadata は、閲覧中の design document に
-属します。
-
-## Validations And Rules
-
-```text
-field_validations_section = h2 , "Field Validations" ,
-                            { validation_entity | section_prose } ;
-cross_field_validations_section = h2 , "Cross-field Validations" ,
-                                  { validation_entity | section_prose } ;
-validations_section = h2 , "Validations" , { validation_entity | section_prose } ;
-validation_entity = h3 , [ marker , ":" ] , validation_id , [ inline_text ] ,
-                    { validation_item | entity_prose } ;
-validation_item = bullet , ( "target:" , object_id
-                           | "inputs:" , { bullet , object_id }
-                           | "check:" , inline_text
-                           | "message:" , inline_text
-                           | "constraints:" , { constraint_item }
-                           | key_value ) ;
-constraint_item = bullet , property_key , ":" , [ inline_text ] , { nested_key_value } ;
-
-business_rules_section = h2 , "Business Rules" , { rule_entity | section_prose } ;
-rule_entity = h3 , [ marker , ":" ] , rule_id , [ inline_text ] ,
-              { rule_item | entity_prose } ;
-rule_item = bullet , ( "statement:" , inline_text
-                     | "when:" , expression
-                     | "then:" , expression
-                     | key_value ) ;
-```
-
-## Error Codes And History
-
-```text
-error_codes_section = h2 , "Error Codes" , { error_code_entity | section_prose } ;
-error_code_entity = h3 , [ marker , ":" ] , error_code , [ inline_text ] ,
-                    { error_code_item | entity_prose } ;
-error_code_item = bullet , ( "business rule:" , rule_id
-                           | "target:" , object_id
-                           | "message:" , inline_text
-                           | "display:" , inline_text
-                           | key_value ) ;
-
-history_fields_section = h2 , "History Fields" , { history_field | section_prose } ;
-history_field = bullet , property_key , { nested_key_value } ;
-
-history_section = h2 , "History" , { history_entry | section_prose } ;
-history_entry = h3 , inline_text , { bullet , key_value | entity_prose } ;
-```
-
-## Shared Structured Items
-
-```text
-key_value = property_key , ":" , inline_text ;
-nested_key_value = bullet , property_key , ":" , inline_text ;
-section_prose = prose_line ;
-entity_prose = prose_line ;
-markdown_block = heading | list | table | prose_line ;
-quoted_text = "\"" , inline_text , "\"" ;
-```
-
-Structured section には、section 固有の場所で extension key を許す場合があります。
-保持される extension key は warning ではなく information diagnostic にします。
-保持されない unknown structured item は出力対象外なので warning diagnostic にします。
-
-Extension process detail block は、上記の canonical Action EBNF には含めません。
-parser が compatibility のために保持する場合は、extension data として扱い、
-information diagnostic を出力します。
 
 ## Non-Canonical Forms
 
-以下は diagnostics または compatibility のために認識されるだけで、canonical grammar
-ではありません。
+以下は diagnostics または compatibility のために認識されるだけで、canonical grammar ではありません。
 
-- `## Actions` 配下の `- Triggered`。click や lifecycle trigger は Element の
-  `action: A-*` または `## Events` で接続します。
-- Action process step や case 配下の `- Effects` wrapper。`state:`、`display:`、
-  `update:`、`navigate:`、`view:` は process または `case:` 直下に書きます。
-- canonical process item ではなく wrapper block として使われる古い action process
-  label。例: `input`, `inputs`, `condition`, `conditions`, `case`, `cases`。
-- `server:` 配下の `POST /login` のような HTTP method/path entry。これは `request:`
-  配下に書きます。
-- authored DSL 内の raw htmx attributes、CSS selectors、raw colors、widths、
-  heights、classes、implementation-level styling。
+- `Triggered`: legacy trigger wrapper。Element の action または Events を使います。
+- `Effects`: legacy effect wrapper。
+- `input`: 古い process wrapper label。
+- `inputs`: 古い process wrapper label。
+- `condition`: 古い process wrapper label。
+- `conditions`: 古い process wrapper label。
+- `cases`: 古い process wrapper label。
+- `server:` 配下の `POST /login` のような HTTP method/path entry。これは `request:` 配下に書きます。
+- authored DSL 内の raw htmx attributes、CSS selectors、raw colors、widths、heights、classes、implementation-level styling。
 
 ## Semantic Constraints
 
@@ -361,21 +294,14 @@ information diagnostic を出力します。
 
 - 1 document は 1 screen を表します。
 - `*` で initial state として mark できる state は 1 つだけです。
-- 参照される `E-*`, `L-*`, `A-*`, `R-*`, `V-*`, `ERR-*`, `SCR-*` ID は、関連する
-  document set 内に存在しているべきです。
+- 参照される `E-*`, `L-*`, `A-*`, `R-*`, `V-*`, `ERR-*`, `SCR-*` ID は、関連する document set 内に存在しているべきです。
 - `Heading` は `level: 1` から `level: 6` を使います。
 - `variant` は priority です。値は `primary`, `secondary`, `tertiary` です。
-- `tone` は semantic intent です。値は `neutral`, `info`, `success`, `warning`,
-  `danger` です。
-- `display` と `update` は user-visible result と partial replacement semantics
-  を表します。raw framework attributes ではありません。
+- `tone` は semantic intent です。値は `neutral`, `info`, `success`, `warning`, `danger` です。
+- `display` と `update` は user-visible result と partial replacement semantics を表します。raw framework attributes ではありません。
 - View Context definition は `boolean` または `enum` に限定します。
 - `server:` は HTTP request を表しません。HTTP request は `request:` で表します。
 
 ## Sync Diagnostics
 
-`sync:` はこの grammar と Actions reference の canonical syntax です。`sync:` 配下の
-value-less service / calculation entry と key/value entry は standard process detail
-であり、extension item information diagnostic の対象にしません。canonical Action EBNF
-外の未知 process detail block は、引き続き extension data として保持し、information
-diagnostic を出力できます。
+`sync:` はこの grammar と Actions reference の canonical syntax です。`sync:` 配下の value-less service / calculation entry と key/value entry は standard process detail であり、extension item information diagnostic の対象にしません。canonical Action EBNF 外の未知 process detail block は、引き続き extension data として保持し、information diagnostic を出力できます。

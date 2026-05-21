@@ -17,26 +17,13 @@ import {
   type SectionAst
 } from "./markdown-section-ast.js";
 import type { SemanticDependency } from "./markdown-section-semantic.js";
+import {
+  layoutGroupMetadataPropertyKeys as grammarLayoutGroupMetadataPropertyKeys,
+  slotDefinitionPropertyKeys as grammarSlotDefinitionPropertyKeys
+} from "./grammar-definition.js";
 
-const slotDefinitionPropertyKeys = new Set(["required", "default", "purpose", "description"]);
-const layoutGroupMetadataPropertyKeys = new Set([
-  "active when",
-  "align",
-  "columns",
-  "description",
-  "disabled when",
-  "enabled when",
-  "gap",
-  "hidden when",
-  "justify",
-  "marker",
-  "overlay",
-  "partial",
-  "purpose",
-  "selected when",
-  "variant",
-  "visible when"
-]);
+const slotDefinitionPropertyKeys: ReadonlySet<string> = new Set(grammarSlotDefinitionPropertyKeys);
+const layoutGroupMetadataPropertyKeys: ReadonlySet<string> = new Set(grammarLayoutGroupMetadataPropertyKeys);
 
 interface ListItemView {
   text: string;

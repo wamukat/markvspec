@@ -52,6 +52,7 @@ import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
 import { createUnsupportedStructuredItemDiagnostic } from "./source-text-diagnostics.js";
 import { isMarkVSpecSourceType } from "./source-types.js";
 import { addAccumulatedSectionProperty, addPropertyLocation } from "./section-property-accumulator.js";
+import { grammarSectionOrderRank, grammarSectionOrderText } from "./grammar-definition.js";
 
 export interface SemanticDependency {
   source: { type: "entity" | "section" | "render"; id: string };
@@ -225,7 +226,7 @@ export function parseSmallSectionSemantics(document: MarkdownDocument): SmallSec
   };
 }
 
-const recommendedSectionOrder = "States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Events, Actions, View Context, View Context Samples, Preview Scenarios, Field Validations, Cross-field Validations, Validations, Business Rules, Error Codes, History Fields, History";
+const recommendedSectionOrder = grammarSectionOrderText;
 
 function semanticSectionOrderDiagnostics(sections: SectionAst[]): MarkVSpecDiagnostic[] {
   const diagnostics: MarkVSpecDiagnostic[] = [];
@@ -252,45 +253,7 @@ function semanticSectionOrderDiagnostics(sections: SectionAst[]): MarkVSpecDiagn
 }
 
 function sectionOrderRank(kind: SectionKind): number {
-  switch (kind) {
-    case "States":
-      return 1;
-    case "Layout":
-    case "Slot":
-      return 2;
-    case "Slots":
-      return 3;
-    case "Elements":
-      return 4;
-    case "FormGroups":
-      return 5;
-    case "Events":
-      return 6;
-    case "Actions":
-      return 7;
-    case "ViewContext":
-      return 8;
-    case "ViewContextSamples":
-      return 9;
-    case "PreviewScenarios":
-      return 10;
-    case "FieldValidations":
-      return 11;
-    case "CrossFieldValidations":
-      return 12;
-    case "Validations":
-      return 13;
-    case "BusinessRules":
-      return 14;
-    case "ErrorCodes":
-      return 15;
-    case "HistoryFields":
-      return 16;
-    case "History":
-      return 17;
-    case "Unknown":
-      return 0;
-  }
+  return grammarSectionOrderRank(kind);
 }
 
 export function parseLayoutSectionSemantics(document: MarkdownDocument): LayoutSemanticResult {
