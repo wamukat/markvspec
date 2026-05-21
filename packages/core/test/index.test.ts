@@ -4709,6 +4709,131 @@ title: Condition Ref
   assert.equal(diagnostic?.line, lineNumber(source, "  - when: E-Missing is not empty"));
 });
 
+test("warns for non-canonical process block labels on process entries", () => {
+  const source = `---
+id: SCR-NONCANONICAL-PROCESS-LABELS
+type: screen
+title: Noncanonical Process Labels
+---
+
+# SCR-NONCANONICAL-PROCESS-LABELS Noncanonical Process Labels
+
+## States
+
+- idle*
+
+## Elements
+
+### E-Submit Button
+
+- label: Submit
+- action: A-Submit
+
+## Actions
+
+### A-Submit Submit
+
+- Triggered
+  - E-Submit.click
+- From
+  - idle
+- Process P1: Input
+  - input:
+- Process P2: Cases
+  - cases:
+- Process P3: Condition
+  - condition: E-Submit is enabled
+- Process P4: Conditions
+  - conditions:
+- Process P5: Submit
+  - case: success
+    - state: idle
+`;
+  const result = parseMarkVSpec(source);
+  const messages = result.diagnostics
+    .filter((diagnostic) => diagnostic.message.includes("uses non-canonical process entry"))
+    .map((diagnostic) => [diagnostic.message, diagnostic.line]);
+
+  assert.deepEqual(messages, [
+    [
+      "Action A-Submit process step Input uses non-canonical process entry: input:. Use request: with params: for request input, case: for result branches, when: or skip when: for guards, or receive: for external results.",
+      lineNumber(source, "  - input:")
+    ],
+    [
+      "Action A-Submit process step Cases uses non-canonical process entry: cases:. Use request: with params: for request input, case: for result branches, when: or skip when: for guards, or receive: for external results.",
+      lineNumber(source, "  - cases:")
+    ],
+    [
+      "Action A-Submit process step Condition uses non-canonical process entry: condition: E-Submit is enabled. Use request: with params: for request input, case: for result branches, when: or skip when: for guards, or receive: for external results.",
+      lineNumber(source, "  - condition: E-Submit is enabled")
+    ],
+    [
+      "Action A-Submit process step Conditions uses non-canonical process entry: conditions:. Use request: with params: for request input, case: for result branches, when: or skip when: for guards, or receive: for external results.",
+      lineNumber(source, "  - conditions:")
+    ]
+  ]);
+  assert.equal(result.diagnostics.some((diagnostic) => diagnostic.message.includes("contains multiple execution detail blocks")), false);
+});
+
+test("does not warn for canonical process guards params cases or preview scenario cases", () => {
+  const source = `---
+id: SCR-CANONICAL-PROCESS-LABELS
+type: screen
+title: Canonical Process Labels
+---
+
+# SCR-CANONICAL-PROCESS-LABELS Canonical Process Labels
+
+## States
+
+- idle*
+- sent
+
+## Elements
+
+### E-EmailInput Input
+
+- label: Email
+
+### E-Submit Button
+
+- label: Submit
+- action: A-Submit
+
+## Actions
+
+### A-Submit Submit
+
+- Triggered
+  - E-Submit.click
+- From
+  - idle
+- Process P1: Submit
+  - when: E-EmailInput.value is present
+  - skip when: E-Submit is disabled
+  - request:
+    - POST /login
+    - params:
+      - input: E-EmailInput.value
+  - case: sent
+    - state: sent
+
+## Preview Scenarios
+
+### sent
+
+- state: sent
+- cases:
+  - A-Submit.P1.sent
+`;
+  const result = parseMarkVSpec(source);
+
+  assert.deepEqual(
+    result.diagnostics.filter((diagnostic) => diagnostic.message.includes("uses non-canonical process entry")),
+    []
+  );
+});
+
 test("parses screen load server call actions", () => {
   const source = `---
 id: SCR-SERVER-CALL

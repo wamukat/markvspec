@@ -242,6 +242,17 @@ function applyProcessStepBullet(
   const key = keyPart.trim();
   const value = valuePart?.trim();
   const normalizedStep = normalizeBlockLabel(step.name);
+  const normalizedEntryLabel = value === undefined
+    ? normalizeBlockLabel(bullet.text)
+    : normalizeBlockLabel(key);
+
+  if (currentNestedBlock === undefined && isNonCanonicalProcessBlockLabel(normalizedEntryLabel)) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Action ${action.id} process step ${step.name} uses non-canonical process entry: ${bullet.text}. Use request: with params: for request input, case: for result branches, when: or skip when: for guards, or receive: for external results.`,
+      line: bullet.location.line
+    });
+  }
 
   if (currentNestedBlock === "receive" && value !== undefined) {
     step.receives.push({ key, value, location: bullet.location });
@@ -945,6 +956,10 @@ function isCustomProcessDetailBlockStart(text: string): boolean {
 
 function isProcessSyntaxOnlyBlockLabel(normalized: string): boolean {
   return ["content", "display", "input", "params", "receive", "result", "update"].includes(normalized);
+}
+
+function isNonCanonicalProcessBlockLabel(normalized: string): boolean {
+  return ["input", "cases", "condition", "conditions"].includes(normalized);
 }
 
 function representedValueLessProcessDetail(text: string): { key: string; value: string } | undefined {
