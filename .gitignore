@@ -10,5 +10,6 @@ coverage/
 _site/
 docs-site/public/assets/
 docs-site/public/examples/
+docs-site/src/content/docs/
 *.tsbuildinfo
 .DS_Store

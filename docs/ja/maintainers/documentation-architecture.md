@@ -89,29 +89,30 @@ site top は、README と同じ IA を共有します。ただし、README よ�
 
 2026-05-21 時点では、利用者向け Markdown docs の source of truth は
 `docs/ja` と `docs/en` です。`docs-site/src/content/docs/` は Starlight 公開用の
-同期先です。
+生成物で、Git では管理しません。
 
 根拠:
 
 - `scripts/sync-docs-site-content.mjs` は `docs/{ja,en}` から
   `docs-site/src/content/docs/{ja,en}` を生成する。
-- `npm run check:docs-sync` は `docs/` と `docs-site` の drift を検出する。
+- `.gitignore` は `docs-site/src/content/docs/` を除外し、二重管理を防ぐ。
 - `npm run check:docs-links` は full build を待たずに、`docs/` の相対リンク、
-  同期後 `docs-site` の `/markvspec/...` リンク、examples catalog の related docs
+  生成後 `docs-site` の `/markvspec/...` リンク、examples catalog の related docs
   解決を検出する。
 - `scripts/build-github-pages.mjs` は Starlight build 前に同期を実行し、
   `docs-site/dist` を `_site` にコピーする。
-- `scripts/check-pages-site.mjs` は同期後の `docs-site/src/content/docs/{ja,en}` の
+- `scripts/check-pages-site.mjs` は生成後の `docs-site/src/content/docs/{ja,en}` の
   対応関係と `_site` artifact を確認する。
 - `scripts/example-catalog.mjs` の related docs 解決は
   `docs-site/src/content/docs/<lang>/<group>/...` を参照する。
 - `_site/docs` は生成しないことを `check-pages-site` が確認している。
 
 したがって、利用者が読む公開サイトの内容を修正する場合は、まず
-`docs/ja` / `docs/en` を編集する。その後 `npm run sync:docs-site` を実行し、
-生成された `docs-site/src/content/docs/` の差分を同じ commit に含める。
-Pages CI と release check では `npm run check:docs-sync` により同期漏れを検出し、
-`npm run check:docs-links` により build 前に主要リンク切れを検出する。
+`docs/ja` / `docs/en` を編集する。CI、`build:pages`、`docs-site` の `predev` /
+`prebuild` は `npm run sync:docs-site` を実行し、Starlight 用 Markdown をその場で
+生成する。生成された `docs-site/src/content/docs/` は commit しない。
+Pages CI と release check では、生成後に `npm run check:docs-links` を実行し、
+build 前に主要リンク切れを検出する。
 
 `docs/ja/maintainers` と `docs/en/maintainers` は保守者向け記録として `docs/` 配下に
 残す。通常の利用者導線には出さない。
@@ -214,7 +215,7 @@ README と site は入口、docs は本文、examples は動く証拠として�
 
 この節の主対象は `docs/ja` / `docs/en` です。公開サイトは Starlight で配信しますが、
 Starlight 用 Markdown は `npm run sync:docs-site` で `docs-site/src/content/docs/{ja,en}`
-へ生成します。
+へ生成します。この生成先は Git 管理しません。
 
 ```text
 docs/ja/start/index.md
@@ -369,7 +370,7 @@ catalog は次の出力に使います。
 `scripts/check-pages-site.mjs` は次を確認します。
 
 - `_site` に Starlight docs、examples、assets、Pagefind artifact がある。
-- 同期後の `docs-site/src/content/docs/ja` と `docs-site/src/content/docs/en` の Markdown path が一致している。
+- 生成後の `docs-site/src/content/docs/ja` と `docs-site/src/content/docs/en` の Markdown path が一致している。
 - examples index / showcase が catalog、generated preview、related docs を正しく参照している。
 - 主要な Start / Guide / Reference / Recipes / Examples / Concepts ページが出力されている。
 - `_site/docs` は生成されていない。
@@ -378,7 +379,7 @@ catalog は次の出力に使います。
 
 - `docs/{ja,en}` の Markdown リンクが、同じ `docs/` 配下の Markdown、画像などの
   repository file、または存在する example showcase slug を指している。
-- `docs-site/src/content/docs/{ja,en}` に同期された `/markvspec/...` リンクが、
+- `docs-site/src/content/docs/{ja,en}` に生成された `/markvspec/...` リンクが、
   Starlight docs route、examples route、public assets のいずれかに解決できる。
 - `examples/catalog.yml` の source path、next path、related docs key が存在する。
 - #1352 の動的レンダリング検討とは独立した静的リンク監視であり、example HTML の
@@ -386,16 +387,17 @@ catalog は次の出力に使います。
 
 `scripts/sync-docs-site-content.mjs` は次を担当します。
 
-- `docs/{ja,en}` の利用者向け Markdown を `docs-site/src/content/docs/{ja,en}` へ同期する。
+- `docs/{ja,en}` の利用者向け Markdown を `docs-site/src/content/docs/{ja,en}` へ生成する。
 - `docs/{ja,en}/README.md` を Starlight の `index.md` に変換する。
 - H1 を Starlight frontmatter の `title` に変換し、本文からは除く。
 - `docs/` 内の Markdown リンクと `examples/` へのリンクを公開サイト URL に変換する。
-- `--check` では書き込みをせず、同期漏れ・古い生成物・内容差分を検出する。
+- `--check` では書き込みをせず、ローカルに生成済みの content が現在の `docs/` と
+  一致するかを確認する。CI では fresh checkout から `sync:docs-site` を実行して生成する。
 
 ## 移行ステップの履歴
 
 次の項目は、Starlight 移行前に使っていた履歴です。現在の新規作業では、
-`docs/ja` / `docs/en` を主対象、`docs-site/src/content/docs` を同期先として扱います。
+`docs/ja` / `docs/en` を主対象、`docs-site/src/content/docs` を生成物として扱います。
 
 1. この設計書を追加する。
 2. `docs/ja/` と `docs/en/` に新 IA の index / stub を同時に作る。
@@ -413,8 +415,8 @@ catalog は次の出力に使います。
 ## 現在の Ticket 分割方針
 
 Kanbalone ticket は、利用者に見える導線または仕様領域単位で分けます。
-対象ファイルは `docs/ja` / `docs/en` を主対象とし、`npm run sync:docs-site` で
-`docs-site/src/content/docs` を追従させます。
+対象ファイルは `docs/ja` / `docs/en` を主対象とします。`docs-site/src/content/docs` は
+preview/build 時に生成するだけで、ticket の編集対象にはしません。
 
 - IA 設計と docs portal 更新。
 - Example catalog の導入。

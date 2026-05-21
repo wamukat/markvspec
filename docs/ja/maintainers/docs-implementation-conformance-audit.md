@@ -6,8 +6,8 @@
 `docs/{ja,en}` の利用者向け本文にある主要な仕様主張を、実装、tests、examples、
 CLI 実行結果に照合しました。
 
-`docs-site/src/content/docs/` は `npm run sync:docs-site` の同期先として扱い、
-この監査では正本として直接編集しません。
+`docs-site/src/content/docs/` は `npm run sync:docs-site` の生成先であり、
+Git では管理しません。この監査では正本として直接編集しません。
 
 ## 対象
 
@@ -79,7 +79,7 @@ node packages/cli/dist/index.js export html examples/01-basics/hello-screen.vspe
 node packages/cli/dist/index.js export pdf examples/01-basics/hello-screen.vspec.md --out .work/1355-cli-pdf
 node packages/cli/dist/index.js export document-list packages/core/test-fixtures/parse-output-coverage/project/markvspec.project.md --out .work/1355-cli-docs
 npm run sync:docs-site
-npm run check:docs-sync
+npm run check:docs-links
 python3 - <<'PY'
 from urllib.request import Request, urlopen
 url = "https://marketplace.visualstudio.com/items?itemName=wamukat.markvspec"
@@ -96,7 +96,7 @@ PY
 - `export html` は `hello-screen.html` を生成。
 - `export pdf` は `hello-screen.pdf` を生成。
 - `export document-list` は `document-list.md` を生成。
-- `docs/` と `docs-site/src/content/docs` の同期 check は pass。
+- `docs-site/src/content/docs` を生成し、docs link check は pass。
 - VS Code Marketplace の `wamukat.markvspec` 直接 URL は HTTP 200。
 
 ## 修正した内容
@@ -125,4 +125,4 @@ PY
 創作 DSL、または `docs-site` 正本前提の運用記述は確認していません。
 
 Reference の仕様主張はおおむね実装に対応しています。ただし、この監査は人手棚卸しです。
-Reference の drift を継続的に検出する仕組みは #1356、公開 site の同期・リンク監視は #1357 で扱います。
+Reference の drift を継続的に検出する仕組みは #1356、公開 site の生成・リンク監視は #1357 で扱います。

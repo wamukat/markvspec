@@ -3,8 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "node ../scripts/sync-docs-site-content.mjs",
     "dev": "astro dev",
+    "prebuild": "node ../scripts/sync-docs-site-content.mjs",
     "build": "astro build",
+    "prepreview": "node ../scripts/sync-docs-site-content.mjs",
     "preview": "astro preview"
   },
   "devDependencies": {

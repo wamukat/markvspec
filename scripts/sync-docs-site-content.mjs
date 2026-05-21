@@ -7,8 +7,9 @@ import {
   writeFileSync,
 } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = process.cwd();
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const docsRoot = join(root, "docs");
 const docsSiteRoot = join(root, "docs-site", "src", "content", "docs");
 const languages = ["en", "ja"];
@@ -26,6 +27,23 @@ function isMarkdownFile(filePath) {
   return filePath.endsWith(".md");
 }
 
+function collectFiles(dir, predicate) {
+  if (!existsSync(dir)) {
+    return [];
+  }
+  const entries = readdirSync(dir, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const fullPath = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...collectFiles(fullPath, predicate));
+    } else if (entry.isFile() && predicate(fullPath)) {
+      files.push(fullPath);
+    }
+  }
+  return files.sort((a, b) => a.localeCompare(b));
+}
+
 function collectMarkdownFiles(dir) {
   const entries = readdirSync(dir, { withFileTypes: true });
   const files = [];
@@ -36,23 +54,6 @@ function collectMarkdownFiles(dir) {
         continue;
       }
       files.push(...collectMarkdownFiles(fullPath));
-    } else if (entry.isFile() && isMarkdownFile(entry.name)) {
-      files.push(fullPath);
-    }
-  }
-  return files.sort((a, b) => a.localeCompare(b));
-}
-
-function collectSiteMarkdownFiles(dir) {
-  if (!existsSync(dir)) {
-    return [];
-  }
-  const entries = readdirSync(dir, { withFileTypes: true });
-  const files = [];
-  for (const entry of entries) {
-    const fullPath = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...collectSiteMarkdownFiles(fullPath));
     } else if (entry.isFile() && isMarkdownFile(entry.name)) {
       files.push(fullPath);
     }
@@ -205,19 +206,19 @@ function buildGeneratedFiles() {
     const sourceRoot = join(docsRoot, lang);
     for (const sourcePath of collectMarkdownFiles(sourceRoot)) {
       const relativePath = siteRelativePathForSource(lang, sourcePath);
-      generated.set(`${lang}/${relativePath}`, renderSiteMarkdown(lang, sourcePath));
+      generated.set(`${lang}/${relativePath}`, Buffer.from(renderSiteMarkdown(lang, sourcePath)));
     }
+  }
+  for (const sourcePath of collectFiles(join(docsRoot, "assets"), (filePath) => !isMarkdownFile(filePath))) {
+    generated.set(`assets/${toPosixPath(relative(join(docsRoot, "assets"), sourcePath))}`, readFileSync(sourcePath));
   }
   return generated;
 }
 
 function readCurrentSiteFiles() {
   const current = new Map();
-  for (const lang of languages) {
-    const langRoot = join(docsSiteRoot, lang);
-    for (const filePath of collectSiteMarkdownFiles(langRoot)) {
-      current.set(`${lang}/${toPosixPath(relative(langRoot, filePath))}`, readFileSync(filePath, "utf8"));
-    }
+  for (const filePath of collectFiles(docsSiteRoot, () => true)) {
+    current.set(toPosixPath(relative(docsSiteRoot, filePath)), readFileSync(filePath));
   }
   return current;
 }
@@ -227,7 +228,7 @@ function checkDrift(generated, current) {
   for (const key of [...generated.keys()].sort((a, b) => a.localeCompare(b))) {
     if (!current.has(key)) {
       issues.push(`missing: docs-site/src/content/docs/${key}`);
-    } else if (current.get(key) !== generated.get(key)) {
+    } else if (!current.get(key).equals(generated.get(key))) {
       issues.push(`changed: docs-site/src/content/docs/${key}`);
     }
   }
@@ -240,9 +241,7 @@ function checkDrift(generated, current) {
 }
 
 function writeGeneratedFiles(generated) {
-  for (const lang of languages) {
-    rmSync(join(docsSiteRoot, lang), { recursive: true, force: true });
-  }
+  rmSync(docsSiteRoot, { recursive: true, force: true });
 
   for (const [relativePath, content] of generated) {
     const outputPath = join(docsSiteRoot, relativePath);
@@ -258,7 +257,7 @@ if (checkOnly) {
   if (issues.length > 0) {
     console.error("docs-site content is out of sync with docs/.");
     console.error(issues.map((issue) => `- ${issue}`).join("\n"));
-    console.error("Run `npm run sync:docs-site` and commit the generated docs-site changes.");
+    console.error("Run `npm run sync:docs-site` before local preview/build. Generated docs-site content is not committed.");
     process.exit(1);
   }
   console.log(`docs-site content is in sync with docs/ (${generated.size} files).`);

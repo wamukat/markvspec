@@ -66,7 +66,7 @@ Starlight app は `docs-site/` に置く。
 旧 `site/` は root landing page や手書き HTML docs の source 置き場だった。Starlight 移行後は
 `docs-site/` が公開 site app の置き場になり、旧 `site/` は削除する。
 利用者向け Markdown 本文の正本は `docs/` に置き、`docs-site/src/content/docs/` は
-Starlight 公開用に同期する。
+Starlight 公開用に生成する。生成先は Git では管理しない。
 
 推奨構成:
 
@@ -86,7 +86,7 @@ docs-site/
 
 現在は Starlight 移行済みだが、利用者向け Markdown 本文の source of truth は
 `docs/ja` と `docs/en` とする。公開用の `docs-site/src/content/docs` は
-`npm run sync:docs-site` で生成し、直接編集した差分は `npm run check:docs-sync` で検出する。
+`npm run sync:docs-site` で生成し、直接編集・commit しない。
 保守者向け記録は `docs/*/maintainers` に残し、通常の利用者導線には出さない。
 
 ## URL 方針

@@ -5,9 +5,9 @@
 この文書は、2026-05-21 に実施した MarkVSpec 利用者向けドキュメントの
 仕様一致性監査の結果をまとめる保守者向け記録です。
 
-対象は `docs/{ja,en}`、`docs-site/src/content/docs/{ja,en}`、README、
-examples showcase への導線です。利用者向け Markdown の正本は `docs/` であり、
-`docs-site/src/content/docs/` は Starlight 公開用の同期先として扱います。
+対象は `docs/{ja,en}`、README、examples showcase への導線です。利用者向け
+Markdown の正本は `docs/` であり、`docs-site/src/content/docs/` は Starlight
+公開用の生成先として扱います。
 README.md / README.ja.md は旧構文、未実装構文、利用者入口としての表現を
 検索対象に含め、必要な日本語表現とリンクラベルを修正しました。
 
@@ -32,7 +32,7 @@ README.md / README.ja.md は旧構文、未実装構文、利用者入口とし�
 | #1345 | Preview Scenarios / State Views | state と同名 scenario、`samples:`、`rows:`、`route:`、Action case 参照を現在仕様として扱う。 | preview scenario tests / sample rows tests | `before:` の意味、validation result と action case の混同を修正。 | なし。 |
 | #1346 | CLI / Export / VS Code | CLI は `--version`, `validate`, `diagnose input`, `export html/pdf`, `export document-list` を説明対象にする。 | CLI 実行結果 / targeted export commands | CLI reference と start/recipes の説明を実装済みコマンドへ追従。 | example PDF 配布物は別途 #1351 で削除済み。 |
 | #1347 | Examples と docs | examples は学習順と画面パターンから探す導線として扱う。 | `examples/catalog.yml`, `scripts/example-catalog.mjs`, `npm run audit:examples` | 日本語入口文と examples link を整理し、部分更新の入口を `Profile Home` に統一。 | なし。 |
-| #1348 | 英日差分 / 同期 | `docs-site` と `docs/` の user-facing 同名ページは矛盾させない。 | file list comparison / docs link check / HTTP 200 | 当時の編集対象に `docs/{ja,en}` を同期し、`guide/document-structure.md` を追加。 | #1354 以降は `docs/` 正本、`docs-site` 同期先として扱う。 |
+| #1348 | 英日差分 / 生成 | `docs-site` の user-facing content は `docs/` から生成する。 | file list comparison / docs link check / HTTP 200 | 当時の編集対象に `docs/{ja,en}` を同期し、`guide/document-structure.md` を追加。 | #1354 以降は `docs/` 正本、`docs-site/src/content/docs` は生成物として扱う。 |
 | #1351 | build 軽量化 | example PDF 配布物は docs-site build 成果物に含めない。 | build/check-pages / link search | PDF artifacts と example からの PDF link を削除。 | CLI / VS Code の PDF 出力機能自体は残す。 |
 
 ## 確認したコマンド
@@ -64,6 +64,6 @@ Starlight のフル build は、設計書監査中の反復では時間短縮の
 古い `Triggered` / `Effects` / `Cases` 形式、創作 DSL、または実装予定を
 現在仕様として扱う記述は確認していません。
 
-今後ドキュメントを更新する場合は、`docs/` を先に直し、`npm run sync:docs-site` で
-`docs-site/src/content/docs/` を追従させます。仕様を追加する場合は、対応する
+今後ドキュメントを更新する場合は、`docs/` を先に直します。`docs-site/src/content/docs/`
+は preview/build 時に `npm run sync:docs-site` で生成します。仕様を追加する場合は、対応する
 実装、test、example、または明示的な follow-up ticket を根拠として残します。
