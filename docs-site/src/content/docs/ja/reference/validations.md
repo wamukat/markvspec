@@ -2,15 +2,16 @@
 title: "バリデーション"
 ---
 
-Validations は入力値の制約とエラー表示を扱います。フィールドバリデーションは要素の近くに書き、画面や業務の判断条件は [ビジネスルール](/markvspec/ja/reference/rules/) に分けます。
+Validations は入力値の検証契約とエラー表示を扱います。入力欄そのもののメタデータは `## Elements`、検証ルールとメッセージは `## Field Validations`、画面や業務の判断条件は [ビジネスルール](/markvspec/ja/reference/rules/) に分けます。
 
 ## 境界
 
 | 判定対象 | 書く場所 |
 | --- | --- |
-| 必須入力 | `Input` 要素 |
-| 形式、長さ、範囲、パターン | `Input` 要素の `constraints` |
-| 複数フィールドの比較 | `## Business Rules` または送信前アクション |
+| 入力欄の required 表示 | `Input` 要素の `required` または `input rule` |
+| 入力欄の形式、長さ、範囲、パターンのメタデータ | `Input` 要素の `input rule`、または `NumberInput` の `min` / `max` / `step` |
+| 検証ルールとユーザーに見せるエラーメッセージ | `## Field Validations` |
+| 複数フィールドの比較 | `## Cross-field Validations`、`## Business Rules`、または送信前アクション |
 | サーバー応答で決まるフィールドエラー | `## Actions` の `case:` とフィールドエラーへの `display` |
 | 権限、在庫、契約状態などの業務判断 | `## Business Rules` とサーバー応答の `case:` |
 
@@ -23,35 +24,42 @@ Validations は入力値の制約とエラー表示を扱います。フィー�
 
 - label: Email
 - value: email
-- required
-- constraints
-  - format: email
-  - maxLength: 255
-- error:
-  - required: Email is required.
-  - format: Enter a valid email address.
+- type: email
+- input rule:
+  - type: email
+
+## Field Validations
+
+### V-EmailRules Email rules
+
+- target: E-EmailInput
+- constraints:
+  - required:
+    - message: Email is required.
+  - email:
+    - message: Enter a valid email address.
 ```
 
 ### 主な制約
 
 | Constraint | 例 | 用途 |
 | --- | --- | --- |
-| `required` | `- required` | 空欄を許可しない |
-| `format` | `- format: email` | email、url などの形式 |
-| `minLength` | `- minLength: 8` | 最小文字数 |
-| `maxLength` | `- maxLength: 255` | 最大文字数 |
-| `min` | `- min: 1` | 数値や件数の下限 |
-| `max` | `- max: 99` | 数値や件数の上限 |
-| `pattern` | `- pattern: ^[A-Z0-9]+$` | domain 固有の入力形式 |
+| `required` | `- required:` | 空欄を許可しない |
+| `email` | `- email:` | email 形式 |
+| `length: element` | `- length: element` | `input rule` の `min length` / `max length` を検証に使う |
+| `range: element` | `- range: element` | `NumberInput` の `min` / `max` / `step` を検証に使う |
+| `pattern` | `- pattern:` | domain 固有の入力形式 |
 
 ### エラーメッセージ
 
-エラーメッセージは制約と対応する形で書けます。
+エラーメッセージは `## Field Validations` の各制約に `message` として書きます。
 
 ```markdown
-- error:
-  - required: Password is required.
-  - minLength: Use at least 8 characters.
+- constraints:
+  - required:
+    - message: Password is required.
+  - length: element
+    - message: Use at least 8 characters.
 ```
 
 ## 小さな例
@@ -61,20 +69,38 @@ Validations は入力値の制約とエラー表示を扱います。フィー�
 
 - label: Quantity
 - value: quantity
-- required
-- constraints
-  - min: 1
-  - max: 10
-- error:
-  - min: Quantity must be at least 1.
-  - max: Quantity must be 10 or less.
+- input rule:
+  - required
+
+### E-AgeInput NumberInput
+
+- label: Age
+- min: 13
+- max: 120
+
+## Field Validations
+
+### V-QuantityRules Quantity rules
+
+- target: E-QuantityInput
+- constraints:
+  - required:
+    - message: Quantity is required.
+
+### V-AgeRange Age range
+
+- target: E-AgeInput
+- constraints:
+  - range: element
+    - message: Age must be between 13 and 120.
 ```
 
 ![Single Field Validation のバリデーションプレビュー](../../assets/vscode-previews/single-field-validation-vscode-preview.png)
 
 ## 注意点
 
-- バリデーションはフィールドの形式、必須、範囲などを扱います。
+- `Input` 要素直下の `constraints` と `error:` は現在の実装で扱う構文ではありません。
+- バリデーションは `V-*` として `## Field Validations` に書きます。
 - `## Business Rules` はビジネスルールや画面固有条件を扱います。
 - バリデーション診断はツール出力であり、ソースに書くバリデーション仕様とは別です。
 - エラー表示用の要素がある場合は、`tone: danger` の `Paragraph` や `Text` として `## Elements` に書けます。

@@ -1,14 +1,15 @@
 # Validations
 
-Validations は入力値の制約と error 表示を扱います。field validation は element の近くに書き、画面や業務の判断条件は [Business Rules](rules.md) に分けます。
+Validations は入力値の検証契約と error 表示を扱います。入力欄そのものの metadata は `## Elements`、検証ルールと message は `## Field Validations`、画面や業務の判断条件は [Business Rules](rules.md) に分けます。
 
 ## 境界
 
 | 判定対象 | 書く場所 |
 | --- | --- |
-| 必須入力 | `Input` element |
-| format、length、range、pattern | `Input` element の `constraints` |
-| 複数 field の比較 | `## Business Rules` または submit 前 action |
+| 入力欄の required 表示 | `Input` element の `required` または `input rule` |
+| 入力欄の format、length、range、pattern metadata | `Input` element の `input rule`、または `NumberInput` の `min` / `max` / `step` |
+| 検証ルールと user-visible な error message | `## Field Validations` |
+| 複数 field の比較 | `## Cross-field Validations`、`## Business Rules`、または submit 前 action |
 | server response で決まる field error | `## Actions` の `case:` と field error への `display` |
 | 権限、在庫、契約状態などの業務判断 | `## Business Rules` と server response の `case:` |
 
@@ -21,35 +22,42 @@ Validations は入力値の制約と error 表示を扱います。field validat
 
 - label: Email
 - value: email
-- required
-- constraints
-  - format: email
-  - maxLength: 255
-- error:
-  - required: Email is required.
-  - format: Enter a valid email address.
+- type: email
+- input rule:
+  - type: email
+
+## Field Validations
+
+### V-EmailRules Email rules
+
+- target: E-EmailInput
+- constraints:
+  - required:
+    - message: Email is required.
+  - email:
+    - message: Enter a valid email address.
 ```
 
 ### Common Constraints
 
 | Constraint | 例 | 用途 |
 | --- | --- | --- |
-| `required` | `- required` | 空欄を許可しない |
-| `format` | `- format: email` | email、url などの形式 |
-| `minLength` | `- minLength: 8` | 最小文字数 |
-| `maxLength` | `- maxLength: 255` | 最大文字数 |
-| `min` | `- min: 1` | 数値や件数の下限 |
-| `max` | `- max: 99` | 数値や件数の上限 |
-| `pattern` | `- pattern: ^[A-Z0-9]+$` | domain 固有の入力形式 |
+| `required` | `- required:` | 空欄を許可しない |
+| `email` | `- email:` | email 形式 |
+| `length: element` | `- length: element` | `input rule` の `min length` / `max length` を検証に使う |
+| `range: element` | `- range: element` | `NumberInput` の `min` / `max` / `step` を検証に使う |
+| `pattern` | `- pattern:` | domain 固有の入力形式 |
 
 ### Error Messages
 
-error message は constraint と対応する形で書けます。
+error message は `## Field Validations` の各 constraint に `message` として書きます。
 
 ```markdown
-- error:
-  - required: Password is required.
-  - minLength: Use at least 8 characters.
+- constraints:
+  - required:
+    - message: Password is required.
+  - length: element
+    - message: Use at least 8 characters.
 ```
 
 ## 小さな例
@@ -59,20 +67,38 @@ error message は constraint と対応する形で書けます。
 
 - label: Quantity
 - value: quantity
-- required
-- constraints
-  - min: 1
-  - max: 10
-- error:
-  - min: Quantity must be at least 1.
-  - max: Quantity must be 10 or less.
+- input rule:
+  - required
+
+### E-AgeInput NumberInput
+
+- label: Age
+- min: 13
+- max: 120
+
+## Field Validations
+
+### V-QuantityRules Quantity rules
+
+- target: E-QuantityInput
+- constraints:
+  - required:
+    - message: Quantity is required.
+
+### V-AgeRange Age range
+
+- target: E-AgeInput
+- constraints:
+  - range: element
+    - message: Age must be between 13 and 120.
 ```
 
 ![Single Field Validation の validation preview](../../assets/vscode-previews/single-field-validation-vscode-preview.png)
 
 ## 注意点
 
-- validation は field の形式、必須、範囲などを扱います。
+- `Input` element 直下の `constraints` と `error:` は現在の実装で扱う構文ではありません。
+- validation は `V-*` として `## Field Validations` に書きます。
 - `## Business Rules` は business rule や画面固有条件を扱います。
 - validator diagnostics は tool output であり、source に書く validation 仕様とは別です。
 - error 表示用の element がある場合は、`tone: danger` の `Paragraph` や `Text` として `## Elements` に書けます。

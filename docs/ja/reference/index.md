@@ -24,7 +24,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 | [Sections](sections.md) | layout、events、form groups、validations、slots、error codes、history などの section |
 | [Elements](elements.md) | `Heading`、`Paragraph`、`Text`、`Input`、`Button` などの element |
 | [Actions](actions.md) | `action: A-*`、`## Events`、`Process Pn:`、`request`、`receive`、`case:`、`display` |
-| [Validations](validations.md) | `required`、`constraints`、format/range、error message |
+| [Validations](validations.md) | `## Field Validations`、`constraints`、validation message |
 | [Business Rules](rules.md) | `## Business Rules` に書く business rule と画面固有条件 |
 | [IDs](ids.md) | `SCR-*`、`L-*`、`E-*`、`A-*`、`R-*` の使い分け |
 | [CLI](cli.md) | `validate`、HTML/PDF export、project `document-list` export |

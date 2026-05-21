@@ -26,7 +26,7 @@ Learning-oriented explanations live in [Guide](/markvspec/en/guide/). Reference 
 | [Sections](/markvspec/en/reference/sections/) | Recognized sections, including layout, events, form groups, validations, slots, error codes, and history |
 | [Elements](/markvspec/en/reference/elements/) | Elements such as `Heading`, `Paragraph`, `Text`, `Input`, and `Button` |
 | [Actions](/markvspec/en/reference/actions/) | `action: A-*`, `## Events`, `Process Pn:`, `request`, `receive`, `case:`, and `display` |
-| [Validations](/markvspec/en/reference/validations/) | `required`, `constraints`, format/range, and error messages |
+| [Validations](/markvspec/en/reference/validations/) | `## Field Validations`, `constraints`, and validation messages |
 | [Business Rules](/markvspec/en/reference/rules/) | Business rules and screen-specific conditions in `## Business Rules` |
 | [IDs](/markvspec/en/reference/ids/) | How to use `SCR-*`, `L-*`, `E-*`, `A-*`, and `R-*` |
 | [CLI](/markvspec/en/reference/cli/) | `validate`, HTML/PDF export, and project `document-list` export |

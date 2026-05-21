@@ -8,8 +8,9 @@ Validation は「入力を受け付けてよいか」と「エラーをどう見
 
 | 種類 | 例 | 書く場所 |
 | --- | --- | --- |
-| クライアント単項目チェック | 必須、email形式、文字数、数値範囲 | `## Elements` の input |
-| クライアント複合項目チェック | password確認、開始日 <= 終了日 | `## Business Rules` または submit前 action |
+| クライアント単項目チェック | 必須、email形式、文字数、数値範囲 | `## Field Validations` |
+| 入力欄の metadata | type、placeholder、min/max、HTML入力制約のヒント | `## Elements` の input |
+| クライアント複合項目チェック | password確認、開始日 <= 終了日 | `## Cross-field Validations`、`## Business Rules`、または submit前 action |
 | サーバ単項目チェック | email重複、商品コード不存在 | `## Actions` の response case と対象 field |
 | サーバ複合項目チェック | 在庫不足、権限不足、契約状態による不可 | `## Actions` の response case と `## Business Rules` |
 
@@ -17,7 +18,7 @@ Business Rule は、入力形式そのものではなく、画面や業務の判
 
 ## クライアント単項目チェック
 
-input 自体に閉じる条件は、element の近くに書きます。
+input 自体に閉じる条件は `## Field Validations` に書きます。入力欄側には label、type、placeholder、min/max などの UI metadata だけを置きます。
 
 ```markdown
 ## Elements
@@ -25,15 +26,24 @@ input 自体に閉じる条件は、element の近くに書きます。
 ### E-EmailInput Input
 
 - label: Email
-- required
-- constraints
-  - format: email
-- error:
-  - required: Email is required.
-  - format: Enter a valid email address.
+- type: email
+- placeholder: user@example.com
+- input rule:
+  - type: email
+
+## Field Validations
+
+### V-EmailRules Email rules
+
+- target: E-EmailInput
+- constraints:
+  - required:
+    - message: Email is required.
+  - email:
+    - message: Enter a valid email address.
 ```
 
-preview や review では、「この field には何を入力できるか」がその場で読めます。
+preview や review では、入力欄の metadata と検証ルールが別々に読めます。`Element` は UI、`Validation` は判定と message です。
 
 ![Single Field Validation の preview](../../assets/vscode-previews/single-field-validation-vscode-preview.png)
 
@@ -66,9 +76,9 @@ preview や review では、「この field には何を入力できるか」が
 ### E-EmailInput Input
 
 - label: Email
-- required
-- constraints
-  - format: email
+- type: email
+- input rule:
+  - type: email
 
 ### E-EmailError Text
 

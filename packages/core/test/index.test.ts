@@ -3050,6 +3050,7 @@ test("parses every release example without diagnostics", () => {
   assert.deepEqual(exampleFiles, [
     "01-basics/hello-screen.vspec.md",
     "02-states/async-loading.vspec.md",
+    "02-states/presentation-panel.vspec.md",
     "02-states/responsive-profile.vspec.md",
     "02-states/scenario-samples.vspec.md",
     "02-states/source-kind-metadata.vspec.md",
