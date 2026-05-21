@@ -2,7 +2,7 @@
 
 `## Business Rules` は business rule や画面固有の判断条件を書く section です。入力形式の validation、tool が出す diagnostics、実装コードの if 文とは分けて扱います。
 
-権限、account status、plan 制約、在庫、日付の関係、複数 field の関係など、product meaning によって決まる条件を書く場所です。required、format、min、max のような入力値そのものの形はここに置きません。
+権限、account status、plan 制約、在庫、複数値を読んで決める業務判断など、product meaning によって決まる条件を書く場所です。required、format、min、max、単純な field 比較はここに置きません。そうした check は [Validations](validations.md) に書きます。
 
 ## 書ける構文
 
@@ -54,6 +54,26 @@ Rule は `### R-* Name` の形で宣言します。
 
 ![History And Errors の business rules preview](../../assets/vscode-previews/history-and-errors-vscode-preview.png)
 
+## アクション結果ケース
+
+action result が business rule violation の場合は、`business rule:` を
+`case: business-rule-violation` の下に書きます。他の case 名で
+`business rule:` を書くと、non-canonical な記述として診断されます。
+
+```markdown
+## Actions
+
+### A-Submit Submit
+
+- Process P1: Submit request
+  - case: business-rule-violation
+    - business rule: R-EmailMustBeUnique
+    - error code: ERR-EMAIL-ALREADY-REGISTERED
+    - display:
+      - target: E-EmailInput.error
+      - message: R-EmailMustBeUnique.messages
+```
+
 ## Validator Diagnostics との違い
 
 Validator Diagnostics は parser / validator が source の不足や矛盾を見つけて出す tool output です。`## Business Rules` は author が画面仕様として書く判断条件です。
@@ -61,6 +81,7 @@ Validator Diagnostics は parser / validator が source の不足や矛盾を見
 ## 注意点
 
 - field の必須、format、range は [Validations](validations.md) に書きます。
+- 単純な複数 field 比較は [Validations](validations.md) の `## Cross-field Validations` に書きます。
 - server response による error は [Actions](actions.md) の response `case:` と `display` に書きます。
 - action の request/response 分岐は [Actions](actions.md) の `case:` に書きます。
 - `## Business Rules` は人が読む仕様です。Validator Diagnostics の出力先ではありません。

@@ -215,8 +215,18 @@ viewport ごとの slot 内容は `## Slot: name: viewport` と書きます。
 ### Error Codes
 
 同じエラーに安定したコード、表示先、表示形式を持たせたい場合は `## Error Codes` を使います。
+各エラーコードには `business rule`、`target`、`message`、`display` が必要です。
+`display` は `inline`、`form`、`global`、`banner`、`toast`、`dialog`、`none`
+を認識します。
 
 ```markdown
+## Business Rules
+
+### R-EmailMustBeUnique Email must be unique
+
+- messages:
+  - Email is already registered.
+
 ## Error Codes
 
 ### ER1:ERR-EMAIL-ALREADY-REGISTERED Email already registered

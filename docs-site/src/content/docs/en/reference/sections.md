@@ -219,9 +219,18 @@ and [Responsive Slot Page](/markvspec/examples/showcase/responsive-slot-page.htm
 ### Error Codes
 
 Use `## Error Codes` when the same error needs a stable code, target, and
-display style.
+display style. Each error code must define `business rule`, `target`, `message`,
+and `display`. Recognized `display` values are `inline`, `form`, `global`,
+`banner`, `toast`, `dialog`, and `none`.
 
 ```markdown
+## Business Rules
+
+### R-EmailMustBeUnique Email must be unique
+
+- messages:
+  - Email is already registered.
+
 ## Error Codes
 
 ### ER1:ERR-EMAIL-ALREADY-REGISTERED Email already registered

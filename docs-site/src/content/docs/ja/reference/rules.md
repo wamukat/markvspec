@@ -4,7 +4,7 @@ title: "ビジネスルール"
 
 `## Business Rules` は、ビジネスルールや画面固有の判断条件を書くセクションです。入力形式のバリデーション、ツールが出す診断、実装コードの if 文とは分けて扱います。
 
-権限、アカウント状態、プラン制約、在庫、日付の関係、複数フィールドの関係など、プロダクト上の意味によって決まる条件を書く場所です。required、format、min、max のような入力値そのものの形はここに置きません。
+権限、アカウント状態、プラン制約、在庫、複数値を読んで決める業務判断など、プロダクト上の意味によって決まる条件を書く場所です。required、format、min、max、単純なフィールド比較はここに置きません。そうしたチェックは [バリデーション](/markvspec/ja/reference/validations/) に書きます。
 
 ## 書ける構文
 
@@ -56,6 +56,26 @@ Rule は `### R-* Name` の形で宣言します。
 
 ![History And Errors のビジネスルールプレビュー](../../assets/vscode-previews/history-and-errors-vscode-preview.png)
 
+## アクション結果ケース
+
+アクション結果がビジネスルール違反の場合は、`business rule:` を
+`case: business-rule-violation` の下に書きます。他の case 名で
+`business rule:` を書くと、非 canonical な記述として診断されます。
+
+```markdown
+## Actions
+
+### A-Submit Submit
+
+- Process P1: Submit request
+  - case: business-rule-violation
+    - business rule: R-EmailMustBeUnique
+    - error code: ERR-EMAIL-ALREADY-REGISTERED
+    - display:
+      - target: E-EmailInput.error
+      - message: R-EmailMustBeUnique.messages
+```
+
 ## バリデーション診断との違い
 
 バリデーション診断は、パーサーやバリデーターがソースの不足や矛盾を見つけて出すツール出力です。`## Business Rules` は、作成者が画面仕様として書く判断条件です。
@@ -63,6 +83,7 @@ Rule は `### R-* Name` の形で宣言します。
 ## 注意点
 
 - フィールドの必須、format、range は [バリデーション](/markvspec/ja/reference/validations/) に書きます。
+- 単純な複数フィールド比較は [バリデーション](/markvspec/ja/reference/validations/) の `## Cross-field Validations` に書きます。
 - サーバー応答によるエラーは [アクション](/markvspec/ja/reference/actions/) の response `case:` と `display` に書きます。
 - アクションのリクエスト/応答分岐は [アクション](/markvspec/ja/reference/actions/) の `case:` に書きます。
 - `## Business Rules` は人が読む仕様です。バリデーション診断の出力先ではありません。

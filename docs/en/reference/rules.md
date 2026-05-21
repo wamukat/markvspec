@@ -2,7 +2,7 @@
 
 `## Business Rules` describes business rules and screen-specific decisions. Keep it separate from input validation, tool diagnostics, and implementation-level if statements.
 
-Use Business Rules when the decision depends on product meaning: permissions, account status, plan restrictions, stock, date relationships, or multiple fields. Do not use this section for basic input shape such as required, format, min, or max.
+Use Business Rules when the decision depends on product meaning: permissions, account status, plan restrictions, stock, or a business decision that reads multiple values. Do not use this section for basic input shape such as required, format, min, max, or simple field comparison. Use [Validations](validations.md) for those checks.
 
 ## Syntax You Can Write
 
@@ -54,6 +54,26 @@ Declare a rule with the `### R-* Name` form.
 
 ![History And Errors business rules preview](../../assets/vscode-previews/history-and-errors-vscode-preview.png)
 
+## Action Result Cases
+
+When an action result is a business rule violation, put `business rule:` under
+`case: business-rule-violation`. Other case names with `business rule:` are
+reported as non-canonical.
+
+```markdown
+## Actions
+
+### A-Submit Submit
+
+- Process P1: Submit request
+  - case: business-rule-violation
+    - business rule: R-EmailMustBeUnique
+    - error code: ERR-EMAIL-ALREADY-REGISTERED
+    - display:
+      - target: E-EmailInput.error
+      - message: R-EmailMustBeUnique.messages
+```
+
 ## Difference From Validator Diagnostics
 
 Validator Diagnostics are tool output from parser / validator checks. `## Business Rules` is author-written specification content for screen decisions.
@@ -61,6 +81,7 @@ Validator Diagnostics are tool output from parser / validator checks. `## Busine
 ## Notes
 
 - Put required fields, formats, and ranges in [Validations](validations.md).
+- Put simple multi-field comparisons in [Validations](validations.md) as `## Cross-field Validations`.
 - Put server response errors in [Actions](actions.md) response `case:` entries with `display`.
 - Put request/response branches in `case:` entries under [Actions](actions.md).
 - `## Business Rules` is human-authored specification content. It is not where Validator Diagnostics are written.
