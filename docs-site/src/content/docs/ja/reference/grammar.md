@@ -63,11 +63,26 @@ h2 = ? Markdown level-2 heading block ? ;
 h3 = ? Markdown level-3 heading block ? ;
 h4 = ? Markdown level-4 heading block ? ;
 bullet = ? Markdown bullet list item at the current semantic nesting level ? ;
+heading = h1 | h2 | h3 | h4 | ? Markdown heading level 5 or 6 ? ;
+list = ? Markdown list block ? ;
+table = ? Markdown table block ? ;
 inline_text = ? non-empty Markdown inline text after trimming ? ;
 prose_line = ? Markdown paragraph text not consumed as a structured item ? ;
+markdown_block = heading | list | table | prose_line | ? fenced code, block quote, or other preserved Markdown block ? ;
+section_block = entity_heading | named_heading | subsection_heading | bullet | markdown_block ;
+section_prose = prose_line | markdown_block ;
+entity_prose = prose_line | markdown_block ;
 expression = ? non-empty semantic expression text ? ;
 reference = object_id , [ "." , name , { "." , name } ] ;
 value_ref = element_id , ".value" ;
+key_value = property_key , ":" , inline_text ;
+outcome_item = bullet , key_value | bullet , flow_directive ;
+request_item = bullet , http_method , inline_text
+             | bullet , "params:" , { bullet , key_value }
+             | bullet , key_value ;
+sync_detail = service_call | expression ;
+service_call = service_name , [ "(" , [ inline_text ] , ")" ] ;
+service_name = name , { "." , name } ;
 ```
 
 ## Document
@@ -269,6 +284,10 @@ request_block = bullet , "request:" , { request_item } ;
 receive_block = bullet , "receive:" , { bullet , key_value | bullet , reference } ;
 sync_block = bullet , "sync:" , { bullet , sync_detail | bullet , key_value } ;
 server_block = bullet , "server:" , { bullet , service_call | bullet , key_value } ;
+when_item = bullet , "when:" , expression ;
+skip_when_item = bullet , "skip when:" , expression ;
+parallel_group = bullet , "parallel:" , name ;
+resolve_group = bullet , "resolve:" , name ;
 process_case = bullet , "case:" , name , { outcome_item | flow_directive } ;
 flow_directive = bullet , "stop" | bullet , "continue" ;
 immediate_effect = bullet , ( "state:" | "navigate:" | "display:" | "update:" | "model:" | "view:" ) , expression ;
