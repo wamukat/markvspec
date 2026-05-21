@@ -20,6 +20,20 @@ CLI 実行結果に照合しました。
 - `docs/{ja,en}/examples/**/*.md`
 - `docs/{ja,en}/concepts/**/*.md`
 
+## 継続監査
+
+#1356 で Reference の主要な仕様主張を自動監査する `npm run audit:docs-reference`
+を追加しました。このコマンドは、次の観点を `packages/core` の実装または CLI
+validate と照合します。
+
+- Reference に書かれた section 名が parser の認識 section と合っていること。
+- Reference に書かれた element type と主要 property が element domain と合っていること。
+- Actions / Validations / Business Rules の主要 key が現行構文と合っていること。
+- Markdown code block を完全な `.vspec.md` 例と断片例に分け、完全例は CLI validate に通すこと。
+
+`docs/` を正本にする運用を保つため、Pages CI でも `npm run audit:docs-reference`
+を実行します。
+
 ## 照合した根拠
 
 | 領域 | docs の主張 | 根拠 |

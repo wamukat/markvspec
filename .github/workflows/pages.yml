@@ -42,6 +42,9 @@ jobs:
       - name: Check docs-site sync
         run: npm run check:docs-sync
 
+      - name: Audit reference docs
+        run: npm run audit:docs-reference
+
       - name: Build Pages site
         run: npm run build:pages
 
