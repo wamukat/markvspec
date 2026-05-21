@@ -9,7 +9,7 @@ The generated catalog is the main place to browse source and preview together.
 - [Hello Screen showcase](/markvspec/examples/showcase/hello-screen.html)
 - [Login showcase](/markvspec/examples/showcase/login-basic.html)
 - [Form Submit Flow showcase](/markvspec/examples/showcase/form-submit-flow.html)
-- [Profile Partial showcase](/markvspec/examples/showcase/profile-summary.partial.html)
+- [Profile Home showcase](/markvspec/examples/showcase/profile-page-with-template.html)
 
 ## Choose By Task
 
@@ -18,7 +18,7 @@ The generated catalog is the main place to browse source and preview together.
 | Beginner | [Hello Screen](/markvspec/examples/showcase/hello-screen.html) | You want the smallest file that opens in preview. |
 | Form and validation | [Login](/markvspec/examples/showcase/login-basic.html) | You need required fields, submit, response cases, and error messages. |
 | Loading / empty / error | [Async Fetching](/markvspec/examples/showcase/async-loading.html) | You need request states, empty results, and error display. |
-| Partial update | [Profile Partial](/markvspec/examples/showcase/profile-summary.partial.html) | A server response replaces part of the screen. |
+| Partial update | [Profile Home](/markvspec/examples/showcase/profile-page-with-template.html) | A server response replaces part of the screen. |
 | Navigation and overlays | [Action Menu](/markvspec/examples/showcase/action-menu.html) | You need tabs, menus, dialogs, popovers, or toasts. |
 | Reuse and templates | [Account Shell](/markvspec/examples/showcase/template-shell.html) | Multiple screens share a shell or slot. |
 

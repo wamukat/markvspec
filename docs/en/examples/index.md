@@ -7,7 +7,7 @@ The generated catalog is the main place to browse source and preview together.
 - [Hello Screen showcase](../../../examples/showcase/hello-screen.html)
 - [Login showcase](../../../examples/showcase/login-basic.html)
 - [Form Submit Flow showcase](../../../examples/showcase/form-submit-flow.html)
-- [Profile Partial showcase](../../../examples/showcase/profile-summary.partial.html)
+- [Profile Home showcase](../../../examples/showcase/profile-page-with-template.html)
 
 ## Choose By Task
 
@@ -16,7 +16,7 @@ The generated catalog is the main place to browse source and preview together.
 | Beginner | [Hello Screen](../../../examples/showcase/hello-screen.html) | You want the smallest file that opens in preview. |
 | Form and validation | [Login](../../../examples/showcase/login-basic.html) | You need required fields, submit, response cases, and error messages. |
 | Loading / empty / error | [Async Fetching](../../../examples/showcase/async-loading.html) | You need request states, empty results, and error display. |
-| Partial update | [Profile Partial](../../../examples/showcase/profile-summary.partial.html) | A server response replaces part of the screen. |
+| Partial update | [Profile Home](../../../examples/showcase/profile-page-with-template.html) | A server response replaces part of the screen. |
 | Navigation and overlays | [Action Menu](../../../examples/showcase/action-menu.html) | You need tabs, menus, dialogs, popovers, or toasts. |
 | Reuse and templates | [Account Shell](../../../examples/showcase/template-shell.html) | Multiple screens share a shell or slot. |
 

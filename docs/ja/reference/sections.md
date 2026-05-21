@@ -66,8 +66,11 @@
 | `## Actions` | トリガー、リクエスト、効果、ケース |
 | `## Events` | page load など要素 click ではないイベント |
 | `## Form Groups` | フォーム単位のフィールドグループと送信アクション |
+| `## View Context` | 状態とは別に切り替わる表示文脈 |
+| `## View Context Samples` | 表示文脈の代表値セット |
 | `## Field Validations` | 単一フィールドの制約とメッセージ |
 | `## Cross-field Validations` | 複数フィールドまたはフォーム単位のチェック |
+| `## Validations` | 互換用の検証セクション。通常は `Field Validations` / `Cross-field Validations` を使う |
 | `## Preview Scenarios` | 状態と Action の case 結果を組み合わせたプレビューケース |
 | `## Business Rules` | ビジネスルールと画面固有の判断条件 |
 | `## Error Codes` | 再利用するエラー定義と表示先 |
@@ -124,6 +127,31 @@ state は `## States` の下に箇条書きで書きます。初期状態を明�
 
 初期読み込み、partial 初期化、画面ライフサイクルによるデータ更新で使います。
 [Parallel Initial Load](../../../examples/showcase/parallel-initial-load.html) を参照してください。
+
+### View Context
+
+state を増やさずにタブ、選択中の行、開閉中のヘルプなどの表示文脈を切り替えたい場合は
+`## View Context` と `## View Context Samples` を使います。
+
+```markdown
+## View Context
+
+### selectedTab
+
+- type: enum
+- values:
+  - profile*
+  - billing
+
+## View Context Samples
+
+### billing-tab
+
+- selectedTab: billing
+```
+
+`## Validations` は互換目的で認識されます。新しく書く場合は、単項目は
+`## Field Validations`、複合項目は `## Cross-field Validations` を使います。
 
 ### Preview Scenarios
 

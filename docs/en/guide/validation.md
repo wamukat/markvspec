@@ -4,7 +4,7 @@ Validation explains what input is accepted and how errors appear.
 
 Start by separating where the decision is made and what it checks.
 
-## Five Buckets
+## Six Buckets
 
 | Kind | Examples | Write it in |
 | --- | --- | --- |

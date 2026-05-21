@@ -69,8 +69,11 @@ MarkVSpec recognizes these top-level sections.
 | `## Actions` | Triggers, requests, effects, and cases |
 | `## Events` | Page or lifecycle events that call actions |
 | `## Form Groups` | Form-level field groups and submit action |
+| `## View Context` | View context that changes independently from state |
+| `## View Context Samples` | Named sets of view-context values |
 | `## Field Validations` | Single-field constraints and messages |
 | `## Cross-field Validations` | Multi-field or form-level checks |
+| `## Validations` | Compatibility validation section. Prefer `Field Validations` / `Cross-field Validations` for new source |
 | `## Preview Scenarios` | Named preview cases for states and Action case results |
 | `## Business Rules` | Business rules and screen-specific decisions |
 | `## Error Codes` | Reusable error definitions and display targets |
@@ -129,6 +132,33 @@ Use `## Events` for lifecycle events that are not clicked from an element.
 Use it for initial load, partial initialization, or data refresh triggered by
 the screen lifecycle. See
 [Parallel Initial Load](/markvspec/examples/showcase/parallel-initial-load.html).
+
+### View Context
+
+Use `## View Context` and `## View Context Samples` when tabs, selected rows,
+open help panels, or similar display context changes without creating another
+state.
+
+```markdown
+## View Context
+
+### selectedTab
+
+- type: enum
+- values:
+  - profile*
+  - billing
+
+## View Context Samples
+
+### billing-tab
+
+- selectedTab: billing
+```
+
+`## Validations` is recognized for compatibility. For new source, write
+single-field checks in `## Field Validations` and cross-field checks in
+`## Cross-field Validations`.
 
 ### Preview Scenarios
 

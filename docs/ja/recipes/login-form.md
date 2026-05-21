@@ -18,11 +18,28 @@
 ```markdown
 ## States
 
-### idle
+- idle*
+- submitting
+- auth-error
 
-### submitting
+## Layout: mobile
 
-### auth-error
+### L-Page Login page
+
+- stack
+- gap: md
+
+#### Items
+
+- E-EmailInput
+- E-PasswordInput
+- E-SignInButton
+- L-MessageArea
+
+### L-MessageArea Message area
+
+- stack
+- gap: sm
 
 ## Elements
 

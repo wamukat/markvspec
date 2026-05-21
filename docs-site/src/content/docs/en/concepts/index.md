@@ -25,14 +25,16 @@ the canonical source.
 
 ## Screen-first Authoring
 
-One `.vspec.md` file describes one screen. Componentization can happen in the
-implementation, but the primary authoring model stays screen-oriented so product,
-design, and engineering reviewers can discuss behavior in one place.
+MarkVSpec is screen-first. One `.vspec.md` file usually describes one screen,
+and the primary authoring model stays screen-oriented so product, design, and
+engineering reviewers can discuss behavior in one place.
 
-Screen-first does not mean components cannot be reused. At the specification
-stage, first collect the screen, states, main actions, and server interaction in
-one file. Whether implementation later splits it into components, partials, or
-templates is an implementation design decision.
+Screen-first does not mean shared parts cannot be reused. Keep the screen as the
+main specification, then add a `type: template` document when screens share a
+shell, or a `type: partial` document when a server response replaces part of the
+screen. At the specification stage, first collect the visible screen, states,
+main actions, and server interaction in the screen file, then split only the
+reuse or partial-update surface that needs its own document.
 
 ## What MarkVSpec Is Not
 
