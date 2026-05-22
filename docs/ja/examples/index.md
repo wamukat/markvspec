@@ -10,7 +10,7 @@
 - [Hello Screen サンプル](../../../examples/showcase/hello-screen.html)
 - [Login サンプル](../../../examples/showcase/login-basic.html)
 - [Form Submit Flow サンプル](../../../examples/showcase/form-submit-flow.html)
-- [Profile Partial サンプル](../../../examples/showcase/profile-summary.partial.html)
+- [Profile Home サンプル](../../../examples/showcase/profile-page-with-template.html)
 
 ## 目的で選ぶ
 
