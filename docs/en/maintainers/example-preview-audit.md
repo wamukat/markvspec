@@ -43,6 +43,32 @@ of the default release gate yet because it requires a local browser binary; set
 manually for browser-runtime showcase work until the Pages deploy gate
 explicitly adopts it.
 
+## Dynamic Preview Security Boundary
+
+The showcase runtime may fetch author-controlled `.vspec.md` source and
+dependency source, but it must only insert HTML returned by
+`renderMarkVSpecHtml()` into `[data-dynamic-preview-output]`. Status,
+diagnostics, metrics, and fetch errors are written with `textContent` or DOM
+nodes. Do not pass fetched source text, dependency text, diagnostic messages, or
+configuration values directly to `innerHTML`.
+
+The browser-safe renderer is responsible for escaping author-controlled labels,
+messages, Markdown prose that reaches wireframe output, Mermaid source text, and
+element values. Link-like element URLs must reject `javascript:`, `vbscript:`,
+and `data:` schemes before rendering. `npm run check:core-browser` includes the
+dangerous-source fixture for this boundary: HTML blocks, inline HTML, Markdown
+links, display/message/content text, link URLs, and dependency-compatible source
+must not produce executable tags, event handler attributes, dangerous `href`
+values, or iframes in dynamic preview output.
+
+Generated fallback artifacts are same-origin HTML produced by the controlled
+exporter. They remain in an iframe for fallback/export/print/regression
+comparison. We do not sandbox that iframe yet because the generated artifact uses
+the controlled Mermaid runtime for diagrams; instead, the exporter initializes
+Mermaid with strict security and the dynamic path relies on escaped renderer
+output. Revisit CSP or iframe sandboxing before allowing arbitrary plugins,
+external renderer assets, or user-provided runtime scripts.
+
 ## VS Code Preview Audit
 
 Run the shipped example preview audit before completing tickets that touch

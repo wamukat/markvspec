@@ -276,7 +276,7 @@ export function renderElement(
   }
 
   if (element.type === "Link") {
-    const href = routeResolvedStringProperty(element, "href", context) || "#";
+    const href = safePreviewHref(routeResolvedStringProperty(element, "href", context));
     return renderAnnotatedElement(markers, element.type, `<a class="${classes}" data-mm-id="${escapeHtml(element.id)}" href="${escapeHtml(href)}"${ariaDisabled}>${escapeHtml(displayLabel || href)}</a>`);
   }
 
@@ -805,6 +805,26 @@ function escapeHtml(value: string): string {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll("\"", "&quot;");
+}
+
+function safePreviewHref(value: string | undefined): string {
+  const normalized = value?.trim() || "#";
+  const lower = decodedHtmlUrl(normalized);
+  if (/^(?:javascript|vbscript|data):/u.test(lower)) {
+    return "#";
+  }
+  return normalized;
+}
+
+function decodedHtmlUrl(value: string): string {
+  return value
+    .replace(/&#(?:x([0-9a-f]+)|([0-9]+));/giu, (_match, hex: string | undefined, decimal: string | undefined) => {
+      const codePoint = Number.parseInt(hex ?? decimal ?? "0", hex ? 16 : 10);
+      return Number.isFinite(codePoint) && codePoint >= 0 && codePoint <= 0x10ffff ? String.fromCodePoint(codePoint) : "";
+    })
+    .trim()
+    .replace(/[\u0000-\u001f\u007f\s]+/gu, "")
+    .toLowerCase();
 }
 
 function sanitizeClassToken(value: string): string {

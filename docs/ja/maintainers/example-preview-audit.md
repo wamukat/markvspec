@@ -38,6 +38,27 @@ DevTools Protocol 経由で起動して代表 showcase page を desktop / mobile
 Chrome または Chromium が標準の場所にない場合は `CHROME_BIN` を指定する。Pages deploy gate が
 明示的に採用するまでは、browser runtime を触る showcase 作業で手動実行する。
 
+## Dynamic Preview Security Boundary
+
+showcase runtime は author-controlled な `.vspec.md` source と dependency source を
+fetch してよいが、`[data-dynamic-preview-output]` に挿入してよい HTML は
+`renderMarkVSpecHtml()` が返したものだけとする。status、diagnostics、metrics、fetch error は
+`textContent` または DOM node で書き込む。fetch した source text、dependency text、
+diagnostic message、configuration value を直接 `innerHTML` に渡してはならない。
+
+browser-safe renderer は、wireframe output に到達する author-controlled label、message、
+Markdown prose、Mermaid source text、element value を escape する責務を持つ。Link 系 element の
+URL は、render 前に `javascript:`、`vbscript:`、`data:` scheme を拒否する。
+`npm run check:core-browser` にはこの境界用の dangerous-source fixture を含める。HTML block、
+inline HTML、Markdown link、display/message/content text、link URL、dependency-compatible source が、
+dynamic preview output 内で executable tag、event handler attribute、危険な `href`、iframe を生成しないことを確認する。
+
+generated fallback artifact は、controlled exporter が生成する same-origin HTML として iframe に残す。
+fallback / export / print / regression comparison のための artifact である。現時点では iframe sandbox は採用しない。
+generated artifact が controlled Mermaid runtime で図を描画するためであり、代わりに exporter は Mermaid を
+strict security で初期化し、dynamic path は escaped renderer output に依存する。任意 plugin、外部 renderer asset、
+user-provided runtime script を許可する前に、CSP または iframe sandbox を再検討する。
+
 ## VS Code Preview Audit
 
 example、State Views、Action Details、display effects、template composition、

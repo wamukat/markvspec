@@ -106,6 +106,8 @@ for (const fileName of generatedHtml) {
   expectContains(html, 'href="#state-views"', `_site/examples/generated/${fileName} table of contents should link to state views.`);
   expectNotContains(html, "function prepareBlock(block)", `_site/examples/generated/${fileName} should not inline the Mermaid initializer runtime.`);
 }
+const sharedMermaidRuntime = readSiteFile("examples/assets/markvspec-mermaid-runtime.js");
+expectContains(sharedMermaidRuntime, 'securityLevel: "strict"', "_site/examples/assets/markvspec-mermaid-runtime.js should initialize Mermaid with strict security.");
 
 const pagefindIndexDir = join(siteDir, "pagefind", "index");
 const pagefindIndexFiles = existsSync(pagefindIndexDir)
@@ -216,6 +218,12 @@ const dynamicRuntimeSource = readFileSync(join(root, "docs-site", "src", "lib", 
 expectContains(dynamicRuntimeSource, "renderDynamicPreview().catch((error) => {", "dynamic preview runtime should catch render failures.");
 expectContains(dynamicRuntimeSource, "showFallback();", "dynamic preview runtime should show generated fallback on render failures.");
 expectContains(dynamicRuntimeSource, "Using generated preview fallback:", "dynamic preview runtime should report fallback reason without breaking the page.");
+expectContains(dynamicRuntimeSource, "previewElement.innerHTML = html;", "dynamic preview runtime should only insert trusted renderer output.");
+const dynamicRuntimeInnerHtmlAssignments = [...dynamicRuntimeSource.matchAll(/\binnerHTML\s*=/gu)];
+if (dynamicRuntimeInnerHtmlAssignments.length !== 1) {
+  failures.push(`dynamic preview runtime should have exactly one innerHTML assignment for trusted renderer output (${dynamicRuntimeInnerHtmlAssignments.length} found).`);
+}
+checkDynamicSecurityBoundary();
 
 const helloEditorHtml = readSiteFile("examples/experimental/editor/hello-screen.html/index.html");
 expectContains(helloEditorHtml, "Online Live Editor PoC", "_site/examples/experimental/editor/hello-screen.html should be the editor PoC page.");
@@ -374,6 +382,117 @@ function smokeRenderDynamicConfig(config, filePath) {
   }
   if (!html.trim()) {
     failures.push(`${filePath} dynamic smoke should render non-empty HTML.`);
+  }
+}
+
+function checkDynamicSecurityBoundary() {
+  const source = `---
+id: SCR-DYNAMIC-XSS
+type: screen
+title: Dynamic XSS Fixture
+route: /dynamic/:payload
+---
+
+# SCR-DYNAMIC-XSS Dynamic XSS Fixture
+
+<script>globalThis.__markvspecXss = true</script>
+
+Inline [bad](javascript:globalThis.__markvspecXss = true) text.
+
+## States
+
+- idle*
+
+## Layout: desktop
+
+### L-Root Root
+
+- stack
+
+#### Items
+
+- E-Title
+- E-JavaScriptLink
+- E-EncodedLink
+- E-EncodedControlLink
+- E-ControlLink
+- E-VbScriptLink
+- E-DataLink
+- E-SafeLink
+- E-Banner
+- E-Dialog
+
+## Elements
+
+### E-Title Heading
+
+- level: 1
+- text: <script>globalThis.__markvspecXss = true</script>
+
+### E-JavaScriptLink Link
+
+- label: Dangerous <img src=x onerror="globalThis.__markvspecXss = true">
+- href: javascript:globalThis.__markvspecXss = true
+
+### E-EncodedLink Link
+
+- label: Encoded dangerous link
+- href: java&#x73;cript:globalThis.__markvspecXss = true
+
+### E-EncodedControlLink Link
+
+- label: Encoded control dangerous link
+- href: java&#10;script:globalThis.__markvspecXss = true
+
+### E-ControlLink Link
+
+- label: Control dangerous link
+- href: java	script:globalThis.__markvspecXss = true
+
+### E-VbScriptLink Link
+
+- label: VBScript dangerous link
+- href: vbscript:globalThis.__markvspecXss = true
+
+### E-DataLink Link
+
+- label: Data dangerous link
+- href: data:text/html,<script>globalThis.__markvspecXss = true</script>
+
+### E-SafeLink Link
+
+- label: Safe relative link
+- href: /safe/path
+
+### E-Banner Banner
+
+- message: <iframe srcdoc="<script>globalThis.__markvspecXss = true</script>"></iframe>
+
+### E-Dialog Dialog
+
+- title: Dialog
+- content: <svg onload="globalThis.__markvspecXss = true"></svg>
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderMarkVSpecHtml(result, {
+    includeStyles: false,
+    routeValues: { payload: "javascript:globalThis.__markvspecXss = true" },
+    showIds: true,
+    state: "idle",
+    viewport: "desktop",
+  });
+
+  if (/<script\b|<iframe\b|<svg\b|<[^>]+\son[a-z]+\s*=|href="(?:javascript|vbscript|data):/iu.test(html)) {
+    failures.push("dynamic security fixture should not render executable tags, event handler attributes, iframes, or dangerous href values.");
+  }
+  if (!html.includes('href="#"')) {
+    failures.push("dynamic security fixture should neutralize dangerous Link href values.");
+  }
+  if (!html.includes('href="/safe/path"')) {
+    failures.push("dynamic security fixture should preserve safe relative Link href values.");
+  }
+  if (!html.includes("&lt;script&gt;globalThis.__markvspecXss = true&lt;/script&gt;")) {
+    failures.push("dynamic security fixture should keep dangerous text escaped for review.");
   }
 }
 

@@ -197,3 +197,122 @@ title: Hidden Markers
   assert.doesNotMatch(html, /No visible elements/);
   assert.doesNotMatch(html, /mm-marker-element/);
 });
+
+test("escapes author-controlled wireframe text and blocks dangerous link URLs", () => {
+  const source = `---
+id: SCR-XSS
+type: screen
+title: XSS Fixture
+route: /xss/:payload
+---
+
+# SCR-XSS XSS Fixture
+
+<script>globalThis.__markvspecXss = true</script>
+
+Inline [bad](javascript:globalThis.__markvspecXss = true) text.
+
+## States
+
+- idle*
+
+## Layout: desktop
+
+### L-Root Root
+
+- stack
+
+#### Items
+
+- E-Title
+- E-JavaScriptLink
+- E-EncodedLink
+- E-EncodedControlLink
+- E-ControlLink
+- E-VbScriptLink
+- E-DataLink
+- E-SafeLink
+- E-Banner
+- E-Dialog
+
+## Elements
+
+### E-Title Heading
+
+- level: 1
+- text: <script>globalThis.__markvspecXss = true</script>
+
+### E-JavaScriptLink Link
+
+- label: Dangerous <img src=x onerror="globalThis.__markvspecXss = true">
+- href: javascript:globalThis.__markvspecXss = true
+
+### E-EncodedLink Link
+
+- label: Encoded dangerous link
+- href: java&#x73;cript:globalThis.__markvspecXss = true
+
+### E-EncodedControlLink Link
+
+- label: Encoded control dangerous link
+- href: java&#10;script:globalThis.__markvspecXss = true
+
+### E-ControlLink Link
+
+- label: Control dangerous link
+- href: java	script:globalThis.__markvspecXss = true
+
+### E-VbScriptLink Link
+
+- label: VBScript dangerous link
+- href: vbscript:globalThis.__markvspecXss = true
+
+### E-DataLink Link
+
+- label: Data dangerous link
+- href: data:text/html,<script>globalThis.__markvspecXss = true</script>
+
+### E-SafeLink Link
+
+- label: Safe relative link
+- href: /safe/path
+
+### E-Banner Banner
+
+- message: <iframe srcdoc="<script>globalThis.__markvspecXss = true</script>"></iframe>
+
+### E-Dialog Dialog
+
+- title: Dialog
+- content: <svg onload="globalThis.__markvspecXss = true"></svg>
+
+## Actions
+
+### A-ShowDanger Show danger
+
+- From
+  - idle
+- Process P1: Show unsafe display text
+  - display.content: <script>globalThis.__markvspecXss = true</script>
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderMarkVSpecHtml(result, {
+    includeStyles: false,
+    routeValues: { payload: "javascript:globalThis.__markvspecXss = true" },
+    showIds: true,
+    state: "idle",
+    viewport: "desktop"
+  });
+
+  assert.doesNotMatch(html, /<script\b/iu);
+  assert.doesNotMatch(html, /<iframe\b/iu);
+  assert.doesNotMatch(html, /<svg\b/iu);
+  assert.doesNotMatch(html, /<[^>]+\son[a-z]+\s*=/iu);
+  assert.doesNotMatch(html, /href="javascript:/iu);
+  assert.doesNotMatch(html, /href="vbscript:/iu);
+  assert.doesNotMatch(html, /href="data:/iu);
+  assert.match(html, /&lt;script&gt;globalThis\.__markvspecXss = true&lt;\/script&gt;/u);
+  assert.match(html, /Dangerous &lt;img src=x onerror=&quot;globalThis\.__markvspecXss = true&quot;&gt;/u);
+  assert.match(html, /href="#"/u);
+  assert.match(html, /href="\/safe\/path"/u);
+});
