@@ -299,12 +299,31 @@ const metaPills = [
         margin: 0;
       }
       [data-dynamic-preview-status] {
+        align-items: center;
         color: var(--muted);
+        display: inline-flex;
+        font-size: 12px;
+        gap: 6px;
         font-weight: 700;
+      }
+      [data-dynamic-preview-status]::before {
+        background: #94a3b8;
+        border-radius: 999px;
+        content: "";
+        display: inline-block;
+        height: 7px;
+        width: 7px;
       }
       [data-dynamic-preview-status][data-status="ready"] { color: var(--success); }
       [data-dynamic-preview-status][data-status="diagnostics"],
       [data-dynamic-preview-status][data-status="fallback"] { color: var(--warning); }
+      [data-dynamic-preview-status][data-status="ready"]::before { background: var(--success); }
+      [data-dynamic-preview-status][data-status="diagnostics"]::before,
+      [data-dynamic-preview-status][data-status="fallback"]::before { background: var(--warning); }
+      [data-dynamic-preview-metrics] {
+        color: var(--muted);
+        font-size: 11px;
+      }
       .preview-shell {
         display: grid;
         gap: 16px;
@@ -495,7 +514,7 @@ const metaPills = [
         <section class="runtime-summary" aria-label="Dynamic preview runtime status">
           <strong>Read-only Dynamic Preview</strong>
           <p>Browser-side generated design document rendering from the published `.vspec.md` source asset. Runtime failures show diagnostics and source links instead of a pre-generated HTML artifact.</p>
-          <p><span data-dynamic-preview-status data-status="loading">Waiting for browser runtime...</span></p>
+          <p><span data-dynamic-preview-status data-status="loading">Loading</span></p>
           <p data-dynamic-preview-metrics>Runtime metrics are measured in the browser.</p>
         </section>
 

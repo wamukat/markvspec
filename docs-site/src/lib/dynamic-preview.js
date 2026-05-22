@@ -25,14 +25,31 @@ function setStatus(kind, message) {
     return;
   }
   statusElement.dataset.status = kind;
-  statusElement.textContent = message;
+  statusElement.title = message;
+  statusElement.textContent = statusLabel(kind);
 }
 
 function setMetrics(metrics) {
   if (!metricsElement) {
     return;
   }
-  metricsElement.textContent = metrics.join(' | ');
+  metricsElement.title = metrics.join(' | ');
+  metricsElement.textContent = metrics.join(' · ');
+}
+
+function statusLabel(kind) {
+  switch (kind) {
+    case 'ready':
+      return 'Ready';
+    case 'diagnostics':
+      return 'Diagnostics';
+    case 'fallback':
+      return 'Fallback';
+    case 'loading':
+      return 'Loading';
+    default:
+      return 'Error';
+  }
 }
 
 function setDiagnostics(diagnostics, locale) {
@@ -148,11 +165,11 @@ async function renderDynamicPreview() {
   setDiagnostics(validation.diagnostics, config.locale);
   setStatus(validation.passed ? 'ready' : 'diagnostics', validation.passed ? 'Generated document rendered in browser.' : 'Generated document rendered with diagnostics.');
   setMetrics([
-    `source ${(source.length / 1024).toFixed(1)} KiB`,
-    `dependencies ${dependencies.count}`,
-    `fetch ${(fetchedAt - startedAt).toFixed(1)} ms`,
-    `parse/render ${(renderedAt - fetchedAt).toFixed(1)} ms`,
-    `diagnostics ${validation.diagnostics.length}`
+    `${(source.length / 1024).toFixed(1)} KiB`,
+    `${dependencies.count} deps`,
+    `${(fetchedAt - startedAt).toFixed(1)} ms fetch`,
+    `${(renderedAt - fetchedAt).toFixed(1)} ms render`,
+    `${validation.diagnostics.length} diagnostics`
   ]);
 }
 
