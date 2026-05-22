@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.6.2 - 2026-05-22
+
+### Added
+
+- Added grammar-backed diagnostics for unknown and non-canonical structured
+  items in MarkVSpec documents.
+- Added release gates that verify generated grammar docs, reference docs, and
+  docs-site output before publishing.
+
+### Changed
+
+- Aligned parser and preview diagnostics with the canonical grammar definition
+  used by the generated reference docs.
+- Updated documentation and examples around current Action, validation,
+  scenario, and template authoring syntax.
+
+### Fixed
+
+- Warned on deprecated Action blocks and HTTP requests written under `server:`.
+- Reduced stale documentation paths that could suggest unsupported DSL forms.
+
 ## 0.4.1 - 2026-05-19
 
 ### Added

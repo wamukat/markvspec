@@ -5,7 +5,7 @@
 この文書は MarkVSpec をリリースする担当者向けのチェックリストです。通常利用者が
 MarkVSpec 設計書を書くための文書ではありません。
 
-このドキュメントは、MarkVSpec `0.6.1` リリースの確認手順を定義します。
+このドキュメントは、MarkVSpec `0.6.2` リリースの確認手順を定義します。
 対象は VS Code Marketplace 向けパッケージと、CLI package `@markvspec/cli` を含む
 `@markvspec` scope の npm packages です。
 
@@ -120,7 +120,7 @@ Kanbalone の運用では、実装後に独立したサブエージェントレ�
   以前の ID が既に公開済みの場合は、この package の公開前に deprecate、unpublish、
   または移行案内の方針を決めている。
 - [ ] package metadata と VSIX packaging script が、このリリース用の
-  `dist/markvspec-0.6.1.vsix` artifact を生成する。
+  `dist/markvspec-0.6.2.vsix` artifact を生成する。
 - [ ] `npm run package:vsix -w packages/vscode-extension` で期待する
   `dist/markvspec-<version>.vsix` artifact が作成される。
 - [ ] `npm run smoke:vscode-vsix` で、生成済み VSIX を clean な VS Code
@@ -163,14 +163,14 @@ Kanbalone の運用では、実装後に独立したサブエージェントレ�
 ### npm workspace package 依存方針
 
 registry に公開する MarkVSpec package 間の依存は、同じ release version の exact
-range で表す。`0.6.1` release では次の順で publish する。
+range で表す。`0.6.2` release では次の順で publish する。
 
 1. `@markvspec/core`
 2. `@markvspec/document-renderer`
 3. `@markvspec/exporter`
 4. `@markvspec/cli`
 
-公開する package manifest では `"@markvspec/core": "0.6.1"` のような exact range
+公開する package manifest では `"@markvspec/core": "0.6.2"` のような exact range
 を使う。npm 公開 package には `file:` dependency を残さない。`file:` は repository
 workspace 内でしか成立しないため。今回の release では `workspace:*` も使わない。
 pack 済み tarball が publish-time manifest 変換なしで registry install 可能な

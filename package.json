@@ -1,7 +1,7 @@
 {
   "name": "markvspec",
   "private": true,
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Markdown-first screen specification format with live preview tooling.",
   "license": "MIT",
   "type": "module",
@@ -19,7 +19,7 @@
     "check:grammar-docs": "npm run build -w @markvspec/core && node scripts/generate-grammar-docs.mjs --check",
     "check:reference-docs": "npm run build -w @markvspec/core && node scripts/generate-reference-docs.mjs --check",
     "check:generated-docs": "npm run check:grammar-docs && npm run check:reference-docs",
-    "check:docs-site": "npm run sync:docs-site && npm --prefix docs-site run build && npm run check:pages-site",
+    "check:docs-site": "npm run build:pages && npm run check:pages-site",
     "check:pages-site": "node scripts/check-pages-site.mjs",
     "audit:docs-code": "npm run build -w @markvspec/core && npm run build -w @markvspec/document-renderer && npm run build -w @markvspec/exporter && node scripts/audit-docs-code.mjs",
     "audit:docs-reference-vocabulary": "npm run build -w @markvspec/core && node scripts/audit-docs-reference-vocabulary.mjs",

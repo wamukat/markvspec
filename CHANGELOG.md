@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.6.2 - 2026-05-22
+
+### Added
+
+- Added a canonical grammar definition as the source of truth for recognized
+  sections and structured item keys.
+- Added generated grammar/reference documentation checks and release gates so
+  parser, diagnostics, docs, and docs-site output stay aligned.
+- Added diagnostics for unknown or non-canonical structured items, including
+  deprecated Action blocks and invalid HTTP request placement.
+- Added documentation audits for reference pages, links, code snippets, and
+  implementation vocabulary.
+
+### Changed
+
+- Moved structured item parser decisions to grammar definition queries across
+  Actions, Elements, Validations, Business Rules, View Context, Preview
+  Scenarios, History, and related sections.
+- Generated the grammar reference and major reference tables from the grammar
+  definition instead of maintaining duplicate hand-written tables.
+- Clarified the documentation source-of-truth policy and synced root docs with
+  docs-site content generation.
+- Limited composed template display to wireframe / State Views rendering paths.
+
+### Fixed
+
+- Warned when authored source text would otherwise be ignored by structured
+  sections.
+- Removed stale legacy syntax guidance from current docs and examples.
+- Tightened docs-site build generation so Starlight content is synchronized
+  during build.
+
 ## 0.6.1 - 2026-05-21
 
 ### Added

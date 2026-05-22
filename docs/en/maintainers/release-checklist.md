@@ -1,6 +1,6 @@
 # Release Checklist
 
-This document defines the verification gate for the MarkVSpec `0.6.1` release.
+This document defines the verification gate for the MarkVSpec `0.6.2` release.
 The release target is a VS Code Marketplace package plus npm packages under the
 `@markvspec` scope, including the CLI package `@markvspec/cli`.
 
@@ -117,7 +117,7 @@ with `isResolved: false`; the user verifies the result before resolving it.
   If any previous ID has already been published, the release owner has a
   deprecation, unpublish, or migration plan before publishing this package.
 - [ ] Package metadata and the VSIX packaging script produce a
-  `dist/markvspec-0.6.1.vsix` artifact for this release.
+  `dist/markvspec-0.6.2.vsix` artifact for this release.
 - [ ] `npm run package:vsix -w packages/vscode-extension` creates the expected
   `dist/markvspec-<version>.vsix` artifact.
 - [ ] `npm run smoke:vscode-vsix` installs the generated VSIX into a clean
@@ -162,14 +162,14 @@ with `isResolved: false`; the user verifies the result before resolving it.
 ### npm Workspace Package Dependency Policy
 
 Registry-published MarkVSpec packages use the same exact version for internal
-package dependencies. For the `0.6.1` release, publish packages in this order:
+package dependencies. For the `0.6.2` release, publish packages in this order:
 
 1. `@markvspec/core`
 2. `@markvspec/document-renderer`
 3. `@markvspec/exporter`
 4. `@markvspec/cli`
 
-Use exact ranges such as `"@markvspec/core": "0.6.1"` in published package
+Use exact ranges such as `"@markvspec/core": "0.6.2"` in published package
 manifests. Do not use `file:` dependencies in npm-published packages; they only
 work in the repository workspace. Do not use `workspace:*` for this release,
 because the packed tarball must already contain registry-installable dependency
