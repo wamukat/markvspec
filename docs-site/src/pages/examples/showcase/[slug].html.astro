@@ -35,9 +35,6 @@ const adjacentExamples = [
   ...adjacentByStage.filter((item) => !next.some((nextItem) => nextItem.slug === item.slug)),
 ];
 const pageNavItems = [
-  { href: '#learning-links', label: 'Learning links' },
-  related.length ? { href: '#related-docs', label: 'Related docs' } : null,
-  adjacentExamples.length ? { href: '#adjacent-examples', label: 'Adjacent examples' } : null,
   { href: '#source', label: 'Source' },
   { href: '#generated-preview', label: 'Generated preview' },
 ].filter(Boolean);
@@ -151,6 +148,9 @@ const metaPills = [
         border-color: var(--accent);
         color: #fff;
       }
+      .button-link:hover {
+        color: #fff;
+      }
       main {
         display: grid;
         gap: 18px;
@@ -237,24 +237,31 @@ const metaPills = [
         margin: 8px 0 0;
         max-width: 760px;
       }
+      .context-heading {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: .04em;
+        margin: 0 0 8px;
+        text-transform: uppercase;
+      }
       .meta-row {
         align-items: center;
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 12px;
+        gap: 6px;
       }
       .pill {
         align-items: center;
-        background: #fff;
-        border: 1px solid var(--line);
+        background: #f8fafc;
+        border: 1px solid var(--line-soft);
         border-radius: 999px;
         color: #334155;
         display: inline-flex;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 650;
         gap: 5px;
-        padding: 4px 9px;
+        padding: 3px 8px;
       }
       .page-jump-nav {
         align-items: center;
@@ -297,8 +304,8 @@ const metaPills = [
       .learning-panel {
         display: grid;
         gap: 14px;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        margin-bottom: 18px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        margin-top: 18px;
       }
       .learning-card {
         background: var(--paper);
@@ -320,6 +327,9 @@ const metaPills = [
       .learning-card li {
         color: var(--muted);
         font-size: 13px;
+      }
+      .learning-card .meta-row {
+        margin-top: 2px;
       }
       .pane {
         background: var(--paper);
@@ -396,8 +406,10 @@ const metaPills = [
       }
       @media (max-width: 1000px) {
         main { grid-template-columns: 1fr; }
+        .example-main { order: 1; }
         .example-sidebar {
           max-height: none;
+          order: 2;
           position: static;
         }
         .example-header {
@@ -415,6 +427,35 @@ const metaPills = [
         .preview-frame-wrap {
           height: auto;
           max-height: 680px;
+        }
+      }
+      @media (max-width: 640px) {
+        .site-header-inner {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .top-nav,
+        .example-actions {
+          justify-content: flex-start;
+          max-width: 100%;
+          width: 100%;
+        }
+        .example-actions .nav-link,
+        .example-actions .button-link {
+          justify-content: center;
+          white-space: normal;
+        }
+        .pane,
+        .source-wrap,
+        .preview-frame-wrap {
+          max-width: 100%;
+        }
+        pre {
+          min-width: 0;
+          width: max-content;
+        }
+        main {
+          padding: 16px 14px 32px;
         }
       }
     </style>
@@ -468,12 +509,9 @@ const metaPills = [
             <div class="breadcrumb">Examples / {example.relativeExamplePath}</div>
             <h1>{example.title}</h1>
             <p class="subtitle">{example.summary}</p>
-            <div class="meta-row" aria-label="Example metadata">
-              {metaPills.map((pill) => <span class="pill">{pill}</span>)}
-            </div>
           </div>
           <div class="example-actions">
-            <a class="nav-link" href={previewHref}>Open preview only</a>
+            <a class="button-link" href={previewHref}>Open preview only</a>
             <a class="nav-link" href={dynamicPreviewHref}>Dynamic preview</a>
             <a class="nav-link" href={`${githubBlobBaseUrl}${example.repoPath}`}>View on GitHub</a>
           </div>
@@ -483,27 +521,6 @@ const metaPills = [
           <strong>On this example</strong>
           {pageNavItems.map((item) => <a href={item.href}>{item.label}</a>)}
         </nav>
-
-        <section id="learning-links" class="learning-panel" aria-label="Learning links">
-          <article class="learning-card">
-            <h2>What this teaches</h2>
-            <ul>
-              {example.teaches.length ? example.teaches.map((item) => <li>{item}</li>) : <li>No catalog teaches metadata.</li>}
-            </ul>
-          </article>
-          <article id="related-docs" class="learning-card">
-            <h2>Related docs</h2>
-            <ul>
-              {related.length ? related.map((doc) => <li><a href={`${base}${doc.href}`}>{doc.label}</a></li>) : <li>No related docs.</li>}
-            </ul>
-          </article>
-          <article id="adjacent-examples" class="learning-card">
-            <h2>Adjacent examples</h2>
-            <ul>
-              {adjacentExamples.length ? adjacentExamples.map((item) => <li><a href={`${base}/examples/showcase/${item.slug}.html`}>{item.title}</a></li>) : <li>No adjacent example.</li>}
-            </ul>
-          </article>
-        </section>
 
         <section class="split" aria-label="Source and generated preview">
           <article id="source" class="pane" aria-label="VSpec source">
@@ -536,6 +553,33 @@ const metaPills = [
             <div class="preview-frame-wrap">
               <iframe src={previewHref} title={`${example.title} generated HTML preview`}></iframe>
             </div>
+          </article>
+        </section>
+
+        <section id="learning-links" class="learning-panel" aria-label="Learning links">
+          <article class="learning-card">
+            <p class="context-heading">Example details</p>
+            <div class="meta-row" aria-label="Example metadata">
+              {metaPills.map((pill) => <span class="pill">{pill}</span>)}
+            </div>
+          </article>
+          <article class="learning-card">
+            <h2>What this teaches</h2>
+            <ul>
+              {example.teaches.length ? example.teaches.map((item) => <li>{item}</li>) : <li>No catalog teaches metadata.</li>}
+            </ul>
+          </article>
+          <article id="related-docs" class="learning-card">
+            <h2>Related docs</h2>
+            <ul>
+              {related.length ? related.map((doc) => <li><a href={`${base}${doc.href}`}>{doc.label}</a></li>) : <li>No related docs.</li>}
+            </ul>
+          </article>
+          <article id="adjacent-examples" class="learning-card">
+            <h2>Adjacent examples</h2>
+            <ul>
+              {adjacentExamples.length ? adjacentExamples.map((item) => <li><a href={`${base}/examples/showcase/${item.slug}.html`}>{item.title}</a></li>) : <li>No adjacent example.</li>}
+            </ul>
           </article>
         </section>
       </div>
