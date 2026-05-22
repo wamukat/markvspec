@@ -12,6 +12,9 @@ const requiredFiles = [
   "favicon.svg",
   "assets/markvspec-icon.svg",
   "examples/index.html",
+  "examples/assets/markvspec-preview.css",
+  "examples/assets/markvspec-mermaid.js",
+  "examples/assets/markvspec-mermaid-runtime.js",
   "examples/generated/hello-screen.html",
   "examples/showcase/hello-screen.html/index.html",
   "pagefind/pagefind.js",
@@ -81,6 +84,13 @@ if (directExampleHtml.length > 0) {
 }
 if (generatedPdfArtifacts.length > 0) {
   failures.push(`_site/examples should not contain generated PDF artifacts: ${generatedPdfArtifacts.map((filePath) => toPosixPath(relative(siteDir, filePath))).join(", ")}`);
+}
+for (const fileName of generatedHtml) {
+  const html = readSiteFile(join("examples", "generated", fileName));
+  expectContains(html, '<link rel="stylesheet" href="../assets/markvspec-preview.css">', `_site/examples/generated/${fileName} should use the shared preview stylesheet.`);
+  expectContains(html, '<script src="../assets/markvspec-mermaid.js"></script>', `_site/examples/generated/${fileName} should use the shared Mermaid runtime asset.`);
+  expectContains(html, '<script src="../assets/markvspec-mermaid-runtime.js"></script>', `_site/examples/generated/${fileName} should use the shared Mermaid initializer asset.`);
+  expectNotContains(html, "function prepareBlock(block)", `_site/examples/generated/${fileName} should not inline the Mermaid initializer runtime.`);
 }
 
 const pagefindIndexDir = join(siteDir, "pagefind", "index");

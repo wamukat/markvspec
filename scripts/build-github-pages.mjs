@@ -10,6 +10,7 @@ const docsSiteDistDir = join(docsSiteDir, "dist");
 const publicExamplesDir = join(docsSiteDir, "public", "examples");
 const publicAssetsDir = join(docsSiteDir, "public", "assets");
 const generatedExamplesDir = join(publicExamplesDir, "generated");
+const exampleAssetsDir = join(publicExamplesDir, "assets");
 const examplesDir = join(root, "examples");
 const brandAssetsDir = join(root, "assets");
 
@@ -52,6 +53,10 @@ function prepareExampleArtifacts() {
   mkdirSync(generatedExamplesDir, { recursive: true });
 
   execFileSync("node", ["packages/cli/dist/index.js", "export", "html", "examples/**/*.vspec.md", "--out", generatedExamplesDir], {
+    stdio: "inherit",
+  });
+
+  execFileSync("node", ["scripts/lighten-docs-example-previews.mjs", generatedExamplesDir, exampleAssetsDir], {
     stdio: "inherit",
   });
 }
