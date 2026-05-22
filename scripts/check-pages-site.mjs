@@ -185,6 +185,8 @@ if (sourceArtifacts.length !== exampleSources.length) {
 
 const helloDynamicHtml = readSiteFile("examples/dynamic/hello-screen.html/index.html");
 expectContains(helloDynamicHtml, "Read-only Dynamic Preview", "_site/examples/dynamic/hello-screen.html should be the dynamic preview page.");
+expectContains(helloDynamicHtml, '<meta name="robots" content="noindex">', "_site/examples/dynamic/hello-screen.html should keep the compatibility route out of search indexing.");
+expectContains(helloDynamicHtml, '<link rel="canonical" href="/markvspec/examples/showcase/hello-screen.html">', "_site/examples/dynamic/hello-screen.html should canonicalize to the public showcase route.");
 expectContains(helloDynamicHtml, 'data-pagefind-ignore', "_site/examples/dynamic/hello-screen.html should keep runtime preview content out of Pagefind indexing.");
 expectContains(helloDynamicHtml, 'data-sidebar-toggle', "_site/examples/dynamic/hello-screen.html should expose a sidebar collapse toggle.");
 expectContains(helloDynamicHtml, 'aria-controls="example-sidebar-content"', "_site/examples/dynamic/hello-screen.html sidebar toggle should target the sidebar content.");
@@ -193,6 +195,8 @@ expectContains(helloDynamicHtml, 'id="dynamic-preview-config"', "_site/examples/
 expectContains(helloDynamicHtml, '"/markvspec/examples/source/01-basics/hello-screen.vspec.md"', "_site/examples/dynamic/hello-screen.html should fetch the public source asset.");
 expectContains(helloDynamicHtml, '"/markvspec/examples/generated/hello-screen.html"', "_site/examples/dynamic/hello-screen.html should keep the generated preview fallback.");
 expectContains(helloDynamicHtml, 'href="https://raw.githubusercontent.com/wamukat/markvspec/main/examples/01-basics/hello-screen.vspec.md"', "_site/examples/dynamic/hello-screen.html Source link should use the raw GitHub URL.");
+expectContains(helloDynamicHtml, 'href="/markvspec/examples/showcase/hello-screen.html"', "_site/examples/dynamic/hello-screen.html should provide a route back to the public showcase.");
+expectContains(helloDynamicHtml, ">Open showcase</a>", "_site/examples/dynamic/hello-screen.html should label the public route as the showcase.");
 const dynamicScriptPath = dynamicScriptArtifactPath(helloDynamicHtml, join(siteDir, "examples", "dynamic", "hello-screen.html", "index.html"));
 if (!dynamicScriptPath) {
   failures.push("_site/examples/dynamic/hello-screen.html should include the dynamic preview browser script.");
