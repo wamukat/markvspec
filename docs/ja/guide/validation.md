@@ -21,7 +21,7 @@ Business Rule は、入力形式そのものや単純なフィールド比較で
 
 入力自体に閉じる条件は `## Field Validations` に書きます。入力欄側には label、type、placeholder、min/max などの UI メタデータだけを置きます。
 
-```markdown markvspec-fragment
+```markdown markvspec-fragment section=screen
 ## Elements
 
 ### E-EmailInput Input

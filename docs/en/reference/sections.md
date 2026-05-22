@@ -4,7 +4,7 @@ Sections are top-level headings in the `.vspec.md` body. MarkVSpec uses the sect
 
 ## Syntax You Can Write
 
-```markdown
+```markdown markvspec-skip reason=requires-cross-section-context
 ## States
 
 - idle*
@@ -60,7 +60,7 @@ Recommended section order: `States, Layout:<viewport>/Slot:<name>, Slots, Elemen
 Write states as bullets under `## States`. Add `*` to exactly one state when you
 want to mark the initial state explicitly.
 
-```markdown
+```markdown markvspec-skip reason=requires-cross-section-context
 ## States
 
 - idle*
@@ -75,7 +75,7 @@ notes.
 
 Use `## Form Groups` when several inputs are validated or submitted together.
 
-```markdown
+```markdown markvspec-skip reason=requires-cross-section-context
 ## Form Groups
 
 ### F-LoginForm Login form
@@ -94,7 +94,7 @@ Use it for login, search, profile, and settings forms. See
 
 Use `## Events` for lifecycle events that are not clicked from an element.
 
-```markdown
+```markdown markvspec-skip reason=requires-cross-section-context
 ## Events
 
 - page.load: A-LoadPreferences
@@ -114,7 +114,7 @@ preview/export rendering. It includes scalar Element display values, Element
 `sample rows:`, Preview Scenario `samples:`, Preview Scenario `route:`, and
 `## View Context Samples`.
 
-```markdown
+```markdown markvspec-skip reason=requires-cross-section-context
 ## Preview Scenarios
 
 ### idle-validation-error
@@ -140,7 +140,7 @@ and [Display Effects](../../../examples/showcase/display-effects.html).
 Use `## Field Validations` for one input. Use `## Cross-field Validations` when
 the check depends on multiple inputs or a form group.
 
-```markdown
+```markdown markvspec-skip reason=requires-cross-section-context
 ## Field Validations
 
 ### V-EmailRules Email rules
@@ -169,7 +169,7 @@ and [Login Basic](../../../examples/showcase/login-basic.html).
 Use `## Slots` in a template to declare the slot. Use `## Slot: name` in a page
 or partial to provide content for that slot.
 
-```markdown
+```markdown markvspec-skip reason=requires-cross-section-context
 ## Slots
 
 ### content Main content
@@ -195,7 +195,7 @@ and [Responsive Slot Page](../../../examples/showcase/responsive-slot-page.html)
 Use `## Error Codes` when the same error needs a stable code, target, and
 display style.
 
-```markdown
+```markdown markvspec-skip reason=requires-cross-section-context
 ## Error Codes
 
 ### ER1:ERR-EMAIL-ALREADY-REGISTERED Email already registered
@@ -213,7 +213,7 @@ See [Form Submit Flow](../../../examples/showcase/form-submit-flow.html).
 Use `## History Fields` to define structured fields, then write release entries
 under `## History`.
 
-```markdown
+```markdown markvspec-skip reason=requires-cross-section-context
 ## History Fields
 
 - date
@@ -234,7 +234,7 @@ Use it for specification files that need review history. See
 
 ## Small Example
 
-```markdown
+```markdown markvspec-skip reason=requires-cross-section-context
 ## Elements
 
 ### E-Message Paragraph

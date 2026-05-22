@@ -4,7 +4,7 @@ Sections は `.vspec.md` の本文を分割する top-level heading です。Mar
 
 ## 書ける構文
 
-```markdown
+```markdown markvspec-skip reason=requires-cross-section-context
 ## States
 
 - idle*
@@ -60,7 +60,7 @@ Sections は `.vspec.md` の本文を分割する top-level heading です。Mar
 state は `## States` の下に bullet で書きます。初期状態を明示したい場合は、
 1つの state にだけ `*` を付けます。
 
-```markdown
+```markdown markvspec-skip reason=requires-cross-section-context
 ## States
 
 - idle*
@@ -74,7 +74,7 @@ action case、element の表示条件、preview note からは同じ state 名�
 
 複数 input をまとめて validation / submit する場合は `## Form Groups` を使います。
 
-```markdown
+```markdown markvspec-skip reason=requires-cross-section-context
 ## Form Groups
 
 ### F-LoginForm Login form
@@ -93,7 +93,7 @@ login、search、profile、settings form で使います。
 
 element click ではなく lifecycle から action を呼ぶ場合は `## Events` を使います。
 
-```markdown
+```markdown markvspec-skip reason=requires-cross-section-context
 ## Events
 
 - page.load: A-LoadPreferences
@@ -111,7 +111,7 @@ Preview Data は、MarkVSpec が preview/export に渡す表示用データ全�
 Element の scalar 表示値、Element の `sample rows:`、Preview Scenario の
 `samples:`、Preview Scenario の `route:`、`## View Context Samples` が含まれます。
 
-```markdown
+```markdown markvspec-skip reason=requires-cross-section-context
 ## Preview Scenarios
 
 ### idle-validation-error
@@ -137,7 +137,7 @@ parameter や hash fragment に使う Route Preview Data です。
 1つの input の制約は `## Field Validations`、複数 input または form group に
 またがる check は `## Cross-field Validations` に書きます。
 
-```markdown
+```markdown markvspec-skip reason=requires-cross-section-context
 ## Field Validations
 
 ### V-EmailRules Email rules
@@ -166,7 +166,7 @@ parameter や hash fragment に使う Route Preview Data です。
 template 側で slot を宣言する場合は `## Slots`、page / partial 側で slot content を
 渡す場合は `## Slot: name` を使います。
 
-```markdown
+```markdown markvspec-skip reason=requires-cross-section-context
 ## Slots
 
 ### content Main content
@@ -191,7 +191,7 @@ viewport ごとの slot content は `## Slot: name: viewport` と書きます。
 
 同じ error に stable code、表示先、表示形式を持たせたい場合は `## Error Codes` を使います。
 
-```markdown
+```markdown markvspec-skip reason=requires-cross-section-context
 ## Error Codes
 
 ### ER1:ERR-EMAIL-ALREADY-REGISTERED Email already registered
@@ -209,7 +209,7 @@ viewport ごとの slot content は `## Slot: name: viewport` と書きます。
 history entry の field を定義する場合は `## History Fields`、revision entry は
 `## History` に書きます。
 
-```markdown
+```markdown markvspec-skip reason=requires-cross-section-context
 ## History Fields
 
 - date
@@ -230,7 +230,7 @@ review history を仕様 file に残す場合に使います。
 
 ## 小さな例
 
-```markdown
+```markdown markvspec-skip reason=requires-cross-section-context
 ## Elements
 
 ### E-Message Paragraph

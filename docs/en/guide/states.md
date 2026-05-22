@@ -13,7 +13,7 @@ Use state names from the user's point of view, not implementation booleans. Pref
 This is only the `## States` section. In a full screen file, place it under the
 front matter and `# SCR-* ...` heading.
 
-```markdown markvspec-fragment
+```markdown markvspec-fragment section=screen
 ## States
 
 - idle*

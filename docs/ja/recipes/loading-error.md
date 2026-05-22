@@ -12,7 +12,7 @@
 
 以下は画面本文の例です。新規 `.vspec.md` では、先頭メタデータと `# SCR-* ...` の下に置きます。
 
-```markdown markvspec-fragment
+```markdown markvspec-fragment section=screen
 ## States
 
 - before-load+

@@ -44,13 +44,14 @@ Learning-oriented explanations live in [Guide](../guide/index.md). Reference is 
 
 ## Small Example
 
-```markdown
+```markdown markvspec
 ---
 id: SCR-HELLO
 type: screen
 title: Hello Screen
 route: /hello
 ---
+# SCR-HELLO Hello Screen
 
 ## States
 

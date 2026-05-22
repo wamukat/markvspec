@@ -24,7 +24,7 @@ Business Rules are for product decisions. They are not the place for basic input
 
 Rules that can be decided from one input belong in `## Field Validations`. Keep UI metadata such as label, type, placeholder, and min/max on the input element.
 
-```markdown markvspec-fragment
+```markdown markvspec-fragment section=screen
 ## Elements
 
 ### E-EmailInput Input

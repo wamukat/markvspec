@@ -4,7 +4,7 @@
 
 ## 書ける構文
 
-```markdown
+```markdown markvspec-skip reason=requires-action-definitions
 ## Elements
 
 ### E-Title Heading
@@ -32,7 +32,7 @@
 Element は `### E-* Name Type` で宣言します。preview に marker を出したい場合は
 `### marker:E-* Name Type` と書きます。
 
-```markdown
+```markdown markvspec-fragment section=screen
 ### E-HelpText Paragraph
 
 ### 3:E-HelpText Paragraph
@@ -152,7 +152,7 @@ preview が判断しづらくなります。
 
 ## 小さな例
 
-```markdown
+```markdown markvspec-fragment section=screen
 ## Elements
 
 ### E-ErrorMessage Paragraph
