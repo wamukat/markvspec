@@ -25,6 +25,7 @@
     "audit:docs-reference-vocabulary": "npm run build -w @markvspec/core && node scripts/audit-docs-reference-vocabulary.mjs",
     "audit:examples": "npm run build -w packages/vscode-extension && rm -rf packages/vscode-extension/dist-test && tsc -p packages/vscode-extension/tsconfig.test.json && node --loader ./packages/vscode-extension/test-vscode-loader.mjs --test packages/vscode-extension/dist-test/test/example-audit.test.js",
     "check:readme-release": "node scripts/check-readme-release-state.mjs",
+    "poc:browser-renderer": "node scripts/browser-renderer-poc.mjs",
     "check:print-regression": "bash scripts/markvspec-print-regression.sh",
     "check:release": "npm run check:generated-docs && npm test && npm run audit:examples && npm run audit:docs-code && npm run audit:docs-reference-vocabulary && npm run check:docs-links && npm run check:docs-site && npm run check:print-regression && npm run check:readme-release",
     "smoke:vscode-devhost": "bash scripts/markvspec-vscode-devhost-smoke.sh",
