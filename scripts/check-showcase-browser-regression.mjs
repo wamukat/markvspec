@@ -117,6 +117,19 @@ async function checkDynamicShowcase(slug, viewport) {
     if (result.horizontalOverflow) {
       failures.push(`${label}: page should not overflow horizontally at ${result.viewport.width}px.`);
     }
+    const maximizeResult = await page.evaluate(inspectPreviewMaximizeScript());
+    if (!maximizeResult.buttonExists) {
+      failures.push(`${label}: dynamic preview should expose a maximize button.`);
+    }
+    if (!maximizeResult.maximized) {
+      failures.push(`${label}: dynamic preview maximize button should expand the preview pane.`);
+    }
+    if (!maximizeResult.fillsViewport) {
+      failures.push(`${label}: maximized dynamic preview should fill the viewport.`);
+    }
+    if (!maximizeResult.restored) {
+      failures.push(`${label}: dynamic preview maximize button should restore the normal layout.`);
+    }
     const viewportLabel = result.viewport ? `${result.viewport.width}x${result.viewport.height}` : "unknown";
     checks.push(`${label}: status=${result.status || "missing"}, output=${result.outputTextLength ?? 0} chars, mermaid=${result.mermaidSvgCount ?? 0}/${result.mermaidSourceCount ?? 0}, viewport=${viewportLabel}`);
   } finally {
@@ -259,6 +272,36 @@ function inspectShowcaseScript() {
       return beforeIndex === -1 || afterIndex === -1 || beforeIndex < afterIndex;
     });
   }
+})()
+`;
+}
+
+function inspectPreviewMaximizeScript() {
+  return String.raw`
+(() => {
+  const pane = document.querySelector('#dynamic-preview');
+  const button = pane?.querySelector('[data-preview-maximize]');
+  if (!pane || !button) {
+    return { buttonExists: false, fillsViewport: false, maximized: false, restored: false };
+  }
+  button.click();
+  const maximizedRect = pane.getBoundingClientRect();
+  const maximized = pane.dataset.previewMaximized === 'true'
+    && document.body.dataset.previewMaximized === 'true'
+    && button.getAttribute('aria-pressed') === 'true';
+  const fillsViewport = maximizedRect.left <= 20
+    && maximizedRect.top <= 20
+    && maximizedRect.right >= window.innerWidth - 20
+    && maximizedRect.bottom >= window.innerHeight - 20;
+  button.click();
+  return {
+    buttonExists: true,
+    fillsViewport,
+    maximized,
+    restored: pane.dataset.previewMaximized === 'false'
+      && document.body.dataset.previewMaximized === 'false'
+      && button.getAttribute('aria-pressed') === 'false'
+  };
 })()
 `;
 }

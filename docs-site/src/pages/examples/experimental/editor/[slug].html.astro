@@ -199,6 +199,65 @@ const decisionRows = [
       }
       .pane-title strong { font-size: 13px; }
       .pane-title span { color: var(--editor-muted); font-size: 11px; }
+      .pane-tools {
+        align-items: center;
+        display: inline-flex;
+        gap: 10px;
+      }
+      .pane-icon-button {
+        align-items: center;
+        background: #fff;
+        border: 1px solid var(--editor-border);
+        border-radius: 6px;
+        color: #334155;
+        cursor: pointer;
+        display: inline-flex;
+        height: 30px;
+        justify-content: center;
+        padding: 0;
+        width: 30px;
+      }
+      .pane-icon-button:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+      }
+      .pane-icon-button svg {
+        height: 15px;
+        width: 15px;
+      }
+      .visually-hidden {
+        clip: rect(0 0 0 0);
+        border: 0;
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        white-space: nowrap;
+        width: 1px;
+      }
+      body[data-preview-maximized="true"] {
+        overflow: hidden;
+      }
+      [data-preview-maximizable][data-preview-maximized="true"] {
+        display: flex;
+        flex-direction: column;
+        inset: 16px;
+        position: fixed;
+        z-index: 50;
+      }
+      [data-preview-maximizable][data-preview-maximized="true"] .preview-output {
+        flex: 1;
+        height: auto;
+        max-height: none;
+        min-height: 0;
+      }
+      [data-preview-maximizable][data-preview-maximized="true"] .pane-icon-button svg:first-child {
+        display: none;
+      }
+      [data-preview-maximizable]:not([data-preview-maximized="true"]) .pane-icon-button svg:last-of-type {
+        display: none;
+      }
       textarea {
         background: var(--editor-code);
         border: 0;
@@ -342,11 +401,28 @@ const decisionRows = [
         </article>
 
         <div>
-          <article class="pane" aria-label="Live preview">
+          <article class="pane" aria-label="Live preview" data-preview-maximizable>
             <div class="pane-header">
               <div class="pane-title">
                 <strong>Live Preview</strong>
                 <span>Updates from the edited source</span>
+              </div>
+              <div class="pane-tools">
+                <button class="pane-icon-button" type="button" aria-label="Maximize preview" aria-pressed="false" title="Maximize preview" data-preview-maximize>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8 3H3v5" />
+                    <path d="M16 3h5v5" />
+                    <path d="M8 21H3v-5" />
+                    <path d="M16 21h5v-5" />
+                  </svg>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 14h6v6" />
+                    <path d="M20 10h-6V4" />
+                    <path d="m14 10 7-7" />
+                    <path d="m3 21 7-7" />
+                  </svg>
+                  <span class="visually-hidden">Maximize preview</span>
+                </button>
               </div>
             </div>
             <div class="preview-output" data-online-editor-preview></div>
@@ -389,6 +465,7 @@ const decisionRows = [
     <script id="online-live-editor-config" type="application/json" set:html={JSON.stringify(config)}></script>
     <script>
       import '../../../../lib/online-live-editor.js';
+      import '../../../../lib/preview-maximize.js';
     </script>
   </body>
 </html>

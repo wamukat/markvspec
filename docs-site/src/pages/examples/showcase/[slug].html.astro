@@ -415,6 +415,66 @@ const metaPills = [
       .runtime-metrics {
         display: none;
       }
+      .pane-tools {
+        align-items: center;
+        display: inline-flex;
+        gap: 10px;
+      }
+      .pane-icon-button {
+        align-items: center;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        color: #334155;
+        cursor: pointer;
+        display: inline-flex;
+        height: 30px;
+        justify-content: center;
+        padding: 0;
+        width: 30px;
+      }
+      .pane-icon-button:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+      }
+      .pane-icon-button svg {
+        height: 15px;
+        width: 15px;
+      }
+      .visually-hidden {
+        clip: rect(0 0 0 0);
+        border: 0;
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        white-space: nowrap;
+        width: 1px;
+      }
+      body[data-preview-maximized="true"] {
+        overflow: hidden;
+      }
+      [data-preview-maximizable][data-preview-maximized="true"] {
+        display: flex;
+        flex-direction: column;
+        inset: 16px;
+        position: fixed;
+        z-index: 50;
+      }
+      [data-preview-maximizable][data-preview-maximized="true"] .dynamic-preview-output,
+      [data-preview-maximizable][data-preview-maximized="true"] .fallback-frame-wrap {
+        flex: 1;
+        height: auto;
+        max-height: none;
+        min-height: 0;
+      }
+      [data-preview-maximizable][data-preview-maximized="true"] .pane-icon-button svg:first-child {
+        display: none;
+      }
+      [data-preview-maximizable]:not([data-preview-maximized="true"]) .pane-icon-button svg:last-of-type {
+        display: none;
+      }
       .source-wrap {
         background: var(--code-bg);
         color: var(--code-ink);
@@ -639,7 +699,7 @@ const metaPills = [
             </div>
           </article>
 
-          <article id="dynamic-preview" class="pane" aria-label="Dynamic preview">
+          <article id="dynamic-preview" class="pane" aria-label="Dynamic preview" data-preview-maximizable>
             <div class="pane-header">
               <div class="pane-title">
                 <strong>Dynamic Preview</strong>
@@ -647,6 +707,21 @@ const metaPills = [
               </div>
               <div class="pane-tools">
                 <span class="runtime-status" data-dynamic-preview-status data-status="loading">Loading</span>
+                <button class="pane-icon-button" type="button" aria-label="Maximize preview" aria-pressed="false" title="Maximize preview" data-preview-maximize>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8 3H3v5" />
+                    <path d="M16 3h5v5" />
+                    <path d="M8 21H3v-5" />
+                    <path d="M16 21h5v-5" />
+                  </svg>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 14h6v6" />
+                    <path d="M20 10h-6V4" />
+                    <path d="m14 10 7-7" />
+                    <path d="m3 21 7-7" />
+                  </svg>
+                  <span class="visually-hidden">Maximize preview</span>
+                </button>
               </div>
             </div>
             <p class="runtime-metrics" data-dynamic-preview-metrics>Runtime metrics are measured in the browser.</p>
@@ -687,6 +762,7 @@ const metaPills = [
     <script is:inline src={`${base}/examples/assets/markvspec-mermaid.js`}></script>
     <script is:inline src={`${base}/examples/assets/markvspec-mermaid-runtime.js`}></script>
     <script>import '../../../lib/dynamic-preview.js';</script>
+    <script>import '../../../lib/preview-maximize.js';</script>
     <script is:inline>
       (() => {
         const layout = document.querySelector('[data-example-layout]');
