@@ -328,6 +328,7 @@ function checkDynamicShowcaseCoverage() {
       checkDynamicDocumentSmoke({
         dynamicHtml: dynamicSmoke.html,
         filePath: showcasePath,
+        slug,
         validation: dynamicSmoke.validation,
       });
       dynamicDocumentsChecked += 1;
@@ -380,7 +381,7 @@ function smokeRenderDynamicConfig(config, filePath) {
   return { html, renderResult, validation };
 }
 
-function checkDynamicDocumentSmoke({ dynamicHtml, filePath, validation }) {
+function checkDynamicDocumentSmoke({ dynamicHtml, filePath, slug, validation }) {
   const dynamicFingerprint = semanticPreviewFingerprint(dynamicHtml);
 
   if (!dynamicFingerprint.hasWireframe) {
@@ -397,6 +398,44 @@ function checkDynamicDocumentSmoke({ dynamicHtml, filePath, validation }) {
   }
   if (!validation.passed && !dynamicFingerprint.sectionIds.has("diagnostics")) {
     failures.push(`${filePath} dynamic generated document expected a Diagnostics section when dynamic validation fails.`);
+  }
+  if (slug === "source-kind-metadata") {
+    checkSourceKindSampleSelection(dynamicHtml, filePath);
+  }
+}
+
+function checkSourceKindSampleSelection(html, filePath) {
+  const expectations = [
+    {
+      pattern: /data-mm-id="E-MemberId"[^>]*>M-200</u,
+      message: "route sample memberId should render in State Views"
+    },
+    {
+      pattern: /data-mm-id="E-DisplayName"[^>]*>Taylor Stone</u,
+      message: "element sample E-DisplayName should render in State Views"
+    },
+    {
+      pattern: /data-mm-id="E-EmailInput"[^>]*value="taylor@example\.com"/u,
+      message: "element sample E-EmailInput should render in State Views"
+    },
+    {
+      pattern: /data-mm-id="E-Subtotal"[^>]*>USD 240\.00</u,
+      message: "element sample E-Subtotal should render in State Views"
+    },
+    {
+      pattern: /<td>Team plan<\/td><td>USD 200\.00<\/td>/u,
+      message: "table sample row Team plan should render in State Views"
+    },
+    {
+      pattern: /<td>Support add-on<\/td><td>USD 40\.00<\/td>/u,
+      message: "table sample row Support add-on should render in State Views"
+    }
+  ];
+
+  for (const expectation of expectations) {
+    if (!expectation.pattern.test(html)) {
+      failures.push(`${filePath} source-kind-metadata sample selection regression: ${expectation.message}.`);
+    }
   }
 }
 
