@@ -32,7 +32,7 @@ In scope:
 - Preview display
 - Source reset
 - Source copy or download
-- Fallback to existing generated HTML previews
+- Runtime failure diagnostics with source/raw links
 
 Out of scope:
 
@@ -70,21 +70,18 @@ experimental route, feature flag, or non-public route.
 The final docs-site target is dynamic rendering first on
 `/examples/showcase/<slug>.html`. That URL remains the public and documented
 example route. It fetches the published `.vspec.md` source asset, resolves the
-example dependencies published by the same Pages build, and renders the preview
-with the browser-safe core API. If source fetch, dependency fetch, parse,
-validate, render, or JavaScript execution fails, the page falls back to the
-generated `/examples/generated/<slug>.html` artifact.
+example dependencies published by the same Pages build, and renders the
+generated design document with the browser-safe document renderer. If source
+fetch, dependency fetch, parse, validate, render, or JavaScript execution fails,
+the page shows diagnostics plus source/raw links instead of a pre-generated HTML
+fallback artifact.
 
 Route ownership is fixed as follows:
 
 - `/examples/showcase/<slug>.html`: public example page and normal docs/catalog
   route. JavaScript-enabled browsers should see dynamic rendering as the primary
-  preview. The source panel, related docs, adjacent examples, and generated
-  fallback status belong on this page.
-- `/examples/generated/<slug>.html`: generated fallback, export, print, and
-  regression artifact. It is published because fallback and CLI/export
-  comparison need a stable artifact, not because users should treat it as the
-  normal browsing route.
+  generated-document preview. The source panel, related docs, adjacent examples,
+  preview diagnostics, and runtime failure status belong on this page.
 - `/examples/dynamic/<slug>.html`: compatibility and runtime verification route.
   It may stay available while migration work is in progress, but it must be
   noindex or excluded from primary Pagefind/catalog navigation. If this route is
@@ -92,10 +89,10 @@ Route ownership is fixed as follows:
   than becoming a dead public URL.
 
 Indexing follows the same ownership. Showcase pages are the public searchable
-surface. Generated artifacts and dynamic compatibility pages are not primary
-Pagefind indexing targets, and docs/catalog links should not add new direct
-generated-preview navigation except when a maintainer workflow explicitly needs
-the fallback artifact.
+surface. Dynamic compatibility pages are not primary Pagefind indexing targets,
+and docs/catalog links should not add pre-generated preview navigation. CLI/exported
+HTML remains a separate explicit export workflow, not a docs-site browsing
+fallback.
 
 Representative dynamic-first verification examples are:
 
@@ -109,7 +106,7 @@ Representative dynamic-first verification examples are:
 
 Promotion to a production entry requires:
 
-- Existing generated HTML preview fallback when source fetch, parse, or render fails
+- Runtime failure UI when source fetch, parse, or render fails
 - Dependency manifest or equivalent published source map when an example needs
   template, partial, or project references
 - Core docs remain readable with JavaScript disabled
@@ -175,6 +172,6 @@ as public assets or providing an equivalent source endpoint.
 - #1383: defined `@markvspec/core/browser` as a public subpath and fixed the
   browser-safe API contract versus Node-only API boundary.
 - #1384: added read-only dynamic preview to docs-site examples and verified
-  source fetch plus generated HTML fallback.
+  source fetch plus runtime failure handling.
 - #1385: built the editable Online Live Editor PoC behind an experimental,
   feature-flagged, or non-public route.

@@ -31,7 +31,7 @@ MVP に含める。
 - preview の表示
 - source の reset
 - source の copy または download
-- 既存 generated HTML preview への fallback
+- runtime failure diagnostics と source/raw link の表示
 
 MVP に含めない。
 
@@ -65,27 +65,25 @@ dynamic rendering first にする。一方で、editable editor は本番 exampl
 最初は明示的な experimental route、feature flag、または非公開 route に限定する。
 
 docs-site の最終目標は、`/examples/showcase/<slug>.html` を dynamic rendering first
-にすることです。この URL は public な example route として維持する。showcase は公開済みの
+にすることである。この URL は public な example route として維持する。showcase は公開済みの
 `.vspec.md` source asset を fetch し、同じ Pages build で公開された dependency source を解決し、
-browser-safe core API で preview を描画する。source fetch、dependency fetch、parse、
-validate、render、JavaScript 実行のいずれかに失敗した場合は、同じ Pages build で生成した
-`/examples/generated/<slug>.html` artifact へ fallback する。
+browser-safe document renderer で generated design document を描画する。source fetch、dependency fetch、
+parse、validate、render、JavaScript 実行のいずれかに失敗した場合は、事前生成済み HTML fallback
+artifact へ戻さず、diagnostics と source/raw link を page 内に表示する。
 
 route の責務は次の通り固定する。
 
 - `/examples/showcase/<slug>.html`: public example page であり、docs/catalog の通常導線。
-  JavaScript 有効時は dynamic rendering を主 preview とする。source panel、related docs、
-  adjacent examples、generated fallback status はこの page に集約する。
-- `/examples/generated/<slug>.html`: generated fallback、export、print、regression artifact。
-  fallback と CLI/export 比較に安定 artifact が必要なため配布するが、通常閲覧 route とは扱わない。
+  JavaScript 有効時は dynamic rendering を主 generated-document preview とする。source panel、
+  related docs、adjacent examples、preview diagnostics、runtime failure status はこの page に集約する。
 - `/examples/dynamic/<slug>.html`: 互換および runtime 検証 route。移行期間中は残してよいが、
   noindex または Pagefind / catalog の主導線から除外する。将来削除する場合は dead URL にせず、
   対応する showcase URL へ redirect する。
 
 indexing も同じ責務境界に従う。検索対象として扱う public surface は showcase page である。
-generated artifact と dynamic 互換 page は Pagefind の主要 indexing 対象にしない。docs/catalog
-から generated preview へ直接開く通常導線は増やさない。fallback artifact を明示的に確認する
-maintainer workflow だけ例外とする。
+dynamic 互換 page は Pagefind の主要 indexing 対象にしない。docs/catalog から pre-generated preview へ
+直接開く通常導線は増やさない。CLI/exported HTML は docs-site browsing fallback ではなく、
+別の明示的な export workflow として扱う。
 
 dynamic-first の代表検証 example は次の通り。
 
@@ -99,7 +97,7 @@ dynamic-first の代表検証 example は次の通り。
 
 本番導線へ昇格する条件は次の通り。
 
-- source fetch 失敗時に既存 generated HTML preview へ戻れる
+- source fetch / parse / render 失敗時に runtime failure UI を表示できる
 - template、partial、project 参照を使う example では dependency manifest または同等の
   published source map がある
 - JavaScript 無効環境でも docs-site の主要情報が読める
@@ -159,6 +157,6 @@ release check に含める。
 - #1383: `@markvspec/core/browser` を正式な public subpath として定義し、browser-safe API
   の契約と Node-only API の境界を固定した。
 - #1384: docs-site examples で read-only dynamic preview を追加し、source fetch と
-  generated HTML fallback を検証した。
+  runtime failure handling を検証した。
 - #1385: editable Online Live Editor の PoC を、experimental / feature flag / 非公開 route
   のいずれかで作った。

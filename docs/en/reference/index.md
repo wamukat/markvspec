@@ -97,8 +97,10 @@ route: /hello
 ![Hello Screen source and rendered preview](../../assets/vscode-previews/hello-screen-vscode-preview.png)
 
 The public example links below open showcase pages. Showcase uses dynamic
-browser rendering as the primary preview when JavaScript is available. Generated
-HTML remains a fallback and export/regression artifact.
+browser rendering as the primary preview when JavaScript is available: the
+browser generates the design document from the published source. Runtime
+failures show diagnostics and source/raw links, not a pre-generated example HTML
+fallback.
 
 ## Related Pages
 

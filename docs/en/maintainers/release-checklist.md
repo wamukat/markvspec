@@ -57,8 +57,9 @@ change, in this order:
 6. Docs site: run `npm run check:docs-site`.
    This is also the static GitHub Pages deploy gate for dynamic-first showcase:
    it verifies `_site` dynamic runtime assets, public `.vspec.md` source assets,
-   dependency manifests, generated fallback artifacts, security boundary checks,
-   and dynamic/generated parity before Pages upload.
+   dependency manifests, absence of per-example generated HTML preview
+   artifacts, security boundary checks, and dynamic generated-document smoke
+   checks before Pages upload.
 7. Examples HTML export: run `npm run build -w @markvspec/cli`, then
    `node packages/cli/dist/index.js export html "examples/**/*.vspec.md" --out .work/release-html`
    and open representative HTML files in a browser.
@@ -70,7 +71,7 @@ change, in this order:
 10. For browser-runtime showcase changes, run `npm run check:showcase-browser`
     in an environment with Chrome/Chromium. The Pages deploy workflow does not
     run this browser regression; it is a release or browser-runtime acceptance
-    check for actual dynamic DOM rendering and forced generated fallback.
+    check for actual dynamic DOM rendering and forced runtime failure UI.
 
 `npm run check:release` is the aggregate gate for the release environment. This
 repository does not add `npm run verify` at this point because `check:release`
@@ -113,8 +114,9 @@ with `isResolved: false`; the user verifies the result before resolving it.
 - [ ] `npm run check:docs-site` passes.
 - [ ] The Pages deploy gate is covered by `npm run check:docs-site`: `_site`
   contains the dynamic runtime, public source assets, dependency manifests,
-  generated fallbacks, dynamic-first showcase config, security boundary checks,
-  and dynamic/generated parity checks.
+  dynamic-first showcase config, security boundary checks, dynamic
+  generated-document smoke checks, and no per-example generated HTML preview
+  artifacts.
 - [ ] For browser-runtime showcase changes, `npm run check:showcase-browser`
   passes, or the release notes explain why browser regression was skipped.
 - [ ] `node packages/cli/dist/index.js export html "examples/**/*.vspec.md" --out .work/release-html`

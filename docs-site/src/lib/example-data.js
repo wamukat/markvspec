@@ -38,7 +38,7 @@ export function getExamples() {
       kind: entry?.kind ?? metadata.type ?? 'screen',
       stage: entry?.stage ?? 'examples',
       stageLabel: stageLabel(entry?.stage ?? 'examples'),
-      summary: entry?.summary ?? 'Compare the MarkVSpec source with the generated preview.',
+      summary: entry?.summary ?? 'Compare the MarkVSpec source with the browser-generated design document.',
       teaches: entry?.teaches ?? [],
       learningPath: Boolean(entry?.learningPath),
       docs: entry?.docs ?? {},

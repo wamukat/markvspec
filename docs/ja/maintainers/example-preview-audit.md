@@ -2,12 +2,13 @@
 
 ## Docs-Site Showcase 方針
 
-public な example route は `/examples/showcase/<slug>.html` とする。showcase page は
-dynamic rendering first へ移行する。JavaScript 有効時は、公開済み `.vspec.md` source と
-dependency manifest から browser runtime で preview を描画する。generated
-`/examples/generated/<slug>.html` artifact は fallback、export、print、regression
-comparison のために維持するが、通常閲覧 route とは扱わない。`/examples/dynamic/<slug>.html`
-は互換および runtime 検証 route であり、catalog と Pagefind の主導線から除外する。
+public な example route は `/examples/showcase/<slug>.html` とする。JavaScript 有効時は、
+公開済み `.vspec.md` source と dependency manifest から browser runtime で generated design
+document を描画する。docs-site build は showcase fallback として per-example の
+`/examples/generated/<slug>.html` artifact を配布しない。runtime failure 時は、事前生成済み
+HTML preview を埋め込まず、page 内に diagnostics と source/raw link を表示する。
+`/examples/dynamic/<slug>.html` は互換および runtime 検証 route であり、catalog と Pagefind の
+主導線から除外する。
 
 docs-site examples または browser renderer を変更するチケットでは、次の代表 showcase page を
 確認する。
@@ -18,17 +19,17 @@ docs-site examples または browser renderer を変更するチケットでは�
 - `profile-page-with-template`
 - `responsive-profile`
 
-dynamic-first 関連の検証記録では、どの example が dynamic rendering で表示されたか、
-どの fallback path を強制または観測したか、build 済み `_site` artifact に source asset、
-dependency manifest、generated fallback、runtime bundle asset が揃っていたかを記録する。
+dynamic generated-document 関連の検証記録では、どの example が browser-side rendering で
+表示されたか、どの runtime failure path を強制または観測したか、build 済み `_site` artifact で
+source asset、dependency manifest、runtime bundle asset、no-generated-artifact check が通ったかを
+記録する。
 
-`npm run check:docs-site` は、全 catalog example について semantic parity check を実行する。
-browser dynamic output と generated HTML artifact を比較する際、script / style / runtime wrapper は
-正規化して比較対象外とし、dynamic wireframe、marker ID、marker category、generated key section、
-validation status、key rendered text を確認する。完全な HTML 一致や pixel equality は要求しない。
-既知差分は script の allowlist に理由と解除条件を添えて残す。現在の allowlist は
-`source-kind-metadata` だけで、generated State Views は Preview Scenario sample values を描画する一方、
-browser dynamic preview は baseline source values を描画するためである。
+`npm run check:docs-site` は、全 catalog example について dynamic generated-document smoke check を
+実行する。build 済み `_site` に per-example generated HTML preview artifact が存在しないことを確認したうえで、
+各 example を browser-safe document renderer で描画し、generated-document section、wireframe、
+marker ID、marker category、validation status、key rendered text、security boundary を確認する。
+`source-kind-metadata` では State Views の sample selection も直接検査し、Preview Scenario sample values が
+dynamic document に出ることを固定する。generated artifact parity allowlist は持たない。
 
 dynamic-first showcase 関連チケットの完了前には、browser regression を実行する。
 
@@ -40,20 +41,22 @@ npm run check:showcase-browser
 DevTools Protocol 経由で起動して代表 showcase page を desktop / mobile の両方で確認する。
 自動検査対象は `hello-screen`、`login-basic`、`history-and-errors`、
 `profile-page-with-template` とし、responsive 挙動に影響する変更では上記の broader な代表リストを
-手動 spot check に使う。browser-rendered preview DOM が空でないこと、source pane と preview pane が
-重ならないこと、公開 source fetch を abort したときに generated fallback が表示されることを検査する。
+手動 spot check に使う。browser-rendered document DOM が空でないこと、source pane と preview pane が
+重ならないこと、公開 source fetch を abort したときに runtime failure diagnostics と source/raw link が
+表示されることを検査する。
 この検査は local browser binary に依存するため、GitHub Pages deploy job には含めない。
 Chrome または Chromium が標準の場所にない場合は `CHROME_BIN` を指定する。Pages workflow は
 static artifact gate として、`_site` を build し、`npm run check:pages-site` で dynamic runtime asset、
-public source asset、dependency manifest、generated fallback、security boundary、dynamic/generated parity を
-確認してから upload する。実ブラウザ DOM と fallback path を確認する必要がある release または
+public source asset、dependency manifest、no-generated-artifact check、security boundary、
+dynamic generated-document smoke check を確認してから upload する。実ブラウザ DOM と runtime failure path を
+確認する必要がある release または
 browser-runtime acceptance では、`npm run check:showcase-browser` を実行する。
 
 ## Dynamic Preview Security Boundary
 
 showcase runtime は author-controlled な `.vspec.md` source と dependency source を
 fetch してよいが、`[data-dynamic-preview-output]` に挿入してよい HTML は
-`renderMarkVSpecHtml()` が返したものだけとする。status、diagnostics、metrics、fetch error は
+`renderBrowserDesignDocumentHtml()` が返したものだけとする。status、diagnostics、metrics、fetch error は
 `textContent` または DOM node で書き込む。fetch した source text、dependency text、
 diagnostic message、configuration value を直接 `innerHTML` に渡してはならない。
 
@@ -64,11 +67,9 @@ URL は、render 前に `javascript:`、`vbscript:`、`data:` scheme を拒否�
 inline HTML、Markdown link、display/message/content text、link URL、dependency-compatible source が、
 dynamic preview output 内で executable tag、event handler attribute、危険な `href`、iframe を生成しないことを確認する。
 
-generated fallback artifact は、controlled exporter が生成する same-origin HTML として iframe に残す。
-fallback / export / print / regression comparison のための artifact である。現時点では iframe sandbox は採用しない。
-generated artifact が controlled Mermaid runtime で図を描画するためであり、代わりに exporter は Mermaid を
-strict security で初期化し、dynamic path は escaped renderer output に依存する。任意 plugin、外部 renderer asset、
-user-provided runtime script を許可する前に、CSP または iframe sandbox を再検討する。
+showcase fallback として same-origin generated preview iframe を再導入してはならない。CLI/export HTML は
+docs-site showcase route とは別の明示的な export workflow として維持する。任意 plugin、外部 renderer asset、
+user-provided runtime script を許可する前に、CSP、iframe sandbox、runtime asset policy を再検討する。
 
 ## VS Code Preview Audit
 

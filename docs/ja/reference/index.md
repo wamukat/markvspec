@@ -97,8 +97,8 @@ route: /hello
 ![Hello Screen の source と描画 preview](../../assets/vscode-previews/hello-screen-vscode-preview.png)
 
 以下の public example link は showcase page を開きます。JavaScript が有効な場合、showcase は
-dynamic browser rendering を主 preview として使います。生成済み HTML は fallback と
-export / regression artifact として維持します。
+公開済み source から browser-generated design document を描画します。runtime failure 時は
+事前生成済み example HTML artifact へ fallback せず、diagnostics と source/raw link を表示します。
 
 ## 関連ページ
 

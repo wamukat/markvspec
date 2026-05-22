@@ -1,10 +1,11 @@
 # サンプル
 
 サンプルは、自分の `.vspec.md` に写して使う画面パターンとして読みます。
-サンプルカタログは、公開済み source と dynamic preview を並べて見る showcase page へ
-リンクします。生成済み HTML artifact は fallback、export、print、regression 用に残しますが、
-通常閲覧の主導線ではありません。実験中の Online Live Editor は showcase とは別物であり、
-ブラウザ上で編集できる PoC を明示的に試したい場合だけ使います。
+サンプルカタログは、公開済み source と browser-generated design document preview を
+並べて見る showcase page へリンクします。runtime failure 時は、事前生成済み example
+HTML artifact へ fallback せず、diagnostics と source/raw link を表示します。実験中の
+Online Live Editor は showcase とは別物であり、ブラウザ上で編集できる PoC を明示的に
+試したい場合だけ使います。
 
 - [サンプルカタログ](../../../examples/)
 - [Hello Screen サンプル](../../../examples/showcase/hello-screen.html)

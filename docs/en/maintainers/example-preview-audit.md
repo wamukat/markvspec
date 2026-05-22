@@ -2,13 +2,14 @@
 
 ## Docs-Site Showcase Direction
 
-The public example route is `/examples/showcase/<slug>.html`. The showcase page
-is moving to dynamic rendering first: JavaScript-enabled browsers should see a
-preview rendered from the published `.vspec.md` source and dependency manifest.
-The generated `/examples/generated/<slug>.html` artifact remains available for
-fallback, export, print, and regression comparison. It is not the normal browsing
-route. `/examples/dynamic/<slug>.html` is a compatibility and runtime
-verification route, excluded from primary catalog and Pagefind navigation.
+The public example route is `/examples/showcase/<slug>.html`. JavaScript-enabled
+browsers should see a generated design document rendered from the published
+`.vspec.md` source and dependency manifest. The docs-site build must not publish
+per-example `/examples/generated/<slug>.html` artifacts as showcase fallback.
+Runtime failures show diagnostics and source/raw links inside the page instead
+of embedding a pre-generated HTML preview. `/examples/dynamic/<slug>.html` is a
+compatibility and runtime verification route, excluded from primary catalog and
+Pagefind navigation.
 
 When a ticket changes docs-site examples or the browser renderer, verify these
 representative showcase pages:
@@ -19,20 +20,19 @@ representative showcase pages:
 - `profile-page-with-template`
 - `responsive-profile`
 
-For dynamic-first work, the verification record should state which examples used
-dynamic rendering, which fallback path was forced or observed, and whether source
-asset, dependency manifest, generated fallback, and runtime bundle assets were
-present in the built `_site` artifact.
+For dynamic generated-document work, the verification record should state which
+examples used browser-side rendering, which runtime failure path was forced or
+observed, and whether source assets, dependency manifests, runtime bundle
+assets, and no-generated-artifact checks passed in the built `_site` artifact.
 
-`npm run check:docs-site` includes a semantic parity check for every catalog
-example. It compares browser dynamic output with the generated HTML artifact by
-normalizing script/style/runtime wrappers away and checking the dynamic wireframe,
-marker IDs, marker categories, generated key sections, validation status, and
-key rendered text. It does not require full HTML or pixel equality. Known
-differences must stay in the script allowlist with a reason and a removal
-condition; the allowlist currently covers `source-kind-metadata` because the
-generated State Views render Preview Scenario sample values while the browser
-dynamic preview renders baseline source values.
+`npm run check:docs-site` includes a dynamic generated-document smoke check for
+every catalog example. It verifies that the built `_site` does not contain
+per-example generated HTML preview artifacts, then renders each example through
+the browser-safe document renderer and checks generated-document sections,
+wireframe presence, marker IDs, marker categories, validation status, key
+rendered text, and the security boundary. `source-kind-metadata` also has a
+direct State Views sample-selection check so Preview Scenario sample values stay
+visible in the dynamic document. There is no generated-artifact parity allowlist.
 
 Run the browser regression before completing dynamic-first showcase tickets:
 
@@ -45,23 +45,24 @@ Chrome/Chromium through the DevTools Protocol to verify the representative
 showcase pages on desktop and mobile. Its automated set is `hello-screen`,
 `login-basic`, `history-and-errors`, and `profile-page-with-template`; keep
 using the broader representative list above for manual spot checks when a
-change affects responsive behavior. It checks that browser-rendered preview DOM
+change affects responsive behavior. It checks that browser-rendered document DOM
 is non-empty, that source and preview panes do not overlap, and that aborting
-the published source fetch shows the generated fallback. This check is not part
-of the GitHub Pages deploy job because it requires a local browser binary; set
+the published source fetch shows runtime failure diagnostics plus source/raw
+links. This check is not part of the GitHub Pages deploy job because it requires
+a local browser binary; set
 `CHROME_BIN` when Chrome or Chromium is not in a standard location. The Pages
 workflow remains a static artifact gate: it builds `_site`, runs
 `npm run check:pages-site`, and uploads only after dynamic runtime assets,
-public source assets, dependency manifests, generated fallbacks, security
-boundary checks, and dynamic/generated parity checks pass. Run
+public source assets, dependency manifests, no-generated-artifact checks,
+security boundary checks, and dynamic generated-document smoke checks pass. Run
 `npm run check:showcase-browser` during release or browser-runtime acceptance
-when the actual browser DOM and fallback path need verification.
+when the actual browser DOM and runtime failure path need verification.
 
 ## Dynamic Preview Security Boundary
 
 The showcase runtime may fetch author-controlled `.vspec.md` source and
 dependency source, but it must only insert HTML returned by
-`renderMarkVSpecHtml()` into `[data-dynamic-preview-output]`. Status,
+`renderBrowserDesignDocumentHtml()` into `[data-dynamic-preview-output]`. Status,
 diagnostics, metrics, and fetch errors are written with `textContent` or DOM
 nodes. Do not pass fetched source text, dependency text, diagnostic messages, or
 configuration values directly to `innerHTML`.
@@ -75,13 +76,11 @@ links, display/message/content text, link URLs, and dependency-compatible source
 must not produce executable tags, event handler attributes, dangerous `href`
 values, or iframes in dynamic preview output.
 
-Generated fallback artifacts are same-origin HTML produced by the controlled
-exporter. They remain in an iframe for fallback/export/print/regression
-comparison. We do not sandbox that iframe yet because the generated artifact uses
-the controlled Mermaid runtime for diagrams; instead, the exporter initializes
-Mermaid with strict security and the dynamic path relies on escaped renderer
-output. Revisit CSP or iframe sandboxing before allowing arbitrary plugins,
-external renderer assets, or user-provided runtime scripts.
+Do not reintroduce same-origin generated preview iframes as showcase fallback.
+CLI/export HTML remains an explicit export workflow outside the docs-site
+showcase route. Revisit CSP, iframe sandboxing, and runtime asset policy before
+allowing arbitrary plugins, external renderer assets, or user-provided runtime
+scripts.
 
 ## VS Code Preview Audit
 

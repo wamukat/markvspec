@@ -355,15 +355,15 @@ catalog は次の出力に使います。
 
 ## Pages 生成方針
 
-現在の `scripts/build-github-pages.mjs` は、Starlight build の前に generated examples
-と brand assets を `docs-site/public/` へ用意し、`npm --prefix docs-site run build`
-を実行してから `docs-site/dist` を `_site` へコピーします。
+現在の `scripts/build-github-pages.mjs` は、Starlight build の前に source assets、
+dependency manifest、brand assets を `docs-site/public/` へ用意し、
+`npm --prefix docs-site run build` を実行してから `docs-site/dist` を `_site` へコピーします。
 
 現行の責務:
 
 - `examples/catalog.yml` を検証する。
-- `examples/**/*.vspec.md` から generated HTML artifact を作る。
-- generated examples と brand assets を `docs-site/public/` に配置する。
+- `examples/**/*.vspec.md` を public source asset として配置し、dependency manifest を作る。
+- browser-generated design document preview に必要な runtime assets と brand assets を `docs-site/public/` に配置する。
 - Starlight docs と Astro examples pages を `docs-site` として build する。
 - `docs-site/dist` を GitHub Pages upload 用の `_site` にコピーする。
 
@@ -371,7 +371,7 @@ catalog は次の出力に使います。
 
 - `_site` に Starlight docs、examples、assets、Pagefind artifact がある。
 - 生成後の `docs-site/src/content/docs/ja` と `docs-site/src/content/docs/en` の Markdown path が一致している。
-- examples index / showcase が catalog、generated preview、related docs を正しく参照している。
+- examples index / showcase が catalog、browser-generated design document preview、related docs を正しく参照している。
 - 主要な Start / Guide / Reference / Recipes / Examples / Concepts ページが出力されている。
 - `_site/docs` は生成されていない。
 

@@ -51,7 +51,7 @@
 | 11 | Element property の使い方が一貫しているか | 修正済み | `text` は read-only display copy、`label` は control/link 名、`value` は入力値や binding 名として使う方針を Reference に明記した。Heading は新規 source では `level` + `text` を使う。 |
 | 12 | Partial Update が semantic に説明されているか | 修正済み | canonical syntax は result case の `display` に `target` と `message` / `element` / `partial` のいずれかを書く形に統一した。`display.partial` 表現は examples README から除去した。 |
 | 13 | Guide / Reference / Recipes の役割分担が守られているか | 概ねOK | Guide は概念と最小例、Reference は構文、Recipes は目的別に分かれている。ただし一部 Guide の最小例が説明不足で、Reference に未掲載の構文へ飛ぶ。 |
-| 14 | Examples が利用者向けの学習順になっているか | 修正済み | `examples/README.md`、docs examples index、generated examples index を beginner / form-validation / loading-empty-error / partial-update / navigation-overlay / reuse-template などの利用者タスク分類へ整理した。 |
+| 14 | Examples が利用者向けの学習順になっているか | 修正済み | `examples/README.md`、docs examples index、examples showcase index を beginner / form-validation / loading-empty-error / partial-update / navigation-overlay / reuse-template などの利用者タスク分類へ整理した。 |
 | 15 | Screenshots がページの目的に合っているか | 概ねOK | Start、Guide、Reference に VS Code / preview screenshot が置かれている。最近差し替えた actions screenshot は source と preview の対応が取れている。今後は全 screenshot を「何を理解させる画像か」で継続監査する。 |
 | 16 | 日本語と英語で同じ情報を得られるか | 修正済み | 日本語 Recipes index を英語版と同等の構造へ拡充し、生成 showcase の related docs は English / Japanese の両方を明示する導線へ変更した。 |
 | 17 | ユーザー導線から maintainer / implementation detail が分離されているか | 要修正 | README と docs root に maintainer links がある。`docs/en/README.md` / `docs/ja/README.md` はユーザー入口として再設計し、maintainers は明示的な contributor path に隔離する。 |

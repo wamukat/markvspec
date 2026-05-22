@@ -26,8 +26,9 @@ MarkVSpec source is plain text. It works well with Git diff reviews, AI edits, a
 ## Examples
 
 These links open showcase pages. In a JavaScript-enabled browser, the preview is
-rendered dynamically from the published `.vspec.md` source. The generated HTML
-artifact remains available for fallback, export, print, and regression checks.
+rendered dynamically from the published `.vspec.md` source as the generated
+design document. Runtime failures show diagnostics and source/raw links instead
+of a pre-generated example HTML fallback.
 
 - [Hello Screen](../../../examples/showcase/hello-screen.html)
 - [Form Submit Flow](../../../examples/showcase/form-submit-flow.html)
