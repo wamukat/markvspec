@@ -99,6 +99,9 @@ async function checkDynamicShowcase(slug, viewport) {
     if (!result.previewStylesApplied) {
       failures.push(`${label}: dynamic preview should apply the generated preview stylesheet.`);
     }
+    if (!result.previewSurfaceBackgroundsApplied) {
+      failures.push(`${label}: generated document tables and wireframes should have opaque surface backgrounds.`);
+    }
     if ((result.mermaidSourceCount ?? 0) > 0 && (result.mermaidSvgCount ?? 0) < result.mermaidSourceCount) {
       failures.push(`${label}: dynamic preview should render Mermaid sources to SVG (${result.mermaidSvgCount ?? 0}/${result.mermaidSourceCount} rendered).`);
     }
@@ -179,8 +182,16 @@ function inspectShowcaseScript() {
   const previewAction = document.querySelector('#dynamic-preview .pane-tools a');
   const documentSectionHeading = output?.querySelector('.document .doc-section h2');
   const documentToc = output?.querySelector('.document .toc-inline');
+  const documentTable = output?.querySelector('.document .spec-table');
+  const documentTableWrap = output?.querySelector('.document .spec-table-wrap');
+  const documentWireframe = output?.querySelector('.document .wireframe-section .mm-wireframe');
+  const documentWireframeSection = output?.querySelector('.document .wireframe-section');
   const documentTocStyle = documentToc ? getComputedStyle(documentToc) : undefined;
   const documentSectionHeadingStyle = documentSectionHeading ? getComputedStyle(documentSectionHeading) : undefined;
+  const documentTableStyle = documentTable ? getComputedStyle(documentTable) : undefined;
+  const documentTableWrapStyle = documentTableWrap ? getComputedStyle(documentTableWrap) : undefined;
+  const documentWireframeStyle = documentWireframe ? getComputedStyle(documentWireframe) : undefined;
+  const documentWireframeSectionStyle = documentWireframeSection ? getComputedStyle(documentWireframeSection) : undefined;
   const mermaidSourceCount = output?.querySelectorAll('[data-mermaid-source]').length ?? 0;
   const mermaidSvgCount = output?.querySelectorAll('.mermaid-render svg').length ?? 0;
   const sectionOrder = Array.from(output?.querySelectorAll('.document > .doc-section') ?? []).map((section) => section.id || section.querySelector('h2')?.id || '');
@@ -205,6 +216,12 @@ function inspectShowcaseScript() {
         && documentSectionHeadingStyle
         && documentSectionHeadingStyle.borderBottomStyle !== 'none'
         && documentSectionHeadingStyle.borderBottomWidth !== '0px'
+    ),
+    previewSurfaceBackgroundsApplied: Boolean(
+      (!documentTableStyle || documentTableStyle.backgroundColor === 'rgb(255, 255, 255)')
+        && (!documentTableWrapStyle || documentTableWrapStyle.backgroundColor === 'rgb(255, 255, 255)')
+        && (!documentWireframeStyle || documentWireframeStyle.backgroundColor === 'rgb(255, 255, 255)')
+        && (!documentWireframeSectionStyle || documentWireframeSectionStyle.backgroundColor === 'rgb(255, 255, 255)')
     ),
     sectionOrder,
     sectionOrderValid: sectionOrderMatchesVsCodePreview(sectionOrder),

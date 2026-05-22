@@ -878,6 +878,9 @@ test("exports responsive design document sections for every viewport", () => {
     assert.match(html, /\.wireframe-print-section, \.action-detail, \.note-block, \.process-card \{ break-inside: avoid; page-break-inside: avoid; \}/);
     assert.match(html, /\.spec-table tr \{ break-inside: avoid; page-break-inside: avoid; \}/);
     assert.doesNotMatch(html, /\.spec-table-wrap, \.spec-table \{ break-inside: avoid; page-break-inside: avoid; \}/);
+    assert.match(html, /\.document \{ background: #fff; \}/);
+    assert.match(html, /\.spec-table-wrap \{ background: #fff; max-width: 100%; overflow: auto; \}/);
+    assert.match(html, /\.spec-table \{ background: #fff; border-collapse: collapse; font-size: 12px; width: 100%; \}/);
     assert.match(html, /\.spec-table \{ font-size: 8\.5pt; table-layout: auto; width: 100%; \}/);
     assert.match(html, /\.spec-table th,\s+\.spec-table td \{ box-sizing: border-box; overflow-wrap: break-word; padding: 4pt 5pt; word-break: normal; \}/);
     assert.match(html, /\.spec-table col\.spec-table-col-marker-id \{ width: 20%; \}/);
@@ -887,13 +890,15 @@ test("exports responsive design document sections for every viewport", () => {
     assert.match(html, /\.spec-table td > \.mm-ref-chip, \.spec-table td > \.mm-chip \{ display: flex; margin: 0 0 2pt; width: fit-content; \}/);
     assert.doesNotMatch(html, /\.state-screen-section:first-of-type/);
     assert.doesNotMatch(html, /@page markvspec-landscape/);
-    assert.match(html, /\.wireframe-section \{ max-width: 100%; overflow-x: auto; overflow-y: visible; padding-bottom: 4px; scrollbar-color: #9ca3af #f3f4f6; scrollbar-width: thin; \}/);
+    assert.match(html, /\.wireframe-print-section \{ background: #fff; \}/);
+    assert.match(html, /\.wireframe-section \{ background: #fff; max-width: 100%; overflow-x: auto; overflow-y: visible; padding-bottom: 4px; scrollbar-color: #9ca3af #f3f4f6; scrollbar-width: thin; \}/);
     assert.match(html, /\.wireframe-section::-webkit-scrollbar-thumb \{ background: #9ca3af; border: 2px solid #f3f4f6; border-radius: 999px; \}/);
     assert.match(html, /@media print \{[\s\S]*html,\s+body,\s+main,\s+\.content,\s+\.preview,\s+\.document,\s+\.spec-table-wrap,\s+\.wireframe-section,\s+\.mermaid-render,\s+\.mermaid-source,\s+\.note-content,\s+\.entity-notes pre,\s+\.entity-overview pre \{ overflow: visible !important; scrollbar-width: none !important; -ms-overflow-style: none !important; \}/);
     assert.match(html, /@media print \{[\s\S]*html::-webkit-scrollbar,\s+body::-webkit-scrollbar,\s+main::-webkit-scrollbar,\s+\.content::-webkit-scrollbar,\s+\.preview::-webkit-scrollbar,\s+\.document::-webkit-scrollbar,\s+\.spec-table-wrap::-webkit-scrollbar,\s+\.wireframe-section::-webkit-scrollbar,\s+\.mermaid-render::-webkit-scrollbar,\s+\.mermaid-source::-webkit-scrollbar,\s+\.note-content::-webkit-scrollbar,\s+\.entity-notes pre::-webkit-scrollbar,\s+\.entity-overview pre::-webkit-scrollbar \{ display: none !important; height: 0 !important; width: 0 !important; \}/);
     assert.match(html, /\.wireframe-print-section \{ box-sizing: border-box; max-width: 100%; width: 100%; \}/);
     assert.doesNotMatch(html, /page: markvspec-landscape/);
     assert.doesNotMatch(html, /max-width: 269mm/);
+    assert.match(html, /\.wireframe-section \.mm-wireframe \{ background: #fff; max-width: none; padding: 0; position: relative; \}/);
     assert.match(html, /\.wireframe-section \.mm-wireframe \{ border: 1px solid #d1d5db; box-shadow: none; box-sizing: border-box; max-width: 100% !important; min-width: 0 !important; outline: 0; width: 100% !important; \}/);
     assert.match(html, /\.state-screen-section\[data-viewport\] \.wireframe-section \.mm-wireframe:not\(\.mm-wireframe-empty\) \{ max-width: none !important; width: var\(--markvspec-viewport-width, 100%\) !important; zoom: var\(--markvspec-print-scale, 1\); \}/);
     assert.match(html, /\.wireframe-section \.mm-element-wrap-table \{ align-self: stretch !important; box-sizing: border-box !important; display: block !important; max-width: 100% !important; min-width: 0 !important; width: 100% !important; \}/);
