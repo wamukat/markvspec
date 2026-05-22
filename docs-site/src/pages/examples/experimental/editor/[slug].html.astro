@@ -1,7 +1,7 @@
 ---
 import {
   getExamples,
-  githubBlobBaseUrl,
+  githubRawBaseUrl,
 } from '../../../../lib/example-data.js';
 
 export function getStaticPaths() {
@@ -307,7 +307,7 @@ const decisionRows = [
         <nav class="top-nav" aria-label="Online editor navigation">
           <a class="nav-link" href={dynamicPreviewHref}>Read-only dynamic preview</a>
           <a class="nav-link" href={generatedPreviewHref}>Generated fallback</a>
-          <a class="nav-link" href={`${githubBlobBaseUrl}${example.repoPath}`}>Source</a>
+          <a class="nav-link" href={`${githubRawBaseUrl}${example.repoPath}`}>Source</a>
           <a class="nav-link" href={githubRepositoryUrl}>GitHub</a>
         </nav>
       </div>

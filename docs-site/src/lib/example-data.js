@@ -8,6 +8,7 @@ export const repoRoot = existsSync(join(cwd, 'examples', 'catalog.yml'))
   : resolve(cwd, '..');
 export const examplesDir = join(repoRoot, 'examples');
 export const githubBlobBaseUrl = 'https://github.com/wamukat/markvspec/blob/main/';
+export const githubRawBaseUrl = 'https://raw.githubusercontent.com/wamukat/markvspec/main/';
 
 export function getExamples() {
   const files = collectVspecFiles(examplesDir);

@@ -2,7 +2,7 @@
 import {
   getExamples,
   groupExamplesByStage,
-  githubBlobBaseUrl,
+  githubRawBaseUrl,
 } from '../../../lib/example-data.js';
 
 export function getStaticPaths() {
@@ -394,7 +394,7 @@ const metaPills = [
           <div class="example-actions">
             <a class="nav-link" href={showcaseHref}>Source and generated preview</a>
             <a class="nav-link" href={generatedPreviewHref}>Generated fallback</a>
-            <a class="nav-link" href={`${githubBlobBaseUrl}${example.repoPath}`}>Source</a>
+            <a class="nav-link" href={`${githubRawBaseUrl}${example.repoPath}`}>Source</a>
           </div>
         </section>
 

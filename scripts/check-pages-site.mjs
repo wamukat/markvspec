@@ -117,6 +117,8 @@ expectContains(helloShowcaseHtml, 'class="example-sidebar ', "_site/examples/sho
 expectContains(helloShowcaseHtml, 'aria-current="page"', "_site/examples/showcase/hello-screen.html sidebar should mark the current example.");
 expectContains(helloShowcaseHtml, '<iframe src="/markvspec/examples/generated/hello-screen.html"', "_site/examples/showcase/hello-screen.html should embed the generated preview artifact.");
 expectContains(helloShowcaseHtml, 'href="/markvspec/examples/dynamic/hello-screen.html"', "_site/examples/showcase/hello-screen.html should link to the dynamic preview route.");
+expectContains(helloShowcaseHtml, 'href="https://raw.githubusercontent.com/wamukat/markvspec/main/examples/01-basics/hello-screen.vspec.md"', "_site/examples/showcase/hello-screen.html Source link should use the raw GitHub URL.");
+expectContains(helloShowcaseHtml, 'href="https://github.com/wamukat/markvspec/blob/main/examples/01-basics/hello-screen.vspec.md"', "_site/examples/showcase/hello-screen.html should keep a normal GitHub view link.");
 expectNotContains(helloShowcaseHtml, 'href="/markvspec/examples/experimental/editor/hello-screen.html"', "_site/examples/showcase/hello-screen.html should not expose the experimental editor route.");
 expectNotContains(helloShowcaseHtml, 'href="/markvspec/examples/generated/hello-screen.pdf"', "_site/examples/showcase/hello-screen.html should not link generated PDF artifacts.");
 expectContains(helloShowcaseHtml, '<span class="line-no ', "_site/examples/showcase/hello-screen.html should show source line numbers.");
@@ -153,6 +155,7 @@ expectContains(helloDynamicHtml, 'data-pagefind-ignore', "_site/examples/dynamic
 expectContains(helloDynamicHtml, 'id="dynamic-preview-config"', "_site/examples/dynamic/hello-screen.html should expose runtime configuration.");
 expectContains(helloDynamicHtml, '"/markvspec/examples/source/01-basics/hello-screen.vspec.md"', "_site/examples/dynamic/hello-screen.html should fetch the public source asset.");
 expectContains(helloDynamicHtml, '"/markvspec/examples/generated/hello-screen.html"', "_site/examples/dynamic/hello-screen.html should keep the generated preview fallback.");
+expectContains(helloDynamicHtml, 'href="https://raw.githubusercontent.com/wamukat/markvspec/main/examples/01-basics/hello-screen.vspec.md"', "_site/examples/dynamic/hello-screen.html Source link should use the raw GitHub URL.");
 const dynamicScriptPath = dynamicScriptArtifactPath(helloDynamicHtml);
 if (!dynamicScriptPath) {
   failures.push("_site/examples/dynamic/hello-screen.html should include the dynamic preview browser script.");
@@ -172,6 +175,7 @@ expectContains(helloEditorHtml, 'data-online-editor-preview', "_site/examples/ex
 expectContains(helloEditorHtml, 'data-online-editor-diagnostics', "_site/examples/experimental/editor/hello-screen.html should include diagnostics.");
 expectContains(helloEditorHtml, 'Native textarea for this PoC', "_site/examples/experimental/editor/hello-screen.html should record the editor library decision.");
 expectContains(helloEditorHtml, '"/markvspec/examples/source/01-basics/hello-screen.vspec.md"', "_site/examples/experimental/editor/hello-screen.html should load the public source asset.");
+expectContains(helloEditorHtml, 'href="https://raw.githubusercontent.com/wamukat/markvspec/main/examples/01-basics/hello-screen.vspec.md"', "_site/examples/experimental/editor/hello-screen.html Source link should use the raw GitHub URL.");
 const editorScriptPath = editorScriptArtifactPath(helloEditorHtml);
 if (!editorScriptPath) {
   failures.push("_site/examples/experimental/editor/hello-screen.html should include the online live editor browser script.");

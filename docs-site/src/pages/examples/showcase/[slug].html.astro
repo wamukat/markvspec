@@ -3,6 +3,7 @@ import {
   getExamples,
   groupExamplesByStage,
   githubBlobBaseUrl,
+  githubRawBaseUrl,
   nextExamples,
   relatedDocs,
   sourceLines,
@@ -35,7 +36,7 @@ const adjacentExamples = [
   ...adjacentByStage.filter((item) => !next.some((nextItem) => nextItem.slug === item.slug)),
 ];
 const pageNavItems = [
-  { href: '#source', label: 'Source' },
+  { href: '#source', label: 'Source pane' },
   { href: '#generated-preview', label: 'Generated preview' },
 ].filter(Boolean);
 const metaPills = [
@@ -530,7 +531,7 @@ const metaPills = [
                 <span>Markdown source</span>
               </div>
               <div class="pane-tools">
-                <a class="small-link" href={`${githubBlobBaseUrl}${example.repoPath}`}>Source</a>
+                <a class="small-link" href={`${githubRawBaseUrl}${example.repoPath}`}>Source</a>
               </div>
             </div>
             <div class="source-wrap">
