@@ -247,7 +247,7 @@ Use it for specification files that need review history. See
 - Should the resend action be visible before 30 seconds?
 ```
 
-![Hello Screen sections and generated preview](../../assets/vscode-previews/hello-screen-sections-vscode-preview.png)
+![Hello Screen sections and rendered preview](../../assets/vscode-previews/hello-screen-sections-vscode-preview.png)
 
 ## Notes
 

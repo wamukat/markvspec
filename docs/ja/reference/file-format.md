@@ -104,7 +104,7 @@ route: /hello
 - text: Hello MarkVSpec
 ```
 
-![Hello Screen のファイル形式例と生成プレビュー](../../assets/vscode-previews/hello-screen-vscode-preview.png)
+![Hello Screen のファイル形式例と描画プレビュー](../../assets/vscode-previews/hello-screen-vscode-preview.png)
 
 ## 注意点
 

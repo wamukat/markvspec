@@ -50,6 +50,10 @@ MarkVSpec は、画面仕様を Markdown で書き、すぐプレビューで確
 
 ## 見て理解する
 
+以下のリンクは showcase page を開きます。JavaScript が有効なブラウザでは、公開済みの
+`.vspec.md` source から dynamic preview を描画します。生成済み HTML artifact は
+fallback、export、print、regression 用に残します。
+
 - [Hello Screen](../../../examples/showcase/hello-screen.html): 最小構成。
 - [Form Submit Flow](../../../examples/showcase/form-submit-flow.html): フォーム送信とエラー表示。
 - [Async Fetching](../../../examples/showcase/async-loading.html): 読み込み中 / 空表示 / エラー。

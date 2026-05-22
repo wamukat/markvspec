@@ -1,7 +1,11 @@
 # Examples
 
 Use examples as screen patterns you can copy into your own `.vspec.md` file.
-The generated catalog is the main place to browse source and preview together.
+The example catalog links to showcase pages where the published source and the
+dynamic preview are shown together. The generated HTML artifact still exists as
+a fallback, export, print, and regression target, but it is not the normal
+browsing route. The experimental Online Live Editor is separate from showcase:
+use it only when you explicitly want an editable browser PoC.
 
 - [Example catalog](../../../examples/)
 - [Hello Screen showcase](../../../examples/showcase/hello-screen.html)

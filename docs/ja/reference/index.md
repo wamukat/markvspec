@@ -94,7 +94,11 @@ route: /hello
   - state: idle
 ```
 
-![Hello Screen の source と生成 preview](../../assets/vscode-previews/hello-screen-vscode-preview.png)
+![Hello Screen の source と描画 preview](../../assets/vscode-previews/hello-screen-vscode-preview.png)
+
+以下の public example link は showcase page を開きます。JavaScript が有効な場合、showcase は
+dynamic browser rendering を主 preview として使います。生成済み HTML は fallback と
+export / regression artifact として維持します。
 
 ## 関連ページ
 

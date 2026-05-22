@@ -44,7 +44,7 @@ locale: en
 
 この例は、画面 ID とタイトルをメタデータとして持ち、`States`、`Layout`、`Elements` の 3 セクションだけでプレビュー可能な最小の画面を表します。最初はこのサイズで作り、プレビューが出ることを確認してからアクションやバリデーションを追加すると、問題の切り分けが簡単です。
 
-![Hello Screen のソースと生成プレビュー](../../assets/vscode-previews/hello-screen-vscode-preview.png)
+![Hello Screen のソースと描画プレビュー](../../assets/vscode-previews/hello-screen-vscode-preview.png)
 
 ## よくある書き方
 

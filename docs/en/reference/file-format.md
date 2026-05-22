@@ -104,7 +104,7 @@ route: /hello
 - text: Hello MarkVSpec
 ```
 
-![Hello Screen file format example and generated preview](../../assets/vscode-previews/hello-screen-vscode-preview.png)
+![Hello Screen file format example and rendered preview](../../assets/vscode-previews/hello-screen-vscode-preview.png)
 
 ## Notes
 

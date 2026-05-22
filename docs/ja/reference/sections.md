@@ -243,7 +243,7 @@ review history を仕様 file に残す場合に使います。
 - Should the resend action be visible before 30 seconds?
 ```
 
-![Hello Screen の section 構成と生成 preview](../../assets/vscode-previews/hello-screen-sections-vscode-preview.png)
+![Hello Screen の section 構成と描画 preview](../../assets/vscode-previews/hello-screen-sections-vscode-preview.png)
 
 ## 注意点
 

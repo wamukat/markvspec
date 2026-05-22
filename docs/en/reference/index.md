@@ -94,7 +94,11 @@ route: /hello
   - state: idle
 ```
 
-![Hello Screen source and generated preview](../../assets/vscode-previews/hello-screen-vscode-preview.png)
+![Hello Screen source and rendered preview](../../assets/vscode-previews/hello-screen-vscode-preview.png)
+
+The public example links below open showcase pages. Showcase uses dynamic
+browser rendering as the primary preview when JavaScript is available. Generated
+HTML remains a fallback and export/regression artifact.
 
 ## Related Pages
 
