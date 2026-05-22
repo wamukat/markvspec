@@ -93,6 +93,9 @@ async function checkDynamicShowcase(slug, viewport) {
     if (!result.hasGeneratedDocumentSections) {
       failures.push(`${label}: dynamic preview should contain generated design document sections.`);
     }
+    if (!result.sectionOrderValid) {
+      failures.push(`${label}: dynamic preview section order should match VS Code preview order (${(result.sectionOrder ?? []).join(" > ")}).`);
+    }
     if (!result.previewStylesApplied) {
       failures.push(`${label}: dynamic preview should apply the generated preview stylesheet.`);
     }
@@ -180,6 +183,7 @@ function inspectShowcaseScript() {
   const documentSectionHeadingStyle = documentSectionHeading ? getComputedStyle(documentSectionHeading) : undefined;
   const mermaidSourceCount = output?.querySelectorAll('[data-mermaid-source]').length ?? 0;
   const mermaidSvgCount = output?.querySelectorAll('.mermaid-render svg').length ?? 0;
+  const sectionOrder = Array.from(output?.querySelectorAll('.document > .doc-section') ?? []).map((section) => section.id || section.querySelector('h2')?.id || '');
   return {
     fallbackHidden: fallback ? fallback.hidden : true,
     fallbackIframe: Boolean(fallback?.querySelector('iframe')),
@@ -202,6 +206,8 @@ function inspectShowcaseScript() {
         && documentSectionHeadingStyle.borderBottomStyle !== 'none'
         && documentSectionHeadingStyle.borderBottomWidth !== '0px'
     ),
+    sectionOrder,
+    sectionOrderValid: sectionOrderMatchesVsCodePreview(sectionOrder),
     sourcePreviewOverlap: overlaps(rect('#source'), rect('#dynamic-preview')),
     status: status?.dataset.status ?? '',
     statusActionOverlap: overlaps(rect('[data-dynamic-preview-status]'), previewAction ? previewAction.getBoundingClientRect() : undefined),
@@ -211,6 +217,30 @@ function inspectShowcaseScript() {
       width: window.innerWidth
     }
   };
+
+  function sectionOrderMatchesVsCodePreview(order) {
+    const expectations = [
+      ['screen', 'history'],
+      ['history', 'states'],
+      ['screen', 'states'],
+      ['states', 'state-flow'],
+      ['state-flow', 'state-views'],
+      ['state-views', 'action-details'],
+      ['state-views', 'form-groups'],
+      ['action-details', 'form-groups'],
+      ['form-groups', 'validations'],
+      ['validations', 'business-rules'],
+      ['business-rules', 'error-codes'],
+      ['error-codes', 'notes'],
+      ['notes', 'state-transition-table'],
+      ['state-views', 'state-transition-table']
+    ];
+    return expectations.every(([before, after]) => {
+      const beforeIndex = order.indexOf(before);
+      const afterIndex = order.indexOf(after);
+      return beforeIndex === -1 || afterIndex === -1 || beforeIndex < afterIndex;
+    });
+  }
 })()
 `;
 }

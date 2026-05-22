@@ -176,22 +176,26 @@ export function renderStaticDesignDocumentHtml(result: MarkVSpecParseResult, opt
   const sections: StaticDocumentSection[] = [
     { id: "screen", label: documentOverviewLabel(documentResult, messages), html: renderDocumentOverviewSection(documentResult, messages) },
     { id: "history", label: messages.history, html: renderHistorySection(documentResult, messages) },
-    { id: "form-groups", label: messages.formGroups, html: renderStaticFormGroupsSection(documentResult, messages) },
+    { id: "states", label: messages.states, html: renderStaticStatesSection(documentResult, messages) },
     { id: "state-flow", label: messages.stateFlow, html: renderStaticStateFlowSection(documentResult, messages) },
-    { id: "state-transition-table", label: messages.actionTransitions, html: renderStaticActionTransitionsSection(documentResult, messages) },
+    { id: "view-contexts", label: messages.viewContexts, html: renderStaticViewContextsSection(documentResult, messages) },
+    { id: "view-context-samples", label: messages.viewContextSamples, html: renderStaticViewContextSamplesSection(documentResult, messages) },
+    { id: "state-views", label: messages.stateViews, html: renderStaticStateViewsSection(result, messages, staticStateViewRenderingSupport) },
     { id: "action-details", label: messages.actionDetails, html: renderStaticActionDetailsSection(documentResult, messages) },
+    { id: "form-groups", label: messages.formGroups, html: renderStaticFormGroupsSection(documentResult, messages) },
     { id: "validations", label: messages.validation, html: renderStaticValidationsSection(documentResult, messages) },
     { id: "business-rules", label: messages.businessRules, html: renderStaticBusinessRulesSection(documentResult, messages) },
     { id: "error-codes", label: messages.errorCodes, html: renderStaticErrorCodesSection(documentResult, messages) },
     { id: "notes", label: messages.notes, html: renderStaticNotesSection(documentResult, messages) },
-    { id: "view-contexts", label: messages.viewContexts, html: renderStaticViewContextsSection(documentResult, messages) },
-    { id: "view-context-samples", label: messages.viewContextSamples, html: renderStaticViewContextSamplesSection(documentResult, messages) },
-    { id: "state-views", label: messages.stateViews, html: renderStaticStateViewsSection(result, messages, staticStateViewRenderingSupport) }
+    { id: "state-transition-table", label: messages.actionTransitions, html: renderStaticActionTransitionsSection(documentResult, messages) }
   ];
+  const screenSections = sections.slice(0, 2);
+  const detailSections = sections.slice(2);
 
   return renderDesignDocumentSections([
+    ...screenSections.map((section) => section.html),
     renderStaticTableOfContents(sections, messages),
-    ...sections.map((section) => section.html)
+    ...detailSections.map((section) => section.html)
   ]);
 }
 
@@ -251,6 +255,25 @@ function renderSectionProse(result: MarkVSpecParseResult, kind: string): { overv
     overview: renderStaticEntityOverview(result, sectionProse.flatMap((candidate) => candidate.overview)),
     notes: renderStaticEntityNotes(result, sectionProse.flatMap((candidate) => candidate.notes))
   };
+}
+
+function renderStaticStatesSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
+  const prose = renderSectionProse(result, "States");
+  if (result.states.length === 0 && !prose.overview && !prose.notes) {
+    return "";
+  }
+  const table = result.states.length > 0
+    ? renderTable(
+      [messages.state, messages.initial, messages.description],
+      result.states.map((state) => [
+        renderStaticStateLabel(state.name),
+        state.initial ? escapeHtml(messages.requiredYes) : "-",
+        escapeHtml(state.message ?? "")
+      ]),
+      messages.none
+    )
+    : `<p class="spec-empty">${escapeHtml(messages.none)}</p>`;
+  return `<section class="doc-section states-section"><h2 id="states">${escapeHtml(messages.states)}</h2>${prose.overview}${table}${prose.notes}</section>`;
 }
 
 function renderStaticFormGroupsSection(result: MarkVSpecParseResult, messages: RendererMessages): string {

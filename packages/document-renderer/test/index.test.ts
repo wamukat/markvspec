@@ -24,6 +24,16 @@ function iconPattern(name: string): RegExp {
   return new RegExp(`<svg class="mm-icon mm-icon-${name}" aria-hidden="true" viewBox="0 0 24 24">[\\s\\S]*?</svg>`);
 }
 
+function assertOrder(value: string, parts: readonly string[]): void {
+  let previous = -1;
+  for (const part of parts) {
+    const current = value.indexOf(part, previous + 1);
+    assert.notEqual(current, -1, `missing ordered part: ${part}`);
+    assert.ok(current > previous, `expected ${part} to appear after the previous part`);
+    previous = current;
+  }
+}
+
 test("resolves shared viewport canvas widths and print scale", () => {
   assert.equal(viewportCanvasWidth("mobile"), "390px");
   assert.equal(viewportCanvasWidth("tablet"), "768px");
@@ -255,8 +265,16 @@ Initial \`static\` release.
   assert.match(html, /<div class="toc-title">Contents<\/div>/);
   assert.match(html, /<a href="#screen">Screen<\/a>/);
   assert.match(html, /<a href="#history">History<\/a>/);
+  assert.match(html, /<a href="#states">States<\/a>/);
   assert.match(html, /<a href="#state-views">State Views<\/a>/);
   assert.doesNotMatch(html, /<a href="#action-details">Action Details<\/a>/);
+  assertOrder(html, [
+    `<section class="doc-section screen-spec-section"><h2 id="screen">Screen</h2>`,
+    `<section class="doc-section history-section"><h2 id="history">History</h2>`,
+    `<nav class="toc-inline" aria-label="Contents">`,
+    `<section class="doc-section states-section"><h2 id="states">States</h2>`,
+    `<section class="doc-section state-views-section">`
+  ]);
   assert.match(html, /<section class="doc-section screen-spec-section"><h2 id="screen">Screen<\/h2>/);
   assert.match(html, /<div class="screen-description"><p>Static screen overview\.<\/p><\/div>/);
   assert.match(html, /<th>Field<\/th><th>Value<\/th>/);
@@ -269,6 +287,9 @@ Initial \`static\` release.
   assert.match(html, /<td>ver 1\.0<\/td><td>2026-05-13<\/td><td>Alice<\/td><td>-<\/td><td>-<\/td><td>MM-1<\/td>/);
   assert.match(html, /Initial <span class="mm-inline-token">static<\/span> release\./);
   assert.match(html, /<li>Added export history\.<\/li>/);
+  assert.match(html, /<section class="doc-section states-section"><h2 id="states">States<\/h2>/);
+  assert.match(html, /<th>State<\/th><th>initial<\/th><th>Description<\/th>/);
+  assert.match(html, /<td><code class="mm-doc-label mm-doc-label-state">idle<\/code><\/td><td>yes<\/td><td>-<\/td>/);
   assert.match(html, /<section class="doc-section state-views-section">\s*<h2 id="state-views">State Views<\/h2>/);
   assert.match(html, /<section class="state-viewport-section" data-viewport="mobile">\s*<h3>Viewport mobile <span class="state-badge">Default<\/span><\/h3>/);
   assert.match(html, /<section class="doc-section state-screen-section"(?=[^>]*\bdata-state="idle")(?=[^>]*\bdata-viewport="mobile")(?=[^>]*\bstyle="--markvspec-viewport-width:390px;--markvspec-print-scale:1")/);
@@ -312,7 +333,14 @@ title: Browser Document
   assert.match(html, /<article class="document">/);
   assert.match(html, /<nav class="toc-inline" aria-label="Contents">/);
   assert.match(html, /<a href="#screen">Screen<\/a>/);
+  assert.match(html, /<a href="#states">States<\/a>/);
   assert.match(html, /<a href="#state-views">State Views<\/a>/);
+  assertOrder(html, [
+    `<section class="doc-section screen-spec-section"><h2 id="screen">Screen</h2>`,
+    `<nav class="toc-inline" aria-label="Contents">`,
+    `<section class="doc-section states-section"><h2 id="states">States</h2>`,
+    `<section class="doc-section state-views-section">`
+  ]);
   assert.match(html, /<section class="doc-section screen-spec-section"><h2 id="screen">Screen<\/h2>/);
   assert.match(html, /<section class="doc-section state-views-section">/);
   assert.match(html, /class="mm-wireframe"/);
