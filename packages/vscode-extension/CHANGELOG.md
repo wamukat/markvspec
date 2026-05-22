@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.6.3 - 2026-05-22
+
+### Added
+
+- Added browser-rendered dynamic example previews and an experimental online
+  live editor proof of concept.
+- Added preview maximize controls for example preview panes.
+
+### Changed
+
+- Made example showcase pages dynamic-first and stopped publishing generated
+  example HTML pages as normal site artifacts.
+- Improved generated document preview ordering, table of contents display,
+  history documentation, and source-link behavior.
+
+### Fixed
+
+- Fixed dynamic preview CSS, Mermaid rendering, table and wireframe surface
+  backgrounds, and Pages parity checks.
+
 ## 0.6.2 - 2026-05-22
 
 ### Added

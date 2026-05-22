@@ -1,6 +1,6 @@
 {
   "name": "@markvspec/exporter",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -20,8 +20,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@markvspec/core": "0.6.2",
-    "@markvspec/document-renderer": "0.6.2",
+    "@markvspec/core": "0.6.3",
+    "@markvspec/document-renderer": "0.6.3",
     "mermaid": "^11.14.0"
   }
 }

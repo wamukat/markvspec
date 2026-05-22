@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@markvspec/core": "0.6.2",
-    "@markvspec/document-renderer": "0.6.2"
+    "@markvspec/core": "0.6.3",
+    "@markvspec/document-renderer": "0.6.3"
   },
   "scripts": {
     "predev": "node ../scripts/sync-docs-site-content.mjs",
@@ -17,5 +17,6 @@
   "devDependencies": {
     "@astrojs/starlight": "^0.39.2",
     "astro": "^6.3.6"
-  }
+  },
+  "version": "0.6.3"
 }
