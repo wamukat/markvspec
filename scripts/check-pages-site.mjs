@@ -1,6 +1,12 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { dirname, extname, join, relative } from "node:path";
+import { basename, dirname, extname, join, relative } from "node:path";
 import { gzipSync } from "node:zlib";
+import {
+  composeMarkVSpecTemplate,
+  evaluateMarkVSpecDiagnostics,
+  parseMarkVSpec,
+  renderMarkVSpecHtml,
+} from "@markvspec/core/browser";
 import { loadExampleCatalog, validateExampleCatalog } from "./example-catalog.mjs";
 
 const root = process.cwd();
@@ -201,6 +207,12 @@ const templateDynamicHtml = readSiteFile("examples/dynamic/profile-page-with-tem
 expectContains(templateDynamicHtml, '"/markvspec/examples/source/05-reuse/template-shell.vspec.md"', "_site/examples/dynamic/profile-page-with-template.html should publish the template dependency source.");
 expectContains(templateDynamicHtml, '"/markvspec/examples/source/05-reuse/profile-summary.partial.vspec.md"', "_site/examples/dynamic/profile-page-with-template.html should publish the partial dependency source.");
 
+const dynamicCoverage = checkDynamicShowcaseCoverage();
+const dynamicRuntimeSource = readFileSync(join(root, "docs-site", "src", "lib", "dynamic-preview.js"), "utf8");
+expectContains(dynamicRuntimeSource, "renderDynamicPreview().catch((error) => {", "dynamic preview runtime should catch render failures.");
+expectContains(dynamicRuntimeSource, "showFallback();", "dynamic preview runtime should show generated fallback on render failures.");
+expectContains(dynamicRuntimeSource, "Using generated preview fallback:", "dynamic preview runtime should report fallback reason without breaking the page.");
+
 const helloEditorHtml = readSiteFile("examples/experimental/editor/hello-screen.html/index.html");
 expectContains(helloEditorHtml, "Online Live Editor PoC", "_site/examples/experimental/editor/hello-screen.html should be the editor PoC page.");
 expectContains(helloEditorHtml, 'data-pagefind-ignore', "_site/examples/experimental/editor/hello-screen.html should keep the editor PoC out of Pagefind indexing.");
@@ -254,7 +266,7 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log(`Pages site check passed (${generatedHtml.length} generated example pages, ${showcaseFiles.length} showcase pages).`);
+console.log(`Pages site check passed (${generatedHtml.length} generated example pages, ${showcaseFiles.length} showcase pages, ${dynamicCoverage.rendered} dynamic smoke renders).`);
 
 function expectFile(filePath, message = `Missing _site artifact: ${filePath}`) {
   if (!existsSync(join(siteDir, filePath))) {
@@ -281,6 +293,123 @@ function expectNotContains(value, expected, message) {
   if (value.includes(expected)) {
     failures.push(message);
   }
+}
+
+function checkDynamicShowcaseCoverage() {
+  let rendered = 0;
+  const seenSlugs = new Set();
+  for (const entry of catalog.examples) {
+    const slug = basename(entry.path, ".vspec.md");
+    seenSlugs.add(slug);
+    const showcasePath = `examples/showcase/${slug}.html/index.html`;
+    const dynamicPath = `examples/dynamic/${slug}.html/index.html`;
+    const generatedPath = `examples/generated/${slug}.html`;
+    expectFile(showcasePath);
+    expectFile(dynamicPath);
+    expectFile(generatedPath);
+
+    const showcaseHtml = readSiteFile(showcasePath);
+    expectContains(showcaseHtml, 'data-dynamic-preview-output', `${showcasePath} should include the dynamic preview output container.`);
+    expectContains(showcaseHtml, 'data-dynamic-preview-fallback', `${showcasePath} should include the generated preview fallback container.`);
+    expectContains(showcaseHtml, `<iframe src="/markvspec/${generatedPath}"`, `${showcasePath} should embed the generated fallback artifact.`);
+    const config = dynamicPreviewConfig(showcaseHtml, showcasePath);
+    if (!config) {
+      continue;
+    }
+    if (config.dynamicPreviewEnabled !== true) {
+      failures.push(`${showcasePath} should enable dynamic preview instead of staying on fallback.`);
+    }
+    smokeRenderDynamicConfig(config, showcasePath);
+    rendered += 1;
+  }
+
+  const missingGenerated = generatedHtml
+    .map((fileName) => basename(fileName, ".html"))
+    .filter((slug) => !seenSlugs.has(slug));
+  if (missingGenerated.length > 0) {
+    failures.push(`_site/examples/generated contains artifacts that are not in the catalog: ${missingGenerated.join(", ")}`);
+  }
+  return { rendered };
+}
+
+function dynamicPreviewConfig(html, filePath) {
+  const match = html.match(/<script id="dynamic-preview-config" type="application\/json">([\s\S]*?)<\/script>/u);
+  if (!match) {
+    failures.push(`${filePath} should include dynamic preview runtime configuration.`);
+    return undefined;
+  }
+  try {
+    return JSON.parse(match[1]);
+  } catch (error) {
+    failures.push(`${filePath} should include valid dynamic preview JSON configuration: ${error instanceof Error ? error.message : String(error)}`);
+    return undefined;
+  }
+}
+
+function smokeRenderDynamicConfig(config, filePath) {
+  const source = readTextAssetForConfig(config.sourceHref, filePath, "source");
+  if (source === undefined) {
+    return;
+  }
+  const result = parseMarkVSpec(source);
+  const dependencies = loadDynamicDependencies(config.dependencies, filePath);
+  const renderResult = dependencies.template
+    ? composeMarkVSpecTemplate(dependencies.template.result, result)
+    : result;
+  const diagnostics = [
+    ...renderResult.diagnostics,
+    ...dependencies.partials.flatMap((partial) => partial.result.diagnostics),
+  ];
+  const validation = evaluateMarkVSpecDiagnostics(diagnostics);
+  const html = renderMarkVSpecHtml(renderResult, { showIds: true });
+  if (validation.diagnostics.length > 0) {
+    failures.push(`${filePath} dynamic smoke should validate without diagnostics (${validation.diagnostics.length} found).`);
+  }
+  if (!validation.passed) {
+    failures.push(`${filePath} dynamic smoke should pass validation.`);
+  }
+  if (!html.trim()) {
+    failures.push(`${filePath} dynamic smoke should render non-empty HTML.`);
+  }
+}
+
+function loadDynamicDependencies(dependencies = {}, filePath) {
+  return {
+    template: dependencies.template ? loadDynamicDependency(dependencies.template, filePath, "template") : undefined,
+    partials: (dependencies.partials ?? []).map((partial) => loadDynamicDependency(partial, filePath, `partial ${partial.id || partial.href}`)).filter(Boolean),
+  };
+}
+
+function loadDynamicDependency(dependency, filePath, label) {
+  if (!dependency?.href) {
+    failures.push(`${filePath} dynamic dependency is missing an href for ${label}.`);
+    return undefined;
+  }
+  const source = readTextAssetForConfig(dependency.href, filePath, label);
+  if (source === undefined) {
+    return undefined;
+  }
+  const result = parseMarkVSpec(source);
+  if (dependency.id && result.screen.id && dependency.id !== result.screen.id) {
+    failures.push(`${filePath} dynamic dependency ${label} expected ${dependency.id} but parsed ${result.screen.id}.`);
+  }
+  return {
+    ...dependency,
+    result,
+  };
+}
+
+function readTextAssetForConfig(href, filePath, label) {
+  if (!href) {
+    failures.push(`${filePath} dynamic config is missing ${label} href.`);
+    return undefined;
+  }
+  const assetPath = artifactPathForHref(href, join(siteDir, filePath));
+  if (!assetPath || !existsSync(assetPath)) {
+    failures.push(`${filePath} dynamic config ${label} href points to a missing artifact: ${href}`);
+    return undefined;
+  }
+  return readFileSync(assetPath, "utf8");
 }
 
 function expectOrder(value, expectedParts, message) {
