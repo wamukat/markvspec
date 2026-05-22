@@ -64,7 +64,7 @@ jobs:
             echo ""
             echo "- Static artifact gate: \`npm run check:pages-site\`"
             echo "- Artifact path: \`_site\`"
-            echo "- Verified: dynamic runtime asset, public source assets, dependency manifests, generated fallback artifacts, dynamic-first showcase config, security boundary, and dynamic/generated parity."
+            echo "- Verified: dynamic runtime asset, public source assets, dependency manifests, no per-example generated HTML artifacts, dynamic-first showcase config, security boundary, and dynamic generated-document smoke checks."
             echo "- Browser regression: not run in this Pages deploy job. Run \`npm run check:showcase-browser\` during release or browser-runtime acceptance because it requires a local Chrome/Chromium binary."
           } >> "$GITHUB_STEP_SUMMARY"
 
