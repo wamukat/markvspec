@@ -89,6 +89,20 @@ MVP ではサーバ保存を行わない。候補は次の順で検討する。
 
 初期実装では 1 を採用し、2 以降は別チケットに分ける。
 
+## Editable PoC
+
+editable Online Live Editor の PoC は `/examples/experimental/editor/<slug>.html` に置く。
+これは direct access の実験 route であり、examples catalog、showcase、docs navigation から
+は導線を張らない。
+
+初期 editor は native `textarea` とする。CodeMirror などの editor library は、syntax
+highlight、line gutter、diagnostic underline、large document performance が必要になった時点で
+改めて比較する。PoC 段階では、bundle size、keyboard 操作、screen reader、mobile fallback の
+確認を優先する。
+
+保存・共有は、本格実装しない。PoC では copy と download だけを提供し、URL fragment snapshot、
+Gist / GitHub handoff、server persistence は別チケットで判断する。
+
 ## Browser-Safe Core API
 
 #1381 の PoC では、`packages/core/dist/browser.js` から browser bundle を作れることを
@@ -118,4 +132,4 @@ release check に含める。
 - #1384: docs-site examples で read-only dynamic preview を追加し、source fetch と
   generated HTML fallback を検証した。
 - #1385: editable Online Live Editor の PoC を、experimental / feature flag / 非公開 route
-  のいずれかで作る。
+  のいずれかで作った。

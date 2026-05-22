@@ -19,6 +19,7 @@ const requiredFiles = [
   "examples/source/01-basics/hello-screen.vspec.md",
   "examples/generated/hello-screen.html",
   "examples/dynamic/hello-screen.html/index.html",
+  "examples/experimental/editor/hello-screen.html/index.html",
   "examples/showcase/hello-screen.html/index.html",
   "pagefind/pagefind.js",
   "pagefind/pagefind-entry.json",
@@ -64,6 +65,7 @@ expectNotContains(examplesHtml, ">PDF<", "_site/examples/index.html should not e
 expectNotContains(examplesHtml, `${base}/examples/generated/`, "_site/examples/index.html should not link generated artifacts from cards.");
 expectNotContains(examplesHtml, `${base}/examples/generated/hello-screen.html`, "_site/examples/index.html should not link generated HTML artifacts from cards.");
 expectNotContains(examplesHtml, `${base}/examples/generated/hello-screen.pdf`, "_site/examples/index.html should not link generated PDF artifacts from cards.");
+expectNotContains(examplesHtml, `${base}/examples/experimental/editor/`, "_site/examples/index.html should not expose the experimental editor route.");
 expectNotContains(examplesHtml, "github.com/wamukat/markvspec/blob/", "_site/examples/index.html should not link GitHub source blobs from cards.");
 expectContains(examplesHtml, "Learning Path", "_site/examples/index.html should expose the catalog learning path.");
 expectContains(examplesHtml, "Step 1", "_site/examples/index.html should number learning path examples.");
@@ -115,6 +117,7 @@ expectContains(helloShowcaseHtml, 'class="example-sidebar ', "_site/examples/sho
 expectContains(helloShowcaseHtml, 'aria-current="page"', "_site/examples/showcase/hello-screen.html sidebar should mark the current example.");
 expectContains(helloShowcaseHtml, '<iframe src="/markvspec/examples/generated/hello-screen.html"', "_site/examples/showcase/hello-screen.html should embed the generated preview artifact.");
 expectContains(helloShowcaseHtml, 'href="/markvspec/examples/dynamic/hello-screen.html"', "_site/examples/showcase/hello-screen.html should link to the dynamic preview route.");
+expectNotContains(helloShowcaseHtml, 'href="/markvspec/examples/experimental/editor/hello-screen.html"', "_site/examples/showcase/hello-screen.html should not expose the experimental editor route.");
 expectNotContains(helloShowcaseHtml, 'href="/markvspec/examples/generated/hello-screen.pdf"', "_site/examples/showcase/hello-screen.html should not link generated PDF artifacts.");
 expectContains(helloShowcaseHtml, '<span class="line-no ', "_site/examples/showcase/hello-screen.html should show source line numbers.");
 expectContains(helloShowcaseHtml, "SCR-HELLO", "_site/examples/showcase/hello-screen.html should render source text.");
@@ -129,11 +132,16 @@ expectContains(scenarioShowcaseHtml, "English: Guide / Scenarios", "_site/exampl
 expectContains(scenarioShowcaseHtml, 'href="/markvspec/en/guide/scenarios/"', "_site/examples/showcase/scenario-samples.html should use the Starlight scenario URL.");
 
 const dynamicExamplesDir = join(siteDir, "examples", "dynamic");
+const editorExamplesDir = join(siteDir, "examples", "experimental", "editor");
 const sourceExamplesDir = join(siteDir, "examples", "source");
 const dynamicPages = collectFiles(dynamicExamplesDir, (filePath) => filePath.endsWith("index.html"));
+const editorPages = collectFiles(editorExamplesDir, (filePath) => filePath.endsWith("index.html"));
 const sourceArtifacts = collectFiles(sourceExamplesDir, (filePath) => filePath.endsWith(".vspec.md"));
 if (dynamicPages.length !== exampleSources.length) {
   failures.push(`_site/examples/dynamic should contain one dynamic preview page per example (${exampleSources.length} expected, ${dynamicPages.length} found).`);
+}
+if (editorPages.length !== exampleSources.length) {
+  failures.push(`_site/examples/experimental/editor should contain one editor PoC page per example (${exampleSources.length} expected, ${editorPages.length} found).`);
 }
 if (sourceArtifacts.length !== exampleSources.length) {
   failures.push(`_site/examples/source should contain one source asset per example (${exampleSources.length} expected, ${sourceArtifacts.length} found).`);
@@ -149,10 +157,28 @@ const dynamicScriptPath = dynamicScriptArtifactPath(helloDynamicHtml);
 if (!dynamicScriptPath) {
   failures.push("_site/examples/dynamic/hello-screen.html should include the dynamic preview browser script.");
 } else {
-  const dynamicScript = readFileSync(dynamicScriptPath);
-  const gzipBytes = gzipSync(dynamicScript).byteLength;
+  const { gzipBytes } = moduleGraphSize(dynamicScriptPath);
   if (gzipBytes > 140 * 1024) {
     failures.push(`dynamic preview browser script gzip size should stay within 140 KiB (${formatKiB(gzipBytes)} found).`);
+  }
+}
+
+const helloEditorHtml = readSiteFile("examples/experimental/editor/hello-screen.html/index.html");
+expectContains(helloEditorHtml, "Online Live Editor PoC", "_site/examples/experimental/editor/hello-screen.html should be the editor PoC page.");
+expectContains(helloEditorHtml, 'data-pagefind-ignore', "_site/examples/experimental/editor/hello-screen.html should keep the editor PoC out of Pagefind indexing.");
+expectContains(helloEditorHtml, 'id="online-live-editor-config"', "_site/examples/experimental/editor/hello-screen.html should expose editor runtime configuration.");
+expectContains(helloEditorHtml, 'data-online-editor-source', "_site/examples/experimental/editor/hello-screen.html should include the source editor.");
+expectContains(helloEditorHtml, 'data-online-editor-preview', "_site/examples/experimental/editor/hello-screen.html should include the live preview pane.");
+expectContains(helloEditorHtml, 'data-online-editor-diagnostics', "_site/examples/experimental/editor/hello-screen.html should include diagnostics.");
+expectContains(helloEditorHtml, 'Native textarea for this PoC', "_site/examples/experimental/editor/hello-screen.html should record the editor library decision.");
+expectContains(helloEditorHtml, '"/markvspec/examples/source/01-basics/hello-screen.vspec.md"', "_site/examples/experimental/editor/hello-screen.html should load the public source asset.");
+const editorScriptPath = editorScriptArtifactPath(helloEditorHtml);
+if (!editorScriptPath) {
+  failures.push("_site/examples/experimental/editor/hello-screen.html should include the online live editor browser script.");
+} else {
+  const { gzipBytes } = moduleGraphSize(editorScriptPath);
+  if (gzipBytes > 150 * 1024) {
+    failures.push(`online live editor browser script gzip size should stay within 150 KiB (${formatKiB(gzipBytes)} found).`);
   }
 }
 
@@ -325,6 +351,36 @@ function dynamicScriptArtifactPath(html) {
     return undefined;
   }
   return artifactPathForHref(scriptMatch[1], join(siteDir, "examples", "dynamic", "hello-screen.html", "index.html"));
+}
+
+function editorScriptArtifactPath(html) {
+  const scriptMatch = html.match(/<script type="module" src="([^"]*online-live-editor[^"]*|[^"]*_slug_[^"]*\.js)"><\/script>/u);
+  if (!scriptMatch) {
+    return undefined;
+  }
+  return artifactPathForHref(scriptMatch[1], join(siteDir, "examples", "experimental", "editor", "hello-screen.html", "index.html"));
+}
+
+function moduleGraphSize(entryPath, visited = new Set()) {
+  if (visited.has(entryPath)) {
+    return { bytes: 0, gzipBytes: 0 };
+  }
+  visited.add(entryPath);
+
+  const source = readFileSync(entryPath);
+  const text = source.toString("utf8");
+  let bytes = source.byteLength;
+  let gzipBytes = gzipSync(source).byteLength;
+  const importPattern = /\b(?:import|from)\s*(?:\([^)]*\)|[^'"]*)['"](\.\/[^'"]+)['"]/gu;
+  for (const match of text.matchAll(importPattern)) {
+    const childPath = artifactPathForHref(match[1], entryPath);
+    if (childPath && existsSync(childPath)) {
+      const childSize = moduleGraphSize(childPath, visited);
+      bytes += childSize.bytes;
+      gzipBytes += childSize.gzipBytes;
+    }
+  }
+  return { bytes, gzipBytes };
 }
 
 function formatKiB(bytes) {

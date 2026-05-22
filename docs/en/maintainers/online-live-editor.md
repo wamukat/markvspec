@@ -94,6 +94,23 @@ The MVP does not include server persistence. Consider options in this order:
 
 Initial implementation adopts option 1. Later options need separate tickets.
 
+## Editable PoC
+
+The editable Online Live Editor PoC lives at
+`/examples/experimental/editor/<slug>.html`. This is a direct-access
+experimental route and is not linked from the examples catalog, showcase pages,
+or docs navigation.
+
+The initial editor is a native `textarea`. CodeMirror or another editor library
+should be evaluated only after syntax highlighting, line gutters, diagnostic
+underlines, or large-document performance needs justify the bundle and
+integration cost. The PoC prioritizes bundle size, keyboard behavior, screen
+reader behavior, and mobile fallback.
+
+Persistence and sharing are not part of the full implementation yet. The PoC
+only provides copy and download. URL fragment snapshots, Gist / GitHub handoff,
+and server persistence need separate decisions and tickets.
+
 ## Browser-Safe Core API
 
 #1381 confirmed that a browser bundle can be produced from `packages/core/dist/browser.js`.
@@ -125,5 +142,5 @@ as public assets or providing an equivalent source endpoint.
   browser-safe API contract versus Node-only API boundary.
 - #1384: added read-only dynamic preview to docs-site examples and verified
   source fetch plus generated HTML fallback.
-- #1385: build the editable Online Live Editor PoC behind an experimental,
+- #1385: built the editable Online Live Editor PoC behind an experimental,
   feature-flagged, or non-public route.
