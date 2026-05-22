@@ -63,6 +63,13 @@ keys, it replaces that standard field definition.
 entry, and the heading text becomes the entry `Version`.
 
 ```markdown markvspec-fragment section=history
+## History Fields
+
+- ticket
+  label: Ticket
+  required: false
+  type: string
+
 ## History
 
 ### 0.2

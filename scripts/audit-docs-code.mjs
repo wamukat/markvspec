@@ -29,6 +29,7 @@ const allowedSkipReasons = new Set([
 const sectionHeadings = {
   "business-rules": "Business Rules",
   elements: "Elements",
+  history: "History",
   screen: undefined,
   states: "States",
   validations: "Field Validations"

@@ -63,6 +63,13 @@ custom field は key で merge されます。custom field が標準 field と�
 作り、heading text が entry の `Version` になります。
 
 ```markdown markvspec-fragment section=history
+## History Fields
+
+- ticket
+  label: Ticket
+  required: false
+  type: string
+
 ## History
 
 ### 0.2
