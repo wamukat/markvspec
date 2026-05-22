@@ -114,14 +114,19 @@ if (showcaseFiles.length !== exampleSources.length) {
 }
 
 const helloShowcaseHtml = readSiteFile("examples/showcase/hello-screen.html/index.html");
-expectContains(helloShowcaseHtml, "Source and generated preview, side by side", "_site/examples/showcase/hello-screen.html should be a showcase page.");
+expectContains(helloShowcaseHtml, "Source and dynamic preview, side by side", "_site/examples/showcase/hello-screen.html should be a dynamic-first showcase page.");
 expectContains(helloShowcaseHtml, 'class="example-sidebar ', "_site/examples/showcase/hello-screen.html should show example navigation.");
 expectContains(helloShowcaseHtml, 'data-sidebar-toggle', "_site/examples/showcase/hello-screen.html should expose a sidebar collapse toggle.");
 expectContains(helloShowcaseHtml, 'aria-controls="example-sidebar-content"', "_site/examples/showcase/hello-screen.html sidebar toggle should target the sidebar content.");
 expectContains(helloShowcaseHtml, 'aria-label="Hide example navigation"', "_site/examples/showcase/hello-screen.html sidebar toggle should have an accessible label.");
 expectContains(helloShowcaseHtml, 'aria-current="page"', "_site/examples/showcase/hello-screen.html sidebar should mark the current example.");
-expectContains(helloShowcaseHtml, '<iframe src="/markvspec/examples/generated/hello-screen.html"', "_site/examples/showcase/hello-screen.html should embed the generated preview artifact.");
-expectContains(helloShowcaseHtml, 'href="/markvspec/examples/dynamic/hello-screen.html"', "_site/examples/showcase/hello-screen.html should link to the dynamic preview route.");
+expectContains(helloShowcaseHtml, 'id="dynamic-preview-config"', "_site/examples/showcase/hello-screen.html should expose runtime configuration.");
+expectContains(helloShowcaseHtml, 'data-dynamic-preview-output', "_site/examples/showcase/hello-screen.html should include the dynamic preview output container.");
+expectContains(helloShowcaseHtml, 'data-dynamic-preview-fallback', "_site/examples/showcase/hello-screen.html should include the generated preview fallback container.");
+expectContains(helloShowcaseHtml, '"/markvspec/examples/source/01-basics/hello-screen.vspec.md"', "_site/examples/showcase/hello-screen.html should fetch the public source asset.");
+expectContains(helloShowcaseHtml, '"dynamicPreviewEnabled":true', "_site/examples/showcase/hello-screen.html should enable browser dynamic rendering.");
+expectContains(helloShowcaseHtml, '<iframe src="/markvspec/examples/generated/hello-screen.html"', "_site/examples/showcase/hello-screen.html should embed the generated preview artifact as fallback.");
+expectNotContains(helloShowcaseHtml, 'href="/markvspec/examples/dynamic/hello-screen.html"', "_site/examples/showcase/hello-screen.html should not expose the compatibility dynamic route as primary navigation.");
 expectContains(helloShowcaseHtml, 'href="https://raw.githubusercontent.com/wamukat/markvspec/main/examples/01-basics/hello-screen.vspec.md"', "_site/examples/showcase/hello-screen.html Source link should use the raw GitHub URL.");
 expectContains(helloShowcaseHtml, 'href="https://github.com/wamukat/markvspec/blob/main/examples/01-basics/hello-screen.vspec.md"', "_site/examples/showcase/hello-screen.html should keep a normal GitHub view link.");
 expectNotContains(helloShowcaseHtml, 'href="/markvspec/examples/experimental/editor/hello-screen.html"', "_site/examples/showcase/hello-screen.html should not expose the experimental editor route.");
@@ -137,6 +142,11 @@ expectContains(helloShowcaseHtml, "Async Fetching", "_site/examples/showcase/hel
 const scenarioShowcaseHtml = readSiteFile("examples/showcase/scenario-samples.html/index.html");
 expectContains(scenarioShowcaseHtml, "English: Guide / Scenarios", "_site/examples/showcase/scenario-samples.html should link the scenario guide.");
 expectContains(scenarioShowcaseHtml, 'href="/markvspec/en/guide/scenarios/"', "_site/examples/showcase/scenario-samples.html should use the Starlight scenario URL.");
+
+const templateShowcaseHtml = readSiteFile("examples/showcase/profile-page-with-template.html/index.html");
+expectContains(templateShowcaseHtml, '"dynamicPreviewEnabled":false', "_site/examples/showcase/profile-page-with-template.html should keep generated fallback primary until browser composition is available.");
+expectContains(templateShowcaseHtml, 'source composition is not available in the browser runtime yet', "_site/examples/showcase/profile-page-with-template.html should explain why it uses the generated fallback.");
+expectContains(templateShowcaseHtml, '<iframe src="/markvspec/examples/generated/profile-page-with-template.html"', "_site/examples/showcase/profile-page-with-template.html should embed the composed generated preview fallback.");
 
 const dynamicExamplesDir = join(siteDir, "examples", "dynamic");
 const editorExamplesDir = join(siteDir, "examples", "experimental", "editor");

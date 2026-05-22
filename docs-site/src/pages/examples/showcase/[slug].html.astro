@@ -22,8 +22,17 @@ const examples = getExamples();
 const stageGroups = groupExamplesByStage(examples);
 const related = relatedDocs(example);
 const next = nextExamples(example, examples);
-const previewHref = `${base}${example.generatedPreviewPath}`;
-const dynamicPreviewHref = `${base}${example.dynamicPreviewPath}`;
+const generatedPreviewHref = `${base}${example.generatedPreviewPath}`;
+const sourceHref = `${base}${example.sourceAssetPath}`;
+const requiresSourceComposition = /^\s*(template|references):/m.test(example.source);
+const dynamicPreviewConfig = {
+  dynamicPreviewEnabled: !requiresSourceComposition,
+  fallbackReason: requiresSourceComposition
+    ? 'Using generated preview fallback: source composition is not available in the browser runtime yet.'
+    : undefined,
+  locale: example.locale || 'en',
+  sourceHref,
+};
 const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
 const sourceLineItems = sourceLines(example.source);
 const currentStage = stageGroups.find((stage) => stage.items.some((item) => item.slug === example.slug));
@@ -37,7 +46,7 @@ const adjacentExamples = [
 ];
 const pageNavItems = [
   { href: '#source', label: 'Source pane' },
-  { href: '#generated-preview', label: 'Generated preview' },
+  { href: '#dynamic-preview', label: 'Dynamic preview' },
 ].filter(Boolean);
 const metaPills = [
   example.id,
@@ -65,6 +74,8 @@ const metaPills = [
         --line: #d6dde8;
         --line-soft: #e9edf3;
         --accent: #2563eb;
+        --success: #047857;
+        --warning: #b45309;
         --code-bg: #101827;
         --code-ink: #e8eef8;
         --code-muted: #95a3b8;
@@ -400,6 +411,37 @@ const metaPills = [
       .pane-title { display: grid; gap: 1px; }
       .pane-title strong { font-size: 13px; }
       .pane-title span { color: var(--muted); font-size: 11px; }
+      .runtime-status {
+        background: #eef2ff;
+        border: 1px solid #c7d2fe;
+        border-radius: 999px;
+        color: #3730a3;
+        display: inline-flex;
+        font-size: 11px;
+        font-weight: 750;
+        line-height: 1.2;
+        padding: 5px 8px;
+        white-space: nowrap;
+      }
+      .runtime-status[data-status="ready"] {
+        background: #ecfdf5;
+        border-color: #a7f3d0;
+        color: var(--success);
+      }
+      .runtime-status[data-status="diagnostics"],
+      .runtime-status[data-status="fallback"] {
+        background: #fffbeb;
+        border-color: #fde68a;
+        color: var(--warning);
+      }
+      .runtime-metrics {
+        background: #fbfcfe;
+        border-bottom: 1px solid var(--line-soft);
+        color: var(--muted);
+        font-size: 11px;
+        margin: 0;
+        padding: 7px 14px;
+      }
       .source-wrap {
         background: var(--code-bg);
         color: var(--code-ink);
@@ -438,11 +480,19 @@ const metaPills = [
         padding: 0 18px;
         white-space: pre;
       }
-      .preview-frame-wrap {
+      .dynamic-preview-output,
+      .fallback-frame-wrap {
         background: #eef2f7;
         height: calc(100vh - 252px);
         min-height: 520px;
         overflow: auto;
+      }
+      .dynamic-preview-output {
+        padding: 18px;
+      }
+      .dynamic-preview-output[hidden],
+      .fallback-frame-wrap[hidden] {
+        display: none;
       }
       iframe {
         background: #fff;
@@ -475,7 +525,8 @@ const metaPills = [
         .learning-panel { grid-template-columns: 1fr; }
         .split { grid-template-columns: 1fr; }
         .source-wrap,
-        .preview-frame-wrap {
+        .dynamic-preview-output,
+        .fallback-frame-wrap {
           height: auto;
           max-height: 680px;
         }
@@ -498,7 +549,8 @@ const metaPills = [
         }
         .pane,
         .source-wrap,
-        .preview-frame-wrap {
+        .dynamic-preview-output,
+        .fallback-frame-wrap {
           max-width: 100%;
         }
         pre {
@@ -517,7 +569,7 @@ const metaPills = [
         <div class="brand">
           <img src={`${base}/assets/markvspec-icon.svg`} alt="" width="30" height="30" />
           <strong>MarkVSpec Examples</strong>
-          <span>Source and generated preview, side by side</span>
+          <span>Source and dynamic preview, side by side</span>
         </div>
         <nav class="top-nav" aria-label="Example navigation">
           <a class="nav-link" href={`${base}/en/`}>
@@ -570,8 +622,7 @@ const metaPills = [
             <p class="subtitle">{example.summary}</p>
           </div>
           <div class="example-actions">
-            <a class="button-link" href={previewHref}>Open preview only</a>
-            <a class="nav-link" href={dynamicPreviewHref}>Dynamic preview</a>
+            <a class="button-link" href={generatedPreviewHref}>Open fallback</a>
             <a class="nav-link" href={`${githubBlobBaseUrl}${example.repoPath}`}>View on GitHub</a>
           </div>
         </section>
@@ -581,7 +632,7 @@ const metaPills = [
           {pageNavItems.map((item) => <a href={item.href}>{item.label}</a>)}
         </nav>
 
-        <section class="split" aria-label="Source and generated preview">
+        <section class="split" aria-label="Source and dynamic preview">
           <article id="source" class="pane" aria-label="VSpec source">
             <div class="pane-header">
               <div class="pane-title">
@@ -599,18 +650,21 @@ const metaPills = [
             </div>
           </article>
 
-          <article id="generated-preview" class="pane" aria-label="Generated HTML preview">
+          <article id="dynamic-preview" class="pane" aria-label="Dynamic preview">
             <div class="pane-header">
               <div class="pane-title">
-                <strong>Generated HTML Preview</strong>
-                <span>Latest output from the same Pages build</span>
+                <strong>Dynamic Preview</strong>
+                <span>Browser-rendered from the published source asset</span>
               </div>
               <div class="pane-tools">
-                <a class="small-link" href={previewHref}>Open full page</a>
+                <span class="runtime-status" data-dynamic-preview-status data-status="loading">Waiting for browser runtime...</span>
+                <a class="small-link" href={generatedPreviewHref}>Open fallback</a>
               </div>
             </div>
-            <div class="preview-frame-wrap">
-              <iframe src={previewHref} title={`${example.title} generated HTML preview`}></iframe>
+            <p class="runtime-metrics" data-dynamic-preview-metrics>Runtime metrics are measured in the browser.</p>
+            <div class="dynamic-preview-output" data-dynamic-preview-output hidden></div>
+            <div class="fallback-frame-wrap" data-dynamic-preview-fallback>
+              <iframe src={generatedPreviewHref} title={`${example.title} generated preview fallback`}></iframe>
             </div>
           </article>
         </section>
@@ -643,6 +697,8 @@ const metaPills = [
         </section>
       </div>
     </main>
+    <script id="dynamic-preview-config" type="application/json" set:html={JSON.stringify(dynamicPreviewConfig)}></script>
+    <script>import '../../../lib/dynamic-preview.js';</script>
     <script is:inline>
       (() => {
         const layout = document.querySelector('[data-example-layout]');

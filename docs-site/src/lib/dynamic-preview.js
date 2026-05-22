@@ -77,6 +77,14 @@ function showDynamicPreview(html) {
 
 async function renderDynamicPreview() {
   const config = parseConfig();
+  if (config.dynamicPreviewEnabled === false) {
+    showFallback();
+    setStatus('fallback', config.fallbackReason || 'Using generated preview fallback.');
+    setMetrics(['fallback generated HTML']);
+    setDiagnostics([], config.locale || 'en');
+    return;
+  }
+
   const startedAt = performance.now();
   setStatus('loading', 'Loading source...');
 
