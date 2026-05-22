@@ -4004,6 +4004,17 @@ test("renders Marker/ID reference chips in State Views summary and spec tables",
   }
 });
 
+test("renders hello screen Display Content Spec Marker/ID with stable element ids", () => {
+  const source = readFileSync(resolve("../../examples/01-basics/hello-screen.vspec.md"), "utf8");
+  const result = parseMarkVSpec(source);
+  const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
+  const displayContent = html.match(/<div class="element-detail-group"><h6 class="state-screen-detail-heading">Display Content Spec<\/h6>[\s\S]*?<\/table>/)?.[0] ?? "";
+
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("1", "E-Title")}</td><td>label</td><td>Hello MarkVSpec</td>`));
+  assert.match(displayContent, new RegExp(`<td>${detailElementRef("2", "E-Lead")}</td><td>text</td><td>This is the minimum screen specification that still renders a useful preview\\.</td>`));
+  assert.doesNotMatch(displayContent, /<td><span class="mm-ref-chip mm-ref-chip-element"[^>]*><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">1<\/code> Hello MarkVSpec<\/span><\/td>/);
+});
+
 test("combines visible and enabled conditions in spec table condition cells", () => {
   const source = `---
 id: SCR-CONDITION-COLUMNS

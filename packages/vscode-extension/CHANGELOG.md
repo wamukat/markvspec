@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.4 - 2026-05-23
+
+### Fixed
+
+- Fixed static/export generated design document references so Marker/ID cells,
+  Layouts items, and Form Groups fields show stable MarkVSpec IDs instead of
+  labels or sample text.
+- Added cross-renderer parity coverage for VS Code preview and static/export
+  reference rendering across shipped examples.
+
 ## 0.6.3 - 2026-05-22
 
 ### Added

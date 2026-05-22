@@ -6,6 +6,7 @@ import {
 } from "./static-state-view-renderer.js";
 import {
   renderStaticEntityReference,
+  renderStaticElementDetailReference,
   renderStaticPreviewIcon
 } from "./static-entity-reference-presenter.js";
 
@@ -296,7 +297,7 @@ function renderStaticFormGroupsSection(result: MarkVSpecParseResult, messages: R
       result.formGroups.map((group) => [
         renderStaticEntityReferenceById(result, group.id),
         ...(showOverview ? [renderStaticEntityOverview(result, group.overview ?? [])] : []),
-        renderStaticReferenceList(result, group.fields.map((field) => field.elementId)),
+        renderStaticDetailReferenceList(result, group.fields.map((field) => field.elementId)),
         group.submit ? renderStaticEntityReferenceById(result, group.submit.actionId) : "",
         renderStaticPropertiesAndBullets(result, group.properties, group.bullets),
         ...(showNotes ? [renderStaticEntityNotes(result, group.notes ?? [])] : [])
@@ -403,9 +404,18 @@ function renderStaticReferenceList(result: MarkVSpecParseResult, ids: string[]):
   return ids.length > 0 ? `<ul class="spec-list">${ids.map((id) => `<li>${renderStaticEntityReferenceById(result, id)}</li>`).join("")}</ul>` : "";
 }
 
+function renderStaticDetailReferenceList(result: MarkVSpecParseResult, ids: string[]): string {
+  return ids.length > 0 ? `<ul class="spec-list">${ids.map((id) => `<li>${renderStaticDetailReferenceById(result, id)}</li>`).join("")}</ul>` : "";
+}
+
 function renderStaticEntityReferenceById(result: MarkVSpecParseResult, id: string): string {
   const reference = resolveMarkVSpecEntityReference(result, id);
   return reference ? renderStaticEntityReference(reference, staticEntityReferencePresenterSupport) : code(id);
+}
+
+function renderStaticDetailReferenceById(result: MarkVSpecParseResult, id: string): string {
+  const reference = resolveMarkVSpecEntityReference(result, id);
+  return reference?.kind === "element" ? renderStaticElementDetailReference(reference, staticEntityReferencePresenterSupport) : renderStaticEntityReferenceById(result, id);
 }
 
 function renderStaticProperties(properties: Record<string, string | string[] | true>): string {

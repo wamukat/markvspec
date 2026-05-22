@@ -536,11 +536,11 @@ Layout note.
   assert.match(layouts, /<th>Marker\/ID<\/th><th>Kind<\/th><th>Setting\/Items<\/th><th>Condition<\/th><th>Notes<\/th>/);
   assert.doesNotMatch(layouts, /<th>Settings<\/th>|<th>Conditions<\/th>|<th>Items<\/th>/);
   assert.match(layouts, /<strong>Setting<\/strong><ul class="spec-list"><li>align: center<\/li><li>gap: md<\/li><\/ul>/);
-  assert.match(layouts, /<strong>Items<\/strong><ul class="spec-list"><li>Title: <a class="mm-ref-chip mm-ref-chip-element"[^>]*data-mm-ref-id="E-Title"[\s\S]*<\/a><\/li><li><code>L-Child<\/code><\/li><li>slot: content<\/li><\/ul>/);
+  assert.match(layouts, /<strong>Items<\/strong><ul class="spec-list"><li>Title: <span class="mm-detail-ref-id">E-Title<\/span><\/li><li><span class="mm-detail-ref-id">L-Child<\/span><\/li><li>slot: content<\/li><\/ul>/);
   assert.match(layouts, /<td><span class="spec-default-always">always<\/span><\/td>/);
   assert.match(layouts, /<td><p>Layout note\.<\/p><\/td>/);
   assert.match(layouts, /<strong>Setting<\/strong><ul class="spec-list"><li>gap: sm<\/li><\/ul>/);
-  assert.match(layouts, /<strong>Items<\/strong><ul class="spec-list"><li><a class="mm-ref-chip mm-ref-chip-element"[^>]*data-mm-ref-id="E-Title"/);
+  assert.match(layouts, /<strong>Items<\/strong><ul class="spec-list"><li><span class="mm-detail-ref-id">E-Title<\/span><\/li><\/ul>/);
   assert.match(layouts, /data-mm-ref-id="L-Empty"[\s\S]*<td>stack<\/td><td>-<\/td><td><span class="spec-default-always">always<\/span><\/td><td>-<\/td>/);
 });
 
@@ -1136,6 +1136,8 @@ title: Static Display Metadata
 
   assert.match(displayContent, /<th>Marker\/ID<\/th><th>Location<\/th><th>Content<\/th><th>Format<\/th><th>Source<\/th><th>Condition<\/th>/);
   assert.doesNotMatch(displayContent, /<th>Enabled When<\/th>/);
+  assert.match(displayContent, /<td rowspan="2"><a class="mm-ref-chip mm-ref-chip-element" href="#state-views" data-mm-ref-id="E-PublishedAt"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">1<\/code> <span class="mm-detail-ref-id">E-PublishedAt<\/span><\/a><\/td>/);
+  assert.doesNotMatch(displayContent, /data-mm-ref-id="E-PublishedAt"[^>]*>[\s\S]*Published<\/a>/);
   for (const kind of ["i18n", "data", "asset", "external", "computed"]) {
     assert.match(displayContent, new RegExp(`mm-source-chip-${kind}`), kind);
   }
@@ -1205,8 +1207,8 @@ title: Static Input Source
   const html = renderStaticDesignDocumentHtml(result);
 
   assert.match(html, /<th>Marker\/ID<\/th><th>Type<\/th><th>Required<\/th><th>Value<\/th><th>Source<\/th><th>Spec<\/th><th>Condition<\/th>/);
-  assert.match(html, /<td><a class="mm-ref-chip mm-ref-chip-element" href="#state-views" data-mm-ref-id="E-EmailInput"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">E-EmailInput<\/code><\/a><\/td><td>Input<\/td><td>no<\/td><td>morgan@example\.com<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">[\s\S]*?data<\/span><\/td><td><div class="spec-section"><strong>Input<\/strong><ul class="spec-list"><li>type: email<\/li><\/ul><\/div><\/td><td><span class="spec-default-always">always<\/span><\/td>/);
-  assert.match(html, /<td><a class="mm-ref-chip mm-ref-chip-element" href="#state-views" data-mm-ref-id="E-RoleSelect"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">E-RoleSelect<\/code><\/a><\/td><td>Select<\/td><td>no<\/td><td>member<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">[\s\S]*?data<\/span><br><span class="mm-inline-token">\$\{data.member.role\}<\/span><\/td>/);
+  assert.match(html, /<td><a class="mm-ref-chip mm-ref-chip-element" href="#state-views" data-mm-ref-id="E-EmailInput"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">E-EmailInput<\/code> <span class="mm-detail-ref-id">E-EmailInput<\/span><\/a><\/td><td>Input<\/td><td>no<\/td><td>morgan@example\.com<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">[\s\S]*?data<\/span><\/td><td><div class="spec-section"><strong>Input<\/strong><ul class="spec-list"><li>type: email<\/li><\/ul><\/div><\/td><td><span class="spec-default-always">always<\/span><\/td>/);
+  assert.match(html, /<td><a class="mm-ref-chip mm-ref-chip-element" href="#state-views" data-mm-ref-id="E-RoleSelect"><code class="mm-id mm-marker mm-marker-element" data-mm-marker-category="element">E-RoleSelect<\/code> <span class="mm-detail-ref-id">E-RoleSelect<\/span><\/a><\/td><td>Select<\/td><td>no<\/td><td>member<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">[\s\S]*?data<\/span><br><span class="mm-inline-token">\$\{data.member.role\}<\/span><\/td>/);
   assert.match(html, /<td>taylor@example.com<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">[\s\S]*?data<\/span><\/td>/);
   assert.match(html, /<td>administrator<\/td><td><span class="mm-chip mm-source-chip mm-source-chip-data">[\s\S]*?data<\/span><br><span class="mm-inline-token">\$\{data.member.role\}<\/span><\/td>/);
 });

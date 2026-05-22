@@ -1,6 +1,6 @@
 {
   "name": "@markvspec/document-renderer",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -24,6 +24,6 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@markvspec/core": "0.6.3"
+    "@markvspec/core": "0.6.4"
   }
 }

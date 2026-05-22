@@ -231,10 +231,10 @@ function staticLayoutItemRows(result: MarkVSpecParseResult, layout: StaticParsed
       if (isStaticPresentationPanelId(item.targetId)) {
         return [];
       }
-      return [renderStaticEntityReferenceById(result, item.targetId, support)];
+      return [renderStaticDetailRefId(item.targetId, support)];
     }
     if (item.type === "field") {
-      return [`${support.escapeHtml(item.label)}: ${renderStaticEntityReferenceById(result, item.elementId, support)}`];
+      return [`${support.escapeHtml(item.label)}: ${renderStaticDetailRefId(item.elementId, support)}`];
     }
     if (item.type === "slot") {
       return [`slot: ${support.escapeHtml(item.name)}`];
@@ -246,6 +246,10 @@ function staticLayoutItemRows(result: MarkVSpecParseResult, layout: StaticParsed
 function renderStaticEntityReferenceById(result: MarkVSpecParseResult, id: string, support: StaticStateViewRenderingSupport): string {
   const reference = resolveMarkVSpecEntityReference(result, id);
   return reference ? renderStaticEntityReference(reference, support) : support.code(id);
+}
+
+function renderStaticDetailRefId(id: string, support: StaticStateViewRenderingSupport): string {
+  return `<span class="mm-detail-ref-id">${support.escapeHtml(id)}</span>`;
 }
 
 function renderStaticLayoutConditions(layout: StaticParsedLayout, messages: RendererMessages, controlledPanel: boolean, support: StaticStateViewRenderingSupport): string {
@@ -422,7 +426,7 @@ function staticElementSpecRenderingSupport(support: StaticStateViewRenderingSupp
     renderElementConditionSummary: (element, messages) => renderElementConditionSummary(element, messages, support),
     renderExpressionTokens: (source) => renderExpressionTokens(source, support),
     renderPreviewIcon: renderStaticPreviewIcon,
-    renderScenarioSampleElementRef: (result, elementId) => renderScenarioSampleElementRef(result, elementId, support),
+    renderScenarioSampleElementRef: (result, elementId) => renderElementDetailReference(result, elementId, support),
     renderSemanticChip: (value, tone) => renderSemanticChip(value, tone, support),
     renderSpecSections: (sections) => renderSpecSections(sections, support),
     renderStaticSpecList,
@@ -431,6 +435,11 @@ function staticElementSpecRenderingSupport(support: StaticStateViewRenderingSupp
     renderTableWithCells: support.renderTableWithCells,
     rowspanPrefixCells: support.rowspanPrefixCells
   };
+}
+
+function renderElementDetailReference(result: MarkVSpecParseResult, elementId: string, support: StaticStateViewRenderingSupport): string {
+  const reference = resolveMarkVSpecEntityReference(result, elementId);
+  return reference ? renderStaticElementDetailReference(reference, support) : support.escapeHtml(elementId);
 }
 
 function renderElementConditionSummary(
