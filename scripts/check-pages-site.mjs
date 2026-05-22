@@ -13,9 +13,6 @@ const root = process.cwd();
 const siteDir = join(root, "_site");
 const failures = [];
 const base = "/markvspec";
-const dynamicGeneratedParityAllowlist = new Map();
-const usedDynamicGeneratedParityAllowlist = new Set();
-
 const requiredFiles = [
   "index.html",
   "favicon.svg",
@@ -25,7 +22,6 @@ const requiredFiles = [
   "examples/assets/markvspec-mermaid.js",
   "examples/assets/markvspec-mermaid-runtime.js",
   "examples/source/01-basics/hello-screen.vspec.md",
-  "examples/generated/hello-screen.html",
   "examples/dynamic/hello-screen.html/index.html",
   "examples/experimental/editor/hello-screen.html/index.html",
   "examples/showcase/hello-screen.html/index.html",
@@ -85,28 +81,21 @@ expectOrder(
 );
 
 const generatedExamplesDir = join(siteDir, "examples", "generated");
-const generatedHtml = readdirSync(generatedExamplesDir).filter((entry) => entry.endsWith(".html") && !entry.endsWith(".pdf-source.html")).sort();
+const generatedHtml = existsSync(generatedExamplesDir)
+  ? readdirSync(generatedExamplesDir).filter((entry) => entry.endsWith(".html") && !entry.endsWith(".pdf-source.html")).sort()
+  : [];
 const directExampleHtml = readdirSync(join(siteDir, "examples"))
   .filter((entry) => entry.endsWith(".html") && entry !== "index.html")
   .sort();
 const generatedPdfArtifacts = collectFiles(join(siteDir, "examples"), (filePath) => filePath.endsWith(".pdf") || filePath.endsWith(".pdf-source.html"));
-if (generatedHtml.length !== exampleSources.length) {
-  failures.push(`_site/examples/generated should contain one HTML artifact per example (${exampleSources.length} expected, ${generatedHtml.length} found).`);
+if (generatedHtml.length > 0) {
+  failures.push(`_site/examples/generated should not contain per-example HTML artifacts: ${generatedHtml.join(", ")}`);
 }
 if (directExampleHtml.length > 0) {
   failures.push(`_site/examples should not contain duplicated direct example HTML artifacts: ${directExampleHtml.join(", ")}`);
 }
 if (generatedPdfArtifacts.length > 0) {
   failures.push(`_site/examples should not contain generated PDF artifacts: ${generatedPdfArtifacts.map((filePath) => toPosixPath(relative(siteDir, filePath))).join(", ")}`);
-}
-for (const fileName of generatedHtml) {
-  const html = readSiteFile(join("examples", "generated", fileName));
-  expectContains(html, '<link rel="stylesheet" href="../assets/markvspec-preview.css">', `_site/examples/generated/${fileName} should use the shared preview stylesheet.`);
-  expectContains(html, '<script src="../assets/markvspec-mermaid.js"></script>', `_site/examples/generated/${fileName} should use the shared Mermaid runtime asset.`);
-  expectContains(html, '<script src="../assets/markvspec-mermaid-runtime.js"></script>', `_site/examples/generated/${fileName} should use the shared Mermaid initializer asset.`);
-  expectContains(html, '<nav class="toc-inline"', `_site/examples/generated/${fileName} should include an inline table of contents.`);
-  expectContains(html, 'href="#state-views"', `_site/examples/generated/${fileName} table of contents should link to state views.`);
-  expectNotContains(html, "function prepareBlock(block)", `_site/examples/generated/${fileName} should not inline the Mermaid initializer runtime.`);
 }
 const sharedMermaidRuntime = readSiteFile("examples/assets/markvspec-mermaid-runtime.js");
 expectContains(sharedMermaidRuntime, 'securityLevel: "strict"', "_site/examples/assets/markvspec-mermaid-runtime.js should initialize Mermaid with strict security.");
@@ -282,7 +271,7 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log(`Pages site check passed (${generatedHtml.length} generated example pages, ${showcaseFiles.length} showcase pages, ${dynamicCoverage.rendered} dynamic smoke renders, ${dynamicCoverage.parityCompared} parity checks, ${dynamicCoverage.allowedParityDifferences} allowed parity differences).`);
+console.log(`Pages site check passed (${generatedHtml.length} generated example pages, ${showcaseFiles.length} showcase pages, ${dynamicCoverage.rendered} dynamic smoke renders, ${dynamicCoverage.dynamicDocumentsChecked} dynamic document checks).`);
 
 function expectFile(filePath, message = `Missing _site artifact: ${filePath}`) {
   if (!existsSync(join(siteDir, filePath))) {
@@ -313,24 +302,20 @@ function expectNotContains(value, expected, message) {
 
 function checkDynamicShowcaseCoverage() {
   let rendered = 0;
-  let parityCompared = 0;
-  let allowedParityDifferences = 0;
+  let dynamicDocumentsChecked = 0;
   const seenSlugs = new Set();
   for (const entry of catalog.examples) {
     const slug = basename(entry.path, ".vspec.md");
     seenSlugs.add(slug);
     const showcasePath = `examples/showcase/${slug}.html/index.html`;
     const dynamicPath = `examples/dynamic/${slug}.html/index.html`;
-    const generatedPath = `examples/generated/${slug}.html`;
     expectFile(showcasePath);
     expectFile(dynamicPath);
-    expectFile(generatedPath);
 
     const showcaseHtml = readSiteFile(showcasePath);
     expectContains(showcaseHtml, 'data-dynamic-preview-output', `${showcasePath} should include the dynamic preview output container.`);
     expectContains(showcaseHtml, 'data-dynamic-preview-fallback', `${showcasePath} should include the runtime failure container.`);
-    expectNotContains(showcaseHtml, `<iframe src="/markvspec/${generatedPath}"`, `${showcasePath} should not embed the generated fallback artifact.`);
-    expectNotContains(showcaseHtml, `href="/markvspec/${generatedPath}"`, `${showcasePath} should not link the generated fallback artifact.`);
+    expectNotContains(showcaseHtml, "/markvspec/examples/generated/", `${showcasePath} should not link or embed generated example artifacts.`);
     const config = dynamicPreviewConfig(showcaseHtml, showcasePath);
     if (!config) {
       continue;
@@ -340,32 +325,17 @@ function checkDynamicShowcaseCoverage() {
     }
     const dynamicSmoke = smokeRenderDynamicConfig(config, showcasePath);
     if (dynamicSmoke) {
-      const parity = checkDynamicGeneratedParity({
+      checkDynamicDocumentSmoke({
         dynamicHtml: dynamicSmoke.html,
         filePath: showcasePath,
-        generatedHtml: readSiteFile(generatedPath),
-        generatedPath,
-        slug,
         validation: dynamicSmoke.validation,
       });
-      parityCompared += 1;
-      allowedParityDifferences += parity.allowedDifferences;
+      dynamicDocumentsChecked += 1;
     }
     rendered += 1;
   }
 
-  const missingGenerated = generatedHtml
-    .map((fileName) => basename(fileName, ".html"))
-    .filter((slug) => !seenSlugs.has(slug));
-  if (missingGenerated.length > 0) {
-    failures.push(`_site/examples/generated contains artifacts that are not in the catalog: ${missingGenerated.join(", ")}`);
-  }
-  for (const slug of dynamicGeneratedParityAllowlist.keys()) {
-    if (seenSlugs.has(slug) && !usedDynamicGeneratedParityAllowlist.has(slug)) {
-      failures.push(`dynamic/generated parity allowlist entry is obsolete or untested: ${slug}`);
-    }
-  }
-  return { allowedParityDifferences, parityCompared, rendered };
+  return { dynamicDocumentsChecked, rendered };
 }
 
 function dynamicPreviewConfig(html, filePath) {
@@ -410,73 +380,24 @@ function smokeRenderDynamicConfig(config, filePath) {
   return { html, renderResult, validation };
 }
 
-function checkDynamicGeneratedParity({ dynamicHtml, filePath, generatedHtml, generatedPath, slug, validation }) {
-  let allowedDifferences = 0;
-  const generatedDocumentHtml = firstGeneratedDocumentHtml(generatedHtml) ?? generatedHtml;
+function checkDynamicDocumentSmoke({ dynamicHtml, filePath, validation }) {
   const dynamicFingerprint = semanticPreviewFingerprint(dynamicHtml);
-  const generatedDocumentFingerprint = semanticPreviewFingerprint(generatedDocumentHtml);
 
   if (!dynamicFingerprint.hasWireframe) {
-    failures.push(`${filePath} dynamic parity should include a wireframe root.`);
+    failures.push(`${filePath} dynamic generated document should include a wireframe root.`);
   }
   if (!dynamicFingerprint.sectionIds.has("screen") || !dynamicFingerprint.sectionIds.has("state-views")) {
     failures.push(`${filePath} dynamic generated document should include generated Screen and State Views sections.`);
   }
-  if (!generatedDocumentFingerprint.hasWireframe || !generatedDocumentFingerprint.sectionIds.has("screen") || !generatedDocumentFingerprint.sectionIds.has("state-views")) {
-    failures.push(`${generatedPath} generated artifact should include wireframe, Screen, and State Views sections.`);
+  if (!dynamicFingerprint.sectionIds.has("action-details") && dynamicHtml.includes("Action Details")) {
+    failures.push(`${filePath} dynamic generated document should expose the Action Details section anchor when action details are rendered.`);
   }
-
   if (validation.passed && dynamicFingerprint.sectionIds.has("diagnostics")) {
-    failures.push(`${filePath} dynamic/generated parity expected no generated Diagnostics section when dynamic validation passes.`);
+    failures.push(`${filePath} dynamic generated document expected no Diagnostics section when dynamic validation passes.`);
   }
   if (!validation.passed && !dynamicFingerprint.sectionIds.has("diagnostics")) {
-    failures.push(`${filePath} dynamic/generated parity expected a generated Diagnostics section when dynamic validation fails.`);
+    failures.push(`${filePath} dynamic generated document expected a Diagnostics section when dynamic validation fails.`);
   }
-
-  const missingInGenerated = [...dynamicFingerprint.markerIds].filter((id) => !generatedDocumentFingerprint.markerIds.has(id));
-  if (missingInGenerated.length > 0) {
-    failures.push(`${filePath} dynamic/generated parity missing dynamic marker IDs in generated artifact: ${missingInGenerated.join(", ")}`);
-  }
-
-  const missingInDynamic = [...generatedDocumentFingerprint.markerIds].filter((id) => !dynamicFingerprint.markerIds.has(id));
-  if (missingInDynamic.length > 0) {
-    failures.push(`${filePath} dynamic/generated parity missing generated artifact marker IDs in dynamic output: ${missingInDynamic.join(", ")}`);
-  }
-
-  const missingCategoriesInGenerated = [...dynamicFingerprint.markerCategories].filter((category) => !generatedDocumentFingerprint.markerCategories.has(category));
-  if (missingCategoriesInGenerated.length > 0) {
-    failures.push(`${filePath} dynamic/generated parity missing dynamic marker categories in generated artifact: ${missingCategoriesInGenerated.join(", ")}`);
-  }
-
-  const missingCategoriesInDynamic = [...generatedDocumentFingerprint.markerCategories].filter((category) => !dynamicFingerprint.markerCategories.has(category));
-  if (missingCategoriesInDynamic.length > 0) {
-    failures.push(`${filePath} dynamic/generated parity missing generated artifact marker categories in dynamic output: ${missingCategoriesInDynamic.join(", ")}`);
-  }
-
-  const exactTextParity = dynamicFingerprint.text === generatedDocumentFingerprint.text;
-  if (!exactTextParity) {
-    const allowance = dynamicGeneratedParityAllowlist.get(slug);
-    if (allowance) {
-      usedDynamicGeneratedParityAllowlist.add(slug);
-      allowedDifferences += 1;
-    } else {
-      failures.push(`${filePath} dynamic/generated parity text mismatch. Dynamic generated document text does not match ${generatedPath}.`);
-    }
-  }
-
-  return { allowedDifferences };
-}
-
-function firstGeneratedDocumentHtml(html) {
-  const start = html.indexOf('<article class="document">');
-  if (start < 0) {
-    return undefined;
-  }
-  const endMarkers = [
-    html.indexOf("\n    <script", start),
-    html.indexOf("\n  </main>", start),
-  ].filter((index) => index > start);
-  return html.slice(start, endMarkers.length > 0 ? Math.min(...endMarkers) : undefined);
 }
 
 function semanticPreviewFingerprint(html) {

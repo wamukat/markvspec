@@ -15,7 +15,6 @@ const { example } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const sourceHref = `${base}${example.sourceAssetPath}`;
 const dynamicPreviewHref = `${base}${example.dynamicPreviewPath}`;
-const generatedPreviewHref = `${base}${example.generatedPreviewPath}`;
 const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
 const config = {
   fileName: `${example.slug}.vspec.md`,
@@ -306,7 +305,6 @@ const decisionRows = [
         </div>
         <nav class="top-nav" aria-label="Online editor navigation">
           <a class="nav-link" href={dynamicPreviewHref}>Read-only dynamic preview</a>
-          <a class="nav-link" href={generatedPreviewHref}>Generated fallback</a>
           <a class="nav-link" href={`${githubRawBaseUrl}${example.repoPath}`}>Source</a>
           <a class="nav-link" href={githubRepositoryUrl}>GitHub</a>
         </nav>

@@ -25,7 +25,6 @@ export function getExamples() {
       filePath,
       repoPath,
       relativeExamplePath,
-      generatedPreviewPath: `/examples/generated/${basename(filePath, '.vspec.md')}.html`,
       dynamicPreviewPath: `/examples/dynamic/${basename(filePath, '.vspec.md')}.html`,
       sourceAssetPath: `/examples/source/${relativeExamplePath}`,
       sourceDependencies: exampleSourceDependencies(source, filePath),

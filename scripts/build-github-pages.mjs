@@ -9,7 +9,7 @@ const docsSiteDir = join(root, "docs-site");
 const docsSiteDistDir = join(docsSiteDir, "dist");
 const publicExamplesDir = join(docsSiteDir, "public", "examples");
 const publicAssetsDir = join(docsSiteDir, "public", "assets");
-const generatedExamplesDir = join(publicExamplesDir, "generated");
+const generatedExamplesWorkDir = join(root, ".work", "docs-site-generated-examples");
 const sourceExamplesDir = join(publicExamplesDir, "source");
 const exampleAssetsDir = join(publicExamplesDir, "assets");
 const examplesDir = join(root, "examples");
@@ -51,10 +51,11 @@ function toPosixPath(filePath) {
 
 function prepareExampleArtifacts(files) {
   rmSync(publicExamplesDir, { recursive: true, force: true });
-  mkdirSync(generatedExamplesDir, { recursive: true });
+  rmSync(generatedExamplesWorkDir, { recursive: true, force: true });
+  mkdirSync(generatedExamplesWorkDir, { recursive: true });
   mkdirSync(sourceExamplesDir, { recursive: true });
 
-  execFileSync("node", ["packages/cli/dist/index.js", "export", "html", "examples/**/*.vspec.md", "--out", generatedExamplesDir], {
+  execFileSync("node", ["packages/cli/dist/index.js", "export", "html", "examples/**/*.vspec.md", "--out", generatedExamplesWorkDir], {
     stdio: "inherit",
   });
 
@@ -65,9 +66,11 @@ function prepareExampleArtifacts(files) {
     cpSync(filePath, outputPath);
   }
 
-  execFileSync("node", ["scripts/lighten-docs-example-previews.mjs", generatedExamplesDir, exampleAssetsDir], {
+  execFileSync("node", ["scripts/lighten-docs-example-previews.mjs", generatedExamplesWorkDir, exampleAssetsDir], {
     stdio: "inherit",
   });
+
+  rmSync(generatedExamplesWorkDir, { recursive: true, force: true });
 }
 
 function prepareBrandAssets() {
@@ -95,7 +98,7 @@ function copyBuiltDocsSite() {
 const files = collectVspecFiles(examplesDir);
 assertUniqueOutputNames(files);
 validateCatalog(files);
-console.log(`Preparing ${files.length} generated example HTML artifacts.`);
+console.log(`Preparing ${files.length} example source assets and shared preview assets.`);
 prepareExampleArtifacts(files);
 prepareBrandAssets();
 
