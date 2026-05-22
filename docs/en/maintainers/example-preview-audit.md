@@ -1,5 +1,31 @@
 # Example Preview Audit
 
+## Docs-Site Showcase Direction
+
+The public example route is `/examples/showcase/<slug>.html`. The showcase page
+is moving to dynamic rendering first: JavaScript-enabled browsers should see a
+preview rendered from the published `.vspec.md` source and dependency manifest.
+The generated `/examples/generated/<slug>.html` artifact remains available for
+fallback, export, print, and regression comparison. It is not the normal browsing
+route. `/examples/dynamic/<slug>.html` is a compatibility and runtime
+verification route, excluded from primary catalog and Pagefind navigation.
+
+When a ticket changes docs-site examples or the browser renderer, verify these
+representative showcase pages:
+
+- `hello-screen`
+- `login-basic`
+- `history-and-errors`
+- `profile-page-with-template`
+- `responsive-profile`
+
+For dynamic-first work, the verification record should state which examples used
+dynamic rendering, which fallback path was forced or observed, and whether source
+asset, dependency manifest, generated fallback, and runtime bundle assets were
+present in the built `_site` artifact.
+
+## VS Code Preview Audit
+
 Run the shipped example preview audit before completing tickets that touch
 examples, State Views, Action Details, display effects, template composition, or
 wireframe rendering:

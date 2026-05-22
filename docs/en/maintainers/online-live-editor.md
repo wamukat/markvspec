@@ -62,22 +62,56 @@ diagnostics capabilities.
 ## Docs-Site Entry
 
 The initial entry should live inside docs-site as an experimental route.
-Read-only dynamic preview may be introduced as an example display improvement,
-but the editable editor should not be wired directly into production example
-navigation at first. It should start behind an explicit experimental route,
-feature flag, or non-public route.
+Read-only dynamic preview is now the intended production direction for example
+showcase pages, but the editable editor should not be wired directly into
+production example navigation at first. It should start behind an explicit
+experimental route, feature flag, or non-public route.
 
-The read-only dynamic preview lives at `/examples/dynamic/<slug>.html`. Existing
-`/examples/showcase/<slug>.html` and `/examples/generated/<slug>.html` URLs stay
-intact. The dynamic preview fetches the published `.vspec.md` source asset and
-renders it with the browser-safe core API. If source fetch, parse, render, or
-JavaScript execution fails, the page keeps the generated
-`/examples/generated/<slug>.html` iframe as the fallback. Dynamic preview pages
-are runtime verification pages and are not primary Pagefind indexing targets.
+The final docs-site target is dynamic rendering first on
+`/examples/showcase/<slug>.html`. That URL remains the public and documented
+example route. It fetches the published `.vspec.md` source asset, resolves the
+example dependencies published by the same Pages build, and renders the preview
+with the browser-safe core API. If source fetch, dependency fetch, parse,
+validate, render, or JavaScript execution fails, the page falls back to the
+generated `/examples/generated/<slug>.html` artifact.
+
+Route ownership is fixed as follows:
+
+- `/examples/showcase/<slug>.html`: public example page and normal docs/catalog
+  route. JavaScript-enabled browsers should see dynamic rendering as the primary
+  preview. The source panel, related docs, adjacent examples, and generated
+  fallback status belong on this page.
+- `/examples/generated/<slug>.html`: generated fallback, export, print, and
+  regression artifact. It is published because fallback and CLI/export
+  comparison need a stable artifact, not because users should treat it as the
+  normal browsing route.
+- `/examples/dynamic/<slug>.html`: compatibility and runtime verification route.
+  It may stay available while migration work is in progress, but it must be
+  noindex or excluded from primary Pagefind/catalog navigation. If this route is
+  later removed, it should redirect to the corresponding showcase URL rather
+  than becoming a dead public URL.
+
+Indexing follows the same ownership. Showcase pages are the public searchable
+surface. Generated artifacts and dynamic compatibility pages are not primary
+Pagefind indexing targets, and docs/catalog links should not add new direct
+generated-preview navigation except when a maintainer workflow explicitly needs
+the fallback artifact.
+
+Representative dynamic-first verification examples are:
+
+- `hello-screen`: smallest source and baseline rendering.
+- `login-basic`: form layout, validation, actions, and multiple states.
+- `history-and-errors`: structured sections, History Fields, History, Error
+  Codes, and denser generated-document sections.
+- `profile-page-with-template`: template composition, slot content, partial
+  host metadata, and multi-file dependency resolution.
+- `responsive-profile`: viewport-specific layout and mobile/desktop behavior.
 
 Promotion to a production entry requires:
 
 - Existing generated HTML preview fallback when source fetch, parse, or render fails
+- Dependency manifest or equivalent published source map when an example needs
+  template, partial, or project references
 - Core docs remain readable with JavaScript disabled
 - Bundle size and first render time do not harm docs-site browsing
 - Diagnostics and preview behavior do not contradict the VS Code extension

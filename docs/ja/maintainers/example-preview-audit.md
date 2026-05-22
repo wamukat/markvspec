@@ -1,5 +1,29 @@
 # Example Preview Audit
 
+## Docs-Site Showcase 方針
+
+public な example route は `/examples/showcase/<slug>.html` とする。showcase page は
+dynamic rendering first へ移行する。JavaScript 有効時は、公開済み `.vspec.md` source と
+dependency manifest から browser runtime で preview を描画する。generated
+`/examples/generated/<slug>.html` artifact は fallback、export、print、regression
+comparison のために維持するが、通常閲覧 route とは扱わない。`/examples/dynamic/<slug>.html`
+は互換および runtime 検証 route であり、catalog と Pagefind の主導線から除外する。
+
+docs-site examples または browser renderer を変更するチケットでは、次の代表 showcase page を
+確認する。
+
+- `hello-screen`
+- `login-basic`
+- `history-and-errors`
+- `profile-page-with-template`
+- `responsive-profile`
+
+dynamic-first 関連の検証記録では、どの example が dynamic rendering で表示されたか、
+どの fallback path を強制または観測したか、build 済み `_site` artifact に source asset、
+dependency manifest、generated fallback、runtime bundle asset が揃っていたかを記録する。
+
+## VS Code Preview Audit
+
 example、State Views、Action Details、display effects、template composition、
 wireframe rendering を変更するチケットでは、完了前に shipped example preview audit を実行する。
 

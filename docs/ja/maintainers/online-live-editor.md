@@ -60,19 +60,48 @@ filesystem lookup や project-wide validation を前提にしない。Online Liv
 ## Docs-Site 導線
 
 初期導線は docs-site 内の実験 route とする。read-only dynamic preview は examples の
-表示改善として段階的に入れられるが、editable editor は本番 examples 導線へ直結しない。
+表示改善として段階的に入れられる。最終的には showcase page の本番方針を
+dynamic rendering first にする。一方で、editable editor は本番 examples 導線へ直結しない。
 最初は明示的な experimental route、feature flag、または非公開 route に限定する。
 
-read-only dynamic preview は `/examples/dynamic/<slug>.html` に置く。既存の
-`/examples/showcase/<slug>.html` と `/examples/generated/<slug>.html` は維持し、
-dynamic preview は公開 `.vspec.md` source asset を fetch して browser-safe core API で
-描画する。source fetch、parse、render、JavaScript 実行に失敗した場合は、同じ Pages build
-で生成した `/examples/generated/<slug>.html` iframe を fallback として表示する。
-dynamic preview page は runtime 検証用のため、Pagefind の主要 indexing 対象にしない。
+docs-site の最終目標は、`/examples/showcase/<slug>.html` を dynamic rendering first
+にすることです。この URL は public な example route として維持する。showcase は公開済みの
+`.vspec.md` source asset を fetch し、同じ Pages build で公開された dependency source を解決し、
+browser-safe core API で preview を描画する。source fetch、dependency fetch、parse、
+validate、render、JavaScript 実行のいずれかに失敗した場合は、同じ Pages build で生成した
+`/examples/generated/<slug>.html` artifact へ fallback する。
+
+route の責務は次の通り固定する。
+
+- `/examples/showcase/<slug>.html`: public example page であり、docs/catalog の通常導線。
+  JavaScript 有効時は dynamic rendering を主 preview とする。source panel、related docs、
+  adjacent examples、generated fallback status はこの page に集約する。
+- `/examples/generated/<slug>.html`: generated fallback、export、print、regression artifact。
+  fallback と CLI/export 比較に安定 artifact が必要なため配布するが、通常閲覧 route とは扱わない。
+- `/examples/dynamic/<slug>.html`: 互換および runtime 検証 route。移行期間中は残してよいが、
+  noindex または Pagefind / catalog の主導線から除外する。将来削除する場合は dead URL にせず、
+  対応する showcase URL へ redirect する。
+
+indexing も同じ責務境界に従う。検索対象として扱う public surface は showcase page である。
+generated artifact と dynamic 互換 page は Pagefind の主要 indexing 対象にしない。docs/catalog
+から generated preview へ直接開く通常導線は増やさない。fallback artifact を明示的に確認する
+maintainer workflow だけ例外とする。
+
+dynamic-first の代表検証 example は次の通り。
+
+- `hello-screen`: 最小 source と baseline rendering。
+- `login-basic`: form layout、validation、actions、複数 state。
+- `history-and-errors`: structured sections、History Fields、History、Error Codes、
+  密度の高い generated document section。
+- `profile-page-with-template`: template composition、slot content、partial host metadata、
+  複数ファイル dependency resolution。
+- `responsive-profile`: viewport-specific layout と mobile / desktop 表示。
 
 本番導線へ昇格する条件は次の通り。
 
 - source fetch 失敗時に既存 generated HTML preview へ戻れる
+- template、partial、project 参照を使う example では dependency manifest または同等の
+  published source map がある
 - JavaScript 無効環境でも docs-site の主要情報が読める
 - bundle size と初回表示時間が docs-site の閲覧体験を壊さない
 - diagnostics と preview が VS Code extension と矛盾しない
