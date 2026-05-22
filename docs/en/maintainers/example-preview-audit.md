@@ -24,6 +24,22 @@ dynamic rendering, which fallback path was forced or observed, and whether sourc
 asset, dependency manifest, generated fallback, and runtime bundle assets were
 present in the built `_site` artifact.
 
+Run the browser regression before completing dynamic-first showcase tickets:
+
+```bash
+npm run check:showcase-browser
+```
+
+This command builds the Pages site, serves `_site` locally, and launches
+Chrome/Chromium through the DevTools Protocol to verify the representative
+showcase pages on desktop and mobile. It checks that browser-rendered preview
+DOM is non-empty, that source and preview panes do not overlap, and that
+aborting the published source fetch shows the generated fallback. This check is
+not part of the default release gate yet because it requires a local browser
+binary; set `CHROME_BIN` when Chrome or Chromium is not in a standard location.
+Run it manually for browser-runtime showcase work until the Pages deploy gate
+explicitly adopts it.
+
 ## VS Code Preview Audit
 
 Run the shipped example preview audit before completing tickets that touch

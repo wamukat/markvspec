@@ -22,6 +22,20 @@ dynamic-first 関連の検証記録では、どの example が dynamic rendering
 どの fallback path を強制または観測したか、build 済み `_site` artifact に source asset、
 dependency manifest、generated fallback、runtime bundle asset が揃っていたかを記録する。
 
+dynamic-first showcase 関連チケットの完了前には、browser regression を実行する。
+
+```bash
+npm run check:showcase-browser
+```
+
+このコマンドは Pages site を build し、`_site` を local 配信し、Chrome/Chromium を
+DevTools Protocol 経由で起動して代表 showcase page を desktop / mobile の両方で確認する。
+browser-rendered preview DOM が空でないこと、source pane と preview pane が重ならないこと、
+公開 source fetch を abort したときに generated fallback が表示されることを検査する。この検査は
+local browser binary に依存するため、現時点では default release gate には含めない。Chrome または
+Chromium が標準の場所にない場合は `CHROME_BIN` を指定する。Pages deploy gate が明示的に採用するまでは、
+browser runtime を触る showcase 作業で手動実行する。
+
 ## VS Code Preview Audit
 
 example、State Views、Action Details、display effects、template composition、
