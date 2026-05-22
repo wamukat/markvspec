@@ -30,11 +30,13 @@ npm run check:showcase-browser
 
 このコマンドは Pages site を build し、`_site` を local 配信し、Chrome/Chromium を
 DevTools Protocol 経由で起動して代表 showcase page を desktop / mobile の両方で確認する。
-browser-rendered preview DOM が空でないこと、source pane と preview pane が重ならないこと、
-公開 source fetch を abort したときに generated fallback が表示されることを検査する。この検査は
-local browser binary に依存するため、現時点では default release gate には含めない。Chrome または
-Chromium が標準の場所にない場合は `CHROME_BIN` を指定する。Pages deploy gate が明示的に採用するまでは、
-browser runtime を触る showcase 作業で手動実行する。
+自動検査対象は `hello-screen`、`login-basic`、`history-and-errors`、
+`profile-page-with-template` とし、responsive 挙動に影響する変更では上記の broader な代表リストを
+手動 spot check に使う。browser-rendered preview DOM が空でないこと、source pane と preview pane が
+重ならないこと、公開 source fetch を abort したときに generated fallback が表示されることを検査する。
+この検査は local browser binary に依存するため、現時点では default release gate には含めない。
+Chrome または Chromium が標準の場所にない場合は `CHROME_BIN` を指定する。Pages deploy gate が
+明示的に採用するまでは、browser runtime を触る showcase 作業で手動実行する。
 
 ## VS Code Preview Audit
 

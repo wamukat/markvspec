@@ -32,12 +32,15 @@ npm run check:showcase-browser
 
 This command builds the Pages site, serves `_site` locally, and launches
 Chrome/Chromium through the DevTools Protocol to verify the representative
-showcase pages on desktop and mobile. It checks that browser-rendered preview
-DOM is non-empty, that source and preview panes do not overlap, and that
-aborting the published source fetch shows the generated fallback. This check is
-not part of the default release gate yet because it requires a local browser
-binary; set `CHROME_BIN` when Chrome or Chromium is not in a standard location.
-Run it manually for browser-runtime showcase work until the Pages deploy gate
+showcase pages on desktop and mobile. Its automated set is `hello-screen`,
+`login-basic`, `history-and-errors`, and `profile-page-with-template`; keep
+using the broader representative list above for manual spot checks when a
+change affects responsive behavior. It checks that browser-rendered preview DOM
+is non-empty, that source and preview panes do not overlap, and that aborting
+the published source fetch shows the generated fallback. This check is not part
+of the default release gate yet because it requires a local browser binary; set
+`CHROME_BIN` when Chrome or Chromium is not in a standard location. Run it
+manually for browser-runtime showcase work until the Pages deploy gate
 explicitly adopts it.
 
 ## VS Code Preview Audit
