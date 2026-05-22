@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { cpSync, mkdirSync, readdirSync, rmSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, readdirSync, rmSync, statSync } from "node:fs";
 import { basename, dirname, join, relative } from "node:path";
 import { loadExampleCatalog, validateExampleCatalog } from "./example-catalog.mjs";
 
@@ -9,11 +9,13 @@ const docsSiteDir = join(root, "docs-site");
 const docsSiteDistDir = join(docsSiteDir, "dist");
 const publicExamplesDir = join(docsSiteDir, "public", "examples");
 const publicAssetsDir = join(docsSiteDir, "public", "assets");
-const generatedExamplesWorkDir = join(root, ".work", "docs-site-generated-examples");
+const workDir = join(root, ".work");
+const generatedExamplesWorkDirPrefix = join(workDir, "docs-site-generated-examples-");
 const sourceExamplesDir = join(publicExamplesDir, "source");
 const exampleAssetsDir = join(publicExamplesDir, "assets");
 const examplesDir = join(root, "examples");
 const brandAssetsDir = join(root, "assets");
+const buildLockDir = join(workDir, "build-github-pages.lock");
 
 function collectVspecFiles(dir) {
   const entries = readdirSync(dir, { withFileTypes: true });
@@ -51,7 +53,8 @@ function toPosixPath(filePath) {
 
 function prepareExampleArtifacts(files) {
   rmSync(publicExamplesDir, { recursive: true, force: true });
-  rmSync(generatedExamplesWorkDir, { recursive: true, force: true });
+  mkdirSync(workDir, { recursive: true });
+  const generatedExamplesWorkDir = mkdtempSync(generatedExamplesWorkDirPrefix);
   mkdirSync(generatedExamplesWorkDir, { recursive: true });
   mkdirSync(sourceExamplesDir, { recursive: true });
 
@@ -95,29 +98,62 @@ function copyBuiltDocsSite() {
   cpSync(docsSiteDistDir, outputDir, { recursive: true });
 }
 
-const files = collectVspecFiles(examplesDir);
-assertUniqueOutputNames(files);
-validateCatalog(files);
-console.log(`Preparing ${files.length} example source assets and shared preview assets.`);
-prepareExampleArtifacts(files);
-prepareBrandAssets();
+function sleep(milliseconds) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds);
+}
 
-execFileSync("npm", ["run", "docs:grammar"], {
-  stdio: "inherit",
-});
+function acquireBuildLock() {
+  mkdirSync(workDir, { recursive: true });
+  const startedAt = Date.now();
+  while (true) {
+    try {
+      mkdirSync(buildLockDir);
+      return () => rmSync(buildLockDir, { recursive: true, force: true });
+    } catch (error) {
+      if (error?.code !== "EEXIST") {
+        throw error;
+      }
+      const lockAge = Date.now() - statSync(buildLockDir).mtimeMs;
+      if (lockAge > 300_000) {
+        rmSync(buildLockDir, { recursive: true, force: true });
+        continue;
+      }
+      if (Date.now() - startedAt > 120_000) {
+        throw new Error(`Timed out waiting for Pages build lock at ${buildLockDir}.`);
+      }
+      sleep(250);
+    }
+  }
+}
 
-execFileSync("npm", ["run", "docs:reference"], {
-  stdio: "inherit",
-});
+const releaseBuildLock = acquireBuildLock();
+try {
+  const files = collectVspecFiles(examplesDir);
+  assertUniqueOutputNames(files);
+  validateCatalog(files);
+  console.log(`Preparing ${files.length} example source assets and shared preview assets.`);
+  prepareExampleArtifacts(files);
+  prepareBrandAssets();
 
-execFileSync("node", ["scripts/sync-docs-site-content.mjs"], {
-  stdio: "inherit",
-});
+  execFileSync("npm", ["run", "docs:grammar"], {
+    stdio: "inherit",
+  });
 
-execFileSync("npm", ["--prefix", "docs-site", "run", "build"], {
-  stdio: "inherit",
-});
+  execFileSync("npm", ["run", "docs:reference"], {
+    stdio: "inherit",
+  });
 
-copyBuiltDocsSite();
+  execFileSync("node", ["scripts/sync-docs-site-content.mjs"], {
+    stdio: "inherit",
+  });
 
-console.log(`Pages site built in ${toPosixPath(relative(root, outputDir))}.`);
+  execFileSync("npm", ["--prefix", "docs-site", "run", "build"], {
+    stdio: "inherit",
+  });
+
+  copyBuiltDocsSite();
+
+  console.log(`Pages site built in ${toPosixPath(relative(root, outputDir))}.`);
+} finally {
+  releaseBuildLock();
+}
