@@ -958,7 +958,8 @@ function standaloneMermaidRuntime(): string {
       }
 
       async function renderMermaidDiagrams() {
-        const blocks = Array.from(document.querySelectorAll("[data-mermaid-source]"));
+        const blocks = Array.from(document.querySelectorAll("[data-mermaid-source]"))
+          .filter((block) => !block.closest(".mermaid-block"));
         if (blocks.length === 0) {
           return;
         }
@@ -996,6 +997,8 @@ function standaloneMermaidRuntime(): string {
           }
         }
       }
+
+      window.markVSpecRenderMermaidDiagrams = renderMermaidDiagrams;
 
       if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", renderMermaidDiagrams, { once: true });

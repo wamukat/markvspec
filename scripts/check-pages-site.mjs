@@ -1,4 +1,5 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { basename, dirname, extname, join, relative } from "node:path";
 import { gzipSync } from "node:zlib";
 import {
@@ -99,6 +100,7 @@ if (generatedPdfArtifacts.length > 0) {
 }
 const sharedMermaidRuntime = readSiteFile("examples/assets/markvspec-mermaid-runtime.js");
 expectContains(sharedMermaidRuntime, 'securityLevel: "strict"', "_site/examples/assets/markvspec-mermaid-runtime.js should initialize Mermaid with strict security.");
+expectContains(sharedMermaidRuntime, "window.markVSpecRenderMermaidDiagrams = renderMermaidDiagrams;", "_site/examples/assets/markvspec-mermaid-runtime.js should expose a rerender hook for dynamic preview content.");
 
 const pagefindIndexDir = join(siteDir, "pagefind", "index");
 const pagefindIndexFiles = existsSync(pagefindIndexDir)
@@ -123,6 +125,9 @@ expectContains(helloShowcaseHtml, 'aria-controls="example-sidebar-content"', "_s
 expectContains(helloShowcaseHtml, 'aria-label="Hide example navigation"', "_site/examples/showcase/hello-screen.html sidebar toggle should have an accessible label.");
 expectContains(helloShowcaseHtml, 'aria-current="page"', "_site/examples/showcase/hello-screen.html sidebar should mark the current example.");
 expectContains(helloShowcaseHtml, 'id="dynamic-preview-config"', "_site/examples/showcase/hello-screen.html should expose runtime configuration.");
+expectContains(helloShowcaseHtml, 'href="/markvspec/examples/assets/markvspec-preview.css"', "_site/examples/showcase/hello-screen.html should load generated preview CSS for dynamic output.");
+expectContains(helloShowcaseHtml, 'src="/markvspec/examples/assets/markvspec-mermaid.js"', "_site/examples/showcase/hello-screen.html should load Mermaid for dynamic output.");
+expectContains(helloShowcaseHtml, 'src="/markvspec/examples/assets/markvspec-mermaid-runtime.js"', "_site/examples/showcase/hello-screen.html should load the Mermaid renderer for dynamic output.");
 expectContains(helloShowcaseHtml, 'data-dynamic-preview-output', "_site/examples/showcase/hello-screen.html should include the dynamic preview output container.");
 expectContains(helloShowcaseHtml, 'data-dynamic-preview-fallback', "_site/examples/showcase/hello-screen.html should include the runtime failure container.");
 expectContains(helloShowcaseHtml, '"/markvspec/examples/source/01-basics/hello-screen.vspec.md"', "_site/examples/showcase/hello-screen.html should fetch the public source asset.");
@@ -187,6 +192,9 @@ expectContains(helloDynamicHtml, 'data-sidebar-toggle', "_site/examples/dynamic/
 expectContains(helloDynamicHtml, 'aria-controls="example-sidebar-content"', "_site/examples/dynamic/hello-screen.html sidebar toggle should target the sidebar content.");
 expectContains(helloDynamicHtml, 'aria-label="Hide example navigation"', "_site/examples/dynamic/hello-screen.html sidebar toggle should have an accessible label.");
 expectContains(helloDynamicHtml, 'id="dynamic-preview-config"', "_site/examples/dynamic/hello-screen.html should expose runtime configuration.");
+expectContains(helloDynamicHtml, 'href="/markvspec/examples/assets/markvspec-preview.css"', "_site/examples/dynamic/hello-screen.html should load generated preview CSS for dynamic output.");
+expectContains(helloDynamicHtml, 'src="/markvspec/examples/assets/markvspec-mermaid.js"', "_site/examples/dynamic/hello-screen.html should load Mermaid for dynamic output.");
+expectContains(helloDynamicHtml, 'src="/markvspec/examples/assets/markvspec-mermaid-runtime.js"', "_site/examples/dynamic/hello-screen.html should load the Mermaid renderer for dynamic output.");
 expectContains(helloDynamicHtml, '"/markvspec/examples/source/01-basics/hello-screen.vspec.md"', "_site/examples/dynamic/hello-screen.html should fetch the public source asset.");
 expectNotContains(helloDynamicHtml, '"/markvspec/examples/generated/hello-screen.html"', "_site/examples/dynamic/hello-screen.html should not keep the generated preview fallback.");
 expectContains(helloDynamicHtml, 'href="https://raw.githubusercontent.com/wamukat/markvspec/main/examples/01-basics/hello-screen.vspec.md"', "_site/examples/dynamic/hello-screen.html Source link should use the raw GitHub URL.");
@@ -207,6 +215,7 @@ expectContains(templateDynamicHtml, '"/markvspec/examples/source/05-reuse/templa
 expectContains(templateDynamicHtml, '"/markvspec/examples/source/05-reuse/profile-summary.partial.vspec.md"', "_site/examples/dynamic/profile-page-with-template.html should publish the partial dependency source.");
 
 const dynamicCoverage = checkDynamicShowcaseCoverage();
+const dynamicParity = checkDynamicExportStructureParity();
 const dynamicRuntimeSource = readFileSync(join(root, "docs-site", "src", "lib", "dynamic-preview.js"), "utf8");
 expectContains(dynamicRuntimeSource, "renderDynamicPreview().catch((error) => {", "dynamic preview runtime should catch render failures.");
 expectContains(dynamicRuntimeSource, "showRuntimeFailure(error, config);", "dynamic preview runtime should show runtime failure UI on render failures.");
@@ -271,7 +280,7 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log(`Pages site check passed (${generatedHtml.length} generated example pages, ${showcaseFiles.length} showcase pages, ${dynamicCoverage.rendered} dynamic smoke renders, ${dynamicCoverage.dynamicDocumentsChecked} dynamic document checks).`);
+console.log(`Pages site check passed (${generatedHtml.length} generated example pages, ${showcaseFiles.length} showcase pages, ${dynamicCoverage.rendered} dynamic smoke renders, ${dynamicCoverage.dynamicDocumentsChecked} dynamic document checks, ${dynamicParity.checked} export/dynamic structure parity checks).`);
 
 function expectFile(filePath, message = `Missing _site artifact: ${filePath}`) {
   if (!existsSync(join(siteDir, filePath))) {
@@ -337,6 +346,124 @@ function checkDynamicShowcaseCoverage() {
   }
 
   return { dynamicDocumentsChecked, rendered };
+}
+
+function checkDynamicExportStructureParity() {
+  let checked = 0;
+  const workRoot = join(root, ".work");
+  mkdirSync(workRoot, { recursive: true });
+  const generatedDir = mkdtempSync(join(workRoot, "dynamic-preview-parity-"));
+  try {
+    for (const entry of catalog.examples) {
+      const slug = basename(entry.path, ".vspec.md");
+      const sourcePath = join(root, entry.path);
+      const showcasePath = `examples/showcase/${slug}.html/index.html`;
+      const showcaseHtml = readSiteFile(showcasePath);
+      const config = dynamicPreviewConfig(showcaseHtml, showcasePath);
+      if (!config) {
+        continue;
+      }
+      const dynamicSmoke = smokeRenderDynamicConfig(config, showcasePath);
+      if (!dynamicSmoke) {
+        continue;
+      }
+
+      execFileSync("node", [join(root, "packages", "cli", "dist", "index.js"), "export", "html", sourcePath, "--out", generatedDir], {
+        cwd: root,
+        stdio: "pipe",
+      });
+      const generatedHtmlPath = join(generatedDir, `${slug}.html`);
+      if (!existsSync(generatedHtmlPath)) {
+        failures.push(`${showcasePath} export/dynamic parity could not find generated HTML: ${toPosixPath(relative(root, generatedHtmlPath))}`);
+        continue;
+      }
+
+      const generatedArticle = extractDocumentArticle(readFileSync(generatedHtmlPath, "utf8"), `${slug}.html`);
+      if (!generatedArticle) {
+        continue;
+      }
+      compareHtmlStructureFingerprint({
+        dynamicHtml: dynamicSmoke.html,
+        filePath: showcasePath,
+        generatedHtml: generatedArticle,
+      });
+      checked += 1;
+    }
+  } finally {
+    rmSync(generatedDir, { force: true, recursive: true });
+  }
+  return { checked };
+}
+
+function extractDocumentArticle(html, label) {
+  const openMatch = /<article\b[^>]*\bclass="[^"]*\bdocument\b[^"]*"[^>]*>/iu.exec(html);
+  if (!openMatch) {
+    failures.push(`${label} export/dynamic parity could not find <article class="document">.`);
+    return "";
+  }
+  const articlePattern = /<\/?article\b[^>]*>/giu;
+  articlePattern.lastIndex = openMatch.index;
+  let depth = 0;
+  for (const match of html.matchAll(articlePattern)) {
+    if (match[0].startsWith("</")) {
+      depth -= 1;
+      if (depth === 0) {
+        return html.slice(openMatch.index, match.index + match[0].length);
+      }
+    } else {
+      depth += 1;
+    }
+  }
+  failures.push(`${label} export/dynamic parity could not find the matching </article> for <article class="document">.`);
+  return "";
+}
+
+function compareHtmlStructureFingerprint({ dynamicHtml, filePath, generatedHtml }) {
+  const generated = htmlStructureFingerprint(generatedHtml);
+  const dynamic = htmlStructureFingerprint(dynamicHtml);
+  const tagDiffs = diffCountMaps(generated.tags, dynamic.tags);
+  const classDiffs = diffCountMaps(generated.classes, dynamic.classes);
+  const dataAttributeDiffs = diffCountMaps(generated.dataAttributes, dynamic.dataAttributes);
+  if (tagDiffs.length > 0 || classDiffs.length > 0 || dataAttributeDiffs.length > 0) {
+    failures.push(`${filePath} dynamic preview should keep export HTML tag/class/data-attribute structure. tagDiffs=${formatDiffs(tagDiffs)} classDiffs=${formatDiffs(classDiffs)} dataAttributeDiffs=${formatDiffs(dataAttributeDiffs)}`);
+  }
+}
+
+function htmlStructureFingerprint(html) {
+  return {
+    classes: countMatches([...html.matchAll(/\bclass="([^"]*)"/gu)].flatMap((match) => match[1].split(/\s+/u).filter(Boolean))),
+    dataAttributes: countMatches([...html.matchAll(/\s(data-[a-z0-9:-]+)(?:=|\s|>)/giu)].map((match) => match[1])),
+    tags: countMatches([...html.matchAll(/<\s*([a-z][a-z0-9:-]*)\b/giu)].map((match) => match[1].toLowerCase())),
+  };
+}
+
+function countMatches(values) {
+  const counts = new Map();
+  for (const value of values) {
+    counts.set(value, (counts.get(value) ?? 0) + 1);
+  }
+  return counts;
+}
+
+function diffCountMaps(expected, actual) {
+  const keys = new Set([...expected.keys(), ...actual.keys()]);
+  const diffs = [];
+  for (const key of [...keys].sort((a, b) => a.localeCompare(b))) {
+    const expectedCount = expected.get(key) ?? 0;
+    const actualCount = actual.get(key) ?? 0;
+    if (expectedCount !== actualCount) {
+      diffs.push(`${key}:${expectedCount}->${actualCount}`);
+    }
+  }
+  return diffs;
+}
+
+function formatDiffs(diffs) {
+  if (diffs.length === 0) {
+    return "none";
+  }
+  const visible = diffs.slice(0, 12).join(", ");
+  return diffs.length > 12 ? `${visible}, ... +${diffs.length - 12}` : visible;
 }
 
 function dynamicPreviewConfig(html, filePath) {

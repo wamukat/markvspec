@@ -68,6 +68,7 @@ const metaPills = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{example.title} - MarkVSpec Example Showcase</title>
     <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+    <link rel="stylesheet" href={`${base}/examples/assets/markvspec-preview.css`} />
     <style>
       :root {
         --page: #f6f7f9;
@@ -452,7 +453,7 @@ const metaPills = [
         min-height: 520px;
         overflow: auto;
       }
-      pre {
+      .source-wrap pre {
         font-size: 0;
         line-height: 0;
         margin: 0;
@@ -460,7 +461,7 @@ const metaPills = [
         padding: 12px 0;
         tab-size: 2;
       }
-      code {
+      .source-wrap code {
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
         font-size: 0;
         line-height: 0;
@@ -585,7 +586,7 @@ const metaPills = [
         .fallback-frame-wrap {
           max-width: 100%;
         }
-        pre {
+        .source-wrap pre {
           min-width: 0;
           width: max-content;
         }
@@ -728,6 +729,8 @@ const metaPills = [
       </div>
     </main>
     <script id="dynamic-preview-config" type="application/json" set:html={JSON.stringify(dynamicPreviewConfig)}></script>
+    <script is:inline src={`${base}/examples/assets/markvspec-mermaid.js`}></script>
+    <script is:inline src={`${base}/examples/assets/markvspec-mermaid-runtime.js`}></script>
     <script>import '../../../lib/dynamic-preview.js';</script>
     <script is:inline>
       (() => {

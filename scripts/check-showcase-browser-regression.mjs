@@ -73,7 +73,7 @@ async function checkDynamicShowcase(slug, viewport) {
   const page = await browser.newPage({ viewport });
   try {
     await page.navigate(`${baseUrl}/examples/showcase/${slug}.html`);
-    const result = await waitForShowcaseResult(page, slug, (current) => current.status !== "loading" && current.status !== "");
+    const result = await waitForShowcaseResult(page, slug, (current) => current.status !== "loading" && current.status !== "" && mermaidSettled(current));
 
     if (result.status !== "ready" && result.status !== "diagnostics") {
       failures.push(`${label}: expected dynamic preview status ready/diagnostics, got ${result.status || "missing"}.`);
@@ -93,6 +93,15 @@ async function checkDynamicShowcase(slug, viewport) {
     if (!result.hasGeneratedDocumentSections) {
       failures.push(`${label}: dynamic preview should contain generated design document sections.`);
     }
+    if (!result.previewStylesApplied) {
+      failures.push(`${label}: dynamic preview should apply the generated preview stylesheet.`);
+    }
+    if ((result.mermaidSourceCount ?? 0) > 0 && (result.mermaidSvgCount ?? 0) < result.mermaidSourceCount) {
+      failures.push(`${label}: dynamic preview should render Mermaid sources to SVG (${result.mermaidSvgCount ?? 0}/${result.mermaidSourceCount} rendered).`);
+    }
+    if (result.mermaidFailed) {
+      failures.push(`${label}: dynamic preview should not leave Mermaid diagrams in the failed source state.`);
+    }
     if (result.sourcePreviewOverlap) {
       failures.push(`${label}: source panel and dynamic preview panel should not overlap.`);
     }
@@ -103,7 +112,7 @@ async function checkDynamicShowcase(slug, viewport) {
       failures.push(`${label}: page should not overflow horizontally at ${result.viewport.width}px.`);
     }
     const viewportLabel = result.viewport ? `${result.viewport.width}x${result.viewport.height}` : "unknown";
-    checks.push(`${label}: status=${result.status || "missing"}, output=${result.outputTextLength ?? 0} chars, viewport=${viewportLabel}`);
+    checks.push(`${label}: status=${result.status || "missing"}, output=${result.outputTextLength ?? 0} chars, mermaid=${result.mermaidSvgCount ?? 0}/${result.mermaidSourceCount ?? 0}, viewport=${viewportLabel}`);
   } finally {
     await page.close();
   }
@@ -165,6 +174,12 @@ function inspectShowcaseScript() {
   const output = document.querySelector('[data-dynamic-preview-output]');
   const fallback = document.querySelector('[data-dynamic-preview-fallback]');
   const previewAction = document.querySelector('#dynamic-preview .pane-tools a');
+  const documentSectionHeading = output?.querySelector('.document .doc-section h2');
+  const documentToc = output?.querySelector('.document .toc-inline');
+  const documentTocStyle = documentToc ? getComputedStyle(documentToc) : undefined;
+  const documentSectionHeadingStyle = documentSectionHeading ? getComputedStyle(documentSectionHeading) : undefined;
+  const mermaidSourceCount = output?.querySelectorAll('[data-mermaid-source]').length ?? 0;
+  const mermaidSvgCount = output?.querySelectorAll('.mermaid-render svg').length ?? 0;
   return {
     fallbackHidden: fallback ? fallback.hidden : true,
     fallbackIframe: Boolean(fallback?.querySelector('iframe')),
@@ -172,10 +187,21 @@ function inspectShowcaseScript() {
     hasGeneratedDocumentSections: Boolean(output?.querySelector('.document #screen') && output?.querySelector('.document #state-views') && output?.querySelector('.toc-inline')),
     hasWireframeRoot: Boolean(output?.querySelector('.markvspec-preview, .mm-wireframe, .mm-screen')),
     horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth + 1,
+    mermaidFailed: Boolean(output?.querySelector('.mermaid-block.is-source-visible .mermaid-placeholder')),
+    mermaidSourceCount,
+    mermaidSvgCount,
     outputHidden: output ? output.hidden : true,
     outputHtmlLength: output?.innerHTML.trim().length ?? 0,
     outputTextLength: output?.innerText.trim().length ?? 0,
     pagePath: window.location.pathname,
+    previewStylesApplied: Boolean(
+      documentTocStyle
+        && documentTocStyle.backgroundColor === 'rgb(255, 255, 255)'
+        && documentTocStyle.borderTopStyle !== 'none'
+        && documentSectionHeadingStyle
+        && documentSectionHeadingStyle.borderBottomStyle !== 'none'
+        && documentSectionHeadingStyle.borderBottomWidth !== '0px'
+    ),
     sourcePreviewOverlap: overlaps(rect('#source'), rect('#dynamic-preview')),
     status: status?.dataset.status ?? '',
     statusActionOverlap: overlaps(rect('[data-dynamic-preview-status]'), previewAction ? previewAction.getBoundingClientRect() : undefined),
@@ -187,6 +213,14 @@ function inspectShowcaseScript() {
   };
 })()
 `;
+}
+
+function mermaidSettled(result) {
+  const sourceCount = result?.mermaidSourceCount ?? 0;
+  if (sourceCount === 0) {
+    return true;
+  }
+  return (result?.mermaidSvgCount ?? 0) >= sourceCount || result?.mermaidFailed;
 }
 
 async function waitForShowcaseResult(page, slug, predicate, timeoutMs = 20000) {

@@ -50,6 +50,7 @@ const metaPills = [
     <title>{example.title} - MarkVSpec Read-only Dynamic Preview</title>
     <link rel="canonical" href={showcaseHref} />
     <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+    <link rel="stylesheet" href={`${base}/examples/assets/markvspec-preview.css`} />
     <style>
       :root {
         --page: #f6f7f9;
@@ -551,6 +552,8 @@ const metaPills = [
         });
       })();
     </script>
+    <script is:inline src={`${base}/examples/assets/markvspec-mermaid.js`}></script>
+    <script is:inline src={`${base}/examples/assets/markvspec-mermaid-runtime.js`}></script>
     <script>
       import '../../../lib/dynamic-preview.js';
     </script>

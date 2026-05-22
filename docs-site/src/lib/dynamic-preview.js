@@ -78,6 +78,13 @@ function showDynamicPreview(html) {
   }
 }
 
+async function renderDynamicMermaidDiagrams() {
+  const renderMermaidDiagrams = globalThis.markVSpecRenderMermaidDiagrams;
+  if (typeof renderMermaidDiagrams === 'function') {
+    await renderMermaidDiagrams();
+  }
+}
+
 function runtimeFailureView(error, config) {
   const wrapper = document.createElement('div');
   wrapper.className = 'dynamic-preview-failure';
@@ -134,9 +141,10 @@ async function renderDynamicPreview() {
   ];
   const validation = evaluateMarkVSpecDiagnostics([...renderResult.diagnostics, ...dependencyDiagnostics]);
   const html = renderBrowserDesignDocumentHtml(renderResult);
-  const renderedAt = performance.now();
 
   showDynamicPreview(html);
+  await renderDynamicMermaidDiagrams();
+  const renderedAt = performance.now();
   setDiagnostics(validation.diagnostics, config.locale);
   setStatus(validation.passed ? 'ready' : 'diagnostics', validation.passed ? 'Generated document rendered in browser.' : 'Generated document rendered with diagnostics.');
   setMetrics([

@@ -76,6 +76,13 @@ function prepareExampleArtifacts(files) {
   rmSync(generatedExamplesWorkDir, { recursive: true, force: true });
 }
 
+function buildExampleExportTooling() {
+  execFileSync("npm", ["run", "build", "-w", "@markvspec/core"], { stdio: "inherit" });
+  execFileSync("npm", ["run", "build", "-w", "@markvspec/document-renderer"], { stdio: "inherit" });
+  execFileSync("npm", ["run", "build", "-w", "@markvspec/exporter"], { stdio: "inherit" });
+  execFileSync("npm", ["run", "build", "-w", "@markvspec/cli"], { stdio: "inherit" });
+}
+
 function prepareBrandAssets() {
   rmSync(publicAssetsDir, { recursive: true, force: true });
   cpSync(brandAssetsDir, publicAssetsDir, { recursive: true });
@@ -131,6 +138,7 @@ try {
   const files = collectVspecFiles(examplesDir);
   assertUniqueOutputNames(files);
   validateCatalog(files);
+  buildExampleExportTooling();
   console.log(`Preparing ${files.length} example source assets and shared preview assets.`);
   prepareExampleArtifacts(files);
   prepareBrandAssets();
