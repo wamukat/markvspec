@@ -78,6 +78,10 @@ function resolveMarkdownSourceTarget(sourcePath, rawHref) {
     return { exists: true };
   }
 
+  if (hrefPath.startsWith("../../../examples/generated/") || hrefPath.startsWith("../../../examples/dynamic/")) {
+    return { exists: false };
+  }
+
   if (hrefPath.startsWith("../../../examples/showcase/")) {
     const slug = hrefPath.slice("../../../examples/showcase/".length).replace(/\.html$/u, "");
     return { exists: showcaseSlugs.has(slug) };
@@ -104,9 +108,8 @@ function resolveSiteTarget(rawHref) {
     return { exists: showcaseSlugs.has(slug) };
   }
 
-  if (sitePath.startsWith("/examples/generated/")) {
-    const slug = sitePath.slice("/examples/generated/".length).replace(/\.html$/u, "");
-    return { exists: showcaseSlugs.has(slug) };
+  if (sitePath.startsWith("/examples/generated/") || sitePath.startsWith("/examples/dynamic/")) {
+    return { exists: false };
   }
 
   if (sitePath.startsWith("/examples/")) {

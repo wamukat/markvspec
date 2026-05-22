@@ -63,6 +63,7 @@ expectNotContains(examplesHtml, "Source + Preview", "_site/examples/index.html s
 expectNotContains(examplesHtml, ">Preview<", "_site/examples/index.html should not expose preview-only card links.");
 expectNotContains(examplesHtml, ">PDF<", "_site/examples/index.html should not expose PDF card links.");
 expectNotContains(examplesHtml, `${base}/examples/generated/`, "_site/examples/index.html should not link generated artifacts from cards.");
+expectNotContains(examplesHtml, `${base}/examples/dynamic/`, "_site/examples/index.html should not link compatibility dynamic preview routes from cards.");
 expectNotContains(examplesHtml, `${base}/examples/generated/hello-screen.html`, "_site/examples/index.html should not link generated HTML artifacts from cards.");
 expectNotContains(examplesHtml, `${base}/examples/generated/hello-screen.pdf`, "_site/examples/index.html should not link generated PDF artifacts from cards.");
 expectNotContains(examplesHtml, `${base}/examples/experimental/editor/`, "_site/examples/index.html should not expose the experimental editor route.");
@@ -115,6 +116,8 @@ if (showcaseFiles.length !== exampleSources.length) {
 
 const helloShowcaseHtml = readSiteFile("examples/showcase/hello-screen.html/index.html");
 expectContains(helloShowcaseHtml, "Source and dynamic preview, side by side", "_site/examples/showcase/hello-screen.html should be a dynamic-first showcase page.");
+expectContains(helloShowcaseHtml, "Dynamic preview", "_site/examples/showcase/hello-screen.html should label the main preview as dynamic.");
+expectNotContains(helloShowcaseHtml, "Generated HTML Preview", "_site/examples/showcase/hello-screen.html should not label the main preview as generated HTML.");
 expectContains(helloShowcaseHtml, 'class="example-sidebar ', "_site/examples/showcase/hello-screen.html should show example navigation.");
 expectContains(helloShowcaseHtml, 'data-sidebar-toggle', "_site/examples/showcase/hello-screen.html should expose a sidebar collapse toggle.");
 expectContains(helloShowcaseHtml, 'aria-controls="example-sidebar-content"', "_site/examples/showcase/hello-screen.html sidebar toggle should target the sidebar content.");
@@ -138,6 +141,15 @@ expectContains(helloShowcaseHtml, "Japanese: Guide / Markdown Model", "_site/exa
 expectContains(helloShowcaseHtml, 'href="/markvspec/en/guide/markdown-model/"', "_site/examples/showcase/hello-screen.html should use the Starlight English guide URL.");
 expectContains(helloShowcaseHtml, 'href="/markvspec/ja/guide/markdown-model/"', "_site/examples/showcase/hello-screen.html should use the Starlight Japanese guide URL.");
 expectContains(helloShowcaseHtml, "Async Fetching", "_site/examples/showcase/hello-screen.html should link to the next example.");
+const showcaseDynamicScriptPath = dynamicScriptArtifactPath(helloShowcaseHtml, join(siteDir, "examples", "showcase", "hello-screen.html", "index.html"));
+if (!showcaseDynamicScriptPath) {
+  failures.push("_site/examples/showcase/hello-screen.html should include the dynamic preview browser script.");
+} else {
+  const { gzipBytes } = moduleGraphSize(showcaseDynamicScriptPath);
+  if (gzipBytes > 140 * 1024) {
+    failures.push(`showcase dynamic preview browser script gzip size should stay within 140 KiB (${formatKiB(gzipBytes)} found).`);
+  }
+}
 
 const scenarioShowcaseHtml = readSiteFile("examples/showcase/scenario-samples.html/index.html");
 expectContains(scenarioShowcaseHtml, "English: Guide / Scenarios", "_site/examples/showcase/scenario-samples.html should link the scenario guide.");
@@ -175,7 +187,7 @@ expectContains(helloDynamicHtml, 'id="dynamic-preview-config"', "_site/examples/
 expectContains(helloDynamicHtml, '"/markvspec/examples/source/01-basics/hello-screen.vspec.md"', "_site/examples/dynamic/hello-screen.html should fetch the public source asset.");
 expectContains(helloDynamicHtml, '"/markvspec/examples/generated/hello-screen.html"', "_site/examples/dynamic/hello-screen.html should keep the generated preview fallback.");
 expectContains(helloDynamicHtml, 'href="https://raw.githubusercontent.com/wamukat/markvspec/main/examples/01-basics/hello-screen.vspec.md"', "_site/examples/dynamic/hello-screen.html Source link should use the raw GitHub URL.");
-const dynamicScriptPath = dynamicScriptArtifactPath(helloDynamicHtml);
+const dynamicScriptPath = dynamicScriptArtifactPath(helloDynamicHtml, join(siteDir, "examples", "dynamic", "hello-screen.html", "index.html"));
 if (!dynamicScriptPath) {
   failures.push("_site/examples/dynamic/hello-screen.html should include the dynamic preview browser script.");
 } else {
@@ -372,12 +384,12 @@ function artifactPathForSitePath(sitePath) {
   return directPath;
 }
 
-function dynamicScriptArtifactPath(html) {
+function dynamicScriptArtifactPath(html, sourcePath) {
   const scriptMatch = html.match(/<script type="module" src="([^"]*dynamic-preview[^"]*|[^"]*_slug_[^"]*\.js)"><\/script>/u);
   if (!scriptMatch) {
     return undefined;
   }
-  return artifactPathForHref(scriptMatch[1], join(siteDir, "examples", "dynamic", "hello-screen.html", "index.html"));
+  return artifactPathForHref(scriptMatch[1], sourcePath);
 }
 
 function editorScriptArtifactPath(html) {
