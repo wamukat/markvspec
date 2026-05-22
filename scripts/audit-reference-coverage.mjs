@@ -1,0 +1,404 @@
+import { readdir, readFile } from "node:fs/promises";
+import { dirname, extname, join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
+import {
+  commonElementPropertyKeys,
+  elementTypeRegistry,
+  supportedDiagnosticMessageCodes
+} from "../packages/core/dist/index.js";
+import {
+  grammarSectionDefinitions,
+  grammarStructuredItemContexts,
+  grammarStructuredItemDefinitionsByContext
+} from "../packages/core/dist/grammar-definition.js";
+
+const rootDir = dirname(dirname(fileURLToPath(import.meta.url)));
+const failures = [];
+const warnings = [];
+const inventory = {};
+
+const requiredGeneratedMarkers = {
+  "docs/en/reference/actions.md": ["reference-actions"],
+  "docs/ja/reference/actions.md": ["reference-actions"],
+  "docs/en/reference/elements.md": ["reference-elements"],
+  "docs/ja/reference/elements.md": ["reference-elements"],
+  "docs/en/reference/rules.md": ["reference-rules"],
+  "docs/ja/reference/rules.md": ["reference-rules"],
+  "docs/en/reference/sections.md": ["reference-sections"],
+  "docs/ja/reference/sections.md": ["reference-sections"],
+  "docs/en/reference/validations.md": ["reference-validations"],
+  "docs/ja/reference/validations.md": ["reference-validations"]
+};
+
+inventory.grammarSections = grammarSectionDefinitions.map((definition) => ({
+  id: `section.${definition.kind}`,
+  title: definition.title,
+  order: definition.order
+}));
+
+inventory.structuredItemContexts = grammarStructuredItemContexts().map((context) => ({
+  id: `structured-context.${context}`,
+  context,
+  items: (grammarStructuredItemDefinitionsByContext[context] ?? []).map((definition) => ({
+    key: definition.key,
+    classification: definition.classification,
+    represented: definition.represented
+  }))
+}));
+
+inventory.elementTypes = [...elementTypeRegistry.entries()].map(([type, definition]) => ({
+  id: `element-type.${type}`,
+  type,
+  kind: definition.kind,
+  properties: [...definition.properties].sort(),
+  acceptsWidth: Boolean(definition.width),
+  acceptsSize: Boolean(definition.size)
+}));
+
+inventory.elementProperties = [
+  ...commonElementPropertyKeys.map((property) => ({ id: `element-property.common.${property}`, property, scope: "common" })),
+  ...inventory.elementTypes.flatMap((entry) =>
+    entry.properties.map((property) => ({ id: `element-property.${entry.type}.${property}`, property, scope: entry.type }))
+  )
+];
+
+inventory.diagnosticCodes = supportedDiagnosticMessageCodes().map((code) => ({
+  id: `diagnostic-code.${code}`,
+  code,
+  source: "packages/core/src/diagnostic-messages.ts"
+}));
+inventory.diagnosticPushSites = await sourceMatches("packages/core/src", /diagnostics\.push\(/gu, "diagnostic-push");
+inventory.rendererOutputFeatures = await rendererOutputFeatures();
+inventory.generatedReferenceMarkers = await generatedReferenceMarkers();
+inventory.referencePages = await referencePageInventory();
+inventory.vscodeCommands = await vscodeCommandInventory();
+inventory.cliSurface = await cliSurfaceInventory();
+inventory.examples = await exampleInventory();
+
+assertCategory("grammar sections", inventory.grammarSections);
+assertCategory("structured item contexts", inventory.structuredItemContexts);
+assertCategory("element types", inventory.elementTypes);
+assertCategory("element properties", inventory.elementProperties);
+assertCategory("diagnostic codes", inventory.diagnosticCodes);
+assertCategory("renderer output features", inventory.rendererOutputFeatures);
+assertCategory("generated reference markers", inventory.generatedReferenceMarkers);
+assertCategory("EN reference pages", inventory.referencePages.en);
+assertCategory("JA reference pages", inventory.referencePages.ja);
+assertCategory("VS Code commands", inventory.vscodeCommands);
+assertCategory("CLI commands", inventory.cliSurface.commands);
+assertCategory("examples", inventory.examples.catalogEntries);
+
+auditReferencePageSymmetry(inventory.referencePages);
+auditRequiredGeneratedMarkers(inventory.generatedReferenceMarkers);
+auditCoverageMarkerReadiness();
+auditFeatureMappingReadiness();
+printReport();
+
+if (failures.length > 0) {
+  console.error(`\nReference coverage audit failed:\n${failures.map((failure) => `- ${failure}`).join("\n")}`);
+  process.exit(1);
+}
+
+async function referencePageInventory() {
+  const enFiles = await markdownFiles("docs/en/reference");
+  const jaFiles = await markdownFiles("docs/ja/reference");
+  return {
+    en: await Promise.all(enFiles.map(referencePageEntry)),
+    ja: await Promise.all(jaFiles.map(referencePageEntry))
+  };
+}
+
+async function referencePageEntry(filePath) {
+  const source = await readFile(join(rootDir, filePath), "utf8");
+  return {
+    path: filePath,
+    basename: filePath.split("/").pop(),
+    headings: headings(source),
+    generatedMarkers: generatedMarkers(source)
+  };
+}
+
+function auditReferencePageSymmetry(pages) {
+  const en = new Set(pages.en.map((page) => page.basename));
+  const ja = new Set(pages.ja.map((page) => page.basename));
+  for (const basename of difference(en, ja)) {
+    failures.push(`docs/ja/reference is missing page ${basename}`);
+  }
+  for (const basename of difference(ja, en)) {
+    failures.push(`docs/en/reference is missing page ${basename}`);
+  }
+
+  for (const enPage of pages.en) {
+    const jaPage = pages.ja.find((page) => page.basename === enPage.basename);
+    if (!jaPage) {
+      continue;
+    }
+    const enKeyHeadingCount = enPage.headings.filter((heading) => heading.level <= 3).length;
+    const jaKeyHeadingCount = jaPage.headings.filter((heading) => heading.level <= 3).length;
+    if (enKeyHeadingCount !== jaKeyHeadingCount) {
+      warnings.push(`${enPage.basename}: EN/JA key heading count differs (${enKeyHeadingCount} vs ${jaKeyHeadingCount}); manual depth review required.`);
+    }
+  }
+
+  for (const page of [...pages.en, ...pages.ja]) {
+    if (page.headings.length === 0) {
+      failures.push(`${page.path}: Reference page has no Markdown headings`);
+      continue;
+    }
+    if (page.headings[0].level !== 1) {
+      failures.push(`${page.path}: Reference page must start with a level-1 heading`);
+    }
+  }
+}
+
+function auditRequiredGeneratedMarkers(markers) {
+  const markerByPath = new Map(markers.map((entry) => [entry.path, new Set(entry.markers)]));
+  for (const [filePath, expectedMarkers] of Object.entries(requiredGeneratedMarkers)) {
+    const actual = markerByPath.get(filePath);
+    if (!actual) {
+      failures.push(`${filePath}: missing required generated Reference marker scan result`);
+      continue;
+    }
+    for (const marker of expectedMarkers) {
+      if (!actual.has(marker)) {
+        failures.push(`${filePath}: missing required generated Reference marker ${marker}`);
+      }
+    }
+  }
+}
+
+function auditCoverageMarkerReadiness() {
+  const markerCount = inventory.referencePages.en
+    .concat(inventory.referencePages.ja)
+    .reduce((count, page) => count + page.generatedMarkers.filter((marker) => marker.startsWith("reference-coverage")).length, 0);
+  if (markerCount === 0) {
+    warnings.push("Reference coverage markers are not present yet; feature-to-prose mapping remains manual until a follow-up adds stable feature IDs.");
+  }
+}
+
+function auditFeatureMappingReadiness() {
+  warnings.push("Feature-to-Reference mapping is report-only in this skeleton; missing Reference page/section will be triaged before becoming a release-blocking failure.");
+  warnings.push("Diagnostic and renderer/export output coverage is inventoried where mechanically detectable; semantic coverage still requires manual review.");
+}
+
+async function generatedReferenceMarkers() {
+  const files = [...(await markdownFiles("docs/en/reference")), ...(await markdownFiles("docs/ja/reference"))].sort();
+  const entries = [];
+  for (const filePath of files) {
+    const source = await readFile(join(rootDir, filePath), "utf8");
+    entries.push({ path: filePath, markers: generatedMarkers(source) });
+  }
+  return entries;
+}
+
+async function vscodeCommandInventory() {
+  const packageJson = JSON.parse(await readFile(join(rootDir, "packages/vscode-extension/package.json"), "utf8"));
+  return (packageJson.contributes?.commands ?? []).map((command) => ({
+    id: `vscode-command.${command.command}`,
+    command: command.command,
+    title: command.title,
+    category: command.category
+  }));
+}
+
+async function cliSurfaceInventory() {
+  const packageJson = JSON.parse(await readFile(join(rootDir, "packages/cli/package.json"), "utf8"));
+  const source = await readFile(join(rootDir, "packages/cli/src/index.ts"), "utf8");
+  const usage = source.match(/Usage:\n([\s\S]*?)`/u)?.[1] ?? "";
+  const commands = [...usage.matchAll(/markvspec\s+([^\n]+)/gu)].map((match) => match[1].trim());
+  const parseBranches = [...source.matchAll(/args\.command === "([^"]+)"(?: && args\.subcommand === "([^"]+)")?/gu)].map((match) =>
+    [match[1], match[2]].filter(Boolean).join(" ")
+  );
+  return {
+    bins: Object.keys(packageJson.bin ?? {}).map((name) => ({ id: `cli-bin.${name}`, name, path: packageJson.bin[name] })),
+    commands: unique([...commands, ...parseBranches]).map((command) => ({ id: `cli-command.${command}`, command }))
+  };
+}
+
+async function exampleInventory() {
+  const catalog = await readFile(join(rootDir, "examples/catalog.yml"), "utf8");
+  const catalogEntries = [...catalog.matchAll(/^\s+- path:\s+(.+)$/gmu)].map((match) => match[1].trim());
+  const files = (await collectFiles("examples")).filter((filePath) => filePath.endsWith(".vspec.md"));
+  const missingFromDisk = catalogEntries.filter((filePath) => !files.includes(filePath));
+  const missingFromCatalog = files.filter((filePath) => !catalogEntries.includes(filePath) && !filePath.endsWith(".partial.vspec.md"));
+  for (const filePath of missingFromDisk) {
+    failures.push(`examples/catalog.yml references missing example ${filePath}`);
+  }
+  for (const filePath of missingFromCatalog) {
+    warnings.push(`${filePath}: example is not listed in examples/catalog.yml`);
+  }
+  return {
+    catalogEntries: catalogEntries.map((filePath) => ({ id: `example.${filePath}`, path: filePath })),
+    files: files.map((filePath) => ({ id: `example-file.${filePath}`, path: filePath }))
+  };
+}
+
+async function rendererOutputFeatures() {
+  const sources = [
+    "packages/document-renderer/src/index.ts",
+    "packages/document-renderer/src/static-element-spec.ts",
+    "packages/document-renderer/src/static-state-view-renderer.ts",
+    "packages/exporter/src/index.ts",
+    "packages/vscode-extension/src/project-preview-document.ts",
+    "packages/vscode-extension/src/preview-design-document-renderer.ts",
+    "packages/vscode-extension/src/preview-html-postprocess.ts"
+  ];
+  const features = [];
+  for (const filePath of sources) {
+    const source = await readFile(join(rootDir, filePath), "utf8");
+    const headingIds = [...source.matchAll(/<h[23][^>]*\bid=["']([^"']+)["']/gu)].map((match) => match[1]);
+    const tableHeaders = [...source.matchAll(/messages\.([A-Za-z0-9_]+)/gu)].map((match) => match[1]);
+    const classes = [...source.matchAll(/class=["']([^"']*(?:section|diagnostic|marker|spec|state-view)[^"']*)["']/gu)].map((match) => match[1]);
+    for (const value of unique([...headingIds.map((id) => `heading:${id}`), ...tableHeaders.map((key) => `message:${key}`), ...classes.map((className) => `class:${className}`)])) {
+      features.push({
+        id: `renderer-output.${filePath}.${slug(value)}`,
+        source: filePath,
+        value
+      });
+    }
+  }
+  return features;
+}
+
+async function sourceMatches(rootRelativePath, pattern, prefix) {
+  const files = (await collectFiles(rootRelativePath)).filter((filePath) => [".ts", ".tsx"].includes(extname(filePath)));
+  const entries = [];
+  for (const filePath of files) {
+    const source = await readFile(join(rootDir, filePath), "utf8");
+    const count = [...source.matchAll(pattern)].length;
+    if (count > 0) {
+      entries.push({ id: `${prefix}.${filePath}`, source: filePath, count });
+    }
+  }
+  return entries;
+}
+
+async function markdownFiles(rootRelativePath) {
+  return (await collectFiles(rootRelativePath)).filter((filePath) => filePath.endsWith(".md"));
+}
+
+async function collectFiles(rootRelativePath) {
+  const rootPath = join(rootDir, rootRelativePath);
+  const files = [];
+  await collect(rootPath, files);
+  return files.map((filePath) => relative(rootDir, filePath).replace(/\\/gu, "/")).sort();
+}
+
+async function collect(directory, files) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  for (const entry of entries) {
+    const entryPath = join(directory, entry.name);
+    if (entry.isDirectory()) {
+      await collect(entryPath, files);
+    } else if (entry.isFile()) {
+      files.push(entryPath);
+    }
+  }
+}
+
+function generatedMarkers(source) {
+  return [...source.matchAll(/<!-- markvspec-generated:([^:]+):start -->/gu)].map((match) => match[1]);
+}
+
+function headings(source) {
+  const entries = [];
+  let activeFence;
+  for (const line of source.split(/\r?\n/u)) {
+    if (activeFence) {
+      const fence = closingFenceMarker(line);
+      if (fence && fence.marker === activeFence.marker && fence.length >= activeFence.length) {
+        activeFence = undefined;
+      }
+      continue;
+    }
+    const fence = openingFenceMarker(line);
+    if (fence) {
+      activeFence = fence;
+      continue;
+    }
+    const match = line.match(/^(#{1,6})\s+(.+)$/u);
+    if (match) {
+      entries.push({
+        level: match[1].length,
+        text: match[2].trim()
+      });
+    }
+  }
+  return entries;
+}
+
+function openingFenceMarker(line) {
+  return fenceMarker(line, false);
+}
+
+function closingFenceMarker(line) {
+  return fenceMarker(line, true);
+}
+
+function fenceMarker(line, closing) {
+  const match = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/u);
+  if (!match) {
+    return undefined;
+  }
+  if (closing && match[2].trim() !== "") {
+    return undefined;
+  }
+  return {
+    marker: match[1][0],
+    length: match[1].length
+  };
+}
+
+function assertCategory(label, entries) {
+  if (!Array.isArray(entries) || entries.length === 0) {
+    failures.push(`Inventory category is empty: ${label}`);
+  }
+}
+
+function difference(left, right) {
+  return [...left].filter((value) => !right.has(value)).sort();
+}
+
+function unique(values) {
+  return [...new Set(values.filter(Boolean))].sort();
+}
+
+function slug(value) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/gu, "-").replace(/^-|-$/gu, "").slice(0, 80) || "feature";
+}
+
+function printReport() {
+  const summaryRows = [
+    ["grammar sections", inventory.grammarSections.length],
+    ["structured item contexts", inventory.structuredItemContexts.length],
+    ["structured items", inventory.structuredItemContexts.reduce((count, context) => count + context.items.length, 0)],
+    ["element types", inventory.elementTypes.length],
+    ["element properties", inventory.elementProperties.length],
+    ["diagnostic codes", inventory.diagnosticCodes.length],
+    ["diagnostic push sites", inventory.diagnosticPushSites.length],
+    ["renderer output features", inventory.rendererOutputFeatures.length],
+    ["generated Reference marker files", inventory.generatedReferenceMarkers.length],
+    ["EN Reference pages", inventory.referencePages.en.length],
+    ["JA Reference pages", inventory.referencePages.ja.length],
+    ["VS Code commands", inventory.vscodeCommands.length],
+    ["CLI commands", inventory.cliSurface.commands.length],
+    ["examples catalog entries", inventory.examples.catalogEntries.length],
+    ["example files", inventory.examples.files.length]
+  ];
+
+  console.log("Reference coverage audit summary:");
+  for (const [label, count] of summaryRows) {
+    console.log(`- ${label}: ${count}`);
+  }
+
+  if (warnings.length > 0) {
+    console.log("\nWarnings:");
+    for (const warning of warnings) {
+      console.log(`- ${warning}`);
+    }
+  } else {
+    console.log("\nWarnings: none");
+  }
+
+  console.log(`\nFailures: ${failures.length}`);
+}

@@ -108,21 +108,32 @@ Human review remains required for:
 updates the generated Reference tables used by `npm run docs:reference` and
 `npm run check:reference-docs`. `npm run check:generated-docs` runs both checks.
 
-## Proposed Minimal Checker
+## Minimal Checker
 
-A future `npm run audit:reference-coverage` should start with deterministic,
-low-noise checks:
+`npm run audit:reference-coverage` builds a deterministic inventory/report from
+grammar sections, structured contexts, element types and properties, diagnostic
+codes and detectable diagnostic push sites, renderer/exporter/preview output
+features, CLI commands, VS Code commands, Reference page structure, generated
+Reference markers, and example catalog entries.
 
-1. Build a feature inventory JSON from grammar sections, structured contexts,
-   element types, CLI commands, VS Code commands, and example catalog entries.
-2. Extract Reference coverage from headings, generated block markers, and
-   explicit maintainer-owned coverage markers.
-3. Fail on missing Reference page/section for Reference-required features.
-4. Warn on Guide-only or Example-only features without Reference links.
-5. Report English/Japanese asymmetry for page presence and key headings.
+The initial checker is intentionally report-first. It fails only when the audit
+preconditions are broken:
 
-Do not fail release on prose-depth scoring until the report has been reviewed
-manually for at least one release cycle.
+- A required inventory category is empty.
+- English and Japanese Reference page sets are asymmetric.
+- Required generated Reference markers are missing.
+- Existing Reference page structure is unreadable enough that the report cannot
+  be trusted.
+
+It warns, without failing release, when feature-to-Reference mapping is still
+manual, coverage markers are not present, prose depth may be thin, Guide-only or
+Example-only coverage may exist, or diagnostic/renderer/export coverage cannot
+yet be judged mechanically.
+
+`npm run audit:reference-coverage` is not included in `npm run check:release`
+yet. Missing Reference page/section findings should be promoted from warning to
+release-blocking failure only after the first generated report has been triaged
+and stable feature IDs or coverage markers exist.
 
 ## Initial Gaps To Track
 

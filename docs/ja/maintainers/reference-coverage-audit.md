@@ -108,20 +108,29 @@ release-blocking な Reference gap を作りません。
 `npm run check:reference-docs` が使う generated Reference table を更新します。
 `npm run check:generated-docs` は両方の check を実行します。
 
-## proposed minimal checker
+## minimal checker
 
-将来の `npm run audit:reference-coverage` は、まず noise の少ない deterministic check から始めます。
+`npm run audit:reference-coverage` は、grammar section、structured context、
+element type/property、diagnostic code と機械的に検出できる diagnostic push site、
+renderer/exporter/preview の visible output feature、CLI command、VS Code command、
+Reference page structure、generated Reference marker、example catalog entry から
+deterministic な inventory/report を作る。
 
-1. grammar sections、structured contexts、element types、CLI commands、VS Code commands、
-   examples catalog から feature inventory JSON を作る。
-2. Reference headings、generated block markers、maintainer-owned coverage markers から
-   Reference coverage を抽出する。
-3. Reference-required feature に Reference page/section がなければ fail する。
-4. Guide-only / Example-only feature に Reference link がなければ warning にする。
-5. 英日で page presence と key heading の非対称を report する。
+初期 checker は report-first とする。fail するのは audit の前提が壊れている場合に
+限定する。
 
-prose-depth scoring は、少なくとも 1 release cycle は手動確認してから release gate の
-failure にします。
+- 必須 inventory category が空。
+- English/Japanese の Reference page set が非対称。
+- 必須 generated Reference marker が欠落。
+- 既存 Reference page structure が report を信頼できないほど壊れている。
+
+feature-to-Reference mapping がまだ手動、coverage marker が未整備、prose depth が
+薄い可能性、Guide-only / Example-only coverage の疑い、diagnostic/renderer/export
+coverage をまだ機械判定できない場合は warn に留め、release は fail させない。
+
+`npm run audit:reference-coverage` はまだ `npm run check:release` には含めない。
+missing Reference page/section は、初回 report の triage と stable feature ID /
+coverage marker 整備が終わってから、warning から release-blocking failure へ昇格する。
 
 ## initial gaps to track
 

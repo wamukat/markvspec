@@ -24,6 +24,7 @@
     "check:showcase-browser": "npm run check:docs-site && node scripts/check-showcase-browser-regression.mjs",
     "audit:docs-code": "npm run build -w @markvspec/core && npm run build -w @markvspec/document-renderer && npm run build -w @markvspec/exporter && node scripts/audit-docs-code.mjs",
     "audit:docs-reference-vocabulary": "npm run build -w @markvspec/core && node scripts/audit-docs-reference-vocabulary.mjs",
+    "audit:reference-coverage": "npm run build -w @markvspec/core && node scripts/audit-reference-coverage.mjs",
     "audit:examples": "npm run build -w packages/vscode-extension && rm -rf packages/vscode-extension/dist-test && tsc -p packages/vscode-extension/tsconfig.test.json && node --loader ./packages/vscode-extension/test-vscode-loader.mjs --test packages/vscode-extension/dist-test/test/example-audit.test.js",
     "check:core-browser": "node scripts/check-core-browser-entry.mjs",
     "check:readme-release": "node scripts/check-readme-release-state.mjs",
