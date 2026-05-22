@@ -13,6 +13,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 - click、request、state change、partial update を確認する: [Actions](actions.md)
 - 入力制約と error 表示を確認する: [Validations](validations.md)
 - 画面固有の判断条件を確認する: [Business Rules](rules.md)
+- review history の field と entry を確認する: [History](history.md)
 - ID prefix と参照規則を確認する: [IDs](ids.md)
 - CLI の validation、HTML/PDF export、project document-list export を確認する: [CLI](cli.md)
 - 現時点で書かないものを確認する: [Limitations](limitations.md)
@@ -28,6 +29,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 | [Actions](actions.md) | `action: A-*`、`## Events`、`Process Pn:`、`request`、`receive`、`case:`、`display` |
 | [Validations](validations.md) | `## Field Validations`、`constraints`、validation message |
 | [Business Rules](rules.md) | `## Business Rules` に書く business rule と画面固有条件 |
+| [History](history.md) | `## History Fields`、`## History`、entry metadata、表示仕様 |
 | [IDs](ids.md) | `SCR-*`、`L-*`、`E-*`、`A-*`、`R-*` の使い分け |
 | [CLI](cli.md) | `validate`、HTML/PDF export、project `document-list` export |
 | [Limitations](limitations.md) | Markdown table、JSON、visual design、実装詳細の扱い |
@@ -38,6 +40,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 - parser-facing canonical syntax を確認する: [Grammar](grammar.md)
 - form を書く: [Elements](elements.md)、[Validations](validations.md)、[Actions](actions.md)
 - form group、preview scenario、slot、error code を書く: [Sections](sections.md)
+- 更新履歴を書く: [History](history.md)、[Sections](sections.md)
 - HTTP request を書く: [Actions](actions.md)、[Business Rules](rules.md)、[IDs](ids.md)
 - partial update を書く: [Actions](actions.md)、[Elements](elements.md)
 - export する: [CLI](cli.md)、[Limitations](limitations.md)
@@ -98,3 +101,4 @@ route: /hello
 - [Guide](../guide/index.md)
 - [Examples](../examples/index.md)
 - [Hello Screen](../../../examples/showcase/hello-screen.html)
+- [History And Errors](../../../examples/showcase/history-and-errors.html)

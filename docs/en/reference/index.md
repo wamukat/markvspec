@@ -13,6 +13,7 @@ Learning-oriented explanations live in [Guide](../guide/index.md). Reference is 
 - Check clicks, requests, state changes, and partial updates: [Actions](actions.md)
 - Check input constraints and error display: [Validations](validations.md)
 - Check screen-specific decisions: [Business Rules](rules.md)
+- Check review history fields and entries: [History](history.md)
 - Check ID prefixes and references: [IDs](ids.md)
 - Check CLI validation, HTML/PDF export, and project document-list export: [CLI](cli.md)
 - Check what MarkVSpec intentionally does not model: [Limitations](limitations.md)
@@ -28,6 +29,7 @@ Learning-oriented explanations live in [Guide](../guide/index.md). Reference is 
 | [Actions](actions.md) | `action: A-*`, `## Events`, `Process Pn:`, `request`, `receive`, `case:`, and `display` |
 | [Validations](validations.md) | `## Field Validations`, `constraints`, and validation messages |
 | [Business Rules](rules.md) | Business rules and screen-specific conditions in `## Business Rules` |
+| [History](history.md) | `## History Fields`, `## History`, entry metadata, and rendering behavior |
 | [IDs](ids.md) | How to use `SCR-*`, `L-*`, `E-*`, `A-*`, and `R-*` |
 | [CLI](cli.md) | `validate`, HTML/PDF export, and project `document-list` export |
 | [Limitations](limitations.md) | Markdown tables, JSON, visual design, and implementation details |
@@ -38,6 +40,7 @@ Learning-oriented explanations live in [Guide](../guide/index.md). Reference is 
 - Check parser-facing canonical syntax: [Grammar](grammar.md)
 - Write a form: [Elements](elements.md), [Validations](validations.md), [Actions](actions.md)
 - Write form groups, preview scenarios, slots, or error codes: [Sections](sections.md)
+- Write review history: [History](history.md), [Sections](sections.md)
 - Write an HTTP request: [Actions](actions.md), [Business Rules](rules.md), [IDs](ids.md)
 - Write a partial update: [Actions](actions.md), [Elements](elements.md)
 - Export output: [CLI](cli.md), [Limitations](limitations.md)
@@ -98,3 +101,4 @@ route: /hello
 - [Guide](../guide/index.md)
 - [Examples](../examples/index.md)
 - [Hello Screen](../../../examples/showcase/hello-screen.html)
+- [History And Errors](../../../examples/showcase/history-and-errors.html)

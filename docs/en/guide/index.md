@@ -15,6 +15,7 @@ Detailed syntax belongs in [Reference](../reference/index.md). Guide pages stay 
 7. [Validation](./validation.md): Capture input constraints and error behavior in the source. Separate field rules from business rules.
 8. [Scenarios](./scenarios.md): Name reviewable preview cases such as validation errors, empty data, toast/dialog results, and direct links.
 9. [Partial Updates](./partial-updates.md): Describe server-rendered partial updates as intent. Write the request and update semantics, not raw attributes.
+10. [History](./history.md): Add review history that appears in preview, export, and the document Basic Info.
 
 ## How To Use This Guide
 
@@ -28,6 +29,7 @@ MarkVSpec source is plain text. It works well with Git diff reviews, AI edits, a
 - [Form Submit Flow](../../../examples/showcase/form-submit-flow.html)
 - [Scenario Preview Data](../../../examples/showcase/scenario-samples.html)
 - [Profile Page With Template](../../../examples/showcase/profile-page-with-template.html)
+- [History And Errors](../../../examples/showcase/history-and-errors.html)
 
 ## Next Reading
 

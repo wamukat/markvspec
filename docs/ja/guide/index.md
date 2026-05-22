@@ -15,6 +15,7 @@ MarkVSpec は、画面仕様を Markdown で書き、すぐプレビューで確
 - `## Actions`: 操作と結果。まずは [アクション](./actions.md)。
 - `## Business Rules`: 画面固有の判断条件。まずは [バリデーション](./validation.md)。
 - `## Preview Scenarios`: 確認したい表示パターン。まずは [シナリオ](./scenarios.md)。
+- `## History Fields` / `## History`: 仕様書に残す更新履歴。まずは [更新履歴](./history.md)。
 
 ## 読み方
 
@@ -54,6 +55,7 @@ MarkVSpec は、画面仕様を Markdown で書き、すぐプレビューで確
 - [Async Fetching](../../../examples/showcase/async-loading.html): 読み込み中 / 空表示 / エラー。
 - [Scenario Preview Data](../../../examples/showcase/scenario-samples.html): 同じ画面の確認パターン。
 - [Profile Page With Template](../../../examples/showcase/profile-page-with-template.html): 部分更新。
+- [History And Errors](../../../examples/showcase/history-and-errors.html): Error Codes と更新履歴。
 
 ## 詳細を引く
 
