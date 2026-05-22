@@ -13,7 +13,6 @@ const requiredFiles = [
   "assets/markvspec-icon.svg",
   "examples/index.html",
   "examples/generated/hello-screen.html",
-  "examples/hello-screen.html",
   "examples/showcase/hello-screen.html/index.html",
   "pagefind/pagefind.js",
   "pagefind/pagefind-entry.json",
@@ -70,9 +69,15 @@ expectOrder(
 
 const generatedExamplesDir = join(siteDir, "examples", "generated");
 const generatedHtml = readdirSync(generatedExamplesDir).filter((entry) => entry.endsWith(".html") && !entry.endsWith(".pdf-source.html")).sort();
+const directExampleHtml = readdirSync(join(siteDir, "examples"))
+  .filter((entry) => entry.endsWith(".html") && entry !== "index.html")
+  .sort();
 const generatedPdfArtifacts = collectFiles(join(siteDir, "examples"), (filePath) => filePath.endsWith(".pdf") || filePath.endsWith(".pdf-source.html"));
 if (generatedHtml.length !== exampleSources.length) {
   failures.push(`_site/examples/generated should contain one HTML artifact per example (${exampleSources.length} expected, ${generatedHtml.length} found).`);
+}
+if (directExampleHtml.length > 0) {
+  failures.push(`_site/examples should not contain duplicated direct example HTML artifacts: ${directExampleHtml.join(", ")}`);
 }
 if (generatedPdfArtifacts.length > 0) {
   failures.push(`_site/examples should not contain generated PDF artifacts: ${generatedPdfArtifacts.map((filePath) => toPosixPath(relative(siteDir, filePath))).join(", ")}`);

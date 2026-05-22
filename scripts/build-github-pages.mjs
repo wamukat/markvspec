@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { copyFileSync, cpSync, mkdirSync, readdirSync, rmSync } from "node:fs";
+import { cpSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import { basename, join, relative } from "node:path";
 import { loadExampleCatalog, validateExampleCatalog } from "./example-catalog.mjs";
 
@@ -47,17 +47,13 @@ function toPosixPath(filePath) {
   return filePath.split(/[\\/]/u).join("/");
 }
 
-function prepareExampleArtifacts(files) {
+function prepareExampleArtifacts() {
   rmSync(publicExamplesDir, { recursive: true, force: true });
   mkdirSync(generatedExamplesDir, { recursive: true });
 
   execFileSync("node", ["packages/cli/dist/index.js", "export", "html", "examples/**/*.vspec.md", "--out", generatedExamplesDir], {
     stdio: "inherit",
   });
-
-  for (const filePath of files) {
-    copyFileSync(join(generatedExamplesDir, htmlFileName(filePath)), join(publicExamplesDir, htmlFileName(filePath)));
-  }
 }
 
 function prepareBrandAssets() {
@@ -86,7 +82,7 @@ const files = collectVspecFiles(examplesDir);
 assertUniqueOutputNames(files);
 validateCatalog(files);
 console.log(`Preparing ${files.length} generated example HTML artifacts.`);
-prepareExampleArtifacts(files);
+prepareExampleArtifacts();
 prepareBrandAssets();
 
 execFileSync("npm", ["run", "docs:grammar"], {
