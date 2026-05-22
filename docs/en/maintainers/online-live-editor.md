@@ -86,27 +86,36 @@ The MVP does not include server persistence. Consider options in this order:
 
 Initial implementation adopts option 1. Later options need separate tickets.
 
-## Constraints From #1381
+## Browser-Safe Core API
 
 #1381 confirmed that a browser bundle can be produced from `packages/core/dist/browser.js`.
 The minified bundle is 412.9 KiB, gzip is 112.8 KiB, and the browser bundle has
 0 Node built-in inputs.
 
-The root entry still includes Node-only renderer message file loading, so the
-formal Online Live Editor API should be exposed as a browser-safe subpath such
-as `@markvspec/core/browser`. Renderer message overrides that require filesystem
-lookup must stay out of the browser entry; browser callers should use built-in
-locale messages or explicitly supplied messages.
+The formal Online Live Editor API is `@markvspec/core/browser`. The browser
+entry exposes `parseMarkVSpec`, `validateMarkVSpec`,
+`evaluateMarkVSpecDiagnostics`, `renderDiagnosticMessageForLocale`,
+`renderMarkVSpecHtml`, the HTML fragment renderers,
+`renderMarkVSpecHtmlWithInvalidation`, and built-in locale message resolution.
+
+The root entry still includes Node-only renderer message file loading, so it is
+not treated as browser-safe. Renderer message overrides that require filesystem
+lookup, project loading, and workspace references must stay out of the browser
+entry; browser callers should use built-in locale messages or explicitly
+supplied messages.
+
+`npm run check:core-browser` bundles `@markvspec/core/browser` for a browser
+target and verifies that no Node built-in inputs are included and that the gzip
+size stays within budget. This check is included in the release check.
 
 Dynamic preview on docs-site also requires publishing `.vspec.md` source files
 as public assets or providing an equivalent source endpoint.
 
 ## Follow-Up Tickets
 
-- #1383: define `@markvspec/core/browser` as a public subpath and fix the
+- #1383: defined `@markvspec/core/browser` as a public subpath and fixed the
   browser-safe API contract versus Node-only API boundary.
 - #1384: add read-only dynamic preview to docs-site examples and verify source
   fetch plus generated HTML fallback.
 - #1385: build the editable Online Live Editor PoC behind an experimental,
   feature-flagged, or non-public route.
-

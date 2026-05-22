@@ -82,15 +82,24 @@ MVP ではサーバ保存を行わない。候補は次の順で検討する。
 
 初期実装では 1 を採用し、2 以降は別チケットに分ける。
 
-## #1381 からの技術制約
+## Browser-Safe Core API
 
 #1381 の PoC では、`packages/core/dist/browser.js` から browser bundle を作れることを
 確認した。minified bundle は 412.9 KiB、gzip は 112.8 KiB、Node built-in input は 0 件だった。
 
-一方で、root entry は Node-only renderer message file loading を含むため、Online Live
-Editor 向けの正式 API は `@markvspec/core/browser` のような browser-safe subpath として
-切る必要がある。filesystem lookup を伴う renderer message override は browser entry に
-入れず、browser caller は built-in locale messages または明示的に渡した messages を使う。
+Online Live Editor 向けの正式 API は `@markvspec/core/browser` とする。browser entry は
+`parseMarkVSpec`、`validateMarkVSpec`、`evaluateMarkVSpecDiagnostics`、
+`renderDiagnosticMessageForLocale`、`renderMarkVSpecHtml`、HTML fragment renderer、
+`renderMarkVSpecHtmlWithInvalidation`、built-in locale message resolver を公開する。
+
+root entry は Node-only renderer message file loading を含むため、browser-safe API として
+扱わない。filesystem lookup を伴う renderer message override、project loader、workspace
+参照は browser entry に入れず、browser caller は built-in locale messages または明示的に
+渡した messages を使う。
+
+`npm run check:core-browser` は `@markvspec/core/browser` を browser target で bundle し、
+Node built-in input が混入していないことと gzip size budget を検証する。この check は
+release check に含める。
 
 また、docs-site で dynamic preview を行うには、`.vspec.md` source を公開 asset として
 配布するか、同等の source endpoint を用意する必要がある。
@@ -98,9 +107,8 @@ Editor 向けの正式 API は `@markvspec/core/browser` のような browser-sa
 ## 後続チケットへの接続
 
 - #1383: `@markvspec/core/browser` を正式な public subpath として定義し、browser-safe API
-  の契約と Node-only API の境界を固定する。
+  の契約と Node-only API の境界を固定した。
 - #1384: docs-site examples で read-only dynamic preview を追加し、source fetch と
   generated HTML fallback を検証する。
 - #1385: editable Online Live Editor の PoC を、experimental / feature flag / 非公開 route
   のいずれかで作る。
-
