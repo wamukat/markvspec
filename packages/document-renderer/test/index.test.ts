@@ -250,6 +250,12 @@ Initial \`static\` release.
   const html = renderStaticDesignDocumentHtml(result);
 
   assert.match(html, /<article class="document">/);
+  assert.match(html, /<nav class="toc-inline" aria-label="Contents">/);
+  assert.match(html, /<div class="toc-title">Contents<\/div>/);
+  assert.match(html, /<a href="#screen">Screen<\/a>/);
+  assert.match(html, /<a href="#history">History<\/a>/);
+  assert.match(html, /<a href="#state-views">State Views<\/a>/);
+  assert.doesNotMatch(html, /<a href="#action-details">Action Details<\/a>/);
   assert.match(html, /<section class="doc-section screen-spec-section"><h2 id="screen">Screen<\/h2>/);
   assert.match(html, /<div class="screen-description"><p>Static screen overview\.<\/p><\/div>/);
   assert.match(html, /<th>Field<\/th><th>Value<\/th>/);
@@ -257,7 +263,7 @@ Initial \`static\` release.
   assert.match(html, /<td>Version<\/td><td>ver 1\.0<\/td>/);
   assert.match(html, /<td>Date<\/td><td>2026-05-13<\/td>/);
   assert.match(html, /<td>Author<\/td><td>Alice<\/td>/);
-  assert.match(html, /<section class="doc-section history-section"><h2>History<\/h2>/);
+  assert.match(html, /<section class="doc-section history-section"><h2 id="history">History<\/h2>/);
   assert.match(html, /<th>Version<\/th><th>Date<\/th><th>Author<\/th><th>Reviewer<\/th><th>Reason<\/th><th>Ticket<\/th><th>Changes<\/th>/);
   assert.match(html, /<td>ver 1\.0<\/td><td>2026-05-13<\/td><td>Alice<\/td><td>-<\/td><td>-<\/td><td>MM-1<\/td>/);
   assert.match(html, /Initial <span class="mm-inline-token">static<\/span> release\./);
@@ -839,7 +845,7 @@ title: Static Transitions
     ["initializing", "success", "loaded"],
     ["initializing", "failure", "initialize-error"]
   ]);
-  assert.match(html, /<h2>State Flow<\/h2>/);
+  assert.match(html, /<h2 id="state-flow">State Flow<\/h2>/);
   assert.doesNotMatch(html, /\[\*\] --&gt;/);
   assert.match(html, /<h2>State Transitions<\/h2>/);
   assert.match(html, /<td><code class="mm-doc-label mm-doc-label-state">before-load<\/code><\/td><td><code class="mm-doc-label mm-doc-label-state">initializing<\/code><\/td><td><code class="mm-doc-label mm-doc-label-result">sent<\/code><\/td><td><a class="mm-ref-chip mm-ref-chip-action" href="#state-views" data-mm-ref-id="A-LoadAccount"><code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1<\/code> Load account<\/a><div class="mm-ref-chip-note">page\.load<\/div><\/td>/);
@@ -913,7 +919,7 @@ title: Static Process Icons
 `);
   const html = renderStaticDesignDocumentHtml(result);
 
-  assert.match(html, /<h2>Action Details<\/h2>/);
+  assert.match(html, /<h2 id="action-details">Action Details<\/h2>/);
   for (const name of ["square-check-big", "unplug", "cog", "satellite-dish", "panels-top-left", "waypoints", "refresh-cw", "split", "merge"]) {
     assert.match(html, iconPattern(name), name);
   }

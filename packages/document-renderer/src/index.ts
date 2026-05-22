@@ -145,6 +145,12 @@ export function renderDesignDocumentSections(sections: readonly string[]): strin
   </article>`;
 }
 
+interface StaticDocumentSection {
+  id: string;
+  label: string;
+  html: string;
+}
+
 export type TableCell = string | undefined | null | {
   html: string | undefined;
   rowspan?: number;
@@ -167,27 +173,49 @@ const staticEntityReferencePresenterSupport = { escapeHtml };
 export function renderStaticDesignDocumentHtml(result: MarkVSpecParseResult, options: RenderStaticDesignDocumentOptions = {}): string {
   const documentResult = options.documentResult ?? result;
   const messages = options.messages ?? messagesForLocale(documentResult.screen.locale);
+  const sections: StaticDocumentSection[] = [
+    { id: "screen", label: documentOverviewLabel(documentResult, messages), html: renderDocumentOverviewSection(documentResult, messages) },
+    { id: "history", label: messages.history, html: renderHistorySection(documentResult, messages) },
+    { id: "form-groups", label: messages.formGroups, html: renderStaticFormGroupsSection(documentResult, messages) },
+    { id: "state-flow", label: messages.stateFlow, html: renderStaticStateFlowSection(documentResult, messages) },
+    { id: "state-transition-table", label: messages.actionTransitions, html: renderStaticActionTransitionsSection(documentResult, messages) },
+    { id: "action-details", label: messages.actionDetails, html: renderStaticActionDetailsSection(documentResult, messages) },
+    { id: "validations", label: messages.validation, html: renderStaticValidationsSection(documentResult, messages) },
+    { id: "business-rules", label: messages.businessRules, html: renderStaticBusinessRulesSection(documentResult, messages) },
+    { id: "error-codes", label: messages.errorCodes, html: renderStaticErrorCodesSection(documentResult, messages) },
+    { id: "notes", label: messages.notes, html: renderStaticNotesSection(documentResult, messages) },
+    { id: "view-contexts", label: messages.viewContexts, html: renderStaticViewContextsSection(documentResult, messages) },
+    { id: "view-context-samples", label: messages.viewContextSamples, html: renderStaticViewContextSamplesSection(documentResult, messages) },
+    { id: "state-views", label: messages.stateViews, html: renderStaticStateViewsSection(result, messages, staticStateViewRenderingSupport) }
+  ];
 
   return renderDesignDocumentSections([
-    renderDocumentOverviewSection(documentResult, messages),
-    renderHistorySection(documentResult, messages),
-    renderStaticFormGroupsSection(documentResult, messages),
-    renderStaticStateFlowSection(documentResult, messages),
-    renderStaticActionTransitionsSection(documentResult, messages),
-    renderStaticActionDetailsSection(documentResult, messages),
-    renderStaticValidationsSection(documentResult, messages),
-    renderStaticBusinessRulesSection(documentResult, messages),
-    renderStaticErrorCodesSection(documentResult, messages),
-    renderStaticNotesSection(documentResult, messages),
-    renderStaticViewContextsSection(documentResult, messages),
-    renderStaticViewContextSamplesSection(documentResult, messages),
-    renderStaticStateViewsSection(result, messages, staticStateViewRenderingSupport)
+    renderStaticTableOfContents(sections, messages),
+    ...sections.map((section) => section.html)
   ]);
+}
+
+function documentOverviewLabel(result: MarkVSpecParseResult, messages: RendererMessages): string {
+  const type = result.screen.type;
+  return type === "template" ? messages.template : type === "partial" ? messages.partial : messages.screen;
+}
+
+function renderStaticTableOfContents(sections: readonly StaticDocumentSection[], messages: RendererMessages): string {
+  const items = sections
+    .filter((section) => section.html.trim().length > 0)
+    .map((section) => `<li><a href="#${escapeHtml(section.id)}">${escapeHtml(section.label)}</a></li>`);
+  if (items.length === 0) {
+    return "";
+  }
+  return `<nav class="toc-inline" aria-label="${escapeHtml(messages.contents)}">
+      <div class="toc-title">${escapeHtml(messages.contents)}</div>
+      <ol class="toc-list">${items.join("")}</ol>
+    </nav>`;
 }
 
 function renderDocumentOverviewSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
   const screen = result.screen;
-  const heading = screen.type === "template" ? messages.template : screen.type === "partial" ? messages.partial : messages.screen;
+  const heading = documentOverviewLabel(result, messages);
   const latestHistory = latestHistoryBasicInfo(result.historyEntries);
   const facts = [
     [messages.id, screen.id ?? ""],
@@ -253,7 +281,7 @@ function renderStaticFormGroupsSection(result: MarkVSpecParseResult, messages: R
       messages.none
     )
     : `<p class="spec-empty">${escapeHtml(messages.none)}</p>`;
-  return `<section class="doc-section form-groups-section"><h2>${escapeHtml(messages.formGroups)}</h2>${prose.overview}${table}${prose.notes}</section>`;
+  return `<section class="doc-section form-groups-section"><h2 id="form-groups">${escapeHtml(messages.formGroups)}</h2>${prose.overview}${table}${prose.notes}</section>`;
 }
 
 function renderStaticValidationsSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
@@ -282,7 +310,7 @@ function renderStaticValidationsSection(result: MarkVSpecParseResult, messages: 
       messages.none
     )
     : `<p class="spec-empty">${escapeHtml(messages.none)}</p>`;
-  return `<section class="doc-section validation-section"><h2>${escapeHtml(messages.validation)}</h2>${prose.overview}${table}${prose.notes}</section>`;
+  return `<section class="doc-section validation-section"><h2 id="validations">${escapeHtml(messages.validation)}</h2>${prose.overview}${table}${prose.notes}</section>`;
 }
 
 function renderStaticBusinessRulesSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
@@ -311,7 +339,7 @@ function renderStaticBusinessRulesSection(result: MarkVSpecParseResult, messages
       messages.none
     )
     : `<p class="spec-empty">${escapeHtml(messages.none)}</p>`;
-  return `<section class="doc-section business-rules-section"><h2>${escapeHtml(messages.businessRules)}</h2>${prose.overview}${table}${prose.notes}</section>`;
+  return `<section class="doc-section business-rules-section"><h2 id="business-rules">${escapeHtml(messages.businessRules)}</h2>${prose.overview}${table}${prose.notes}</section>`;
 }
 
 function renderStaticErrorCodesSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
@@ -338,14 +366,14 @@ function renderStaticErrorCodesSection(result: MarkVSpecParseResult, messages: R
       messages.none
     )
     : `<p class="spec-empty">${escapeHtml(messages.none)}</p>`;
-  return `<section class="doc-section error-codes-section"><h2>${escapeHtml(messages.errorCodes)}</h2>${prose.overview}${table}${prose.notes}</section>`;
+  return `<section class="doc-section error-codes-section"><h2 id="error-codes">${escapeHtml(messages.errorCodes)}</h2>${prose.overview}${table}${prose.notes}</section>`;
 }
 
 function renderStaticNotesSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
   if (result.notes.length === 0) {
     return "";
   }
-  return `<section class="doc-section notes-section"><h2>${escapeHtml(messages.notes)}</h2>${result.notes.map((note) => `<section class="note-block"><h3>${escapeHtml(note.title)}</h3>${renderStaticEntityNotes(result, note.lines)}</section>`).join("")}</section>`;
+  return `<section class="doc-section notes-section"><h2 id="notes">${escapeHtml(messages.notes)}</h2>${result.notes.map((note) => `<section class="note-block"><h3>${escapeHtml(note.title)}</h3>${renderStaticEntityNotes(result, note.lines)}</section>`).join("")}</section>`;
 }
 
 function renderStaticReferenceList(result: MarkVSpecParseResult, ids: string[]): string {
@@ -425,7 +453,7 @@ function renderStaticViewContextsSection(result: MarkVSpecParseResult, messages:
     )
     : `<p class="spec-empty">${escapeHtml(messages.none)}</p>`;
   return `<section class="doc-section view-context-section">
-  <h2>${escapeHtml(messages.viewContexts)}</h2>
+  <h2 id="view-contexts">${escapeHtml(messages.viewContexts)}</h2>
   ${renderStaticEntityOverview(result, sectionProse.flatMap((candidate) => candidate.overview))}
   ${table}
   ${renderStaticEntityNotes(result, sectionProse.flatMap((candidate) => candidate.notes))}
@@ -457,7 +485,7 @@ function renderStaticViewContextSamplesSection(result: MarkVSpecParseResult, mes
     )
     : `<p class="spec-empty">${escapeHtml(messages.none)}</p>`;
   return `<section class="doc-section view-context-samples-section">
-  <h2>${escapeHtml(messages.viewContextSamples)}</h2>
+  <h2 id="view-context-samples">${escapeHtml(messages.viewContextSamples)}</h2>
   ${renderStaticEntityOverview(result, sectionProse.flatMap((candidate) => candidate.overview))}
   ${table}
   ${renderStaticEntityNotes(result, sectionProse.flatMap((candidate) => candidate.notes))}
@@ -496,7 +524,7 @@ function renderStaticStateFlowSection(result: MarkVSpecParseResult, messages: Re
   if (!diagram) {
     return "";
   }
-  return `<section class="doc-section state-flow-section"><h2>${escapeHtml(messages.stateFlow)}</h2>${renderStaticStateMessagesBox(result, messages)}<pre class="mermaid-source" data-mermaid-source><code class="language-mermaid">${escapeHtml(diagram)}</code></pre></section>`;
+  return `<section class="doc-section state-flow-section"><h2 id="state-flow">${escapeHtml(messages.stateFlow)}</h2>${renderStaticStateMessagesBox(result, messages)}<pre class="mermaid-source" data-mermaid-source><code class="language-mermaid">${escapeHtml(diagram)}</code></pre></section>`;
 }
 
 function renderStaticActionTransitionsSection(result: MarkVSpecParseResult, messages: RendererMessages): string {
@@ -532,7 +560,7 @@ function renderStaticActionDetailsSection(result: MarkVSpecParseResult, messages
     return "";
   }
   const cards = result.actions.map((action) => renderStaticActionDetail(result, messages, action)).join("");
-  return `<section class="doc-section"><h2>${escapeHtml(messages.actionDetails)}</h2>${prose.overview}<div class="action-detail-list">${cards}</div>${prose.notes}</section>`;
+  return `<section class="doc-section"><h2 id="action-details">${escapeHtml(messages.actionDetails)}</h2>${prose.overview}<div class="action-detail-list">${cards}</div>${prose.notes}</section>`;
 }
 
 function renderStaticActionDetail(
@@ -885,7 +913,7 @@ function renderHistorySection(result: MarkVSpecParseResult, messages: RendererMe
     ...fields.map((field) => escapeHtml(entry.fields[field.key] ?? "")),
     renderMarkdownLines(entry.bodyLines, result)
   ]);
-  return `<section class="doc-section history-section"><h2>${escapeHtml(messages.history)}</h2>${renderTable(headers, rows)}</section>`;
+  return `<section class="doc-section history-section"><h2 id="history">${escapeHtml(messages.history)}</h2>${renderTable(headers, rows)}</section>`;
 }
 
 export function renderTable(headers: string[], rows: Array<Array<string | undefined>>, emptyLabel = "None."): string {

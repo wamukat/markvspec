@@ -758,6 +758,11 @@ function standaloneHtml(
       h1 { font-size: 28px; margin: 0 0 24px; }
       h2 { font-size: var(--markvspec-heading-state-views); margin: 28px 0 12px; }
       .mm-export-section { margin-top: 28px; }
+      .toc-inline { background: #fff; border: 1px solid #d1d5db; border-radius: 8px; margin: 0 0 28px; padding: 12px; }
+      .toc-title { color: #374151; font-size: 12px; font-weight: 700; margin: 0 0 8px; }
+      .toc-list { display: grid; gap: 2px; list-style: none; margin: 0; padding: 0; }
+      .toc-list a { border-radius: 4px; color: #374151; display: block; font-size: 12px; line-height: 1.3; overflow: hidden; padding: 4px 6px; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+      .toc-list a:hover { background: #f3f4f6; color: #111827; }
       .doc-section { break-inside: avoid; margin: 0 0 28px; page-break-inside: avoid; }
       .doc-section h2 { align-items: center; border-bottom: 1px solid #d1d5db; display: flex; flex-wrap: wrap; font-size: var(--markvspec-heading-state-views); gap: 8px; margin: 0 0 12px; padding-bottom: 6px; }
       .doc-section h3 { font-size: var(--markvspec-heading-viewport); margin: 22px 0 8px; }

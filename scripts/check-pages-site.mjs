@@ -95,6 +95,8 @@ for (const fileName of generatedHtml) {
   expectContains(html, '<link rel="stylesheet" href="../assets/markvspec-preview.css">', `_site/examples/generated/${fileName} should use the shared preview stylesheet.`);
   expectContains(html, '<script src="../assets/markvspec-mermaid.js"></script>', `_site/examples/generated/${fileName} should use the shared Mermaid runtime asset.`);
   expectContains(html, '<script src="../assets/markvspec-mermaid-runtime.js"></script>', `_site/examples/generated/${fileName} should use the shared Mermaid initializer asset.`);
+  expectContains(html, '<nav class="toc-inline"', `_site/examples/generated/${fileName} should include an inline table of contents.`);
+  expectContains(html, 'href="#state-views"', `_site/examples/generated/${fileName} table of contents should link to state views.`);
   expectNotContains(html, "function prepareBlock(block)", `_site/examples/generated/${fileName} should not inline the Mermaid initializer runtime.`);
 }
 
