@@ -60,7 +60,7 @@ export function validateUnsupportedProcessLevelPartial(actionId: string, step: M
   for (const detail of step.details.filter((candidate) => candidate.key === "partial")) {
     diagnostics.push({
       severity: "warning",
-      message: `Action ${actionId} process step ${processStepLabel(step)} has unsupported process-level partial ${detail.value}. Put returned partial content under Effects display.partial on the response case.`,
+      message: `Action ${actionId} process step ${processStepLabel(step)} has unsupported process-level partial ${detail.value}. Put returned partial content under display.partial on the response case.`,
       line: detail.location.line
     });
   }
@@ -102,7 +102,7 @@ export function validateProcessCaseFlowPlacement(
     if (directive.underEffects) {
       diagnostics.push({
         severity: "warning",
-        message: `Action ${actionId} process step ${step.name} case ${outcome.result} has ${directive.value} under Effects. Put ${directive.value} directly under the case as the final entry.`,
+        message: `Action ${actionId} process step ${step.name} case ${outcome.result} has ${directive.value} under an Effects wrapper. Put ${directive.value} directly under the case as the final entry.`,
         line: directive.location.line
       });
     }

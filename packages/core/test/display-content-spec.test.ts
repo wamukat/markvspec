@@ -180,7 +180,10 @@ title: Unsupported Table Rows
 
   const rows = buildDisplayContentSpecRows(result.elements);
 
-  assert(result.diagnostics.some((diagnostic) => diagnostic.message === "Element E-Users of type Table uses unsupported property rows."));
+  assert(result.diagnostics.some((diagnostic) =>
+    diagnostic.severity === "info" &&
+    diagnostic.message === "Extension item in Element E-Users: rows: ${model.users.items}. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."
+  ));
   assert(!rows.some((row) => row.element.id === "E-Users" && row.location === "rows"));
   assert(!rows.some((row) => row.element.id === "E-Users" && row.location === "table rows"));
 });

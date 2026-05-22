@@ -1,4 +1,5 @@
 import type { BlockContent, Blockquote, Content, Heading, List, ListItem, Paragraph, RootContent } from "mdast";
+import { grammarSectionForTitle, type GrammarSectionKind } from "./grammar-definition.js";
 import type { MarkdownDocument } from "./markdown-document.js";
 
 export interface SourcePosition {
@@ -12,26 +13,7 @@ export interface SourceRange {
   end: SourcePosition;
 }
 
-export type SectionKind =
-  | "States"
-  | "Layout"
-  | "Slot"
-  | "Slots"
-  | "Elements"
-  | "FormGroups"
-  | "Events"
-  | "Actions"
-  | "ViewContext"
-  | "ViewContextSamples"
-  | "PreviewScenarios"
-  | "Validations"
-  | "FieldValidations"
-  | "CrossFieldValidations"
-  | "BusinessRules"
-  | "ErrorCodes"
-  | "HistoryFields"
-  | "History"
-  | "Unknown";
+export type SectionKind = GrammarSectionKind | "Unknown";
 
 export interface HeadingAst {
   depth: number;
@@ -180,61 +162,7 @@ function isSectionHeading(node: RootContent, bodyStartIndex: number): node is He
 }
 
 function sectionMetadata(title: string): { kind: SectionKind; viewport?: string; slotName?: string } {
-  const layout = /^Layout:\s*(.*?)\s*$/.exec(title);
-  if (layout) {
-    return { kind: "Layout", viewport: layout[1].trim() };
-  }
-
-  const slot = /^Slot:\s*([^:]*?)(?:\s*:\s*(.*?))?\s*$/.exec(title);
-  if (slot) {
-    const slotName = slot[1].trim();
-    const viewport = slot[2]?.trim();
-    return {
-      kind: "Slot",
-      slotName,
-      ...(viewport ? { viewport } : {})
-    };
-  }
-
-  switch (title) {
-    case "States":
-      return { kind: "States" };
-    case "Layout":
-      return { kind: "Layout" };
-    case "Slots":
-      return { kind: "Slots" };
-    case "Elements":
-      return { kind: "Elements" };
-    case "Form Groups":
-      return { kind: "FormGroups" };
-    case "Events":
-      return { kind: "Events" };
-    case "Actions":
-      return { kind: "Actions" };
-    case "View Context":
-      return { kind: "ViewContext" };
-    case "View Context Samples":
-      return { kind: "ViewContextSamples" };
-    case "Preview Scenarios":
-      return { kind: "PreviewScenarios" };
-    case "Validations":
-      return { kind: "Validations" };
-    case "Field Validations":
-      return { kind: "FieldValidations" };
-    case "Cross-field Validations":
-      return { kind: "CrossFieldValidations" };
-    case "Business Rules":
-      return { kind: "BusinessRules" };
-    case "Error Codes":
-      return { kind: "ErrorCodes" };
-    case "History Fields":
-    case "履歴フィールド":
-      return { kind: "HistoryFields" };
-    case "History":
-      return { kind: "History" };
-    default:
-      return { kind: "Unknown" };
-  }
+  return grammarSectionForTitle(title) ?? { kind: "Unknown" };
 }
 
 function sectionBaseId(kind: SectionKind, title: string, viewport: string | undefined, slotName: string | undefined, range: SourceRange): string {

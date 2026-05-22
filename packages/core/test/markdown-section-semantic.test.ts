@@ -940,8 +940,6 @@ title: Action AST
 
 ### main:A-Submit Submit
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Send request
@@ -954,16 +952,14 @@ title: Action AST
     - response: 2xx authenticated
     - params:
       - id: E-UserId.value
-    - Effects
-      - state: done
-      - update:
-        - target: L-Message
-        - mode: replace
-        - content: PRT-SUCCESS
+    - state: done
+    - update:
+      - target: L-Message
+      - mode: replace
+      - content: PRT-SUCCESS
   - case: failure
     - from: idle
-    - Effects
-      - state: error
+    - state: error
 - Process P2: Call server service
   - server:
     - ProfileService.load()
@@ -980,8 +976,8 @@ title: Action AST
   assert.equal(action?.id, "A-Submit");
   assert.equal(action?.name, "Submit");
   assert.equal(action?.properties["marker"], "main");
-  assert.equal(action?.triggeredBy, "E-SubmitButton.click");
-  assert.deepEqual(action?.trigger, { elementId: "E-SubmitButton", event: "click" });
+  assert.equal(action?.triggeredBy, undefined);
+  assert.equal(action?.trigger, undefined);
   assert.deepEqual(action?.fromStates, ["idle"]);
   assert.deepEqual(action?.processSteps.map((step) => [step.name, step.details.map((detail) => [detail.key, detail.value])]), [
     ["Send request", [["request.method", "POST"], ["request.path", "/login"], ["request.params.email", "E-メールアドレス入力.value"]]],
@@ -1015,7 +1011,6 @@ title: Action AST
   assert.deepEqual(astResult.sectionResults.flatMap((result) => result.dependencies).map((dependency) => [dependency.source, dependency.target, dependency.kind]), [
     [{ type: "section", id: "section:Actions" }, { type: "render", id: "actions:list" }, "renders"],
     [{ type: "section", id: "section:Actions" }, { type: "render", id: "action:A-Submit" }, "renders"],
-    [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "E-SubmitButton" }, "references"],
     [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "state:idle" }, "references"],
     [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "state:done" }, "derives"],
     [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "state:error" }, "derives"],
@@ -1052,9 +1047,8 @@ title: Action AST Diagnostics
   const parseResult = parseMarkVSpec(source);
   const expectedDiagnostics = [
     ["warning", "Malformed Action heading. Expected ### [<marker>:]A-* <name>.", lineNumber(source, "### Submit without ID")],
-    ["warning", "Action A-Submit has unsupported top-level entry: request: POST /login. Use From, Process P1: <name>, or Otherwise.", lineNumber(source, "- request: POST /login")],
-    ["warning", "Action A-Submit has nested entry outside a recognized block: E-メールアドレス入力.click.", lineNumber(source, "  - E-メールアドレス入力.click")],
-    ["warning", "Action A-Submit has unsupported top-level entry: Process: POST /login. Use From, Process P1: <name>, or Otherwise.", lineNumber(source, "- Process: POST /login")]
+    ["warning", "Unknown structured item in Action A-Submit: request: POST /login. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.", lineNumber(source, "- request: POST /login")],
+    ["warning", "Unknown structured item in Action A-Submit: Process: POST /login. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.", lineNumber(source, "- Process: POST /login")]
   ];
 
   assert.deepEqual(

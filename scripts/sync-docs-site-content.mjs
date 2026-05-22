@@ -197,7 +197,11 @@ function renderSiteMarkdown(lang, sourcePath) {
   const { title, body } = extractTitle(source, sourcePath);
   const relativePath = siteRelativePathForSource(lang, sourcePath);
   const frontmatter = relativePath === "index.md" ? indexFrontmatter(lang, title) : pageFrontmatter(title);
-  return `${frontmatter}${convertLinks(sourcePath, body).trimEnd()}\n`;
+  let siteBody = convertLinks(sourcePath, body);
+  if (relativePath === "reference/grammar.md") {
+    siteBody = siteBody.replace(/```ebnf/gu, "```text");
+  }
+  return `${frontmatter}${siteBody.trimEnd()}\n`;
 }
 
 function buildGeneratedFiles() {

@@ -122,6 +122,35 @@ export { createMarkVSpecDiagnostic, renderDiagnosticMessageForLocale, supportedD
 export { effectiveHistoryFields, latestHistoryBasicInfo, standardHistoryFields } from "./history.js";
 export { isMarkVSpecSourceType, markVSpecSourceTypes, sourceTypeForElement } from "./source-types.js";
 export {
+  actionProcessDetailItemDefinitions,
+  actionTopLevelItemDefinitions,
+  commonElementPropertyKeys,
+  grammarAllowedStructuredItemKeys,
+  grammarDefinitionHardCodeInventory,
+  grammarSectionDefinitions,
+  grammarSectionForTitle,
+  grammarSectionOrderRank,
+  grammarSectionOrderText,
+  grammarStructuredItem,
+  grammarStructuredItemContexts,
+  grammarStructuredItemForContext,
+  layoutGroupMetadataPropertyKeys,
+  isGrammarStructuredItemCanonical,
+  normalizeGrammarKey,
+  processDetailBlockKeys,
+  processSyntaxOnlyBlockKeys,
+  slotDefinitionPropertyKeys
+} from "./grammar-definition.js";
+export type {
+  GrammarHardCodeInventoryEntry,
+  GrammarItemClassification,
+  GrammarSectionDefinition,
+  GrammarSectionKind,
+  GrammarStructuredItemContext,
+  GrammarStructuredItemDefinition,
+  GrammarStructuredItemQueryResult
+} from "./grammar-definition.js";
+export {
   anchoredOverlayReference,
   commonElementProperties,
   controlledPanelReferences,

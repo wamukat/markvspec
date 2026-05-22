@@ -1,4 +1,5 @@
 import { propertyBoolean, propertyFirstString, propertyString } from "./property-accessor.js";
+import { grammarAllowedStructuredItemKeys } from "./grammar-definition.js";
 import { sourceTypeForElement } from "./source-types.js";
 import type { MarkVSpecElement, SourceLocation } from "./types.js";
 
@@ -86,39 +87,7 @@ export interface ActiveControlledPanelOptions {
 
 const customElementTypeRegex = /^custom:[A-Za-z][A-Za-z0-9_-]*$/u;
 
-export const commonElementProperties = new Set([
-  "marker",
-  "label",
-  "label src",
-  "placeholder src",
-  "description",
-  "help",
-  "help src",
-  "hint",
-  "message",
-  "message src",
-  "sample",
-  "source",
-  "purpose",
-  "text",
-  "value",
-  "src",
-  "format",
-  "initial value",
-  "required",
-  "readonly",
-  "optional",
-  "visible when",
-  "hidden when",
-  "disabled when",
-  "variant",
-  "tone",
-  "validation",
-  "input rule",
-  "error text",
-  "action",
-  "action event"
-]);
+export const commonElementProperties: ReadonlySet<string> = new Set(grammarAllowedStructuredItemKeys("element.common-property"));
 
 const emptyProperties = new Set<string>();
 

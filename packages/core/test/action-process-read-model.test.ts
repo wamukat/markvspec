@@ -12,17 +12,20 @@ title: Multi Request
 
 # SCR-MULTI-REQUEST Multi Request
 
+## Elements
+
+### E-NextPageButton Button
+
+- action: A-NextPage
+
 ## Actions
 
 ### A-NextPage Next page
 
-- Triggered
-  - E-NextPageButton.click
 - From
   - idle
 - Process P1: PreparePage
-  - Effects
-    - view: \${view.selectedTab} = users
+  - view: \${view.selectedTab} = users
 - Process P2: Send request
   - request:
     - method: GET
@@ -57,6 +60,7 @@ title: Process Read Model
 
 ## States
 
+- before-load+
 - loading*
 - idle
 - load-error
@@ -73,13 +77,16 @@ title: Process Read Model
 
 - label: Email
 
+## Events
+
+- page.load: A-InitialLoad
+
 ## Actions
 
 ### A-InitialLoad Initial load
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - loading
 - Process P1: Check validation
   - validate: V-Email.result
@@ -97,17 +104,15 @@ title: Process Read Model
       - memberId: \${model.memberId}
   - case: success
     - response: 200 profile
-    - Effects
-      - update:
-        - target: L-ProfilePanel
-        - mode: replace
-      - continue
+    - update:
+      - target: L-ProfilePanel
+      - mode: replace
+    - continue
 - Process P4: Resolve responses
   - group: initial-load
   - case: ready
     - response: all data ready
-    - Effects
-      - state: idle
+    - state: idle
     - stop
 - Process P5: Request partial
   - request:
@@ -116,8 +121,7 @@ title: Process Read Model
   - display:
     - partial: PRT-PROFILE-PANEL
 - Process P6: Apply immediate effect
-  - Effects
-    - state: load-error
+  - state: load-error
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions[0];
@@ -163,13 +167,20 @@ title: Process Param Scope
 
 # SCR-PROCESS-PARAM-SCOPE Process Param Scope
 
+## States
+
+- before-load+
+
+## Events
+
+- page.load: A-Load
+
 ## Actions
 
 ### A-Load Load
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Process P1: Call server service
   - server:
@@ -208,13 +219,20 @@ title: Server Param Validation
 
 # SCR-SERVER-PARAM-VALIDATION Server Param Validation
 
+## States
+
+- before-load+
+
+## Events
+
+- page.load: A-Load
+
 ## Actions
 
 ### A-Load Load
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Process P1: Call server service
   - server:

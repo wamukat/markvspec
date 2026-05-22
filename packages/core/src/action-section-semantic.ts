@@ -287,13 +287,20 @@ function referenceDependency(sourceId: string, targetId: string): SemanticDepend
 
 function firstActionStructuredListItemLine(block: BlockAst, support: ActionSectionSemanticSupport): number | undefined {
   const item = support.listItems([block]).find((candidate) =>
-    candidate.depth === 0 && /^(?:Triggered|From|Process(?:\s*:.*)?|Otherwise)\s*$/iu.test(candidate.text)
+    candidate.depth === 0 && isActionStructuredListItemText(candidate.text, support)
   );
   return item?.range?.start.line;
 }
 
 function isActionMalformedStructuredListBlock(block: BlockAst, support: ActionSectionSemanticSupport): boolean {
-  return support.listItems([block]).some((item) => item.depth === 0 && support.looksLikeStructuredProperty(item.text));
+  return support.listItems([block]).some((item) => item.depth === 0 && isActionStructuredListItemText(item.text, support));
+}
+
+function isActionStructuredListItemText(text: string, support: ActionSectionSemanticSupport): boolean {
+  const trimmed = text.trim();
+  return /^(?:From|Process(?:\s+[A-Za-z][A-Za-z0-9_-]*)?\s*:.*|Process(?:\s*:.*)?|Otherwise)\s*$/iu.test(trimmed)
+    || support.looksLikeStructuredProperty(trimmed)
+    || /^[A-Z][A-Za-z0-9_-]*$/u.test(trimmed);
 }
 
 function isActionProseListPrefix(block: BlockAst, line: number, support: ActionSectionSemanticSupport): boolean {

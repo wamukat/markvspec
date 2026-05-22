@@ -454,14 +454,13 @@ title: Invalidation Action
 
 ### E-Submit Button
 
+- action: A-Submit
 - label: Submit
 
 ## Actions
 
 ### A-Submit Submit
 
-- Triggered
-  - E-Submit.click
 - From
   - idle
 - Process P1: Call server service

@@ -1,5 +1,15 @@
-import { elementIdPattern } from "./ids.js";
-import { createUnrepresentedSourceTextDiagnostic } from "./source-text-diagnostics.js";
+import {
+  createRepresentedExtensionItemDiagnostic,
+  createUnrepresentedSourceTextDiagnostic,
+  createUnsupportedStructuredItemDiagnostic
+} from "./source-text-diagnostics.js";
+import {
+  grammarStructuredItemForContext,
+  isGrammarStructuredItemCanonical,
+  nonCanonicalProcessBlockKeys,
+  normalizeGrammarKey,
+  processDetailBlockKeys
+} from "./grammar-definition.js";
 import type { MarkVSpecAction, MarkVSpecActionOutcome, MarkVSpecDiagnostic, MarkVSpecProcessStep, MarkVSpecRouteParam, SourceLocation } from "./types.js";
 
 export interface ActionBulletInput {
@@ -9,7 +19,6 @@ export interface ActionBulletInput {
 }
 
 type ActionBlock =
-  | "triggered"
   | "from"
   | "process"
   | "otherwise";
@@ -24,6 +33,7 @@ export interface ActionParseContext {
   nestedBlock?: ProcessNestedBlock;
   nestedBlockIndent?: number;
   processStep?: MarkVSpecProcessStep;
+  ignoredBlockIndent?: number;
   rejectedProcessStepIndent?: number;
   processOutcome?: string;
   processOutcomeIndent?: number;
@@ -40,6 +50,10 @@ export function applyActionBulletToContext(
   context: ActionParseContext,
   diagnostics: MarkVSpecDiagnostic[] = []
 ): ActionParseContext {
+  if (context.ignoredBlockIndent !== undefined && bullet.indent > context.ignoredBlockIndent) {
+    return { ignoredBlockIndent: context.ignoredBlockIndent };
+  }
+
   if (bullet.indent === 0) {
     const canonicalProcess = parseCanonicalProcessHeading(bullet.text);
     if (canonicalProcess) {
@@ -53,26 +67,23 @@ export function applyActionBulletToContext(
       return { block, outcome: block === "otherwise" ? "otherwise" : undefined };
     }
 
-    diagnostics.push({
-      severity: "warning",
-      message: `Action ${action.id} has unsupported top-level entry: ${bullet.text}. Use From, Process P1: <name>, or Otherwise.`,
-      line: bullet.location.line
-    });
-    return {};
+    diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+      context: `Action ${action.id}`,
+      text: bullet.text,
+      location: bullet.location,
+      allowed: "From, Process P1: <name>, or Otherwise"
+    }));
+    return { ignoredBlockIndent: bullet.indent };
   }
 
   if (!context.block) {
-    diagnostics.push({
-      severity: "warning",
-      message: `Action ${action.id} has nested entry outside a recognized block: ${bullet.text}.`,
-      line: bullet.location.line
-    });
-    return {};
-  }
-
-  if (context.block === "triggered") {
-    applyActionTrigger(action, bullet.text, bullet.location);
-    return { block: context.block };
+    diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+      context: `Action ${action.id}`,
+      text: bullet.text,
+      location: bullet.location,
+      allowed: "nest items under From, Process P1: <name>, or Otherwise"
+    }));
+    return { ignoredBlockIndent: Math.max(0, bullet.indent - 1) };
   }
 
   if (context.block === "from") {
@@ -128,6 +139,7 @@ export function applyActionBulletToContext(
       }
 
       if (normalizeBlockLabel(bullet.text) === "effects") {
+        diagnostics.push(createDeprecatedEffectsWrapperDiagnostic(action.id, bullet.location.line));
         return { block: context.block, processStep: context.processStep, processEffectsIndent: bullet.indent };
       }
 
@@ -147,8 +159,9 @@ export function applyActionBulletToContext(
 
 function parseActionBlock(text: string): ActionBlock | undefined {
   const normalized = normalizeBlockLabel(text);
-  if (normalized === "triggered") {
-    return "triggered";
+  const definition = grammarStructuredItemForContext("action.top-level", normalized);
+  if (definition?.classification !== "canonical") {
+    return undefined;
   }
   if (normalized === "from") {
     return "from";
@@ -216,20 +229,6 @@ function createProcessStep(name: string, indent: number, location: SourceLocatio
   };
 }
 
-function applyActionTrigger(action: MarkVSpecAction, value: string, location: SourceLocation): void {
-  action.triggeredBy = value;
-  action.triggeredByLocation = location;
-  action.properties["triggered"] = value;
-  addPropertyLocation(action.propertyLocations, "triggered", location);
-  const triggerParts = new RegExp(String.raw`^(${elementIdPattern})\.([A-Za-z][A-Za-z0-9_-]*)$`, "u").exec(value);
-  if (triggerParts) {
-    action.trigger = {
-      elementId: triggerParts[1],
-      event: triggerParts[2]
-    };
-  }
-}
-
 function applyProcessStepBullet(
   action: MarkVSpecAction,
   step: MarkVSpecProcessStep,
@@ -241,6 +240,17 @@ function applyProcessStepBullet(
   const key = keyPart.trim();
   const value = valuePart?.trim();
   const normalizedStep = normalizeBlockLabel(step.name);
+  const normalizedEntryLabel = value === undefined
+    ? normalizeBlockLabel(bullet.text)
+    : normalizeBlockLabel(key);
+
+  if (currentNestedBlock === undefined && isNonCanonicalProcessBlockLabel(normalizedEntryLabel)) {
+    diagnostics.push({
+      severity: "warning",
+      message: `Action ${action.id} process step ${step.name} uses non-canonical process entry: ${bullet.text}. Use request: with params: for request input, case: for result branches, when: or skip when: for guards, or receive: for external results.`,
+      line: bullet.location.line
+    });
+  }
 
   if (currentNestedBlock === "receive" && value !== undefined) {
     step.receives.push({ key, value, location: bullet.location });
@@ -262,15 +272,28 @@ function applyProcessStepBullet(
   if (isProcessDetailNestedBlock(currentNestedBlock)) {
     if (value === undefined || value === "") {
       const normalized = normalizeBlockLabel(bullet.text);
+      if (currentNestedBlock === "server" && isHttpRequestMethodPath(bullet.text)) {
+        diagnostics.push({
+          severity: "warning",
+          message: `Action ${action.id} process step ${step.name} has HTTP request entry under server: ${bullet.text}. Put HTTP method and path under a request block.`,
+          line: bullet.location.line
+        });
+      }
       if (!isProcessDetailBlockLabel(normalized) && normalized !== "params") {
         step.details.push({ key: currentNestedBlock, value: bullet.text, location: bullet.location });
         addPropertyLocation(step.propertyLocations, currentNestedBlock, bullet.location);
+        if (isCustomProcessDetailKey(currentNestedBlock)) {
+          diagnostics.push(processExtensionItemDiagnostic(action, step, bullet));
+        }
       }
       return;
     }
 
     step.details.push({ key: `${currentNestedBlock}.${key}`, value, location: bullet.location });
     addPropertyLocation(step.propertyLocations, currentNestedBlock, bullet.location);
+    if (isCustomProcessDetailKey(currentNestedBlock)) {
+      diagnostics.push(processExtensionItemDiagnostic(action, step, bullet));
+    }
     return;
   }
 
@@ -323,6 +346,12 @@ function applyProcessStepBullet(
     return;
   }
 
+  if (isHttpRequestMethodPath(bullet.text)) {
+    step.details.push({ key: "request", value: bullet.text, location: bullet.location });
+    addPropertyLocation(step.propertyLocations, "request", bullet.location);
+    return;
+  }
+
   if (normalizeBlockLabel(step.name) === "validate" && (key === "Validate" || key === "validate")) {
     step.details.push({
       key: "validation",
@@ -330,6 +359,26 @@ function applyProcessStepBullet(
       location: bullet.location
     });
     addPropertyLocation(step.propertyLocations, "validation", bullet.location);
+    return;
+  }
+
+  if (key === "validate") {
+    step.details.push({
+      key: "validate",
+      value,
+      location: bullet.location
+    });
+    addPropertyLocation(step.propertyLocations, "validate", bullet.location);
+    return;
+  }
+
+  if (key === "server" && /^[A-Za-z_][A-Za-z0-9_.]*\([^)]*\)$/u.test(value)) {
+    step.details.push({
+      key: "server",
+      value,
+      location: bullet.location
+    });
+    addPropertyLocation(step.propertyLocations, "server", bullet.location);
     return;
   }
 
@@ -375,6 +424,31 @@ function applyProcessStepBullet(
     location: bullet.location
   });
   addPropertyLocation(step.propertyLocations, key, bullet.location);
+  if (!isImplicitProcessParameter(key, value)) {
+    diagnostics.push(processExtensionItemDiagnostic(action, step, bullet));
+  }
+}
+
+function processExtensionItemDiagnostic(
+  action: MarkVSpecAction,
+  step: MarkVSpecProcessStep,
+  bullet: ActionBulletInput
+): MarkVSpecDiagnostic {
+  return createRepresentedExtensionItemDiagnostic({
+    context: `Action ${action.id} process step ${step.name}`,
+    text: bullet.text,
+    location: bullet.location
+  });
+}
+
+function isCustomProcessDetailKey(key: string): boolean {
+  return !isKnownProcessDetailBlock(key) && key !== "params" && key !== "display-content" && !key.includes(".");
+}
+
+function isImplicitProcessParameter(key: string, value: string): boolean {
+  const trimmedValue = value.trim();
+  return /^[A-Za-z_][A-Za-z0-9_-]*$/u.test(key) &&
+    (trimmedValue.startsWith("${") || /^[A-Z]+-[\p{L}\p{N}_-]+(?:\.[A-Za-z][A-Za-z0-9_]*)?$/u.test(trimmedValue));
 }
 
 function applyProcessStepDirectCaseBullet(
@@ -395,6 +469,7 @@ function applyProcessStepDirectCaseBullet(
 
   const normalized = normalizeBlockLabel(bullet.text);
   if (normalized === "effects") {
+    diagnostics.push(createDeprecatedEffectsWrapperDiagnostic(action.id, bullet.location.line));
     return {
       block: "process",
       processStep: step,
@@ -428,6 +503,14 @@ function applyProcessStepCaseEffect(
 ): void {
   const outcome = getProcessStepOutcome(step, result, bullet.location);
   applyStructuredEffectToOutcome(action, outcome, result, bullet, currentNestedBlock, diagnostics, `process step ${step.name} case ${result}`, flowUnderEffects);
+}
+
+function createDeprecatedEffectsWrapperDiagnostic(actionId: string, line: number): MarkVSpecDiagnostic {
+  return {
+    severity: "warning",
+    message: `Action ${actionId} uses non-canonical Effects wrapper. Put state, display, navigate, view, or other effects directly under Process Pn: or case:.`,
+    line
+  };
 }
 
 function applyProcessStepEffect(
@@ -495,7 +578,7 @@ function applyProcessStepEffect(
 
     diagnostics.push({
       severity: "warning",
-      message: `Action ${action.id} process step ${step.name} has unsupported Effects entry: ${bullet.text}. Put update details under an update block.`,
+      message: `Action ${action.id} process step ${step.name} has unsupported effect entry: ${bullet.text}. Put update details under an update block.`,
       line: bullet.location.line
     });
     return;
@@ -503,7 +586,7 @@ function applyProcessStepEffect(
 
   diagnostics.push({
     severity: "warning",
-    message: `Action ${action.id} process step ${step.name} has unsupported Effects entry: ${bullet.text}. Use model, view, state, navigate, or update.`,
+    message: `Action ${action.id} process step ${step.name} has unsupported effect entry: ${bullet.text}. Use model, view, state, navigate, or update.`,
     line: bullet.location.line
   });
 }
@@ -613,7 +696,7 @@ function applyActionStructuredEffect(
 
     diagnostics.push({
       severity: "warning",
-      message: `Action ${action.id} has unsupported ${result ? `case ${result}` : "Effects"} entry: ${bullet.text}. Put update details under an update block.`,
+      message: `Action ${action.id} has unsupported ${result ? `case ${result}` : "effect"} entry: ${bullet.text}. Put update details under an update block.`,
       line: bullet.location.line
     });
     return;
@@ -621,7 +704,7 @@ function applyActionStructuredEffect(
 
   diagnostics.push({
     severity: "warning",
-    message: `Action ${action.id} has unsupported Effects entry: ${bullet.text}. Use description, state, navigate, response, from, params, or update.`,
+    message: `Action ${action.id} has unsupported effect entry: ${bullet.text}. Use description, state, navigate, response, from, params, or update.`,
     line: bullet.location.line
   });
 }
@@ -908,7 +991,7 @@ function nextNestedContext(bullet: ActionBulletInput, context: ActionParseContex
 }
 
 function isKnownProcessDetailBlock(normalized: string): boolean {
-  return normalized === "request" || normalized === "server" || normalized === "response" || normalized === "validation";
+  return processDetailBlockKeys.has(normalized) && isGrammarStructuredItemCanonical("action.process-detail", normalized);
 }
 
 function isProcessDetailBlockLabel(normalized: string): boolean {
@@ -922,17 +1005,22 @@ function isCustomProcessDetailBlockStart(text: string): boolean {
   }
   const normalized = normalizeBlockLabel(trimmed);
   return /^[a-z][a-z0-9_-]*$/u.test(normalized)
-    && !["triggered", "from", "process", "otherwise", "case", "effects", "input", "receive", "result", "update", "params", "display", "content"].includes(normalized)
+    && !["triggered", "from", "process", "otherwise", "case", "effects", "receive", "result", "params"].includes(normalized)
+    && !isProcessSyntaxOnlyBlockLabel(normalized)
     && !isKnownProcessDetailBlock(normalized);
 }
 
 function isProcessSyntaxOnlyBlockLabel(normalized: string): boolean {
-  return ["content", "display", "input", "params", "receive", "result", "update"].includes(normalized);
+  return grammarStructuredItemForContext("action.process-syntax", normalized).represented;
+}
+
+function isNonCanonicalProcessBlockLabel(normalized: string): boolean {
+  return nonCanonicalProcessBlockKeys.has(normalizeGrammarKey(normalized));
 }
 
 function representedValueLessProcessDetail(text: string): { key: string; value: string } | undefined {
   const trimmed = text.trim();
-  if (/^[A-Z]+\s+\/\S*/u.test(trimmed)) {
+  if (isHttpRequestMethodPath(trimmed)) {
     return { key: "request", value: trimmed };
   }
 
@@ -941,6 +1029,10 @@ function representedValueLessProcessDetail(text: string): { key: string; value: 
   }
 
   return undefined;
+}
+
+function isHttpRequestMethodPath(text: string): boolean {
+  return /^(?:GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+\/\S*$/u.test(text.trim());
 }
 
 function isProcessDetailNestedBlock(block: ProcessNestedBlock | undefined): block is string {

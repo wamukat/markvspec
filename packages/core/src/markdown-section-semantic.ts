@@ -49,8 +49,10 @@ import {
 } from "./markdown-section-ast.js";
 import { filterLinesWithoutStandaloneHtmlComments, isStandaloneHtmlCommentBlock } from "./markdown-html-comments.js";
 import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
+import { createUnsupportedStructuredItemDiagnostic } from "./source-text-diagnostics.js";
 import { isMarkVSpecSourceType } from "./source-types.js";
 import { addAccumulatedSectionProperty, addPropertyLocation } from "./section-property-accumulator.js";
+import { grammarAllowedStructuredItemKeys, grammarSectionOrderRank, grammarSectionOrderText, grammarStructuredItemForContext } from "./grammar-definition.js";
 
 export interface SemanticDependency {
   source: { type: "entity" | "section" | "render"; id: string };
@@ -170,10 +172,14 @@ export interface ElementSemanticResult {
 }
 
 const optionElementTypes = new Set(["Select", "MultiSelect", "RadioGroup", "CheckboxGroup"]);
-const tabItemPropertyKeys = new Set(["panel", "action", "active when"]);
-const accordionItemPropertyKeys = new Set(["panel", "action", "open when"]);
+const tabItemPropertyKeys = new Set(grammarAllowedStructuredItemKeys("element.tab-item.property"));
+const accordionItemPropertyKeys = new Set(grammarAllowedStructuredItemKeys("element.accordion-item.property"));
 const panelItemPropertyKeys = new Set([...tabItemPropertyKeys, ...accordionItemPropertyKeys]);
-const actionMenuItemPropertyKeys = new Set(["action", "tone", "disabled when"]);
+const actionMenuItemPropertyKeys = new Set(grammarAllowedStructuredItemKeys("element.action-menu-item.property"));
+const viewContextPropertyKeys = grammarAllowedStructuredItemKeys("view-context.property");
+const formGroupPropertyKeys = grammarAllowedStructuredItemKeys("form-group.property");
+const errorCodePropertyKeys = grammarAllowedStructuredItemKeys("error-code.property");
+const businessRulePropertyKeys = grammarAllowedStructuredItemKeys("business-rule.property");
 const previewScenarioSectionSemanticSupport: PreviewScenarioSectionSemanticSupport = {
   appendEntityProseLines,
   isEntityNoteBlock,
@@ -220,7 +226,7 @@ export function parseSmallSectionSemantics(document: MarkdownDocument): SmallSec
   };
 }
 
-const recommendedSectionOrder = "States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Events, Actions, View Context, View Context Samples, Preview Scenarios, Field Validations, Cross-field Validations, Validations, Business Rules, Error Codes, History Fields, History";
+const recommendedSectionOrder = grammarSectionOrderText;
 
 function semanticSectionOrderDiagnostics(sections: SectionAst[]): MarkVSpecDiagnostic[] {
   const diagnostics: MarkVSpecDiagnostic[] = [];
@@ -247,45 +253,7 @@ function semanticSectionOrderDiagnostics(sections: SectionAst[]): MarkVSpecDiagn
 }
 
 function sectionOrderRank(kind: SectionKind): number {
-  switch (kind) {
-    case "States":
-      return 1;
-    case "Layout":
-    case "Slot":
-      return 2;
-    case "Slots":
-      return 3;
-    case "Elements":
-      return 4;
-    case "FormGroups":
-      return 5;
-    case "Events":
-      return 6;
-    case "Actions":
-      return 7;
-    case "ViewContext":
-      return 8;
-    case "ViewContextSamples":
-      return 9;
-    case "PreviewScenarios":
-      return 10;
-    case "FieldValidations":
-      return 11;
-    case "CrossFieldValidations":
-      return 12;
-    case "Validations":
-      return 13;
-    case "BusinessRules":
-      return 14;
-    case "ErrorCodes":
-      return 15;
-    case "HistoryFields":
-      return 16;
-    case "History":
-      return 17;
-    case "Unknown":
-      return 0;
-  }
+  return grammarSectionOrderRank(kind);
 }
 
 export function parseLayoutSectionSemantics(document: MarkdownDocument): LayoutSemanticResult {
@@ -1060,6 +1028,16 @@ function applyViewContextBullet(
   const [keyPart, valuePart] = splitKeyValue(bullet.text);
   const key = keyPart.trim();
   const value = valuePart?.trim();
+  const definition = grammarStructuredItemForContext("view-context.property", key);
+  if (!definition.represented) {
+    diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+      context: `View Context ${context.name}`,
+      text: bullet.text,
+      location: bullet.location,
+      allowed: viewContextPropertyKeys.join(", ")
+    }));
+    return undefined;
+  }
   if (key === "values" && value !== undefined && value.length === 0) {
     return "values";
   }
@@ -1077,13 +1055,12 @@ function applyViewContextBullet(
     addPropertyLocation(context.propertyLocations, key, bullet.location);
     return undefined;
   }
-  if (value !== undefined) {
-    context.properties[key] = value;
-    addPropertyLocation(context.propertyLocations, key, bullet.location);
-    return undefined;
-  }
-  context.properties[key] = true;
-  addPropertyLocation(context.propertyLocations, key, bullet.location);
+  diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+    context: `View Context ${context.name}`,
+    text: bullet.text,
+    location: bullet.location,
+    allowed: viewContextPropertyKeys.join(", ")
+  }));
   return undefined;
 }
 
@@ -1213,6 +1190,9 @@ function parseViewContextSamplesSection(section: SectionAst): Pick<SectionSemant
         continue;
       }
       const key = viewContextSampleKey(keyPart.trim());
+      if (!grammarStructuredItemForContext("view-context-sample.property", "view context key").represented) {
+        continue;
+      }
       current.values[key] = valuePart.trim();
       addPropertyLocation(current.valueLocations, key, bullet.location);
     }
@@ -1230,8 +1210,9 @@ function viewContextSampleKey(key: string): string {
   return match?.[1]?.trim() ?? key;
 }
 
-function parseFormGroupsSection(section: SectionAst): Pick<SectionSemanticResult, "formGroups" | "sectionProse" | "dependencies"> {
+function parseFormGroupsSection(section: SectionAst): Pick<SectionSemanticResult, "formGroups" | "sectionProse" | "diagnostics" | "dependencies"> {
   const formGroups: MarkVSpecFormGroup[] = [];
+  const diagnostics: MarkVSpecDiagnostic[] = [];
   const dependencies: SemanticDependency[] = [];
   let current: MarkVSpecFormGroup | undefined;
   let nestedProperty: string | undefined;
@@ -1296,13 +1277,20 @@ function parseFormGroupsSection(section: SectionAst): Pick<SectionSemanticResult
       currentHasStructuredContent = true;
       const location = locationFromBlock(bullet);
       if (bullet.depth === 0) {
-        nestedProperty = applyFormGroupBullet(current, bullet.text, location);
+        nestedProperty = applyFormGroupBullet(current, bullet.text, location, diagnostics);
         continue;
       }
       if (nestedProperty === "fields") {
         for (const field of splitReferenceList(bullet.text)) {
           addFormGroupField(current, field, location);
         }
+      } else {
+        diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+          context: `FormGroup ${current.id}`,
+          text: bullet.text,
+          location,
+          allowed: formGroupPropertyKeys.join(", ")
+        }));
       }
     }
   }
@@ -1319,12 +1307,14 @@ function parseFormGroupsSection(section: SectionAst): Pick<SectionSemanticResult
   return {
     formGroups,
     sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["form-groups:list", ...formGroups.map((formGroup) => formGroupRenderKey(formGroup.id))]),
+    diagnostics,
     dependencies
   };
 }
 
-function parseErrorCodesSection(section: SectionAst): Pick<SectionSemanticResult, "errorCodes" | "sectionProse" | "dependencies"> {
+function parseErrorCodesSection(section: SectionAst): Pick<SectionSemanticResult, "errorCodes" | "sectionProse" | "diagnostics" | "dependencies"> {
   const errorCodes: MarkVSpecErrorCode[] = [];
+  const diagnostics: MarkVSpecDiagnostic[] = [];
   const dependencies: SemanticDependency[] = [];
   let current: MarkVSpecErrorCode | undefined;
   let currentHasStructuredContent = false;
@@ -1381,7 +1371,7 @@ function parseErrorCodesSection(section: SectionAst): Pick<SectionSemanticResult
         currentHasStructuredContent = true;
       }
       for (const bullet of listItems([block]).filter((item) => item.depth === 0)) {
-        applyErrorCodeBullet(current, bullet.text, locationFromBlock(bullet));
+        applyErrorCodeBullet(current, bullet.text, locationFromBlock(bullet), diagnostics);
       }
       for (const target of propertyValues(current.properties["target"])) {
         dependencies.push({
@@ -1404,6 +1394,7 @@ function parseErrorCodesSection(section: SectionAst): Pick<SectionSemanticResult
   return {
     errorCodes,
     sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["error-codes:list", ...errorCodes.map((errorCode) => errorCodeRenderKey(errorCode.id))]),
+    diagnostics,
     dependencies
   };
 }
@@ -1471,6 +1462,9 @@ function parseHistoryFieldsSection(document: MarkdownDocument, sections: Section
     }
     const key = propertyMatch[1].trim().toLowerCase();
     const value = stripInlineCode(propertyMatch[2].trim());
+    if (!grammarStructuredItemForContext("history-field.property", key).represented) {
+      continue;
+    }
     if (key === "label") {
       current.label = value || current.key;
     } else if (key === "required") {
@@ -1542,6 +1536,9 @@ function parseHistorySection(document: MarkdownDocument, sections: SectionAst[],
     const metadataMatch = /^\s*-\s+([^:]+):\s*(.*?)\s*$/.exec(line.text);
     if (metadataOpen && metadataMatch) {
       const key = stripInlineCode(metadataMatch[1].trim());
+      if (!grammarStructuredItemForContext("history-entry.property", "field key").represented) {
+        continue;
+      }
       current.fields[key] = metadataMatch[2].trim();
       current.fieldLocations[key] = [...(current.fieldLocations[key] ?? []), { line: line.line }];
       current.raw = `${current.raw}\n${line.text}`;
@@ -1899,8 +1896,9 @@ function applyPanelItemProperty(
 ): void {
   const [key, value] = splitKeyValue(bullet.text);
   const normalizedKey = key.trim();
+  const context = itemKind === "tab item" ? "element.tab-item.property" : "element.accordion-item.property";
   const allowedKeys = itemKind === "tab item" ? tabItemPropertyKeys : accordionItemPropertyKeys;
-  if (!allowedKeys.has(normalizedKey)) {
+  if (!grammarStructuredItemForContext(context, normalizedKey).represented) {
     const allowedText = [...allowedKeys].join(", ");
     diagnostics.push({
       severity: "warning",
@@ -1936,7 +1934,7 @@ function applyActionMenuItemProperty(
 ): void {
   const [key, value] = splitKeyValue(bullet.text);
   const normalizedKey = key.trim();
-  if (!actionMenuItemPropertyKeys.has(normalizedKey)) {
+  if (!grammarStructuredItemForContext("element.action-menu-item.property", normalizedKey).represented) {
     diagnostics.push({
       severity: "warning",
       message: `Element ${elementId} action menu item ${item.label} has unsupported property ${normalizedKey}. Use action, tone, or disabled when.`,
@@ -1961,17 +1959,7 @@ function applyActionMenuItemProperty(
   item.propertyLocations[normalizedKey as "action" | "tone" | "disabled when"].push(bullet.location);
 }
 
-const displayValueProperties = new Set([
-  "value",
-  "label",
-  "placeholder",
-  "text",
-  "message",
-  "hint",
-  "href",
-  "src",
-  "alt"
-]);
+const displayValueProperties = new Set(grammarAllowedStructuredItemKeys("element.display-value-property"));
 
 function isDisplayValueProperty(property: string | undefined): property is string {
   return Boolean(property && displayValueProperties.has(property));
@@ -1979,7 +1967,7 @@ function isDisplayValueProperty(property: string | undefined): property is strin
 
 function isDisplayValueMetadataKey(text: string): boolean {
   const [key] = splitKeyValue(text);
-  return ["kind", "source", "format"].includes(key.trim());
+  return grammarStructuredItemForContext("element.display-value-metadata", key.trim()).represented;
 }
 
 function applyDisplayValueMetadata(
@@ -1991,10 +1979,11 @@ function applyDisplayValueMetadata(
 ): void {
   const [key, value] = splitKeyValue(bullet.text);
   const normalizedKey = key.trim();
-  if (!["kind", "source", "format"].includes(normalizedKey)) {
+  const allowedMetadataKeys = grammarAllowedStructuredItemKeys("element.display-value-metadata");
+  if (!grammarStructuredItemForContext("element.display-value-metadata", normalizedKey).represented) {
     diagnostics.push({
       severity: "warning",
-      message: `Element ${elementId} display value property ${property} has unsupported metadata ${normalizedKey}. Use kind, source, or format.`,
+      message: `Element ${elementId} display value property ${property} has unsupported metadata ${normalizedKey}. Use ${allowedMetadataKeys.slice(0, -1).join(", ")}, or ${allowedMetadataKeys.at(-1)}.`,
       line: bullet.location.line
     });
     return;
@@ -2019,10 +2008,9 @@ function applyDisplayValueMetadata(
   const metadata = "propertyMetadata" in target
     ? (target.propertyMetadata[property] ?? { locations: {} })
     : (target.metadata ?? { locations: {} });
-  if (normalizedKey === "kind" || normalizedKey === "source" || normalizedKey === "format") {
-    metadata[normalizedKey] = normalizedValue;
-    metadata.locations[normalizedKey] = bullet.location;
-  }
+  const metadataKey = normalizedKey as "kind" | "source" | "format";
+  metadata[metadataKey] = normalizedValue;
+  metadata.locations[metadataKey] = bullet.location;
   if ("propertyMetadata" in target) {
     target.propertyMetadata[property] = metadata;
   } else {
@@ -2261,15 +2249,30 @@ function referenceDependency(sourceId: string, targetId: string): SemanticDepend
   };
 }
 
-function applyFormGroupBullet(formGroup: MarkVSpecFormGroup, text: string, location: SourceLocation): string | undefined {
-  formGroup.bullets.push({ text, location });
+function applyFormGroupBullet(formGroup: MarkVSpecFormGroup, text: string, location: SourceLocation, diagnostics: MarkVSpecDiagnostic[]): string | undefined {
   const [key, value] = splitKeyValue(text);
   if (value === undefined) {
+    diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+      context: `FormGroup ${formGroup.id}`,
+      text,
+      location,
+      allowed: formGroupPropertyKeys.join(", ")
+    }));
     return undefined;
   }
 
   const normalizedKey = key.trim();
   const normalizedValue = value.trim();
+  if (!grammarStructuredItemForContext("form-group.property", normalizedKey).represented) {
+    diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+      context: `FormGroup ${formGroup.id}`,
+      text,
+      location,
+      allowed: formGroupPropertyKeys.join(", ")
+    }));
+    return undefined;
+  }
+  formGroup.bullets.push({ text, location });
   addAccumulatedSectionProperty(formGroup, normalizedKey, normalizedValue, location);
 
   if (normalizedKey === "fields") {
@@ -2308,15 +2311,30 @@ function splitReferenceList(value: string): string[] {
     .filter(Boolean);
 }
 
-function applyErrorCodeBullet(errorCode: MarkVSpecErrorCode, text: string, location: SourceLocation): void {
-  errorCode.bullets.push({ text, location });
+function applyErrorCodeBullet(errorCode: MarkVSpecErrorCode, text: string, location: SourceLocation, diagnostics: MarkVSpecDiagnostic[]): void {
   const [key, value] = splitKeyValue(text);
   if (value === undefined) {
+    diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+      context: `Error Code ${errorCode.id}`,
+      text,
+      location,
+      allowed: errorCodePropertyKeys.join(", ")
+    }));
     return;
   }
 
   const normalizedKey = key.trim();
   const normalizedValue = value.trim();
+  if (!grammarStructuredItemForContext("error-code.property", normalizedKey).represented) {
+    diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+      context: `Error Code ${errorCode.id}`,
+      text,
+      location,
+      allowed: errorCodePropertyKeys.join(", ")
+    }));
+    return;
+  }
+  errorCode.bullets.push({ text, location });
   addAccumulatedSectionProperty(errorCode, normalizedKey, normalizedValue, location);
 }
 
@@ -2327,8 +2345,9 @@ function propertyValues(value: string | string[] | undefined): string[] {
   return value ? [value] : [];
 }
 
-function parseRulesSection(section: SectionAst): Pick<SectionSemanticResult, "rules" | "sectionProse"> {
+function parseRulesSection(section: SectionAst): Pick<SectionSemanticResult, "rules" | "sectionProse" | "diagnostics"> {
   const rules: MarkVSpecRule[] = [];
+  const diagnostics: MarkVSpecDiagnostic[] = [];
   let current: MarkVSpecRule | undefined;
   let freeformRule: MarkVSpecRule | undefined;
   let currentHasStructuredContent = false;
@@ -2409,24 +2428,25 @@ function parseRulesSection(section: SectionAst): Pick<SectionSemanticResult, "ru
     if (current) {
       if (block.type === "list") {
         currentHasStructuredContent = true;
-        applyRuleListBlock(current, block);
+        applyRuleListBlock(current, block, diagnostics);
       }
     }
   }
   return {
     rules,
-    sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["rules:list", ...rules.map((rule) => ruleRenderKey(rule.id))])
+    sectionProse: proseForSection(section, sectionOverviewBlocks, sectionNoteBlocks, ["rules:list", ...rules.map((rule) => ruleRenderKey(rule.id))]),
+    diagnostics
   };
 }
 
-function applyRuleListBlock(rule: MarkVSpecRule, block: BlockAst): void {
+function applyRuleListBlock(rule: MarkVSpecRule, block: BlockAst, diagnostics: MarkVSpecDiagnostic[]): void {
   if (block.type !== "list") {
     return;
   }
-  appendRuleBodyLines(rule, block);
+  appendRuleBodyLinesForSupportedItems(rule, block);
 
   for (const item of block.children.filter((child): child is Extract<BlockAst, { type: "listItem" }> => child.type === "listItem")) {
-    applyRuleBullet(rule, item.text, locationFromBlock(item));
+    applyRuleBullet(rule, item.text, locationFromBlock(item), diagnostics);
     const [key, value] = splitKeyValue(item.text);
     if (value === undefined || key.trim() !== "messages" || value.trim() !== "") {
       continue;
@@ -2437,22 +2457,47 @@ function applyRuleListBlock(rule: MarkVSpecRule, block: BlockAst): void {
   }
 }
 
-function applyRuleBullet(rule: MarkVSpecRule, text: string, location: SourceLocation): void {
-  rule.bullets.push({ text, location });
+function applyRuleBullet(rule: MarkVSpecRule, text: string, location: SourceLocation, diagnostics: MarkVSpecDiagnostic[]): void {
   const [key, value] = splitKeyValue(text);
   if (value === undefined) {
+    rule.bullets.push({ text, location });
     return;
   }
   const normalizedKey = key.trim();
   const normalizedValue = value.trim();
+  if (!grammarStructuredItemForContext("business-rule.property", normalizedKey).represented) {
+    diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+      context: `Business Rule ${rule.id}`,
+      text,
+      location,
+      allowed: businessRulePropertyKeys.join(", ")
+    }));
+    return;
+  }
+  rule.bullets.push({ text, location });
   if (normalizedKey === "messages" && normalizedValue === "") {
     return;
   }
   addAccumulatedSectionProperty(rule, normalizedKey, normalizedValue, location);
 }
 
+function appendRuleBodyLinesForSupportedItems(rule: MarkVSpecRule, block: Extract<BlockAst, { type: "list" }>): void {
+  const lines = block.children.flatMap((item) => {
+    const [key, value] = splitKeyValue(item.text);
+    if (value !== undefined && !grammarStructuredItemForContext("business-rule.property", key.trim()).represented) {
+      return [];
+    }
+    return item.sourceLines && item.sourceLines.length > 0 ? item.sourceLines : [`- ${item.text}`];
+  });
+  appendRuleBodyLineValues(rule, lines);
+}
+
 function appendRuleBodyLines(rule: MarkVSpecRule, block: BlockAst): void {
   const lines = proseBlockToLines(block);
+  appendRuleBodyLineValues(rule, lines);
+}
+
+function appendRuleBodyLineValues(rule: MarkVSpecRule, lines: string[]): void {
   if (lines.length === 0) {
     return;
   }

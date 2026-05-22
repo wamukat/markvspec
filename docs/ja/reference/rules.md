@@ -1,12 +1,12 @@
-# ビジネスルール
+# Business Rules
 
-`## Business Rules` は、ビジネスルールや画面固有の判断条件を書くセクションです。入力形式のバリデーション、ツールが出す診断、実装コードの if 文とは分けて扱います。
+`## Business Rules` は business rule や画面固有の判断条件を書く section です。入力形式の validation、tool が出す diagnostics、実装コードの if 文とは分けて扱います。
 
-権限、アカウント状態、プラン制約、在庫、複数値を読んで決める業務判断など、プロダクト上の意味によって決まる条件を書く場所です。required、format、min、max、単純なフィールド比較はここに置きません。そうしたチェックは [バリデーション](./validations.md) に書きます。
+権限、account status、plan 制約、在庫、日付の関係、複数 field の関係など、product meaning によって決まる条件を書く場所です。required、format、min、max のような入力値そのものの形はここに置きません。
 
 ## 書ける構文
 
-```markdown markvspec-fragment section=business-rules
+```markdown
 ## Business Rules
 
 ### R-AccountLocked Locked account
@@ -24,27 +24,48 @@
 - message: Additional verification is required.
 ```
 
-### ルール見出し
+### Rule Heading
 
 Rule は `### R-* Name` の形で宣言します。
 
-```markdown markvspec-fragment section=business-rules
+```markdown
 ### R-PasswordPolicy Password policy
 ```
 
-### 主な項目
+### Common Properties
 
-| 項目 | 用途 |
-| --- | --- |
-| `when` | 条件。単一行または nested bullet で書く |
-| `effect` | 条件が満たされたときの画面上の影響 |
-| `message` | 利用者に見せる説明やエラー |
-| `appliesTo` | 対象要素、レイアウト、アクション |
-| `priority` | ルールが複数ある場合の優先度 |
+<!-- markvspec-generated:reference-rules:start -->
+この block は `packages/core/src/grammar-definition.ts` から生成されます。手編集せず、grammar definition を更新して再生成してください。
+
+#### Business Rule property
+
+| Item | 分類 | 出力 | 診断 | 説明 |
+| --- | --- | --- | --- | --- |
+| `marker` | `canonical` | 出力対象 | - | Business Rule property。 |
+| `description` | `canonical` | 出力対象 | - | Business Rule property。 |
+| `when` | `canonical` | 出力対象 | - | Business Rule property。 |
+| `effect` | `canonical` | 出力対象 | - | Business Rule property。 |
+| `message` | `canonical` | 出力対象 | - | Business Rule property。 |
+| `messages` | `canonical` | 出力対象 | - | Business Rule property。 |
+| `appliesTo` | `canonical` | 出力対象 | - | Business Rule property。 |
+| `priority` | `canonical` | 出力対象 | - | Business Rule property。 |
+
+#### Error Code property
+
+| Item | 分類 | 出力 | 診断 | 説明 |
+| --- | --- | --- | --- | --- |
+| `marker` | `canonical` | 出力対象 | - | Error Code property。 |
+| `business rule` | `canonical` | 出力対象 | - | Error Code property。 |
+| `target` | `canonical` | 出力対象 | - | Error Code property。 |
+| `message` | `canonical` | 出力対象 | - | Error Code property。 |
+| `display` | `canonical` | 出力対象 | - | Error Code property。 |
+| `tone` | `canonical` | 出力対象 | - | Error Code property。 |
+| `description` | `canonical` | 出力対象 | - | Error Code property。 |
+<!-- markvspec-generated:reference-rules:end -->
 
 ## 小さな例
 
-```markdown markvspec-fragment section=business-rules
+```markdown
 ### R-EmptyResult Empty search result
 
 - when: search returns no items
@@ -52,46 +73,25 @@ Rule は `### R-* Name` の形で宣言します。
 - message: No matching results.
 ```
 
-![History And Errors のビジネスルールプレビュー](../../assets/vscode-previews/history-and-errors-vscode-preview.png)
+![History And Errors の business rules preview](../../assets/vscode-previews/history-and-errors-vscode-preview.png)
 
-## アクション結果ケース
+## Validator Diagnostics との違い
 
-アクション結果がビジネスルール違反の場合は、`business rule:` を
-`case: business-rule-violation` の下に書きます。他の case 名で
-`business rule:` を書くと、非 canonical な記述として診断されます。
-
-```markdown markvspec-skip reason=requires-rule-error-context
-## Actions
-
-### A-Submit Submit
-
-- Process P1: Submit request
-  - case: business-rule-violation
-    - business rule: R-EmailMustBeUnique
-    - error code: ERR-EMAIL-ALREADY-REGISTERED
-    - display:
-      - target: E-EmailInput.error
-      - message: R-EmailMustBeUnique.messages
-```
-
-## バリデーション診断との違い
-
-バリデーション診断は、パーサーやバリデーターがソースの不足や矛盾を見つけて出すツール出力です。`## Business Rules` は、作成者が画面仕様として書く判断条件です。
+Validator Diagnostics は parser / validator が source の不足や矛盾を見つけて出す tool output です。`## Business Rules` は author が画面仕様として書く判断条件です。
 
 ## 注意点
 
-- フィールドの必須、format、range は [バリデーション](./validations.md) に書きます。
-- 単純な複数フィールド比較は [バリデーション](./validations.md) の `## Cross-field Validations` に書きます。
-- サーバー応答によるエラーは [アクション](./actions.md) の response `case:` と `display` に書きます。
-- アクションのリクエスト/応答分岐は [アクション](./actions.md) の `case:` に書きます。
-- `## Business Rules` は人が読む仕様です。バリデーション診断の出力先ではありません。
-- ルールから要素やアクションを参照するときは `E-*`、`A-*` などの安定した ID を使います。
-- CSS や実装分岐の詳細ではなく、画面仕様として意味のある条件を書きます。
+- field の必須、format、range は [Validations](validations.md) に書きます。
+- server response による error は [Actions](actions.md) の response `case:` と `display` に書きます。
+- action の request/response 分岐は [Actions](actions.md) の `case:` に書きます。
+- `## Business Rules` は人が読む仕様です。Validator Diagnostics の出力先ではありません。
+- rule から element や action を参照するときは `E-*`、`A-*` などの stable ID を使います。
+- CSS や implementation branch の詳細ではなく、画面仕様として意味のある条件を書きます。
 
 ## 関連ページ
 
-- [アクション](./actions.md)
-- [バリデーション](./validations.md)
-- [ID](./ids.md)
-- [制限事項](./limitations.md)
+- [Actions](actions.md)
+- [Validations](validations.md)
+- [IDs](ids.md)
+- [Limitations](limitations.md)
 - [Account Settings](../../../examples/showcase/history-and-errors.html)

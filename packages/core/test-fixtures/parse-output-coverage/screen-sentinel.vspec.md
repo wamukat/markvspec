@@ -128,15 +128,12 @@ Actions section overview sentinel.
   - before-load
 - Process P1: Immediate
   - case: success
-    - Effects
-      - state: idle
+    - state: idle
 
 ### A-SaveCoverage Save coverage
 
 Action overview sentinel.
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Immediate
@@ -146,9 +143,8 @@ Action overview sentinel.
   - result:
     - coverage validation accepted
   - case: success
-    - Effects
-      - state: loaded
-      - view: ${view.isHelpOpen} = false
+    - state: loaded
+    - view: ${view.isHelpOpen} = false
 - Process P2: Submit coverage
   - sync:
     - CoverageService.save()
@@ -158,11 +154,10 @@ Action overview sentinel.
   - result:
     - coverage request sent
   - case: sent
-    - Effects
-      - state: loaded
-      - display:
-        - target: E-HelpText
-        - element: E-HelpText
+    - state: loaded
+    - display:
+      - target: E-HelpText
+      - element: E-HelpText
 
 Action notes sentinel.
 

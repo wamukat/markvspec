@@ -25,14 +25,16 @@ export interface DocumentScope {
 
 export interface BuildDocumentScopeOptions {
   readonly focus?: FocusScope;
+  readonly wireframeSourceResult?: MarkVSpecParseResult;
   readonly partialPreviews?: ReadonlyMap<string, MarkVSpecParseResult>;
   readonly partialPaths?: ReadonlyMap<string, string>;
 }
 
 export function createDocumentScope(result: MarkVSpecParseResult, options: BuildDocumentScopeOptions = {}): DocumentScope {
+  const wireframeSourceResult = options.wireframeSourceResult ?? result;
   const specResult = documentContentResultForSpecs(result, options.focus);
-  const wireframeResult = options.focus ? focusResultForWireframe(result, options.focus) : result;
-  const composition = buildMarkVSpecDocumentComposition(result, {
+  const wireframeResult = options.focus ? focusResultForWireframe(wireframeSourceResult, options.focus) : wireframeSourceResult;
+  const composition = buildMarkVSpecDocumentComposition(wireframeSourceResult, {
     partialPreviews: options.partialPreviews,
     partialPaths: options.partialPaths
   });

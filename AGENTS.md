@@ -80,7 +80,7 @@ Important syntax:
 - From
   - idle
 - Process P1: Send login request
-  - server:
+  - request:
     - POST /login
     - params:
       - email: E-EmailInput.value
@@ -122,7 +122,7 @@ Important syntax:
 The user's product uses Thymeleaf and plans to support htmx partial updates.
 MarkVSpec actions should model this with:
 
-- `Process Pn:` / `server:` for method, path, and request parameters.
+- `Process Pn:` / `request:` for method, path, and request parameters.
 - `case:` / `display` for result-specific partial updates.
 - `target` and `content` under `display` for semantic update details.
 - Use `mode: replace` for partial update replacement semantics.

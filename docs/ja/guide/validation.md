@@ -11,7 +11,7 @@
 | クライアント単項目チェック | 必須、email形式、文字数、数値範囲 | `## Field Validations` |
 | 入力欄のメタデータ | type、placeholder、min/max、HTML入力制約のヒント | `## Elements` の入力 |
 | クライアント複合項目チェック | password確認、開始日 <= 終了日 | `## Cross-field Validations` |
-| クライアント業務ルール | 年齢制限、送信前のプラン制約 | `## Business Rules` |
+| 送信前の判断 | 送信前のプラン制約、画面単位の条件判定 | `## Business Rules` または送信前 action |
 | サーバ単項目チェック | email重複、商品コード不存在 | `## Actions` の応答ケースと対象フィールド |
 | サーバ複合項目チェック | 在庫不足、権限不足、契約状態による不可 | `## Actions` の応答ケースと `## Business Rules` |
 

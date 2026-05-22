@@ -12,6 +12,7 @@ Start by separating where the decision is made and what it checks.
 | Input metadata | type, placeholder, min/max, browser-facing input hints | `## Elements` on the input |
 | Client cross-field check | password confirmation, start date <= end date | `## Cross-field Validations` |
 | Client product rule | age gate, plan restriction before submit | `## Business Rules` |
+| Pre-submit decision | plan restriction before submit, other screen-level checks | `## Business Rules` or a pre-submit action |
 | Server field check | duplicate email, unknown product code | `## Actions` response `case:` with the affected field |
 | Server business check | stock shortage, missing permission, contract restriction | `## Actions` response `case:` and `## Business Rules` |
 

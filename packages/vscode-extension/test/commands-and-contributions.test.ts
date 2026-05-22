@@ -41,12 +41,11 @@ title: Format
 
 ## Elements
 ### E-Title Heading${spaces}
+- action: A-Submit
 - value: Title${spaces}
 
 ## Actions
 ### A-Submit Submit
-- Triggered
-  - E-Title.click
 - From
   - idle${spaces}
 `;
@@ -77,14 +76,12 @@ title: Format
 
 ### E-Title Heading
 
+- action: A-Submit
 - value: Title
 
 ## Actions
 
 ### A-Submit Submit
-
-- Triggered
-  - E-Title.click
 
 - From
   - idle

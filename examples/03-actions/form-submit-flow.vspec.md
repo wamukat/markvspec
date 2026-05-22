@@ -104,7 +104,7 @@ try to cover non-submit element events.
     - description: all required fields are valid
     - continue
 - Process P2: Submit subscription
-  - sync:
+  - server:
     - SubscriptionService.create()
     - params:
       - email: E-EmailInput.value

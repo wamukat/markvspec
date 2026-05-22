@@ -36,6 +36,7 @@ type ParsedMarkVSpec = MarkVSpecParseResult;
 export interface DesignDocumentOptions {
   focus?: FocusScope;
   messages?: RendererMessages;
+  documentResult?: ParsedMarkVSpec;
 }
 
 export interface PreviewDesignDocumentRenderingSupport {
@@ -74,11 +75,13 @@ export interface PreviewDesignDocumentRenderingSupport {
   ): string;
 }
 
-export function buildDocumentScope(result: MarkVSpecParseResult, focus?: FocusScope): DocumentScope {
+export function buildDocumentScope(result: MarkVSpecParseResult, focus?: FocusScope, documentResult?: MarkVSpecParseResult): DocumentScope {
   const partials = partialPreviewsForResult(result);
   const partialPaths = partialPreviewPathsForResult(result);
-  const scope = createDocumentScope(result, {
+  const sourceResult = documentResult ?? result;
+  const scope = createDocumentScope(sourceResult, {
     focus,
+    wireframeSourceResult: result,
     partialPreviews: partials,
     partialPaths
   });
@@ -90,10 +93,11 @@ export function buildDocumentScope(result: MarkVSpecParseResult, focus?: FocusSc
 export function createPreviewDesignDocumentRenderer(support: PreviewDesignDocumentRenderingSupport) {
   return {
     renderDesignDocumentHtml(result: ParsedMarkVSpec, options: DesignDocumentOptions = {}): string {
-      const scope = buildDocumentScope(result, options.focus);
+      const scope = buildDocumentScope(result, options.focus, options.documentResult);
       const detailsResult = scope.specResult;
       const messages = options.messages ?? support.rendererMessagesForResult(result);
       support.setRendererMessages(result, messages);
+      support.setRendererMessages(scope.sourceResult, messages);
       support.setRendererMessages(detailsResult, messages);
       let sectionNumber = 1;
       const numberedSection = (render: (number: string) => string): string => {
@@ -112,23 +116,23 @@ export function createPreviewDesignDocumentRenderer(support: PreviewDesignDocume
       };
 
       return renderDesignDocumentSections([
-        support.renderScreenSpec(result),
-        support.renderHistorySpec(result),
-        support.renderInlineTableOfContents(result),
-        numberedSection((number) => withSectionNumber(support.renderStatesSpec(detailsResult, result), number, support)),
+        support.renderScreenSpec(scope.sourceResult),
+        support.renderHistorySpec(detailsResult),
+        support.renderInlineTableOfContents(detailsResult),
+        numberedSection((number) => withSectionNumber(support.renderStatesSpec(detailsResult, scope.sourceResult), number, support)),
         numberedSection((number) => withSectionNumber(support.renderStateFlowSpec(detailsResult), number, support)),
-        numberedSection((number) => withSectionNumber(support.renderViewContextsSpec(detailsResult, result), number, support)),
-        numberedSection((number) => withSectionNumber(support.renderViewContextSamplesSpec(detailsResult, result), number, support)),
+        numberedSection((number) => withSectionNumber(support.renderViewContextsSpec(detailsResult, scope.sourceResult), number, support)),
+        numberedSection((number) => withSectionNumber(support.renderViewContextSamplesSpec(detailsResult, scope.sourceResult), number, support)),
         numberedSection((number) => withSectionNumber(renderViewportStateScreensSpec(scope, support, number), number, support)),
-        numberedSection((number) => withSectionNumber(support.renderActionDetailsSpec(detailsResult, result), number, support)),
-        numberedSection((number) => withSectionNumber(support.renderFormGroupsSpec(detailsResult, result), number, support)),
-        numberedSection((number) => withSectionNumber(support.renderValidationRulesSpec(detailsResult, result), number, support)),
-        numberedSection((number) => withSectionNumber(support.renderRulesSpec(detailsResult, result), number, support)),
-        numberedSection((number) => withSectionNumber(support.renderErrorCodesSpec(detailsResult, result), number, support)),
-        numberedSections(support.renderNotesSpec(result)),
+        numberedSection((number) => withSectionNumber(support.renderActionDetailsSpec(detailsResult, scope.sourceResult), number, support)),
+        numberedSection((number) => withSectionNumber(support.renderFormGroupsSpec(detailsResult, scope.sourceResult), number, support)),
+        numberedSection((number) => withSectionNumber(support.renderValidationRulesSpec(detailsResult, scope.sourceResult), number, support)),
+        numberedSection((number) => withSectionNumber(support.renderRulesSpec(detailsResult, scope.sourceResult), number, support)),
+        numberedSection((number) => withSectionNumber(support.renderErrorCodesSpec(detailsResult, scope.sourceResult), number, support)),
+        numberedSections(support.renderNotesSpec(detailsResult)),
         numberedSection((number) => withSectionNumber(support.renderScreenTransitionsSpec(detailsResult), number, support)),
-        numberedSection((number) => withSectionNumber(support.renderActionTransitionsSpec(detailsResult, result), number, support)),
-        numberedSection((number) => withSectionNumber(support.renderDiagnosticsSpec(result), number, support))
+        numberedSection((number) => withSectionNumber(support.renderActionTransitionsSpec(detailsResult, scope.sourceResult), number, support)),
+        numberedSection((number) => withSectionNumber(support.renderDiagnosticsSpec(detailsResult), number, support))
       ]);
     },
     renderProjectDesignDocumentHtml(project: MarkVSpecProjectLoadResult, messages: RendererMessages = support.projectRendererMessagesForResult(project)): string {

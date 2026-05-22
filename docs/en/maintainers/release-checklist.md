@@ -1,6 +1,6 @@
 # Release Checklist
 
-This document defines the verification gate for the MarkVSpec `0.6.0` release.
+This document defines the verification gate for the MarkVSpec `0.6.1` release.
 The release target is a VS Code Marketplace package plus npm packages under the
 `@markvspec` scope, including the CLI package `@markvspec/cli`.
 
@@ -53,13 +53,15 @@ change, in this order:
 2. Whitespace check: run `git diff --check`.
 3. Unit / integration tests: run `npm test`.
 4. Example preview audit: run `npm run audit:examples`.
-5. Examples HTML export: run `npm run build -w @markvspec/cli`, then
+5. Generated grammar/reference docs: run `npm run check:generated-docs`.
+6. Docs site: run `npm run check:docs-site`.
+7. Examples HTML export: run `npm run build -w @markvspec/cli`, then
    `node packages/cli/dist/index.js export html "examples/**/*.vspec.md" --out .work/release-html`
    and open representative HTML files in a browser.
-6. For print or PDF-affecting changes, run `npm run check:print-regression`.
+8. For print or PDF-affecting changes, run `npm run check:print-regression`.
    If PDF export is unavailable, record that HTML artifacts were generated and
    PDF was skipped because no compatible browser was available.
-7. For README, DSL, example, or release metadata changes, also run
+9. For README, DSL, example, or release metadata changes, also run
    `npm run check:readme-release`.
 
 `npm run check:release` is the aggregate gate for the release environment. This
@@ -77,7 +79,9 @@ cd .work/release-check
 npm install
 git diff --check
 npm test
+npm run check:generated-docs
 npm run audit:examples
+npm run check:docs-site
 npm run check:print-regression
 ```
 
@@ -96,7 +100,9 @@ with `isResolved: false`; the user verifies the result before resolving it.
 - [ ] `npm run typecheck` passes.
 - [ ] `npm test` passes.
 - [ ] `npm run build` passes.
+- [ ] `npm run check:generated-docs` passes.
 - [ ] `npm run audit:examples` passes.
+- [ ] `npm run check:docs-site` passes.
 - [ ] `node packages/cli/dist/index.js export html "examples/**/*.vspec.md" --out .work/release-html`
   exports examples HTML, and representative examples have been opened in a browser.
 - [ ] `npm run check:print-regression` passes, or PDF export is explicitly skipped
@@ -111,7 +117,7 @@ with `isResolved: false`; the user verifies the result before resolving it.
   If any previous ID has already been published, the release owner has a
   deprecation, unpublish, or migration plan before publishing this package.
 - [ ] Package metadata and the VSIX packaging script produce a
-  `dist/markvspec-0.6.0.vsix` artifact for this release.
+  `dist/markvspec-0.6.1.vsix` artifact for this release.
 - [ ] `npm run package:vsix -w packages/vscode-extension` creates the expected
   `dist/markvspec-<version>.vsix` artifact.
 - [ ] `npm run smoke:vscode-vsix` installs the generated VSIX into a clean
@@ -156,14 +162,14 @@ with `isResolved: false`; the user verifies the result before resolving it.
 ### npm Workspace Package Dependency Policy
 
 Registry-published MarkVSpec packages use the same exact version for internal
-package dependencies. For the `0.6.0` release, publish packages in this order:
+package dependencies. For the `0.6.1` release, publish packages in this order:
 
 1. `@markvspec/core`
 2. `@markvspec/document-renderer`
 3. `@markvspec/exporter`
 4. `@markvspec/cli`
 
-Use exact ranges such as `"@markvspec/core": "0.6.0"` in published package
+Use exact ranges such as `"@markvspec/core": "0.6.1"` in published package
 manifests. Do not use `file:` dependencies in npm-published packages; they only
 work in the repository workspace. Do not use `workspace:*` for this release,
 because the packed tarball must already contain registry-installable dependency

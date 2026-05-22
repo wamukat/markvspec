@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.6.1 - 2026-05-21
+
+### Added
+
+- Added `unrepresented-source-text` diagnostics so meaningful author text that
+  is parsed but not represented by the semantic model, preview/export output,
+  another diagnostic, or an explicit ignore rule is reported instead of being
+  silently dropped.
+- Added source text diagnostic coverage for `Actions > Process` prose and
+  `Preview Scenarios` nested bullets under scalar scenario entries.
+- Added `markvspec --version` / `markvspec -v` for CLI version checks.
+- Added the Starlight documentation site and example showcase pages with English
+  and Japanese guide, recipe, reference, and start content.
+- Added presentation panel documentation and a focused example.
+
+### Changed
+
+- Updated user documentation for preview scenarios, project preview/export
+  paths, CLI document-list export, Starlight navigation, examples, and canonical
+  section/reference pages.
+- Improved documentation validation for documented `.vspec.md` snippets and
+  example catalog links.
+- Restored the visual document structure guide in the docs site.
+
+### Removed
+
+- Removed legacy action process compatibility, legacy sample/repeat syntax
+  remnants, legacy metadata/property compatibility, and stale syntax trace
+  references so only the current DSL remains documented and accepted.
+
 ## 0.5.0 - 2026-05-19
 
 ### Added

@@ -5,7 +5,7 @@
 この文書は MarkVSpec をリリースする担当者向けのチェックリストです。通常利用者が
 MarkVSpec 設計書を書くための文書ではありません。
 
-このドキュメントは、MarkVSpec `0.6.0` リリースの確認手順を定義します。
+このドキュメントは、MarkVSpec `0.6.1` リリースの確認手順を定義します。
 対象は VS Code Marketplace 向けパッケージと、CLI package `@markvspec/cli` を含む
 `@markvspec` scope の npm packages です。
 
@@ -58,13 +58,15 @@ example を代表セットとして使う。
 2. whitespace 確認: `git diff --check` を実行する。
 3. unit / integration test: `npm test` を実行する。
 4. example preview audit: `npm run audit:examples` を実行する。
-5. examples HTML export: `npm run build -w @markvspec/cli` の後、
+5. generated grammar/reference docs: `npm run check:generated-docs` を実行する。
+6. docs site: `npm run check:docs-site` を実行する。
+7. examples HTML export: `npm run build -w @markvspec/cli` の後、
    `node packages/cli/dist/index.js export html "examples/**/*.vspec.md" --out .work/release-html`
    を実行し、代表 example の HTML をブラウザで開いて確認する。
-6. print / PDF に影響する変更では `npm run check:print-regression` を実行する。
+8. print / PDF に影響する変更では `npm run check:print-regression` を実行する。
    PDF export が使えない環境では、HTML artifact が出ていることと、互換ブラウザが
    ないため PDF を skip したことを記録する。
-7. README、DSL、example、release metadata に影響する変更では
+9. README、DSL、example、release metadata に影響する変更では
    `npm run check:readme-release` も実行する。
 
 `npm run check:release` は release 環境でまとめて実行する gate です。現時点では
@@ -81,7 +83,9 @@ cd .work/release-check
 npm install
 git diff --check
 npm test
+npm run check:generated-docs
 npm run audit:examples
+npm run check:docs-site
 npm run check:print-regression
 ```
 
@@ -99,7 +103,9 @@ Kanbalone の運用では、実装後に独立したサブエージェントレ�
 - [ ] `npm run typecheck` が通る。
 - [ ] `npm test` が通る。
 - [ ] `npm run build` が通る。
+- [ ] `npm run check:generated-docs` が通る。
 - [ ] `npm run audit:examples` が通る。
+- [ ] `npm run check:docs-site` が通る。
 - [ ] `node packages/cli/dist/index.js export html "examples/**/*.vspec.md" --out .work/release-html`
   で examples HTML export が通り、代表 example をブラウザで目視している。
 - [ ] `npm run check:print-regression` が通る。PDF export が使えない環境では、
@@ -114,7 +120,7 @@ Kanbalone の運用では、実装後に独立したサブエージェントレ�
   以前の ID が既に公開済みの場合は、この package の公開前に deprecate、unpublish、
   または移行案内の方針を決めている。
 - [ ] package metadata と VSIX packaging script が、このリリース用の
-  `dist/markvspec-0.6.0.vsix` artifact を生成する。
+  `dist/markvspec-0.6.1.vsix` artifact を生成する。
 - [ ] `npm run package:vsix -w packages/vscode-extension` で期待する
   `dist/markvspec-<version>.vsix` artifact が作成される。
 - [ ] `npm run smoke:vscode-vsix` で、生成済み VSIX を clean な VS Code
@@ -157,14 +163,14 @@ Kanbalone の運用では、実装後に独立したサブエージェントレ�
 ### npm workspace package 依存方針
 
 registry に公開する MarkVSpec package 間の依存は、同じ release version の exact
-range で表す。`0.6.0` release では次の順で publish する。
+range で表す。`0.6.1` release では次の順で publish する。
 
 1. `@markvspec/core`
 2. `@markvspec/document-renderer`
 3. `@markvspec/exporter`
 4. `@markvspec/cli`
 
-公開する package manifest では `"@markvspec/core": "0.6.0"` のような exact range
+公開する package manifest では `"@markvspec/core": "0.6.1"` のような exact range
 を使う。npm 公開 package には `file:` dependency を残さない。`file:` は repository
 workspace 内でしか成立しないため。今回の release では `workspace:*` も使わない。
 pack 済み tarball が publish-time manifest 変換なしで registry install 可能な

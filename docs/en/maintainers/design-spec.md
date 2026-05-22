@@ -489,7 +489,7 @@ Use structured action groups:
 
 - Screen-side `Process Pn: <name>` with a `request:` block for partial HTML method,
   path, and parameters.
-- `case:` / `Effects` / `display.partial` for result-specific partial updates.
+- `case:` / direct `display.partial` effects for result-specific partial updates.
 - `target`, `mode`, and `partial` under `display` for semantic update details.
 
 Example mapping:

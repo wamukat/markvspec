@@ -4,7 +4,7 @@ Sections are top-level headings in the `.vspec.md` body. MarkVSpec uses the sect
 
 ## Syntax You Can Write
 
-```markdown markvspec-skip reason=requires-element-definitions
+```markdown
 ## States
 
 - idle*
@@ -24,70 +24,43 @@ Sections are top-level headings in the `.vspec.md` body. MarkVSpec uses the sect
 - E-Submit
 ```
 
-### Layout And P-* Panels
-
-Use `L-*` for meaningful regions. Use `P-*` only for a helper group that adjusts
-visual arrangement.
-
-```markdown markvspec-skip reason=requires-layout-context
-### L-Form Form
-
-- stack
-
-#### Items
-
-- P-NameFields
-- E-SubmitButton
-
-### P-NameFields Name fields
-
-- row
-
-#### Items
-
-- E-FirstNameInput
-- E-LastNameInput
-```
-
-`P-*` can be used as a layout item, but preview does not show a layout marker for
-it. `marker` is ignored, and `visible when` / `hidden when` / `disabled when` /
-`enabled when` / `partial` / action or display `target` are not allowed. Use
-`L-*` when a region needs to be targetable.
-
-Recognized layout kinds are `stack`, `row`, `grid`, and `inline`. Use `stack`
-for common vertical groups.
-
 MarkVSpec recognizes these top-level sections.
 
-| Section | What To Write |
-| --- | --- |
-| `## States` | Screen state names |
-| `## Layout: mobile` | Layout groups and item order |
-| `## Elements` | UI element meaning, labels, values, and actions |
-| `## Actions` | Triggers, requests, effects, and cases |
-| `## Events` | Page or lifecycle events that call actions |
-| `## Form Groups` | Form-level field groups and submit action |
-| `## View Context` | View context that changes independently from state |
-| `## View Context Samples` | Named sets of view-context values |
-| `## Field Validations` | Single-field constraints and messages |
-| `## Cross-field Validations` | Multi-field or form-level checks |
-| `## Validations` | Compatibility validation section. Prefer `Field Validations` / `Cross-field Validations` for new source |
-| `## Preview Scenarios` | Named preview cases for states and Action case results |
-| `## Business Rules` | Business rules and screen-specific decisions |
-| `## Error Codes` | Reusable error definitions and display targets |
-| `## Slots` | Template slot declarations |
-| `## Slot: name` | Slot content supplied by a page or partial |
-| `## History Fields` | Structured fields used by history entries |
-| `## History` | Revision history entries |
-| `## Notes` | Additional notes, implementation context, and intent |
-| `## Open Questions` | Unresolved questions |
+<!-- markvspec-generated:reference-sections:start -->
+This block is generated from `packages/core/src/grammar-definition.ts`. Do not hand-edit it; update the grammar definition and regenerate the docs.
+
+| Section | Heading Pattern | Order |
+| --- | --- | --- |
+| `## States` | `"States"` | 1 |
+| `## Layout` | `"Layout" \| "Layout:" viewport` | 2 |
+| `## Slot` | `"Slot:" slot_name [":" viewport]` | 2 |
+| `## Slots` | `"Slots"` | 3 |
+| `## Elements` | `"Elements"` | 4 |
+| `## Form Groups` | `"Form Groups"` | 5 |
+| `## Events` | `"Events"` | 6 |
+| `## Actions` | `"Actions"` | 7 |
+| `## View Context` | `"View Context"` | 8 |
+| `## View Context Samples` | `"View Context Samples"` | 9 |
+| `## Preview Scenarios` | `"Preview Scenarios"` | 10 |
+| `## Field Validations` | `"Field Validations"` | 11 |
+| `## Cross-field Validations` | `"Cross-field Validations"` | 12 |
+| `## Validations` | `"Validations"` | 13 |
+| `## Business Rules` | `"Business Rules"` | 14 |
+| `## Error Codes` | `"Error Codes"` | 15 |
+| `## History Fields` | `"History Fields"` | 16 |
+| `## History` | `"History"` | 17 |
+
+Recommended section order: `States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Events, Actions, View Context, View Context Samples, Preview Scenarios, Field Validations, Cross-field Validations, Validations, Business Rules, Error Codes, History Fields, History`
+
+`## Notes` and `## Open Questions` are not recognized sections in the structured render model; they remain hand-written prose.
+<!-- markvspec-generated:reference-sections:end -->
 
 ### States
 
 Write states as bullets under `## States`. Add `*` to exactly one state when you
 want to mark the initial state explicitly.
 
-```markdown markvspec-fragment
+```markdown
 ## States
 
 - idle*
@@ -102,7 +75,7 @@ notes.
 
 Use `## Form Groups` when several inputs are validated or submitted together.
 
-```markdown markvspec-skip reason=requires-validation-context
+```markdown
 ## Form Groups
 
 ### F-LoginForm Login form
@@ -121,7 +94,7 @@ Use it for login, search, profile, and settings forms. See
 
 Use `## Events` for lifecycle events that are not clicked from an element.
 
-```markdown markvspec-skip reason=requires-event-action-context
+```markdown
 ## Events
 
 - page.load: A-LoadPreferences
@@ -130,33 +103,6 @@ Use `## Events` for lifecycle events that are not clicked from an element.
 Use it for initial load, partial initialization, or data refresh triggered by
 the screen lifecycle. See
 [Parallel Initial Load](../../../examples/showcase/parallel-initial-load.html).
-
-### View Context
-
-Use `## View Context` and `## View Context Samples` when tabs, selected rows,
-open help panels, or similar display context changes without creating another
-state.
-
-```markdown markvspec-fragment
-## View Context
-
-### selectedTab
-
-- type: enum
-- values:
-  - profile*
-  - billing
-
-## View Context Samples
-
-### billing-tab
-
-- selectedTab: billing
-```
-
-`## Validations` is recognized for compatibility. For new source, write
-single-field checks in `## Field Validations` and cross-field checks in
-`## Cross-field Validations`.
 
 ### Preview Scenarios
 
@@ -168,7 +114,7 @@ preview/export rendering. It includes scalar Element display values, Element
 `sample rows:`, Preview Scenario `samples:`, Preview Scenario `route:`, and
 `## View Context Samples`.
 
-```markdown markvspec-skip reason=requires-preview-context
+```markdown
 ## Preview Scenarios
 
 ### idle-validation-error
@@ -183,32 +129,8 @@ preview/export rendering. It includes scalar Element display values, Element
 ```
 
 Use it when a reviewer must see error, empty, dialog, toast, or direct-link
-states. `samples:` is Scenario Preview Data for Element-specific values. Use
-`E-ElementId: value` for ordinary elements and `rows:` for `Table` / `List`.
-Use `rows: []` for an empty repeated view.
-
-```markdown markvspec-skip reason=requires-preview-scenario-heading
-- samples:
-  - E-Users:
-    - rows:
-      - row:
-        - name: Alice
-  - E-EmptyUsers:
-    - rows: []
-```
-
-`route:` is Route Preview Data for route parameters and hash fragments. It must
-be a block. Keys other than `hash` should match a `:param` in the screen
-metadata `route:`.
-
-`cases:` references Action results in the `A-ActionId.P-marker.case-name` form.
-`view:` references a `## View Context Samples` name. `before:` names the state
-or scenario that this scenario should appear before. `model:` is kept as the
-model name for the State View.
-
-When a scenario name is exactly the same as a state name and omits `state:`, it
-is baseline sample data for that state, not an additional scenario. In that
-form, only `samples:` and `route:` are allowed.
+states. `samples:` is Scenario Preview Data for Element-specific values.
+`route:` is Route Preview Data for route parameters and hash fragments.
 
 See [Scenario Preview Data](../../../examples/showcase/scenario-samples.html)
 and [Display Effects](../../../examples/showcase/display-effects.html).
@@ -218,7 +140,7 @@ and [Display Effects](../../../examples/showcase/display-effects.html).
 Use `## Field Validations` for one input. Use `## Cross-field Validations` when
 the check depends on multiple inputs or a form group.
 
-```markdown markvspec-skip reason=requires-validation-context
+```markdown
 ## Field Validations
 
 ### V-EmailRules Email rules
@@ -247,7 +169,7 @@ and [Login Basic](../../../examples/showcase/login-basic.html).
 Use `## Slots` in a template to declare the slot. Use `## Slot: name` in a page
 or partial to provide content for that slot.
 
-```markdown markvspec-skip reason=requires-slot-context
+```markdown
 ## Slots
 
 ### content Main content
@@ -271,18 +193,9 @@ and [Responsive Slot Page](../../../examples/showcase/responsive-slot-page.html)
 ### Error Codes
 
 Use `## Error Codes` when the same error needs a stable code, target, and
-display style. Each error code must define `business rule`, `target`, `message`,
-and `display`. Recognized `display` values are `inline`, `form`, `global`,
-`banner`, `toast`, `dialog`, and `none`.
+display style.
 
-```markdown markvspec-skip reason=requires-rule-error-context
-## Business Rules
-
-### R-EmailMustBeUnique Email must be unique
-
-- messages:
-  - Email is already registered.
-
+```markdown
 ## Error Codes
 
 ### ER1:ERR-EMAIL-ALREADY-REGISTERED Email already registered
@@ -300,7 +213,7 @@ See [Form Submit Flow](../../../examples/showcase/form-submit-flow.html).
 Use `## History Fields` to define structured fields, then write release entries
 under `## History`.
 
-```markdown markvspec-fragment
+```markdown
 ## History Fields
 
 - date
@@ -321,7 +234,7 @@ Use it for specification files that need review history. See
 
 ## Small Example
 
-```markdown markvspec-fragment
+```markdown
 ## Elements
 
 ### E-Message Paragraph
@@ -346,8 +259,8 @@ Use it for specification files that need review history. See
 
 ## Related Pages
 
-- [File Format](./file-format.md)
-- [Elements](./elements.md)
-- [Actions](./actions.md)
-- [Business Rules](./rules.md)
+- [File Format](file-format.md)
+- [Elements](elements.md)
+- [Actions](actions.md)
+- [Business Rules](rules.md)
 - [Hello Screen](../../../examples/showcase/hello-screen.html)

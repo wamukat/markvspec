@@ -28,14 +28,13 @@ title: Action Envelope
 
 ### E-SubmitButton Button
 
+- action: A-Submit
 - label: Submit
 
 ## Actions
 
 ### A-Submit Submit
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Send request
@@ -43,11 +42,9 @@ title: Action Envelope
     - method: POST
     - path: /submit
   - case: success
-    - Effects
-      - state: ready
+    - state: ready
   - case: failure
-    - Effects
-      - state: failed
+    - state: failed
 `);
 
   const action = result.actions[0];
@@ -101,12 +98,14 @@ title: Action Response
 - loading*
 - ready
 
+## Events
+
+- page.load: A-Load
+
 ## Actions
 
 ### A-Load Load
 
-- Triggered
-  - screen.load
 - From
   - before-load
 - Process P1: Send request
@@ -115,20 +114,17 @@ title: Action Response
     - path: /profile
   - case: success
     - response: 200 profile
-    - Effects
-      - state: loading
+    - state: loading
 
 ### A-Resolve Resolve response
 
-- Triggered
-  - A-Load.P1.response
 - From
   - loading
 - Process P2: Resolve responses
-  - receive: A-Load.P1.response
+  - receive:
+    - response: A-Load.P1.response
   - case: success
-    - Effects
-      - state: ready
+    - state: ready
 `);
 
   const action = result.actions.find((candidate) => candidate.id === "A-Resolve");
@@ -162,16 +158,20 @@ title: Long Process Marker
 
 ## States
 
+- before-load+
 - loading*
 - ready
+
+## Events
+
+- page.load: A-Load
 
 ## Actions
 
 ### A-Load Load
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - loading
 - Process PLongMarker13: Send request
   - request:
@@ -179,20 +179,17 @@ title: Long Process Marker
     - path: /profile
   - case: success
     - response: 200 profile
-    - Effects
-      - state: loading
+    - state: loading
 
 ### A-Resolve Resolve response
 
-- Triggered
-  - A-Load.PLongMarker13.response
 - From
   - loading
 - Process P1: Resolve responses
-  - receive: A-Load.PLongMarker13.response
+  - receive:
+    - response: A-Load.PLongMarker13.response
   - case: success
-    - Effects
-      - state: ready
+    - state: ready
 `);
 
   const action = result.actions.find((candidate) => candidate.id === "A-Resolve");

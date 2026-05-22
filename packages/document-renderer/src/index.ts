@@ -15,6 +15,7 @@ const desktopViewports = new Set(["desktop", "lg", "large", "wide"]);
 
 export interface RenderStaticDesignDocumentOptions {
   messages?: RendererMessages;
+  documentResult?: MarkVSpecParseResult;
 }
 
 export function viewportCanvasWidth(viewport: string): string {
@@ -164,21 +165,22 @@ const staticStateViewRenderingSupport: StaticStateViewRenderingSupport = {
 const staticEntityReferencePresenterSupport = { escapeHtml };
 
 export function renderStaticDesignDocumentHtml(result: MarkVSpecParseResult, options: RenderStaticDesignDocumentOptions = {}): string {
-  const messages = options.messages ?? messagesForLocale(result.screen.locale);
+  const documentResult = options.documentResult ?? result;
+  const messages = options.messages ?? messagesForLocale(documentResult.screen.locale);
 
   return renderDesignDocumentSections([
-    renderDocumentOverviewSection(result, messages),
-    renderHistorySection(result, messages),
-    renderStaticFormGroupsSection(result, messages),
-    renderStaticStateFlowSection(result, messages),
-    renderStaticActionTransitionsSection(result, messages),
-    renderStaticActionDetailsSection(result, messages),
-    renderStaticValidationsSection(result, messages),
-    renderStaticBusinessRulesSection(result, messages),
-    renderStaticErrorCodesSection(result, messages),
-    renderStaticNotesSection(result, messages),
-    renderStaticViewContextsSection(result, messages),
-    renderStaticViewContextSamplesSection(result, messages),
+    renderDocumentOverviewSection(documentResult, messages),
+    renderHistorySection(documentResult, messages),
+    renderStaticFormGroupsSection(documentResult, messages),
+    renderStaticStateFlowSection(documentResult, messages),
+    renderStaticActionTransitionsSection(documentResult, messages),
+    renderStaticActionDetailsSection(documentResult, messages),
+    renderStaticValidationsSection(documentResult, messages),
+    renderStaticBusinessRulesSection(documentResult, messages),
+    renderStaticErrorCodesSection(documentResult, messages),
+    renderStaticNotesSection(documentResult, messages),
+    renderStaticViewContextsSection(documentResult, messages),
+    renderStaticViewContextSamplesSection(documentResult, messages),
     renderStaticStateViewsSection(result, messages, staticStateViewRenderingSupport)
   ]);
 }

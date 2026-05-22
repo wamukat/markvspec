@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import {
   renderDiagnosticMessageForLocale,
+  type MarkVSpecDiagnosticSeverity,
   type MarkVSpecProjectLoadResult,
   type parseMarkVSpec
 } from "@markvspec/core";
@@ -37,9 +38,7 @@ export class MarkVSpecDiagnosticsController {
       const line = Math.max((diagnostic.line ?? 1) - 1, 0);
       const textLine = document.lineAt(Math.min(line, Math.max(document.lineCount - 1, 0)));
       const range = new vscode.Range(line, 0, line, textLine.text.length);
-      const severity = diagnostic.severity === "error"
-        ? vscode.DiagnosticSeverity.Error
-        : vscode.DiagnosticSeverity.Warning;
+      const severity = vscodeDiagnosticSeverityForMarkVSpec(diagnostic.severity);
       const vscodeDiagnostic = new vscode.Diagnostic(range, renderDiagnosticMessageForLocale(diagnostic, locale), severity);
       vscodeDiagnostic.source = "MarkVSpec";
       return vscodeDiagnostic;
@@ -81,6 +80,17 @@ export class MarkVSpecDiagnosticsController {
   dispose(): void {
     this.clearAll();
     this.collection.dispose();
+  }
+}
+
+export function vscodeDiagnosticSeverityForMarkVSpec(severity: MarkVSpecDiagnosticSeverity): vscode.DiagnosticSeverity {
+  switch (severity) {
+    case "error":
+      return vscode.DiagnosticSeverity.Error;
+    case "warning":
+      return vscode.DiagnosticSeverity.Warning;
+    case "info":
+      return vscode.DiagnosticSeverity.Information;
   }
 }
 

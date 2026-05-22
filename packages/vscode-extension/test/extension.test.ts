@@ -37,7 +37,7 @@ import {
   shouldUseIncrementalPreviewUpdate,
   renderStandaloneProjectHtml
 } from "../src/extension.js";
-import { MarkVSpecDiagnosticsController } from "../src/diagnostics.js";
+import { MarkVSpecDiagnosticsController, vscodeDiagnosticSeverityForMarkVSpec } from "../src/diagnostics.js";
 import { renderEntityNotes, renderInlineMarkdown } from "../src/markdown-renderer.js";
 import {
   escapeRegExp,
@@ -343,6 +343,10 @@ test("maps unrepresented source text warnings to VS Code diagnostics", () => {
   assert.equal(diagnostic?.range.start.line, lineNumber(source, "  - Encode request body") - 1);
 });
 
+test("maps info diagnostics to VS Code information severity", () => {
+  assert.equal(vscodeDiagnosticSeverityForMarkVSpec("info"), vscode.DiagnosticSeverity.Information);
+});
+
 test("renders generated design document sections without launching VS Code", () => {
   const source = readFileSync(resolve("../../examples/04-real-world-screens/login-basic.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
@@ -572,8 +576,6 @@ locale: ja
 
 ### A-Invalid Invalid
 
-- Triggered
-  - E-Submit.click
 - From
   - idle
 - Process P1: Validate and update
@@ -591,7 +593,7 @@ locale: ja
   assert.match(html, new RegExp(escapeRegExp(localizedMessage)));
   assert.match(html, /<span class="mm-diagnostic-severity mm-diagnostic-severity-warning"><svg class="mm-icon mm-icon-triangle-alert" aria-hidden="true" viewBox="0 0 24 24">[\s\S]*?<\/svg>warning<\/span>/);
   assert.doesNotMatch(html, /mixes result classification with direct immediate effects/);
-  assert.equal(localizedMessage, "Action A-Invalid の Process step P1 Validate and update で、result 分類と直接の immediate effect が混在しています。分類された result には case Effects を使ってください。");
+  assert.equal(localizedMessage, "Action A-Invalid の Process step P1 Validate and update で、result 分類と直接の immediate effect が混在しています。effect は分類された case 配下へ移してください。");
 });
 
 test("keeps presentation panels out of generated layout specs", () => {
@@ -770,6 +772,7 @@ default-state: loaded
 
 ## States
 
+- before-load+
 - initializing*
 - loading
 - loaded
@@ -825,25 +828,27 @@ default-state: loaded
 - sample: Ready Auto
 - visible when: ready-auto
 
+## Events
+
+- page.load: A-StartLoad
+
 ## Actions
 
 ### A1:A-StartLoad Start load
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - initializing
 - Process P1: Apply immediate effect
-  - Effects
-    - state: loading
+  - state: loading
 
 ### A2:A-HandleLoadResponse Handle load response
 
-- Triggered
-  - A-StartLoad.P1.response
 - From
   - loading
 - Process P1: Apply immediate effect
+  - receive:
+    - response: A-StartLoad.P1.response
   - case: success
     - response: 200
     - state: loaded
@@ -853,25 +858,23 @@ default-state: loaded
 
 ### A3:A-ResolveReady Resolve ready
 
-- Triggered
-  - A-HandleLoadResponse.P1.response
 - From
   - loading
   - initializing
 - Process P1: Apply immediate effect
-  - Effects
-    - state: ready
+  - receive:
+    - response: A-HandleLoadResponse.P1.response
+  - state: ready
 
 ### A4:A-ResolveReadyAuto Resolve ready automatically
 
-- Triggered
-  - A-HandleLoadResponse.P1.response
 - From
   - loading
   - initializing
 - Process P1: Apply immediate effect
-  - Effects
-    - state: ready-auto
+  - receive:
+    - response: A-HandleLoadResponse.P1.response
+  - state: ready-auto
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -882,7 +885,7 @@ default-state: loaded
 
   const initializingSection = stateSection(html, "initializing");
   assert.match(initializingSection, /<aside class="system-events-box">\s*<h6 class="state-screen-detail-heading">System Events<\/h6>/);
-  assert.match(initializingSection, new RegExp(`<ul>[\\s\\S]*<li>${actionBadge("A1", "A-StartLoad")} Start load<span class="system-event-trigger">（Trigger: ${docLabel("screen.load", "trigger")}）</span></li>`));
+  assert.match(initializingSection, new RegExp(`<ul>[\\s\\S]*<li>${actionBadge("A1", "A-StartLoad")} Start load<span class="system-event-trigger">（Trigger: ${docLabel("page.load", "trigger")}）</span></li>`));
   assert.match(initializingSection, new RegExp(`<li>${actionBadge("A3", "A-ResolveReady")} Resolve ready<span class="system-event-trigger">（Trigger: ${docLabel("A-HandleLoadResponse.P1.response", "trigger")}）</span></li>`));
   assert.doesNotMatch(initializingSection.match(/<aside class="system-events-box">[\s\S]*?<\/aside>/)?.[0] ?? "", /From:/);
 
@@ -924,6 +927,7 @@ locale: en
 
 ## States
 
+- before-load+
 - idle*
 - loaded
 
@@ -956,13 +960,16 @@ locale: en
 - sample: Loaded flag
 - visible when: \${model.loaded}
 
+## Events
+
+- page.load: A-Load
+
 ## Actions
 
 ### A1:A-Load Load
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Process P1: Apply immediate effect
   - case: success
@@ -1057,8 +1064,6 @@ locale: en
 
 ### A1:A-Submit Submit
 
-- Triggered
-  - E-Submit.click
 - From
   - idle
   - loaded
@@ -1138,6 +1143,9 @@ locale: en
 
 ## States
 
+- before-load+
+- before-load+
+- before-load+
 - idle*
 - loaded
 
@@ -1147,38 +1155,44 @@ locale: en
 
 - stack
 
+## Events
+
+- page.load: A-New
+
+## Events
+
+- page.load: A-Removed
+
+## Events
+
+- page.load: A-Shared
+
 ## Actions
 
 ### A1:A-Shared Shared action
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
   - loaded
 - Process P1: Apply immediate effect
-  - Effects
-    - state: loaded
+  - state: loaded
 
 ### A2:A-Removed Removed action
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 ### A3:A-New New action
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - loaded
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -1375,14 +1389,13 @@ locale: en
 
 ### E-Submit Button
 
+- action: A-Submit
 - label: Submit
 
 ## Actions
 
 ### A1:A-Submit Submit
 
-- Triggered
-  - E-Submit.click
 - From
   - idle
   - loaded
@@ -1425,10 +1438,12 @@ locale: en
 
 ### E-Primary Button
 
+- action: A-Primary
 - label: Primary
 
 ### E-Secondary Button
 
+- action: A-Secondary
 - label: Secondary
 
 ## Actions
@@ -1437,23 +1452,17 @@ locale: en
 
 Author overview only.
 
-- Triggered
-  - E-Primary.click
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 ### A2:A-Secondary Secondary
 
-- Triggered
-  - E-Secondary.click
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -1492,6 +1501,7 @@ locale: ja
 
 ## States
 
+- before-load+
 - idle*
 - loaded
 
@@ -1520,17 +1530,19 @@ locale: ja
 
 - value: Loaded
 
+## Events
+
+- page.load: A-Loaded
+
 ## Actions
 
 ### A1:A-Loaded Loaded action
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - loaded
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -1569,18 +1581,26 @@ locale: en
 
 - required
 
+## States
+
+- before-load+
+
 ## Elements
 
 ### E-Nav Link
 
 - label: Navigation
 
+## Events
+
+- page.load: A-TemplateLoad
+
 ## Actions
 
 ### A-TemplateLoad Template load
 
-- Triggered
-  - screen.load
+- From
+  - before-load
 `);
   const screen = parseMarkVSpec(`---
 id: SCR-SCOPE
@@ -1610,6 +1630,8 @@ Screen element prose.
 
 ### E-Name TextInput
 
+- action: A-Save
+- action event: change
 - label: Name
 
 ### E-Other Text
@@ -1626,8 +1648,6 @@ Screen element prose.
 
 ### A-Save Save
 
-- Triggered
-  - E-Name.change
 `);
   const composed = composeMarkVSpecTemplate(template, screen);
   const scope = buildDocumentScope(composed, {
@@ -1936,6 +1956,7 @@ title: Scenario Display
 
 ## States
 
+- before-load+
 - idle*
 - failed
 
@@ -1955,23 +1976,25 @@ title: Scenario Display
 
 - label: Waiting
 
+## Events
+
+- page.load: A-Submit
+
 ## Actions
 
 ### A-Submit Submit
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Process P1: Submit request
   - result:
     - request result
   - case: failure
-    - Effects
-      - state: failed
-      - display:
-        - target: E-Message
-        - content: Request failed message
+    - state: failed
+    - display:
+      - target: E-Message
+      - content: Request failed message
 
 ## Preview Scenarios
 
@@ -2053,21 +2076,16 @@ title: Dialog Scenario
 
 ### A-OpenDialog Open dialog
 
-- Triggered
-  - E-OpenDialogButton.click
 - From
   - idle
 - Process P1: Apply immediate effect
   - case: done
-    - Effects
-      - display:
-        - element: E-ConfirmDialog
+    - display:
+      - element: E-ConfirmDialog
     - stop
 
 ### A-CancelDialog Cancel dialog
 
-- Triggered
-  - E-CancelDialogButton.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -2075,8 +2093,6 @@ title: Dialog Scenario
 
 ### A-ConfirmDialog Confirm dialog
 
-- Triggered
-  - E-ConfirmDialogButton.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -2160,32 +2176,30 @@ title: Toast Scenario
 - placement: top-right
 - duration: medium
 
+## Events
+
+- partial.render: A-QueueSync
+
 ## Actions
 
 ### A-SaveSettings Save settings
 
-- Triggered
-  - E-SaveButton.click
 - From
   - idle
 - Process P1: Save settings
   - case: success
-    - Effects
-      - display:
-        - element: E-SavedToast
+    - display:
+      - element: E-SavedToast
     - stop
 
 ### A-QueueSync Queue sync
 
-- Triggered
-  - E-SaveButton.click
 - From
   - idle
 - Process P1: Queue sync
   - case: done
-    - Effects
-      - display:
-        - element: E-SyncToast
+    - display:
+      - element: E-SyncToast
     - stop
 
 ## Preview Scenarios
@@ -2322,16 +2336,13 @@ title: Scenario Unplaced Layout
 
 ### A-ShowDeferred Show deferred
 
-- Triggered
-  - E-ShowButton.click
 - From
   - idle
 - Process P1: Show deferred
   - case: shown
-    - Effects
-      - display:
-        - target: L-Page
-        - element: L-DeferredPanel
+    - display:
+      - target: L-Page
+      - element: L-DeferredPanel
 
 ## Preview Scenarios
 
@@ -2964,6 +2975,7 @@ title: List
 
 ### E-お知らせリンク Link
 
+- action: A-OpenNotice
 - sample: Notice
 - href: SCR-NOTICE-DETAIL
 - params:
@@ -2978,8 +2990,6 @@ title: List
 
 ### A-OpenNotice Open notice
 
-- Triggered
-  - E-お知らせリンク.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -3012,17 +3022,21 @@ locale: ja
 
 ## States
 
+- before-load+
 - loading*
 - idle
 - error
+
+## Events
+
+- page.load: A-LoadNotice
 
 ## Actions
 
 ### A1:A-LoadNotice お知らせ取得
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - loading
 - Process P1: Call server service
   - server:
@@ -3038,10 +3052,14 @@ locale: ja
     - response: 404
     - state: error
 
+## Events
+
+- partial.render: A-RefreshMeta
+
+## Actions
+
 ### A2:A-RefreshMeta メタ情報更新
 
-- Triggered
-  - manual.refresh
 - From
   - idle
 - Process P1: RefreshMeta
@@ -3095,14 +3113,13 @@ locale: ja
 
 ### 2:E-検索ボタン Button
 
+- action: A-SearchUsers
 - sample: 検索
 
 ## Actions
 
 ### A1:A-SearchUsers ユーザー検索
 
-- Triggered
-  - E-検索ボタン.click
 - From
   - idle
 - Process P1: Request partial
@@ -3350,6 +3367,8 @@ locale: ja
 
 ### 1:E-パスワード入力 Input
 
+- action: A-SaveUser
+- action event: submit
 - value: \${model.password}
 
 ### 2:E-PasswordConfirmInput Input
@@ -3359,9 +3378,6 @@ locale: ja
 ## Actions
 
 ### A1:A-SaveUser 保存
-
-- Triggered
-  - E-パスワード入力.submit
 
 ## Validations
 
@@ -3511,6 +3527,8 @@ locale: ja
 
 ### E-PasswordInput Input
 
+- action: A-SubmitLogin
+- action event: submit
 - value: \${model.password}
 
 ### E-DesktopOnlyInput Input
@@ -3541,8 +3559,6 @@ locale: ja
 
 ### A-SubmitLogin Submit login
 
-- Triggered
-  - E-PasswordInput.submit
 
 ## Validations
 
@@ -3617,27 +3633,25 @@ States section notes for the matrix.
 
 ### 1:E-SubmitButton Button
 
+- action: A-Submit
 - label: Submit
 
 ## Actions
 
 ### A1:A-Submit Submit
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: submitting
+  - state: submitting
 
 ### A2:A-SubmitResponse Submit response
 
-- Triggered
-  - A-Submit.P1.response
 - From
   - submitting
 - Process P1: Apply immediate effect
+  - receive:
+    - response: A-Submit.P1.response
   - case: failure
     - response: 500
     - state: error
@@ -3730,17 +3744,15 @@ title: Multi Page Load
     - path: /account
   - case: sent
     - response: account request sent
-    - Effects
-      - state: initializing
+    - state: initializing
 
 ### A2:A-PrimeTelemetry Prime telemetry
 
 - From
   - before-load
 - Process P1: Apply immediate effect
-  - Effects
-    - state: initializing
-    - display: E-TelemetryStatus = ready
+  - state: initializing
+  - display: E-TelemetryStatus = ready
 
 ### A3:A-HandleAccountResponse Handle account response
 
@@ -3751,8 +3763,7 @@ title: Multi Page Load
     - response: A-LoadAccount.P1.response
   - case: success
     - response: 200
-    - Effects
-      - state: loaded
+    - state: loaded
 `);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
   const stateFlow = html.match(/<section class="doc-section state-flow-section"[^>]*>[\s\S]*?(?=<section class="doc-section state-views-section")/)?.[0] ?? "";
@@ -3787,41 +3798,47 @@ title: Screen Transitions
 
 ### 1:E-ForgotPasswordLink Link
 
+- action: A-ForgotPassword
 - sample: Forgot password
 
 ### 2:E-SubmitButton Button
 
+- action: A-Submit
 - label: Submit
+
+### 3:E-DocsLink Link
+
+- action: A-OpenDocs
+- sample: Help docs
+
+### 4:E-SettingsButton Button
+
+- action: A-OpenSettings
+- label: Settings
 
 ## Actions
 
 ### A1:A-ForgotPassword Open password reset
 
-- Triggered
-  - E-ForgotPasswordLink.click
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - navigate: SCR-PASSWORD-RESET
+  - navigate: SCR-PASSWORD-RESET
 
 ### A2:A-Submit Submit login
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: submitting
+  - state: submitting
 
 ### A3:A-SubmitResponse Handle response
 
-- Triggered
-  - A-Submit.P1.response
 - From
   - submitting
 - Process P1: Apply immediate effect
+  - receive:
+    - response: A-Submit.P1.response
   - case: success
     - state: submitting
 - Process P2: Apply immediate effect
@@ -3836,23 +3853,17 @@ title: Screen Transitions
 
 ### A4:A-OpenDocs Open docs
 
-- Triggered
-  - E-ForgotPasswordLink.click
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - navigate: https://example.com/help
+  - navigate: https://example.com/help
 
 ### A5:A-OpenSettings Open settings
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - navigate: /settings
+  - navigate: /settings
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -3862,8 +3873,8 @@ title: Screen Transitions
   assert.doesNotMatch(section, /<th>Name<\/th>|<th>Result<\/th>|<th>Case<\/th>|<th>Target Type<\/th>|<th>Target<\/th>/);
   assert.match(section, new RegExp(`<td>${detailElementRef("1", "E-ForgotPasswordLink")}\\.click</td><td>${refActionChip("A1", "A-ForgotPassword", "Open password reset")}</td><td>${docLabel("idle", "state")}</td><td>screen ${documentRef("SCR-PASSWORD-RESET")}</td><td>-</td>`));
   assert.match(section, new RegExp(`<td>${docLabel("A-Submit.P1.response", "trigger")}</td><td>${refActionChip("A3", "A-SubmitResponse", "Handle response")}<ul class="spec-list"><li>Case: ${docLabel("success", "result")}</li></ul></td><td>${docLabel("submitting", "state")}</td><td>screen ${documentRef("SCR-HOME")}</td><td><ul><li>userId: ${sourceCodePattern("${model.auth.userId}")}</li></ul></td>`));
-  assert.match(section, new RegExp(`<td>${detailElementRef("1", "E-ForgotPasswordLink")}\\.click</td><td>${refActionChip("A4", "A-OpenDocs", "Open docs")}</td><td>${docLabel("idle", "state")}</td><td>URL https://example\\.com/help</td><td>-</td>`));
-  assert.match(section, new RegExp(`<td>${detailElementRef("2", "E-SubmitButton")}\\.click</td><td>${refActionChip("A5", "A-OpenSettings", "Open settings")}</td><td>${docLabel("idle", "state")}</td><td>route /settings</td><td>-</td>`));
+  assert.match(section, new RegExp(`<td>${detailElementRef("3", "E-DocsLink")}\\.click</td><td>${refActionChip("A4", "A-OpenDocs", "Open docs")}</td><td>${docLabel("idle", "state")}</td><td>URL https://example\\.com/help</td><td>-</td>`));
+  assert.match(section, new RegExp(`<td>${detailElementRef("4", "E-SettingsButton")}\\.click</td><td>${refActionChip("A5", "A-OpenSettings", "Open settings")}</td><td>${docLabel("idle", "state")}</td><td>route /settings</td><td>-</td>`));
   assert.doesNotMatch(section, new RegExp(`${actionBadge("A2", "A-Submit")} ${detailIdRef("A-Submit")} Submit login`));
   assert.doesNotMatch(section, /failure/);
 });
@@ -3890,8 +3901,7 @@ title: State Flow Aggregate
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: loading
+  - state: loading
 
 ### A2:A-PollResponse Poll response
 
@@ -3922,25 +3932,22 @@ title: State Flow Aggregate
 - From
   - loading
 - Process P1: Apply immediate effect
-  - Effects
-    - state: error
-    - state: error
+  - state: error
+  - state: error
 
 ### A5:A-Cancel Cancel
 
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - navigate: SCR-DONE
+  - navigate: SCR-DONE
 
 ### A6:A-KeepLoading Keep loading
 
 - From
   - loading
 - Process P1: Apply immediate effect
-  - Effects
-    - state: loading
+  - state: loading
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -4186,6 +4193,8 @@ locale: ja
 
 ### E-Name Input*
 
+- action: A-Edit
+- action event: change
 - label: 氏名
 - value: \${model.name}
 - input rule:
@@ -4221,13 +4230,10 @@ locale: ja
 
 ### A-Edit 編集
 
-- Triggered
-  - E-Name.change
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: editing
+  - state: editing
 
 ## Validations
 
@@ -4320,15 +4326,11 @@ locale: ja
 
 ### A1:A-Create 新規作成
 
-- Triggered
-  - E-Create.click
 - From
   - idle
 
 ### A2:A-Export CSV出力
 
-- Triggered
-  - E-Export.click
 - From
   - idle
 `;
@@ -4369,6 +4371,7 @@ title: Any Model
 
 ## States
 
+- before-load+
 - loading*
 - idle
 
@@ -4401,17 +4404,19 @@ title: Any Model
 - value: B ready
 - visible when: \${model.b.loaded}
 
+## Events
+
+- page.load: A-Resolve
+
 ## Actions
 
 ### A-Resolve Resolve
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - loading
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, "");
@@ -4433,6 +4438,7 @@ title: Opaque Model
 
 ## States
 
+- before-load+
 - loading*
 - ready
 
@@ -4459,13 +4465,16 @@ title: Opaque Model
 - value: Ready
 - visible when: \${model.profile.loaded}
 
+## Events
+
+- page.load: A-Resolve
+
 ## Actions
 
 ### A-Resolve Resolve
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - loading
 - Process P1: Apply immediate effect
   - case: success
@@ -4542,6 +4551,7 @@ title: Home
 
 ## States
 
+- before-load+
 - idle*
 
 ## Slot: content
@@ -4561,15 +4571,18 @@ title: Home
 - level: 1
 - label: Welcome
 
+## Events
+
+- page.load: A-LoadProfile
+
 ## Actions
 
 ### A1:A-LoadProfile Load profile
 
 Load profile references #{L-TopBar}.
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Process P1: Request partial
   - request:
@@ -4794,6 +4807,7 @@ references:
 
 ## States
 
+- before-load+
 - idle*
 
 ## Layout: mobile
@@ -4814,21 +4828,25 @@ references:
   - states:
     - idle: loaded
 
+## Events
+
+- page.load: A-RefreshProfile
+
 ## Actions
 
 ### A-RefreshProfile Refresh profile
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
+- Process P0: Enter idle
+  - state: idle
 - Process P1: Handle profile summary response
   - case: success
     - description: 200 profile summary partial
-    - Effects
-      - display:
-        - target: L-ProfileSummaryHost
-        - partial: PRT-PROFILE-SUMMARY
+    - display:
+      - target: L-ProfileSummaryHost
+      - partial: PRT-PROFILE-SUMMARY
 
 ## Preview Scenarios
 
@@ -5071,6 +5089,85 @@ template:
     const directTemplate = loadScreenDocumentResult(createTextDocument(directTemplateSource, screenPath) as vscode.TextDocument);
     const directTemplateHtml = renderDesignDocumentHtml(directTemplate.result, "", directTemplate.focus ? { focus: directTemplate.focus } : undefined);
     assert.match(directTemplateHtml, new RegExp(`<tr><td>Template</td><td><a href="file://[^"]+" class="mm-reference-link" data-mm-open-reference="TPL-SHELL" data-mm-reference-path="${escapeRegExp(templatePath)}">${documentRef("TPL-SHELL")}</a></td>`));
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("renders composed template screens with screen-owned document history", () => {
+  const root = mkdtempSync(join(tmpdir(), "markvspec-template-history-"));
+  try {
+    const screenPath = join(root, "screens", "home.vspec.md");
+    const templatePath = join(root, "templates", "shell.vspec.md");
+    mkdirSync(join(root, "screens"), { recursive: true });
+    mkdirSync(join(root, "templates"), { recursive: true });
+    writeFileSync(templatePath, `---
+id: TPL-SHELL
+type: template
+title: Shell
+---
+
+# TPL-SHELL Shell
+
+## History
+
+### 9.9.9
+
+- date: 2099-01-01
+- author: Template Author
+- Template history entry.
+
+## Layout: desktop
+
+### L-Shell Shell
+
+- stack
+
+#### Items
+
+- slot: content
+
+## Slots
+
+### content Main Content
+`);
+    const source = `---
+id: SCR-HOME
+type: screen
+title: Home
+template:
+  id: TPL-SHELL
+  src: ../templates/shell.vspec.md
+---
+
+# SCR-HOME Home
+
+## History
+
+### 1.2.3
+
+- date: 2026-05-21
+- author: Screen Author
+- Screen history entry.
+
+## Slot: content
+
+### L-Content Content
+
+- stack
+`;
+
+    const loaded = loadScreenDocumentResult(createTextDocument(source, screenPath) as vscode.TextDocument);
+    const html = renderStandaloneHtml(loaded, undefined);
+
+    assert.match(html, /Screen history entry\./);
+    assert.match(html, /1\.2\.3/);
+    assert.match(html, /Screen Author/);
+    assert.doesNotMatch(html, /Template history entry\./);
+    assert.doesNotMatch(html, /9\.9\.9/);
+    assert.doesNotMatch(html, /Template Author/);
+    assert.match(html, /data-mm-id="L-Shell"/);
+    assert.match(html, /data-mm-id="L-Content"/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -5399,14 +5496,13 @@ title: Points Content
 
 ### E-Refresh Button
 
+- action: A-Refresh
 - label: Refresh
 
 ## Actions
 
 ### A-Refresh Refresh
 
-- Triggered
-  - E-Refresh.click
 - From
   - loaded
 - Process P1: Refresh content
@@ -6153,14 +6249,13 @@ route: /users
 
 ### E-OpenDetail Link
 
+- action: A-OpenDetail
 - label: Detail
 
 ## Actions
 
 ### A7:A-OpenDetail Open detail
 
-- Triggered
-  - E-OpenDetail.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -6379,14 +6474,13 @@ title: Multi Request
 
 ### E-NextPageButton Button
 
+- action: A-NextPage
 - label: Next
 
 ## Actions
 
 ### A3:A-NextPage Next page
 
-- Triggered
-  - E-NextPageButton.click
 - From
   - idle
 - Process P1: Send request
@@ -6456,14 +6550,13 @@ title: Direct Process
 
 ### E-ContinueButton Button
 
+- action: A-Continue
 - label: Continue
 
 ## Actions
 
 ### A1:A-Continue Continue
 
-- Triggered
-  - E-ContinueButton.click
 - From
   - idle
 - Process P1: Apply immediate effect
@@ -6512,6 +6605,7 @@ title: Process Icons
 
 ### E-Button Button
 
+- action: A-Run
 - label: Run
 
 ### E-Status Text
@@ -6522,8 +6616,6 @@ title: Process Icons
 
 ### A1:A-Run Run
 
-- Triggered
-  - E-Button.click
 - From
   - idle
 - Process P1: Check validation
@@ -6552,8 +6644,7 @@ title: Process Icons
 - Process P2: Resolve responses
   - group: initial-load
   - case: ready
-    - Effects
-      - state: loaded
+    - state: loaded
     - stop
 `;
   const result = parseMarkVSpec(source);
@@ -6605,6 +6696,7 @@ locale: ja
 
 ### E-RunButton Button
 
+- action: A-Run
 - label: Run
 
 ### E-Message Text
@@ -6619,8 +6711,6 @@ locale: ja
 
 ### A-Run Run
 
-- Triggered
-  - E-RunButton.click
 - From
   - idle
 - Process P1: Call server service
@@ -6687,14 +6777,17 @@ title: Nested Process Details
 
 ### 3:E-SubmitButton Button
 
+- action: A-Submit
 - label: Submit
+
+## Events
+
+- partial.render: A-Submit
 
 ## Actions
 
 ### A-Submit Submit
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: SubmitSubscription
@@ -6754,17 +6847,21 @@ title: Parallel Process
 
 ## States
 
+- before-load+
 - loading*
 - idle
 - load-error
+
+## Events
+
+- page.load: A-InitialLoad
 
 ## Actions
 
 ### A-InitialLoad Initial load
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - loading
 - Process P1: Call server service
   - group: initial-load
@@ -6832,6 +6929,7 @@ title: Entity Notes
 
 ### E-NextPageButton Button
 
+- action: A-NextPage
 - label: Next
 
 このボタンは二重クリック対策を実装側で行う。
@@ -6842,15 +6940,12 @@ title: Entity Notes
 
 次ページへ移動するための一覧取得を開始する。
 
-- Triggered
-  - E-NextPageButton.click
 - From
   - idle
 - Process P1: Send request
   - GET /users
 - Process P2: Apply immediate effect
-  - Effects
-    - state: loading
+  - state: loading
 
 備考をこういうところに書きたいよね。
 `;
@@ -6894,6 +6989,8 @@ Elements section overview.
 
 ### E-EmailInput Input
 
+- action: A-Submit
+- action event: submit
 - value: \${model.email}
 
 ### Section Notes
@@ -6908,13 +7005,10 @@ Actions section overview.
 
 Action overview.
 
-- Triggered
-  - E-EmailInput.submit
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 Action notes.
 
@@ -7194,19 +7288,17 @@ title: Action Anchors
 
 ### E-SubmitButton Button
 
+- action: A-日本語操作
 - label: Submit
 
 ## Actions
 
 ### 送信:A-日本語操作 日本語操作
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -7229,6 +7321,7 @@ locale: en
 
 ## States
 
+- before-load+
 - idle*
 
 ## Layout: mobile
@@ -7248,17 +7341,19 @@ locale: en
 - label: Refresh
 - action: A-Refresh
 
+## Events
+
+- page.load: A-Refresh
+
 ## Actions
 
 ### A1:A-Refresh Refresh
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -7280,25 +7375,28 @@ locale: en
 
 ## States
 
+- before-load+
 - idle*
 - empty
 - load-error
 - loading
 
+## Events
+
+- page.load: A-SearchNotices
+
 ## Actions
 
 ### A1:A-SearchNotices Search notices
 
-- Triggered
-  - screen.load
 - From
+  - before-load
   - idle
   - empty
   - load-error
 - Process P1: Apply immediate effect
-  - Effects
-    - state: loading
-    - navigate: SCR-RESULTS
+  - state: loading
+  - navigate: SCR-RESULTS
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -7368,8 +7466,6 @@ locale: en
 
 ### A-Submit Submit
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
   - error
@@ -7386,8 +7482,6 @@ locale: en
 
 ### A-OutcomeOnly Outcome only
 
-- Triggered
-  - E-OutcomeOnlyButton.click
 - Process P1: Apply immediate effect
   - case: failure
     - response: 422 invalid
@@ -7450,8 +7544,6 @@ locale: en
 
 ### A-Submit Submit
 
-- Triggered
-  - E-SubmitButton.click
 - Process P1: Apply immediate effect
   - case: retry
     - from: error
@@ -7497,19 +7589,19 @@ locale: en
 
 ### E-SubmitButton Button
 
+- action: A-Settings
+- action: A-ExternalHelp
+- action: A-Submit
 - label: Submit
 
 ## Actions
 
 ### A-Submit Submit
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: loading
+  - state: loading
 - Process P2: Apply immediate effect
   - case: success
     - navigate: SCR-DONE
@@ -7520,23 +7612,17 @@ locale: en
 
 ### A-ExternalHelp External help
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - navigate: https://example.com/help
+  - navigate: https://example.com/help
 
 ### A-Settings Settings
 
-- Triggered
-  - E-SubmitButton.click
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - navigate: /settings
+  - navigate: /settings
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -7791,13 +7877,10 @@ Use **strong** text, *emphasis*, [help](./my_file_name.md), and \`token\`.
 
 #### Supplement
 
-- Triggered
-  - form.submit
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 ![Diagram](./diagram.png)
 
@@ -7847,6 +7930,8 @@ See #{SCR-ENTITY-REFS}, #{L-Form}, #{E-NameInput}, #{A-Submit}, #{F-LoginForm}, 
 
 ### E-NameInput Input
 
+- action: A-Submit
+- action event: change
 - marker: E1
 - label: Name
 
@@ -7860,13 +7945,10 @@ Refer to #{R-Eligibility}; keep \`#{E-NameInput}\`, \`\`#{A-Submit}\`\`, and \`\
 #{R-Eligibility}
 \`\`\`
 
-- Triggered
-  - E-NameInput.change
 - From
   - idle
 - Process P1: Apply immediate effect
-  - Effects
-    - state: idle
+  - state: idle
 
 ## Business Rules
 

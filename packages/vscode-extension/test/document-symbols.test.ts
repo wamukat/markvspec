@@ -101,14 +101,12 @@ title: 日本語画面
 
 ### 2:E-ページヘッダ 見出し
 
+- action: A-日本語操作
 - value: ようこそ
 
 ## Actions
 
 ### A1:A-日本語操作 日本語操作
-
-- Triggered
-  - E-ページヘッダ.click
 
 ## Validations
 

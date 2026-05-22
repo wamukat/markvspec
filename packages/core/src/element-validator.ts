@@ -1,5 +1,5 @@
 import { elementIdPattern, opaqueExpressionBody } from "./ids.js";
-import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
+import { createRepresentedExtensionItemDiagnostic } from "./source-text-diagnostics.js";
 import { isMarkVSpecSourceType } from "./source-types.js";
 import { propertyString } from "./property-accessor.js";
 import {
@@ -56,13 +56,22 @@ function checkUnsupportedElementProperties(element: MarkVSpecElement, diagnostic
       continue;
     }
 
-    diagnostics.push(createMarkVSpecDiagnostic(
-      "warning",
-      "element.unsupportedProperty",
-      { elementId: element.id, type: element.type, property: key },
-      firstPropertyLine(element, key) ?? element.location.line
-    ));
+    diagnostics.push(createRepresentedExtensionItemDiagnostic({
+      context: `Element ${element.id}`,
+      text: elementPropertyDiagnosticText(key, element.properties[key]),
+      location: { line: firstPropertyLine(element, key) ?? element.location.line }
+    }));
   }
+}
+
+function elementPropertyDiagnosticText(key: string, value: MarkVSpecElement["properties"][string]): string {
+  if (value === true) {
+    return key;
+  }
+  if (Array.isArray(value)) {
+    return `${key}: ${value.join(", ")}`;
+  }
+  return `${key}: ${value}`;
 }
 
 function checkElementPresetProperties(element: MarkVSpecElement, diagnostics: MarkVSpecDiagnostic[]): void {

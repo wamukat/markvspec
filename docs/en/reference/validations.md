@@ -1,6 +1,6 @@
 # Validations
 
-Validations cover validation contracts and error display. Put input metadata in `## Elements`, validation rules and messages in `## Field Validations`, and screen or business decisions in [Business Rules](./rules.md).
+Validations cover validation contracts and error display. Put input metadata in `## Elements`, validation rules and messages in `## Field Validations`, and screen or business decisions in [Business Rules](rules.md).
 
 ## Boundary
 
@@ -9,14 +9,13 @@ Validations cover validation contracts and error display. Put input metadata in 
 | Required input metadata | The `Input` element `required` or `input rule` |
 | Format, length, range, or pattern metadata | The `Input` element `input rule`, or `NumberInput` `min` / `max` / `step` |
 | Validation rules and user-facing messages | `## Field Validations` |
-| Comparing multiple fields | `## Cross-field Validations` |
-| A client-side product rule | `## Business Rules` |
+| Comparing multiple fields | `## Cross-field Validations`, `## Business Rules`, or a pre-submit action |
 | A server response for one field | `## Actions` `case:` with `display` targeting the field error |
 | A product decision such as permission, stock, or contract state | `## Business Rules`, then the server response `case:` |
 
 ## Syntax You Can Write
 
-```markdown markvspec-fragment
+```markdown
 ## Elements
 
 ### E-EmailInput Input
@@ -39,9 +38,29 @@ Validations cover validation contracts and error display. Put input metadata in 
     - message: Enter a valid email address.
 ```
 
-### Common Constraint Names
+### Structured Properties
 
-Write a rule name under `constraints`. The current implementation does not restrict rule names to a fixed list, but these names keep the source easy to match with input metadata and preview output.
+<!-- markvspec-generated:reference-validations:start -->
+This block is generated from `packages/core/src/grammar-definition.ts`. Do not hand-edit it; update the grammar definition and regenerate the docs.
+
+| Item | Classification | Output | Diagnostic | Description |
+| --- | --- | --- | --- | --- |
+| `marker` | `canonical` | represented | - | Validation property. |
+| `description` | `canonical` | represented | - | Validation property. |
+| `target` | `canonical` | represented | - | Validation property. |
+| `scope` | `canonical` | represented | - | Validation property. |
+| `run` | `canonical` | represented | - | Validation property. |
+| `inputs` | `canonical` | represented | - | Validation property. |
+| `rules` | `canonical` | represented | - | Validation property. |
+| `constraints` | `canonical` | represented | - | Validation property. |
+| `check` | `canonical` | represented | - | Validation property. |
+| `when` | `canonical` | represented | - | Validation property. |
+| `message` | `canonical` | represented | - | Validation property. |
+| `messages` | `canonical` | represented | - | Validation property. |
+| `error code` | `canonical` | represented | - | Validation property. |
+<!-- markvspec-generated:reference-validations:end -->
+
+### Common Constraints
 
 | Constraint | Example | Use |
 | --- | --- | --- |
@@ -51,38 +70,11 @@ Write a rule name under `constraints`. The current implementation does not restr
 | `range: element` | `- range: element` | Use `NumberInput` `min` / `max` / `step` metadata |
 | `pattern` | `- pattern:` | Domain-specific input format |
 
-### Cross-field Validations
-
-When a validation reads multiple fields, group those fields in `## Form Groups` and target that group from `## Cross-field Validations`.
-
-```markdown markvspec-skip reason=requires-validation-context
-## Form Groups
-
-### F-PasswordForm Password form
-
-- fields:
-  - E-PasswordInput
-  - E-PasswordConfirmInput
-
-## Cross-field Validations
-
-### V-PasswordConfirmation Password confirmation
-
-- target: F-PasswordForm
-- inputs:
-  - E-PasswordInput
-  - E-PasswordConfirmInput
-- check: E-PasswordInput.value equals E-PasswordConfirmInput.value
-- message: Password and confirmation must match.
-```
-
-Do not write `scope`. The section name decides whether the validation is field-level or cross-field. Usually do not write `run`; the current implementation recognizes only `client`.
-
 ### Error Messages
 
 Write error messages as `message` rows under each `## Field Validations` constraint.
 
-```markdown markvspec-skip reason=requires-validation-heading
+```markdown
 - constraints:
   - required:
     - message: Password is required.
@@ -92,7 +84,7 @@ Write error messages as `message` rows under each `## Field Validations` constra
 
 ## Small Example
 
-```markdown markvspec-skip reason=requires-validation-context
+```markdown
 ### E-QuantityInput Input
 
 - label: Quantity
@@ -129,7 +121,6 @@ Write error messages as `message` rows under each `## Field Validations` constra
 
 - Element-level `constraints` and `error:` are not current MarkVSpec syntax.
 - Write validation rules as `V-*` entries in `## Field Validations`.
-- Cross-field validations target an `F-*` form group. Do not target an `L-*` layout for a composite validation.
 - `## Business Rules` covers business rules and screen-specific conditions.
 - Validator diagnostics are tool output, separate from validation requirements written in the source.
 - Error display elements can be written in `## Elements` as `Paragraph` or `Text` with `tone: danger`.
@@ -139,8 +130,8 @@ Write error messages as `message` rows under each `## Field Validations` constra
 ## Related Pages
 
 - [Guide: Validation](../guide/validation.md)
-- [Elements](./elements.md)
-- [Actions](./actions.md)
-- [Business Rules](./rules.md)
+- [Elements](elements.md)
+- [Actions](actions.md)
+- [Business Rules](rules.md)
 - [Single Field Validation](../../../examples/showcase/single-field-validation.html)
 - [Login](../../../examples/showcase/login-basic.html)
