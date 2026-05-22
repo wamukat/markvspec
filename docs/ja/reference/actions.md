@@ -47,7 +47,7 @@
 Action は `### A-* Name` で宣言します。preview に action marker を出したい場合は
 `### marker:A-* Name` と書きます。
 
-```markdown markvspec-fragment section=screen
+```markdown markvspec-skip reason=requires-actions-context
 ### A-RefreshList Refresh list
 
 ### A1:A-RefreshList Refresh list
@@ -102,7 +102,7 @@ Action は `### A-* Name` で宣言します。preview に action marker を出�
 
 HTTP request は `Process Pn:` の `request:` の下に置き、method/path と request parameter を書きます。`server:` は必要な場合だけ、サーバ側の service call など HTTP request ではない処理を書くために使います。
 
-```markdown markvspec-fragment section=screen
+```markdown markvspec-skip reason=requires-action-heading
 - Process P1: Load profile
   - request:
     - GET /profile
@@ -114,7 +114,7 @@ HTTP request は `Process Pn:` の `request:` の下に置き、method/path と 
 
 server-rendered partial update は raw htmx 属性ではなく、結果 case の `display` で意味を書きます。
 
-```markdown markvspec-fragment section=screen
+```markdown markvspec-skip reason=requires-action-heading
 - Process P1: Apply profile response
   - case: success
     - response: 200 profile partial
@@ -135,7 +135,7 @@ semantic message で、ユーザーに見える結果を書きます。
 
 ## 小さな例
 
-```markdown markvspec-fragment section=screen
+```markdown markvspec-skip reason=requires-state-action-definitions
 ### A-OpenSettings Open settings
 
 - Process P1: Navigate to settings

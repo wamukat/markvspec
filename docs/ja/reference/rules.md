@@ -6,7 +6,7 @@
 
 ## 書ける構文
 
-```markdown markvspec-fragment section=screen
+```markdown markvspec-fragment section=business-rules
 ## Business Rules
 
 ### R-AccountLocked Locked account
@@ -28,7 +28,7 @@
 
 Rule は `### R-* Name` の形で宣言します。
 
-```markdown markvspec-fragment section=screen
+```markdown markvspec-fragment section=business-rules
 ### R-PasswordPolicy Password policy
 ```
 
@@ -65,7 +65,7 @@ Rule は `### R-* Name` の形で宣言します。
 
 ## 小さな例
 
-```markdown markvspec-fragment section=screen
+```markdown markvspec-fragment section=business-rules
 ### R-EmptyResult Empty search result
 
 - when: search returns no items

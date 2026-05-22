@@ -32,7 +32,7 @@
 Declare an element with `### E-* Name Type`. When you want the preview to show
 a marker, write `### marker:E-* Name Type`.
 
-```markdown markvspec-fragment section=screen
+```markdown markvspec-skip reason=requires-elements-context
 ### E-HelpText Paragraph
 
 ### 3:E-HelpText Paragraph

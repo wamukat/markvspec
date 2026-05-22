@@ -32,7 +32,7 @@
 Element は `### E-* Name Type` で宣言します。preview に marker を出したい場合は
 `### marker:E-* Name Type` と書きます。
 
-```markdown markvspec-fragment section=screen
+```markdown markvspec-skip reason=requires-elements-context
 ### E-HelpText Paragraph
 
 ### 3:E-HelpText Paragraph
