@@ -128,6 +128,68 @@ Element type 固有の item property は以下の context で定義します。
 
 入力値の検証ルールと error message は `## Field Validations` に書きます。`Input` element 直下の `constraints` や `error:` は現在の構文ではありません。
 
+### Element Source Metadata
+
+Element source metadata は、表示される content がどこから来るかを説明する metadata
+です。preview、export、生成される Display Content Spec のための説明であり、
+低レベルの binding code ではありません。
+
+source metadata を書く場所は2つあります。
+
+- Element-level `source`: その element の fallback source type です。display
+  property に nested `kind` がない場合に使われます。
+- Nested display value metadata: `value`、`label`、`placeholder`、`text`、
+  `message`、`hint`、`href`、`src`、`alt` などの display value property の下に
+  `kind`、`source`、`format` を付けます。
+
+source type は次を使います。
+
+| Type | 意味 |
+| --- | --- |
+| `fixed` | spec に直接書いた literal な text / value。source が未指定の場合の default です。 |
+| `i18n` | 翻訳される UI copy または translation key。 |
+| `data` | application / model data。preview に表示値が必要な場合は `sample` または `## Preview Scenarios` を使います。 |
+| `route` | route、path parameter、query parameter。 |
+| `element` | `E-EmailInput.value` のように別 element から導かれる値。 |
+| `asset` | image、file、asset catalog entry。 |
+| `external` | 外部 URL、service、content source。 |
+| `computed` | 派生値または formatted value。`source` と、必要に応じて `format` を併用します。 |
+
+```markdown markvspec-fragment section=elements
+### E-DisplayName Text
+
+- label: Display name
+  - kind: i18n
+- value: Morgan Lee
+  - kind: data
+  - source: ${data.member.displayName}
+
+### E-EmailInput Input
+
+- label: Email
+- value: morgan@example.com
+  - kind: data
+  - source: ${data.member.email}
+
+### E-ConfirmEmail Text
+
+- value: E-EmailInput.value
+  - kind: element
+  - source: E-EmailInput.value
+
+### E-Subtotal Text
+
+- value: USD 128.40
+  - kind: computed
+  - source: ${data.invoice.subtotalCents}
+  - format: currency USD
+```
+
+element level に `source: data` を書くと、preview rendering は `sample` または
+`## Preview Scenarios` から代表値を表示できます。Display Content Spec の各 row では
+nested metadata が優先されるため、1つの element の中で `label` は `i18n`、`value` は
+`data`、`src` は `asset` のように混在できます。
+
 ### Text、Label、Value
 
 この3つは用途を分けます。

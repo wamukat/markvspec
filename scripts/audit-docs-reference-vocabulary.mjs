@@ -6,7 +6,7 @@ import {
   grammarStructuredItemDefinitionsByContext,
   normalizeGrammarKey
 } from "../packages/core/dist/grammar-definition.js";
-import { parseMarkVSpec, renderDiagnosticMessageForLocale } from "../packages/core/dist/index.js";
+import { markVSpecSourceTypes, parseMarkVSpec, renderDiagnosticMessageForLocale } from "../packages/core/dist/index.js";
 
 const rootDir = dirname(dirname(fileURLToPath(import.meta.url)));
 const referenceFiles = [
@@ -26,6 +26,12 @@ const generatedBlockContexts = {
   "reference-rules": ["business-rule.property", "error-code.property"],
   "reference-validations": ["validation.property"]
 };
+const elementSourceMetadataReferenceFiles = new Set([
+  "docs/en/reference/elements.md",
+  "docs/ja/reference/elements.md"
+]);
+const elementSourceMetadataTerms = ["kind", "source", "format"];
+const elementSourceMetadataPreviewTerms = ["sample", "## Preview Scenarios"];
 const knownSectionTitles = new Set(grammarSectionDefinitions.map((definition) => definition.title));
 const proseSectionTitles = new Set(["Notes", "Open Questions"]);
 const failures = [];
@@ -38,6 +44,7 @@ for (const filePath of referenceFiles) {
   const source = await readFile(absolutePath, "utf8");
 
   auditGeneratedBlocks(source, filePath);
+  auditElementSourceMetadataCoverage(source, filePath);
 
   for (const block of fencedCodeBlocks(source, filePath)) {
     const classification = classifyMarkVSpecBlock(block);
@@ -65,6 +72,44 @@ for (const filePath of referenceFiles) {
       failures.push(`${filePath}:${block.startLine}${line} ${diagnostic.severity}: ${renderDiagnosticMessageForLocale(diagnostic, result.screen.locale)}`);
     }
   }
+}
+
+function auditElementSourceMetadataCoverage(source, filePath) {
+  if (!elementSourceMetadataReferenceFiles.has(filePath)) {
+    return;
+  }
+
+  const section = extractHeadingSection(source, "Element Source Metadata");
+  if (!section) {
+    failures.push(`${filePath}: missing Element Source Metadata section`);
+    return;
+  }
+
+  for (const sourceType of markVSpecSourceTypes) {
+    if (!hasBacktickedTerm(section, sourceType)) {
+      failures.push(`${filePath}: Element Source Metadata section must mention source type \`${sourceType}\``);
+    }
+  }
+  for (const term of elementSourceMetadataTerms) {
+    if (!hasBacktickedTerm(section, term)) {
+      failures.push(`${filePath}: Element Source Metadata section must mention metadata key \`${term}\``);
+    }
+  }
+  for (const term of elementSourceMetadataPreviewTerms) {
+    if (!hasBacktickedTerm(section, term)) {
+      failures.push(`${filePath}: Element Source Metadata section must mention data preview term \`${term}\``);
+    }
+  }
+
+  const displayValuePropertyKeys = (grammarStructuredItemDefinitionsByContext["element.display-value-property"] ?? [])
+    .map((definition) => definition.key);
+  for (const propertyKey of displayValuePropertyKeys) {
+    if (!hasBacktickedTerm(section, propertyKey)) {
+      failures.push(`${filePath}: Element Source Metadata section must mention display value property \`${propertyKey}\``);
+    }
+  }
+
+  report.push(`${filePath} source-metadata-audited`);
 }
 
 for (const line of report) {
@@ -126,6 +171,25 @@ function auditGeneratedSectionBlock(block, filePath, startLine) {
       failures.push(`${filePath}:${startLine} generated block reference-sections contains unknown section \`${item.slice(1, -1)}\``);
     }
   }
+}
+
+function extractHeadingSection(source, heading) {
+  const headingMatch = source.match(new RegExp(`^###\\s+${escapeRegExp(heading)}\\s*$`, "mu"));
+  if (!headingMatch || headingMatch.index === undefined) {
+    return "";
+  }
+  const bodyStart = headingMatch.index + headingMatch[0].length;
+  const rest = source.slice(bodyStart);
+  const nextHeading = rest.match(/^#{2,3}\s+/mu);
+  return nextHeading?.index === undefined ? rest : rest.slice(0, nextHeading.index);
+}
+
+function hasBacktickedTerm(source, term) {
+  return new RegExp(`\`${escapeRegExp(term)}\``, "u").test(source);
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 }
 
 async function markdownFiles(rootRelativePath) {

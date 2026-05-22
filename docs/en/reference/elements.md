@@ -129,6 +129,69 @@ Element type-specific item properties are defined by these contexts.
 
 Write validation rules and error messages in `## Field Validations`. Element-level `constraints` and `error:` are not current MarkVSpec syntax.
 
+### Element Source Metadata
+
+Element source metadata explains where displayed content comes from. It is
+documentation for preview, export, and the generated Display Content Spec; it is
+not low-level binding code.
+
+There are two places to write source metadata:
+
+- Element-level `source`: the fallback source type for the element when a
+  display property has no nested `kind`.
+- Nested display value metadata: attach `kind`, `source`, and `format` under a
+  display value property such as `value`, `label`, `placeholder`, `text`,
+  `message`, `hint`, `href`, `src`, or `alt`.
+
+Use these source types:
+
+| Type | Meaning |
+| --- | --- |
+| `fixed` | Literal authored text or value in the spec. This is the default when no source is specified. |
+| `i18n` | Translated UI copy or translation key. |
+| `data` | Application or model data. Use `sample` or `## Preview Scenarios` when the preview needs a display value. |
+| `route` | Route, path, or query parameter. |
+| `element` | Value derived from another element, such as `E-EmailInput.value`. |
+| `asset` | Image, file, or asset catalog entry. |
+| `external` | External URL, service, or content source. |
+| `computed` | Derived or formatted value. Pair it with `source` and, when useful, `format`. |
+
+```markdown markvspec-fragment section=elements
+### E-DisplayName Text
+
+- label: Display name
+  - kind: i18n
+- value: Morgan Lee
+  - kind: data
+  - source: ${data.member.displayName}
+
+### E-EmailInput Input
+
+- label: Email
+- value: morgan@example.com
+  - kind: data
+  - source: ${data.member.email}
+
+### E-ConfirmEmail Text
+
+- value: E-EmailInput.value
+  - kind: element
+  - source: E-EmailInput.value
+
+### E-Subtotal Text
+
+- value: USD 128.40
+  - kind: computed
+  - source: ${data.invoice.subtotalCents}
+  - format: currency USD
+```
+
+When `source: data` is written at element level, preview rendering can use
+`sample` or `## Preview Scenarios` to show a representative value. Nested
+metadata still wins for each property in Display Content Spec rows, so a single
+element can mix `label` from `i18n`, `value` from `data`, and `src` from
+`asset`.
+
 ### Text, Label, And Value
 
 Use these three properties consistently:
