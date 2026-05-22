@@ -47,10 +47,6 @@ const adjacentExamples = [
   ...next,
   ...adjacentByStage.filter((item) => !next.some((nextItem) => nextItem.slug === item.slug)),
 ];
-const pageNavItems = [
-  { href: '#source', label: 'Source pane' },
-  { href: '#dynamic-preview', label: 'Dynamic preview' },
-].filter(Boolean);
 const metaPills = [
   example.id,
   example.type,
@@ -326,33 +322,6 @@ const metaPills = [
         gap: 5px;
         padding: 3px 8px;
       }
-      .page-jump-nav {
-        align-items: center;
-        background: var(--paper);
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        display: flex;
-        gap: 10px;
-        margin-bottom: 18px;
-        overflow-x: auto;
-        padding: 10px 12px;
-      }
-      .page-jump-nav strong {
-        color: var(--muted);
-        flex: 0 0 auto;
-        font-size: 11px;
-        letter-spacing: .04em;
-        text-transform: uppercase;
-      }
-      .page-jump-nav a {
-        border: 1px solid var(--line-soft);
-        border-radius: 999px;
-        color: #334155;
-        flex: 0 0 auto;
-        font-size: 12px;
-        font-weight: 650;
-        padding: 5px 9px;
-      }
       .learning-panel,
       .learning-card,
       .pane {
@@ -551,10 +520,6 @@ const metaPills = [
           grid-template-columns: 1fr;
         }
         .example-actions { justify-content: flex-start; }
-        .page-jump-nav {
-          margin-left: -4px;
-          margin-right: -4px;
-        }
         .learning-panel { grid-template-columns: 1fr; }
         .split { grid-template-columns: 1fr; }
         .source-wrap,
@@ -659,11 +624,6 @@ const metaPills = [
             <a class="nav-link" href={`${githubBlobBaseUrl}${example.repoPath}`}>View on GitHub</a>
           </div>
         </section>
-
-        <nav class="page-jump-nav" aria-label="Sections in this example">
-          <strong>On this example</strong>
-          {pageNavItems.map((item) => <a href={item.href}>{item.label}</a>)}
-        </nav>
 
         <section class="split" aria-label="Source and dynamic preview">
           <article id="source" class="pane" aria-label="VSpec source">

@@ -119,6 +119,8 @@ const helloShowcaseHtml = readSiteFile("examples/showcase/hello-screen.html/inde
 expectContains(helloShowcaseHtml, "Source and dynamic preview, side by side", "_site/examples/showcase/hello-screen.html should be a dynamic-first showcase page.");
 expectContains(helloShowcaseHtml, "Dynamic preview", "_site/examples/showcase/hello-screen.html should label the main preview as dynamic.");
 expectNotContains(helloShowcaseHtml, "Generated HTML Preview", "_site/examples/showcase/hello-screen.html should not label the main preview as generated HTML.");
+expectNotContains(helloShowcaseHtml, "On this example", "_site/examples/showcase/hello-screen.html should not show the redundant local jump navigation.");
+expectNotContains(helloShowcaseHtml, 'class="page-jump-nav"', "_site/examples/showcase/hello-screen.html should not render the redundant local jump navigation.");
 expectContains(helloShowcaseHtml, 'class="example-sidebar ', "_site/examples/showcase/hello-screen.html should show example navigation.");
 expectContains(helloShowcaseHtml, 'data-sidebar-toggle', "_site/examples/showcase/hello-screen.html should expose a sidebar collapse toggle.");
 expectContains(helloShowcaseHtml, 'aria-controls="example-sidebar-content"', "_site/examples/showcase/hello-screen.html sidebar toggle should target the sidebar content.");
