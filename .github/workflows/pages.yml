@@ -46,7 +46,7 @@ jobs:
         run: npm run check:docs-links
 
       - name: Audit reference docs
-        run: npm run audit:docs-reference
+        run: npm run audit:docs-reference-vocabulary
 
       - name: Audit docs code blocks
         run: npm run audit:docs-code
