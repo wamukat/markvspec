@@ -1,4 +1,5 @@
 import { computeMarkVSpecRenderInvalidation } from "./render-invalidation.js";
+import { composeMarkVSpecTemplate } from "./project-loader.js";
 import { renderMarkVSpecHtml, renderMarkVSpecHtmlFragments } from "./renderer.js";
 import { parseMarkVSpec } from "./parser.js";
 import type { MarkVSpecRenderOptions } from "./types.js";
@@ -10,6 +11,7 @@ export {
 export { createMarkVSpecDiagnostic, renderDiagnosticMessageForLocale, supportedDiagnosticMessageCodes } from "./diagnostic-messages.js";
 export { evaluateMarkVSpecDiagnostics } from "./validation-gate.js";
 export { parseMarkVSpec };
+export { composeMarkVSpecTemplate };
 export { renderMarkVSpecHtml, renderMarkVSpecHtmlFragment, renderMarkVSpecHtmlFragments } from "./renderer.js";
 export { validateMarkVSpec } from "./validator.js";
 export type {

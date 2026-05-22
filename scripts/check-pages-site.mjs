@@ -144,8 +144,9 @@ expectContains(scenarioShowcaseHtml, "English: Guide / Scenarios", "_site/exampl
 expectContains(scenarioShowcaseHtml, 'href="/markvspec/en/guide/scenarios/"', "_site/examples/showcase/scenario-samples.html should use the Starlight scenario URL.");
 
 const templateShowcaseHtml = readSiteFile("examples/showcase/profile-page-with-template.html/index.html");
-expectContains(templateShowcaseHtml, '"dynamicPreviewEnabled":false', "_site/examples/showcase/profile-page-with-template.html should keep generated fallback primary until browser composition is available.");
-expectContains(templateShowcaseHtml, 'source composition is not available in the browser runtime yet', "_site/examples/showcase/profile-page-with-template.html should explain why it uses the generated fallback.");
+expectContains(templateShowcaseHtml, '"dynamicPreviewEnabled":true', "_site/examples/showcase/profile-page-with-template.html should enable browser dynamic rendering.");
+expectContains(templateShowcaseHtml, '"/markvspec/examples/source/05-reuse/template-shell.vspec.md"', "_site/examples/showcase/profile-page-with-template.html should publish the template dependency source.");
+expectContains(templateShowcaseHtml, '"/markvspec/examples/source/05-reuse/profile-summary.partial.vspec.md"', "_site/examples/showcase/profile-page-with-template.html should publish the partial dependency source.");
 expectContains(templateShowcaseHtml, '<iframe src="/markvspec/examples/generated/profile-page-with-template.html"', "_site/examples/showcase/profile-page-with-template.html should embed the composed generated preview fallback.");
 
 const dynamicExamplesDir = join(siteDir, "examples", "dynamic");
@@ -183,6 +184,10 @@ if (!dynamicScriptPath) {
     failures.push(`dynamic preview browser script gzip size should stay within 140 KiB (${formatKiB(gzipBytes)} found).`);
   }
 }
+
+const templateDynamicHtml = readSiteFile("examples/dynamic/profile-page-with-template.html/index.html");
+expectContains(templateDynamicHtml, '"/markvspec/examples/source/05-reuse/template-shell.vspec.md"', "_site/examples/dynamic/profile-page-with-template.html should publish the template dependency source.");
+expectContains(templateDynamicHtml, '"/markvspec/examples/source/05-reuse/profile-summary.partial.vspec.md"', "_site/examples/dynamic/profile-page-with-template.html should publish the partial dependency source.");
 
 const helloEditorHtml = readSiteFile("examples/experimental/editor/hello-screen.html/index.html");
 expectContains(helloEditorHtml, "Online Live Editor PoC", "_site/examples/experimental/editor/hello-screen.html should be the editor PoC page.");

@@ -1,4 +1,4 @@
-import { parseMarkVSpec } from "./index.js";
+import { parseMarkVSpec } from "./parser.js";
 import { processStepDetail as processStepDetailFromReadModel } from "./action-process-read-model.js";
 import { elementIdPattern, layoutIdPattern } from "./ids.js";
 import { parseMarkVSpecProject } from "./project-parser.js";

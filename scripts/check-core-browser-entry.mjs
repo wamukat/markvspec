@@ -66,6 +66,7 @@ if (!html.includes("mm-wireframe") || !html.includes("Browser check")) {
 }
 
 writeFileSync(entryPath, `import {
+  composeMarkVSpecTemplate,
   evaluateMarkVSpecDiagnostics,
   messagesForLocale,
   parseMarkVSpec,
@@ -77,6 +78,7 @@ writeFileSync(entryPath, `import {
 
 const source = ${JSON.stringify(source)};
 const result = parseMarkVSpec(source);
+const composed = composeMarkVSpecTemplate(result, result);
 validateMarkVSpec(result);
 const diagnostics = evaluateMarkVSpecDiagnostics(result.diagnostics);
 const html = renderMarkVSpecHtml(result, { showIds: true });
@@ -84,6 +86,7 @@ const update = renderMarkVSpecHtmlWithInvalidation(source, source, { showIds: tr
 
 globalThis.__markvspecBrowserCheck = {
   diagnostics,
+  composedId: composed.screen.id,
   html,
   label: messagesForLocale("en").preview,
   message: result.diagnostics[0] ? renderDiagnosticMessageForLocale(result.diagnostics[0], "en") : "",

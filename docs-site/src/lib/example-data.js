@@ -1,5 +1,5 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { basename, join, relative, resolve } from 'node:path';
+import { basename, dirname, join, relative, resolve } from 'node:path';
 import { loadExampleCatalog } from '../../../scripts/example-catalog.mjs';
 
 const cwd = process.cwd();
@@ -20,13 +20,15 @@ export function getExamples() {
     const entry = entriesByPath.get(repoPath);
     const source = readFileSync(filePath, 'utf8');
     const metadata = exampleMetadata(source, filePath);
+    const relativeExamplePath = toPosixPath(relative(examplesDir, filePath));
     return {
       filePath,
       repoPath,
-      relativeExamplePath: toPosixPath(relative(examplesDir, filePath)),
+      relativeExamplePath,
       generatedPreviewPath: `/examples/generated/${basename(filePath, '.vspec.md')}.html`,
       dynamicPreviewPath: `/examples/dynamic/${basename(filePath, '.vspec.md')}.html`,
-      sourceAssetPath: `/examples/source/${toPosixPath(relative(examplesDir, filePath))}`,
+      sourceAssetPath: `/examples/source/${relativeExamplePath}`,
+      sourceDependencies: exampleSourceDependencies(source, filePath),
       slug: basename(filePath, '.vspec.md'),
       source,
       id: metadata.id,
@@ -158,6 +160,79 @@ function frontMatterValue(markdown, key) {
     return '';
   }
   return line.slice(key.length + 1).trim().replace(/^["']|["']$/gu, '');
+}
+
+function exampleSourceDependencies(markdown, filePath) {
+  const frontMatter = markdown.match(/^---\n([\s\S]*?)\n---/u)?.[1] ?? '';
+  const template = frontMatterBlockValue(frontMatter, 'template', 'src');
+  const templateId = frontMatterBlockValue(frontMatter, 'template', 'id');
+  const partials = frontMatterPartialReferences(frontMatter, filePath);
+
+  return {
+    template: template ? sourceDependency(filePath, template, templateId) : undefined,
+    partials,
+  };
+}
+
+function frontMatterBlockValue(frontMatter, blockName, key) {
+  const lines = frontMatter.split(/\r?\n/u);
+  let inBlock = false;
+  for (const line of lines) {
+    if (/^\S/u.test(line)) {
+      inBlock = line.trim() === `${blockName}:`;
+      continue;
+    }
+    if (!inBlock) {
+      continue;
+    }
+    const match = new RegExp(`^\\s+${key}:\\s*(.+)$`, 'u').exec(line);
+    if (match) {
+      return unquoteScalar(match[1].trim());
+    }
+  }
+  return '';
+}
+
+function frontMatterPartialReferences(frontMatter, filePath) {
+  const lines = frontMatter.split(/\r?\n/u);
+  const partials = [];
+  let inReferences = false;
+  let inPartials = false;
+  for (const line of lines) {
+    if (/^\S/u.test(line)) {
+      inReferences = line.trim() === 'references:';
+      inPartials = false;
+      continue;
+    }
+    if (!inReferences) {
+      continue;
+    }
+    if (/^\s{2}\S/u.test(line)) {
+      inPartials = line.trim() === 'partials:';
+      continue;
+    }
+    if (!inPartials) {
+      continue;
+    }
+    const match = /^\s{4}([^:\s]+):\s*(.+)$/u.exec(line);
+    if (match) {
+      partials.push(sourceDependency(filePath, unquoteScalar(match[2].trim()), match[1]));
+    }
+  }
+  return partials;
+}
+
+function sourceDependency(sourceFilePath, referencePath, id) {
+  const resolvedPath = resolve(dirname(sourceFilePath), referencePath);
+  return {
+    id,
+    path: toPosixPath(relative(examplesDir, resolvedPath)),
+    href: `/examples/source/${toPosixPath(relative(examplesDir, resolvedPath))}`,
+  };
+}
+
+function unquoteScalar(value) {
+  return value.replace(/^["']|["']$/gu, '');
 }
 
 function stageLabel(value) {

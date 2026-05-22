@@ -1,4 +1,5 @@
 import {
+  composeMarkVSpecTemplate,
   evaluateMarkVSpecDiagnostics,
   parseMarkVSpec,
   renderDiagnosticMessageForLocale,
@@ -88,16 +89,18 @@ async function renderDynamicPreview() {
   const startedAt = performance.now();
   setStatus('loading', 'Loading source...');
 
-  const response = await fetch(config.sourceHref, { cache: 'no-cache' });
-  if (!response.ok) {
-    throw new Error(`Could not fetch source asset (${response.status}).`);
-  }
-
-  const source = await response.text();
+  const source = await fetchTextAsset(config.sourceHref, 'source asset');
   const fetchedAt = performance.now();
   const result = parseMarkVSpec(source);
-  const validation = evaluateMarkVSpecDiagnostics(result.diagnostics);
-  const html = renderMarkVSpecHtml(result, { showIds: true });
+  const dependencies = await loadDependencies(config.dependencies);
+  const renderResult = dependencies.template
+    ? composeMarkVSpecTemplate(dependencies.template.result, result)
+    : result;
+  const dependencyDiagnostics = [
+    ...dependencies.partials.flatMap((partial) => partial.result.diagnostics)
+  ];
+  const validation = evaluateMarkVSpecDiagnostics([...renderResult.diagnostics, ...dependencyDiagnostics]);
+  const html = renderMarkVSpecHtml(renderResult, { showIds: true });
   const renderedAt = performance.now();
 
   showDynamicPreview(html);
@@ -105,10 +108,50 @@ async function renderDynamicPreview() {
   setStatus(validation.passed ? 'ready' : 'diagnostics', validation.passed ? 'Rendered in browser.' : 'Rendered with diagnostics.');
   setMetrics([
     `source ${(source.length / 1024).toFixed(1)} KiB`,
+    `dependencies ${dependencies.count}`,
     `fetch ${(fetchedAt - startedAt).toFixed(1)} ms`,
     `parse/render ${(renderedAt - fetchedAt).toFixed(1)} ms`,
     `diagnostics ${validation.diagnostics.length}`
   ]);
+}
+
+async function fetchTextAsset(href, label) {
+  const response = await fetch(href, { cache: 'no-cache' });
+  if (!response.ok) {
+    throw new Error(`Could not fetch ${label} (${response.status}).`);
+  }
+  return response.text();
+}
+
+async function loadDependencies(dependencies = {}) {
+  const template = dependencies.template
+    ? await loadDependency(dependencies.template, 'template')
+    : undefined;
+  const partials = [];
+  for (const partial of dependencies.partials ?? []) {
+    partials.push(await loadDependency(partial, `partial ${partial.id || partial.href}`));
+  }
+  return {
+    count: (template ? 1 : 0) + partials.length,
+    partials,
+    template
+  };
+}
+
+async function loadDependency(dependency, label) {
+  if (!dependency?.href) {
+    throw new Error(`Dynamic preview dependency is missing an href for ${label}.`);
+  }
+  const source = await fetchTextAsset(dependency.href, label);
+  const result = parseMarkVSpec(source);
+  if (dependency.id && result.screen.id && dependency.id !== result.screen.id) {
+    throw new Error(`Dynamic preview ${label} ${dependency.id} points to ${result.screen.id}.`);
+  }
+  return {
+    ...dependency,
+    result,
+    source
+  };
 }
 
 renderDynamicPreview().catch((error) => {

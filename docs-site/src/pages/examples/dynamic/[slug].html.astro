@@ -21,6 +21,12 @@ const sourceHref = `${base}${example.sourceAssetPath}`;
 const showcaseHref = `${base}/examples/showcase/${example.slug}.html`;
 const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
 const config = {
+  dependencies: {
+    template: example.sourceDependencies.template
+      ? { ...example.sourceDependencies.template, href: `${base}${example.sourceDependencies.template.href}` }
+      : undefined,
+    partials: example.sourceDependencies.partials.map((partial) => ({ ...partial, href: `${base}${partial.href}` })),
+  },
   locale: example.locale || 'en',
   sourceHref,
 };

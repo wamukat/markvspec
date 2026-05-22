@@ -24,12 +24,14 @@ const related = relatedDocs(example);
 const next = nextExamples(example, examples);
 const generatedPreviewHref = `${base}${example.generatedPreviewPath}`;
 const sourceHref = `${base}${example.sourceAssetPath}`;
-const requiresSourceComposition = /^\s*(template|references):/m.test(example.source);
 const dynamicPreviewConfig = {
-  dynamicPreviewEnabled: !requiresSourceComposition,
-  fallbackReason: requiresSourceComposition
-    ? 'Using generated preview fallback: source composition is not available in the browser runtime yet.'
-    : undefined,
+  dependencies: {
+    template: example.sourceDependencies.template
+      ? { ...example.sourceDependencies.template, href: `${base}${example.sourceDependencies.template.href}` }
+      : undefined,
+    partials: example.sourceDependencies.partials.map((partial) => ({ ...partial, href: `${base}${partial.href}` })),
+  },
+  dynamicPreviewEnabled: true,
   locale: example.locale || 'en',
   sourceHref,
 };
