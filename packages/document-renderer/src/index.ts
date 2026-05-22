@@ -1,5 +1,5 @@
-import { effectiveHistoryFields, latestHistoryBasicInfo, messagesForLocale, propertyString as corePropertyString, resolveMarkVSpecEntityReference } from "@markvspec/core";
-import type { MarkVSpecParseResult, RendererMessages } from "@markvspec/core";
+import { effectiveHistoryFields, latestHistoryBasicInfo, messagesForLocale, propertyString as corePropertyString, resolveMarkVSpecEntityReference } from "@markvspec/core/browser";
+import type { MarkVSpecParseResult, RendererMessages } from "@markvspec/core/browser";
 import {
   renderStateViewsSection as renderStaticStateViewsSection,
   type StaticStateViewRenderingSupport

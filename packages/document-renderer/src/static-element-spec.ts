@@ -5,14 +5,14 @@ import {
   propertyString as corePropertyString,
   stateScreenElementGroups,
   stateScreenElementsForModel
-} from "@markvspec/core";
+} from "@markvspec/core/browser";
 import type {
   DisplayContentSpecRow,
   DisplayContentSpecSampleRowsRef,
   MarkVSpecParseResult,
   RendererMessages,
   StateScreenReadModel
-} from "@markvspec/core";
+} from "@markvspec/core/browser";
 import { renderStaticElementSampleRowsReference } from "./static-entity-reference-presenter.js";
 
 type StaticElement = MarkVSpecParseResult["elements"][number];

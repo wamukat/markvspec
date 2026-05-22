@@ -1,4 +1,4 @@
-import type { resolveMarkVSpecEntityReference } from "@markvspec/core";
+import type { resolveMarkVSpecEntityReference } from "@markvspec/core/browser";
 
 export type StaticEntityReference = NonNullable<ReturnType<typeof resolveMarkVSpecEntityReference>>;
 

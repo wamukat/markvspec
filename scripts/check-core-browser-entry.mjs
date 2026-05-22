@@ -6,11 +6,15 @@ import { gzipSync } from "node:zlib";
 
 const root = dirname(fileURLToPath(new URL("../package.json", import.meta.url)));
 const workDir = join(root, ".work", "core-browser-entry-check");
-const entryPath = join(workDir, "entry.js");
-const bundlePath = join(workDir, "markvspec-core-browser.js");
-const metafilePath = join(workDir, "metafile.json");
+const coreEntryPath = join(workDir, "core-entry.js");
+const coreBundlePath = join(workDir, "markvspec-core-browser.js");
+const coreMetafilePath = join(workDir, "core-metafile.json");
+const documentEntryPath = join(workDir, "design-document-entry.js");
+const documentBundlePath = join(workDir, "markvspec-design-document-browser.js");
+const documentMetafilePath = join(workDir, "design-document-metafile.json");
 const reportPath = join(workDir, "report.md");
-const maxGzipBytes = 140 * 1024;
+const maxCoreGzipBytes = 140 * 1024;
+const maxDesignDocumentGzipBytes = 260 * 1024;
 
 function run(command, args) {
   execFileSync(command, args, { cwd: root, stdio: "inherit" });
@@ -24,12 +28,33 @@ function formatKiB(bytes) {
   return `${(bytes / 1024).toFixed(1)} KiB`;
 }
 
+function bundleEntry(entryPath, bundlePath, metafilePath) {
+  run("node_modules/.bin/esbuild", [
+    entryPath,
+    "--bundle",
+    "--format=esm",
+    "--platform=browser",
+    "--minify",
+    `--outfile=${bundlePath}`,
+    `--metafile=${metafilePath}`
+  ]);
+
+  const bundle = readFileSync(bundlePath);
+  const gzipBytes = gzipSync(bundle).byteLength;
+  const metafile = JSON.parse(readFileSync(metafilePath, "utf8"));
+  const nodeInputs = Object.keys(metafile.inputs).filter((input) => input.startsWith("node:") || input.includes("/node:"));
+
+  return { bundle, gzipBytes, nodeInputs };
+}
+
 rmSync(workDir, { recursive: true, force: true });
 mkdirSync(workDir, { recursive: true });
 
 run("npm", ["run", "build", "-w", "@markvspec/core"]);
+run("npm", ["run", "build", "-w", "@markvspec/document-renderer"]);
 
 const browserModule = await import("@markvspec/core/browser");
+const documentRendererBrowserModule = await import("@markvspec/document-renderer/browser");
 const source = `---
 id: SCR-BROWSER-CHECK
 type: screen
@@ -57,6 +82,7 @@ title: Browser Check
 `;
 const result = browserModule.parseMarkVSpec(source);
 const html = browserModule.renderMarkVSpecHtml(result, { showIds: true });
+const documentHtml = documentRendererBrowserModule.renderBrowserDesignDocumentHtml(result);
 const dangerousSource = `---
 id: SCR-BROWSER-XSS
 type: screen
@@ -146,6 +172,7 @@ const dangerousHtml = browserModule.renderMarkVSpecHtml(dangerousResult, {
   state: "idle",
   viewport: "desktop"
 });
+const dangerousDocumentHtml = documentRendererBrowserModule.renderBrowserDesignDocumentHtml(dangerousResult);
 
 if (result.diagnostics.length !== 0) {
   throw new Error(`Browser entry smoke failed: expected 0 diagnostics, got ${result.diagnostics.length}.`);
@@ -153,14 +180,23 @@ if (result.diagnostics.length !== 0) {
 if (!html.includes("mm-wireframe") || !html.includes("Browser check")) {
   throw new Error("Browser entry smoke failed: rendered HTML does not include the expected wireframe content.");
 }
+if (!documentHtml.includes("<article class=\"document\">") || !documentHtml.includes("id=\"screen\"") || !documentHtml.includes("id=\"state-views\"") || !documentHtml.includes("Browser check")) {
+  throw new Error("Browser entry smoke failed: generated design document HTML does not include expected document sections.");
+}
 if (/<script\b|<iframe\b|<svg\b|<[^>]+\son[a-z]+\s*=|href="(?:javascript|vbscript|data):/iu.test(dangerousHtml)) {
   throw new Error("Browser entry smoke failed: dangerous author-controlled HTML or URL reached rendered output.");
+}
+if (/<script\b|<iframe\b|<svg\b|<[^>]+\son[a-z]+\s*=|href="(?:javascript|vbscript|data):/iu.test(dangerousDocumentHtml)) {
+  throw new Error("Browser entry smoke failed: dangerous author-controlled HTML or URL reached generated design document output.");
 }
 if (!dangerousHtml.includes("href=\"#\"") || !dangerousHtml.includes("href=\"/safe/path\"")) {
   throw new Error("Browser entry smoke failed: dangerous links should be neutralized while safe relative links remain.");
 }
+if (!dangerousDocumentHtml.includes("&lt;script&gt;globalThis.__markvspecXss = true&lt;/script&gt;") || !dangerousDocumentHtml.includes("href=\"#\"") || !dangerousDocumentHtml.includes("href=\"/safe/path\"")) {
+  throw new Error("Browser entry smoke failed: generated design document should escape dangerous text, neutralize dangerous links, and keep safe links.");
+}
 
-writeFileSync(entryPath, `import {
+writeFileSync(coreEntryPath, `import {
   composeMarkVSpecTemplate,
   evaluateMarkVSpecDiagnostics,
   messagesForLocale,
@@ -199,26 +235,36 @@ globalThis.__markvspecBrowserCheck = {
 };
 `);
 
-run("node_modules/.bin/esbuild", [
-  entryPath,
-  "--bundle",
-  "--format=esm",
-  "--platform=browser",
-  "--minify",
-  `--outfile=${bundlePath}`,
-  `--metafile=${metafilePath}`
-]);
+writeFileSync(documentEntryPath, `import { parseMarkVSpec } from "@markvspec/core/browser";
+import { renderBrowserDesignDocumentHtml } from "@markvspec/document-renderer/browser";
 
-const bundle = readFileSync(bundlePath);
-const gzipBytes = gzipSync(bundle).byteLength;
-const metafile = JSON.parse(readFileSync(metafilePath, "utf8"));
-const nodeInputs = Object.keys(metafile.inputs).filter((input) => input.startsWith("node:") || input.includes("/node:"));
+const source = ${JSON.stringify(source)};
+const result = parseMarkVSpec(source);
+const documentHtml = renderBrowserDesignDocumentHtml(result);
+const dangerousSource = ${JSON.stringify(dangerousSource)};
+const dangerousResult = parseMarkVSpec(dangerousSource);
+const dangerousDocumentHtml = renderBrowserDesignDocumentHtml(dangerousResult);
 
-if (nodeInputs.length > 0) {
-  throw new Error(`Browser entry bundle includes Node built-ins:\n- ${nodeInputs.join("\n- ")}`);
+globalThis.__markvspecDesignDocumentBrowserCheck = {
+  dangerousDocumentHtml,
+  documentHtml
+};
+`);
+
+const coreBundle = bundleEntry(coreEntryPath, coreBundlePath, coreMetafilePath);
+const designDocumentBundle = bundleEntry(documentEntryPath, documentBundlePath, documentMetafilePath);
+
+if (coreBundle.nodeInputs.length > 0) {
+  throw new Error(`Core browser entry bundle includes Node built-ins:\n- ${coreBundle.nodeInputs.join("\n- ")}`);
 }
-if (gzipBytes > maxGzipBytes) {
-  throw new Error(`Browser entry bundle gzip size ${formatKiB(gzipBytes)} exceeds ${formatKiB(maxGzipBytes)}.`);
+if (designDocumentBundle.nodeInputs.length > 0) {
+  throw new Error(`Generated design document browser entry bundle includes Node built-ins:\n- ${designDocumentBundle.nodeInputs.join("\n- ")}`);
+}
+if (coreBundle.gzipBytes > maxCoreGzipBytes) {
+  throw new Error(`Core browser entry bundle gzip size ${formatKiB(coreBundle.gzipBytes)} exceeds ${formatKiB(maxCoreGzipBytes)}.`);
+}
+if (designDocumentBundle.gzipBytes > maxDesignDocumentGzipBytes) {
+  throw new Error(`Generated design document browser entry bundle gzip size ${formatKiB(designDocumentBundle.gzipBytes)} exceeds ${formatKiB(maxDesignDocumentGzipBytes)}.`);
 }
 
 const report = `# Core Browser Entry Check
@@ -228,22 +274,32 @@ Generated by \`scripts/check-core-browser-entry.mjs\`.
 ## Result
 
 - Package subpath: \`@markvspec/core/browser\`
-- Browser bundle: pass
-- Node built-in inputs: ${nodeInputs.length}
+- Design document subpath: \`@markvspec/document-renderer/browser\`
+- Core browser bundle: pass
+- Generated design document browser bundle: pass
+- Core Node built-in inputs: ${coreBundle.nodeInputs.length}
+- Generated design document Node built-in inputs: ${designDocumentBundle.nodeInputs.length}
 - Smoke diagnostics: ${result.diagnostics.length}
+- Generated design document smoke: pass
 - Dangerous author-controlled HTML fixture: pass
 
 ## Artifacts
 
-- Entry: \`${posix(relative(root, entryPath))}\`
-- Bundle: \`${posix(relative(root, bundlePath))}\`
-- Metafile: \`${posix(relative(root, metafilePath))}\`
+- Core entry: \`${posix(relative(root, coreEntryPath))}\`
+- Core bundle: \`${posix(relative(root, coreBundlePath))}\`
+- Core metafile: \`${posix(relative(root, coreMetafilePath))}\`
+- Generated design document entry: \`${posix(relative(root, documentEntryPath))}\`
+- Generated design document bundle: \`${posix(relative(root, documentBundlePath))}\`
+- Generated design document metafile: \`${posix(relative(root, documentMetafilePath))}\`
 
 ## Metrics
 
-- Bundle size: ${formatKiB(bundle.byteLength)}
-- Gzip size: ${formatKiB(gzipBytes)}
-- Gzip budget: ${formatKiB(maxGzipBytes)}
+- Core bundle size: ${formatKiB(coreBundle.bundle.byteLength)}
+- Core gzip size: ${formatKiB(coreBundle.gzipBytes)}
+- Core gzip budget: ${formatKiB(maxCoreGzipBytes)}
+- Generated design document bundle size: ${formatKiB(designDocumentBundle.bundle.byteLength)}
+- Generated design document gzip size: ${formatKiB(designDocumentBundle.gzipBytes)}
+- Generated design document gzip budget: ${formatKiB(maxDesignDocumentGzipBytes)}
 `;
 
 writeFileSync(reportPath, report);

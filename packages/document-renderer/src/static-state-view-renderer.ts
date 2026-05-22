@@ -1,5 +1,5 @@
-import { buildViewportStateScreenReadModels, layoutConditionValues, layoutDisplaySettings, renderMarkVSpecHtml, resolveMarkVSpecEntityReference, sampleRowsAnchorId, scenarioRouteValues, stateScreenControlledPanelPlacementsForModel, stateScreenLayoutsForModel, stateScreenUnplacedLayoutIdsForModel, tableColumnSampleKeys } from "@markvspec/core";
-import type { ControlledPanelPlacement, MarkVSpecParseResult, RendererMessages, StateScreenReadModel } from "@markvspec/core";
+import { buildViewportStateScreenReadModels, layoutConditionValues, layoutDisplaySettings, renderMarkVSpecHtml, resolveMarkVSpecEntityReference, sampleRowsAnchorId, scenarioRouteValues, stateScreenControlledPanelPlacementsForModel, stateScreenLayoutsForModel, stateScreenUnplacedLayoutIdsForModel, tableColumnSampleKeys } from "@markvspec/core/browser";
+import type { ControlledPanelPlacement, MarkVSpecParseResult, RendererMessages, StateScreenReadModel } from "@markvspec/core/browser";
 import {
   renderDisplayContentSpecBox,
   renderInputFormSpecBox,

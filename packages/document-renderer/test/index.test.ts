@@ -18,6 +18,7 @@ import {
   viewportPrintStyle,
   wireframePrintSectionCss
 } from "../src/index.js";
+import { renderBrowserDesignDocumentHtml as renderBrowserDesignDocumentHtmlFromEntry } from "../src/browser.js";
 
 function iconPattern(name: string): RegExp {
   return new RegExp(`<svg class="mm-icon mm-icon-${name}" aria-hidden="true" viewBox="0 0 24 24">[\\s\\S]*?</svg>`);
@@ -273,6 +274,114 @@ Initial \`static\` release.
   assert.match(html, /<section class="doc-section state-screen-section"(?=[^>]*\bdata-state="idle")(?=[^>]*\bdata-viewport="mobile")(?=[^>]*\bstyle="--markvspec-viewport-width:390px;--markvspec-print-scale:1")/);
   assert.match(html, /<h4 class="state-screen-heading">State: idle initial<\/h4>/);
   assert.match(html, /<h5 class="state-screen-subheading">Wireframe<\/h5>/);
+});
+
+test("exposes generated design document rendering through the browser entry", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-BROWSER-DOCUMENT
+type: screen
+title: Browser Document
+---
+
+# SCR-BROWSER-DOCUMENT Browser Document
+
+## States
+
+- idle*
+
+## Layout: desktop
+
+### L-Root Root
+
+- stack
+
+#### Items
+
+- E-Title
+
+## Elements
+
+### E-Title Heading
+
+- text: Browser document
+`);
+  const html = renderStaticDesignDocumentHtml(result);
+  const entryHtml = renderBrowserDesignDocumentHtmlFromEntry(result);
+
+  assert.equal(entryHtml, html);
+  assert.match(html, /<article class="document">/);
+  assert.match(html, /<nav class="toc-inline" aria-label="Contents">/);
+  assert.match(html, /<a href="#screen">Screen<\/a>/);
+  assert.match(html, /<a href="#state-views">State Views<\/a>/);
+  assert.match(html, /<section class="doc-section screen-spec-section"><h2 id="screen">Screen<\/h2>/);
+  assert.match(html, /<section class="doc-section state-views-section">/);
+  assert.match(html, /class="mm-wireframe"/);
+});
+
+test("browser design document rendering escapes dangerous author-controlled HTML and URLs", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-BROWSER-DOCUMENT-XSS
+type: screen
+title: Browser Document XSS
+---
+
+# SCR-BROWSER-DOCUMENT-XSS Browser Document XSS
+
+<script>globalThis.__markvspecXss = true</script>
+
+Inline [bad](javascript:globalThis.__markvspecXss = true) text.
+
+## States
+
+- idle*
+
+## Layout: desktop
+
+### L-Root Root
+
+- stack
+
+#### Items
+
+- E-Title
+- E-JavaScriptLink
+- E-SafeLink
+
+## Elements
+
+### E-Title Heading
+
+- text: <iframe srcdoc="<script>globalThis.__markvspecXss = true</script>"></iframe>
+
+### E-JavaScriptLink Link
+
+- label: Dangerous <img src=x onerror="globalThis.__markvspecXss = true">
+- href: javascript:globalThis.__markvspecXss = true
+
+### E-SafeLink Link
+
+- label: Safe relative link
+- href: /safe/path
+
+## Notes
+
+<svg onload="globalThis.__markvspecXss = true"></svg>
+
+## History
+
+### ver 1.0
+
+- date: 2026-05-22
+
+<script>globalThis.__markvspecHistoryXss = true</script>
+`);
+  const html = renderBrowserDesignDocumentHtmlFromEntry(result);
+
+  assert.doesNotMatch(html, /<script\b|<iframe\b|<svg\b|<[^>]+\son[a-z]+\s*=|href="(?:javascript|vbscript|data):/iu);
+  assert.match(html, /&lt;script&gt;globalThis\.__markvspecXss = true&lt;\/script&gt;/);
+  assert.match(html, /&lt;svg onload=&quot;globalThis\.__markvspecXss = true&quot;&gt;&lt;\/svg&gt;/);
+  assert.match(html, /href="#"/);
+  assert.match(html, /href="\/safe\/path"/);
 });
 
 test("renders parse coverage sentinel fields in static HTML export", () => {
