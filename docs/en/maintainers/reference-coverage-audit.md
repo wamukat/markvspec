@@ -135,6 +135,41 @@ yet. Missing Reference page/section findings should be promoted from warning to
 release-blocking failure only after the first generated report has been triaged
 and stable feature IDs or coverage markers exist.
 
+## First Generated Report
+
+The first checked report was generated for #1412 with
+`npm run audit:reference-coverage`. It completed with `Failures: 0`.
+
+| Inventory | Count |
+| --- | ---: |
+| Grammar sections | 18 |
+| Structured item contexts | 22 |
+| Structured items | 158 |
+| Element types | 35 |
+| Element properties | 95 |
+| Diagnostic codes | 19 |
+| Diagnostic push sites | 17 |
+| Renderer output features | 189 |
+| Generated Reference marker files | 24 |
+| English Reference pages | 12 |
+| Japanese Reference pages | 12 |
+| VS Code commands | 5 |
+| CLI commands | 11 |
+| Example catalog entries | 28 |
+| Example files | 28 |
+
+Warnings from the first report:
+
+| Warning | Classification | Next Action |
+| --- | --- | --- |
+| `rules.md` English/Japanese key heading count differs (`9` vs `8`) | English/Japanese depth gap candidate | Triage in #1413. If the missing/thin heading reflects real content asymmetry, create a focused docs ticket. |
+| Reference coverage markers are not present yet | Follow-up infrastructure gap | Triage in #1413. Likely create a focused ticket for stable feature IDs or coverage markers before making missing coverage release-blocking. |
+| Feature-to-Reference mapping is report-only | Expected skeleton limitation | Triage in #1413 before promoting missing Reference page/section findings to failures. |
+| Diagnostic and renderer/export output coverage still requires manual review | Expected skeleton limitation | Triage in #1413 by cluster: diagnostics, renderer/export output, CLI, VS Code, and examples. |
+
+None of these warnings are release-blocking in the first report. They are triage
+inputs for #1413; this #1412 update does not make broad Reference prose changes.
+
 ## Initial Gaps To Track
 
 | Gap | Why It Matters | Suggested Follow-up |
@@ -149,14 +184,13 @@ used as a model for future Guide-only gaps.
 
 ## Follow-up Ticket Ideas
 
-- Implement `audit:reference-coverage` inventory extraction and report output.
+- Triage the first generated coverage report and create focused docs tickets for
+  each missing or thin area.
 - Add Reference coverage markers for feature IDs and generated inventory tables.
 - Add renderer-output coverage inventory for Basic Info, State Views, History,
   marker/chip display, and export-only fields.
 - Add English/Japanese Reference coverage comparison for page presence and key
   headings.
-- Triage the first generated coverage report and create focused docs tickets for
-  each missing or thin area.
 
 ## Maintenance Rule
 

@@ -132,6 +132,41 @@ coverage をまだ機械判定できない場合は warn に留め、release は
 missing Reference page/section は、初回 report の triage と stable feature ID /
 coverage marker 整備が終わってから、warning から release-blocking failure へ昇格する。
 
+## first generated report
+
+#1412 で最初の checked report として `npm run audit:reference-coverage` を実行した。
+結果は `Failures: 0`。
+
+| Inventory | Count |
+| --- | ---: |
+| Grammar sections | 18 |
+| Structured item contexts | 22 |
+| Structured items | 158 |
+| Element types | 35 |
+| Element properties | 95 |
+| Diagnostic codes | 19 |
+| Diagnostic push sites | 17 |
+| Renderer output features | 189 |
+| Generated Reference marker files | 24 |
+| English Reference pages | 12 |
+| Japanese Reference pages | 12 |
+| VS Code commands | 5 |
+| CLI commands | 11 |
+| Example catalog entries | 28 |
+| Example files | 28 |
+
+初回 report の warning:
+
+| Warning | Classification | Next Action |
+| --- | --- | --- |
+| `rules.md` の English/Japanese key heading count が異なる (`9` vs `8`) | English/Japanese depth gap candidate | #1413 で triage する。実際の content asymmetry なら focused docs ticket を作成する。 |
+| Reference coverage marker がまだない | Follow-up infrastructure gap | #1413 で triage する。missing coverage を release-blocking にする前に stable feature ID または coverage marker の ticket 化を検討する。 |
+| Feature-to-Reference mapping が report-only | Expected skeleton limitation | missing Reference page/section を failure に昇格する前に #1413 で triage する。 |
+| Diagnostic と renderer/export output coverage は manual review が必要 | Expected skeleton limitation | #1413 で diagnostics、renderer/export output、CLI、VS Code、examples の cluster ごとに triage する。 |
+
+これらの warning は初回 report では release-blocking にしない。#1413 の triage input
+として扱い、#1412 では広範な Reference prose 修正を行わない。
+
 ## initial gaps to track
 
 | Gap | Why It Matters | Suggested Follow-up |
@@ -146,13 +181,12 @@ History の Guide / Reference coverage は #1386 で完了しました。今後�
 
 ## follow-up ticket ideas
 
-- `audit:reference-coverage` の inventory extraction と report output を実装する。
+- 最初の generated coverage report を triage し、missing / thin area ごとの docs ticket を
+  作成する。
 - feature ID 用 Reference coverage marker と generated inventory table を追加する。
 - Basic Info、State Views、History、marker/chip display、export-only fields の
   renderer-output coverage inventory を追加する。
 - 英日 Reference の page presence と key headings を比較する coverage report を追加する。
-- 最初の generated coverage report を triage し、missing / thin area ごとの docs ticket を
-  作成する。
 
 ## maintenance rule
 
