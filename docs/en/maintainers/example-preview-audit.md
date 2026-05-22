@@ -48,10 +48,14 @@ using the broader representative list above for manual spot checks when a
 change affects responsive behavior. It checks that browser-rendered preview DOM
 is non-empty, that source and preview panes do not overlap, and that aborting
 the published source fetch shows the generated fallback. This check is not part
-of the default release gate yet because it requires a local browser binary; set
-`CHROME_BIN` when Chrome or Chromium is not in a standard location. Run it
-manually for browser-runtime showcase work until the Pages deploy gate
-explicitly adopts it.
+of the GitHub Pages deploy job because it requires a local browser binary; set
+`CHROME_BIN` when Chrome or Chromium is not in a standard location. The Pages
+workflow remains a static artifact gate: it builds `_site`, runs
+`npm run check:pages-site`, and uploads only after dynamic runtime assets,
+public source assets, dependency manifests, generated fallbacks, security
+boundary checks, and dynamic/generated parity checks pass. Run
+`npm run check:showcase-browser` during release or browser-runtime acceptance
+when the actual browser DOM and fallback path need verification.
 
 ## Dynamic Preview Security Boundary
 

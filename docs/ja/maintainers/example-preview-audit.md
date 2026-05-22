@@ -42,9 +42,12 @@ DevTools Protocol 経由で起動して代表 showcase page を desktop / mobile
 `profile-page-with-template` とし、responsive 挙動に影響する変更では上記の broader な代表リストを
 手動 spot check に使う。browser-rendered preview DOM が空でないこと、source pane と preview pane が
 重ならないこと、公開 source fetch を abort したときに generated fallback が表示されることを検査する。
-この検査は local browser binary に依存するため、現時点では default release gate には含めない。
-Chrome または Chromium が標準の場所にない場合は `CHROME_BIN` を指定する。Pages deploy gate が
-明示的に採用するまでは、browser runtime を触る showcase 作業で手動実行する。
+この検査は local browser binary に依存するため、GitHub Pages deploy job には含めない。
+Chrome または Chromium が標準の場所にない場合は `CHROME_BIN` を指定する。Pages workflow は
+static artifact gate として、`_site` を build し、`npm run check:pages-site` で dynamic runtime asset、
+public source asset、dependency manifest、generated fallback、security boundary、dynamic/generated parity を
+確認してから upload する。実ブラウザ DOM と fallback path を確認する必要がある release または
+browser-runtime acceptance では、`npm run check:showcase-browser` を実行する。
 
 ## Dynamic Preview Security Boundary
 

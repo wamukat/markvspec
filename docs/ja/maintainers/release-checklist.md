@@ -60,6 +60,10 @@ example を代表セットとして使う。
 4. example preview audit: `npm run audit:examples` を実行する。
 5. generated grammar/reference docs: `npm run check:generated-docs` を実行する。
 6. docs site: `npm run check:docs-site` を実行する。
+   これは dynamic-first showcase 向けの static GitHub Pages deploy gate でもある。
+   Pages upload 前に、`_site` の dynamic runtime asset、public `.vspec.md` source asset、
+   dependency manifest、generated fallback artifact、security boundary check、
+   dynamic/generated parity check を確認する。
 7. examples HTML export: `npm run build -w @markvspec/cli` の後、
    `node packages/cli/dist/index.js export html "examples/**/*.vspec.md" --out .work/release-html`
    を実行し、代表 example の HTML をブラウザで開いて確認する。
@@ -68,6 +72,10 @@ example を代表セットとして使う。
    ないため PDF を skip したことを記録する。
 9. README、DSL、example、release metadata に影響する変更では
    `npm run check:readme-release` も実行する。
+10. browser-runtime showcase に影響する変更では、Chrome/Chromium が使える環境で
+    `npm run check:showcase-browser` を実行する。Pages deploy workflow ではこの実ブラウザ
+    regression は実行しない。actual dynamic DOM rendering と forced generated fallback の確認は、
+    release または browser-runtime acceptance の gate として扱う。
 
 `npm run check:release` は release 環境でまとめて実行する gate です。現時点では
 `npm run verify` は追加しません。理由は、既に `check:release` が自動化可能な
@@ -106,6 +114,11 @@ Kanbalone の運用では、実装後に独立したサブエージェントレ�
 - [ ] `npm run check:generated-docs` が通る。
 - [ ] `npm run audit:examples` が通る。
 - [ ] `npm run check:docs-site` が通る。
+- [ ] Pages deploy gate が `npm run check:docs-site` で確認されている。`_site` に
+  dynamic runtime、public source assets、dependency manifests、generated fallbacks、
+  dynamic-first showcase config、security boundary checks、dynamic/generated parity checks が揃っている。
+- [ ] browser-runtime showcase に影響する変更では `npm run check:showcase-browser` が通る。
+  skip する場合は、release notes に理由を記録する。
 - [ ] `node packages/cli/dist/index.js export html "examples/**/*.vspec.md" --out .work/release-html`
   で examples HTML export が通り、代表 example をブラウザで目視している。
 - [ ] `npm run check:print-regression` が通る。PDF export が使えない環境では、
