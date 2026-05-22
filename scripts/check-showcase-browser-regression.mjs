@@ -147,7 +147,7 @@ async function checkFallbackPath() {
     if (result.fallbackIframe) {
       failures.push(`fallback ${slug}: generated fallback iframe should not be mounted.`);
     }
-    if (!/Dynamic preview failed/u.test(result.statusText)) {
+    if (!/Dynamic preview failed/u.test(result.statusTitle)) {
       failures.push(`fallback ${slug}: status should explain dynamic preview failure.`);
     }
     if (!result.failureHasSourceLinks) {
@@ -229,6 +229,7 @@ function inspectShowcaseScript() {
     status: status?.dataset.status ?? '',
     statusActionOverlap: overlaps(rect('[data-dynamic-preview-status]'), previewAction ? previewAction.getBoundingClientRect() : undefined),
     statusText: status?.textContent ?? '',
+    statusTitle: status?.getAttribute('title') ?? '',
     viewport: {
       height: window.innerHeight,
       width: window.innerWidth
