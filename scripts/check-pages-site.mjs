@@ -121,6 +121,9 @@ expectContains(helloShowcaseHtml, "Dynamic preview", "_site/examples/showcase/he
 expectNotContains(helloShowcaseHtml, "Generated HTML Preview", "_site/examples/showcase/hello-screen.html should not label the main preview as generated HTML.");
 expectNotContains(helloShowcaseHtml, "On this example", "_site/examples/showcase/hello-screen.html should not show the redundant local jump navigation.");
 expectNotContains(helloShowcaseHtml, 'class="page-jump-nav"', "_site/examples/showcase/hello-screen.html should not render the redundant local jump navigation.");
+expectNotContains(helloShowcaseHtml, ">Open source asset</a>", "_site/examples/showcase/hello-screen.html should not expose the internal source asset as normal navigation.");
+expectNotContains(helloShowcaseHtml, ">Source</a>", "_site/examples/showcase/hello-screen.html should not duplicate the source link inside the source pane.");
+expectNotContains(helloShowcaseHtml, ">Raw source</a>", "_site/examples/showcase/hello-screen.html should not expose raw source as normal navigation.");
 expectContains(helloShowcaseHtml, 'class="example-sidebar ', "_site/examples/showcase/hello-screen.html should show example navigation.");
 expectContains(helloShowcaseHtml, 'data-sidebar-toggle', "_site/examples/showcase/hello-screen.html should expose a sidebar collapse toggle.");
 expectContains(helloShowcaseHtml, 'aria-controls="example-sidebar-content"', "_site/examples/showcase/hello-screen.html sidebar toggle should target the sidebar content.");
@@ -138,7 +141,6 @@ expectContains(helloShowcaseHtml, '"dynamicPreviewEnabled":true', "_site/example
 expectNotContains(helloShowcaseHtml, '<iframe src="/markvspec/examples/generated/hello-screen.html"', "_site/examples/showcase/hello-screen.html should not embed the generated preview artifact as fallback.");
 expectNotContains(helloShowcaseHtml, 'href="/markvspec/examples/generated/hello-screen.html"', "_site/examples/showcase/hello-screen.html should not link the generated preview artifact as fallback.");
 expectNotContains(helloShowcaseHtml, 'href="/markvspec/examples/dynamic/hello-screen.html"', "_site/examples/showcase/hello-screen.html should not expose the compatibility dynamic route as primary navigation.");
-expectContains(helloShowcaseHtml, 'href="https://raw.githubusercontent.com/wamukat/markvspec/main/examples/01-basics/hello-screen.vspec.md"', "_site/examples/showcase/hello-screen.html Source link should use the raw GitHub URL.");
 expectContains(helloShowcaseHtml, 'href="https://github.com/wamukat/markvspec/blob/main/examples/01-basics/hello-screen.vspec.md"', "_site/examples/showcase/hello-screen.html should keep a normal GitHub view link.");
 expectNotContains(helloShowcaseHtml, 'href="/markvspec/examples/experimental/editor/hello-screen.html"', "_site/examples/showcase/hello-screen.html should not expose the experimental editor route.");
 expectNotContains(helloShowcaseHtml, 'href="/markvspec/examples/generated/hello-screen.pdf"', "_site/examples/showcase/hello-screen.html should not link generated PDF artifacts.");
@@ -199,7 +201,7 @@ expectContains(helloDynamicHtml, 'src="/markvspec/examples/assets/markvspec-merm
 expectContains(helloDynamicHtml, 'src="/markvspec/examples/assets/markvspec-mermaid-runtime.js"', "_site/examples/dynamic/hello-screen.html should load the Mermaid renderer for dynamic output.");
 expectContains(helloDynamicHtml, '"/markvspec/examples/source/01-basics/hello-screen.vspec.md"', "_site/examples/dynamic/hello-screen.html should fetch the public source asset.");
 expectNotContains(helloDynamicHtml, '"/markvspec/examples/generated/hello-screen.html"', "_site/examples/dynamic/hello-screen.html should not keep the generated preview fallback.");
-expectContains(helloDynamicHtml, 'href="https://raw.githubusercontent.com/wamukat/markvspec/main/examples/01-basics/hello-screen.vspec.md"', "_site/examples/dynamic/hello-screen.html Source link should use the raw GitHub URL.");
+expectNotContains(helloDynamicHtml, ">Raw source</a>", "_site/examples/dynamic/hello-screen.html should not expose raw source as normal navigation.");
 expectContains(helloDynamicHtml, 'href="/markvspec/examples/showcase/hello-screen.html"', "_site/examples/dynamic/hello-screen.html should provide a route back to the public showcase.");
 expectContains(helloDynamicHtml, ">Open showcase</a>", "_site/examples/dynamic/hello-screen.html should label the public route as the showcase.");
 const dynamicScriptPath = dynamicScriptArtifactPath(helloDynamicHtml, join(siteDir, "examples", "dynamic", "hello-screen.html", "index.html"));

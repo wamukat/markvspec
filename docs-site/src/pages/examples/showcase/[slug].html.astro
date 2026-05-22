@@ -620,8 +620,7 @@ const metaPills = [
             <p class="subtitle">{example.summary}</p>
           </div>
           <div class="example-actions">
-            <a class="button-link" href={sourceHref}>Open source asset</a>
-            <a class="nav-link" href={`${githubBlobBaseUrl}${example.repoPath}`}>View on GitHub</a>
+            <a class="button-link" href={`${githubBlobBaseUrl}${example.repoPath}`}>View on GitHub</a>
           </div>
         </section>
 
@@ -631,9 +630,6 @@ const metaPills = [
               <div class="pane-title">
                 <strong>{example.slug}.vspec.md</strong>
                 <span>Markdown source</span>
-              </div>
-              <div class="pane-tools">
-                <a class="small-link" href={`${githubRawBaseUrl}${example.repoPath}`}>Source</a>
               </div>
             </div>
             <div class="source-wrap">
@@ -651,7 +647,6 @@ const metaPills = [
               </div>
               <div class="pane-tools">
                 <span class="runtime-status" data-dynamic-preview-status data-status="loading">Waiting for browser runtime...</span>
-                <a class="small-link" href={rawSourceHref}>Raw source</a>
               </div>
             </div>
             <p class="runtime-metrics" data-dynamic-preview-metrics>Runtime metrics are measured in the browser.</p>
