@@ -114,6 +114,9 @@ if (showcaseFiles.length !== exampleSources.length) {
 const helloShowcaseHtml = readSiteFile("examples/showcase/hello-screen.html/index.html");
 expectContains(helloShowcaseHtml, "Source and generated preview, side by side", "_site/examples/showcase/hello-screen.html should be a showcase page.");
 expectContains(helloShowcaseHtml, 'class="example-sidebar ', "_site/examples/showcase/hello-screen.html should show example navigation.");
+expectContains(helloShowcaseHtml, 'data-sidebar-toggle', "_site/examples/showcase/hello-screen.html should expose a sidebar collapse toggle.");
+expectContains(helloShowcaseHtml, 'aria-controls="example-sidebar-content"', "_site/examples/showcase/hello-screen.html sidebar toggle should target the sidebar content.");
+expectContains(helloShowcaseHtml, 'aria-label="Hide example navigation"', "_site/examples/showcase/hello-screen.html sidebar toggle should have an accessible label.");
 expectContains(helloShowcaseHtml, 'aria-current="page"', "_site/examples/showcase/hello-screen.html sidebar should mark the current example.");
 expectContains(helloShowcaseHtml, '<iframe src="/markvspec/examples/generated/hello-screen.html"', "_site/examples/showcase/hello-screen.html should embed the generated preview artifact.");
 expectContains(helloShowcaseHtml, 'href="/markvspec/examples/dynamic/hello-screen.html"', "_site/examples/showcase/hello-screen.html should link to the dynamic preview route.");
@@ -152,6 +155,9 @@ if (sourceArtifacts.length !== exampleSources.length) {
 const helloDynamicHtml = readSiteFile("examples/dynamic/hello-screen.html/index.html");
 expectContains(helloDynamicHtml, "Read-only Dynamic Preview", "_site/examples/dynamic/hello-screen.html should be the dynamic preview page.");
 expectContains(helloDynamicHtml, 'data-pagefind-ignore', "_site/examples/dynamic/hello-screen.html should keep runtime preview content out of Pagefind indexing.");
+expectContains(helloDynamicHtml, 'data-sidebar-toggle', "_site/examples/dynamic/hello-screen.html should expose a sidebar collapse toggle.");
+expectContains(helloDynamicHtml, 'aria-controls="example-sidebar-content"', "_site/examples/dynamic/hello-screen.html sidebar toggle should target the sidebar content.");
+expectContains(helloDynamicHtml, 'aria-label="Hide example navigation"', "_site/examples/dynamic/hello-screen.html sidebar toggle should have an accessible label.");
 expectContains(helloDynamicHtml, 'id="dynamic-preview-config"', "_site/examples/dynamic/hello-screen.html should expose runtime configuration.");
 expectContains(helloDynamicHtml, '"/markvspec/examples/source/01-basics/hello-screen.vspec.md"', "_site/examples/dynamic/hello-screen.html should fetch the public source asset.");
 expectContains(helloDynamicHtml, '"/markvspec/examples/generated/hello-screen.html"', "_site/examples/dynamic/hello-screen.html should keep the generated preview fallback.");

@@ -129,6 +129,9 @@ const metaPills = [
         max-width: 1440px;
         padding: 22px 24px 40px;
       }
+      main[data-sidebar-collapsed="true"] {
+        grid-template-columns: 54px minmax(0, 1fr);
+      }
       .example-sidebar {
         align-self: start;
         background: var(--paper);
@@ -140,12 +143,56 @@ const metaPills = [
         position: sticky;
         top: 70px;
       }
+      .example-sidebar-header {
+        align-items: center;
+        display: flex;
+        gap: 8px;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
       .example-sidebar-title {
         color: var(--ink);
         display: block;
         font-size: 14px;
         font-weight: 750;
-        margin-bottom: 12px;
+        min-width: 0;
+      }
+      .example-sidebar-toggle {
+        align-items: center;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: #334155;
+        cursor: pointer;
+        display: inline-flex;
+        flex: 0 0 auto;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 750;
+        gap: 4px;
+        justify-content: center;
+        line-height: 1;
+        min-height: 30px;
+        padding: 5px 9px;
+      }
+      .example-sidebar-toggle:hover {
+        border-color: #b8c3d3;
+      }
+      .sidebar-toggle-icon {
+        font-size: 15px;
+        line-height: 1;
+      }
+      main[data-sidebar-collapsed="true"] .example-sidebar {
+        overflow: visible;
+        padding: 10px;
+      }
+      main[data-sidebar-collapsed="true"] .example-sidebar-header {
+        justify-content: center;
+        margin-bottom: 0;
+      }
+      main[data-sidebar-collapsed="true"] .example-sidebar-title,
+      main[data-sidebar-collapsed="true"] .sidebar-toggle-label {
+        display: none;
       }
       .example-sidebar-section {
         border-top: 1px solid var(--line-soft);
@@ -321,12 +368,15 @@ const metaPills = [
       }
       @media (max-width: 1000px) {
         main,
+        main[data-sidebar-collapsed="true"],
         .preview-shell,
         .example-header {
           grid-template-columns: 1fr;
         }
+        .example-main { order: 1; }
         .example-sidebar {
           max-height: none;
+          order: 2;
           position: static;
         }
         .example-actions { justify-content: flex-start; }
@@ -364,21 +414,29 @@ const metaPills = [
       </div>
     </header>
 
-    <main data-pagefind-ignore>
+    <main data-pagefind-ignore data-example-layout>
       <aside class="example-sidebar" aria-label="Example navigation">
-        <a class="example-sidebar-title" href={`${base}/examples/`}>All Examples</a>
-        {stageGroups.map((stage) => (
-          <section class="example-sidebar-section">
-            <p class="example-sidebar-heading">{stage.label}</p>
-            <ul>
-              {stage.items.map((item) => (
-                <li>
-                  <a href={`${base}/examples/dynamic/${item.slug}.html`} aria-current={item.slug === example.slug ? 'page' : undefined}>{item.title}</a>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
+        <div class="example-sidebar-header">
+          <a class="example-sidebar-title" href={`${base}/examples/`}>All Examples</a>
+          <button class="example-sidebar-toggle" type="button" aria-controls="example-sidebar-content" aria-expanded="true" aria-label="Hide example navigation" data-sidebar-toggle>
+            <span class="sidebar-toggle-icon" aria-hidden="true" data-sidebar-toggle-icon>‹</span>
+            <span class="sidebar-toggle-label" data-sidebar-toggle-label>Hide</span>
+          </button>
+        </div>
+        <div id="example-sidebar-content" class="example-sidebar-content">
+          {stageGroups.map((stage) => (
+            <section class="example-sidebar-section">
+              <p class="example-sidebar-heading">{stage.label}</p>
+              <ul>
+                {stage.items.map((item) => (
+                  <li>
+                    <a href={`${base}/examples/dynamic/${item.slug}.html`} aria-current={item.slug === example.slug ? 'page' : undefined}>{item.title}</a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
       </aside>
 
       <div class="example-main">
@@ -435,6 +493,30 @@ const metaPills = [
     </main>
 
     <script id="dynamic-preview-config" type="application/json" set:html={JSON.stringify(config)}></script>
+    <script is:inline>
+      (() => {
+        const layout = document.querySelector('[data-example-layout]');
+        const button = document.querySelector('[data-sidebar-toggle]');
+        const content = document.querySelector('#example-sidebar-content');
+        const icon = document.querySelector('[data-sidebar-toggle-icon]');
+        const label = document.querySelector('[data-sidebar-toggle-label]');
+        if (!layout || !button || !content || !icon || !label) return;
+
+        const setCollapsed = (collapsed) => {
+          layout.dataset.sidebarCollapsed = collapsed ? 'true' : 'false';
+          button.setAttribute('aria-expanded', String(!collapsed));
+          button.setAttribute('aria-label', collapsed ? 'Show example navigation' : 'Hide example navigation');
+          content.hidden = collapsed;
+          icon.textContent = collapsed ? '›' : '‹';
+          label.textContent = collapsed ? 'Show' : 'Hide';
+        };
+
+        setCollapsed(window.matchMedia('(max-width: 1000px)').matches);
+        button.addEventListener('click', () => {
+          setCollapsed(layout.dataset.sidebarCollapsed !== 'true');
+        });
+      })();
+    </script>
     <script>
       import '../../../lib/dynamic-preview.js';
     </script>
