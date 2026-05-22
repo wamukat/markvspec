@@ -24,6 +24,16 @@ dynamic rendering, which fallback path was forced or observed, and whether sourc
 asset, dependency manifest, generated fallback, and runtime bundle assets were
 present in the built `_site` artifact.
 
+`npm run check:docs-site` includes a semantic parity check for every catalog
+example. It compares browser dynamic output with the generated HTML artifact by
+normalizing script/style/runtime wrappers away and checking the dynamic wireframe,
+marker IDs, marker categories, generated key sections, validation status, and
+key rendered text. It does not require full HTML or pixel equality. Known
+differences must stay in the script allowlist with a reason and a removal
+condition; the allowlist currently covers `source-kind-metadata` because the
+generated State Views render Preview Scenario sample values while the browser
+dynamic preview renders baseline source values.
+
 Run the browser regression before completing dynamic-first showcase tickets:
 
 ```bash

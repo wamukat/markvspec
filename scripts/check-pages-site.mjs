@@ -13,6 +13,13 @@ const root = process.cwd();
 const siteDir = join(root, "_site");
 const failures = [];
 const base = "/markvspec";
+const dynamicGeneratedParityAllowlist = new Map([
+  [
+    "source-kind-metadata",
+    "Generated artifact renders Preview Scenario sample values in static State Views; browser dynamic preview currently renders baseline source values. Remove this allowance when dynamic runtime supports the same sample selection."
+  ],
+]);
+const usedDynamicGeneratedParityAllowlist = new Set();
 
 const requiredFiles = [
   "index.html",
@@ -278,7 +285,7 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log(`Pages site check passed (${generatedHtml.length} generated example pages, ${showcaseFiles.length} showcase pages, ${dynamicCoverage.rendered} dynamic smoke renders).`);
+console.log(`Pages site check passed (${generatedHtml.length} generated example pages, ${showcaseFiles.length} showcase pages, ${dynamicCoverage.rendered} dynamic smoke renders, ${dynamicCoverage.parityCompared} parity checks, ${dynamicCoverage.allowedParityDifferences} allowed parity differences).`);
 
 function expectFile(filePath, message = `Missing _site artifact: ${filePath}`) {
   if (!existsSync(join(siteDir, filePath))) {
@@ -309,6 +316,8 @@ function expectNotContains(value, expected, message) {
 
 function checkDynamicShowcaseCoverage() {
   let rendered = 0;
+  let parityCompared = 0;
+  let allowedParityDifferences = 0;
   const seenSlugs = new Set();
   for (const entry of catalog.examples) {
     const slug = basename(entry.path, ".vspec.md");
@@ -331,7 +340,19 @@ function checkDynamicShowcaseCoverage() {
     if (config.dynamicPreviewEnabled !== true) {
       failures.push(`${showcasePath} should enable dynamic preview instead of staying on fallback.`);
     }
-    smokeRenderDynamicConfig(config, showcasePath);
+    const dynamicSmoke = smokeRenderDynamicConfig(config, showcasePath);
+    if (dynamicSmoke) {
+      const parity = checkDynamicGeneratedParity({
+        dynamicHtml: dynamicSmoke.html,
+        filePath: showcasePath,
+        generatedHtml: readSiteFile(generatedPath),
+        generatedPath,
+        slug,
+        validation: dynamicSmoke.validation,
+      });
+      parityCompared += 1;
+      allowedParityDifferences += parity.allowedDifferences;
+    }
     rendered += 1;
   }
 
@@ -341,7 +362,12 @@ function checkDynamicShowcaseCoverage() {
   if (missingGenerated.length > 0) {
     failures.push(`_site/examples/generated contains artifacts that are not in the catalog: ${missingGenerated.join(", ")}`);
   }
-  return { rendered };
+  for (const slug of dynamicGeneratedParityAllowlist.keys()) {
+    if (seenSlugs.has(slug) && !usedDynamicGeneratedParityAllowlist.has(slug)) {
+      failures.push(`dynamic/generated parity allowlist entry is obsolete or untested: ${slug}`);
+    }
+  }
+  return { allowedParityDifferences, parityCompared, rendered };
 }
 
 function dynamicPreviewConfig(html, filePath) {
@@ -383,6 +409,113 @@ function smokeRenderDynamicConfig(config, filePath) {
   if (!html.trim()) {
     failures.push(`${filePath} dynamic smoke should render non-empty HTML.`);
   }
+  return { html, renderResult, validation };
+}
+
+function checkDynamicGeneratedParity({ dynamicHtml, filePath, generatedHtml, generatedPath, slug, validation }) {
+  let allowedDifferences = 0;
+  const dynamicFingerprint = semanticPreviewFingerprint(dynamicHtml);
+  const generatedDocumentFingerprint = semanticPreviewFingerprint(generatedHtml);
+  const generatedPreviewHtml = firstGeneratedWireframeHtml(generatedHtml) ?? generatedHtml;
+  const generatedPreviewFingerprint = semanticPreviewFingerprint(generatedPreviewHtml);
+
+  if (!dynamicFingerprint.hasWireframe) {
+    failures.push(`${filePath} dynamic parity should include a wireframe root.`);
+  }
+  if (!generatedDocumentFingerprint.sectionIds.has("screen") || !generatedDocumentFingerprint.sectionIds.has("state-views")) {
+    failures.push(`${generatedPath} dynamic parity should include generated Screen and State Views sections.`);
+  }
+
+  if (validation.passed && generatedDocumentFingerprint.sectionIds.has("diagnostics")) {
+    failures.push(`${filePath} dynamic/generated parity expected no generated Diagnostics section when dynamic validation passes.`);
+  }
+  if (!validation.passed && !generatedDocumentFingerprint.sectionIds.has("diagnostics")) {
+    failures.push(`${filePath} dynamic/generated parity expected a generated Diagnostics section when dynamic validation fails.`);
+  }
+
+  const missingInGenerated = [...dynamicFingerprint.markerIds].filter((id) => !generatedPreviewFingerprint.markerIds.has(id));
+  if (missingInGenerated.length > 0) {
+    failures.push(`${filePath} dynamic/generated parity missing dynamic marker IDs in generated preview: ${missingInGenerated.join(", ")}`);
+  }
+
+  const missingInDynamic = [...generatedPreviewFingerprint.markerIds].filter((id) => !dynamicFingerprint.markerIds.has(id));
+  if (missingInDynamic.length > 0) {
+    failures.push(`${filePath} dynamic/generated parity missing generated preview marker IDs in dynamic output: ${missingInDynamic.join(", ")}`);
+  }
+
+  const missingCategoriesInGenerated = [...dynamicFingerprint.markerCategories].filter((category) => !generatedPreviewFingerprint.markerCategories.has(category));
+  if (missingCategoriesInGenerated.length > 0) {
+    failures.push(`${filePath} dynamic/generated parity missing dynamic marker categories in generated preview: ${missingCategoriesInGenerated.join(", ")}`);
+  }
+
+  const missingCategoriesInDynamic = [...generatedPreviewFingerprint.markerCategories].filter((category) => !dynamicFingerprint.markerCategories.has(category));
+  if (missingCategoriesInDynamic.length > 0) {
+    failures.push(`${filePath} dynamic/generated parity missing generated preview marker categories in dynamic output: ${missingCategoriesInDynamic.join(", ")}`);
+  }
+
+  const exactTextParity = dynamicFingerprint.text === generatedPreviewFingerprint.text;
+  if (!exactTextParity) {
+    const allowance = dynamicGeneratedParityAllowlist.get(slug);
+    if (allowance) {
+      usedDynamicGeneratedParityAllowlist.add(slug);
+      allowedDifferences += 1;
+    } else {
+      failures.push(`${filePath} dynamic/generated parity text mismatch. Dynamic key text does not match the generated preview wireframe in ${generatedPath}.`);
+    }
+  }
+
+  return { allowedDifferences };
+}
+
+function firstGeneratedWireframeHtml(html) {
+  const start = html.indexOf('<section class="wireframe-section">');
+  if (start < 0) {
+    return undefined;
+  }
+  const nextHeadings = [
+    html.indexOf('<h6 class="state-screen-detail-heading">', start),
+    html.indexOf('<h5 class="state-screen-subheading">Layouts</h5>', start),
+  ].filter((index) => index > start);
+  const nextSpecHeading = nextHeadings.length > 0 ? Math.min(...nextHeadings) : -1;
+  const nextStateSection = html.indexOf('<section class="doc-section state-screen-section"', start + 1);
+  const endCandidates = [nextSpecHeading, nextStateSection].filter((index) => index > start);
+  return html.slice(start, endCandidates.length > 0 ? Math.min(...endCandidates) : undefined);
+}
+
+function semanticPreviewFingerprint(html) {
+  const markerIds = new Set([...html.matchAll(/\bdata-mm-id="([^"]+)"/gu)].map((match) => decodeHtmlText(match[1])));
+  const markerCategories = new Set([...html.matchAll(/\bdata-mm-marker-category="([^"]+)"/gu)].map((match) => decodeHtmlText(match[1])));
+  const sectionIds = new Set([...html.matchAll(/\bid="([^"]+)"/gu)].map((match) => decodeHtmlText(match[1])));
+  return {
+    hasWireframe: html.includes("mm-wireframe"),
+    markerCategories,
+    markerIds,
+    sectionIds,
+    text: normalizeParityText(html),
+  };
+}
+
+function normalizeParityText(html) {
+  return decodeHtmlText(html
+    .replace(/<style\b[\s\S]*?<\/style>/giu, " ")
+    .replace(/<script\b[\s\S]*?<\/script>/giu, " ")
+    .replace(/<svg\b[\s\S]*?<\/svg>/giu, " ")
+    .replace(/<[^>]+>/gu, " "))
+    .replace(/\s+/gu, " ")
+    .trim();
+}
+
+function decodeHtmlText(value) {
+  return value
+    .replace(/&#(?:x([0-9a-f]+)|([0-9]+));/giu, (_match, hex, decimal) => {
+      const codePoint = Number.parseInt(hex ?? decimal ?? "0", hex ? 16 : 10);
+      return Number.isFinite(codePoint) && codePoint >= 0 && codePoint <= 0x10ffff ? String.fromCodePoint(codePoint) : "";
+    })
+    .replace(/&quot;/gu, "\"")
+    .replace(/&#39;|&apos;/gu, "'")
+    .replace(/&lt;/gu, "<")
+    .replace(/&gt;/gu, ">")
+    .replace(/&amp;/gu, "&");
 }
 
 function checkDynamicSecurityBoundary() {

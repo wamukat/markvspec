@@ -22,6 +22,14 @@ dynamic-first 関連の検証記録では、どの example が dynamic rendering
 どの fallback path を強制または観測したか、build 済み `_site` artifact に source asset、
 dependency manifest、generated fallback、runtime bundle asset が揃っていたかを記録する。
 
+`npm run check:docs-site` は、全 catalog example について semantic parity check を実行する。
+browser dynamic output と generated HTML artifact を比較する際、script / style / runtime wrapper は
+正規化して比較対象外とし、dynamic wireframe、marker ID、marker category、generated key section、
+validation status、key rendered text を確認する。完全な HTML 一致や pixel equality は要求しない。
+既知差分は script の allowlist に理由と解除条件を添えて残す。現在の allowlist は
+`source-kind-metadata` だけで、generated State Views は Preview Scenario sample values を描画する一方、
+browser dynamic preview は baseline source values を描画するためである。
+
 dynamic-first showcase 関連チケットの完了前には、browser regression を実行する。
 
 ```bash
