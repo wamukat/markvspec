@@ -2,6 +2,9 @@
   "name": "@markvspec/docs-site",
   "private": true,
   "type": "module",
+  "dependencies": {
+    "@markvspec/core": "0.6.2"
+  },
   "scripts": {
     "predev": "node ../scripts/sync-docs-site-content.mjs",
     "dev": "astro dev",

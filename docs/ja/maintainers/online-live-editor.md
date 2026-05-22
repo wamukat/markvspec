@@ -63,6 +63,13 @@ filesystem lookup や project-wide validation を前提にしない。Online Liv
 表示改善として段階的に入れられるが、editable editor は本番 examples 導線へ直結しない。
 最初は明示的な experimental route、feature flag、または非公開 route に限定する。
 
+read-only dynamic preview は `/examples/dynamic/<slug>.html` に置く。既存の
+`/examples/showcase/<slug>.html` と `/examples/generated/<slug>.html` は維持し、
+dynamic preview は公開 `.vspec.md` source asset を fetch して browser-safe core API で
+描画する。source fetch、parse、render、JavaScript 実行に失敗した場合は、同じ Pages build
+で生成した `/examples/generated/<slug>.html` iframe を fallback として表示する。
+dynamic preview page は runtime 検証用のため、Pagefind の主要 indexing 対象にしない。
+
 本番導線へ昇格する条件は次の通り。
 
 - source fetch 失敗時に既存 generated HTML preview へ戻れる
@@ -109,6 +116,6 @@ release check に含める。
 - #1383: `@markvspec/core/browser` を正式な public subpath として定義し、browser-safe API
   の契約と Node-only API の境界を固定した。
 - #1384: docs-site examples で read-only dynamic preview を追加し、source fetch と
-  generated HTML fallback を検証する。
+  generated HTML fallback を検証した。
 - #1385: editable Online Live Editor の PoC を、experimental / feature flag / 非公開 route
   のいずれかで作る。

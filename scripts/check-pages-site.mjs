@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, extname, join, relative } from "node:path";
+import { gzipSync } from "node:zlib";
 import { loadExampleCatalog, validateExampleCatalog } from "./example-catalog.mjs";
 
 const root = process.cwd();
@@ -15,7 +16,9 @@ const requiredFiles = [
   "examples/assets/markvspec-preview.css",
   "examples/assets/markvspec-mermaid.js",
   "examples/assets/markvspec-mermaid-runtime.js",
+  "examples/source/01-basics/hello-screen.vspec.md",
   "examples/generated/hello-screen.html",
+  "examples/dynamic/hello-screen.html/index.html",
   "examples/showcase/hello-screen.html/index.html",
   "pagefind/pagefind.js",
   "pagefind/pagefind-entry.json",
@@ -111,6 +114,7 @@ expectContains(helloShowcaseHtml, "Source and generated preview, side by side", 
 expectContains(helloShowcaseHtml, 'class="example-sidebar ', "_site/examples/showcase/hello-screen.html should show example navigation.");
 expectContains(helloShowcaseHtml, 'aria-current="page"', "_site/examples/showcase/hello-screen.html sidebar should mark the current example.");
 expectContains(helloShowcaseHtml, '<iframe src="/markvspec/examples/generated/hello-screen.html"', "_site/examples/showcase/hello-screen.html should embed the generated preview artifact.");
+expectContains(helloShowcaseHtml, 'href="/markvspec/examples/dynamic/hello-screen.html"', "_site/examples/showcase/hello-screen.html should link to the dynamic preview route.");
 expectNotContains(helloShowcaseHtml, 'href="/markvspec/examples/generated/hello-screen.pdf"', "_site/examples/showcase/hello-screen.html should not link generated PDF artifacts.");
 expectContains(helloShowcaseHtml, '<span class="line-no ', "_site/examples/showcase/hello-screen.html should show source line numbers.");
 expectContains(helloShowcaseHtml, "SCR-HELLO", "_site/examples/showcase/hello-screen.html should render source text.");
@@ -123,6 +127,34 @@ expectContains(helloShowcaseHtml, "Async Fetching", "_site/examples/showcase/hel
 const scenarioShowcaseHtml = readSiteFile("examples/showcase/scenario-samples.html/index.html");
 expectContains(scenarioShowcaseHtml, "English: Guide / Scenarios", "_site/examples/showcase/scenario-samples.html should link the scenario guide.");
 expectContains(scenarioShowcaseHtml, 'href="/markvspec/en/guide/scenarios/"', "_site/examples/showcase/scenario-samples.html should use the Starlight scenario URL.");
+
+const dynamicExamplesDir = join(siteDir, "examples", "dynamic");
+const sourceExamplesDir = join(siteDir, "examples", "source");
+const dynamicPages = collectFiles(dynamicExamplesDir, (filePath) => filePath.endsWith("index.html"));
+const sourceArtifacts = collectFiles(sourceExamplesDir, (filePath) => filePath.endsWith(".vspec.md"));
+if (dynamicPages.length !== exampleSources.length) {
+  failures.push(`_site/examples/dynamic should contain one dynamic preview page per example (${exampleSources.length} expected, ${dynamicPages.length} found).`);
+}
+if (sourceArtifacts.length !== exampleSources.length) {
+  failures.push(`_site/examples/source should contain one source asset per example (${exampleSources.length} expected, ${sourceArtifacts.length} found).`);
+}
+
+const helloDynamicHtml = readSiteFile("examples/dynamic/hello-screen.html/index.html");
+expectContains(helloDynamicHtml, "Read-only Dynamic Preview", "_site/examples/dynamic/hello-screen.html should be the dynamic preview page.");
+expectContains(helloDynamicHtml, 'data-pagefind-ignore', "_site/examples/dynamic/hello-screen.html should keep runtime preview content out of Pagefind indexing.");
+expectContains(helloDynamicHtml, 'id="dynamic-preview-config"', "_site/examples/dynamic/hello-screen.html should expose runtime configuration.");
+expectContains(helloDynamicHtml, '"/markvspec/examples/source/01-basics/hello-screen.vspec.md"', "_site/examples/dynamic/hello-screen.html should fetch the public source asset.");
+expectContains(helloDynamicHtml, '"/markvspec/examples/generated/hello-screen.html"', "_site/examples/dynamic/hello-screen.html should keep the generated preview fallback.");
+const dynamicScriptPath = dynamicScriptArtifactPath(helloDynamicHtml);
+if (!dynamicScriptPath) {
+  failures.push("_site/examples/dynamic/hello-screen.html should include the dynamic preview browser script.");
+} else {
+  const dynamicScript = readFileSync(dynamicScriptPath);
+  const gzipBytes = gzipSync(dynamicScript).byteLength;
+  if (gzipBytes > 140 * 1024) {
+    failures.push(`dynamic preview browser script gzip size should stay within 140 KiB (${formatKiB(gzipBytes)} found).`);
+  }
+}
 
 for (const docsExamplesPath of ["ja/examples/index.html", "en/examples/index.html"]) {
   const html = readSiteFile(docsExamplesPath);
@@ -285,6 +317,18 @@ function artifactPathForSitePath(sitePath) {
   }
 
   return directPath;
+}
+
+function dynamicScriptArtifactPath(html) {
+  const scriptMatch = html.match(/<script type="module" src="([^"]*dynamic-preview[^"]*|[^"]*_slug_[^"]*\.js)"><\/script>/u);
+  if (!scriptMatch) {
+    return undefined;
+  }
+  return artifactPathForHref(scriptMatch[1], join(siteDir, "examples", "dynamic", "hello-screen.html", "index.html"));
+}
+
+function formatKiB(bytes) {
+  return `${(bytes / 1024).toFixed(1)} KiB`;
 }
 
 function toPosixPath(filePath) {

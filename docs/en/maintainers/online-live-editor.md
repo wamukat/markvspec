@@ -67,6 +67,14 @@ but the editable editor should not be wired directly into production example
 navigation at first. It should start behind an explicit experimental route,
 feature flag, or non-public route.
 
+The read-only dynamic preview lives at `/examples/dynamic/<slug>.html`. Existing
+`/examples/showcase/<slug>.html` and `/examples/generated/<slug>.html` URLs stay
+intact. The dynamic preview fetches the published `.vspec.md` source asset and
+renders it with the browser-safe core API. If source fetch, parse, render, or
+JavaScript execution fails, the page keeps the generated
+`/examples/generated/<slug>.html` iframe as the fallback. Dynamic preview pages
+are runtime verification pages and are not primary Pagefind indexing targets.
+
 Promotion to a production entry requires:
 
 - Existing generated HTML preview fallback when source fetch, parse, or render fails
@@ -115,7 +123,7 @@ as public assets or providing an equivalent source endpoint.
 
 - #1383: defined `@markvspec/core/browser` as a public subpath and fixed the
   browser-safe API contract versus Node-only API boundary.
-- #1384: add read-only dynamic preview to docs-site examples and verify source
-  fetch plus generated HTML fallback.
+- #1384: added read-only dynamic preview to docs-site examples and verified
+  source fetch plus generated HTML fallback.
 - #1385: build the editable Online Live Editor PoC behind an experimental,
   feature-flagged, or non-public route.

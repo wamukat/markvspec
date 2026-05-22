@@ -3,9 +3,6 @@ import {
   getExamples,
   groupExamplesByStage,
   githubBlobBaseUrl,
-  nextExamples,
-  relatedDocs,
-  sourceLines,
 } from '../../../lib/example-data.js';
 
 export function getStaticPaths() {
@@ -19,28 +16,14 @@ const { example } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const examples = getExamples();
 const stageGroups = groupExamplesByStage(examples);
-const related = relatedDocs(example);
-const next = nextExamples(example, examples);
-const previewHref = `${base}${example.generatedPreviewPath}`;
-const dynamicPreviewHref = `${base}${example.dynamicPreviewPath}`;
+const generatedPreviewHref = `${base}${example.generatedPreviewPath}`;
+const sourceHref = `${base}${example.sourceAssetPath}`;
+const showcaseHref = `${base}/examples/showcase/${example.slug}.html`;
 const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
-const sourceLineItems = sourceLines(example.source);
-const currentStage = stageGroups.find((stage) => stage.items.some((item) => item.slug === example.slug));
-const currentStageIndex = currentStage?.items.findIndex((item) => item.slug === example.slug) ?? -1;
-const adjacentByStage = currentStage && currentStageIndex >= 0
-  ? [currentStage.items[currentStageIndex - 1], currentStage.items[currentStageIndex + 1]].filter(Boolean)
-  : [];
-const adjacentExamples = [
-  ...next,
-  ...adjacentByStage.filter((item) => !next.some((nextItem) => nextItem.slug === item.slug)),
-];
-const pageNavItems = [
-  { href: '#learning-links', label: 'Learning links' },
-  related.length ? { href: '#related-docs', label: 'Related docs' } : null,
-  adjacentExamples.length ? { href: '#adjacent-examples', label: 'Adjacent examples' } : null,
-  { href: '#source', label: 'Source' },
-  { href: '#generated-preview', label: 'Generated preview' },
-].filter(Boolean);
+const config = {
+  locale: example.locale || 'en',
+  sourceHref,
+};
 const metaPills = [
   example.id,
   example.type,
@@ -52,11 +35,12 @@ const metaPills = [
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-pagefind-ignore>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{example.title} - MarkVSpec Example Showcase</title>
+    <meta name="robots" content="noindex" />
+    <title>{example.title} - MarkVSpec Read-only Dynamic Preview</title>
     <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
     <style>
       :root {
@@ -67,9 +51,8 @@ const metaPills = [
         --line: #d6dde8;
         --line-soft: #e9edf3;
         --accent: #2563eb;
-        --code-bg: #101827;
-        --code-ink: #e8eef8;
-        --code-muted: #95a3b8;
+        --success: #0f766e;
+        --warning: #a16207;
       }
       * { box-sizing: border-box; }
       body {
@@ -111,20 +94,19 @@ const metaPills = [
       .brand strong { font-size: 15px; }
       .brand span { color: var(--muted); font-size: 12px; }
       .top-nav,
-      .example-actions,
-      .pane-tools {
+      .example-actions {
         align-items: center;
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
         justify-content: flex-end;
       }
-      .nav-link,
-      .button-link,
-      .small-link {
+      .nav-link {
         align-items: center;
+        background: #fff;
         border: 1px solid var(--line);
         border-radius: 999px;
+        color: #334155;
         display: inline-flex;
         font-size: 12px;
         font-weight: 650;
@@ -134,22 +116,10 @@ const metaPills = [
         text-decoration: none;
         white-space: nowrap;
       }
-      .nav-link svg,
-      .button-link svg,
-      .small-link svg {
+      .nav-link svg {
         flex: 0 0 auto;
         height: 15px;
         width: 15px;
-      }
-      .nav-link,
-      .small-link {
-        background: #fff;
-        color: #334155;
-      }
-      .button-link {
-        background: var(--accent);
-        border-color: var(--accent);
-        color: #fff;
       }
       main {
         display: grid;
@@ -256,72 +226,36 @@ const metaPills = [
         gap: 5px;
         padding: 4px 9px;
       }
-      .page-jump-nav {
-        align-items: center;
+      .runtime-summary {
         background: var(--paper);
         border: 1px solid var(--line);
         border-radius: 8px;
-        display: flex;
-        gap: 10px;
-        margin-bottom: 18px;
-        overflow-x: auto;
-        padding: 10px 12px;
-      }
-      .page-jump-nav strong {
-        color: var(--muted);
-        flex: 0 0 auto;
-        font-size: 11px;
-        letter-spacing: .04em;
-        text-transform: uppercase;
-      }
-      .page-jump-nav a {
-        border: 1px solid var(--line-soft);
-        border-radius: 999px;
-        color: #334155;
-        flex: 0 0 auto;
-        font-size: 12px;
-        font-weight: 650;
-        padding: 5px 9px;
-      }
-      .learning-panel,
-      .learning-card,
-      .pane {
-        scroll-margin-top: 86px;
-      }
-      .split {
         display: grid;
-        gap: 16px;
-        grid-template-columns: minmax(360px, .9fr) minmax(520px, 1.1fr);
-        min-height: calc(100vh - 185px);
-      }
-      .learning-panel {
-        display: grid;
-        gap: 14px;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
         margin-bottom: 18px;
-      }
-      .learning-card {
-        background: var(--paper);
-        border: 1px solid var(--line);
-        border-radius: 8px;
         padding: 14px;
       }
-      .learning-card h2 {
+      .runtime-summary strong {
         font-size: 13px;
-        margin: 0 0 8px;
       }
-      .learning-card ul {
-        display: grid;
-        gap: 6px;
-        list-style: none;
-        margin: 0;
-        padding: 0;
-      }
-      .learning-card li {
+      .runtime-summary p {
         color: var(--muted);
-        font-size: 13px;
+        margin: 0;
       }
-      .pane {
+      [data-dynamic-preview-status] {
+        color: var(--muted);
+        font-weight: 700;
+      }
+      [data-dynamic-preview-status][data-status="ready"] { color: var(--success); }
+      [data-dynamic-preview-status][data-status="diagnostics"],
+      [data-dynamic-preview-status][data-status="fallback"] { color: var(--warning); }
+      .preview-shell {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: minmax(0, 1fr) 320px;
+      }
+      .preview-pane,
+      .diagnostics-pane {
         background: var(--paper);
         border: 1px solid var(--line);
         border-radius: 8px;
@@ -342,49 +276,17 @@ const metaPills = [
       .pane-title { display: grid; gap: 1px; }
       .pane-title strong { font-size: 13px; }
       .pane-title span { color: var(--muted); font-size: 11px; }
-      .source-wrap {
-        background: var(--code-bg);
-        color: var(--code-ink);
-        height: calc(100vh - 252px);
-        min-height: 520px;
-        overflow: auto;
-      }
-      pre {
-        font-size: 0;
-        line-height: 0;
-        margin: 0;
-        min-width: 620px;
-        padding: 12px 0;
-        tab-size: 2;
-      }
-      code {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-        font-size: 0;
-        line-height: 0;
-      }
-      .line {
-        display: grid;
-        font-size: 12px;
-        grid-template-columns: 44px minmax(0, 1fr);
-        height: 18px;
-        line-height: 18px;
-      }
-      .line-no {
-        color: var(--code-muted);
-        padding-right: 12px;
-        text-align: right;
-        user-select: none;
-      }
-      .line-code {
-        border-left: 1px solid rgba(148, 163, 184, .22);
-        padding: 0 18px;
-        white-space: pre;
-      }
-      .preview-frame-wrap {
+      .dynamic-preview-output,
+      .fallback-frame-wrap {
         background: #eef2f7;
-        height: calc(100vh - 252px);
-        min-height: 520px;
+        height: calc(100vh - 260px);
+        min-height: 560px;
         overflow: auto;
+        padding: 18px;
+      }
+      .dynamic-preview-output[hidden],
+      .fallback-frame-wrap[hidden] {
+        display: none;
       }
       iframe {
         background: #fff;
@@ -394,25 +296,42 @@ const metaPills = [
         min-height: 520px;
         width: 100%;
       }
+      .diagnostics-pane ul {
+        display: grid;
+        gap: 8px;
+        list-style: none;
+        margin: 0;
+        padding: 14px;
+      }
+      .diagnostics-pane li {
+        background: #f8fafc;
+        border: 1px solid var(--line-soft);
+        border-radius: 6px;
+        color: #334155;
+        font-size: 12px;
+        padding: 8px 10px;
+      }
+      .diagnostics-pane li[data-severity="error"] {
+        border-color: #fecaca;
+        color: #991b1b;
+      }
+      .diagnostics-pane li[data-severity="warning"] {
+        border-color: #fde68a;
+        color: #92400e;
+      }
       @media (max-width: 1000px) {
-        main { grid-template-columns: 1fr; }
+        main,
+        .preview-shell,
+        .example-header {
+          grid-template-columns: 1fr;
+        }
         .example-sidebar {
           max-height: none;
           position: static;
         }
-        .example-header {
-          align-items: start;
-          grid-template-columns: 1fr;
-        }
         .example-actions { justify-content: flex-start; }
-        .page-jump-nav {
-          margin-left: -4px;
-          margin-right: -4px;
-        }
-        .learning-panel { grid-template-columns: 1fr; }
-        .split { grid-template-columns: 1fr; }
-        .source-wrap,
-        .preview-frame-wrap {
+        .dynamic-preview-output,
+        .fallback-frame-wrap {
           height: auto;
           max-height: 680px;
         }
@@ -425,7 +344,7 @@ const metaPills = [
         <div class="brand">
           <img src={`${base}/assets/markvspec-icon.svg`} alt="" width="30" height="30" />
           <strong>MarkVSpec Examples</strong>
-          <span>Source and generated preview, side by side</span>
+          <span>Read-only Dynamic Preview</span>
         </div>
         <nav class="top-nav" aria-label="Example navigation">
           <a class="nav-link" href={`${base}/en/`}>
@@ -445,7 +364,7 @@ const metaPills = [
       </div>
     </header>
 
-    <main>
+    <main data-pagefind-ignore>
       <aside class="example-sidebar" aria-label="Example navigation">
         <a class="example-sidebar-title" href={`${base}/examples/`}>All Examples</a>
         {stageGroups.map((stage) => (
@@ -454,7 +373,7 @@ const metaPills = [
             <ul>
               {stage.items.map((item) => (
                 <li>
-                  <a href={`${base}/examples/showcase/${item.slug}.html`} aria-current={item.slug === example.slug ? 'page' : undefined}>{item.title}</a>
+                  <a href={`${base}/examples/dynamic/${item.slug}.html`} aria-current={item.slug === example.slug ? 'page' : undefined}>{item.title}</a>
                 </li>
               ))}
             </ul>
@@ -473,72 +392,51 @@ const metaPills = [
             </div>
           </div>
           <div class="example-actions">
-            <a class="nav-link" href={previewHref}>Open preview only</a>
-            <a class="nav-link" href={dynamicPreviewHref}>Dynamic preview</a>
-            <a class="nav-link" href={`${githubBlobBaseUrl}${example.repoPath}`}>View on GitHub</a>
+            <a class="nav-link" href={showcaseHref}>Source and generated preview</a>
+            <a class="nav-link" href={generatedPreviewHref}>Generated fallback</a>
+            <a class="nav-link" href={`${githubBlobBaseUrl}${example.repoPath}`}>Source</a>
           </div>
         </section>
 
-        <nav class="page-jump-nav" aria-label="Sections in this example">
-          <strong>On this example</strong>
-          {pageNavItems.map((item) => <a href={item.href}>{item.label}</a>)}
-        </nav>
-
-        <section id="learning-links" class="learning-panel" aria-label="Learning links">
-          <article class="learning-card">
-            <h2>What this teaches</h2>
-            <ul>
-              {example.teaches.length ? example.teaches.map((item) => <li>{item}</li>) : <li>No catalog teaches metadata.</li>}
-            </ul>
-          </article>
-          <article id="related-docs" class="learning-card">
-            <h2>Related docs</h2>
-            <ul>
-              {related.length ? related.map((doc) => <li><a href={`${base}${doc.href}`}>{doc.label}</a></li>) : <li>No related docs.</li>}
-            </ul>
-          </article>
-          <article id="adjacent-examples" class="learning-card">
-            <h2>Adjacent examples</h2>
-            <ul>
-              {adjacentExamples.length ? adjacentExamples.map((item) => <li><a href={`${base}/examples/showcase/${item.slug}.html`}>{item.title}</a></li>) : <li>No adjacent example.</li>}
-            </ul>
-          </article>
+        <section class="runtime-summary" aria-label="Dynamic preview runtime status">
+          <strong>Read-only Dynamic Preview</strong>
+          <p>Browser-side rendering from the published `.vspec.md` source asset. The generated HTML artifact remains the fallback when source fetch, parse, render, or JavaScript execution fails.</p>
+          <p><span data-dynamic-preview-status data-status="loading">Waiting for browser runtime...</span></p>
+          <p data-dynamic-preview-metrics>Runtime metrics are measured in the browser.</p>
         </section>
 
-        <section class="split" aria-label="Source and generated preview">
-          <article id="source" class="pane" aria-label="VSpec source">
+        <section class="preview-shell" aria-label="Dynamic preview and diagnostics">
+          <article class="preview-pane" aria-label="Browser-rendered preview">
             <div class="pane-header">
               <div class="pane-title">
-                <strong>{example.slug}.vspec.md</strong>
-                <span>Markdown source</span>
-              </div>
-              <div class="pane-tools">
-                <a class="small-link" href={`${githubBlobBaseUrl}${example.repoPath}`}>Source</a>
+                <strong>Browser-rendered Preview</strong>
+                <span>Generated from {example.sourceAssetPath}</span>
               </div>
             </div>
-            <div class="source-wrap">
-              <pre><code>{sourceLineItems.map((line) => (
-                <span class="line"><span class="line-no">{line.number}</span><span class="line-code">{line.text}</span></span>
-              ))}</code></pre>
+            <div class="dynamic-preview-output" data-dynamic-preview-output hidden></div>
+            <div class="fallback-frame-wrap" data-dynamic-preview-fallback>
+              <iframe src={generatedPreviewHref} title={`${example.title} generated preview fallback`}></iframe>
             </div>
           </article>
 
-          <article id="generated-preview" class="pane" aria-label="Generated HTML preview">
+          <aside class="diagnostics-pane" aria-label="Dynamic preview diagnostics">
             <div class="pane-header">
               <div class="pane-title">
-                <strong>Generated HTML Preview</strong>
-                <span>Latest output from the same Pages build</span>
-              </div>
-              <div class="pane-tools">
-                <a class="small-link" href={previewHref}>Open full page</a>
+                <strong>Diagnostics</strong>
+                <span>parse / validate result</span>
               </div>
             </div>
-            <div class="preview-frame-wrap">
-              <iframe src={previewHref} title={`${example.title} generated HTML preview`}></iframe>
-            </div>
-          </article>
+            <ul data-dynamic-preview-diagnostics>
+              <li>Waiting for browser runtime.</li>
+            </ul>
+          </aside>
         </section>
       </div>
     </main>
+
+    <script id="dynamic-preview-config" type="application/json" set:html={JSON.stringify(config)}></script>
+    <script>
+      import '../../../lib/dynamic-preview.js';
+    </script>
   </body>
 </html>

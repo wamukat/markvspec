@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { cpSync, mkdirSync, readdirSync, rmSync } from "node:fs";
-import { basename, join, relative } from "node:path";
+import { basename, dirname, join, relative } from "node:path";
 import { loadExampleCatalog, validateExampleCatalog } from "./example-catalog.mjs";
 
 const root = process.cwd();
@@ -10,6 +10,7 @@ const docsSiteDistDir = join(docsSiteDir, "dist");
 const publicExamplesDir = join(docsSiteDir, "public", "examples");
 const publicAssetsDir = join(docsSiteDir, "public", "assets");
 const generatedExamplesDir = join(publicExamplesDir, "generated");
+const sourceExamplesDir = join(publicExamplesDir, "source");
 const exampleAssetsDir = join(publicExamplesDir, "assets");
 const examplesDir = join(root, "examples");
 const brandAssetsDir = join(root, "assets");
@@ -48,13 +49,21 @@ function toPosixPath(filePath) {
   return filePath.split(/[\\/]/u).join("/");
 }
 
-function prepareExampleArtifacts() {
+function prepareExampleArtifacts(files) {
   rmSync(publicExamplesDir, { recursive: true, force: true });
   mkdirSync(generatedExamplesDir, { recursive: true });
+  mkdirSync(sourceExamplesDir, { recursive: true });
 
   execFileSync("node", ["packages/cli/dist/index.js", "export", "html", "examples/**/*.vspec.md", "--out", generatedExamplesDir], {
     stdio: "inherit",
   });
+
+  for (const filePath of files) {
+    const relativeExamplePath = relative(examplesDir, filePath);
+    const outputPath = join(sourceExamplesDir, relativeExamplePath);
+    mkdirSync(dirname(outputPath), { recursive: true });
+    cpSync(filePath, outputPath);
+  }
 
   execFileSync("node", ["scripts/lighten-docs-example-previews.mjs", generatedExamplesDir, exampleAssetsDir], {
     stdio: "inherit",
@@ -87,7 +96,7 @@ const files = collectVspecFiles(examplesDir);
 assertUniqueOutputNames(files);
 validateCatalog(files);
 console.log(`Preparing ${files.length} generated example HTML artifacts.`);
-prepareExampleArtifacts();
+prepareExampleArtifacts(files);
 prepareBrandAssets();
 
 execFileSync("npm", ["run", "docs:grammar"], {
