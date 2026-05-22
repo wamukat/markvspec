@@ -2,9 +2,9 @@ import {
   composeMarkVSpecTemplate,
   evaluateMarkVSpecDiagnostics,
   parseMarkVSpec,
-  renderDiagnosticMessageForLocale,
-  renderMarkVSpecHtml
+  renderDiagnosticMessageForLocale
 } from '@markvspec/core/browser';
+import { renderBrowserDesignDocumentHtml } from '@markvspec/document-renderer/browser';
 
 const configElement = document.querySelector('#dynamic-preview-config');
 const statusElement = document.querySelector('[data-dynamic-preview-status]');
@@ -57,11 +57,13 @@ function setDiagnostics(diagnostics, locale) {
   }
 }
 
-function showFallback() {
+function showRuntimeFailure(error, config = {}) {
   if (fallbackElement) {
+    fallbackElement.replaceChildren(runtimeFailureView(error, config));
     fallbackElement.hidden = false;
   }
   if (previewElement) {
+    previewElement.replaceChildren();
     previewElement.hidden = true;
   }
 }
@@ -76,12 +78,43 @@ function showDynamicPreview(html) {
   }
 }
 
+function runtimeFailureView(error, config) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'dynamic-preview-failure';
+
+  const title = document.createElement('h3');
+  title.textContent = 'Dynamic preview could not be rendered';
+  wrapper.append(title);
+
+  const message = document.createElement('p');
+  message.textContent = error instanceof Error ? error.message : String(error);
+  wrapper.append(message);
+
+  const links = document.createElement('div');
+  links.className = 'dynamic-preview-failure-links';
+  appendFailureLink(links, config.sourceHref, 'Open published source asset');
+  appendFailureLink(links, config.rawSourceHref, 'Open raw source on GitHub');
+  wrapper.append(links);
+
+  return wrapper;
+}
+
+function appendFailureLink(parent, href, label) {
+  if (!href) {
+    return;
+  }
+  const link = document.createElement('a');
+  link.href = href;
+  link.textContent = label;
+  parent.append(link);
+}
+
 async function renderDynamicPreview() {
   const config = parseConfig();
   if (config.dynamicPreviewEnabled === false) {
-    showFallback();
-    setStatus('fallback', config.fallbackReason || 'Using generated preview fallback.');
-    setMetrics(['fallback generated HTML']);
+    showRuntimeFailure(new Error(config.fallbackReason || 'Dynamic preview is disabled.'), config);
+    setStatus('fallback', config.fallbackReason || 'Dynamic preview is disabled.');
+    setMetrics(['runtime failure UI']);
     setDiagnostics([], config.locale || 'en');
     return;
   }
@@ -100,12 +133,12 @@ async function renderDynamicPreview() {
     ...dependencies.partials.flatMap((partial) => partial.result.diagnostics)
   ];
   const validation = evaluateMarkVSpecDiagnostics([...renderResult.diagnostics, ...dependencyDiagnostics]);
-  const html = renderMarkVSpecHtml(renderResult, { showIds: true });
+  const html = renderBrowserDesignDocumentHtml(renderResult);
   const renderedAt = performance.now();
 
   showDynamicPreview(html);
   setDiagnostics(validation.diagnostics, config.locale);
-  setStatus(validation.passed ? 'ready' : 'diagnostics', validation.passed ? 'Rendered in browser.' : 'Rendered with diagnostics.');
+  setStatus(validation.passed ? 'ready' : 'diagnostics', validation.passed ? 'Generated document rendered in browser.' : 'Generated document rendered with diagnostics.');
   setMetrics([
     `source ${(source.length / 1024).toFixed(1)} KiB`,
     `dependencies ${dependencies.count}`,
@@ -155,8 +188,14 @@ async function loadDependency(dependency, label) {
 }
 
 renderDynamicPreview().catch((error) => {
-  showFallback();
-  setStatus('fallback', `Using generated preview fallback: ${error instanceof Error ? error.message : String(error)}`);
-  setMetrics(['fallback generated HTML']);
+  let config = {};
+  try {
+    config = parseConfig();
+  } catch {
+    // Keep the original failure visible when configuration itself is invalid.
+  }
+  showRuntimeFailure(error, config);
+  setStatus('fallback', `Dynamic preview failed: ${error instanceof Error ? error.message : String(error)}`);
+  setMetrics(['runtime failure UI']);
   setDiagnostics([], 'en');
 });

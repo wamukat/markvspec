@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@markvspec/core": "0.6.2"
+    "@markvspec/core": "0.6.2",
+    "@markvspec/document-renderer": "0.6.2"
   },
   "scripts": {
     "predev": "node ../scripts/sync-docs-site-content.mjs",

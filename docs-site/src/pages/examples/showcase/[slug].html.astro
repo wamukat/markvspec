@@ -22,8 +22,8 @@ const examples = getExamples();
 const stageGroups = groupExamplesByStage(examples);
 const related = relatedDocs(example);
 const next = nextExamples(example, examples);
-const generatedPreviewHref = `${base}${example.generatedPreviewPath}`;
 const sourceHref = `${base}${example.sourceAssetPath}`;
+const rawSourceHref = `${githubRawBaseUrl}${example.repoPath}`;
 const dynamicPreviewConfig = {
   dependencies: {
     template: example.sourceDependencies.template
@@ -33,6 +33,7 @@ const dynamicPreviewConfig = {
   },
   dynamicPreviewEnabled: true,
   locale: example.locale || 'en',
+  rawSourceHref,
   sourceHref,
 };
 const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
@@ -496,6 +497,35 @@ const metaPills = [
       .fallback-frame-wrap[hidden] {
         display: none;
       }
+      .dynamic-preview-failure {
+        background: #fff;
+        border: 1px solid #fbbf24;
+        border-radius: 8px;
+        color: #334155;
+        margin: 18px;
+        padding: 16px;
+      }
+      .dynamic-preview-failure h3 {
+        color: #92400e;
+        font-size: 15px;
+        margin: 0 0 8px;
+      }
+      .dynamic-preview-failure p {
+        margin: 0 0 12px;
+      }
+      .dynamic-preview-failure-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .dynamic-preview-failure-links a {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: #334155;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 6px 10px;
+      }
       iframe {
         background: #fff;
         border: 0;
@@ -624,7 +654,7 @@ const metaPills = [
             <p class="subtitle">{example.summary}</p>
           </div>
           <div class="example-actions">
-            <a class="button-link" href={generatedPreviewHref}>Open fallback</a>
+            <a class="button-link" href={sourceHref}>Open source asset</a>
             <a class="nav-link" href={`${githubBlobBaseUrl}${example.repoPath}`}>View on GitHub</a>
           </div>
         </section>
@@ -660,14 +690,12 @@ const metaPills = [
               </div>
               <div class="pane-tools">
                 <span class="runtime-status" data-dynamic-preview-status data-status="loading">Waiting for browser runtime...</span>
-                <a class="small-link" href={generatedPreviewHref}>Open fallback</a>
+                <a class="small-link" href={rawSourceHref}>Raw source</a>
               </div>
             </div>
             <p class="runtime-metrics" data-dynamic-preview-metrics>Runtime metrics are measured in the browser.</p>
             <div class="dynamic-preview-output" data-dynamic-preview-output hidden></div>
-            <div class="fallback-frame-wrap" data-dynamic-preview-fallback>
-              <iframe src={generatedPreviewHref} title={`${example.title} generated preview fallback`}></iframe>
-            </div>
+            <div class="fallback-frame-wrap" data-dynamic-preview-fallback hidden></div>
           </article>
         </section>
 

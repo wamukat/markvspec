@@ -16,8 +16,8 @@ const { example } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const examples = getExamples();
 const stageGroups = groupExamplesByStage(examples);
-const generatedPreviewHref = `${base}${example.generatedPreviewPath}`;
 const sourceHref = `${base}${example.sourceAssetPath}`;
+const rawSourceHref = `${githubRawBaseUrl}${example.repoPath}`;
 const showcaseHref = `${base}/examples/showcase/${example.slug}.html`;
 const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
 const config = {
@@ -28,6 +28,7 @@ const config = {
     partials: example.sourceDependencies.partials.map((partial) => ({ ...partial, href: `${base}${partial.href}` })),
   },
   locale: example.locale || 'en',
+  rawSourceHref,
   sourceHref,
 };
 const metaPills = [
@@ -342,6 +343,35 @@ const metaPills = [
       .fallback-frame-wrap[hidden] {
         display: none;
       }
+      .dynamic-preview-failure {
+        background: #fff;
+        border: 1px solid #fbbf24;
+        border-radius: 8px;
+        color: #334155;
+        margin: 0;
+        padding: 16px;
+      }
+      .dynamic-preview-failure h3 {
+        color: #92400e;
+        font-size: 15px;
+        margin: 0 0 8px;
+      }
+      .dynamic-preview-failure p {
+        margin: 0 0 12px;
+      }
+      .dynamic-preview-failure-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .dynamic-preview-failure-links a {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: #334155;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 6px 10px;
+      }
       iframe {
         background: #fff;
         border: 0;
@@ -458,14 +488,13 @@ const metaPills = [
           </div>
           <div class="example-actions">
             <a class="nav-link" href={showcaseHref}>Open showcase</a>
-            <a class="nav-link" href={generatedPreviewHref}>Generated fallback</a>
-            <a class="nav-link" href={`${githubRawBaseUrl}${example.repoPath}`}>Source</a>
+            <a class="nav-link" href={rawSourceHref}>Raw source</a>
           </div>
         </section>
 
         <section class="runtime-summary" aria-label="Dynamic preview runtime status">
           <strong>Read-only Dynamic Preview</strong>
-          <p>Browser-side rendering from the published `.vspec.md` source asset. The generated HTML artifact remains the fallback when source fetch, parse, render, or JavaScript execution fails.</p>
+          <p>Browser-side generated design document rendering from the published `.vspec.md` source asset. Runtime failures show diagnostics and source links instead of a pre-generated HTML artifact.</p>
           <p><span data-dynamic-preview-status data-status="loading">Waiting for browser runtime...</span></p>
           <p data-dynamic-preview-metrics>Runtime metrics are measured in the browser.</p>
         </section>
@@ -479,9 +508,7 @@ const metaPills = [
               </div>
             </div>
             <div class="dynamic-preview-output" data-dynamic-preview-output hidden></div>
-            <div class="fallback-frame-wrap" data-dynamic-preview-fallback>
-              <iframe src={generatedPreviewHref} title={`${example.title} generated preview fallback`}></iframe>
-            </div>
+            <div class="fallback-frame-wrap" data-dynamic-preview-fallback hidden></div>
           </article>
 
           <aside class="diagnostics-pane" aria-label="Dynamic preview diagnostics">

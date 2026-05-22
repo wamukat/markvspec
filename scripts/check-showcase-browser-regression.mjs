@@ -82,13 +82,16 @@ async function checkDynamicShowcase(slug, viewport) {
       failures.push(`${label}: dynamic preview output should be visible.`);
     }
     if (!result.fallbackHidden) {
-      failures.push(`${label}: generated fallback should be hidden after successful dynamic render.`);
+      failures.push(`${label}: runtime failure UI should be hidden after successful dynamic render.`);
     }
     if (result.outputHtmlLength <= 0 || result.outputTextLength <= 0) {
       failures.push(`${label}: dynamic preview DOM should be non-empty.`);
     }
     if (!result.hasWireframeRoot) {
       failures.push(`${label}: dynamic preview should contain a rendered wireframe root.`);
+    }
+    if (!result.hasGeneratedDocumentSections) {
+      failures.push(`${label}: dynamic preview should contain generated design document sections.`);
     }
     if (result.sourcePreviewOverlap) {
       failures.push(`${label}: source panel and dynamic preview panel should not overlap.`);
@@ -124,15 +127,18 @@ async function checkFallbackPath() {
       failures.push(`fallback ${slug}: dynamic output should be hidden when source fetch fails.`);
     }
     if (result.fallbackHidden) {
-      failures.push(`fallback ${slug}: generated fallback iframe should be visible when source fetch fails.`);
+      failures.push(`fallback ${slug}: runtime failure UI should be visible when source fetch fails.`);
     }
-    if (!result.fallbackIframe) {
-      failures.push(`fallback ${slug}: generated fallback iframe should remain mounted.`);
+    if (result.fallbackIframe) {
+      failures.push(`fallback ${slug}: generated fallback iframe should not be mounted.`);
     }
-    if (!/Using generated preview fallback/u.test(result.statusText)) {
-      failures.push(`fallback ${slug}: status should explain generated fallback use.`);
+    if (!/Dynamic preview failed/u.test(result.statusText)) {
+      failures.push(`fallback ${slug}: status should explain dynamic preview failure.`);
     }
-    checks.push(`fallback ${slug}: status=${result.status || "missing"}, iframe=${result.fallbackIframe ? "present" : "missing"}`);
+    if (!result.failureHasSourceLinks) {
+      failures.push(`fallback ${slug}: runtime failure UI should expose source links.`);
+    }
+    checks.push(`fallback ${slug}: status=${result.status || "missing"}, failureLinks=${result.failureHasSourceLinks ? "present" : "missing"}`);
   } finally {
     await page.close();
   }
@@ -162,6 +168,8 @@ function inspectShowcaseScript() {
   return {
     fallbackHidden: fallback ? fallback.hidden : true,
     fallbackIframe: Boolean(fallback?.querySelector('iframe')),
+    failureHasSourceLinks: Boolean(fallback?.querySelector('a[href*="/examples/source/"]') && fallback?.querySelector('a[href^="https://raw.githubusercontent.com/"]')),
+    hasGeneratedDocumentSections: Boolean(output?.querySelector('.document #screen') && output?.querySelector('.document #state-views') && output?.querySelector('.toc-inline')),
     hasWireframeRoot: Boolean(output?.querySelector('.markvspec-preview, .mm-wireframe, .mm-screen')),
     horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth + 1,
     outputHidden: output ? output.hidden : true,

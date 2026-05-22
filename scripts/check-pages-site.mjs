@@ -5,20 +5,15 @@ import {
   composeMarkVSpecTemplate,
   evaluateMarkVSpecDiagnostics,
   parseMarkVSpec,
-  renderMarkVSpecHtml,
 } from "@markvspec/core/browser";
+import { renderBrowserDesignDocumentHtml } from "@markvspec/document-renderer/browser";
 import { loadExampleCatalog, validateExampleCatalog } from "./example-catalog.mjs";
 
 const root = process.cwd();
 const siteDir = join(root, "_site");
 const failures = [];
 const base = "/markvspec";
-const dynamicGeneratedParityAllowlist = new Map([
-  [
-    "source-kind-metadata",
-    "Generated artifact renders Preview Scenario sample values in static State Views; browser dynamic preview currently renders baseline source values. Remove this allowance when dynamic runtime supports the same sample selection."
-  ],
-]);
+const dynamicGeneratedParityAllowlist = new Map();
 const usedDynamicGeneratedParityAllowlist = new Set();
 
 const requiredFiles = [
@@ -140,10 +135,12 @@ expectContains(helloShowcaseHtml, 'aria-label="Hide example navigation"', "_site
 expectContains(helloShowcaseHtml, 'aria-current="page"', "_site/examples/showcase/hello-screen.html sidebar should mark the current example.");
 expectContains(helloShowcaseHtml, 'id="dynamic-preview-config"', "_site/examples/showcase/hello-screen.html should expose runtime configuration.");
 expectContains(helloShowcaseHtml, 'data-dynamic-preview-output', "_site/examples/showcase/hello-screen.html should include the dynamic preview output container.");
-expectContains(helloShowcaseHtml, 'data-dynamic-preview-fallback', "_site/examples/showcase/hello-screen.html should include the generated preview fallback container.");
+expectContains(helloShowcaseHtml, 'data-dynamic-preview-fallback', "_site/examples/showcase/hello-screen.html should include the runtime failure container.");
 expectContains(helloShowcaseHtml, '"/markvspec/examples/source/01-basics/hello-screen.vspec.md"', "_site/examples/showcase/hello-screen.html should fetch the public source asset.");
+expectContains(helloShowcaseHtml, '"rawSourceHref":"https://raw.githubusercontent.com/wamukat/markvspec/main/examples/01-basics/hello-screen.vspec.md"', "_site/examples/showcase/hello-screen.html should expose the raw source URL for runtime failure UI.");
 expectContains(helloShowcaseHtml, '"dynamicPreviewEnabled":true', "_site/examples/showcase/hello-screen.html should enable browser dynamic rendering.");
-expectContains(helloShowcaseHtml, '<iframe src="/markvspec/examples/generated/hello-screen.html"', "_site/examples/showcase/hello-screen.html should embed the generated preview artifact as fallback.");
+expectNotContains(helloShowcaseHtml, '<iframe src="/markvspec/examples/generated/hello-screen.html"', "_site/examples/showcase/hello-screen.html should not embed the generated preview artifact as fallback.");
+expectNotContains(helloShowcaseHtml, 'href="/markvspec/examples/generated/hello-screen.html"', "_site/examples/showcase/hello-screen.html should not link the generated preview artifact as fallback.");
 expectNotContains(helloShowcaseHtml, 'href="/markvspec/examples/dynamic/hello-screen.html"', "_site/examples/showcase/hello-screen.html should not expose the compatibility dynamic route as primary navigation.");
 expectContains(helloShowcaseHtml, 'href="https://raw.githubusercontent.com/wamukat/markvspec/main/examples/01-basics/hello-screen.vspec.md"', "_site/examples/showcase/hello-screen.html Source link should use the raw GitHub URL.");
 expectContains(helloShowcaseHtml, 'href="https://github.com/wamukat/markvspec/blob/main/examples/01-basics/hello-screen.vspec.md"', "_site/examples/showcase/hello-screen.html should keep a normal GitHub view link.");
@@ -161,8 +158,8 @@ if (!showcaseDynamicScriptPath) {
   failures.push("_site/examples/showcase/hello-screen.html should include the dynamic preview browser script.");
 } else {
   const { gzipBytes } = moduleGraphSize(showcaseDynamicScriptPath);
-  if (gzipBytes > 140 * 1024) {
-    failures.push(`showcase dynamic preview browser script gzip size should stay within 140 KiB (${formatKiB(gzipBytes)} found).`);
+  if (gzipBytes > 260 * 1024) {
+    failures.push(`showcase dynamic generated document browser script gzip size should stay within 260 KiB (${formatKiB(gzipBytes)} found).`);
   }
 }
 
@@ -174,7 +171,7 @@ const templateShowcaseHtml = readSiteFile("examples/showcase/profile-page-with-t
 expectContains(templateShowcaseHtml, '"dynamicPreviewEnabled":true', "_site/examples/showcase/profile-page-with-template.html should enable browser dynamic rendering.");
 expectContains(templateShowcaseHtml, '"/markvspec/examples/source/05-reuse/template-shell.vspec.md"', "_site/examples/showcase/profile-page-with-template.html should publish the template dependency source.");
 expectContains(templateShowcaseHtml, '"/markvspec/examples/source/05-reuse/profile-summary.partial.vspec.md"', "_site/examples/showcase/profile-page-with-template.html should publish the partial dependency source.");
-expectContains(templateShowcaseHtml, '<iframe src="/markvspec/examples/generated/profile-page-with-template.html"', "_site/examples/showcase/profile-page-with-template.html should embed the composed generated preview fallback.");
+expectNotContains(templateShowcaseHtml, '<iframe src="/markvspec/examples/generated/profile-page-with-template.html"', "_site/examples/showcase/profile-page-with-template.html should not embed the composed generated preview fallback.");
 
 const dynamicExamplesDir = join(siteDir, "examples", "dynamic");
 const editorExamplesDir = join(siteDir, "examples", "experimental", "editor");
@@ -202,7 +199,7 @@ expectContains(helloDynamicHtml, 'aria-controls="example-sidebar-content"', "_si
 expectContains(helloDynamicHtml, 'aria-label="Hide example navigation"', "_site/examples/dynamic/hello-screen.html sidebar toggle should have an accessible label.");
 expectContains(helloDynamicHtml, 'id="dynamic-preview-config"', "_site/examples/dynamic/hello-screen.html should expose runtime configuration.");
 expectContains(helloDynamicHtml, '"/markvspec/examples/source/01-basics/hello-screen.vspec.md"', "_site/examples/dynamic/hello-screen.html should fetch the public source asset.");
-expectContains(helloDynamicHtml, '"/markvspec/examples/generated/hello-screen.html"', "_site/examples/dynamic/hello-screen.html should keep the generated preview fallback.");
+expectNotContains(helloDynamicHtml, '"/markvspec/examples/generated/hello-screen.html"', "_site/examples/dynamic/hello-screen.html should not keep the generated preview fallback.");
 expectContains(helloDynamicHtml, 'href="https://raw.githubusercontent.com/wamukat/markvspec/main/examples/01-basics/hello-screen.vspec.md"', "_site/examples/dynamic/hello-screen.html Source link should use the raw GitHub URL.");
 expectContains(helloDynamicHtml, 'href="/markvspec/examples/showcase/hello-screen.html"', "_site/examples/dynamic/hello-screen.html should provide a route back to the public showcase.");
 expectContains(helloDynamicHtml, ">Open showcase</a>", "_site/examples/dynamic/hello-screen.html should label the public route as the showcase.");
@@ -211,8 +208,8 @@ if (!dynamicScriptPath) {
   failures.push("_site/examples/dynamic/hello-screen.html should include the dynamic preview browser script.");
 } else {
   const { gzipBytes } = moduleGraphSize(dynamicScriptPath);
-  if (gzipBytes > 140 * 1024) {
-    failures.push(`dynamic preview browser script gzip size should stay within 140 KiB (${formatKiB(gzipBytes)} found).`);
+  if (gzipBytes > 260 * 1024) {
+    failures.push(`dynamic generated document browser script gzip size should stay within 260 KiB (${formatKiB(gzipBytes)} found).`);
   }
 }
 
@@ -223,8 +220,8 @@ expectContains(templateDynamicHtml, '"/markvspec/examples/source/05-reuse/profil
 const dynamicCoverage = checkDynamicShowcaseCoverage();
 const dynamicRuntimeSource = readFileSync(join(root, "docs-site", "src", "lib", "dynamic-preview.js"), "utf8");
 expectContains(dynamicRuntimeSource, "renderDynamicPreview().catch((error) => {", "dynamic preview runtime should catch render failures.");
-expectContains(dynamicRuntimeSource, "showFallback();", "dynamic preview runtime should show generated fallback on render failures.");
-expectContains(dynamicRuntimeSource, "Using generated preview fallback:", "dynamic preview runtime should report fallback reason without breaking the page.");
+expectContains(dynamicRuntimeSource, "showRuntimeFailure(error, config);", "dynamic preview runtime should show runtime failure UI on render failures.");
+expectContains(dynamicRuntimeSource, "Dynamic preview failed:", "dynamic preview runtime should report runtime failure without generated fallback.");
 expectContains(dynamicRuntimeSource, "previewElement.innerHTML = html;", "dynamic preview runtime should only insert trusted renderer output.");
 const dynamicRuntimeInnerHtmlAssignments = [...dynamicRuntimeSource.matchAll(/\binnerHTML\s*=/gu)];
 if (dynamicRuntimeInnerHtmlAssignments.length !== 1) {
@@ -331,8 +328,9 @@ function checkDynamicShowcaseCoverage() {
 
     const showcaseHtml = readSiteFile(showcasePath);
     expectContains(showcaseHtml, 'data-dynamic-preview-output', `${showcasePath} should include the dynamic preview output container.`);
-    expectContains(showcaseHtml, 'data-dynamic-preview-fallback', `${showcasePath} should include the generated preview fallback container.`);
-    expectContains(showcaseHtml, `<iframe src="/markvspec/${generatedPath}"`, `${showcasePath} should embed the generated fallback artifact.`);
+    expectContains(showcaseHtml, 'data-dynamic-preview-fallback', `${showcasePath} should include the runtime failure container.`);
+    expectNotContains(showcaseHtml, `<iframe src="/markvspec/${generatedPath}"`, `${showcasePath} should not embed the generated fallback artifact.`);
+    expectNotContains(showcaseHtml, `href="/markvspec/${generatedPath}"`, `${showcasePath} should not link the generated fallback artifact.`);
     const config = dynamicPreviewConfig(showcaseHtml, showcasePath);
     if (!config) {
       continue;
@@ -399,7 +397,7 @@ function smokeRenderDynamicConfig(config, filePath) {
     ...dependencies.partials.flatMap((partial) => partial.result.diagnostics),
   ];
   const validation = evaluateMarkVSpecDiagnostics(diagnostics);
-  const html = renderMarkVSpecHtml(renderResult, { showIds: true });
+  const html = renderBrowserDesignDocumentHtml(renderResult);
   if (validation.diagnostics.length > 0) {
     failures.push(`${filePath} dynamic smoke should validate without diagnostics (${validation.diagnostics.length} found).`);
   }
@@ -414,72 +412,71 @@ function smokeRenderDynamicConfig(config, filePath) {
 
 function checkDynamicGeneratedParity({ dynamicHtml, filePath, generatedHtml, generatedPath, slug, validation }) {
   let allowedDifferences = 0;
+  const generatedDocumentHtml = firstGeneratedDocumentHtml(generatedHtml) ?? generatedHtml;
   const dynamicFingerprint = semanticPreviewFingerprint(dynamicHtml);
-  const generatedDocumentFingerprint = semanticPreviewFingerprint(generatedHtml);
-  const generatedPreviewHtml = firstGeneratedWireframeHtml(generatedHtml) ?? generatedHtml;
-  const generatedPreviewFingerprint = semanticPreviewFingerprint(generatedPreviewHtml);
+  const generatedDocumentFingerprint = semanticPreviewFingerprint(generatedDocumentHtml);
 
   if (!dynamicFingerprint.hasWireframe) {
     failures.push(`${filePath} dynamic parity should include a wireframe root.`);
   }
-  if (!generatedDocumentFingerprint.sectionIds.has("screen") || !generatedDocumentFingerprint.sectionIds.has("state-views")) {
-    failures.push(`${generatedPath} dynamic parity should include generated Screen and State Views sections.`);
+  if (!dynamicFingerprint.sectionIds.has("screen") || !dynamicFingerprint.sectionIds.has("state-views")) {
+    failures.push(`${filePath} dynamic generated document should include generated Screen and State Views sections.`);
+  }
+  if (!generatedDocumentFingerprint.hasWireframe || !generatedDocumentFingerprint.sectionIds.has("screen") || !generatedDocumentFingerprint.sectionIds.has("state-views")) {
+    failures.push(`${generatedPath} generated artifact should include wireframe, Screen, and State Views sections.`);
   }
 
-  if (validation.passed && generatedDocumentFingerprint.sectionIds.has("diagnostics")) {
+  if (validation.passed && dynamicFingerprint.sectionIds.has("diagnostics")) {
     failures.push(`${filePath} dynamic/generated parity expected no generated Diagnostics section when dynamic validation passes.`);
   }
-  if (!validation.passed && !generatedDocumentFingerprint.sectionIds.has("diagnostics")) {
+  if (!validation.passed && !dynamicFingerprint.sectionIds.has("diagnostics")) {
     failures.push(`${filePath} dynamic/generated parity expected a generated Diagnostics section when dynamic validation fails.`);
   }
 
-  const missingInGenerated = [...dynamicFingerprint.markerIds].filter((id) => !generatedPreviewFingerprint.markerIds.has(id));
+  const missingInGenerated = [...dynamicFingerprint.markerIds].filter((id) => !generatedDocumentFingerprint.markerIds.has(id));
   if (missingInGenerated.length > 0) {
-    failures.push(`${filePath} dynamic/generated parity missing dynamic marker IDs in generated preview: ${missingInGenerated.join(", ")}`);
+    failures.push(`${filePath} dynamic/generated parity missing dynamic marker IDs in generated artifact: ${missingInGenerated.join(", ")}`);
   }
 
-  const missingInDynamic = [...generatedPreviewFingerprint.markerIds].filter((id) => !dynamicFingerprint.markerIds.has(id));
+  const missingInDynamic = [...generatedDocumentFingerprint.markerIds].filter((id) => !dynamicFingerprint.markerIds.has(id));
   if (missingInDynamic.length > 0) {
-    failures.push(`${filePath} dynamic/generated parity missing generated preview marker IDs in dynamic output: ${missingInDynamic.join(", ")}`);
+    failures.push(`${filePath} dynamic/generated parity missing generated artifact marker IDs in dynamic output: ${missingInDynamic.join(", ")}`);
   }
 
-  const missingCategoriesInGenerated = [...dynamicFingerprint.markerCategories].filter((category) => !generatedPreviewFingerprint.markerCategories.has(category));
+  const missingCategoriesInGenerated = [...dynamicFingerprint.markerCategories].filter((category) => !generatedDocumentFingerprint.markerCategories.has(category));
   if (missingCategoriesInGenerated.length > 0) {
-    failures.push(`${filePath} dynamic/generated parity missing dynamic marker categories in generated preview: ${missingCategoriesInGenerated.join(", ")}`);
+    failures.push(`${filePath} dynamic/generated parity missing dynamic marker categories in generated artifact: ${missingCategoriesInGenerated.join(", ")}`);
   }
 
-  const missingCategoriesInDynamic = [...generatedPreviewFingerprint.markerCategories].filter((category) => !dynamicFingerprint.markerCategories.has(category));
+  const missingCategoriesInDynamic = [...generatedDocumentFingerprint.markerCategories].filter((category) => !dynamicFingerprint.markerCategories.has(category));
   if (missingCategoriesInDynamic.length > 0) {
-    failures.push(`${filePath} dynamic/generated parity missing generated preview marker categories in dynamic output: ${missingCategoriesInDynamic.join(", ")}`);
+    failures.push(`${filePath} dynamic/generated parity missing generated artifact marker categories in dynamic output: ${missingCategoriesInDynamic.join(", ")}`);
   }
 
-  const exactTextParity = dynamicFingerprint.text === generatedPreviewFingerprint.text;
+  const exactTextParity = dynamicFingerprint.text === generatedDocumentFingerprint.text;
   if (!exactTextParity) {
     const allowance = dynamicGeneratedParityAllowlist.get(slug);
     if (allowance) {
       usedDynamicGeneratedParityAllowlist.add(slug);
       allowedDifferences += 1;
     } else {
-      failures.push(`${filePath} dynamic/generated parity text mismatch. Dynamic key text does not match the generated preview wireframe in ${generatedPath}.`);
+      failures.push(`${filePath} dynamic/generated parity text mismatch. Dynamic generated document text does not match ${generatedPath}.`);
     }
   }
 
   return { allowedDifferences };
 }
 
-function firstGeneratedWireframeHtml(html) {
-  const start = html.indexOf('<section class="wireframe-section">');
+function firstGeneratedDocumentHtml(html) {
+  const start = html.indexOf('<article class="document">');
   if (start < 0) {
     return undefined;
   }
-  const nextHeadings = [
-    html.indexOf('<h6 class="state-screen-detail-heading">', start),
-    html.indexOf('<h5 class="state-screen-subheading">Layouts</h5>', start),
+  const endMarkers = [
+    html.indexOf("\n    <script", start),
+    html.indexOf("\n  </main>", start),
   ].filter((index) => index > start);
-  const nextSpecHeading = nextHeadings.length > 0 ? Math.min(...nextHeadings) : -1;
-  const nextStateSection = html.indexOf('<section class="doc-section state-screen-section"', start + 1);
-  const endCandidates = [nextSpecHeading, nextStateSection].filter((index) => index > start);
-  return html.slice(start, endCandidates.length > 0 ? Math.min(...endCandidates) : undefined);
+  return html.slice(start, endMarkers.length > 0 ? Math.min(...endMarkers) : undefined);
 }
 
 function semanticPreviewFingerprint(html) {
@@ -607,25 +604,19 @@ Inline [bad](javascript:globalThis.__markvspecXss = true) text.
 - content: <svg onload="globalThis.__markvspecXss = true"></svg>
 `;
   const result = parseMarkVSpec(source);
-  const html = renderMarkVSpecHtml(result, {
-    includeStyles: false,
-    routeValues: { payload: "javascript:globalThis.__markvspecXss = true" },
-    showIds: true,
-    state: "idle",
-    viewport: "desktop",
-  });
+  const html = renderBrowserDesignDocumentHtml(result);
 
   if (/<script\b|<iframe\b|<svg\b|<[^>]+\son[a-z]+\s*=|href="(?:javascript|vbscript|data):/iu.test(html)) {
-    failures.push("dynamic security fixture should not render executable tags, event handler attributes, iframes, or dangerous href values.");
+    failures.push("dynamic generated document security fixture should not render executable tags, event handler attributes, iframes, or dangerous href values.");
   }
   if (!html.includes('href="#"')) {
-    failures.push("dynamic security fixture should neutralize dangerous Link href values.");
+    failures.push("dynamic generated document security fixture should neutralize dangerous Link href values.");
   }
   if (!html.includes('href="/safe/path"')) {
-    failures.push("dynamic security fixture should preserve safe relative Link href values.");
+    failures.push("dynamic generated document security fixture should preserve safe relative Link href values.");
   }
   if (!html.includes("&lt;script&gt;globalThis.__markvspecXss = true&lt;/script&gt;")) {
-    failures.push("dynamic security fixture should keep dangerous text escaped for review.");
+    failures.push("dynamic generated document security fixture should keep dangerous text escaped for review.");
   }
 }
 
