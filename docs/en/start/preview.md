@@ -93,6 +93,8 @@ when one is available.
 
 ## VS Code Commands
 
+<!-- markvspec-coverage:external-input.vscode-commands -->
+
 These commands are available from the Command Palette. The displayed command
 name is `MarkVSpec: <title>`.
 

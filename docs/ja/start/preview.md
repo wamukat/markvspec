@@ -93,6 +93,8 @@ index を作るか、その機能が利用可能になった後は専用の proj
 
 ## VS Code コマンド
 
+<!-- markvspec-coverage:external-input.vscode-commands -->
+
 これらのコマンドはコマンドパレットから実行できます。表示名は `MarkVSpec: <title>` です。
 
 | コマンド | 使いどころ |

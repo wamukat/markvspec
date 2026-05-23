@@ -100,7 +100,7 @@ assertCategory("examples", inventory.examples.catalogEntries);
 auditReferencePageSymmetry(inventory.referencePages);
 auditRequiredGeneratedMarkers(inventory.generatedReferenceMarkers);
 auditCoverageMarkerReadiness(inventory.referenceCoverage);
-auditExternalInputConfigurationReadiness(inventory.externalInputs, inventory.referencePages);
+await auditExternalInputConfigurationReadiness(inventory.externalInputs, inventory.referencePages);
 auditFeatureMappingReadiness();
 printReport();
 
@@ -447,6 +447,7 @@ function vscodeSettingsInventory(packageJson) {
 function externalInputCategory(id, label, items, coverageTargets) {
   return {
     id: `external-input.${id}`,
+    markerId: `external-input.${id}`,
     label,
     count: items.length,
     coverageTargets
@@ -457,7 +458,7 @@ function mergeCsvValue(left, right) {
   return unique(`${left}, ${right}`.split(/,\s*/u)).join(", ");
 }
 
-function auditExternalInputConfigurationReadiness(externalInputs, referencePages) {
+async function auditExternalInputConfigurationReadiness(externalInputs, referencePages) {
   const referencePagePaths = new Set([...referencePages.en, ...referencePages.ja].map((page) => page.path));
   for (const category of externalInputs.categories) {
     if (category.count === 0) {
@@ -466,11 +467,15 @@ function auditExternalInputConfigurationReadiness(externalInputs, referencePages
     for (const target of category.coverageTargets) {
       if (target.includes("/reference/") && !referencePagePaths.has(target)) {
         failures.push(`${category.label}: coverage target is missing: ${target}`);
+        continue;
+      }
+      const source = await requiredSource(target);
+      const markers = new Set(coverageMarkers(source));
+      if (!markers.has(category.markerId)) {
+        failures.push(`${category.label}: missing coverage marker ${category.markerId} in ${target}`);
       }
     }
   }
-
-  warnings.push("External input/configuration coverage is inventoried and coverage targets are checked for presence; prose depth and exact item-to-paragraph mapping remain manual.");
 }
 
 async function exampleInventory() {
@@ -699,7 +704,7 @@ function printExternalInputConfigurationReport() {
   }
   console.log("\nExternal input/configuration coverage report:");
   for (const category of inventory.externalInputs.categories) {
-    console.log(`- ${category.label}: ${category.count} item(s); coverage: ${category.coverageTargets.join(", ")}`);
+    console.log(`- ${category.label}: ${category.count} item(s); marker: ${category.markerId}; coverage: ${category.coverageTargets.join(", ")}`);
   }
 
   const sampleOptions = inventory.externalInputs.cliOptions.map((entry) => entry.option).join(", ");

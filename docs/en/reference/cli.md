@@ -15,6 +15,8 @@ You do not need to clone this repository to use the CLI against your own `.vspec
 
 ## Syntax You Can Write
 
+<!-- markvspec-coverage:external-input.cli-commands -->
+
 ### Version
 
 ```bash
@@ -101,6 +103,8 @@ npx @markvspec/cli@latest export document-list markvspec.project.md --out markvs
 
 ## Inputs And Outputs
 
+<!-- markvspec-coverage:external-input.cli-options -->
+
 - `validate`, `export html`, and `export pdf` accept a file, directory, or glob.
 - If no input is passed, the CLI scans the current directory for `.vspec.md` and `.vspec.project.md` files. Prefer an explicit file or glob in scripts.
 - Directory and glob expansion skips `.git` and `node_modules`.
@@ -111,6 +115,8 @@ npx @markvspec/cli@latest export document-list markvspec.project.md --out markvs
 - If two inputs would write the same output name, export fails instead of overwriting one file with another.
 
 ## Renderer Messages
+
+<!-- markvspec-coverage:external-input.renderer-message-resolution -->
 
 `export html` and `export pdf` accept `--messages <path>` when you need custom
 renderer labels. This is mainly for localized or product-specific export labels.

@@ -138,9 +138,9 @@ preconditions are broken:
 It warns, without failing release, when feature-to-Reference mapping is still
 manual, coverage markers are not present, prose depth may be thin, Guide-only or
 Example-only coverage may exist, or diagnostic/renderer/export coverage cannot
-yet be judged mechanically. External input/configuration prose depth and exact
-item-to-paragraph mapping are also warnings until stable feature IDs and marker
-coverage are introduced.
+yet be judged mechanically. External input/configuration category-to-prose
+mapping is marker-checked, but item-level prose depth remains reviewer judgment
+until item-level markers are introduced.
 
 `npm run audit:reference-coverage` is not included in `npm run check:release`
 yet. Missing Reference page/section findings should be promoted from warning to
@@ -188,9 +188,26 @@ ordinary Markdown section body. The report currently includes these categories:
 
 `npm run audit:reference-coverage` fails when a required source category becomes
 empty or when a Reference coverage target for this matrix is missing. It reports
-the discovered items and warns, rather than failing, when a reviewer still needs
-to judge whether the prose explains syntax, precedence, boundary behavior, and
-diagnostics deeply enough.
+the discovered items and checks that every target page contains the category's
+stable `external-input.*` coverage marker. Missing markers are failures because
+they mean the page exists but the category is not anchored to a specific prose
+location.
+
+The supported marker family is:
+
+```html
+<!-- markvspec-coverage:external-input.front-matter-fields -->
+```
+
+Current category markers are `external-input.cli-commands`,
+`external-input.cli-options`, `external-input.front-matter-fields`,
+`external-input.project-file-fields`, `external-input.vscode-commands`,
+`external-input.vscode-settings`, and
+`external-input.renderer-message-resolution`.
+
+Item-level semantic depth, such as whether each individual Front Matter field is
+explained with enough examples and diagnostics, remains a reviewer judgment
+until a later task introduces item-level markers.
 
 The #1425 report found these current counts: CLI options `4`, Front Matter
 fields `13`, project file fields `4`, VS Code settings entries `1` with status

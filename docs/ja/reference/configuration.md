@@ -22,6 +22,8 @@ command option、export 環境のために使います。
 
 ## Front Matter
 
+<!-- markvspec-coverage:external-input.front-matter-fields -->
+
 YAML Front Matter は `.vspec.md` file の document-level input です。代表的な
 field は `id`、`type`、`title`、`route`、`locale` です。
 
@@ -32,6 +34,8 @@ reference のためだけに使います。
 現在の Front Matter field と source の形は [ファイル形式](file-format.md) を参照してください。
 
 ## Project Files
+
+<!-- markvspec-coverage:external-input.project-file-fields -->
 
 `.vspec.project.md` は関連する screen file と template file を列挙します。project
 preview は、project overview、notes、screen list、template list、transition、
@@ -44,6 +48,8 @@ project file は任意 directory を自動 scan しません。project に含め
 project file の例と export 挙動は [ファイル形式](file-format.md) と [CLI](cli.md) を参照してください。
 
 ## Renderer Message Files
+
+<!-- markvspec-coverage:external-input.renderer-message-resolution -->
 
 Renderer messages は、生成 preview / export の label を差し替えるための入力です。
 localized label や product-specific label が必要な場合に使います。
@@ -65,6 +71,8 @@ command 例と正確な export 挙動は [CLI](cli.md#renderer-messages) を参�
 
 ## CLI Options
 
+<!-- markvspec-coverage:external-input.cli-options -->
+
 CLI の validation / export は source file、directory、glob を受け取ります。主な option は
 次の通りです。
 
@@ -78,6 +86,9 @@ CLI の validation / export は source file、directory、glob を受け取り�
 command syntax と入力は [CLI](cli.md) を参照してください。
 
 ## VS Code Extension Settings
+
+<!-- markvspec-coverage:external-input.vscode-commands -->
+<!-- markvspec-coverage:external-input.vscode-settings -->
 
 VS Code extension は、現時点では VS Code Settings に MarkVSpec 固有の user setting を
 提供していません。ユーザーが与える主な入力は、開いている `.vspec.md` または

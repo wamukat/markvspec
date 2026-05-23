@@ -22,6 +22,8 @@ export a MarkVSpec document.
 
 ## Front Matter
 
+<!-- markvspec-coverage:external-input.front-matter-fields -->
+
 YAML Front Matter is the document-level input for a `.vspec.md` file. Common
 fields include `id`, `type`, `title`, `route`, and `locale`.
 
@@ -33,6 +35,8 @@ See [File Format](file-format.md) for the current Front Matter fields and source
 shape.
 
 ## Project Files
+
+<!-- markvspec-coverage:external-input.project-file-fields -->
 
 A `.vspec.project.md` file lists related screen and template files. Project
 preview uses it to show project overview, notes, screen lists, template lists,
@@ -46,6 +50,8 @@ See [File Format](file-format.md) and [CLI](cli.md) for project file examples
 and export behavior.
 
 ## Renderer Message Files
+
+<!-- markvspec-coverage:external-input.renderer-message-resolution -->
 
 Renderer messages customize labels in generated previews and exports. Use them
 for localized or product-specific output labels.
@@ -69,6 +75,8 @@ behavior.
 
 ## CLI Options
 
+<!-- markvspec-coverage:external-input.cli-options -->
+
 The CLI accepts source files, directories, or globs for validation and export.
 Important options include:
 
@@ -82,6 +90,9 @@ Important options include:
 See [CLI](cli.md) for command syntax and inputs.
 
 ## VS Code Extension Settings
+
+<!-- markvspec-coverage:external-input.vscode-commands -->
+<!-- markvspec-coverage:external-input.vscode-settings -->
 
 The VS Code extension currently does not contribute MarkVSpec-specific user
 settings in VS Code Settings. Its user-facing inputs are the active `.vspec.md`

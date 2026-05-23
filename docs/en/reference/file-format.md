@@ -30,6 +30,9 @@ locale: en
 
 ### Front Matter
 
+<!-- markvspec-coverage:external-input.front-matter-fields -->
+<!-- markvspec-coverage:external-input.renderer-message-resolution -->
+
 Front Matter contains document-level metadata only.
 
 | Field | Required | Value |
@@ -58,6 +61,8 @@ for example when `display.partial` or a layout `partial.id` references a partial
 ID that is not declared in Front Matter.
 
 ### Project Files
+
+<!-- markvspec-coverage:external-input.project-file-fields -->
 
 Use a project file when you want one preview to list related screens and templates.
 

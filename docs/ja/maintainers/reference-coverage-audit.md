@@ -135,8 +135,8 @@ example catalog entry から deterministic な inventory/report を作る。
 feature-to-Reference mapping がまだ手動、coverage marker が未整備、prose depth が
 薄い可能性、Guide-only / Example-only coverage の疑い、diagnostic/renderer/export
 coverage をまだ機械判定できない場合は warn に留め、release は fail させない。
-external input/configuration の prose depth と正確な item-to-paragraph mapping も、
-stable feature ID と marker coverage が入るまでは warning として扱う。
+external input/configuration の category-to-prose mapping は marker で確認しますが、
+item-level prose depth は item-level marker を導入するまで reviewer 判断として残します。
 
 `npm run audit:reference-coverage` はまだ `npm run check:release` には含めない。
 missing Reference page/section は、初回 report の triage と stable feature ID /
@@ -182,8 +182,24 @@ external input coverage は、通常の Markdown section body の外から user 
 
 `npm run audit:reference-coverage` は、必須 source category が空になった場合、または
 この matrix の Reference coverage target が欠落した場合に fail します。検出した item は
-report に出しますが、syntax、優先順、boundary behavior、diagnostics を prose が十分に
-説明しているかは、現時点では reviewer が判断し、warning に留めます。
+report に出し、各 target page に category の stable `external-input.*` coverage marker が
+あることも確認します。marker 欠落は、page は存在していても category が具体的な prose
+位置に固定されていないことを意味するため failure です。
+
+対応する marker family は次の形式です。
+
+```html
+<!-- markvspec-coverage:external-input.front-matter-fields -->
+```
+
+現在の category marker は `external-input.cli-commands`、
+`external-input.cli-options`、`external-input.front-matter-fields`、
+`external-input.project-file-fields`、`external-input.vscode-commands`、
+`external-input.vscode-settings`、`external-input.renderer-message-resolution` です。
+
+個々の Front Matter field それぞれに十分な example や diagnostic 説明があるか、などの
+item-level semantic depth は、後続 task で item-level marker を導入するまでは reviewer
+判断として残します。
 
 #1425 の report では、CLI options `4`、Front Matter fields `13`、project file fields
 `4`、VS Code settings entries `1` かつ status `absent`、renderer message resolution

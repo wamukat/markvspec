@@ -30,6 +30,9 @@ locale: ja
 
 ### Front Matter
 
+<!-- markvspec-coverage:external-input.front-matter-fields -->
+<!-- markvspec-coverage:external-input.renderer-message-resolution -->
+
 Front Matter は文書全体のメタデータだけを書きます。
 
 | 項目 | 必須 | 値 |
@@ -56,6 +59,8 @@ screen または template が `PRT-*` partial document を参照する場合は
 Matter で宣言されていない partial ID を参照すると、missing diagnostic が出ます。
 
 ### プロジェクトファイル
+
+<!-- markvspec-coverage:external-input.project-file-fields -->
 
 複数の画面とテンプレートを1つのプレビューで確認したい場合はプロジェクトファイルを使います。
 

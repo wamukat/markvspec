@@ -15,6 +15,8 @@ CLI は、VS Code 拡張の外でソースファイルを検証したり、レ�
 
 ## 書ける構文
 
+<!-- markvspec-coverage:external-input.cli-commands -->
+
 ### バージョン
 
 ```bash
@@ -100,6 +102,8 @@ npx @markvspec/cli@latest export document-list markvspec.project.md --out markvs
 
 ## 入力と出力
 
+<!-- markvspec-coverage:external-input.cli-options -->
+
 - `validate`、`export html`、`export pdf` はファイル、ディレクトリ、glob を受け取ります。
 - 入力を省略すると、現在のディレクトリから `.vspec.md` / `.vspec.project.md` を探します。スクリプトでは明示的なファイルや glob を指定してください。
 - ディレクトリ / glob の展開では `.git` と `node_modules` を除外します。
@@ -110,6 +114,8 @@ npx @markvspec/cli@latest export document-list markvspec.project.md --out markvs
 - 複数の入力が同じ出力名になる場合は、片方を上書きせず出力を失敗させます。
 
 ## 表示メッセージ
+
+<!-- markvspec-coverage:external-input.renderer-message-resolution -->
 
 `export html` と `export pdf` は `--messages <path>` を受け取ります。出力画面のラベルを
 言語やプロダクトに合わせたい場合に使います。
