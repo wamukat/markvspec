@@ -103,7 +103,9 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
       }
       .brand strong { font-size: 15px; }
       .brand span { color: var(--muted); font-size: 12px; }
-      .top-nav {
+      .top-nav,
+      .example-actions,
+      .pane-tools {
         align-items: center;
         display: flex;
         flex-wrap: wrap;
@@ -113,10 +115,8 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
       .nav-link,
       .button-link {
         align-items: center;
-        background: #fff;
         border: 1px solid var(--line);
         border-radius: 999px;
-        color: #334155;
         display: inline-flex;
         font-size: 12px;
         font-weight: 650;
@@ -126,6 +126,18 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
         text-decoration: none;
         white-space: nowrap;
       }
+      .nav-link {
+        background: #fff;
+        color: #334155;
+      }
+      .button-link {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .button-link:hover {
+        color: #fff;
+      }
       .nav-link svg {
         flex: 0 0 auto;
         height: 15px;
@@ -133,33 +145,92 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
       }
       main {
         display: grid;
+        gap: 18px;
         grid-template-columns: 260px minmax(0, 1fr);
-        min-height: calc(100vh - 56px);
+        margin: 0 auto;
+        max-width: 1440px;
+        padding: 22px 24px 40px;
+      }
+      main[data-sidebar-collapsed="true"] {
+        grid-template-columns: 54px minmax(0, 1fr);
       }
       .example-sidebar {
+        align-self: start;
         background: #fff;
-        border-right: 1px solid var(--line);
-        max-height: calc(100vh - 56px);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        max-height: calc(100vh - 92px);
         overflow: auto;
-        padding: 18px;
+        padding: 14px;
         position: sticky;
-        top: 56px;
+        top: 70px;
+      }
+      .example-sidebar-header {
+        align-items: center;
+        display: flex;
+        gap: 8px;
+        justify-content: space-between;
+        margin-bottom: 12px;
       }
       .example-sidebar-title {
         color: var(--ink);
-        display: inline-block;
+        display: block;
         font-size: 14px;
-        font-weight: 800;
-        margin-bottom: 16px;
+        font-weight: 750;
+        min-width: 0;
         text-decoration: none;
       }
-      .example-sidebar-section { margin-bottom: 22px; }
+      .example-sidebar-toggle {
+        align-items: center;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: #334155;
+        cursor: pointer;
+        display: inline-flex;
+        flex: 0 0 auto;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 750;
+        gap: 4px;
+        justify-content: center;
+        line-height: 1;
+        min-height: 30px;
+        padding: 5px 9px;
+      }
+      .example-sidebar-toggle:hover {
+        border-color: #b8c3d3;
+      }
+      .sidebar-toggle-icon {
+        font-size: 15px;
+        line-height: 1;
+      }
+      main[data-sidebar-collapsed="true"] .example-sidebar {
+        overflow: visible;
+        padding: 10px;
+      }
+      main[data-sidebar-collapsed="true"] .example-sidebar-header {
+        justify-content: center;
+        margin-bottom: 0;
+      }
+      main[data-sidebar-collapsed="true"] .example-sidebar-title,
+      main[data-sidebar-collapsed="true"] .sidebar-toggle-label {
+        display: none;
+      }
+      .example-sidebar-section {
+        border-top: 1px solid var(--line-soft);
+        padding: 12px 0;
+      }
+      .example-sidebar-section:first-of-type {
+        border-top: 0;
+        padding-top: 0;
+      }
       .example-sidebar-heading {
         color: var(--muted);
         font-size: 11px;
-        font-weight: 800;
+        font-weight: 750;
         letter-spacing: .04em;
-        margin: 0 0 8px;
+        margin: 0 0 7px;
         text-transform: uppercase;
       }
       .example-sidebar ul {
@@ -173,8 +244,9 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
         border-radius: 6px;
         color: #334155;
         display: block;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 650;
+        line-height: 1.35;
         padding: 6px 8px;
         text-decoration: none;
       }
@@ -183,32 +255,29 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
         background: #eaf1ff;
         color: #1d4ed8;
       }
-      .example-main {
-        min-width: 0;
-        padding: 24px;
-      }
+      .example-main { min-width: 0; }
       .example-header {
-        align-items: flex-start;
-        display: flex;
-        gap: 16px;
-        justify-content: space-between;
-        margin: 0 auto 20px;
-        max-width: 1480px;
+        align-items: end;
+        display: grid;
+        gap: 14px;
+        grid-template-columns: minmax(0, 1fr) auto;
+        margin-bottom: 18px;
       }
       .breadcrumb {
         color: var(--muted);
         font-size: 12px;
         font-weight: 700;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
       }
       h1 {
-        font-size: 30px;
-        line-height: 1.2;
-        margin: 0 0 6px;
+        font-size: 26px;
+        letter-spacing: 0;
+        line-height: 1.25;
+        margin: 0;
       }
       .subtitle {
         color: var(--muted);
-        margin: 0;
+        margin: 8px 0 0;
         max-width: 760px;
       }
       .split {
@@ -250,23 +319,29 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
         gap: 6px;
       }
       .pill {
-        background: #eef2ff;
-        border: 1px solid #c7d2fe;
+        align-items: center;
+        background: #f8fafc;
+        border: 1px solid var(--line-soft);
         border-radius: 999px;
-        color: #3730a3;
+        color: #334155;
+        display: inline-flex;
         font-size: 11px;
-        font-weight: 750;
-        padding: 2px 7px;
+        font-weight: 650;
+        gap: 5px;
+        padding: 3px 8px;
       }
       .source-wrap {
         background: var(--code-bg);
         color: var(--code-ink);
-        max-height: calc(100vh - 210px);
+        height: calc(100vh - 252px);
+        min-height: 520px;
         overflow: auto;
       }
       pre {
         margin: 0;
-        padding: 14px 0;
+        min-width: 620px;
+        padding: 12px 0;
+        tab-size: 2;
       }
       code {
         font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
@@ -274,7 +349,8 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
       .line {
         display: grid;
         grid-template-columns: 44px minmax(0, 1fr);
-        min-width: max-content;
+        height: 18px;
+        line-height: 18px;
       }
       .line-no {
         color: var(--code-muted);
@@ -283,11 +359,14 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
         user-select: none;
       }
       .line-code {
-        padding-right: 18px;
+        border-left: 1px solid rgba(148, 163, 184, .22);
+        padding: 0 18px;
         white-space: pre;
       }
       .preview-wrap {
-        max-height: calc(100vh - 210px);
+        background: #fff;
+        height: calc(100vh - 252px);
+        min-height: 520px;
         overflow: auto;
         padding: 18px;
       }
@@ -295,23 +374,123 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
         margin: 0;
         max-width: none;
       }
-      @media (max-width: 1040px) {
-        main { grid-template-columns: 1fr; }
+      .pane {
+        box-shadow: 0 10px 24px rgba(15, 23, 42, .05);
+      }
+      .pane-header {
+        background: #fbfcfe;
+        min-height: 48px;
+        padding: 10px 14px;
+      }
+      .pane-tools {
+        align-items: center;
+        display: inline-flex;
+        gap: 10px;
+      }
+      .pane-icon-button {
+        align-items: center;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        color: #334155;
+        cursor: pointer;
+        display: inline-flex;
+        height: 30px;
+        justify-content: center;
+        padding: 0;
+        width: 30px;
+      }
+      .pane-icon-button:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+      }
+      .pane-icon-button svg {
+        height: 15px;
+        width: 15px;
+      }
+      .visually-hidden {
+        clip: rect(0 0 0 0);
+        border: 0;
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        white-space: nowrap;
+        width: 1px;
+      }
+      body[data-preview-maximized="true"] {
+        overflow: hidden;
+      }
+      [data-preview-maximizable][data-preview-maximized="true"] {
+        display: flex;
+        flex-direction: column;
+        inset: 16px;
+        position: fixed;
+        z-index: 50;
+      }
+      [data-preview-maximizable][data-preview-maximized="true"] .preview-wrap {
+        flex: 1;
+        height: auto;
+        max-height: none;
+        min-height: 0;
+      }
+      [data-preview-maximizable][data-preview-maximized="true"] .pane-icon-button svg:first-child {
+        display: none;
+      }
+      [data-preview-maximizable]:not([data-preview-maximized="true"]) .pane-icon-button svg:last-of-type {
+        display: none;
+      }
+      @media (max-width: 1000px) {
+        main,
+        main[data-sidebar-collapsed="true"] {
+          grid-template-columns: 1fr;
+        }
+        .example-main { order: 1; }
         .example-sidebar {
           max-height: none;
+          order: 2;
           position: static;
         }
+        .example-header {
+          align-items: start;
+          grid-template-columns: 1fr;
+        }
+        .example-actions { justify-content: flex-start; }
         .split { grid-template-columns: 1fr; }
         .source-wrap,
-        .preview-wrap { max-height: none; }
+        .preview-wrap {
+          height: auto;
+          max-height: 680px;
+        }
       }
-      @media (max-width: 720px) {
-        .site-header-inner,
-        .example-header {
-          align-items: stretch;
+      @media (max-width: 640px) {
+        .site-header-inner {
+          align-items: flex-start;
           flex-direction: column;
         }
-        .example-main { padding: 16px 14px 32px; }
+        .top-nav,
+        .example-actions {
+          justify-content: flex-start;
+          max-width: 100%;
+          width: 100%;
+        }
+        .example-actions .button-link {
+          justify-content: center;
+          white-space: normal;
+        }
+        .pane,
+        .source-wrap,
+        .preview-wrap {
+          max-width: 100%;
+        }
+        pre {
+          min-width: 0;
+          width: max-content;
+        }
+        main {
+          padding: 16px 14px 32px;
+        }
       }
     </style>
   </head>
@@ -341,31 +520,39 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
       </div>
     </header>
 
-    <main>
+    <main data-example-layout>
       <aside class="example-sidebar" aria-label="Example navigation">
-        <a class="example-sidebar-title" href={`${base}/examples/`}>All Examples</a>
-        <section class="example-sidebar-section">
-          <p class="example-sidebar-heading">Project-Level Examples</p>
-          <ul>
-            {projectExamples.map((item) => (
-              <li>
-                <a href={`${base}${item.href}`} aria-current={item.slug === example.slug ? 'page' : undefined}>{item.title}</a>
-              </li>
-            ))}
-          </ul>
-        </section>
-        {stageGroups.map((stage) => (
+        <div class="example-sidebar-header">
+          <a class="example-sidebar-title" href={`${base}/examples/`}>All Examples</a>
+          <button class="example-sidebar-toggle" type="button" aria-controls="example-sidebar-content" aria-expanded="true" aria-label="Hide example navigation" data-sidebar-toggle>
+            <span class="sidebar-toggle-icon" aria-hidden="true" data-sidebar-toggle-icon>‹</span>
+            <span class="sidebar-toggle-label" data-sidebar-toggle-label>Hide</span>
+          </button>
+        </div>
+        <div id="example-sidebar-content" class="example-sidebar-content">
           <section class="example-sidebar-section">
-            <p class="example-sidebar-heading">{stage.label}</p>
+            <p class="example-sidebar-heading">Project-Level Examples</p>
             <ul>
-              {stage.items.map((item) => (
+              {projectExamples.map((item) => (
                 <li>
-                  <a href={`${base}/examples/showcase/${item.slug}.html`}>{item.title}</a>
+                  <a href={`${base}${item.href}`} aria-current={item.slug === example.slug ? 'page' : undefined}>{item.title}</a>
                 </li>
               ))}
             </ul>
           </section>
-        ))}
+          {stageGroups.map((stage) => (
+            <section class="example-sidebar-section">
+              <p class="example-sidebar-heading">{stage.label}</p>
+              <ul>
+                {stage.items.map((item) => (
+                  <li>
+                    <a href={`${base}/examples/showcase/${item.slug}.html`}>{item.title}</a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
       </aside>
 
       <div class="example-main">
@@ -375,7 +562,7 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
             <h1>{example.title}</h1>
             <p class="subtitle">{example.summary}</p>
           </div>
-          <div class="top-nav">
+          <div class="example-actions">
             <a class="button-link" href={`${githubBlobBaseUrl}${example.repoPath}`}>View on GitHub</a>
           </div>
         </section>
@@ -395,14 +582,31 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
             </div>
           </article>
 
-          <article id="project-preview" class="pane" aria-label="Project preview">
+          <article id="project-preview" class="pane" aria-label="Project preview" data-preview-maximizable>
             <div class="pane-header">
               <div class="pane-title">
                 <strong>Project Preview</strong>
                 <span>Generated from the project document and referenced files</span>
               </div>
-              <div class="meta-row" aria-label="Project metadata">
-                {metaPills.map((pill) => <span class="pill">{pill}</span>)}
+              <div class="pane-tools">
+                <div class="meta-row" aria-label="Project metadata">
+                  {metaPills.map((pill) => <span class="pill">{pill}</span>)}
+                </div>
+                <button class="pane-icon-button" type="button" aria-label="Maximize preview" aria-pressed="false" title="Maximize preview" data-preview-maximize>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8 3H3v5" />
+                    <path d="M16 3h5v5" />
+                    <path d="M8 21H3v-5" />
+                    <path d="M16 21h5v-5" />
+                  </svg>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 14h6v6" />
+                    <path d="M20 10h-6V4" />
+                    <path d="m14 10 7-7" />
+                    <path d="m3 21 7-7" />
+                  </svg>
+                  <span class="visually-hidden">Maximize preview</span>
+                </button>
               </div>
             </div>
             <div class="preview-wrap" set:html={projectPreviewHtml}></div>
@@ -412,5 +616,30 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
     </main>
     <script is:inline src={`${base}/examples/assets/markvspec-mermaid.js`}></script>
     <script is:inline src={`${base}/examples/assets/markvspec-mermaid-runtime.js`}></script>
+    <script>import '../../../lib/preview-maximize.js';</script>
+    <script is:inline>
+      (() => {
+        const layout = document.querySelector('[data-example-layout]');
+        const button = document.querySelector('[data-sidebar-toggle]');
+        const content = document.querySelector('#example-sidebar-content');
+        const icon = document.querySelector('[data-sidebar-toggle-icon]');
+        const label = document.querySelector('[data-sidebar-toggle-label]');
+        if (!layout || !button || !content || !icon || !label) return;
+
+        const setCollapsed = (collapsed) => {
+          layout.dataset.sidebarCollapsed = collapsed ? 'true' : 'false';
+          button.setAttribute('aria-expanded', String(!collapsed));
+          button.setAttribute('aria-label', collapsed ? 'Show example navigation' : 'Hide example navigation');
+          content.hidden = collapsed;
+          icon.textContent = collapsed ? '›' : '‹';
+          label.textContent = collapsed ? 'Show' : 'Hide';
+        };
+
+        setCollapsed(window.matchMedia('(max-width: 1000px)').matches);
+        button.addEventListener('click', () => {
+          setCollapsed(layout.dataset.sidebarCollapsed !== 'true');
+        });
+      })();
+    </script>
   </body>
 </html>

@@ -174,6 +174,11 @@ expectContains(projectPreviewHtml, "Account Portal Project", "_site/examples/pro
 expectContains(projectPreviewHtml, "Project Transition Diagram", "_site/examples/project/account-project.html should render the VS Code project preview document.");
 expectContains(projectPreviewHtml, "examples/07-project-documents/account-project.vspec.project.md", "_site/examples/project/account-project.html should show the project source path.");
 expectContains(projectPreviewHtml, `${base}/examples/project/account-project.html`, "_site/examples/project/account-project.html should keep the project sidebar on the local preview page.");
+expectContains(projectPreviewHtml, 'data-example-layout', "_site/examples/project/account-project.html should use the same example layout shell as showcase pages.");
+expectContains(projectPreviewHtml, 'data-sidebar-toggle', "_site/examples/project/account-project.html should expose the same collapsible sidebar control as showcase pages.");
+expectContains(projectPreviewHtml, 'data-preview-maximizable', "_site/examples/project/account-project.html should make the project preview pane maximizable.");
+expectContains(projectPreviewHtml, 'data-preview-maximize', "_site/examples/project/account-project.html should expose a preview maximize button.");
+expectContains(projectPreviewHtml, "preview-maximize", "_site/examples/project/account-project.html should load the shared preview maximize behavior.");
 const showcaseDynamicScriptPath = dynamicScriptArtifactPath(helloShowcaseHtml, join(siteDir, "examples", "showcase", "hello-screen.html", "index.html"));
 if (!showcaseDynamicScriptPath) {
   failures.push("_site/examples/showcase/hello-screen.html should include the dynamic preview browser script.");
