@@ -132,6 +132,11 @@ checker はまだ一部 report-first ですが、stable mapping family は必要
 - 必須 external input/configuration inventory category が空、または必須 Reference
   coverage target が欠落。
 - 必須 stable Reference coverage marker が欠落。
+- diagnostic code が Diagnostic Coverage Matrix にない、または diagnostic matrix row に
+  user-facing coverage target がない。
+- stable renderer/export output cluster が Renderer / Export Output Coverage Matrix に
+  ない、user-facing coverage target がない、または期待する implementation signal を
+  失っている。
 - 既存 Reference page structure が report を信頼できないほど壊れている。
 
 feature family が report-only、prose depth が薄い可能性、Guide-only / Example-only
@@ -270,9 +275,11 @@ diagnostic coverage は `supportedDiagnosticMessageCodes()` を起点にしま�
 - `coverageMarkers`: 修正方法を説明する Reference coverage feature ID。
 - `followUp`: Reference 説明が薄い場合の Kanbalone ticket。
 
-この matrix pass では新しい blocking docs gap は見つけていません。残る automation gap
-は、`audit:reference-coverage` が diagnostic code と push site を inventory する一方、
-この matrix との照合まではまだ行わないことです。
+`npm run audit:reference-coverage` は、この matrix を English / Japanese 両方で
+diagnostic code inventory と照合します。row 欠落、user-facing coverage target 欠落、
+`Covered` 以外の status は failure です。diagnostic push site の semantic depth は、
+同じ diagnostic code を共有する場合や prose review が必要な場合があるため、まだ reviewer
+判断として残します。
 
 ## renderer / export output coverage matrix
 
@@ -307,11 +314,20 @@ preview では readable chip に見えていても、static table 側で canonic
 metadata の代わりに label、marker、sample value を出してしまう mismatch が起きやすい
 ためです。
 
-この matrix pass では、既に track 済みの source metadata / Marker/ID work 以外に、
-新しい focused docs gap または render/export mismatch は見つけていません。#1417 で追加の
-follow-up ticket は不要でした。残る automation gap は、`audit:reference-coverage` が
-renderer/export output feature を inventory する一方、この matrix や生成 artifact との
-照合まではまだ行わないことです。
+`npm run audit:reference-coverage` は、この matrix の初期 stable renderer/export cluster
+を English / Japanese 両方の row と、検出可能な implementation signal に照合します。
+現在の stable cluster は次の通りです。
+
+- Screen Basic Info。
+- Export diagnostics section。
+- History table。
+- State Views と Preview Scenarios。
+- Project `document-list` export。
+
+stable row 欠落、user-facing coverage target 欠落、representative example 欠落、artifact
+check 欠落、implementation signal 欠落は failure です。これら以外の renderer/export
+output signal は、artifact review scope と failure mode を triage するまで report-only として
+残します。
 
 ## first generated report
 

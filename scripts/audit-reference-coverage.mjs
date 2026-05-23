@@ -69,6 +69,8 @@ inventory.diagnosticCodes = supportedDiagnosticMessageCodes().map((code) => ({
 }));
 inventory.diagnosticPushSites = await sourceMatches("packages/core/src", /diagnostics\.push\(/gu, "diagnostic-push");
 inventory.rendererOutputFeatures = await rendererOutputFeatures();
+inventory.diagnosticCoverageMatrix = await diagnosticCoverageMatrixInventory();
+inventory.rendererOutputCoverageMatrix = await rendererOutputCoverageMatrixInventory();
 inventory.generatedReferenceMarkers = await generatedReferenceMarkers();
 inventory.referencePages = await referencePageInventory();
 inventory.referenceCoverage = referenceCoverageInventory(inventory.referencePages);
@@ -84,6 +86,10 @@ assertCategory("element types", inventory.elementTypes);
 assertCategory("element properties", inventory.elementProperties);
 assertCategory("diagnostic codes", inventory.diagnosticCodes);
 assertCategory("renderer output features", inventory.rendererOutputFeatures);
+assertCategory("diagnostic coverage matrix EN rows", inventory.diagnosticCoverageMatrix.en);
+assertCategory("diagnostic coverage matrix JA rows", inventory.diagnosticCoverageMatrix.ja);
+assertCategory("renderer/export output coverage matrix EN rows", inventory.rendererOutputCoverageMatrix.en);
+assertCategory("renderer/export output coverage matrix JA rows", inventory.rendererOutputCoverageMatrix.ja);
 assertCategory("generated reference markers", inventory.generatedReferenceMarkers);
 assertCategory("reference coverage features", inventory.referenceCoverage.features);
 assertCategory("EN reference pages", inventory.referencePages.en);
@@ -104,6 +110,8 @@ auditReferencePageSymmetry(inventory.referencePages);
 auditRequiredGeneratedMarkers(inventory.generatedReferenceMarkers);
 auditCoverageMarkerReadiness(inventory.referenceCoverage);
 await auditExternalInputConfigurationReadiness(inventory.externalInputs, inventory.referencePages);
+auditDiagnosticCoverageMatrixReadiness(inventory.diagnosticCoverageMatrix);
+auditRendererOutputCoverageMatrixReadiness(inventory.rendererOutputCoverageMatrix);
 auditFeatureMappingReadiness();
 printReport();
 
@@ -231,7 +239,7 @@ function auditCoverageMarkerReadiness(referenceCoverage) {
 
 function auditFeatureMappingReadiness() {
   warnings.push(`Feature-to-Reference mapping has ${inventory.featureMapping.reportOnly.length} report-only family/families that still need stable markers before missing prose becomes release-blocking.`);
-  warnings.push("Diagnostic and renderer/export output coverage is inventoried where mechanically detectable; semantic coverage still requires manual review.");
+  warnings.push(`Diagnostic and renderer/export output semantic coverage remains manual for ${rendererReportOnlyFeatureCount()} report-only renderer/export feature(s) outside the stable matrix clusters.`);
 }
 
 function featureMappingInventory() {
@@ -276,13 +284,13 @@ function featureMappingInventory() {
         id: "feature-mapping.diagnostics",
         family: "Diagnostic codes and push sites",
         count: inventory.diagnosticCodes.length + inventory.diagnosticPushSites.length,
-        reason: "Diagnostic coverage matrix exists, but code-to-marker comparison is deferred."
+        reason: "Diagnostic codes are matrix-checked; push-site semantic depth still needs reviewer judgment."
       },
       {
         id: "feature-mapping.renderer-export",
         family: "Renderer/export output features",
         count: inventory.rendererOutputFeatures.length,
-        reason: "Output clusters require artifact/manual review before marker-level failure is safe."
+        reason: "Initial stable output clusters are matrix-checked; remaining output signals require artifact/manual review before marker-level failure is safe."
       },
       {
         id: "feature-mapping.examples",
@@ -294,6 +302,111 @@ function featureMappingInventory() {
   };
 }
 
+function auditDiagnosticCoverageMatrixReadiness(matrix) {
+  const localeRows = [
+    ["en", matrix.en],
+    ["ja", matrix.ja]
+  ];
+  for (const [locale, rows] of localeRows) {
+    const rowsByCode = new Map(rows.map((row) => [row.code, row]));
+    for (const diagnostic of inventory.diagnosticCodes) {
+      const row = rowsByCode.get(diagnostic.code);
+      if (!row) {
+        failures.push(`diagnostic coverage matrix ${locale}: missing row for ${diagnostic.code}.`);
+        continue;
+      }
+      if (row.coverageTargets.length === 0) {
+        failures.push(`diagnostic coverage matrix ${locale}: ${diagnostic.code} has no coverage target.`);
+      }
+      if (!/^covered$/iu.test(row.status)) {
+        failures.push(`diagnostic coverage matrix ${locale}: ${diagnostic.code} status is ${row.status || "empty"}, expected Covered.`);
+      }
+    }
+  }
+}
+
+function auditRendererOutputCoverageMatrixReadiness(matrix) {
+  const localeRows = [
+    ["en", matrix.en],
+    ["ja", matrix.ja]
+  ];
+  for (const cluster of stableRendererOutputClusters()) {
+    for (const [locale, rows] of localeRows) {
+      const row = rows.find((entry) => cluster.normalizedClusters.includes(entry.normalizedCluster));
+      if (!row) {
+        failures.push(`renderer/export output coverage matrix ${locale}: missing stable row ${cluster.label}.`);
+        continue;
+      }
+      if (row.coverageTargets.length === 0) {
+        failures.push(`renderer/export output coverage matrix ${locale}: ${cluster.label} has no coverage target.`);
+      }
+      if (!row.representativeExample || row.representativeExample === "-") {
+        failures.push(`renderer/export output coverage matrix ${locale}: ${cluster.label} has no representative example.`);
+      }
+      if (!row.artifactToVerify || row.artifactToVerify === "-") {
+        failures.push(`renderer/export output coverage matrix ${locale}: ${cluster.label} has no artifact to verify.`);
+      }
+    }
+    for (const signal of cluster.signals) {
+      const found = inventory.rendererOutputFeatures.some((feature) =>
+        feature.source === signal.source && feature.value === signal.value
+      );
+      if (!found) {
+        failures.push(`renderer/export output coverage inventory: ${cluster.label} is missing stable signal ${signal.source} ${signal.value}.`);
+      }
+    }
+  }
+}
+
+function stableRendererOutputClusters() {
+  return [
+    {
+      label: "Screen Basic Info",
+      normalizedClusters: [normalizeMatrixCell("Screen Basic Info")],
+      signals: [
+        { source: "packages/document-renderer/src/index.ts", value: "message:version" },
+        { source: "packages/document-renderer/src/index.ts", value: "message:date" },
+        { source: "packages/document-renderer/src/index.ts", value: "message:author" }
+      ]
+    },
+    {
+      label: "Export diagnostics section",
+      normalizedClusters: [normalizeMatrixCell("Export diagnostics section")],
+      signals: [
+        { source: "packages/exporter/src/index.ts", value: "message:diagnostics" },
+        { source: "packages/exporter/src/index.ts", value: "class:mm-export-diagnostics" }
+      ]
+    },
+    {
+      label: "History table",
+      normalizedClusters: [normalizeMatrixCell("History table")],
+      signals: [
+        { source: "packages/document-renderer/src/index.ts", value: "heading:history" },
+        { source: "packages/document-renderer/src/index.ts", value: "message:history" }
+      ]
+    },
+    {
+      label: "State Views and Preview Scenarios",
+      normalizedClusters: [
+        normalizeMatrixCell("State Views and Preview Scenarios"),
+        normalizeMatrixCell("State Views と Preview Scenarios")
+      ],
+      signals: [
+        { source: "packages/document-renderer/src/static-state-view-renderer.ts", value: "heading:state-views" },
+        { source: "packages/document-renderer/src/static-state-view-renderer.ts", value: "class:doc-section state-views-section" }
+      ]
+    },
+    {
+      label: "Project `document-list` export",
+      normalizedClusters: [normalizeMatrixCell("Project `document-list` export")],
+      signals: [
+        { source: "packages/exporter/src/index.ts", value: "function:exportMarkVSpecDocumentList" },
+        { source: "packages/exporter/src/index.ts", value: "markdown-heading:Document List" }
+      ]
+    }
+  ];
+}
+
 async function generatedReferenceMarkers() {
   const files = [...(await markdownFiles("docs/en/reference")), ...(await markdownFiles("docs/ja/reference"))].sort();
   const entries = [];
@@ -302,6 +415,96 @@ async function generatedReferenceMarkers() {
     entries.push({ path: filePath, markers: generatedMarkers(source) });
   }
   return entries;
+}
+
+async function diagnosticCoverageMatrixInventory() {
+  return {
+    en: parseDiagnosticCoverageMatrix(await requiredSource("docs/en/maintainers/reference-coverage-audit.md"), "docs/en/maintainers/reference-coverage-audit.md"),
+    ja: parseDiagnosticCoverageMatrix(await requiredSource("docs/ja/maintainers/reference-coverage-audit.md"), "docs/ja/maintainers/reference-coverage-audit.md")
+  };
+}
+
+async function rendererOutputCoverageMatrixInventory() {
+  return {
+    en: parseRendererOutputCoverageMatrix(await requiredSource("docs/en/maintainers/reference-coverage-audit.md"), "docs/en/maintainers/reference-coverage-audit.md"),
+    ja: parseRendererOutputCoverageMatrix(await requiredSource("docs/ja/maintainers/reference-coverage-audit.md"), "docs/ja/maintainers/reference-coverage-audit.md")
+  };
+}
+
+function parseDiagnosticCoverageMatrix(source, filePath) {
+  const rows = markdownTableRowsAfterHeading(source, /diagnostic coverage matrix/iu, filePath);
+  return rows.map((cells) => ({
+    code: stripInlineMarkdown(cells[0]),
+    severity: stripInlineMarkdown(cells[1]),
+    triggerCategory: stripInlineMarkdown(cells[2]),
+    coverageTargets: markdownLinks(cells[3]),
+    status: stripInlineMarkdown(cells[4])
+  })).filter((row) => row.code);
+}
+
+function parseRendererOutputCoverageMatrix(source, filePath) {
+  const rows = markdownTableRowsAfterHeading(source, /renderer\s*\/\s*export output coverage matrix/iu, filePath);
+  return rows.map((cells) => ({
+    cluster: stripInlineMarkdown(cells[0]),
+    normalizedCluster: normalizeMatrixCell(cells[0]),
+    sourceOfTruth: stripInlineMarkdown(cells[1]),
+    coverageTargets: markdownLinks(cells[2]),
+    representativeExample: stripInlineMarkdown(cells[3]),
+    artifactToVerify: stripInlineMarkdown(cells[4])
+  })).filter((row) => row.cluster);
+}
+
+function markdownTableRowsAfterHeading(source, headingPattern, filePath) {
+  const lines = source.split(/\r?\n/u);
+  const headingIndex = lines.findIndex((line) => /^#{2,6}\s+/u.test(line) && headingPattern.test(line));
+  if (headingIndex < 0) {
+    failures.push(`${filePath}: missing matrix heading ${headingPattern}.`);
+    return [];
+  }
+  const tableStart = lines.findIndex((line, index) => index > headingIndex && line.trim().startsWith("|"));
+  if (tableStart < 0) {
+    failures.push(`${filePath}: missing markdown table after ${lines[headingIndex].trim()}.`);
+    return [];
+  }
+  const tableLines = [];
+  for (const line of lines.slice(tableStart)) {
+    if (!line.trim().startsWith("|")) {
+      break;
+    }
+    tableLines.push(line);
+  }
+  return tableLines
+    .slice(2)
+    .map(markdownTableCells)
+    .filter((cells) => cells.length > 0);
+}
+
+function markdownTableCells(line) {
+  return line
+    .trim()
+    .replace(/^\|/u, "")
+    .replace(/\|$/u, "")
+    .split("|")
+    .map((cell) => cell.trim());
+}
+
+function markdownLinks(cell) {
+  return [...cell.matchAll(/\[([^\]]+)\]\(([^)]+)\)/gu)].map((match) => ({
+    label: stripInlineMarkdown(match[1]),
+    target: match[2]
+  }));
+}
+
+function stripInlineMarkdown(value) {
+  return value
+    .replace(/`([^`]+)`/gu, "$1")
+    .replace(/\[([^\]]+)\]\([^)]+\)/gu, "$1")
+    .replace(/<br\s*\/?>/giu, " ")
+    .trim();
+}
+
+function normalizeMatrixCell(value) {
+  return stripInlineMarkdown(value).toLowerCase().replace(/[^a-z0-9]+/gu, " ").trim();
 }
 
 async function vscodeCommandInventory() {
@@ -575,7 +778,15 @@ async function rendererOutputFeatures() {
     const headingIds = [...source.matchAll(/<h[23][^>]*\bid=["']([^"']+)["']/gu)].map((match) => match[1]);
     const tableHeaders = [...source.matchAll(/messages\.([A-Za-z0-9_]+)/gu)].map((match) => match[1]);
     const classes = [...source.matchAll(/class=["']([^"']*(?:section|diagnostic|marker|spec|state-view)[^"']*)["']/gu)].map((match) => match[1]);
-    for (const value of unique([...headingIds.map((id) => `heading:${id}`), ...tableHeaders.map((key) => `message:${key}`), ...classes.map((className) => `class:${className}`)])) {
+    const exportedFunctions = [...source.matchAll(/export function\s+([A-Za-z0-9_]+)/gu)].map((match) => match[1]);
+    const markdownHeadings = [...source.matchAll(/["']#\s+([^"']+)["']/gu)].map((match) => match[1]);
+    for (const value of unique([
+      ...headingIds.map((id) => `heading:${id}`),
+      ...tableHeaders.map((key) => `message:${key}`),
+      ...classes.map((className) => `class:${className}`),
+      ...exportedFunctions.map((functionName) => `function:${functionName}`),
+      ...markdownHeadings.map((heading) => `markdown-heading:${heading}`)
+    ])) {
       features.push({
         id: `renderer-output.${filePath}.${slug(value)}`,
         source: filePath,
@@ -707,6 +918,9 @@ function printReport() {
     ["diagnostic codes", inventory.diagnosticCodes.length],
     ["diagnostic push sites", inventory.diagnosticPushSites.length],
     ["renderer output features", inventory.rendererOutputFeatures.length],
+    ["diagnostic coverage matrix rows", inventory.diagnosticCoverageMatrix.en.length],
+    ["stable renderer/export output matrix clusters", stableRendererOutputClusters().length],
+    ["report-only renderer/export output features", rendererReportOnlyFeatureCount()],
     ["generated Reference marker files", inventory.generatedReferenceMarkers.length],
     ["Reference coverage features", inventory.referenceCoverage.features.length],
     ["Reference coverage markers", inventory.referenceCoverage.markers.length],
@@ -733,6 +947,8 @@ function printReport() {
 
   printReferenceCoverageMarkerReport();
   printExternalInputConfigurationReport();
+  printDiagnosticCoverageMatrixReport();
+  printRendererOutputCoverageMatrixReport();
   printFeatureMappingReport();
 
   if (warnings.length > 0) {
@@ -745,6 +961,33 @@ function printReport() {
   }
 
   console.log(`\nFailures: ${failures.length}`);
+}
+
+function printDiagnosticCoverageMatrixReport() {
+  if (!inventory.diagnosticCoverageMatrix) {
+    return;
+  }
+  console.log("\nDiagnostic coverage matrix report:");
+  for (const locale of ["en", "ja"]) {
+    const rows = inventory.diagnosticCoverageMatrix[locale];
+    const missing = inventory.diagnosticCodes
+      .map((entry) => entry.code)
+      .filter((code) => !rows.some((row) => row.code === code));
+    console.log(`- ${locale}: ${rows.length} row(s), missing diagnostic codes: ${missing.length}`);
+  }
+}
+
+function printRendererOutputCoverageMatrixReport() {
+  if (!inventory.rendererOutputCoverageMatrix) {
+    return;
+  }
+  console.log("\nRenderer/export output coverage matrix report:");
+  for (const cluster of stableRendererOutputClusters()) {
+    const enRow = inventory.rendererOutputCoverageMatrix.en.find((row) => cluster.normalizedClusters.includes(row.normalizedCluster));
+    const jaRow = inventory.rendererOutputCoverageMatrix.ja.find((row) => cluster.normalizedClusters.includes(row.normalizedCluster));
+    console.log(`- ${cluster.label}: en:${enRow ? "covered" : "missing"}, ja:${jaRow ? "covered" : "missing"}, signals:${cluster.signals.length}`);
+  }
+  console.log(`  Report-only renderer/export output features: ${rendererReportOnlyFeatureCount()}`);
 }
 
 function printReferenceCoverageMarkerReport() {
@@ -798,4 +1041,11 @@ function printFeatureMappingReport() {
   for (const entry of inventory.featureMapping.reportOnly) {
     console.log(`- ${entry.family}: ${entry.count} feature(s); reason: ${entry.reason}`);
   }
+}
+
+function rendererReportOnlyFeatureCount() {
+  const stableSignals = new Set(stableRendererOutputClusters().flatMap((cluster) =>
+    cluster.signals.map((signal) => `${signal.source}\0${signal.value}`)
+  ));
+  return inventory.rendererOutputFeatures.filter((feature) => !stableSignals.has(`${feature.source}\0${feature.value}`)).length;
 }

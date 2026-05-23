@@ -134,6 +134,11 @@ stable coverage anchors are broken:
 - A required external input/configuration inventory category is empty, or a
   required Reference coverage target is missing.
 - A required stable Reference coverage marker is missing.
+- A diagnostic code is missing from the Diagnostic Coverage Matrix, or a
+  diagnostic matrix row has no user-facing coverage target.
+- A stable renderer/export output cluster is missing from the Renderer / Export
+  Output Coverage Matrix, has no user-facing coverage target, or loses its
+  expected implementation signal.
 - Existing Reference page structure is unreadable enough that the report cannot
   be trusted.
 
@@ -280,9 +285,11 @@ Future machine-readable mapping should keep this shape close to the source:
 - `coverageMarkers`: Reference coverage feature IDs that explain the fix.
 - `followUp`: optional Kanbalone ticket when the Reference explanation is thin.
 
-No new blocking docs gap was found in this matrix pass. The remaining automation
-gap is that `audit:reference-coverage` inventories diagnostic codes and push
-sites, but does not yet compare them against this matrix.
+`npm run audit:reference-coverage` compares this matrix with the diagnostic code
+inventory in both English and Japanese. Missing rows, missing user-facing
+coverage targets, and non-`Covered` status values are failures. Diagnostic push
+site semantic depth still requires reviewer judgment because a push site can
+share a diagnostic code or require broader prose review.
 
 ## Renderer / Export Output Coverage Matrix
 
@@ -318,11 +325,21 @@ especially sensitive because the live preview can show a readable chip while the
 static table accidentally substitutes a label, marker, or sample value for the
 canonical ID or source metadata.
 
-This matrix pass found no new focused docs gap or render/export mismatch beyond
-the already tracked source metadata and Marker/ID work. No additional follow-up
-ticket was required for #1417. The remaining automation gap is that
-`audit:reference-coverage` inventories renderer/export output features, but does
-not yet compare those features against this matrix or generated artifacts.
+`npm run audit:reference-coverage` compares the initial stable renderer/export
+clusters in this matrix with both English and Japanese rows and with detectable
+implementation signals. The current stable clusters are:
+
+- Screen Basic Info.
+- Export diagnostics section.
+- History table.
+- State Views and Preview Scenarios.
+- Project `document-list` export.
+
+Missing stable rows, missing user-facing coverage targets, missing
+representative examples, missing artifact checks, and missing implementation
+signals are failures. Renderer/export output signals outside these stable
+clusters remain report-only until their artifact review scope and failure modes
+are triaged.
 
 ## First Generated Report
 
