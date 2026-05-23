@@ -138,6 +138,8 @@ checker はまだ一部 report-first ですが、stable mapping family は必要
   property/context row が `reference-elements` generated block にない。
 - diagnostic code が Diagnostic Coverage Matrix にない、または diagnostic matrix row に
   user-facing coverage target がない。
+- `Stable covered` の diagnostic push site classification に code matrix row、source
+  file entry、または user-facing coverage target がない。
 - stable renderer/export output cluster が Renderer / Export Output Coverage Matrix に
   ない、user-facing coverage target がない、または期待する implementation signal を
   失っている。
@@ -197,12 +199,15 @@ stable family:
   row は `reference-elements` generated block に出現する必要がある。
 - External input/configuration category family: required coverage target page に置く
   `markvspec-coverage:external-input.*` marker。
+- Diagnostic push site classification family: `Stable covered` の diagnostic
+  push site source は Diagnostic Coverage Matrix row と Diagnostic Push Site
+  Classification Matrix の source entry を持つ。
 
 report-only family:
 
 - structured item prose coverage。
 - element prose-depth coverage。
-- diagnostic code と push site。
+- diagnostic prose-depth coverage。
 - renderer/export output feature。
 - example と example-supported pattern。
 
@@ -299,6 +304,35 @@ diagnostic code inventory と照合します。row 欠落、user-facing coverage
 `Covered` 以外の status は failure です。diagnostic push site の semantic depth は、
 同じ diagnostic code を共有する場合や prose review が必要な場合があるため、まだ reviewer
 判断として残します。
+
+## diagnostic push site classification matrix
+
+この matrix は、検出した diagnostic push site を diagnostic code ごとに分類します。
+`Stable covered` は、listed source file が Diagnostic Coverage Matrix row で説明される
+同じ user-facing fix を出すことを意味します。同じ code を出す source file が増えた場合、
+classification row にその source を追加しないと audit は fail します。
+
+| Diagnostic Code | Source Files | Classification | User-Facing Coverage | Notes |
+| --- | --- | --- | --- | --- |
+| `frontMatter.missingYaml` | `packages/core/src/markdown-document.ts` | Stable covered | [ファイル形式](../reference/file-format.md)、[はじめる](../start/index.md) | 同じ fix: YAML Front Matter を追加する。 |
+| `frontMatter.missingRequired` | `packages/core/src/parser.ts` | Stable covered | [ファイル形式](../reference/file-format.md)、[はじめる](../start/index.md) | 同じ fix: 必須 Front Matter field を追加する。 |
+| `section.recommendedOrder` | `packages/core/src/markdown-section-semantic.ts` | Stable covered | [Sections](../reference/sections.md)、[Grammar](../reference/grammar.md) | 同じ fix: recognized section を推奨順に並べる。 |
+| `layout.missingViewport` | `packages/core/src/layout-section-semantic.ts` | Stable covered | [Sections](../reference/sections.md)、[Grammar](../reference/grammar.md) | 同じ fix: viewport suffix を追加する。 |
+| `layout.groupIgnoredWithoutViewport` | `packages/core/src/layout-section-semantic.ts` | Stable covered | [Sections](../reference/sections.md) | 同じ fix: viewport 付き Layout section 配下に group を置く。 |
+| `layout.unsupportedItemsEntry` | `packages/core/src/validator.ts` | Stable covered | [Sections](../reference/sections.md)、[ID](../reference/ids.md) | 同じ fix: `L-*` または `E-*` entry を使う。 |
+| `element.unknownType` | `packages/core/src/validator.ts` | Stable covered | [Elements](../reference/elements.md)、[Grammar](../reference/grammar.md) | 同じ fix: supported element type を使う。 |
+| `action.missingTrigger` | `packages/core/src/validator.ts` | Stable covered | [Actions](../reference/actions.md)、[Elements](../reference/elements.md)、[Sections](../reference/sections.md) | 同じ fix: canonical trigger source を追加する。 |
+| `action.invalidTrigger` | `packages/core/src/validator.ts` | Stable covered | [Actions](../reference/actions.md)、[Grammar](../reference/grammar.md) | 同じ fix: supported trigger shape を使う。 |
+| `action.process.multipleExecutionDetails` | `packages/core/src/action-process-validator.ts` | Stable covered | [Actions](../reference/actions.md)、[Grammar](../reference/grammar.md) | 同じ fix: execution detail を別々の Process step に分ける。 |
+| `action.process.mixesExecutionDetailAndImmediateEffects` | `packages/core/src/action-process-validator.ts` | Stable covered | [Actions](../reference/actions.md)、[Grammar](../reference/grammar.md) | 同じ fix: immediate effect を case 配下へ移すか Process を分ける。 |
+| `action.process.mixesResultClassificationAndImmediateEffects` | `packages/core/src/action-process-validator.ts` | Stable covered | [Actions](../reference/actions.md)、[Grammar](../reference/grammar.md) | 同じ fix: effect を分類された case 配下へ置く。 |
+| `action.parallelProcess.caseShouldNotSetStateOrNavigate` | `packages/core/src/validator.ts` | Stable covered | [Actions](../reference/actions.md)、[Grammar](../reference/grammar.md) | 同じ fix: final transition を Resolve に任せる。 |
+| `action.process.caseResponseWithoutReceive` | `packages/core/src/action-process-validator.ts` | Stable covered | [Actions](../reference/actions.md)、[Grammar](../reference/grammar.md) | 同じ fix: response-based case の前に response を receive する。 |
+| `unrepresented-source-text` | `packages/core/src/source-text-diagnostics.ts` | Stable covered | [Grammar](../reference/grammar.md)、[制限事項](../reference/limitations.md) | 同じ fix: unsupported text を supported syntax または Notes に移す。 |
+| `partial.referenceMissing` | `packages/core/src/validator.ts` | Stable covered | [ファイル形式](../reference/file-format.md)、[Sections](../reference/sections.md) | 同じ fix: partial を Front Matter に定義する。 |
+| `validation.ruleMissingElement` | `packages/core/src/validation-diagnostics-validator.ts` | Stable covered | [Validations](../reference/validations.md)、[Elements](../reference/elements.md)、[ID](../reference/ids.md) | 同じ fix: validation rule を既存 element に向ける。 |
+| `previewScenario.missingState` | `packages/core/src/preview-scenario-validator.ts` | Stable covered | [Sections](../reference/sections.md) | 同じ fix: Preview Scenario に `state` を追加する。 |
+| `previewScenario.samplesMissingElement` | `packages/core/src/preview-scenario-validator.ts` | Stable covered | [Sections](../reference/sections.md)、[Elements](../reference/elements.md)、[ID](../reference/ids.md) | 同じ fix: sample row の対象を既存 element にする。 |
 
 ## renderer / export output coverage matrix
 

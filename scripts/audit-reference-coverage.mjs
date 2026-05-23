@@ -68,9 +68,10 @@ inventory.diagnosticCodes = supportedDiagnosticMessageCodes().map((code) => ({
   code,
   source: "packages/core/src/diagnostic-messages.ts"
 }));
-inventory.diagnosticPushSites = await sourceMatches("packages/core/src", /diagnostics\.push\(/gu, "diagnostic-push");
+inventory.diagnosticPushSites = await diagnosticPushSiteInventory();
 inventory.rendererOutputFeatures = await rendererOutputFeatures();
 inventory.diagnosticCoverageMatrix = await diagnosticCoverageMatrixInventory();
+inventory.diagnosticPushSiteClassification = await diagnosticPushSiteClassificationInventory();
 inventory.rendererOutputCoverageMatrix = await rendererOutputCoverageMatrixInventory();
 inventory.generatedReferenceMarkers = await generatedReferenceMarkers();
 inventory.referencePages = await referencePageInventory();
@@ -88,9 +89,12 @@ assertCategory("structured item contexts", inventory.structuredItemContexts);
 assertCategory("element types", inventory.elementTypes);
 assertCategory("element properties", inventory.elementProperties);
 assertCategory("diagnostic codes", inventory.diagnosticCodes);
+assertCategory("diagnostic push sites", inventory.diagnosticPushSites);
 assertCategory("renderer output features", inventory.rendererOutputFeatures);
 assertCategory("diagnostic coverage matrix EN rows", inventory.diagnosticCoverageMatrix.en);
 assertCategory("diagnostic coverage matrix JA rows", inventory.diagnosticCoverageMatrix.ja);
+assertCategory("diagnostic push site classification EN rows", inventory.diagnosticPushSiteClassification.en);
+assertCategory("diagnostic push site classification JA rows", inventory.diagnosticPushSiteClassification.ja);
 assertCategory("renderer/export output coverage matrix EN rows", inventory.rendererOutputCoverageMatrix.en);
 assertCategory("renderer/export output coverage matrix JA rows", inventory.rendererOutputCoverageMatrix.ja);
 assertCategory("generated reference markers", inventory.generatedReferenceMarkers);
@@ -118,6 +122,7 @@ auditGrammarSectionCoverageReadiness(inventory.grammarSectionCoverage);
 auditElementGeneratedCoverageReadiness(inventory.elementGeneratedCoverage);
 await auditExternalInputConfigurationReadiness(inventory.externalInputs, inventory.referencePages);
 auditDiagnosticCoverageMatrixReadiness(inventory.diagnosticCoverageMatrix);
+auditDiagnosticPushSiteClassificationReadiness(inventory.diagnosticPushSiteClassification);
 auditRendererOutputCoverageMatrixReadiness(inventory.rendererOutputCoverageMatrix);
 auditFeatureMappingReadiness();
 printReport();
@@ -246,7 +251,7 @@ function auditCoverageMarkerReadiness(referenceCoverage) {
 
 function auditFeatureMappingReadiness() {
   warnings.push(`Feature-to-Reference mapping has ${inventory.featureMapping.reportOnly.length} report-only family/families that still need stable markers before missing prose becomes release-blocking.`);
-  warnings.push(`Diagnostic and renderer/export output semantic coverage remains manual for ${rendererReportOnlyFeatureCount()} report-only renderer/export feature(s) outside the stable matrix clusters.`);
+  warnings.push(`Diagnostic prose depth and renderer/export output semantic coverage remain manual outside stable matrix clusters.`);
 }
 
 function featureMappingInventory() {
@@ -286,6 +291,13 @@ function featureMappingInventory() {
         count: inventory.externalInputs.categories.length,
         failureMode: "Missing category marker in any coverage target page is a failure.",
         evidence: "markvspec-coverage:external-input.*"
+      },
+      {
+        id: "feature-mapping.diagnostic-push-sites",
+        family: "Diagnostic push site classification family",
+        count: inventory.diagnosticPushSites.length,
+        failureMode: "A Stable covered push site must have a diagnostic matrix row, classification row source, and coverage target.",
+        evidence: "Diagnostic Coverage Matrix and Diagnostic Push Site Classification Matrix"
       }
     ],
     reportOnly: [
@@ -302,10 +314,10 @@ function featureMappingInventory() {
         reason: "Generated element rows are checked; type/property explanation depth is not markerized item by item."
       },
       {
-        id: "feature-mapping.diagnostics",
-        family: "Diagnostic codes and push sites",
-        count: inventory.diagnosticCodes.length + inventory.diagnosticPushSites.length,
-        reason: "Diagnostic codes are matrix-checked; push-site semantic depth still needs reviewer judgment."
+        id: "feature-mapping.diagnostic-prose-depth",
+        family: "Diagnostic prose-depth coverage",
+        count: inventory.diagnosticPushSites.length,
+        reason: "Diagnostic codes and stable push-site source entries are checked; prose depth per trigger remains reviewer judgment."
       },
       {
         id: "feature-mapping.renderer-export",
@@ -515,6 +527,44 @@ function auditDiagnosticCoverageMatrixReadiness(matrix) {
   }
 }
 
+function auditDiagnosticPushSiteClassificationReadiness(matrix) {
+  const pushSitesByCode = diagnosticPushSitesByCode();
+  for (const [locale, rows] of [["en", matrix.en], ["ja", matrix.ja]]) {
+    const rowsByCode = new Map(rows.map((row) => [row.code, row]));
+    const codeCoverageRows = new Map(inventory.diagnosticCoverageMatrix[locale].map((row) => [row.code, row]));
+    for (const [code, pushSites] of pushSitesByCode) {
+      const row = rowsByCode.get(code);
+      if (!row) {
+        warnings.push(`diagnostic push site classification ${locale}: ${code} has ${pushSites.length} unclassified push site(s).`);
+        continue;
+      }
+      const classification = normalizeMatrixCell(row.classification);
+      if (classification !== "stable covered") {
+        warnings.push(`diagnostic push site classification ${locale}: ${code} is ${row.classification || "unclassified"}, not Stable covered.`);
+        continue;
+      }
+      const codeCoverage = codeCoverageRows.get(code);
+      if (!codeCoverage || codeCoverage.coverageTargets.length === 0) {
+        failures.push(`diagnostic push site classification ${locale}: ${code} is Stable covered but lacks a diagnostic coverage matrix row with targets.`);
+      }
+      if (row.coverageTargets.length === 0) {
+        failures.push(`diagnostic push site classification ${locale}: ${code} is Stable covered but has no user-facing coverage target.`);
+      }
+      const rowSources = new Set(row.sources);
+      for (const pushSite of pushSites) {
+        if (!rowSources.has(pushSite.source)) {
+          failures.push(`diagnostic push site classification ${locale}: ${code} is Stable covered but ${pushSite.source} is missing from the classification entry.`);
+        }
+      }
+      for (const source of rowSources) {
+        if (!pushSites.some((pushSite) => pushSite.source === source)) {
+          failures.push(`diagnostic push site classification ${locale}: ${code} lists stale source ${source}.`);
+        }
+      }
+    }
+  }
+}
+
 function auditRendererOutputCoverageMatrixReadiness(matrix) {
   const localeRows = [
     ["en", matrix.en],
@@ -614,6 +664,13 @@ async function diagnosticCoverageMatrixInventory() {
   };
 }
 
+async function diagnosticPushSiteClassificationInventory() {
+  return {
+    en: parseDiagnosticPushSiteClassification(await requiredSource("docs/en/maintainers/reference-coverage-audit.md"), "docs/en/maintainers/reference-coverage-audit.md"),
+    ja: parseDiagnosticPushSiteClassification(await requiredSource("docs/ja/maintainers/reference-coverage-audit.md"), "docs/ja/maintainers/reference-coverage-audit.md")
+  };
+}
+
 async function rendererOutputCoverageMatrixInventory() {
   return {
     en: parseRendererOutputCoverageMatrix(await requiredSource("docs/en/maintainers/reference-coverage-audit.md"), "docs/en/maintainers/reference-coverage-audit.md"),
@@ -629,6 +686,17 @@ function parseDiagnosticCoverageMatrix(source, filePath) {
     triggerCategory: stripInlineMarkdown(cells[2]),
     coverageTargets: markdownLinks(cells[3]),
     status: stripInlineMarkdown(cells[4])
+  })).filter((row) => row.code);
+}
+
+function parseDiagnosticPushSiteClassification(source, filePath) {
+  const rows = markdownTableRowsAfterHeading(source, /diagnostic push site classification matrix/iu, filePath);
+  return rows.map((cells) => ({
+    code: stripInlineMarkdown(cells[0]),
+    sources: backtickedTerms(cells[1]),
+    classification: stripInlineMarkdown(cells[2]),
+    coverageTargets: markdownLinks(cells[3]),
+    notes: stripInlineMarkdown(cells[4])
   })).filter((row) => row.code);
 }
 
@@ -683,6 +751,10 @@ function markdownLinks(cell) {
     label: stripInlineMarkdown(match[1]),
     target: match[2]
   }));
+}
+
+function backtickedTerms(cell) {
+  return [...cell.matchAll(/`([^`]+)`/gu)].map((match) => match[1]);
 }
 
 function stripInlineMarkdown(value) {
@@ -987,6 +1059,53 @@ async function rendererOutputFeatures() {
   return features;
 }
 
+async function diagnosticPushSiteInventory() {
+  const supportedCodes = new Set(inventory.diagnosticCodes.map((entry) => entry.code));
+  const files = (await collectFiles("packages/core/src")).filter((filePath) => [".ts", ".tsx"].includes(extname(filePath)));
+  const entries = [];
+  for (const filePath of files) {
+    const source = await readFile(join(rootDir, filePath), "utf8");
+    const detections = [
+      ...[...source.matchAll(/createMarkVSpecDiagnostic\(\s*["'][^"']+["']\s*,\s*["']([^"']+)["']/gsu)].map((match) => ({
+        code: match[1],
+        kind: "createMarkVSpecDiagnostic"
+      })),
+      ...[...source.matchAll(/code:\s*["']([^"']+)["']/gu)].map((match) => ({
+        code: match[1],
+        kind: "diagnostic-object-code"
+      }))
+    ].filter((entry) => supportedCodes.has(entry.code));
+
+    const byCode = new Map();
+    for (const detection of detections) {
+      const key = `${detection.code}:${detection.kind}`;
+      const existing = byCode.get(key) ?? {
+        id: `diagnostic-push.${detection.code}.${slug(filePath)}.${detection.kind}`,
+        code: detection.code,
+        source: filePath,
+        kind: detection.kind,
+        count: 0
+      };
+      existing.count += 1;
+      byCode.set(key, existing);
+    }
+    entries.push(...byCode.values());
+  }
+  return entries.sort((left, right) =>
+    left.code.localeCompare(right.code) || left.source.localeCompare(right.source) || left.kind.localeCompare(right.kind)
+  );
+}
+
+function diagnosticPushSitesByCode() {
+  const byCode = new Map();
+  for (const pushSite of inventory.diagnosticPushSites) {
+    const entries = byCode.get(pushSite.code) ?? [];
+    entries.push(pushSite);
+    byCode.set(pushSite.code, entries);
+  }
+  return new Map([...byCode.entries()].sort(([left], [right]) => left.localeCompare(right)));
+}
+
 async function sourceMatches(rootRelativePath, pattern, prefix) {
   const files = (await collectFiles(rootRelativePath)).filter((filePath) => [".ts", ".tsx"].includes(extname(filePath)));
   const entries = [];
@@ -1155,6 +1274,7 @@ function printReport() {
     ["element properties", inventory.elementProperties.length],
     ["diagnostic codes", inventory.diagnosticCodes.length],
     ["diagnostic push sites", inventory.diagnosticPushSites.length],
+    ["diagnostic push site classification rows", inventory.diagnosticPushSiteClassification.en.length],
     ["renderer output features", inventory.rendererOutputFeatures.length],
     ["diagnostic coverage matrix rows", inventory.diagnosticCoverageMatrix.en.length],
     ["stable renderer/export output matrix clusters", stableRendererOutputClusters().length],
@@ -1218,6 +1338,14 @@ function printDiagnosticCoverageMatrixReport() {
       .map((entry) => entry.code)
       .filter((code) => !rows.some((row) => row.code === code));
     console.log(`- ${locale}: ${rows.length} row(s), missing diagnostic codes: ${missing.length}`);
+  }
+  const pushSitesByCode = diagnosticPushSitesByCode();
+  console.log("Diagnostic push site classification report:");
+  for (const locale of ["en", "ja"]) {
+    const rows = inventory.diagnosticPushSiteClassification[locale];
+    const stableRows = rows.filter((row) => normalizeMatrixCell(row.classification) === "stable covered");
+    const missing = [...pushSitesByCode.keys()].filter((code) => !rows.some((row) => row.code === code));
+    console.log(`- ${locale}: ${stableRows.length} stable row(s), ${missing.length} unclassified code(s), ${inventory.diagnosticPushSites.length} detected push site source(s)`);
   }
 }
 

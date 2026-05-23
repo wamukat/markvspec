@@ -141,6 +141,8 @@ stable coverage anchors are broken:
   generated block.
 - A diagnostic code is missing from the Diagnostic Coverage Matrix, or a
   diagnostic matrix row has no user-facing coverage target.
+- A `Stable covered` diagnostic push site classification is missing its code
+  matrix row, source file entry, or user-facing coverage target.
 - A stable renderer/export output cluster is missing from the Renderer / Export
   Output Coverage Matrix, has no user-facing coverage target, or loses its
   expected implementation signal.
@@ -205,12 +207,15 @@ Stable families:
 - External input/configuration category family:
   `markvspec-coverage:external-input.*` markers in the required coverage target
   pages.
+- Diagnostic push site classification family: every `Stable covered` diagnostic
+  push site source must have a Diagnostic Coverage Matrix row and a Diagnostic
+  Push Site Classification Matrix source entry.
 
 Report-only families:
 
 - Structured item prose coverage.
 - Element prose-depth coverage.
-- Diagnostic codes and push sites.
+- Diagnostic prose-depth coverage.
 - Renderer/export output features.
 - Examples and example-supported patterns.
 
@@ -312,6 +317,36 @@ inventory in both English and Japanese. Missing rows, missing user-facing
 coverage targets, and non-`Covered` status values are failures. Diagnostic push
 site semantic depth still requires reviewer judgment because a push site can
 share a diagnostic code or require broader prose review.
+
+## Diagnostic Push Site Classification Matrix
+
+This matrix classifies detected diagnostic push sites by diagnostic code. A
+`Stable covered` entry means the listed source files emit the same user-facing
+fix described by the Diagnostic Coverage Matrix row. If a new source file starts
+emitting the same code, the classification row must include that source or the
+audit fails.
+
+| Diagnostic Code | Source Files | Classification | User-Facing Coverage | Notes |
+| --- | --- | --- | --- | --- |
+| `frontMatter.missingYaml` | `packages/core/src/markdown-document.ts` | Stable covered | [File Format](../reference/file-format.md), [Start](../start/index.md) | Same fix: add YAML Front Matter. |
+| `frontMatter.missingRequired` | `packages/core/src/parser.ts` | Stable covered | [File Format](../reference/file-format.md), [Start](../start/index.md) | Same fix: add required Front Matter fields. |
+| `section.recommendedOrder` | `packages/core/src/markdown-section-semantic.ts` | Stable covered | [Sections](../reference/sections.md), [Grammar](../reference/grammar.md) | Same fix: reorder recognized sections. |
+| `layout.missingViewport` | `packages/core/src/layout-section-semantic.ts` | Stable covered | [Sections](../reference/sections.md), [Grammar](../reference/grammar.md) | Same fix: add a viewport suffix. |
+| `layout.groupIgnoredWithoutViewport` | `packages/core/src/layout-section-semantic.ts` | Stable covered | [Sections](../reference/sections.md) | Same fix: place the group under a viewported Layout section. |
+| `layout.unsupportedItemsEntry` | `packages/core/src/validator.ts` | Stable covered | [Sections](../reference/sections.md), [IDs](../reference/ids.md) | Same fix: use `L-*` or `E-*` entries. |
+| `element.unknownType` | `packages/core/src/validator.ts` | Stable covered | [Elements](../reference/elements.md), [Grammar](../reference/grammar.md) | Same fix: use a supported element type. |
+| `action.missingTrigger` | `packages/core/src/validator.ts` | Stable covered | [Actions](../reference/actions.md), [Elements](../reference/elements.md), [Sections](../reference/sections.md) | Same fix: add one canonical trigger source. |
+| `action.invalidTrigger` | `packages/core/src/validator.ts` | Stable covered | [Actions](../reference/actions.md), [Grammar](../reference/grammar.md) | Same fix: use a supported trigger shape. |
+| `action.process.multipleExecutionDetails` | `packages/core/src/action-process-validator.ts` | Stable covered | [Actions](../reference/actions.md), [Grammar](../reference/grammar.md) | Same fix: split execution details into separate Process steps. |
+| `action.process.mixesExecutionDetailAndImmediateEffects` | `packages/core/src/action-process-validator.ts` | Stable covered | [Actions](../reference/actions.md), [Grammar](../reference/grammar.md) | Same fix: move immediate effects under a case or split the Process. |
+| `action.process.mixesResultClassificationAndImmediateEffects` | `packages/core/src/action-process-validator.ts` | Stable covered | [Actions](../reference/actions.md), [Grammar](../reference/grammar.md) | Same fix: put effects under the classified case. |
+| `action.parallelProcess.caseShouldNotSetStateOrNavigate` | `packages/core/src/validator.ts` | Stable covered | [Actions](../reference/actions.md), [Grammar](../reference/grammar.md) | Same fix: defer final transitions to Resolve. |
+| `action.process.caseResponseWithoutReceive` | `packages/core/src/action-process-validator.ts` | Stable covered | [Actions](../reference/actions.md), [Grammar](../reference/grammar.md) | Same fix: receive a response before response-based cases. |
+| `unrepresented-source-text` | `packages/core/src/source-text-diagnostics.ts` | Stable covered | [Grammar](../reference/grammar.md), [Limitations](../reference/limitations.md) | Same fix: move unsupported text to supported syntax or Notes. |
+| `partial.referenceMissing` | `packages/core/src/validator.ts` | Stable covered | [File Format](../reference/file-format.md), [Sections](../reference/sections.md) | Same fix: define the partial in Front Matter. |
+| `validation.ruleMissingElement` | `packages/core/src/validation-diagnostics-validator.ts` | Stable covered | [Validations](../reference/validations.md), [Elements](../reference/elements.md), [IDs](../reference/ids.md) | Same fix: point the validation rule at an existing element. |
+| `previewScenario.missingState` | `packages/core/src/preview-scenario-validator.ts` | Stable covered | [Sections](../reference/sections.md) | Same fix: add `state` to the Preview Scenario. |
+| `previewScenario.samplesMissingElement` | `packages/core/src/preview-scenario-validator.ts` | Stable covered | [Sections](../reference/sections.md), [Elements](../reference/elements.md), [IDs](../reference/ids.md) | Same fix: target existing elements in sample rows. |
 
 ## Renderer / Export Output Coverage Matrix
 
