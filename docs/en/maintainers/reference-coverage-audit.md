@@ -382,21 +382,29 @@ especially sensitive because the live preview can show a readable chip while the
 static table accidentally substitutes a label, marker, or sample value for the
 canonical ID or source metadata.
 
-`npm run audit:reference-coverage` compares the initial stable renderer/export
-clusters in this matrix with both English and Japanese rows and with detectable
+`npm run audit:reference-coverage` compares the stable renderer/export clusters
+in this matrix with both English and Japanese rows and with detectable
 implementation signals. The current stable clusters are:
 
 - Screen Basic Info.
+- Static document section order and table of contents.
+- States, state flow, and action transition tables.
+- Marker/ID cells and entity reference chips.
+- Element display source metadata and Display Content Spec.
+- Form Groups and input specification tables.
+- Business Rules, Validations, and Error Codes sections.
 - Export diagnostics section.
 - History table.
 - State Views and Preview Scenarios.
+- Project preview overview, notes, templates, screens, and transitions.
 - Project `document-list` export.
+- Renderer messages and localized labels.
 
 Missing stable rows, missing user-facing coverage targets, missing
 representative examples, missing artifact checks, and missing implementation
-signals are failures. Renderer/export output signals outside these stable
-clusters remain report-only until their artifact review scope and failure modes
-are triaged.
+signals are failures. Renderer/export output signals outside these stable rows
+are grouped into report-only clusters with reasons until their artifact review
+scope and failure modes are triaged.
 
 ## First Generated Report
 

@@ -323,7 +323,7 @@ function featureMappingInventory() {
         id: "feature-mapping.renderer-export",
         family: "Renderer/export output features",
         count: inventory.rendererOutputFeatures.length,
-        reason: "Initial stable output clusters are matrix-checked; remaining output signals require artifact/manual review before marker-level failure is safe."
+        reason: "Stable output clusters are matrix-checked; remaining output signals require artifact/manual review before marker-level failure is safe."
       },
       {
         id: "feature-mapping.examples",
@@ -610,6 +610,29 @@ function stableRendererOutputClusters() {
       ]
     },
     {
+      label: "Static document section order and table of contents",
+      normalizedClusters: [
+        normalizeMatrixCell("Static document section order and table of contents"),
+        normalizeMatrixCell("static document section order と table of contents")
+      ],
+      signals: [
+        { source: "packages/document-renderer/src/index.ts", value: "function:renderStaticDesignDocumentHtml" },
+        { source: "packages/document-renderer/src/index.ts", value: "message:contents" }
+      ]
+    },
+    {
+      label: "States, state flow, and action transition tables",
+      normalizedClusters: [
+        normalizeMatrixCell("States, state flow, and action transition tables"),
+        normalizeMatrixCell("States、state flow、action transition tables")
+      ],
+      signals: [
+        { source: "packages/document-renderer/src/index.ts", value: "heading:states" },
+        { source: "packages/document-renderer/src/index.ts", value: "heading:state-flow" },
+        { source: "packages/document-renderer/src/index.ts", value: "message:actionTransitions" }
+      ]
+    },
+    {
       label: "Export diagnostics section",
       normalizedClusters: [normalizeMatrixCell("Export diagnostics section")],
       signals: [
@@ -626,6 +649,54 @@ function stableRendererOutputClusters() {
       ]
     },
     {
+      label: "Marker/ID cells and entity reference chips",
+      normalizedClusters: [
+        normalizeMatrixCell("Marker/ID cells and entity reference chips"),
+        normalizeMatrixCell("Marker/ID cells と entity reference chips")
+      ],
+      signals: [
+        { source: "packages/document-renderer/src/index.ts", value: "message:marker" },
+        { source: "packages/document-renderer/src/index.ts", value: "message:id" },
+        { source: "packages/vscode-extension/src/preview-html-postprocess.ts", value: "class:mm-id mm-marker mm-marker-(layout|element|action)" }
+      ]
+    },
+    {
+      label: "Element display source metadata and Display Content Spec",
+      normalizedClusters: [
+        normalizeMatrixCell("Element display source metadata and Display Content Spec"),
+        normalizeMatrixCell("Element display source metadata と Display Content Spec")
+      ],
+      signals: [
+        { source: "packages/document-renderer/src/static-element-spec.ts", value: "function:renderDisplayContentSpecBox" },
+        { source: "packages/document-renderer/src/static-element-spec.ts", value: "message:displayContentSpec" },
+        { source: "packages/document-renderer/src/static-element-spec.ts", value: "message:displaySource" }
+      ]
+    },
+    {
+      label: "Form Groups and input specification tables",
+      normalizedClusters: [
+        normalizeMatrixCell("Form Groups and input specification tables"),
+        normalizeMatrixCell("Form Groups と input specification tables")
+      ],
+      signals: [
+        { source: "packages/document-renderer/src/index.ts", value: "heading:form-groups" },
+        { source: "packages/document-renderer/src/static-element-spec.ts", value: "function:renderInputFormSpecBox" },
+        { source: "packages/document-renderer/src/static-element-spec.ts", value: "message:inputFormSpec" }
+      ]
+    },
+    {
+      label: "Business Rules, Validations, and Error Codes sections",
+      normalizedClusters: [
+        normalizeMatrixCell("Business Rules, Validations, and Error Codes sections"),
+        normalizeMatrixCell("Business Rules、Validations、Error Codes sections")
+      ],
+      signals: [
+        { source: "packages/document-renderer/src/index.ts", value: "heading:business-rules" },
+        { source: "packages/document-renderer/src/index.ts", value: "heading:validations" },
+        { source: "packages/document-renderer/src/index.ts", value: "heading:error-codes" }
+      ]
+    },
+    {
       label: "State Views and Preview Scenarios",
       normalizedClusters: [
         normalizeMatrixCell("State Views and Preview Scenarios"),
@@ -637,11 +708,34 @@ function stableRendererOutputClusters() {
       ]
     },
     {
+      label: "Project preview overview, notes, templates, screens, and transitions",
+      normalizedClusters: [
+        normalizeMatrixCell("Project preview overview, notes, templates, screens, and transitions"),
+        normalizeMatrixCell("Project preview overview、notes、templates、screens、transitions")
+      ],
+      signals: [
+        { source: "packages/vscode-extension/src/project-preview-document.ts", value: "function:renderProjectDesignDocumentHtml" },
+        { source: "packages/vscode-extension/src/project-preview-document.ts", value: "class:doc-section project-notes-section" }
+      ]
+    },
+    {
       label: "Project `document-list` export",
       normalizedClusters: [normalizeMatrixCell("Project `document-list` export")],
       signals: [
         { source: "packages/exporter/src/index.ts", value: "function:exportMarkVSpecDocumentList" },
         { source: "packages/exporter/src/index.ts", value: "markdown-heading:Document List" }
+      ]
+    },
+    {
+      label: "Renderer messages and localized labels",
+      normalizedClusters: [
+        normalizeMatrixCell("Renderer messages and localized labels"),
+        normalizeMatrixCell("Renderer messages と localized labels")
+      ],
+      signals: [
+        { source: "packages/core/src/renderer-message-loader.ts", value: "function:resolveRendererMessages" },
+        { source: "packages/exporter/src/index.ts", value: "message:renderFailed" },
+        { source: "packages/exporter/src/index.ts", value: "message:showSource" }
       ]
     }
   ];
@@ -1030,6 +1124,7 @@ async function rendererOutputFeatures() {
     "packages/document-renderer/src/static-element-spec.ts",
     "packages/document-renderer/src/static-state-view-renderer.ts",
     "packages/exporter/src/index.ts",
+    "packages/core/src/renderer-message-loader.ts",
     "packages/vscode-extension/src/project-preview-document.ts",
     "packages/vscode-extension/src/preview-design-document-renderer.ts",
     "packages/vscode-extension/src/preview-html-postprocess.ts"
@@ -1278,6 +1373,7 @@ function printReport() {
     ["renderer output features", inventory.rendererOutputFeatures.length],
     ["diagnostic coverage matrix rows", inventory.diagnosticCoverageMatrix.en.length],
     ["stable renderer/export output matrix clusters", stableRendererOutputClusters().length],
+    ["report-only renderer/export output clusters", rendererReportOnlyClusters().length],
     ["report-only renderer/export output features", rendererReportOnlyFeatureCount()],
     ["generated Reference marker files", inventory.generatedReferenceMarkers.length],
     ["Reference coverage features", inventory.referenceCoverage.features.length],
@@ -1360,6 +1456,10 @@ function printRendererOutputCoverageMatrixReport() {
     console.log(`- ${cluster.label}: en:${enRow ? "covered" : "missing"}, ja:${jaRow ? "covered" : "missing"}, signals:${cluster.signals.length}`);
   }
   console.log(`  Report-only renderer/export output features: ${rendererReportOnlyFeatureCount()}`);
+  console.log("  Report-only renderer/export output clusters:");
+  for (const cluster of rendererReportOnlyClusters()) {
+    console.log(`  - ${cluster.label}: ${cluster.count} feature(s); reason: ${cluster.reason}`);
+  }
 }
 
 function printReferenceCoverageMarkerReport() {
@@ -1434,8 +1534,94 @@ function printFeatureMappingReport() {
 }
 
 function rendererReportOnlyFeatureCount() {
+  return rendererReportOnlyFeatures().length;
+}
+
+function rendererReportOnlyFeatures() {
   const stableSignals = new Set(stableRendererOutputClusters().flatMap((cluster) =>
     cluster.signals.map((signal) => `${signal.source}\0${signal.value}`)
   ));
-  return inventory.rendererOutputFeatures.filter((feature) => !stableSignals.has(`${feature.source}\0${feature.value}`)).length;
+  return inventory.rendererOutputFeatures.filter((feature) => !stableSignals.has(`${feature.source}\0${feature.value}`));
+}
+
+function rendererReportOnlyClusters() {
+  const clusters = new Map();
+  for (const feature of rendererReportOnlyFeatures()) {
+    const classification = rendererReportOnlyClusterForFeature(feature);
+    const existing = clusters.get(classification.id) ?? {
+      id: classification.id,
+      label: classification.label,
+      reason: classification.reason,
+      count: 0
+    };
+    existing.count += 1;
+    clusters.set(classification.id, existing);
+  }
+  return [...clusters.values()].sort((left, right) => left.label.localeCompare(right.label));
+}
+
+function rendererReportOnlyClusterForFeature(feature) {
+  if (feature.source === "packages/document-renderer/src/index.ts") {
+    if (feature.value.startsWith("message:")) {
+      return {
+        id: "document-renderer-labels",
+        label: "Document renderer labels and table columns",
+        reason: "Labels are localized through renderer messages; row-level prose depth and artifact quality remain manual."
+      };
+    }
+    if (feature.value.startsWith("class:") || feature.value.startsWith("function:")) {
+      return {
+        id: "document-renderer-support",
+        label: "Document renderer layout, tables, print, and helper support",
+        reason: "Shared rendering support affects many sections and requires artifact/manual review before marker-level failure is safe."
+      };
+    }
+  }
+  if (feature.source === "packages/document-renderer/src/static-element-spec.ts") {
+    return {
+      id: "element-spec-details",
+      label: "Element detail spec labels, chips, and helper rows",
+      reason: "Stable Display Content/Input Form clusters cover the main boxes; detailed columns and chips still need artifact/manual review."
+    };
+  }
+  if (feature.source === "packages/document-renderer/src/static-state-view-renderer.ts") {
+    return {
+      id: "state-view-details",
+      label: "State view layout, condition, sample, and wireframe details",
+      reason: "Stable State Views cluster covers the section; detailed condition/sample/wireframe rendering remains manual."
+    };
+  }
+  if (feature.source === "packages/exporter/src/index.ts") {
+    return {
+      id: "exporter-runtime-ui",
+      label: "Exporter runtime UI, diagnostics severity, and file helpers",
+      reason: "Stable export diagnostics/document-list clusters cover primary outputs; runtime UI and helper behavior remain manual."
+    };
+  }
+  if (feature.source === "packages/vscode-extension/src/project-preview-document.ts") {
+    return {
+      id: "project-preview-details",
+      label: "Project preview tables, diagnostics, and note details",
+      reason: "Stable project preview cluster covers the main document; table/detail quality remains artifact/manual review."
+    };
+  }
+  if (feature.source === "packages/vscode-extension/src/preview-design-document-renderer.ts" || feature.source === "packages/vscode-extension/src/preview-html-postprocess.ts") {
+    return {
+      id: "vscode-preview-postprocess",
+      label: "VS Code preview render-key and HTML postprocess behavior",
+      reason: "Preview-only plumbing is visible through VS Code artifacts and needs manual/regression review before stable marker checks."
+    };
+  }
+  if (feature.source === "packages/core/src/renderer-message-loader.ts") {
+    return {
+      id: "renderer-message-loader-details",
+      label: "Renderer message loader diagnostics and resolution details",
+      reason: "Stable localized labels cluster covers primary message resolution; detailed loader diagnostics remain manual."
+    };
+  }
+  return {
+    id: "renderer-export-other",
+    label: "Other renderer/export output signals",
+    reason: "Unclassified output signal requires triage before stable coverage."
+  };
 }

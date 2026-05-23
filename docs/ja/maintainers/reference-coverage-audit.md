@@ -367,20 +367,28 @@ preview では readable chip に見えていても、static table 側で canonic
 metadata の代わりに label、marker、sample value を出してしまう mismatch が起きやすい
 ためです。
 
-`npm run audit:reference-coverage` は、この matrix の初期 stable renderer/export cluster
-を English / Japanese 両方の row と、検出可能な implementation signal に照合します。
+`npm run audit:reference-coverage` は、この matrix の stable renderer/export cluster を
+English / Japanese 両方の row と、検出可能な implementation signal に照合します。
 現在の stable cluster は次の通りです。
 
 - Screen Basic Info。
+- static document section order と table of contents。
+- States、state flow、action transition tables。
+- Marker/ID cells と entity reference chips。
+- Element display source metadata と Display Content Spec。
+- Form Groups と input specification tables。
+- Business Rules、Validations、Error Codes sections。
 - Export diagnostics section。
 - History table。
 - State Views と Preview Scenarios。
+- Project preview overview、notes、templates、screens、transitions。
 - Project `document-list` export。
+- Renderer messages と localized labels。
 
 stable row 欠落、user-facing coverage target 欠落、representative example 欠落、artifact
-check 欠落、implementation signal 欠落は failure です。これら以外の renderer/export
-output signal は、artifact review scope と failure mode を triage するまで report-only として
-残します。
+check 欠落、implementation signal 欠落は failure です。これらの stable row 外の
+renderer/export output signal は、artifact review scope と failure mode を triage するまで
+理由付きの report-only cluster にまとめます。
 
 ## first generated report
 
