@@ -1,5 +1,7 @@
 # CLI
 
+<!-- markvspec-coverage:reference.page.cli -->
+
 Use the CLI when you want to validate a source file or export review artifacts outside the VS Code extension.
 
 The usual path is still:

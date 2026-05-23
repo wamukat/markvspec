@@ -1,5 +1,7 @@
 # Elements
 
+<!-- markvspec-coverage:reference.page.elements -->
+
 `## Elements` describes UI elements by meaning. MarkVSpec records element type, label, text, value, variant, tone, and action instead of visual implementation details.
 
 ## Syntax You Can Write

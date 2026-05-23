@@ -1,5 +1,7 @@
 # Validations
 
+<!-- markvspec-coverage:reference.page.validations -->
+
 Validations cover validation contracts and error display. Put input metadata in `## Elements`, validation rules and messages in `## Field Validations`, and screen or business decisions in [Business Rules](rules.md).
 
 ## Boundary

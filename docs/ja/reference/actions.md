@@ -1,5 +1,7 @@
 # Actions
 
+<!-- markvspec-coverage:reference.page.actions -->
+
 `## Actions` は user interaction、HTTP request、state change、navigation、partial update を結びます。button や link は element の `action: A-*` から参照し、画面読み込みなどの lifecycle event は `## Events` で接続します。
 
 ## 書ける構文

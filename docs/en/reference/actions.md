@@ -1,5 +1,7 @@
 # Actions
 
+<!-- markvspec-coverage:reference.page.actions -->
+
 `## Actions` connects user interaction, HTTP requests, state changes, navigation, and partial updates. Buttons and links refer to actions with `action: A-*`; lifecycle events such as page load are connected in `## Events`.
 
 ## Syntax You Can Write

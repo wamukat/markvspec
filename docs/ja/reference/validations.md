@@ -1,5 +1,7 @@
 # Validations
 
+<!-- markvspec-coverage:reference.page.validations -->
+
 Validations は入力値の検証契約と error 表示を扱います。入力欄そのものの metadata は `## Elements`、検証ルールと message は `## Field Validations`、画面や業務の判断条件は [Business Rules](rules.md) に分けます。
 
 ## 境界

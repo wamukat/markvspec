@@ -1,5 +1,7 @@
 # File Format
 
+<!-- markvspec-coverage:reference.page.file-format -->
+
 A `.vspec.md` file is the MarkVSpec authoring source. One file normally describes one screen, template, or partial.
 A `.vspec.project.md` file describes a project index that points to screen and template files.
 

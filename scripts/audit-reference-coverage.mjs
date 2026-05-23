@@ -71,6 +71,7 @@ inventory.diagnosticPushSites = await sourceMatches("packages/core/src", /diagno
 inventory.rendererOutputFeatures = await rendererOutputFeatures();
 inventory.generatedReferenceMarkers = await generatedReferenceMarkers();
 inventory.referencePages = await referencePageInventory();
+inventory.referenceCoverage = referenceCoverageInventory(inventory.referencePages);
 inventory.vscodeCommands = await vscodeCommandInventory();
 inventory.cliSurface = await cliSurfaceInventory();
 inventory.examples = await exampleInventory();
@@ -82,6 +83,7 @@ assertCategory("element properties", inventory.elementProperties);
 assertCategory("diagnostic codes", inventory.diagnosticCodes);
 assertCategory("renderer output features", inventory.rendererOutputFeatures);
 assertCategory("generated reference markers", inventory.generatedReferenceMarkers);
+assertCategory("reference coverage features", inventory.referenceCoverage.features);
 assertCategory("EN reference pages", inventory.referencePages.en);
 assertCategory("JA reference pages", inventory.referencePages.ja);
 assertCategory("VS Code commands", inventory.vscodeCommands);
@@ -90,7 +92,7 @@ assertCategory("examples", inventory.examples.catalogEntries);
 
 auditReferencePageSymmetry(inventory.referencePages);
 auditRequiredGeneratedMarkers(inventory.generatedReferenceMarkers);
-auditCoverageMarkerReadiness();
+auditCoverageMarkerReadiness(inventory.referenceCoverage);
 auditFeatureMappingReadiness();
 printReport();
 
@@ -114,7 +116,40 @@ async function referencePageEntry(filePath) {
     path: filePath,
     basename: filePath.split("/").pop(),
     headings: headings(source),
-    generatedMarkers: generatedMarkers(source)
+    generatedMarkers: generatedMarkers(source),
+    coverageMarkers: coverageMarkers(source)
+  };
+}
+
+function referenceCoverageInventory(pages) {
+  const pageFeatures = unique(
+    pages.en
+      .concat(pages.ja)
+      .map((page) => page.basename)
+      .filter((basename) => basename !== "index.md")
+      .map((basename) => `reference.page.${basename.replace(/\.md$/u, "")}`)
+  ).map((id) => ({
+    id,
+    requiredLocales: ["en", "ja"],
+    source: "docs/*/reference page set"
+  }));
+
+  const markers = [];
+  for (const locale of ["en", "ja"]) {
+    for (const page of pages[locale]) {
+      for (const marker of page.coverageMarkers) {
+        markers.push({
+          id: marker,
+          locale,
+          path: page.path
+        });
+      }
+    }
+  }
+
+  return {
+    features: pageFeatures,
+    markers
   };
 }
 
@@ -167,12 +202,19 @@ function auditRequiredGeneratedMarkers(markers) {
   }
 }
 
-function auditCoverageMarkerReadiness() {
-  const markerCount = inventory.referencePages.en
-    .concat(inventory.referencePages.ja)
-    .reduce((count, page) => count + page.generatedMarkers.filter((marker) => marker.startsWith("reference-coverage")).length, 0);
-  if (markerCount === 0) {
-    warnings.push("Reference coverage markers are not present yet; feature-to-prose mapping remains manual until a follow-up adds stable feature IDs.");
+function auditCoverageMarkerReadiness(referenceCoverage) {
+  if (referenceCoverage.markers.length === 0) {
+    warnings.push("Reference coverage markers are not present yet; feature-to-prose mapping remains manual until stable feature IDs are added.");
+    return;
+  }
+
+  const markerKeys = new Set(referenceCoverage.markers.map((entry) => `${entry.locale}:${entry.id}`));
+  for (const feature of referenceCoverage.features) {
+    for (const locale of feature.requiredLocales) {
+      if (!markerKeys.has(`${locale}:${feature.id}`)) {
+        warnings.push(`${feature.id}: missing ${locale.toUpperCase()} Reference coverage marker.`);
+      }
+    }
   }
 }
 
@@ -300,6 +342,10 @@ function generatedMarkers(source) {
   return [...source.matchAll(/<!-- markvspec-generated:([^:]+):start -->/gu)].map((match) => match[1]);
 }
 
+function coverageMarkers(source) {
+  return [...source.matchAll(/<!--\s*markvspec-coverage:([a-z0-9_.-]+)\s*-->/gu)].map((match) => match[1]);
+}
+
 function headings(source) {
   const entries = [];
   let activeFence;
@@ -378,6 +424,8 @@ function printReport() {
     ["diagnostic push sites", inventory.diagnosticPushSites.length],
     ["renderer output features", inventory.rendererOutputFeatures.length],
     ["generated Reference marker files", inventory.generatedReferenceMarkers.length],
+    ["Reference coverage features", inventory.referenceCoverage.features.length],
+    ["Reference coverage markers", inventory.referenceCoverage.markers.length],
     ["EN Reference pages", inventory.referencePages.en.length],
     ["JA Reference pages", inventory.referencePages.ja.length],
     ["VS Code commands", inventory.vscodeCommands.length],
@@ -391,6 +439,8 @@ function printReport() {
     console.log(`- ${label}: ${count}`);
   }
 
+  printReferenceCoverageMarkerReport();
+
   if (warnings.length > 0) {
     console.log("\nWarnings:");
     for (const warning of warnings) {
@@ -401,4 +451,21 @@ function printReport() {
   }
 
   console.log(`\nFailures: ${failures.length}`);
+}
+
+function printReferenceCoverageMarkerReport() {
+  if (!inventory.referenceCoverage || inventory.referenceCoverage.features.length === 0) {
+    return;
+  }
+  const markersByLocaleAndId = new Map(
+    inventory.referenceCoverage.markers.map((entry) => [`${entry.locale}:${entry.id}`, entry])
+  );
+  console.log("\nReference coverage marker report:");
+  for (const feature of inventory.referenceCoverage.features) {
+    const statuses = feature.requiredLocales.map((locale) => {
+      const marker = markersByLocaleAndId.get(`${locale}:${feature.id}`);
+      return marker ? `${locale}:${marker.path}` : `${locale}:missing`;
+    });
+    console.log(`- ${feature.id}: ${statuses.join(", ")}`);
+  }
 }

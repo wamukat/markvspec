@@ -1,5 +1,7 @@
 # Sections
 
+<!-- markvspec-coverage:reference.page.sections -->
+
 Sections は `.vspec.md` の本文を分割する top-level heading です。MarkVSpec は section 名から、後続の object をどう読むかを判断します。
 
 ## 書ける構文

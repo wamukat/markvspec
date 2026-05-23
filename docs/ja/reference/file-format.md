@@ -1,5 +1,7 @@
 # ファイル形式
 
+<!-- markvspec-coverage:reference.page.file-format -->
+
 `.vspec.md` は MarkVSpec の作成元です。1ファイルは原則として1つの画面、テンプレート、partial を表します。
 `.vspec.project.md` は、複数の画面ファイルやテンプレートファイルを参照するプロジェクトインデックスを表します。
 

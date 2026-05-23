@@ -135,6 +135,30 @@ yet. Missing Reference page/section findings should be promoted from warning to
 release-blocking failure only after the first generated report has been triaged
 and stable feature IDs or coverage markers exist.
 
+## Coverage Markers
+
+Reference coverage markers use this HTML comment form:
+
+```html
+<!-- markvspec-coverage:reference.page.actions -->
+```
+
+Marker IDs must be stable, lowercase feature IDs using `.` and `-` as
+separators. Do not reuse `markvspec-generated:*` markers for coverage; generated
+markers prove that generated tables exist, while coverage markers map a product
+feature to explanatory prose.
+
+The first supported marker family is `reference.page.<basename>`, one marker per
+non-index Reference page in both English and Japanese. For example,
+`reference.page.actions` must appear in both `docs/en/reference/actions.md` and
+`docs/ja/reference/actions.md`.
+
+`npm run audit:reference-coverage` reports the feature ID to Reference marker
+mapping and warns when a required locale marker is missing. Marker absence is a
+warning while the coverage model is being introduced; individual feature
+families can become release-blocking only after their expected marker set is
+stable and triaged.
+
 ## First Generated Report
 
 The first checked report was generated for #1412 with

@@ -132,6 +132,29 @@ coverage をまだ機械判定できない場合は warn に留め、release は
 missing Reference page/section は、初回 report の triage と stable feature ID /
 coverage marker 整備が終わってから、warning から release-blocking failure へ昇格する。
 
+## coverage marker
+
+Reference coverage marker は次の HTML comment 形式で書きます。
+
+```html
+<!-- markvspec-coverage:reference.page.actions -->
+```
+
+marker ID は stable な lowercase feature ID とし、区切りには `.` と `-` を使います。
+`markvspec-generated:*` marker は coverage marker として再利用しません。generated
+marker は generated table の存在証明、coverage marker は product feature と説明 prose
+の対応付けです。
+
+最初に対応する marker family は `reference.page.<basename>` です。`index.md` 以外の
+Reference page ごとに、English と Japanese の両方へ 1 つずつ marker を置きます。
+たとえば `reference.page.actions` は `docs/en/reference/actions.md` と
+`docs/ja/reference/actions.md` の両方に必要です。
+
+`npm run audit:reference-coverage` は feature ID と Reference marker の対応を report
+し、必要な locale marker が欠けている場合は warning を出します。coverage model を
+導入している間、marker 欠落は warning に留めます。個別 feature family を
+release-blocking に昇格するのは、期待 marker set が安定し triage 済みになってからです。
+
 ## first generated report
 
 #1412 で最初の checked report として `npm run audit:reference-coverage` を実行した。

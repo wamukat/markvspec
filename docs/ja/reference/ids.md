@@ -1,5 +1,7 @@
 # ID
 
+<!-- markvspec-coverage:reference.page.ids -->
+
 ID は対象を安定して参照するための名前です。表示ラベルや文言が変わっても、ID はできるだけ変えないようにします。
 
 ## 書ける構文

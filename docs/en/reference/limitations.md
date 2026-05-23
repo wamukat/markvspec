@@ -1,5 +1,7 @@
 # Limitations
 
+<!-- markvspec-coverage:reference.page.limitations -->
+
 MarkVSpec is a text-first screen specification format. It is not a visual design tool or a replacement for implementation code.
 
 ## Syntax You Can Write

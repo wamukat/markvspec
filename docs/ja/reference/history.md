@@ -1,5 +1,7 @@
 # History Reference
 
+<!-- markvspec-coverage:reference.page.history -->
+
 History は 2 つの canonical section で構成されます。
 
 - `## History Fields`: History entry の metadata field を定義します。

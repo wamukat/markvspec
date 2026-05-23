@@ -1,5 +1,7 @@
 # History Reference
 
+<!-- markvspec-coverage:reference.page.history -->
+
 History covers two canonical sections:
 
 - `## History Fields`: defines metadata fields for history entries.

@@ -1,5 +1,7 @@
 # Sections
 
+<!-- markvspec-coverage:reference.page.sections -->
+
 Sections are top-level headings in the `.vspec.md` body. MarkVSpec uses the section name to decide how to read the objects that follow.
 
 ## Syntax You Can Write

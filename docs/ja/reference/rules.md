@@ -1,5 +1,7 @@
 # Business Rules
 
+<!-- markvspec-coverage:reference.page.rules -->
+
 `## Business Rules` は business rule や画面固有の判断条件を書く section です。入力形式の validation、tool が出す diagnostics、実装コードの if 文とは分けて扱います。
 
 権限、account status、plan 制約、在庫、日付の関係、複数 field の関係など、product meaning によって決まる条件を書く場所です。required、format、min、max のような入力値そのものの形はここに置きません。

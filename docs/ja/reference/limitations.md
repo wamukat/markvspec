@@ -1,5 +1,7 @@
 # 制限事項
 
+<!-- markvspec-coverage:reference.page.limitations -->
+
 MarkVSpec はテキストから書く画面仕様フォーマットです。視覚デザインツールや実装コードの置き換えではありません。
 
 ## 書ける構文

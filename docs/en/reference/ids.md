@@ -1,5 +1,7 @@
 # IDs
 
+<!-- markvspec-coverage:reference.page.ids -->
+
 IDs are stable names for referring to objects. Keep IDs stable when display labels or copy change.
 
 ## Syntax You Can Write

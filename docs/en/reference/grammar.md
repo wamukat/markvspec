@@ -1,5 +1,7 @@
 # Grammar
 
+<!-- markvspec-coverage:reference.page.grammar -->
+
 This page defines the canonical MarkVSpec grammar used as the reference for
 parser, validator, diagnostics, documentation, and examples.
 

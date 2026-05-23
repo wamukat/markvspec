@@ -1,5 +1,7 @@
 # Grammar
 
+<!-- markvspec-coverage:reference.page.grammar -->
+
 このページは、parser、validator、diagnostics、documentation、examples の基準にする
 MarkVSpec の canonical grammar を定義します。
 

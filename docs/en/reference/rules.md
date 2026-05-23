@@ -1,5 +1,7 @@
 # Business Rules
 
+<!-- markvspec-coverage:reference.page.rules -->
+
 `## Business Rules` describes business rules and screen-specific decisions. Keep it separate from input validation, tool diagnostics, and implementation-level if statements.
 
 Use Business Rules when the decision depends on product meaning: permissions, account status, plan restrictions, stock, or a business decision that reads multiple values. Do not use this section for basic input shape such as required, format, min, max, or simple field comparison. Use [Validations](./validations.md) for those checks.

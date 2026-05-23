@@ -1,5 +1,7 @@
 # Elements
 
+<!-- markvspec-coverage:reference.page.elements -->
+
 `## Elements` は UI element を意味で記述する section です。MarkVSpec では、見た目の実装詳細ではなく、element type、label、text、value、variant、tone、action などを書きます。
 
 ## 書ける構文

@@ -1,5 +1,7 @@
 # CLI
 
+<!-- markvspec-coverage:reference.page.cli -->
+
 CLI は、VS Code 拡張の外でソースファイルを検証したり、レビュー用の成果物を出力したいときに使います。
 
 基本の流れは次のままです。
