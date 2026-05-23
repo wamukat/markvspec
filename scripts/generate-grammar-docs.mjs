@@ -42,7 +42,9 @@ if (mismatches.length > 0) {
 function grammarPage(locale, site) {
   const ja = locale === "ja";
   const fence = site ? "text" : "ebnf";
-  const title = site ? "---\ntitle: \"Grammar\"\n---\n\n" : "# Grammar\n\n";
+  const title = site
+    ? "---\ntitle: \"Grammar\"\n---\n\n"
+    : "# Grammar\n\n<!-- markvspec-coverage:reference.page.grammar -->\n\n";
   return `${title}${intro(ja)}
 
 ## EBNF Notation
