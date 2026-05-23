@@ -196,6 +196,45 @@ diagnostic coverage は `supportedDiagnosticMessageCodes()` を起点にしま�
 は、`audit:reference-coverage` が diagnostic code と push site を inventory する一方、
 この matrix との照合まではまだ行わないことです。
 
+## renderer / export output coverage matrix
+
+renderer / export coverage は、個別 CSS selector や implementation helper ではなく、
+user-visible output から始めます。reviewer がその output を見て product 判断をするなら、
+その cluster には Reference または Start の coverage が必要です。
+
+この matrix は、VS Code live preview だけでは見つからず、static HTML、PDF、project
+`document-list` export でだけ見える mismatch の checklist でもあります。各 row では
+同じ source file を該当 artifact で確認し、ID、marker、label、順序、diagnostic、
+省略/compact 表示が documented semantics を保っているかを確認します。
+
+| Output Cluster | Source Of Truth | User-Facing Coverage | Representative Example | Artifact To Verify |
+| --- | --- | --- | --- | --- |
+| Screen Basic Info | Front Matter と、source order の `## History` entries に対する `latestHistoryBasicInfo()` | [ファイル形式](../reference/file-format.md)、[History](../reference/history.md)、[はじめる](../start/index.md) | `examples/06-structured-sections/history-and-errors.vspec.md` | VS Code preview、`export html`、`export pdf` |
+| static document section order と table of contents | `renderStaticDesignDocumentHtml()` の section list と generated grammar section order | [Sections](../reference/sections.md)、[Grammar](../reference/grammar.md) | `examples/01-basics/hello-screen.vspec.md` | `export html`、`export pdf` |
+| States、state flow、action transition tables | `## States`、action `From`、process result case、Mermaid state graph generation | [Sections](../reference/sections.md)、[Actions](../reference/actions.md)、[Grammar](../reference/grammar.md) | `examples/03-actions/form-submit-flow.vspec.md` | VS Code preview、`export html`、`export pdf` |
+| State Views と Preview Scenarios | `## Layout`、`## Elements`、`## View Context`、`## View Context Samples`、`## Preview Scenarios` | [Sections](../reference/sections.md)、[Elements](../reference/elements.md)、[Grammar](../reference/grammar.md) | `examples/02-states/source-kind-metadata.vspec.md`、`examples/02-states/responsive-profile.vspec.md` | VS Code preview state views、`export html`、`export pdf` |
+| Marker/ID cells と entity reference chips | canonical IDs と optional `marker` property を entity reference presenter が解決したもの | [ファイル形式](../reference/file-format.md)、[ID](../reference/ids.md)、[Elements](../reference/elements.md)、[Actions](../reference/actions.md) | `examples/01-basics/hello-screen.vspec.md`、`examples/02-states/presentation-panel.vspec.md` | VS Code preview、static HTML tables、PDF tables |
+| Element display source metadata と Display Content Spec | element-level `source` fallback と、nested `kind`、`source`、`format` display value metadata | [Elements](../reference/elements.md)、[Grammar](../reference/grammar.md)、[制限事項](../reference/limitations.md) | `examples/02-states/source-kind-metadata.vspec.md`、`examples/04-real-world-screens/notice-detail.vspec.md` | VS Code preview element details、static HTML Display Content Spec、PDF tables |
+| Form Groups と input specification tables | `## Form Groups`、element type/property、required/value/source/spec columns | [Elements](../reference/elements.md)、[Sections](../reference/sections.md)、[Validations](../reference/validations.md) | `examples/03-actions/form-submit-flow.vspec.md` | VS Code preview、static HTML、PDF |
+| Business Rules、Validations、Error Codes sections | Rule / validation / error-code structured sections と validation renderer helpers | [Rules](../reference/rules.md)、[Validations](../reference/validations.md)、[Sections](../reference/sections.md) | `examples/06-structured-sections/history-and-errors.vspec.md` | VS Code preview、static HTML、PDF |
+| History table | `## History Fields`、standard field、custom entry metadata、`## History` entries | [History](../reference/history.md)、[Sections](../reference/sections.md)、[Grammar](../reference/grammar.md) | `examples/06-structured-sections/history-and-errors.vspec.md` | VS Code preview、static HTML、PDF |
+| Export diagnostics section | parser/project diagnostics と `renderDiagnostics()` の message localization | [CLI](../reference/cli.md)、[Validations](../reference/validations.md)、この文書の diagnostic coverage matrix | `examples/06-structured-sections/history-and-errors.vspec.md` | warning/error fixture に対する `validate`、`export html`、`export pdf` |
+| Project preview overview、notes、templates、screens、transitions | `.vspec.project.md` Front Matter/body、project loader、project transition graph | [ファイル形式](../reference/file-format.md)、[Preview](../start/preview.md)、[Export](../start/export.md) | `packages/core/test-fixtures/parse-output-coverage/project/markvspec.project.md` | VS Code project preview、project `export html`、project `export pdf` |
+| Project `document-list` export | project screens/templates/partials と per-document diagnostics に対する `exportDocumentList()` | [CLI](../reference/cli.md)、[ファイル形式](../reference/file-format.md)、[History](../reference/history.md) | `packages/core/test-fixtures/parse-output-coverage/project/markvspec.project.md` | `export document-list` の Markdown output |
+| Renderer messages と localized labels | built-in locale messages、Front Matter `messages`、CLI `--messages`、message-file diagnostics | [CLI](../reference/cli.md)、[ファイル形式](../reference/file-format.md) | `markvspec.messages.yml` 付きで export する任意 source | VS Code preview labels、`export html`、`export pdf` |
+
+static HTML または PDF を含む row は、source や unit test だけでなく、生成 artifact を
+実際に確認します。Marker/ID と Display Content Spec の row は特に注意します。live
+preview では readable chip に見えていても、static table 側で canonical ID や source
+metadata の代わりに label、marker、sample value を出してしまう mismatch が起きやすい
+ためです。
+
+この matrix pass では、既に track 済みの source metadata / Marker/ID work 以外に、
+新しい focused docs gap または render/export mismatch は見つけていません。#1417 で追加の
+follow-up ticket は不要でした。残る automation gap は、`audit:reference-coverage` が
+renderer/export output feature を inventory する一方、この matrix や生成 artifact との
+照合まではまだ行わないことです。
+
 ## first generated report
 
 #1412 で最初の checked report として `npm run audit:reference-coverage` を実行した。

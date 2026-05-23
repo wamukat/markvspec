@@ -200,6 +200,46 @@ No new blocking docs gap was found in this matrix pass. The remaining automation
 gap is that `audit:reference-coverage` inventories diagnostic codes and push
 sites, but does not yet compare them against this matrix.
 
+## Renderer / Export Output Coverage Matrix
+
+Renderer and export coverage starts from user-visible output, not from individual
+CSS selectors or implementation helpers. A cluster needs Reference or Start
+coverage when a reviewer can make a product decision from that output.
+
+This matrix is also the checklist for mismatches that are invisible in the VS
+Code live preview but visible in static HTML, PDF, or project `document-list`
+export. For each row, compare the same source file through the relevant
+artifacts and verify that IDs, markers, labels, ordering, diagnostics, and
+omitted/compact fields preserve the documented semantics.
+
+| Output Cluster | Source Of Truth | User-Facing Coverage | Representative Example | Artifact To Verify |
+| --- | --- | --- | --- | --- |
+| Screen Basic Info | Front Matter plus `latestHistoryBasicInfo()` over `## History` entries in source order | [File Format](../reference/file-format.md), [History](../reference/history.md), [Start](../start/index.md) | `examples/06-structured-sections/history-and-errors.vspec.md` | VS Code preview, `export html`, `export pdf` |
+| Static document section order and table of contents | `renderStaticDesignDocumentHtml()` section list and generated grammar section order | [Sections](../reference/sections.md), [Grammar](../reference/grammar.md) | `examples/01-basics/hello-screen.vspec.md` | `export html`, `export pdf` |
+| States, state flow, and action transition tables | `## States`, action `From`, process result cases, and Mermaid state graph generation | [Sections](../reference/sections.md), [Actions](../reference/actions.md), [Grammar](../reference/grammar.md) | `examples/03-actions/form-submit-flow.vspec.md` | VS Code preview, `export html`, `export pdf` |
+| State Views and Preview Scenarios | `## Layout`, `## Elements`, `## View Context`, `## View Context Samples`, and `## Preview Scenarios` | [Sections](../reference/sections.md), [Elements](../reference/elements.md), [Grammar](../reference/grammar.md) | `examples/02-states/source-kind-metadata.vspec.md`, `examples/02-states/responsive-profile.vspec.md` | VS Code preview state views, `export html`, `export pdf` |
+| Marker/ID cells and entity reference chips | Canonical IDs plus optional `marker` properties resolved by entity reference presenters | [File Format](../reference/file-format.md), [IDs](../reference/ids.md), [Elements](../reference/elements.md), [Actions](../reference/actions.md) | `examples/01-basics/hello-screen.vspec.md`, `examples/02-states/presentation-panel.vspec.md` | VS Code preview, static HTML tables, PDF tables |
+| Element display source metadata and Display Content Spec | Element-level `source` fallback plus nested `kind`, `source`, and `format` display value metadata | [Elements](../reference/elements.md), [Grammar](../reference/grammar.md), [Limitations](../reference/limitations.md) | `examples/02-states/source-kind-metadata.vspec.md`, `examples/04-real-world-screens/notice-detail.vspec.md` | VS Code preview element details, static HTML Display Content Spec, PDF tables |
+| Form Groups and input specification tables | `## Form Groups`, element types/properties, required/value/source/spec columns | [Elements](../reference/elements.md), [Sections](../reference/sections.md), [Validations](../reference/validations.md) | `examples/03-actions/form-submit-flow.vspec.md` | VS Code preview, static HTML, PDF |
+| Business Rules, Validations, and Error Codes sections | Rule/validation/error-code structured sections and validation renderer helpers | [Rules](../reference/rules.md), [Validations](../reference/validations.md), [Sections](../reference/sections.md) | `examples/06-structured-sections/history-and-errors.vspec.md` | VS Code preview, static HTML, PDF |
+| History table | `## History Fields`, effective standard fields, custom entry metadata, and `## History` entries | [History](../reference/history.md), [Sections](../reference/sections.md), [Grammar](../reference/grammar.md) | `examples/06-structured-sections/history-and-errors.vspec.md` | VS Code preview, static HTML, PDF |
+| Export diagnostics section | Parser/project diagnostics plus message localization in `renderDiagnostics()` | [CLI](../reference/cli.md), [Validations](../reference/validations.md), Diagnostic Coverage Matrix in this document | `examples/06-structured-sections/history-and-errors.vspec.md` | `validate`, `export html`, `export pdf` with warning/error fixtures |
+| Project preview overview, notes, templates, screens, and transitions | `.vspec.project.md` Front Matter/body, project loader, project transition graph | [File Format](../reference/file-format.md), [Preview](../start/preview.md), [Export](../start/export.md) | `packages/core/test-fixtures/parse-output-coverage/project/markvspec.project.md` | VS Code project preview, project `export html`, project `export pdf` |
+| Project `document-list` export | `exportDocumentList()` over project screens/templates/partials and per-document diagnostics | [CLI](../reference/cli.md), [File Format](../reference/file-format.md), [History](../reference/history.md) | `packages/core/test-fixtures/parse-output-coverage/project/markvspec.project.md` | `export document-list` output Markdown |
+| Renderer messages and localized labels | Built-in locale messages, Front Matter `messages`, CLI `--messages`, and message-file diagnostics | [CLI](../reference/cli.md), [File Format](../reference/file-format.md) | Any source exported with `markvspec.messages.yml` | VS Code preview labels, `export html`, `export pdf` |
+
+Review rows that include static HTML or PDF by inspecting the generated artifact,
+not only the source or a unit test. Marker/ID and Display Content Spec rows are
+especially sensitive because the live preview can show a readable chip while the
+static table accidentally substitutes a label, marker, or sample value for the
+canonical ID or source metadata.
+
+This matrix pass found no new focused docs gap or render/export mismatch beyond
+the already tracked source metadata and Marker/ID work. No additional follow-up
+ticket was required for #1417. The remaining automation gap is that
+`audit:reference-coverage` inventories renderer/export output features, but does
+not yet compare those features against this matrix or generated artifacts.
+
 ## First Generated Report
 
 The first checked report was generated for #1412 with
