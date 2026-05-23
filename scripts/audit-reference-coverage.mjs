@@ -32,6 +32,7 @@ const requiredGeneratedMarkers = {
 
 inventory.grammarSections = grammarSectionDefinitions.map((definition) => ({
   id: `section.${definition.kind}`,
+  kind: definition.kind,
   title: definition.title,
   order: definition.order
 }));
@@ -74,6 +75,7 @@ inventory.rendererOutputCoverageMatrix = await rendererOutputCoverageMatrixInven
 inventory.generatedReferenceMarkers = await generatedReferenceMarkers();
 inventory.referencePages = await referencePageInventory();
 inventory.referenceCoverage = referenceCoverageInventory(inventory.referencePages);
+inventory.grammarSectionCoverage = await grammarSectionCoverageInventory();
 inventory.vscodeCommands = await vscodeCommandInventory();
 inventory.cliSurface = await cliSurfaceInventory();
 inventory.externalInputs = await externalInputConfigurationInventory(inventory.cliSurface, inventory.vscodeCommands);
@@ -92,6 +94,7 @@ assertCategory("renderer/export output coverage matrix EN rows", inventory.rende
 assertCategory("renderer/export output coverage matrix JA rows", inventory.rendererOutputCoverageMatrix.ja);
 assertCategory("generated reference markers", inventory.generatedReferenceMarkers);
 assertCategory("reference coverage features", inventory.referenceCoverage.features);
+assertCategory("grammar section stable coverage entries", inventory.grammarSectionCoverage.entries);
 assertCategory("EN reference pages", inventory.referencePages.en);
 assertCategory("JA reference pages", inventory.referencePages.ja);
 assertCategory("VS Code commands", inventory.vscodeCommands);
@@ -109,6 +112,7 @@ assertCategory("examples", inventory.examples.catalogEntries);
 auditReferencePageSymmetry(inventory.referencePages);
 auditRequiredGeneratedMarkers(inventory.generatedReferenceMarkers);
 auditCoverageMarkerReadiness(inventory.referenceCoverage);
+auditGrammarSectionCoverageReadiness(inventory.grammarSectionCoverage);
 await auditExternalInputConfigurationReadiness(inventory.externalInputs, inventory.referencePages);
 auditDiagnosticCoverageMatrixReadiness(inventory.diagnosticCoverageMatrix);
 auditRendererOutputCoverageMatrixReadiness(inventory.rendererOutputCoverageMatrix);
@@ -260,6 +264,13 @@ function featureMappingInventory() {
         evidence: "markvspec-generated:*"
       },
       {
+        id: "feature-mapping.grammar-sections",
+        family: "Grammar section coverage family",
+        count: inventory.grammarSectionCoverage.entries.length,
+        failureMode: "Missing EN/JA section page marker, generated row, or grammar production is a failure.",
+        evidence: "markvspec-coverage:reference.page.sections, markvspec-coverage:reference.page.grammar, markvspec-generated:reference-sections, and grammar productions"
+      },
+      {
         id: "feature-mapping.external-input",
         family: "External input/configuration category family",
         count: inventory.externalInputs.categories.length,
@@ -269,10 +280,10 @@ function featureMappingInventory() {
     ],
     reportOnly: [
       {
-        id: "feature-mapping.grammar-sections",
-        family: "Grammar sections and structured items",
-        count: inventory.grammarSections.length + inventory.structuredItemContexts.reduce((count, context) => count + context.items.length, 0),
-        reason: "Generated grammar/reference docs are checked, but section/item-level prose markers are not stable yet."
+        id: "feature-mapping.structured-items",
+        family: "Structured item prose coverage",
+        count: structuredItemCount(),
+        reason: "Recognized sections are matrix-checked; individual structured item prose depth is not markerized item by item."
       },
       {
         id: "feature-mapping.elements",
@@ -300,6 +311,89 @@ function featureMappingInventory() {
       }
     ]
   };
+}
+
+async function grammarSectionCoverageInventory() {
+  const generatedMarkersByPath = new Map(inventory.generatedReferenceMarkers.map((entry) => [entry.path, new Set(entry.markers)]));
+  const pagesByPath = new Map(
+    [...inventory.referencePages.en, ...inventory.referencePages.ja].map((page) => [page.path, page])
+  );
+  const targets = {
+    en: {
+      grammar: {
+        path: "docs/en/reference/grammar.md",
+        source: await requiredSource("docs/en/reference/grammar.md")
+      },
+      sections: {
+        path: "docs/en/reference/sections.md",
+        source: await requiredSource("docs/en/reference/sections.md")
+      }
+    },
+    ja: {
+      grammar: {
+        path: "docs/ja/reference/grammar.md",
+        source: await requiredSource("docs/ja/reference/grammar.md")
+      },
+      sections: {
+        path: "docs/ja/reference/sections.md",
+        source: await requiredSource("docs/ja/reference/sections.md")
+      }
+    }
+  };
+
+  const entries = inventory.grammarSections.map((section) => {
+    const sectionHeading = `## ${section.title}`;
+    const productionName = `${sectionProductionName(section.kind)}_section`;
+    return {
+      id: `grammar-section.${section.kind}`,
+      kind: section.kind,
+      title: section.title,
+      sectionHeading,
+      productionName,
+      locales: Object.fromEntries(Object.entries(targets).map(([locale, target]) => {
+        const sectionsPage = pagesByPath.get(target.sections.path);
+        const grammarPage = pagesByPath.get(target.grammar.path);
+        return [locale, {
+          sectionsPath: target.sections.path,
+          grammarPath: target.grammar.path,
+          hasSectionsPageMarker: sectionsPage?.coverageMarkers.includes("reference.page.sections") ?? false,
+          hasGrammarPageMarker: grammarPage?.coverageMarkers.includes("reference.page.grammar") ?? false,
+          hasGeneratedSectionsMarker: generatedMarkersByPath.get(target.sections.path)?.has("reference-sections") ?? false,
+          hasGeneratedSectionRow: target.sections.source.includes(`| \`${sectionHeading}\``),
+          hasGrammarProduction: target.grammar.source.includes(`${productionName} = h2`)
+        }];
+      }))
+    };
+  });
+
+  return {
+    entries,
+    stableCount: entries.length,
+    remainingStructuredItems: structuredItemCount()
+  };
+}
+
+function auditGrammarSectionCoverageReadiness(coverage) {
+  for (const entry of coverage.entries) {
+    for (const [locale, target] of Object.entries(entry.locales)) {
+      const label = `${entry.id} ${locale}`;
+      if (!target.hasSectionsPageMarker) {
+        failures.push(`${label}: missing reference.page.sections coverage marker in ${target.sectionsPath}.`);
+      }
+      if (!target.hasGrammarPageMarker) {
+        failures.push(`${label}: missing reference.page.grammar coverage marker in ${target.grammarPath}.`);
+      }
+      if (!target.hasGeneratedSectionsMarker) {
+        failures.push(`${label}: missing generated reference-sections marker in ${target.sectionsPath}.`);
+      }
+      if (!target.hasGeneratedSectionRow) {
+        failures.push(`${label}: missing generated row for ${entry.sectionHeading} in ${target.sectionsPath}.`);
+      }
+      if (!target.hasGrammarProduction) {
+        failures.push(`${label}: missing grammar production ${entry.productionName} in ${target.grammarPath}.`);
+      }
+    }
+  }
 }
 
 function auditDiagnosticCoverageMatrixReadiness(matrix) {
@@ -908,11 +1002,19 @@ function slug(value) {
   return value.toLowerCase().replace(/[^a-z0-9]+/gu, "-").replace(/^-|-$/gu, "").slice(0, 80) || "feature";
 }
 
+function sectionProductionName(value) {
+  return value.replace(/[A-Z]/gu, (char, index) => `${index === 0 ? "" : "_"}${char.toLowerCase()}`);
+}
+
+function structuredItemCount() {
+  return inventory.structuredItemContexts.reduce((count, context) => count + context.items.length, 0);
+}
+
 function printReport() {
   const summaryRows = [
     ["grammar sections", inventory.grammarSections.length],
     ["structured item contexts", inventory.structuredItemContexts.length],
-    ["structured items", inventory.structuredItemContexts.reduce((count, context) => count + context.items.length, 0)],
+    ["structured items", structuredItemCount()],
     ["element types", inventory.elementTypes.length],
     ["element properties", inventory.elementProperties.length],
     ["diagnostic codes", inventory.diagnosticCodes.length],
@@ -924,6 +1026,8 @@ function printReport() {
     ["generated Reference marker files", inventory.generatedReferenceMarkers.length],
     ["Reference coverage features", inventory.referenceCoverage.features.length],
     ["Reference coverage markers", inventory.referenceCoverage.markers.length],
+    ["stable grammar section coverage entries", inventory.grammarSectionCoverage.entries.length],
+    ["remaining report-only structured items", inventory.grammarSectionCoverage.remainingStructuredItems],
     ["EN Reference pages", inventory.referencePages.en.length],
     ["JA Reference pages", inventory.referencePages.ja.length],
     ["VS Code commands", inventory.vscodeCommands.length],
@@ -946,6 +1050,7 @@ function printReport() {
   }
 
   printReferenceCoverageMarkerReport();
+  printGrammarSectionCoverageReport();
   printExternalInputConfigurationReport();
   printDiagnosticCoverageMatrixReport();
   printRendererOutputCoverageMatrixReport();
@@ -1005,6 +1110,15 @@ function printReferenceCoverageMarkerReport() {
     });
     console.log(`- ${feature.id}: ${statuses.join(", ")}`);
   }
+}
+
+function printGrammarSectionCoverageReport() {
+  if (!inventory.grammarSectionCoverage) {
+    return;
+  }
+  console.log("\nGrammar section coverage report:");
+  console.log(`- Stable recognized sections: ${inventory.grammarSectionCoverage.stableCount}`);
+  console.log(`- Remaining report-only structured items: ${inventory.grammarSectionCoverage.remainingStructuredItems}; reason: individual structured item prose depth is not markerized item by item.`);
 }
 
 function printExternalInputConfigurationReport() {

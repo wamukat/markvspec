@@ -134,6 +134,8 @@ stable coverage anchors are broken:
 - A required external input/configuration inventory category is empty, or a
   required Reference coverage target is missing.
 - A required stable Reference coverage marker is missing.
+- A recognized grammar section is missing its English/Japanese Sections page
+  marker, Grammar page marker, generated Sections row, or Grammar production.
 - A diagnostic code is missing from the Diagnostic Coverage Matrix, or a
   diagnostic matrix row has no user-facing coverage target.
 - A stable renderer/export output cluster is missing from the Renderer / Export
@@ -189,17 +191,25 @@ Stable families:
 - Reference page family: `markvspec-coverage:reference.page.*` markers in both
   English and Japanese Reference pages.
 - Generated Reference table family: required `markvspec-generated:*` blocks.
+- Grammar section coverage family: every `grammarSectionDefinitions` recognized
+  section must have English/Japanese `reference.page.sections` and
+  `reference.page.grammar` markers, a generated `reference-sections` row, and a
+  Grammar page production.
 - External input/configuration category family:
   `markvspec-coverage:external-input.*` markers in the required coverage target
   pages.
 
 Report-only families:
 
-- Grammar sections and structured items.
+- Structured item prose coverage.
 - Element types and properties.
 - Diagnostic codes and push sites.
 - Renderer/export output features.
 - Examples and example-supported patterns.
+
+Recognized grammar sections are stable at section level. Individual structured
+item prose depth remains report-only until item-level marker IDs and expected
+coverage targets are triaged.
 
 Report-only families still require manual review for semantic depth. They should
 not become release-blocking until their stable marker IDs, expected target pages,

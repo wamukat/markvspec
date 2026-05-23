@@ -132,6 +132,8 @@ checker はまだ一部 report-first ですが、stable mapping family は必要
 - 必須 external input/configuration inventory category が空、または必須 Reference
   coverage target が欠落。
 - 必須 stable Reference coverage marker が欠落。
+- recognized grammar section の English/Japanese Sections page marker、Grammar
+  page marker、generated Sections row、または Grammar production が欠落。
 - diagnostic code が Diagnostic Coverage Matrix にない、または diagnostic matrix row に
   user-facing coverage target がない。
 - stable renderer/export output cluster が Renderer / Export Output Coverage Matrix に
@@ -184,16 +186,24 @@ stable family:
 - Reference page family: English / Japanese の Reference page 両方に置く
   `markvspec-coverage:reference.page.*` marker。
 - Generated Reference table family: 必須 `markvspec-generated:*` block。
+- Grammar section coverage family: `grammarSectionDefinitions` の各 recognized
+  section に対し、English/Japanese の `reference.page.sections` と
+  `reference.page.grammar` marker、generated `reference-sections` row、Grammar page
+  production を必須にする。
 - External input/configuration category family: required coverage target page に置く
   `markvspec-coverage:external-input.*` marker。
 
 report-only family:
 
-- grammar section と structured item。
+- structured item prose coverage。
 - element type と property。
 - diagnostic code と push site。
 - renderer/export output feature。
 - example と example-supported pattern。
+
+recognized grammar section は section level では stable です。個別 structured item の
+prose depth は、item-level marker ID と期待 coverage target を triage するまで
+report-only として残します。
 
 report-only family は semantic depth の manual review が必要です。stable marker ID、
 期待 target page、failure mode を triage するまでは release-blocking に昇格しません。
