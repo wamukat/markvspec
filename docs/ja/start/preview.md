@@ -24,12 +24,68 @@ MarkVSpec: Open Preview
 
 ## プロジェクトプレビュー
 
-複数画面をまとめて確認したい場合は、同じコマンドで `.vspec.project.md` を開きます。
-プロジェクトプレビューにはプロジェクト概要、メモ、画面一覧、テンプレート一覧、
-画面遷移図、遷移表、診断結果が表示されます。
+プロジェクトプレビューは、まとめて確認したい画面とテンプレートを
+`.vspec.project.md` に明示的に列挙している場合に使います。workspace 内のすべての
+`.vspec.md` を自動 discovery する機能ではありません。プロジェクトファイルが明示的な
+index です。
 
-プロジェクト全体の確認にはプロジェクトプレビューを使います。画面のワイヤーフレームや詳細セクションを
-確認したい場合は、各 `.vspec.md` の画面仕様を開きます。
+```markdown markvspec-skip reason=project-file-example
+---
+id: PRJ-ACCOUNT
+type: project
+title: Account Project
+screens:
+  - id: SCR-LOGIN
+    path: screens/login.vspec.md
+  - id: SCR-SETTINGS
+    path: screens/settings.vspec.md
+templates:
+  - id: TPL-ACCOUNT-SHELL
+    path: templates/account-shell.vspec.md
+---
+
+# PRJ-ACCOUNT Account Project
+
+アカウント関連画面をまとめて確認するためのプロジェクトです。
+
+## Notes
+
+ナビゲーションと共通シェルの変更を同じ場所で確認します。
+```
+
+`.vspec.project.md` を開き、同じコマンドを実行します。
+
+```text
+MarkVSpec: Open Preview
+```
+
+プロジェクトプレビューには次が表示されます。
+
+- project file の ID、title、lead text。
+- `## Notes` とその他 note section の project notes。
+- template list と load status。
+- screen list。screen ID、title、route、path を確認できます。
+- 列挙された screen の `navigate:` target から作られる project transition diagram。
+- action、source state、result、target type、target を確認できる transition table。
+- missing file、duplicate screen ID、route collision、missing navigation target などの
+  project-level diagnostics。
+
+プロジェクト全体の確認、つまり screen inventory、project notes、画面間 navigation、
+diagnostics にはプロジェクトプレビューを使います。画面の wireframe、state views、
+element details、action details など画面内の詳細を確認したい場合は、各 `.vspec.md` の
+画面仕様を開きます。
+
+project preview、project export、`document-list` は用途が違います。
+
+| 機能 | 使いどころ | 出力 |
+| --- | --- | --- |
+| Project preview | VS Code 内で project intent、screen/template list、transition graph、diagnostics を読みたい。 | live preview webview |
+| Project HTML/PDF export | 列挙された画面仕様を1つの共有用成果物にまとめたい。 | 読み込んだ screen design document を含む HTML または PDF |
+| `export document-list` | screen、template、参照 partial の compact inventory が必要。 | `document-list.md` の Markdown table |
+
+プロジェクトプレビューは、workspace 内の全 screen から project summary を自動生成する
+機能ではありません。全 screen design file から summary が必要な場合は、先に project
+index を作るか、その機能が利用可能になった後は専用の project summary workflow を使います。
 
 ## VS Code コマンド
 

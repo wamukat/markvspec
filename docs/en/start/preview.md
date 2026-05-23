@@ -24,13 +24,69 @@ The preview follows source changes. Edit Markdown and check how states, layout, 
 
 ## Project Preview
 
-Open a `.vspec.project.md` file with the same command when you need to review
-multiple screens together. Project preview shows the project overview, notes,
-screen list, template list, project transition diagram, transition table, and
-diagnostics.
+Use project preview when you already have a `.vspec.project.md` file that lists
+the screens and templates you want to review together. Project preview does not
+discover every `.vspec.md` file in the workspace by itself; the project file is
+the explicit index.
 
-Use project preview for project-level review. Open each `.vspec.md` screen when
-you need the screen wireframe and detailed screen sections.
+```markdown markvspec-skip reason=project-file-example
+---
+id: PRJ-ACCOUNT
+type: project
+title: Account Project
+screens:
+  - id: SCR-LOGIN
+    path: screens/login.vspec.md
+  - id: SCR-SETTINGS
+    path: screens/settings.vspec.md
+templates:
+  - id: TPL-ACCOUNT-SHELL
+    path: templates/account-shell.vspec.md
+---
+
+# PRJ-ACCOUNT Account Project
+
+Use this project to review the account screens together.
+
+## Notes
+
+Keep navigation and shared shell changes visible in one place.
+```
+
+Open the `.vspec.project.md` file and run the same command:
+
+```text
+MarkVSpec: Open Preview
+```
+
+Project preview shows:
+
+- the project ID, title, and lead text from the project file;
+- project notes from `## Notes` and other note sections;
+- the template list with load status;
+- the screen list with screen ID, title, route, and path;
+- a project transition diagram based on `navigate:` targets in listed screens;
+- a transition table with action, source state, result, target type, and target;
+- project-level diagnostics, including missing files, duplicate screen IDs,
+  route collisions, and missing navigation targets.
+
+Use project preview for project-level review: screen inventory, project notes,
+cross-screen navigation, and diagnostics. Open each `.vspec.md` screen when you
+need the screen wireframe, state views, element details, action details, or other
+screen-local sections.
+
+Project preview, project export, and `document-list` have different purposes:
+
+| Feature | Use When | Output |
+| --- | --- | --- |
+| Project preview | You need to read project intent, screen/template lists, transition graph, and diagnostics inside VS Code. | Live preview webview. |
+| Project HTML/PDF export | You need one shareable artifact that packages the listed screen specifications. | HTML or PDF containing loaded screen design documents. |
+| `export document-list` | You need a compact inventory of screens, templates, and referenced partials. | Markdown table at `document-list.md`. |
+
+Project preview is not a replacement for a generated project summary over every
+screen in a workspace. If you need a summary from all screen design files, create
+or generate a project index first, or use a dedicated project summary workflow
+when one is available.
 
 ## VS Code Commands
 
