@@ -31,6 +31,23 @@ MarkVSpec: Open Preview
 プロジェクト全体の確認にはプロジェクトプレビューを使います。画面のワイヤーフレームや詳細セクションを
 確認したい場合は、各 `.vspec.md` の画面仕様を開きます。
 
+## VS Code コマンド
+
+これらのコマンドはコマンドパレットから実行できます。表示名は `MarkVSpec: <title>` です。
+
+| コマンド | 使いどころ |
+| --- | --- |
+| `MarkVSpec: Open Preview` | 現在の `.vspec.md` または `.vspec.project.md` のライブプレビューを開く、または表示中のプレビューに戻る。 |
+| `MarkVSpec: Format Structure` | レビュー前に、開いているソースの認識済み MarkVSpec 構造だけを整理する。一般的な Markdown formatter ではありません。文章、未知のセクション、Markdown tables、list indentation は保持します。 |
+| `MarkVSpec: Export Static HTML` | 現在の画面またはプロジェクトファイルから、単体で開ける HTML レビュー成果物を書き出す。 |
+| `MarkVSpec: Export PDF` | 互換ブラウザがある環境で、現在の画面またはプロジェクトファイルから PDF レビュー成果物を書き出す。 |
+| `MarkVSpec: Refresh Preview` | 自動更新を止めている、更新が遅れている、または source / message file の変更が反映されない場合に、現在のプレビューを強制的に再描画する。 |
+
+authoring 中は `Open Preview` を使い、既存 preview を手動で再読み込みしたいときは
+`Refresh Preview` を使います。共有用の成果物が必要な場合は `Export Static HTML` または
+`Export PDF` を使います。`Format Structure` は、説明文を書き換えずに認識済み
+MarkVSpec block だけを整える場合に限って使います。
+
 ## 見る場所
 
 - ソースの見出しがプレビューのセクションになる。

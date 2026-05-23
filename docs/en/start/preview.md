@@ -32,6 +32,25 @@ diagnostics.
 Use project preview for project-level review. Open each `.vspec.md` screen when
 you need the screen wireframe and detailed screen sections.
 
+## VS Code Commands
+
+These commands are available from the Command Palette. The displayed command
+name is `MarkVSpec: <title>`.
+
+| Command | Use When |
+| --- | --- |
+| `MarkVSpec: Open Preview` | Open or focus the live preview for the current `.vspec.md` or `.vspec.project.md` file. |
+| `MarkVSpec: Format Structure` | Clean up recognized MarkVSpec structure in the active source file before review. It is not a general Markdown formatter: prose, unknown sections, Markdown tables, and list indentation are preserved. |
+| `MarkVSpec: Export Static HTML` | Write a standalone HTML review artifact for the current screen or project file. |
+| `MarkVSpec: Export PDF` | Write a PDF review artifact for the current screen or project file when a compatible browser is available. |
+| `MarkVSpec: Refresh Preview` | Force the current preview to re-render when automatic updates are paused, delayed, or did not pick up a source/message-file change. |
+
+Use `Open Preview` while authoring, `Refresh Preview` when you need a manual
+reload of the existing preview, and `Export Static HTML` or `Export PDF` when
+you need a shareable artifact. Use `Format Structure` only when you want the
+extension to normalize recognized MarkVSpec blocks without rewriting narrative
+Markdown.
+
 ## What To Look At
 
 - Source headings become preview sections.
