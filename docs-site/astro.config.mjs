@@ -80,6 +80,7 @@ export default defineConfig({
             { slug: 'reference/validations' },
             { slug: 'reference/rules' },
             { slug: 'reference/history' },
+            { slug: 'reference/configuration' },
             { slug: 'reference/cli' },
             { slug: 'reference/limitations' },
           ],

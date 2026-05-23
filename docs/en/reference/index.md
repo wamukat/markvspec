@@ -15,6 +15,7 @@ Learning-oriented explanations live in [Guide](../guide/index.md). Reference is 
 - Check screen-specific decisions: [Business Rules](rules.md)
 - Check review history fields and entries: [History](history.md)
 - Check ID prefixes and references: [IDs](ids.md)
+- Check external inputs and configuration: [External Inputs And Configuration](configuration.md)
 - Check CLI validation, HTML/PDF export, and project document-list export: [CLI](cli.md)
 - Check what MarkVSpec intentionally does not model: [Limitations](limitations.md)
 
@@ -31,6 +32,7 @@ Learning-oriented explanations live in [Guide](../guide/index.md). Reference is 
 | [Business Rules](rules.md) | Business rules and screen-specific conditions in `## Business Rules` |
 | [History](history.md) | `## History Fields`, `## History`, entry metadata, and rendering behavior |
 | [IDs](ids.md) | How to use `SCR-*`, `L-*`, `E-*`, `A-*`, and `R-*` |
+| [External Inputs And Configuration](configuration.md) | Front Matter, project files, renderer messages, CLI options, VS Code settings status, and PDF browser dependency |
 | [CLI](cli.md) | `validate`, HTML/PDF export, and project `document-list` export |
 | [Limitations](limitations.md) | Markdown tables, JSON, visual design, and implementation details |
 
@@ -43,6 +45,7 @@ Learning-oriented explanations live in [Guide](../guide/index.md). Reference is 
 - Write review history: [History](history.md), [Sections](sections.md)
 - Write an HTTP request: [Actions](actions.md), [Business Rules](rules.md), [IDs](ids.md)
 - Write a partial update: [Actions](actions.md), [Elements](elements.md)
+- Configure inputs and labels: [External Inputs And Configuration](configuration.md), [File Format](file-format.md), [CLI](cli.md)
 - Export output: [CLI](cli.md), [Limitations](limitations.md)
 
 ## Small Example

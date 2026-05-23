@@ -15,6 +15,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 - 画面固有の判断条件を確認する: [Business Rules](rules.md)
 - review history の field と entry を確認する: [History](history.md)
 - ID prefix と参照規則を確認する: [IDs](ids.md)
+- 外部入力と設定を確認する: [外部入力と設定](configuration.md)
 - CLI の validation、HTML/PDF export、project document-list export を確認する: [CLI](cli.md)
 - 現時点で書かないものを確認する: [Limitations](limitations.md)
 
@@ -31,6 +32,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 | [Business Rules](rules.md) | `## Business Rules` に書く business rule と画面固有条件 |
 | [History](history.md) | `## History Fields`、`## History`、entry metadata、表示仕様 |
 | [IDs](ids.md) | `SCR-*`、`L-*`、`E-*`、`A-*`、`R-*` の使い分け |
+| [外部入力と設定](configuration.md) | Front Matter、project file、renderer messages、CLI options、VS Code settings の有無、PDF browser dependency |
 | [CLI](cli.md) | `validate`、HTML/PDF export、project `document-list` export |
 | [Limitations](limitations.md) | Markdown table、JSON、visual design、実装詳細の扱い |
 
@@ -43,6 +45,7 @@ MarkVSpec の正確な記法を確認するための入口です。
 - 更新履歴を書く: [History](history.md)、[Sections](sections.md)
 - HTTP request を書く: [Actions](actions.md)、[Business Rules](rules.md)、[IDs](ids.md)
 - partial update を書く: [Actions](actions.md)、[Elements](elements.md)
+- 入力や label を設定する: [外部入力と設定](configuration.md)、[File Format](file-format.md)、[CLI](cli.md)
 - export する: [CLI](cli.md)、[Limitations](limitations.md)
 
 ## 小さな例
