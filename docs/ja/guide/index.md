@@ -62,6 +62,10 @@ source/raw link を表示します。
 - [Profile Page With Template](../../../examples/showcase/profile-page-with-template.html): 部分更新。
 - [History And Errors](../../../examples/showcase/history-and-errors.html): Error Codes と更新履歴。
 
+project-level example は、単一画面の showcase ではなく `.vspec.project.md` を使います。
+
+- [Project Documents](https://github.com/wamukat/markvspec/tree/main/examples/07-project-documents): project preview source と `export document-list` の一覧例。
+
 ## 詳細を引く
 
 - [リファレンス](../reference/index.md): 正確な構文。
