@@ -458,7 +458,7 @@ The following forms are recognized only for diagnostics or compatibility and are
 - `conditions`: Old process wrapper label.
 - `cases`: Old process wrapper label.
 - HTTP method/path entries such as `POST /login` under `server:`. Put them under `request:`.
-- Raw htmx attributes, CSS selectors, raw colors, widths, heights, classes, and implementation-level styling in authored DSL.
+- Raw framework attributes such as htmx attributes, CSS selectors, raw colors, widths, heights, classes, and implementation-level styling in authored DSL.
 
 ## Semantic Constraints
 

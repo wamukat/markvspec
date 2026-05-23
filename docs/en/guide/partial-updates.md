@@ -1,14 +1,35 @@
 # Partial Updates
 
-Partial updates describe server-rendered partials and htmx-style replacement as behavior, not raw attributes. In MarkVSpec, write the request and update semantics.
+Partial updates describe targeted display changes as behavior, not framework
+instructions. In MarkVSpec, write the request, result case, target, and
+user-visible content change.
 
 ## Concept
 
-A partial update changes part of the screen without navigating the whole page. In MarkVSpec, describe which request runs, which region changes, and whether the result is a message, an existing element, or a referenced partial. Avoid framework-specific HTML attributes in the source.
+A partial update changes part of the screen without navigating the whole page.
+In MarkVSpec, describe which request or event runs, which region changes, and
+whether the result is a message, an existing element, or a referenced partial.
+Avoid framework-specific HTML attributes in the source.
 
-This keeps the UI specification reviewable whether the implementation uses Thymeleaf, htmx, a custom fetch flow, or another server-rendered approach. Preview can show the target layout group or message area, and HTML/PDF export can still explain the update intent.
+This keeps the UI specification reviewable whether the implementation uses
+server-rendered partials, SPA state updates, or a custom fetch flow. Preview can
+show the target layout group or message area, and HTML/PDF export can still
+explain the update intent.
 
 ![Profile Home partial update preview](../../assets/vscode-previews/profile-page-with-template-vscode-preview.png)
+
+## Implementation Readings
+
+The DSL stays the same across implementation styles:
+
+| Implementation style | How to read the MarkVSpec update |
+| --- | --- |
+| Thymeleaf / htmx | A request returns server-rendered content and the target region shows that result. |
+| React / Vue / Svelte | State, store, or component data changes, and the target component subtree re-renders. |
+| SSR + fetch | A fetch result updates the view model or HTML for the target region. |
+
+`mode: replace`, when used, means the visible content of the target region is
+replaced. It is not a DOM swap instruction or an `hx-swap` value.
 
 ## Minimal Example
 
@@ -29,7 +50,9 @@ layout group, caller element, and any states used by the result cases.
       - partial: PRT-PROFILE-SUMMARY
 ```
 
-This example says that clicking a refresh button fetches a summary partial and replaces `L-ProfileSummary`. `partial: PRT-*` names the referenced partial document; it is not a raw library attribute.
+This example says that a refresh action loads summary content and updates
+`L-ProfileSummary`. `partial: PRT-*` names the referenced partial document; it
+is not a raw library attribute.
 
 ## Common Patterns
 
@@ -40,7 +63,13 @@ This example says that clicking a refresh button fetches a summary partial and r
 - Use `partial: PRT-*` when the update uses a referenced partial document.
 - Use `element: E-*` when the update shows an existing element.
 - Use `message:` when the update shows message text or a message reference.
-- Do not use raw HTML, CSS selectors, or htmx attributes as the payload.
+- Do not use `content:` as the canonical display payload. Use `message:`,
+  `element:`, or `partial:` so the content remains semantic and reusable across
+  frameworks.
+- Use `mode: replace` only when you need to make the replacement semantics
+  explicit; it describes the target's visible content, not a framework swap
+  operation.
+- Do not use raw HTML, CSS selectors, or raw framework attributes as the payload.
 - In failure cases, update a message area or state separately from the normal target.
 
 ## Example: Update Search Results
@@ -90,7 +119,9 @@ the referenced elements.
       - message: Search error message
 ```
 
-Search results, empty results, and errors are separate cases. Writing update targets by ID makes the relationship between layout, states, and actions easy to trace in both Git diffs and preview.
+Search results, empty results, and errors are separate cases. Writing update
+targets by ID makes the relationship between layout, states, and actions easy to
+trace in both Git diffs and preview.
 
 ## Next Reading
 

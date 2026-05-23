@@ -2,7 +2,9 @@
 
 <!-- markvspec-coverage:reference.page.actions -->
 
-`## Actions` は user interaction、HTTP request、state change、navigation、partial update を結びます。button や link は element の `action: A-*` から参照し、画面読み込みなどの lifecycle event は `## Events` で接続します。
+`## Actions` は user interaction、HTTP request、state change、navigation、
+targeted display update を結びます。button や link は element の `action: A-*`
+から参照し、画面読み込みなどの lifecycle event は `## Events` で接続します。
 
 ## 書ける構文
 
@@ -114,7 +116,9 @@ HTTP request は `Process Pn:` の `request:` の下に置き、method/path と 
 
 ### Partial Update
 
-server-rendered partial update は raw htmx 属性ではなく、結果 case の `display` で意味を書きます。
+targeted display update は、結果 case の `display` で意味を書きます。これは
+implementation-neutral な契約です。raw framework attributes ではなく、ユーザーに
+見える結果を書きます。
 
 ```markdown markvspec-skip reason=requires-action-heading
 - Process P1: Apply profile response
@@ -131,9 +135,22 @@ server-rendered partial update は raw htmx 属性ではなく、結果 case の
 - `message`: semantic message text または message reference。
 - `element`: 既存 element を表示する場合の `E-*` ID。
 - `partial`: referenced partial file で target を置き換える場合の `PRT-*` document ID。
+- `content`: diagnostics のために認識されますが、canonical な `display` payload では
+  ありません。raw inline content は書かず、`message:`、`element:` で参照する
+  `E-*` / `L-*`、または `partial:` で参照する `PRT-*` document を使います。
+- `mode: replace`: target 領域に表示される内容が置き換わることを表す。DOM swap 命令や
+  `hx-swap` の値ではありません。
 
-`display` には raw HTML、CSS selector、htmx 属性を書きません。MarkVSpec の ID と
-semantic message で、ユーザーに見える結果を書きます。
+`display` には raw HTML、CSS selector、raw framework attributes を書きません。
+MarkVSpec の ID と semantic message で、ユーザーに見える content の結果を書きます。
+
+同じ `display` block は、実装方式ごとに次のように読めます。
+
+| 実装方式 | 読み方 |
+| --- | --- |
+| Thymeleaf / htmx | server-rendered partial または response content が target 領域に表示される。 |
+| React / Vue / Svelte | state、store、component data が変わり、target の component subtree が再描画される。 |
+| SSR + fetch | fetch の結果で view model または HTML が更新され、target 領域の表示が変わる。 |
 
 ## 小さな例
 
@@ -152,7 +169,9 @@ semantic message で、ユーザーに見える結果を書きます。
 - click などの element event は、対象 element の `action: A-*` で接続します。
 - 画面読み込みなどの lifecycle event は `## Events` に書きます。
 - state 名は `## States` に書いた名前と合わせます。
-- `partial` は partial replacement の意味であり、`hx-*` 属性を書く指示ではありません。
+- `partial` は参照した置き換え content の意味であり、`hx-*` 属性を書く指示ではありません。
+- `content` は canonical な display payload ではありません。`message`、`element`、
+  `partial` のいずれかで semantic に書きます。
 - display payload は `message`、`element`、`partial` のいずれかで書きます。
 - request の parameter は element value への参照として書くと、AI と reviewer が追いやすくなります。
 - 結果分岐は `Process Pn:` 配下の `case:` として書きます。

@@ -458,7 +458,7 @@ immediate_effect = bullet , ( "state:" | "navigate:" | "display:" | "update:" | 
 - `conditions`: 古い process wrapper label。
 - `cases`: 古い process wrapper label。
 - `server:` 配下の `POST /login` のような HTTP method/path entry。これは `request:` 配下に書きます。
-- authored DSL 内の raw htmx attributes、CSS selectors、raw colors、widths、heights、classes、implementation-level styling。
+- authored DSL 内の htmx attributes などの raw framework attributes、CSS selectors、raw colors、widths、heights、classes、implementation-level styling。
 
 ## Semantic Constraints
 

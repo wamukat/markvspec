@@ -2,7 +2,10 @@
 
 <!-- markvspec-coverage:reference.page.actions -->
 
-`## Actions` connects user interaction, HTTP requests, state changes, navigation, and partial updates. Buttons and links refer to actions with `action: A-*`; lifecycle events such as page load are connected in `## Events`.
+`## Actions` connects user interaction, HTTP requests, state changes,
+navigation, and targeted display updates. Buttons and links refer to actions
+with `action: A-*`; lifecycle events such as page load are connected in
+`## Events`.
 
 ## Syntax You Can Write
 
@@ -122,7 +125,9 @@ This is a `Process` snippet inside an action.
 
 ### Partial Update
 
-Describe server-rendered partial updates with `display` inside a result case, not raw htmx attributes.
+Describe targeted display updates with `display` inside a result case. This is
+an implementation-neutral contract: write the user-visible result, not raw
+framework attributes.
 
 This is a `Process` snippet inside an action.
 
@@ -142,9 +147,23 @@ Use `display` fields consistently:
 - `element`: `E-*` ID when the update shows an existing element.
 - `partial`: `PRT-*` document ID when the update replaces the target with a
   referenced partial file.
+- `content`: recognized for diagnostics only. Do not use raw inline content in
+  canonical `display`; use `message:`, define an `E-*` / `L-*` object and
+  reference it with `element:`, or reference a `PRT-*` document with `partial:`.
+- `mode: replace`: the target region's visible content is replaced. This is not
+  a DOM swap instruction or an `hx-swap` value.
 
-Do not write raw HTML, CSS selectors, or htmx attributes in `display`. Describe
-the user-visible result with MarkVSpec IDs and semantic messages.
+Do not write raw HTML, CSS selectors, or raw framework attributes in `display`.
+Describe the user-visible content result with MarkVSpec IDs and semantic
+messages.
+
+The same `display` block can be read through different implementation models:
+
+| Implementation style | Reading |
+| --- | --- |
+| Thymeleaf / htmx | A server-rendered partial or response content becomes visible in the target region. |
+| React / Vue / Svelte | State, store, or component data changes and the target component subtree re-renders. |
+| SSR + fetch | A fetch result updates the view model or HTML for the target region. |
 
 ## Small Example
 
@@ -166,7 +185,10 @@ element and any valid states.
 - Element events such as click are connected with `action: A-*` on the element.
 - Lifecycle events such as page load are written in `## Events`.
 - State names should match names written in `## States`.
-- `partial` describes a partial replacement; it is not an instruction to write `hx-*` attributes.
+- `partial` describes referenced replacement content; it is not an instruction
+  to write `hx-*` attributes.
+- `content` is not the canonical display payload. Keep content semantic by
+  choosing `message`, `element`, or `partial`.
 - Use `message`, `element`, or `partial` as the display payload.
 - Request parameters are easiest to review when written as references to element values.
 - Write result branches as `case:` entries under the relevant `Process Pn:`.

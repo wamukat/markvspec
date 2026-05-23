@@ -10,7 +10,7 @@ MarkVSpec describes screen states, elements, actions, and outcomes semantically.
 | --- | --- | --- |
 | Describe login, validation, and authentication request in one screen | [Login Form](./login-form.md) | `Elements`, `Business Rules`, `Actions`, `case:` |
 | Model initial loading, loading, empty, error, and success | [Loading And Error](./loading-error.md) | `States`, `page.load`, `case:` |
-| Specify server-rendered partial replacement | [Server Partial Update](./server-partial-update.md) | `request`, `display`, `target`, `partial` |
+| Specify a targeted display update | [Server Partial Update](./server-partial-update.md) | `request`, `display`, `target`, `partial` |
 | Share `.vspec.md` as HTML / PDF | [PDF Export](./pdf-export.md) | VS Code export, CLI export |
 
 ## Reading Order
@@ -33,7 +33,7 @@ MarkVSpec describes screen states, elements, actions, and outcomes semantically.
 
 - [Guide](../guide/index.md): Learn the authoring flow.
 - [Actions Guide](../guide/actions.md): Requests, cases, and effects.
-- [Partial Updates Guide](../guide/partial-updates.md): Server-rendered partial update model.
+- [Partial Updates Guide](../guide/partial-updates.md): Framework-neutral targeted display update model.
 - [CLI Reference](../reference/cli.md): validation, HTML/PDF export, and project `document-list` export.
 - [Reference](../reference/index.md): Sections, IDs, elements, and rules.
 

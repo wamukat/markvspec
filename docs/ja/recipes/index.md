@@ -10,7 +10,7 @@ MarkVSpec は、画面の状態、要素、アクション、結果を意味で�
 | --- | --- | --- |
 | ログイン、バリデーション、認証リクエストを1画面に書く | [ログインフォーム](./login-form.md) | `Elements`, `Business Rules`, `Actions`, `case:` |
 | 初期読み込み、読み込み中、空、エラー、成功を扱う | [読み込みとエラー](./loading-error.md) | `States`, `page.load`, `case:` |
-| サーバー生成の部分更新を指定する | [サーバー部分更新](./server-partial-update.md) | `request`, `display`, `target`, `partial` |
+| 対象領域の表示更新を指定する | [サーバー部分更新](./server-partial-update.md) | `request`, `display`, `target`, `partial` |
 | `.vspec.md` を HTML / PDF として共有する | [PDF出力](./pdf-export.md) | VS Code 出力, CLI 出力 |
 
 ## 読む順番
@@ -33,7 +33,7 @@ MarkVSpec は、画面の状態、要素、アクション、結果を意味で�
 
 - [ガイド](../guide/index.md): 書く流れを学ぶ。
 - [アクション](../guide/actions.md): リクエスト、分岐、表示更新。
-- [部分更新](../guide/partial-updates.md): サーバー生成の部分更新モデル。
+- [部分更新](../guide/partial-updates.md): framework-neutral な対象領域の表示更新モデル。
 - [CLI](../reference/cli.md): バリデーション、HTML/PDF 出力、プロジェクトの `document-list` 出力。
 - [リファレンス](../reference/index.md): セクション、ID、要素、ルール。
 

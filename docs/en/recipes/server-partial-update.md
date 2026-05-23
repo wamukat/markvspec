@@ -2,7 +2,15 @@
 
 ## When To Use
 
-Use this recipe when a server-rendered HTML partial, such as a Thymeleaf fragment, updates one region of the screen instead of replacing the full page. Do not write raw htmx attributes in MarkVSpec. Describe which user action sends the request and which region is replaced with which meaningful content.
+Use this recipe when a server-rendered HTML partial, such as a Thymeleaf
+fragment, updates one region of the screen instead of replacing the full page.
+Do not write raw framework attributes in MarkVSpec. Describe which user action
+sends the request and which region shows which meaningful content.
+
+For React, Vue, Svelte, or SSR + fetch, read the same `display` structure as a
+targeted display update contract: state, store, view model, or fetched content
+changes the target region. The server-rendered partial is one implementation
+example, not a DSL limit.
 
 ## Target Result
 
@@ -67,6 +75,8 @@ A Refresh button or filter change sends a server request. The returned summary p
 - Use `partial: PRT-*` when the returned content corresponds to a referenced partial document.
 - Use `element: E-*` only when an existing element is the replacement content.
 - Use `message:` for error feedback or simple message replacement.
+- Use `mode: replace` only when you need to make explicit that the target's
+  visible content is replaced; it is not an `hx-swap` value.
 - Include an error case so the reader understands what happens when the partial update fails.
 
 ## Common Pitfalls

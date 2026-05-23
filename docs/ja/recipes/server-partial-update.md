@@ -2,7 +2,9 @@
 
 ## いつ使うか
 
-Thymeleaf やサーバー生成 HTML partial を使い、画面全体ではなく一部の領域だけを更新したいときに使います。MarkVSpec には htmx の生の属性を書くのではなく、どのユーザー操作でリクエストが発生し、どの領域がどんな意味の内容に置き換わるかを書きます。
+Thymeleaf やサーバー生成 HTML partial を使い、画面全体ではなく一部の領域だけを更新したいときに使います。MarkVSpec には htmx の生の属性を書くのではなく、どのユーザー操作でリクエストが発生し、どの領域にどんな意味の内容が表示されるかを書きます。
+
+React、Vue、Svelte、SSR + fetch では、同じ `display` 構造を targeted display update の契約として読めます。state、store、view model、または取得した content が変わり、target 領域の表示が変わる、という意味です。サーバー生成 partial は実装例の一つであり、DSL の制限ではありません。
 
 ## 完成イメージ
 
@@ -67,6 +69,7 @@ Thymeleaf やサーバー生成 HTML partial を使い、画面全体ではな�
 - 参照する partial 文書に対応する場合は `partial: PRT-*` を足す。
 - 既存要素を表示する場合だけ `element: E-*` を使う。
 - エラーフィードバックや単純なメッセージ差し替えは `message:` で書く。
+- `mode: replace` は target の表示内容が置き換わることを明示したい場合にだけ使う。`hx-swap` の値ではありません。
 - エラーケースも書き、失敗時に既存 partial がどう扱われるかを読めるようにする。
 
 ## よくある落とし穴

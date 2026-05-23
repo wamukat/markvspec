@@ -329,11 +329,11 @@ function nonCanonicalList(ja) {
   const extra = ja
     ? [
       "- `server:` 配下の `POST /login` のような HTTP method/path entry。これは `request:` 配下に書きます。",
-      "- authored DSL 内の raw htmx attributes、CSS selectors、raw colors、widths、heights、classes、implementation-level styling。"
+      "- authored DSL 内の htmx attributes などの raw framework attributes、CSS selectors、raw colors、widths、heights、classes、implementation-level styling。"
     ]
     : [
       "- HTTP method/path entries such as `POST /login` under `server:`. Put them under `request:`.",
-      "- Raw htmx attributes, CSS selectors, raw colors, widths, heights, classes, and implementation-level styling in authored DSL."
+      "- Raw framework attributes such as htmx attributes, CSS selectors, raw colors, widths, heights, classes, and implementation-level styling in authored DSL."
     ];
   return ja
     ? `以下は diagnostics または compatibility のために認識されるだけで、canonical grammar ではありません。\n\n${lines.concat(extra).join("\n")}`
