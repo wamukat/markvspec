@@ -11,7 +11,7 @@ MarkVSpec では、Markdown DSL を canonical authoring source とします。HT
 
 ## 背景
 
-HTML はツリー構造を持ち、エディタサポートも一般的で、ブラウザで直接レンダリングできます。最終的な Thymeleaf と htmx の実装対象にも近い形式です。
+HTML はツリー構造を持ち、エディタサポートも一般的で、ブラウザで直接レンダリングできます。Thymeleaf と htmx を含む一部の実装対象にも近い形式です。
 
 一方で MarkVSpec が目指しているのは、実装前に人間が読めてレビューできる画面設計書です。設計書の source は、DOM の詳細を考えなくても、画面意図、状態、アクション、遷移、バリデーション、部分更新を表せる必要があります。
 
@@ -38,7 +38,7 @@ HTML は MarkVSpec でも有用です。
 - Live Preview と印刷可能な設計書ビュー。
 - 生成された仕様を共有するための static HTML export。
 - インストール済み Chrome/Chromium 互換ブラウザを使った PDF export。
-- MarkVSpec の action や layout から Thymeleaf fragment や htmx 属性への実装マッピング。
+- MarkVSpec の action や layout から、Thymeleaf fragment や htmx 属性などの framework details への実装マッピング。
 
 ## ガイドライン
 

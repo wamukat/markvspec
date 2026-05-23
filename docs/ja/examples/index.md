@@ -21,7 +21,7 @@ Online Live Editor は showcase とは別物であり、ブラウザ上で編集
 | はじめて書く | [Hello Screen](../../../examples/showcase/hello-screen.html) | プレビューで開ける最小ファイルを知りたい。 |
 | フォームとバリデーション | [Login](../../../examples/showcase/login-basic.html) | 必須項目、送信、応答ごとの分岐、エラーメッセージが必要。 |
 | 読み込み / 空 / エラー | [Async Fetching](../../../examples/showcase/async-loading.html) | リクエスト中、空の結果、エラー表示を扱う。 |
-| 部分更新 | [Profile Home](../../../examples/showcase/profile-page-with-template.html) | サーバー応答で画面の一部を差し替える。 |
+| 部分更新 | [Profile Home](../../../examples/showcase/profile-page-with-template.html) | アクション結果に応じて画面の対象領域を更新する。 |
 | ナビゲーションと重ね合わせ表示 | [Action Menu](../../../examples/showcase/action-menu.html) | タブ、メニュー、ダイアログ、ポップオーバー、トーストを扱う。 |
 | 再利用とテンプレート | [Account Shell](../../../examples/showcase/template-shell.html) | 複数画面でシェルや slot を共有する。 |
 | プロジェクトプレビュー / 文書一覧 | [Project Documents](../../../examples/project/account-project.html) | project preview や `export document-list` の入力になる `.vspec.project.md` が必要。 |

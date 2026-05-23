@@ -114,7 +114,8 @@ route: /hello
 - 画面をまたぐ仕様は、複数の画面ファイルに分けます。
 - Front Matter は YAML ですが、本文を YAML や JSON に寄せないでください。
 - Markdown table は説明用には使えますが、正本にはしません。
-- `type: partial` はサーバー生成 partial や画面断片を表す場合に使います。
+- `type: partial` は再利用する partial 文書や画面断片を表す場合に使います。
+  実装がサーバー生成 HTML partial の場合も、この形式で表せます。
 - `type: project` は、関連する画面とテンプレートを列挙する `.vspec.project.md` にだけ使います。
 - state は `## States` の下に箇条書きで書き、初期状態には `*` を1つだけ付けます。
 

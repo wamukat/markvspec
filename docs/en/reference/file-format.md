@@ -114,7 +114,8 @@ route: /hello
 - Split multi-screen specifications into multiple screen files.
 - Front Matter is YAML, but the body should not drift into YAML or JSON.
 - Markdown tables may be used for explanation, but they are not canonical source.
-- Use `type: partial` for server-rendered partials or screen fragments.
+- Use `type: partial` for reusable partial documents or screen fragments,
+  including server-rendered HTML partials when that is your implementation.
 - Use `type: project` only in `.vspec.project.md` files that list related screens and templates.
 - Write states as bullets under `## States`; use `*` on one state for the initial state.
 

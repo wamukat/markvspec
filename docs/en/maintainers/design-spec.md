@@ -21,11 +21,11 @@ components may be derived later, but component composition is not part of the
 primary authoring model.
 
 - `template`: shared shell and slots. It can be previewed and printed by itself.
-- `screen`: initial page reached by URL. It describes template usage, initial
-  DOM, partial requests such as htmx calls, and local screen state transitions.
-- `partial`: server-rendered partial HTML response. It can be previewed and
-  printed by itself and describes the returned HTML layout, elements,
-  server-side process, empty state, and error state.
+- `screen`: initial view reached by URL. It describes template usage, initial
+  view state, targeted display updates, and local screen state transitions.
+- `partial`: reusable partial document or screen fragment. It can be previewed
+  and printed by itself and describes the returned or rendered content layout,
+  elements, data process, empty state, and error state.
 
 The author writes a readable Markdown design document. MarkVSpec tools interpret a
 small, predictable subset of that document.
@@ -480,16 +480,17 @@ display changes; they do not canonically assign into `${data.value}`. Display
 values should be reviewed through State Views, Display Content Spec, Input Form
 Spec, Element samples, and Preview Scenario samples.
 
-## Thymeleaf And Htmx
+## Implementation Mapping: Thymeleaf And Htmx
 
-MarkVSpec can describe htmx-style partial updates without depending on htmx
-attribute names.
+Thymeleaf and htmx are one implementation mapping for MarkVSpec targeted display
+updates. The authored DSL should still describe the behavior without depending
+on htmx attribute names.
 
 Use structured action groups:
 
-- Screen-side `Process Pn: <name>` with a `request:` block for partial HTML method,
-  path, and parameters.
-- `case:` / direct `display.partial` effects for result-specific partial updates.
+- Screen-side `Process Pn: <name>` with a `request:` block for method, path, and
+  parameters.
+- `case:` / `display` effects for result-specific targeted display updates.
 - `target`, `mode`, and `partial` under `display` for semantic update details.
 
 Example mapping:
@@ -505,18 +506,19 @@ this viewport coverage rule.
 Lower-level implementation details such as concrete `hx-*` attributes belong in
 an implementation mapping, not in the main screen design flow. Semantic `mode`
 and `fragment` bullets are allowed when the design needs to identify a
-replacement strategy or server-rendered fragment without naming framework
-attributes directly.
+replacement strategy or implementation-specific fragment without naming
+framework attributes directly.
 
 Use result-scoped outcome details when only one outcome performs the partial
 update. For example, a login success may navigate to `SCR-DASHBOARD`, while the
 `failure` outcome can describe the error update with nested `target`, `mode`,
 and `fragment` bullets.
 
-When a server-rendered partial needs its own design document, the screen should
-describe which action replaces which target with partial-derived content. The
-partial should describe the returned HTML structure, server-side data process,
-empty state, and error state.
+When partial content needs its own design document, the screen should describe
+which action updates which target with partial-derived content. The partial
+should describe the rendered structure, data process, empty state, and error
+state. For a Thymeleaf implementation, that rendered structure may correspond to
+a server-rendered HTML fragment.
 
 ```markdown
 ---
@@ -805,7 +807,8 @@ The renderer should:
 - Render field mappings as label/control pairs.
 - Render `variant` and `tone` semantically.
 - Support state selection and conditional visibility.
-- Annotate htmx-style partial update targets.
+- Annotate targeted display update targets, including htmx-style mappings when
+  relevant.
 
 ## Open Decisions
 

@@ -9,8 +9,8 @@ or implementation artifact, not as the primary design-document language.
 ## Context
 
 HTML is attractive because it already has a tree structure, common editor
-support, and direct browser rendering. It is also close to the final Thymeleaf
-and htmx implementation target.
+support, and direct browser rendering. It is also close to some implementation
+targets, including Thymeleaf and htmx.
 
 MarkVSpec, however, is trying to make screen design documents readable and
 reviewable by humans before implementation. The source document needs to express
@@ -48,8 +48,9 @@ HTML is still useful in MarkVSpec:
 - Live preview and printable design document rendering.
 - Static HTML export for sharing generated specs.
 - PDF export through an installed Chrome/Chromium-compatible browser.
-- Implementation mapping from MarkVSpec actions and layouts to Thymeleaf
-  fragments and htmx attributes outside the MarkVSpec source document.
+- Implementation mapping from MarkVSpec actions and layouts to framework
+  details, such as Thymeleaf fragments and htmx attributes, outside the
+  MarkVSpec source document.
 
 ## Guideline
 

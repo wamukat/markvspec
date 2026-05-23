@@ -16,8 +16,8 @@ MarkVSpec は画面ファーストですが、設計書の単位は `template` /
 1 つの `.vspec.md` ファイルは 1 つの設計対象を表します。再利用可能な実装コンポーネントは後から導出できますが、設計書の記述者に部品ファイルの合成を要求しません。
 
 - `template`: 共通 shell や slot を持つ画面枠。単独でもプレビュー / 印刷できます。
-- `screen`: URL で到達する初期画面。template の利用、初期 DOM、HTMX などによる partial 呼び出し、画面内状態遷移を記述します。
-- `partial`: サーバから返される部分 HTML。単独でもプレビュー / 印刷でき、返却 HTML のレイアウト、要素、サーバ側処理、空 / エラー状態を記述します。
+- `screen`: URL で到達する初期画面。template の利用、初期表示状態、対象領域の表示更新、画面内状態遷移を記述します。
+- `partial`: 再利用する partial 文書または画面断片。単独でもプレビュー / 印刷でき、返却または描画される content のレイアウト、要素、データ処理、空 / エラー状態を記述します。
 
 ## 記述モデル
 
@@ -311,12 +311,12 @@ HTTP request のクリック Action では、送信できたかどうかを requ
 
 `navigate: SCR-*` は別画面への遷移です。状態遷移図では画面内状態のノードとして扱わず、終端への遷移として描画します。
 
-## Thymeleaf と htmx
+## 実装マッピング: Thymeleaf と htmx
 
-MarkVSpec は htmx 属性そのものを書く場所ではありません。部分更新は意味として表します。
+Thymeleaf と htmx は、MarkVSpec の targeted display update に対する実装マッピングの一つです。authored DSL では htmx 属性そのものに依存せず、表示変化の意味を書きます。
 
-- screen 側の `Process Pn:` / `request:`: HTTP method、path、パラメータ、送信結果。
-- response handler Action の `case:` / `update`: レスポンス結果ごとの部分更新。
+- screen 側の `Process Pn:` / `request:`: method、path、パラメータ、送信結果。
+- response handler Action の `case:` / `display`: 結果ごとの対象領域の表示更新。
 - `target`: 更新対象の layout または element。
 - `content`: 差し替える内容の意味。
 - `mode`: 必要な場合の差し替え方法。
@@ -329,9 +329,9 @@ MarkVSpec は htmx 属性そのものを書く場所ではありません。部�
 
 ログイン成功は画面遷移、失敗はメッセージ領域の部分更新、というように結果ごとに書き分けます。
 
-partial が独立した設計書として必要な場合は、screen 側には「どの領域をどの
-partial で置き換えるか」までを書きます。partial 側には返却 HTML の構造と、
-サーバ側で必要なデータ取得、空表示、エラー表示を書きます。
+partial content が独立した設計書として必要な場合は、screen 側には「どの action がどの
+target を partial-derived content で更新するか」までを書きます。partial 側には描画される構造と、
+データ取得、空表示、エラー表示を書きます。Thymeleaf 実装では、その描画構造がサーバー生成 HTML fragment に対応する場合があります。
 
 ```markdown
 ---
