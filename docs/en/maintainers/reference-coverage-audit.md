@@ -124,23 +124,24 @@ fields, project file fields, renderer message resolution coverage targets,
 Reference page structure, generated Reference markers, and example catalog
 entries.
 
-The initial checker is intentionally report-first. It fails only when the audit
-preconditions are broken:
+The checker is still partly report-first, but stable mapping families now fail
+when their required evidence is missing. It fails when the audit preconditions or
+stable coverage anchors are broken:
 
 - A required inventory category is empty.
 - English and Japanese Reference page sets are asymmetric.
 - Required generated Reference markers are missing.
 - A required external input/configuration inventory category is empty, or a
   required Reference coverage target is missing.
+- A required stable Reference coverage marker is missing.
 - Existing Reference page structure is unreadable enough that the report cannot
   be trusted.
 
-It warns, without failing release, when feature-to-Reference mapping is still
-manual, coverage markers are not present, prose depth may be thin, Guide-only or
-Example-only coverage may exist, or diagnostic/renderer/export coverage cannot
-yet be judged mechanically. External input/configuration category-to-prose
-mapping is marker-checked, but item-level prose depth remains reviewer judgment
-until item-level markers are introduced.
+It warns, without failing release, when a feature family is still report-only,
+prose depth may be thin, Guide-only or Example-only coverage may exist, or
+diagnostic/renderer/export coverage cannot yet be judged mechanically. External
+input/configuration category-to-prose mapping is marker-checked, but item-level
+prose depth remains reviewer judgment until item-level markers are introduced.
 
 `npm run audit:reference-coverage` is not included in `npm run check:release`
 yet. Missing Reference page/section findings should be promoted from warning to
@@ -166,10 +167,38 @@ non-index Reference page in both English and Japanese. For example,
 `docs/ja/reference/actions.md`.
 
 `npm run audit:reference-coverage` reports the feature ID to Reference marker
-mapping and warns when a required locale marker is missing. Marker absence is a
-warning while the coverage model is being introduced; individual feature
-families can become release-blocking only after their expected marker set is
-stable and triaged.
+mapping and fails when a stable required locale marker is missing. The current
+stable marker family is `reference.page.*`; missing markers are release-blocking
+because the expected set is derived from the existing non-index Reference pages.
+
+## Feature-to-Reference Mapping Status
+
+`npm run audit:reference-coverage` classifies feature-to-Reference mapping
+families as either stable or report-only. Stable families have deterministic
+source inventory, required evidence markers, and release-blocking failure modes.
+Report-only families are listed with counts and reasons so maintainers can
+triage them before promoting them to stable coverage.
+
+Stable families:
+
+- Reference page family: `markvspec-coverage:reference.page.*` markers in both
+  English and Japanese Reference pages.
+- Generated Reference table family: required `markvspec-generated:*` blocks.
+- External input/configuration category family:
+  `markvspec-coverage:external-input.*` markers in the required coverage target
+  pages.
+
+Report-only families:
+
+- Grammar sections and structured items.
+- Element types and properties.
+- Diagnostic codes and push sites.
+- Renderer/export output features.
+- Examples and example-supported patterns.
+
+Report-only families still require manual review for semantic depth. They should
+not become release-blocking until their stable marker IDs, expected target pages,
+and failure modes have been triaged.
 
 ## External Input / Configuration Coverage
 

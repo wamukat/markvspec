@@ -122,21 +122,23 @@ command/settings の有無、Front Matter fields、project file fields、rendere
 resolution coverage targets、Reference page structure、generated Reference marker、
 example catalog entry から deterministic な inventory/report を作る。
 
-初期 checker は report-first とする。fail するのは audit の前提が壊れている場合に
-限定する。
+checker はまだ一部 report-first ですが、stable mapping family は必要な evidence が
+欠けた時点で fail します。fail するのは audit の前提、または stable coverage anchor が
+壊れている場合です。
 
 - 必須 inventory category が空。
 - English/Japanese の Reference page set が非対称。
 - 必須 generated Reference marker が欠落。
 - 必須 external input/configuration inventory category が空、または必須 Reference
   coverage target が欠落。
+- 必須 stable Reference coverage marker が欠落。
 - 既存 Reference page structure が report を信頼できないほど壊れている。
 
-feature-to-Reference mapping がまだ手動、coverage marker が未整備、prose depth が
-薄い可能性、Guide-only / Example-only coverage の疑い、diagnostic/renderer/export
-coverage をまだ機械判定できない場合は warn に留め、release は fail させない。
-external input/configuration の category-to-prose mapping は marker で確認しますが、
-item-level prose depth は item-level marker を導入するまで reviewer 判断として残します。
+feature family が report-only、prose depth が薄い可能性、Guide-only / Example-only
+coverage の疑い、diagnostic/renderer/export coverage をまだ機械判定できない場合は
+warn に留め、release は fail させません。external input/configuration の
+category-to-prose mapping は marker で確認しますが、item-level prose depth は
+item-level marker を導入するまで reviewer 判断として残します。
 
 `npm run audit:reference-coverage` はまだ `npm run check:release` には含めない。
 missing Reference page/section は、初回 report の triage と stable feature ID /
@@ -161,9 +163,35 @@ Reference page ごとに、English と Japanese の両方へ 1 つずつ marker 
 `docs/ja/reference/actions.md` の両方に必要です。
 
 `npm run audit:reference-coverage` は feature ID と Reference marker の対応を report
-し、必要な locale marker が欠けている場合は warning を出します。coverage model を
-導入している間、marker 欠落は warning に留めます。個別 feature family を
-release-blocking に昇格するのは、期待 marker set が安定し triage 済みになってからです。
+し、stable な必須 locale marker が欠けている場合は fail します。現在 stable な marker
+family は `reference.page.*` です。期待 set は既存の non-index Reference page から
+決まるため、marker 欠落は release-blocking として扱います。
+
+## feature-to-Reference mapping status
+
+`npm run audit:reference-coverage` は feature-to-Reference mapping family を stable と
+report-only に分類します。stable family は deterministic な source inventory、必須
+evidence marker、release-blocking failure mode を持ちます。report-only family は count
+と reason を report に出し、stable coverage へ昇格する前に maintainer が triage します。
+
+stable family:
+
+- Reference page family: English / Japanese の Reference page 両方に置く
+  `markvspec-coverage:reference.page.*` marker。
+- Generated Reference table family: 必須 `markvspec-generated:*` block。
+- External input/configuration category family: required coverage target page に置く
+  `markvspec-coverage:external-input.*` marker。
+
+report-only family:
+
+- grammar section と structured item。
+- element type と property。
+- diagnostic code と push site。
+- renderer/export output feature。
+- example と example-supported pattern。
+
+report-only family は semantic depth の manual review が必要です。stable marker ID、
+期待 target page、failure mode を triage するまでは release-blocking に昇格しません。
 
 ## external input / configuration coverage
 

@@ -76,6 +76,7 @@ inventory.vscodeCommands = await vscodeCommandInventory();
 inventory.cliSurface = await cliSurfaceInventory();
 inventory.externalInputs = await externalInputConfigurationInventory(inventory.cliSurface, inventory.vscodeCommands);
 inventory.examples = await exampleInventory();
+inventory.featureMapping = featureMappingInventory();
 
 assertCategory("grammar sections", inventory.grammarSections);
 assertCategory("structured item contexts", inventory.structuredItemContexts);
@@ -95,6 +96,8 @@ assertCategory("Front Matter fields", inventory.externalInputs.frontMatterFields
 assertCategory("project file fields", inventory.externalInputs.projectFileFields);
 assertCategory("VS Code settings coverage", inventory.externalInputs.vscodeSettings);
 assertCategory("renderer message resolution coverage targets", inventory.externalInputs.rendererMessageResolution);
+assertCategory("stable feature mapping families", inventory.featureMapping.stable);
+assertCategory("report-only feature mapping families", inventory.featureMapping.reportOnly);
 assertCategory("examples", inventory.examples.catalogEntries);
 
 auditReferencePageSymmetry(inventory.referencePages);
@@ -212,7 +215,7 @@ function auditRequiredGeneratedMarkers(markers) {
 
 function auditCoverageMarkerReadiness(referenceCoverage) {
   if (referenceCoverage.markers.length === 0) {
-    warnings.push("Reference coverage markers are not present yet; feature-to-prose mapping remains manual until stable feature IDs are added.");
+    failures.push("Reference coverage markers are required for stable reference.page feature mapping.");
     return;
   }
 
@@ -220,15 +223,75 @@ function auditCoverageMarkerReadiness(referenceCoverage) {
   for (const feature of referenceCoverage.features) {
     for (const locale of feature.requiredLocales) {
       if (!markerKeys.has(`${locale}:${feature.id}`)) {
-        warnings.push(`${feature.id}: missing ${locale.toUpperCase()} Reference coverage marker.`);
+        failures.push(`${feature.id}: missing ${locale.toUpperCase()} Reference coverage marker.`);
       }
     }
   }
 }
 
 function auditFeatureMappingReadiness() {
-  warnings.push("Feature-to-Reference mapping is report-only in this skeleton; missing Reference page/section will be triaged before becoming a release-blocking failure.");
+  warnings.push(`Feature-to-Reference mapping has ${inventory.featureMapping.reportOnly.length} report-only family/families that still need stable markers before missing prose becomes release-blocking.`);
   warnings.push("Diagnostic and renderer/export output coverage is inventoried where mechanically detectable; semantic coverage still requires manual review.");
+}
+
+function featureMappingInventory() {
+  return {
+    stable: [
+      {
+        id: "feature-mapping.reference-pages",
+        family: "Reference page family",
+        count: inventory.referenceCoverage.features.length,
+        failureMode: "Missing EN/JA page marker is a failure.",
+        evidence: "markvspec-coverage:reference.page.*"
+      },
+      {
+        id: "feature-mapping.generated-reference",
+        family: "Generated Reference table family",
+        count: Object.values(requiredGeneratedMarkers).flat().length,
+        failureMode: "Missing required generated marker is a failure.",
+        evidence: "markvspec-generated:*"
+      },
+      {
+        id: "feature-mapping.external-input",
+        family: "External input/configuration category family",
+        count: inventory.externalInputs.categories.length,
+        failureMode: "Missing category marker in any coverage target page is a failure.",
+        evidence: "markvspec-coverage:external-input.*"
+      }
+    ],
+    reportOnly: [
+      {
+        id: "feature-mapping.grammar-sections",
+        family: "Grammar sections and structured items",
+        count: inventory.grammarSections.length + inventory.structuredItemContexts.reduce((count, context) => count + context.items.length, 0),
+        reason: "Generated grammar/reference docs are checked, but section/item-level prose markers are not stable yet."
+      },
+      {
+        id: "feature-mapping.elements",
+        family: "Element types and properties",
+        count: inventory.elementTypes.length + inventory.elementProperties.length,
+        reason: "Generated element tables are checked, but type/property prose depth is not markerized item by item."
+      },
+      {
+        id: "feature-mapping.diagnostics",
+        family: "Diagnostic codes and push sites",
+        count: inventory.diagnosticCodes.length + inventory.diagnosticPushSites.length,
+        reason: "Diagnostic coverage matrix exists, but code-to-marker comparison is deferred."
+      },
+      {
+        id: "feature-mapping.renderer-export",
+        family: "Renderer/export output features",
+        count: inventory.rendererOutputFeatures.length,
+        reason: "Output clusters require artifact/manual review before marker-level failure is safe."
+      },
+      {
+        id: "feature-mapping.examples",
+        family: "Examples and example-supported patterns",
+        count: inventory.examples?.catalogEntries?.length ?? 0,
+        reason: "Examples are audited as runnable artifacts, but feature-to-prose mapping is not stable per example tag."
+      }
+    ]
+  };
 }
 
 async function generatedReferenceMarkers() {
@@ -657,6 +720,8 @@ function printReport() {
     ["VS Code settings entries", inventory.externalInputs.vscodeSettings.length],
     ["renderer message resolution entries", inventory.externalInputs.rendererMessageResolution.length],
     ["external input/configuration categories", inventory.externalInputs.categories.length],
+    ["stable feature mapping families", inventory.featureMapping.stable.length],
+    ["report-only feature mapping families", inventory.featureMapping.reportOnly.length],
     ["examples catalog entries", inventory.examples.catalogEntries.length],
     ["example files", inventory.examples.files.length]
   ];
@@ -668,6 +733,7 @@ function printReport() {
 
   printReferenceCoverageMarkerReport();
   printExternalInputConfigurationReport();
+  printFeatureMappingReport();
 
   if (warnings.length > 0) {
     console.log("\nWarnings:");
@@ -717,4 +783,19 @@ function printExternalInputConfigurationReport() {
   console.log(`  Project file fields: ${sampleProjectFields}`);
   console.log(`  VS Code settings: ${vscodeSettings}`);
   console.log(`  Renderer message resolution: ${messageResolution}`);
+}
+
+function printFeatureMappingReport() {
+  if (!inventory.featureMapping) {
+    return;
+  }
+  console.log("\nFeature-to-Reference mapping report:");
+  console.log("Stable mappings:");
+  for (const entry of inventory.featureMapping.stable) {
+    console.log(`- ${entry.family}: ${entry.count} feature(s); evidence: ${entry.evidence}; failure: ${entry.failureMode}`);
+  }
+  console.log("Report-only mappings:");
+  for (const entry of inventory.featureMapping.reportOnly) {
+    console.log(`- ${entry.family}: ${entry.count} feature(s); reason: ${entry.reason}`);
+  }
 }
