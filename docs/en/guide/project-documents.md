@@ -15,7 +15,7 @@ Project documents are useful for two related workflows:
 
 The repository includes a project-level example:
 
-- [Project Documents example](https://github.com/wamukat/markvspec/tree/main/examples/07-project-documents)
+- [Project Documents example](../../../examples/project/account-project.html)
 
 That directory contains:
 

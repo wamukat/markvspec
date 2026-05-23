@@ -12,7 +12,7 @@ Online Live Editor は showcase とは別物であり、ブラウザ上で編集
 - [Login サンプル](../../../examples/showcase/login-basic.html)
 - [Form Submit Flow サンプル](../../../examples/showcase/form-submit-flow.html)
 - [Profile Home サンプル](../../../examples/showcase/profile-page-with-template.html)
-- [プロジェクト文書サンプル](https://github.com/wamukat/markvspec/tree/main/examples/07-project-documents)
+- [プロジェクト文書サンプル](../../../examples/project/account-project.html)
 
 ## 目的で選ぶ
 
@@ -24,7 +24,7 @@ Online Live Editor は showcase とは別物であり、ブラウザ上で編集
 | 部分更新 | [Profile Home](../../../examples/showcase/profile-page-with-template.html) | サーバー応答で画面の一部を差し替える。 |
 | ナビゲーションと重ね合わせ表示 | [Action Menu](../../../examples/showcase/action-menu.html) | タブ、メニュー、ダイアログ、ポップオーバー、トーストを扱う。 |
 | 再利用とテンプレート | [Account Shell](../../../examples/showcase/template-shell.html) | 複数画面でシェルや slot を共有する。 |
-| プロジェクトプレビュー / 文書一覧 | [Project Documents](https://github.com/wamukat/markvspec/tree/main/examples/07-project-documents) | project preview や `export document-list` の入力になる `.vspec.project.md` が必要。 |
+| プロジェクトプレビュー / 文書一覧 | [Project Documents](../../../examples/project/account-project.html) | project preview や `export document-list` の入力になる `.vspec.project.md` が必要。 |
 
 ## おすすめ順
 

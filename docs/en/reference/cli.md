@@ -88,7 +88,7 @@ Use project preview when they need to read project intent, notes, document lists
 and transition graph together. Long project lead / notes prose is intentionally
 not copied into `document-list.md`.
 
-See [`examples/07-project-documents/`](https://github.com/wamukat/markvspec/tree/main/examples/07-project-documents)
+See [`examples/07-project-documents/`](../../../examples/project/account-project.html)
 for a project preview source that also produces a document-list inventory.
 
 ## Small Example

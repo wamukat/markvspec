@@ -12,8 +12,10 @@ export const githubRawBaseUrl = 'https://raw.githubusercontent.com/wamukat/markv
 
 const projectExamples = [
   {
-    href: 'https://github.com/wamukat/markvspec/tree/main/examples/07-project-documents',
+    filePath: join(repoRoot, 'examples/07-project-documents/account-project.vspec.project.md'),
+    href: '/examples/project/account-project.html',
     repoPath: 'examples/07-project-documents/account-project.vspec.project.md',
+    slug: 'account-project',
     summary: 'Project preview index that also exports a document-list inventory.',
     teaches: ['Project preview', 'Document-list export', 'Screen/template/partial inventory'],
     title: 'Project Documents',
@@ -58,7 +60,10 @@ export function getExamples() {
 }
 
 export function getProjectExamples() {
-  return projectExamples;
+  return projectExamples.map((example) => ({
+    ...example,
+    source: readFileSync(example.filePath, 'utf8'),
+  }));
 }
 
 export function getLearningPath(examples) {

@@ -40,7 +40,7 @@ of a pre-generated example HTML fallback.
 Project-level examples use a `.vspec.project.md` file instead of a single
 screen showcase:
 
-- [Project Documents](https://github.com/wamukat/markvspec/tree/main/examples/07-project-documents): project preview source and `export document-list` inventory example.
+- [Project Documents](../../../examples/project/account-project.html): project preview source and `export document-list` inventory example.
 
 ## Next Reading
 

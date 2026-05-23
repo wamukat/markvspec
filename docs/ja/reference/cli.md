@@ -87,7 +87,7 @@ npx @markvspec/cli@latest export document-list examples/07-project-documents/acc
 プロジェクト文書の長い概要文やメモ本文は `document-list.md` には含めません。
 
 project preview と document-list の両方に使えるソース例は
-[`examples/07-project-documents/`](https://github.com/wamukat/markvspec/tree/main/examples/07-project-documents)
+[`examples/07-project-documents/`](../../../examples/project/account-project.html)
 を参照してください。
 
 ## 小さな例

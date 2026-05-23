@@ -13,7 +13,7 @@ PoC.
 - [Login showcase](../../../examples/showcase/login-basic.html)
 - [Form Submit Flow showcase](../../../examples/showcase/form-submit-flow.html)
 - [Profile Home showcase](../../../examples/showcase/profile-page-with-template.html)
-- [Project documents example](https://github.com/wamukat/markvspec/tree/main/examples/07-project-documents)
+- [Project documents example](../../../examples/project/account-project.html)
 
 ## Choose By Task
 
@@ -25,7 +25,7 @@ PoC.
 | Partial update | [Profile Home](../../../examples/showcase/profile-page-with-template.html) | A server response replaces part of the screen. |
 | Navigation and overlays | [Action Menu](../../../examples/showcase/action-menu.html) | You need tabs, menus, dialogs, popovers, or toasts. |
 | Reuse and templates | [Account Shell](../../../examples/showcase/template-shell.html) | Multiple screens share a shell or slot. |
-| Project preview / document list | [Project Documents](https://github.com/wamukat/markvspec/tree/main/examples/07-project-documents) | You need a `.vspec.project.md` source for project preview or `export document-list`. |
+| Project preview / document list | [Project Documents](../../../examples/project/account-project.html) | You need a `.vspec.project.md` source for project preview or `export document-list`. |
 
 ## Recommended Order
 

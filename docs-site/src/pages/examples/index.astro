@@ -216,7 +216,7 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
           {projectExamples.map((example) => (
             <li>
               <div class="card-title">
-                <a href={example.href}>{example.title}</a>
+                <a href={`${base}${example.href}`}>{example.title}</a>
                 <span class="pill">project</span>
               </div>
               <p class="summary">{example.summary}</p>

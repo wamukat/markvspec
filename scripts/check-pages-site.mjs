@@ -25,6 +25,7 @@ const requiredFiles = [
   "examples/source/01-basics/hello-screen.vspec.md",
   "examples/dynamic/hello-screen.html/index.html",
   "examples/experimental/editor/hello-screen.html/index.html",
+  "examples/project/account-project.html/index.html",
   "examples/showcase/hello-screen.html/index.html",
   "pagefind/pagefind.js",
   "pagefind/pagefind-entry.json",
@@ -67,6 +68,7 @@ expectContains(examplesHtml, "MarkVSpec Examples", "_site/examples/index.html sh
 expectContains(examplesHtml, "examples/01-basics/hello-screen.vspec.md", "_site/examples/index.html should show the source path.");
 expectContains(examplesHtml, "Project-Level Examples", "_site/examples/index.html should expose project-level examples.");
 expectContains(examplesHtml, "examples/07-project-documents/account-project.vspec.project.md", "_site/examples/index.html should show the project preview example source path.");
+expectContains(examplesHtml, `${base}/examples/project/account-project.html`, "_site/examples/index.html should link project examples to the local project preview page.");
 expectContains(examplesHtml, `${base}/examples/showcase/hello-screen.html`, "_site/examples/index.html should link to the Hello Screen showcase.");
 expectNotContains(examplesHtml, "Source + Preview", "_site/examples/index.html should not duplicate showcase link labels on cards.");
 expectNotContains(examplesHtml, ">Preview<", "_site/examples/index.html should not expose preview-only card links.");
@@ -77,6 +79,7 @@ expectNotContains(examplesHtml, `${base}/examples/generated/hello-screen.html`, 
 expectNotContains(examplesHtml, `${base}/examples/generated/hello-screen.pdf`, "_site/examples/index.html should not link generated PDF artifacts from cards.");
 expectNotContains(examplesHtml, `${base}/examples/experimental/editor/`, "_site/examples/index.html should not expose the experimental editor route.");
 expectNotContains(examplesHtml, "github.com/wamukat/markvspec/blob/", "_site/examples/index.html should not link GitHub source blobs from cards.");
+expectNotContains(examplesHtml, "github.com/wamukat/markvspec/tree/main/examples/07-project-documents", "_site/examples/index.html should not send project example cards to GitHub.");
 expectContains(examplesHtml, "Learning Path", "_site/examples/index.html should expose the catalog learning path.");
 expectContains(examplesHtml, "Step 1", "_site/examples/index.html should number learning path examples.");
 expectOrder(
@@ -120,6 +123,7 @@ if (showcaseFiles.length !== exampleSources.length) {
 }
 
 const helloShowcaseHtml = readSiteFile("examples/showcase/hello-screen.html/index.html");
+const projectPreviewHtml = readSiteFile("examples/project/account-project.html/index.html");
 const enGuideHtml = readSiteFile("en/guide/index.html");
 const jaGuideHtml = readSiteFile("ja/guide/index.html");
 expectContains(enGuideHtml, `${base}/en/guide/project-documents/`, "_site/en/guide/index.html should include Project Documents in the Starlight guide navigation.");
@@ -128,6 +132,7 @@ expectContains(jaGuideHtml, `${base}/ja/guide/project-documents/`, "_site/ja/gui
 expectContains(jaGuideHtml, "プロジェクト文書", "_site/ja/guide/index.html should show the Japanese Project Documents guide label.");
 expectContains(helloShowcaseHtml, "Project-Level Examples", "_site/examples/showcase/hello-screen.html should show project-level examples in the sidebar.");
 expectContains(helloShowcaseHtml, "Project Documents", "_site/examples/showcase/hello-screen.html should link the project documents example in the sidebar.");
+expectContains(helloShowcaseHtml, `${base}/examples/project/account-project.html`, "_site/examples/showcase/hello-screen.html should link project examples to the local project preview page.");
 expectContains(helloShowcaseHtml, "Source and dynamic preview, side by side", "_site/examples/showcase/hello-screen.html should be a dynamic-first showcase page.");
 expectContains(helloShowcaseHtml, "Dynamic preview", "_site/examples/showcase/hello-screen.html should label the main preview as dynamic.");
 expectNotContains(helloShowcaseHtml, "Generated HTML Preview", "_site/examples/showcase/hello-screen.html should not label the main preview as generated HTML.");
@@ -163,6 +168,12 @@ expectContains(helloShowcaseHtml, "Japanese: Guide / Markdown Model", "_site/exa
 expectContains(helloShowcaseHtml, 'href="/markvspec/en/guide/markdown-model/"', "_site/examples/showcase/hello-screen.html should use the Starlight English guide URL.");
 expectContains(helloShowcaseHtml, 'href="/markvspec/ja/guide/markdown-model/"', "_site/examples/showcase/hello-screen.html should use the Starlight Japanese guide URL.");
 expectContains(helloShowcaseHtml, "Async Fetching", "_site/examples/showcase/hello-screen.html should link to the next example.");
+expectContains(projectPreviewHtml, "MarkVSpec Project Preview", "_site/examples/project/account-project.html should be the project preview route.");
+expectContains(projectPreviewHtml, "Project Preview", "_site/examples/project/account-project.html should label the generated preview pane.");
+expectContains(projectPreviewHtml, "Account Portal Project", "_site/examples/project/account-project.html should render the project source/preview content.");
+expectContains(projectPreviewHtml, "Project Transition Diagram", "_site/examples/project/account-project.html should render the VS Code project preview document.");
+expectContains(projectPreviewHtml, "examples/07-project-documents/account-project.vspec.project.md", "_site/examples/project/account-project.html should show the project source path.");
+expectContains(projectPreviewHtml, `${base}/examples/project/account-project.html`, "_site/examples/project/account-project.html should keep the project sidebar on the local preview page.");
 const showcaseDynamicScriptPath = dynamicScriptArtifactPath(helloShowcaseHtml, join(siteDir, "examples", "showcase", "hello-screen.html", "index.html"));
 if (!showcaseDynamicScriptPath) {
   failures.push("_site/examples/showcase/hello-screen.html should include the dynamic preview browser script.");

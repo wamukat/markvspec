@@ -14,6 +14,7 @@ const docsMarkdownFiles = collectFiles(docsRoot, (filePath) => filePath.endsWith
 const docsSiteMarkdownFiles = collectFiles(docsSiteContentRoot, (filePath) => filePath.endsWith(".md"));
 const exampleFiles = collectFiles(examplesRoot, (filePath) => filePath.endsWith(".vspec.md"));
 const showcaseSlugs = new Set(exampleFiles.map((filePath) => basenameWithoutVspec(filePath)));
+const projectPreviewSlugs = new Set(["account-project"]);
 
 const catalog = loadExampleCatalog(root);
 const { errors: catalogErrors, warnings: catalogWarnings } = validateExampleCatalog(catalog, { root, exampleFiles });
@@ -87,6 +88,11 @@ function resolveMarkdownSourceTarget(sourcePath, rawHref) {
     return { exists: showcaseSlugs.has(slug) };
   }
 
+  if (hrefPath.startsWith("../../../examples/project/")) {
+    const slug = hrefPath.slice("../../../examples/project/".length).replace(/\.html$/u, "");
+    return { exists: projectPreviewSlugs.has(slug) };
+  }
+
   if (hrefPath === "../../../examples/" || hrefPath === "../../../examples") {
     return { exists: true };
   }
@@ -106,6 +112,11 @@ function resolveSiteTarget(rawHref) {
   if (sitePath.startsWith("/examples/showcase/")) {
     const slug = sitePath.slice("/examples/showcase/".length).replace(/\.html\/?$/u, "");
     return { exists: showcaseSlugs.has(slug) };
+  }
+
+  if (sitePath.startsWith("/examples/project/")) {
+    const slug = sitePath.slice("/examples/project/".length).replace(/\.html\/?$/u, "");
+    return { exists: projectPreviewSlugs.has(slug) };
   }
 
   if (sitePath.startsWith("/examples/generated/") || sitePath.startsWith("/examples/dynamic/")) {

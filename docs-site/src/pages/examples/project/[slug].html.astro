@@ -1,0 +1,416 @@
+---
+import { readFileSync } from 'node:fs';
+import { dirname } from 'node:path';
+import { loadMarkVSpecProject, messagesForLocale } from '@markvspec/core';
+import { renderProjectDesignDocumentHtml } from '../../../../../packages/vscode-extension/src/project-preview-document.ts';
+import {
+  getExamples,
+  getProjectExamples,
+  groupExamplesByStage,
+  githubBlobBaseUrl,
+  sourceLines,
+} from '../../../lib/example-data.js';
+
+export function getStaticPaths() {
+  return getProjectExamples().map((example) => ({
+    params: { slug: example.slug },
+    props: { example },
+  }));
+}
+
+const { example } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const examples = getExamples();
+const projectExamples = getProjectExamples();
+const stageGroups = groupExamplesByStage(examples);
+const project = loadMarkVSpecProject(example.source, {
+  projectPath: example.filePath,
+  readFile: (path) => {
+    try {
+      return readFileSync(path, 'utf8');
+    } catch {
+      return undefined;
+    }
+  },
+  workspaceRoot: dirname(example.filePath),
+});
+const projectPreviewHtml = renderProjectDesignDocumentHtml(project, messagesForLocale(project.project.project.frontMatter.locale));
+const sourceLineItems = sourceLines(example.source);
+const metaPills = [
+  project.project.project.id,
+  project.project.project.type,
+  `${project.screens.length} screens`,
+  `${project.templates.length} templates`,
+].filter(Boolean);
+const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{example.title} - MarkVSpec Project Preview</title>
+    <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+    <link rel="stylesheet" href={`${base}/examples/assets/markvspec-preview.css`} />
+    <style>
+      :root {
+        --page: #f6f7f9;
+        --paper: #fff;
+        --ink: #172033;
+        --muted: #617083;
+        --line: #d6dde8;
+        --line-soft: #e9edf3;
+        --accent: #2563eb;
+        --code-bg: #101827;
+        --code-ink: #e8eef8;
+        --code-muted: #95a3b8;
+      }
+      * { box-sizing: border-box; }
+      body {
+        background: var(--page);
+        color: var(--ink);
+        font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        margin: 0;
+      }
+      .site-header {
+        background: rgba(255, 255, 255, .94);
+        border-bottom: 1px solid var(--line);
+        position: sticky;
+        top: 0;
+        z-index: 20;
+      }
+      .site-header-inner {
+        align-items: center;
+        display: flex;
+        gap: 16px;
+        justify-content: space-between;
+        margin: 0 auto;
+        max-width: 1440px;
+        padding: 12px 24px;
+      }
+      .brand {
+        align-items: center;
+        display: grid;
+        gap: 2px 9px;
+        grid-template-columns: 30px 1fr;
+      }
+      .brand img {
+        border-radius: 7px;
+        grid-row: 1 / span 2;
+        height: 30px;
+        width: 30px;
+      }
+      .brand strong { font-size: 15px; }
+      .brand span { color: var(--muted); font-size: 12px; }
+      .top-nav {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+      .nav-link,
+      .button-link {
+        align-items: center;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: #334155;
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 650;
+        gap: 6px;
+        line-height: 1.2;
+        padding: 7px 11px;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .nav-link svg {
+        flex: 0 0 auto;
+        height: 15px;
+        width: 15px;
+      }
+      main {
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr);
+        min-height: calc(100vh - 56px);
+      }
+      .example-sidebar {
+        background: #fff;
+        border-right: 1px solid var(--line);
+        max-height: calc(100vh - 56px);
+        overflow: auto;
+        padding: 18px;
+        position: sticky;
+        top: 56px;
+      }
+      .example-sidebar-title {
+        color: var(--ink);
+        display: inline-block;
+        font-size: 14px;
+        font-weight: 800;
+        margin-bottom: 16px;
+        text-decoration: none;
+      }
+      .example-sidebar-section { margin-bottom: 22px; }
+      .example-sidebar-heading {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .04em;
+        margin: 0 0 8px;
+        text-transform: uppercase;
+      }
+      .example-sidebar ul {
+        display: grid;
+        gap: 3px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .example-sidebar a {
+        border-radius: 6px;
+        color: #334155;
+        display: block;
+        font-size: 13px;
+        font-weight: 650;
+        padding: 6px 8px;
+        text-decoration: none;
+      }
+      .example-sidebar a:hover,
+      .example-sidebar a[aria-current="page"] {
+        background: #eaf1ff;
+        color: #1d4ed8;
+      }
+      .example-main {
+        min-width: 0;
+        padding: 24px;
+      }
+      .example-header {
+        align-items: flex-start;
+        display: flex;
+        gap: 16px;
+        justify-content: space-between;
+        margin: 0 auto 20px;
+        max-width: 1480px;
+      }
+      .breadcrumb {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      h1 {
+        font-size: 30px;
+        line-height: 1.2;
+        margin: 0 0 6px;
+      }
+      .subtitle {
+        color: var(--muted);
+        margin: 0;
+        max-width: 760px;
+      }
+      .split {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: minmax(360px, .88fr) minmax(420px, 1.12fr);
+        margin: 0 auto;
+        max-width: 1480px;
+      }
+      .pane {
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        min-width: 0;
+        overflow: hidden;
+      }
+      .pane-header {
+        align-items: center;
+        background: #fff;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        gap: 12px;
+        justify-content: space-between;
+        min-height: 54px;
+        padding: 12px 14px;
+      }
+      .pane-title {
+        display: grid;
+        gap: 2px;
+      }
+      .pane-title strong { font-size: 13px; }
+      .pane-title span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .pill {
+        background: #eef2ff;
+        border: 1px solid #c7d2fe;
+        border-radius: 999px;
+        color: #3730a3;
+        font-size: 11px;
+        font-weight: 750;
+        padding: 2px 7px;
+      }
+      .source-wrap {
+        background: var(--code-bg);
+        color: var(--code-ink);
+        max-height: calc(100vh - 210px);
+        overflow: auto;
+      }
+      pre {
+        margin: 0;
+        padding: 14px 0;
+      }
+      code {
+        font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      }
+      .line {
+        display: grid;
+        grid-template-columns: 44px minmax(0, 1fr);
+        min-width: max-content;
+      }
+      .line-no {
+        color: var(--code-muted);
+        padding-right: 12px;
+        text-align: right;
+        user-select: none;
+      }
+      .line-code {
+        padding-right: 18px;
+        white-space: pre;
+      }
+      .preview-wrap {
+        max-height: calc(100vh - 210px);
+        overflow: auto;
+        padding: 18px;
+      }
+      .preview-wrap :global(.document) {
+        margin: 0;
+        max-width: none;
+      }
+      @media (max-width: 1040px) {
+        main { grid-template-columns: 1fr; }
+        .example-sidebar {
+          max-height: none;
+          position: static;
+        }
+        .split { grid-template-columns: 1fr; }
+        .source-wrap,
+        .preview-wrap { max-height: none; }
+      }
+      @media (max-width: 720px) {
+        .site-header-inner,
+        .example-header {
+          align-items: stretch;
+          flex-direction: column;
+        }
+        .example-main { padding: 16px 14px 32px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="site-header-inner">
+        <div class="brand">
+          <img src={`${base}/assets/markvspec-icon.svg`} alt="" width="30" height="30" />
+          <strong>MarkVSpec Project Preview</strong>
+          <span>Project source and generated project overview</span>
+        </div>
+        <nav class="top-nav" aria-label="Example navigation">
+          <a class="nav-link" href={`${base}/en/`}>
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 7v14" />
+              <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />
+            </svg>
+            <span>Docs</span>
+          </a>
+          <a class="nav-link" href={githubRepositoryUrl}>
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+              <path d="M12 .5a12 12 0 0 0-3.79 23.39c.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.08 1.83 2.82 1.3 3.5.99.11-.78.42-1.3.76-1.6-2.67-.31-5.47-1.34-5.47-5.94 0-1.31.47-2.38 1.23-3.22-.12-.3-.53-1.53.12-3.18 0 0 1-.32 3.3 1.23a11.47 11.47 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.65.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.62-2.81 5.63-5.49 5.93.43.37.82 1.1.82 2.22v3.29c0 .32.21.7.83.58A12 12 0 0 0 12 .5Z" />
+            </svg>
+            <span>GitHub</span>
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <aside class="example-sidebar" aria-label="Example navigation">
+        <a class="example-sidebar-title" href={`${base}/examples/`}>All Examples</a>
+        <section class="example-sidebar-section">
+          <p class="example-sidebar-heading">Project-Level Examples</p>
+          <ul>
+            {projectExamples.map((item) => (
+              <li>
+                <a href={`${base}${item.href}`} aria-current={item.slug === example.slug ? 'page' : undefined}>{item.title}</a>
+              </li>
+            ))}
+          </ul>
+        </section>
+        {stageGroups.map((stage) => (
+          <section class="example-sidebar-section">
+            <p class="example-sidebar-heading">{stage.label}</p>
+            <ul>
+              {stage.items.map((item) => (
+                <li>
+                  <a href={`${base}/examples/showcase/${item.slug}.html`}>{item.title}</a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </aside>
+
+      <div class="example-main">
+        <section class="example-header">
+          <div>
+            <div class="breadcrumb">Examples / {example.repoPath}</div>
+            <h1>{example.title}</h1>
+            <p class="subtitle">{example.summary}</p>
+          </div>
+          <div class="top-nav">
+            <a class="button-link" href={`${githubBlobBaseUrl}${example.repoPath}`}>View on GitHub</a>
+          </div>
+        </section>
+
+        <section class="split" aria-label="Project source and preview">
+          <article id="source" class="pane" aria-label="Project source">
+            <div class="pane-header">
+              <div class="pane-title">
+                <strong>{example.slug}.vspec.project.md</strong>
+                <span>Project source</span>
+              </div>
+            </div>
+            <div class="source-wrap">
+              <pre><code>{sourceLineItems.map((line) => (
+                <span class="line"><span class="line-no">{line.number}</span><span class="line-code">{line.text}</span></span>
+              ))}</code></pre>
+            </div>
+          </article>
+
+          <article id="project-preview" class="pane" aria-label="Project preview">
+            <div class="pane-header">
+              <div class="pane-title">
+                <strong>Project Preview</strong>
+                <span>Generated from the project document and referenced files</span>
+              </div>
+              <div class="meta-row" aria-label="Project metadata">
+                {metaPills.map((pill) => <span class="pill">{pill}</span>)}
+              </div>
+            </div>
+            <div class="preview-wrap" set:html={projectPreviewHtml}></div>
+          </article>
+        </section>
+      </div>
+    </main>
+    <script is:inline src={`${base}/examples/assets/markvspec-mermaid.js`}></script>
+    <script is:inline src={`${base}/examples/assets/markvspec-mermaid-runtime.js`}></script>
+  </body>
+</html>

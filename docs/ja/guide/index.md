@@ -65,7 +65,7 @@ source/raw link を表示します。
 
 project-level example は、単一画面の showcase ではなく `.vspec.project.md` を使います。
 
-- [Project Documents](https://github.com/wamukat/markvspec/tree/main/examples/07-project-documents): project preview source と `export document-list` の一覧例。
+- [Project Documents](../../../examples/project/account-project.html): project preview source と `export document-list` の一覧例。
 
 ## 詳細を引く
 

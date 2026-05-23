@@ -14,7 +14,7 @@ project document は、次の2つの workflow で使います。
 
 リポジトリには project-level example があります。
 
-- [Project Documents example](https://github.com/wamukat/markvspec/tree/main/examples/07-project-documents)
+- [Project Documents example](../../../examples/project/account-project.html)
 
 この directory には次が含まれます。
 
