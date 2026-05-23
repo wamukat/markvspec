@@ -76,6 +76,7 @@ inventory.generatedReferenceMarkers = await generatedReferenceMarkers();
 inventory.referencePages = await referencePageInventory();
 inventory.referenceCoverage = referenceCoverageInventory(inventory.referencePages);
 inventory.grammarSectionCoverage = await grammarSectionCoverageInventory();
+inventory.elementGeneratedCoverage = await elementGeneratedCoverageInventory();
 inventory.vscodeCommands = await vscodeCommandInventory();
 inventory.cliSurface = await cliSurfaceInventory();
 inventory.externalInputs = await externalInputConfigurationInventory(inventory.cliSurface, inventory.vscodeCommands);
@@ -95,6 +96,7 @@ assertCategory("renderer/export output coverage matrix JA rows", inventory.rende
 assertCategory("generated reference markers", inventory.generatedReferenceMarkers);
 assertCategory("reference coverage features", inventory.referenceCoverage.features);
 assertCategory("grammar section stable coverage entries", inventory.grammarSectionCoverage.entries);
+assertCategory("element generated stable coverage entries", inventory.elementGeneratedCoverage.entries);
 assertCategory("EN reference pages", inventory.referencePages.en);
 assertCategory("JA reference pages", inventory.referencePages.ja);
 assertCategory("VS Code commands", inventory.vscodeCommands);
@@ -113,6 +115,7 @@ auditReferencePageSymmetry(inventory.referencePages);
 auditRequiredGeneratedMarkers(inventory.generatedReferenceMarkers);
 auditCoverageMarkerReadiness(inventory.referenceCoverage);
 auditGrammarSectionCoverageReadiness(inventory.grammarSectionCoverage);
+auditElementGeneratedCoverageReadiness(inventory.elementGeneratedCoverage);
 await auditExternalInputConfigurationReadiness(inventory.externalInputs, inventory.referencePages);
 auditDiagnosticCoverageMatrixReadiness(inventory.diagnosticCoverageMatrix);
 auditRendererOutputCoverageMatrixReadiness(inventory.rendererOutputCoverageMatrix);
@@ -271,6 +274,13 @@ function featureMappingInventory() {
         evidence: "markvspec-coverage:reference.page.sections, markvspec-coverage:reference.page.grammar, markvspec-generated:reference-sections, and grammar productions"
       },
       {
+        id: "feature-mapping.element-generated",
+        family: "Element generated table coverage family",
+        count: inventory.elementGeneratedCoverage.entries.length,
+        failureMode: "Missing EN/JA element page marker, generated marker, or generated row is a failure.",
+        evidence: "markvspec-coverage:reference.page.elements and markvspec-generated:reference-elements"
+      },
+      {
         id: "feature-mapping.external-input",
         family: "External input/configuration category family",
         count: inventory.externalInputs.categories.length,
@@ -286,10 +296,10 @@ function featureMappingInventory() {
         reason: "Recognized sections are matrix-checked; individual structured item prose depth is not markerized item by item."
       },
       {
-        id: "feature-mapping.elements",
-        family: "Element types and properties",
+        id: "feature-mapping.element-prose-depth",
+        family: "Element prose-depth coverage",
         count: inventory.elementTypes.length + inventory.elementProperties.length,
-        reason: "Generated element tables are checked, but type/property prose depth is not markerized item by item."
+        reason: "Generated element rows are checked; type/property explanation depth is not markerized item by item."
       },
       {
         id: "feature-mapping.diagnostics",
@@ -311,6 +321,86 @@ function featureMappingInventory() {
       }
     ]
   };
+}
+
+async function elementGeneratedCoverageInventory() {
+  const generatedMarkersByPath = new Map(inventory.generatedReferenceMarkers.map((entry) => [entry.path, new Set(entry.markers)]));
+  const pagesByPath = new Map(
+    [...inventory.referencePages.en, ...inventory.referencePages.ja].map((page) => [page.path, page])
+  );
+  const targets = {
+    en: {
+      path: "docs/en/reference/elements.md",
+      source: await requiredSource("docs/en/reference/elements.md")
+    },
+    ja: {
+      path: "docs/ja/reference/elements.md",
+      source: await requiredSource("docs/ja/reference/elements.md")
+    }
+  };
+
+  const generatedEntries = [
+    ...inventory.elementTypes.map((entry) => ({
+      id: entry.id,
+      label: entry.type,
+      source: "element-type",
+      rowKind: "type-mention"
+    })),
+    ...inventory.elementProperties.map((entry) => ({
+      id: entry.id,
+      label: entry.property,
+      source: "element-property",
+      rowKind: entry.scope === "common" ? "generated-row" : "report-only"
+    })),
+    ...[
+      "element.tab-item.property",
+      "element.accordion-item.property",
+      "element.action-menu-item.property",
+      "element.display-value-property",
+      "element.display-value-metadata"
+    ].map((context) => ({
+      id: `element-context.${context}`,
+      label: context,
+      source: "element-context",
+      rowKind: "generated-row"
+    }))
+  ].filter((entry) => entry.rowKind !== "report-only");
+
+  const entries = generatedEntries.map((entry) => ({
+    ...entry,
+    locales: Object.fromEntries(Object.entries(targets).map(([locale, target]) => {
+      const page = pagesByPath.get(target.path);
+      return [locale, {
+        path: target.path,
+        hasPageMarker: page?.coverageMarkers.includes("reference.page.elements") ?? false,
+        hasGeneratedMarker: generatedMarkersByPath.get(target.path)?.has("reference-elements") ?? false,
+        hasRequiredEntry: target.source.includes(`\`${entry.label}\``)
+      }];
+    }))
+  }));
+
+  return {
+    entries,
+    stableCount: entries.length,
+    remainingProseDepth: inventory.elementTypes.length + inventory.elementProperties.length
+  };
+}
+
+function auditElementGeneratedCoverageReadiness(coverage) {
+  for (const entry of coverage.entries) {
+    for (const [locale, target] of Object.entries(entry.locales)) {
+      const label = `${entry.id} ${locale}`;
+      if (!target.hasPageMarker) {
+        failures.push(`${label}: missing reference.page.elements coverage marker in ${target.path}.`);
+      }
+      if (!target.hasGeneratedMarker) {
+        failures.push(`${label}: missing generated reference-elements marker in ${target.path}.`);
+      }
+      if (!target.hasRequiredEntry) {
+        failures.push(`${label}: missing ${entry.rowKind === "type-mention" ? "element type mention" : "generated row"} for ${entry.label} in ${target.path}.`);
+      }
+    }
+  }
 }
 
 async function grammarSectionCoverageInventory() {
@@ -1028,6 +1118,8 @@ function printReport() {
     ["Reference coverage markers", inventory.referenceCoverage.markers.length],
     ["stable grammar section coverage entries", inventory.grammarSectionCoverage.entries.length],
     ["remaining report-only structured items", inventory.grammarSectionCoverage.remainingStructuredItems],
+    ["stable element generated coverage entries", inventory.elementGeneratedCoverage.entries.length],
+    ["remaining report-only element prose-depth items", inventory.elementGeneratedCoverage.remainingProseDepth],
     ["EN Reference pages", inventory.referencePages.en.length],
     ["JA Reference pages", inventory.referencePages.ja.length],
     ["VS Code commands", inventory.vscodeCommands.length],
@@ -1051,6 +1143,7 @@ function printReport() {
 
   printReferenceCoverageMarkerReport();
   printGrammarSectionCoverageReport();
+  printElementGeneratedCoverageReport();
   printExternalInputConfigurationReport();
   printDiagnosticCoverageMatrixReport();
   printRendererOutputCoverageMatrixReport();
@@ -1119,6 +1212,15 @@ function printGrammarSectionCoverageReport() {
   console.log("\nGrammar section coverage report:");
   console.log(`- Stable recognized sections: ${inventory.grammarSectionCoverage.stableCount}`);
   console.log(`- Remaining report-only structured items: ${inventory.grammarSectionCoverage.remainingStructuredItems}; reason: individual structured item prose depth is not markerized item by item.`);
+}
+
+function printElementGeneratedCoverageReport() {
+  if (!inventory.elementGeneratedCoverage) {
+    return;
+  }
+  console.log("\nElement generated coverage report:");
+  console.log(`- Stable generated element entries: ${inventory.elementGeneratedCoverage.stableCount}`);
+  console.log(`- Remaining report-only element prose-depth items: ${inventory.elementGeneratedCoverage.remainingProseDepth}; reason: type/property explanation depth is not markerized item by item.`);
 }
 
 function printExternalInputConfigurationReport() {

@@ -195,6 +195,10 @@ Stable families:
   section must have English/Japanese `reference.page.sections` and
   `reference.page.grammar` markers, a generated `reference-sections` row, and a
   Grammar page production.
+- Element generated table coverage family: every registered element type must
+  appear in the English/Japanese Elements Reference, and every generated element
+  property/context row must appear inside the `reference-elements` generated
+  block.
 - External input/configuration category family:
   `markvspec-coverage:external-input.*` markers in the required coverage target
   pages.
@@ -202,7 +206,7 @@ Stable families:
 Report-only families:
 
 - Structured item prose coverage.
-- Element types and properties.
+- Element prose-depth coverage.
 - Diagnostic codes and push sites.
 - Renderer/export output features.
 - Examples and example-supported patterns.
@@ -210,6 +214,11 @@ Report-only families:
 Recognized grammar sections are stable at section level. Individual structured
 item prose depth remains report-only until item-level marker IDs and expected
 coverage targets are triaged.
+
+Element generated coverage is stable for element type presence and generated
+element property/context rows. Type-specific property explanation depth and
+property-by-property prose quality remain report-only until item-level coverage
+markers are introduced.
 
 Report-only families still require manual review for semantic depth. They should
 not become release-blocking until their stable marker IDs, expected target pages,

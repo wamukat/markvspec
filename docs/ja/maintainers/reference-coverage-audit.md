@@ -190,13 +190,16 @@ stable family:
   section に対し、English/Japanese の `reference.page.sections` と
   `reference.page.grammar` marker、generated `reference-sections` row、Grammar page
   production を必須にする。
+- Element generated table coverage family: registered element type は
+  English/Japanese の Elements Reference に出現し、generated element property/context
+  row は `reference-elements` generated block に出現する必要がある。
 - External input/configuration category family: required coverage target page に置く
   `markvspec-coverage:external-input.*` marker。
 
 report-only family:
 
 - structured item prose coverage。
-- element type と property。
+- element prose-depth coverage。
 - diagnostic code と push site。
 - renderer/export output feature。
 - example と example-supported pattern。
@@ -204,6 +207,10 @@ report-only family:
 recognized grammar section は section level では stable です。個別 structured item の
 prose depth は、item-level marker ID と期待 coverage target を triage するまで
 report-only として残します。
+
+element generated coverage は、element type の出現と generated element property/context
+row では stable です。type-specific property の説明 depth や property ごとの prose quality
+は、item-level coverage marker を導入するまで report-only として残します。
 
 report-only family は semantic depth の manual review が必要です。stable marker ID、
 期待 target page、failure mode を triage するまでは release-blocking に昇格しません。
