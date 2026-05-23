@@ -63,6 +63,8 @@ expectSameList(jaDocs, enDocs, "docs-site ja/en content paths should match");
 const examplesHtml = readSiteFile("examples/index.html");
 expectContains(examplesHtml, "MarkVSpec Examples", "_site/examples/index.html should be the examples index.");
 expectContains(examplesHtml, "examples/01-basics/hello-screen.vspec.md", "_site/examples/index.html should show the source path.");
+expectContains(examplesHtml, "Project-Level Examples", "_site/examples/index.html should expose project-level examples.");
+expectContains(examplesHtml, "examples/07-project-documents/account-project.vspec.project.md", "_site/examples/index.html should show the project preview example source path.");
 expectContains(examplesHtml, `${base}/examples/showcase/hello-screen.html`, "_site/examples/index.html should link to the Hello Screen showcase.");
 expectNotContains(examplesHtml, "Source + Preview", "_site/examples/index.html should not duplicate showcase link labels on cards.");
 expectNotContains(examplesHtml, ">Preview<", "_site/examples/index.html should not expose preview-only card links.");
@@ -116,6 +118,8 @@ if (showcaseFiles.length !== exampleSources.length) {
 }
 
 const helloShowcaseHtml = readSiteFile("examples/showcase/hello-screen.html/index.html");
+expectContains(helloShowcaseHtml, "Project-Level Examples", "_site/examples/showcase/hello-screen.html should show project-level examples in the sidebar.");
+expectContains(helloShowcaseHtml, "Project Documents", "_site/examples/showcase/hello-screen.html should link the project documents example in the sidebar.");
 expectContains(helloShowcaseHtml, "Source and dynamic preview, side by side", "_site/examples/showcase/hello-screen.html should be a dynamic-first showcase page.");
 expectContains(helloShowcaseHtml, "Dynamic preview", "_site/examples/showcase/hello-screen.html should label the main preview as dynamic.");
 expectNotContains(helloShowcaseHtml, "Generated HTML Preview", "_site/examples/showcase/hello-screen.html should not label the main preview as generated HTML.");

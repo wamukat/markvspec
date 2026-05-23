@@ -10,6 +10,16 @@ export const examplesDir = join(repoRoot, 'examples');
 export const githubBlobBaseUrl = 'https://github.com/wamukat/markvspec/blob/main/';
 export const githubRawBaseUrl = 'https://raw.githubusercontent.com/wamukat/markvspec/main/';
 
+const projectExamples = [
+  {
+    href: 'https://github.com/wamukat/markvspec/tree/main/examples/07-project-documents',
+    repoPath: 'examples/07-project-documents/account-project.vspec.project.md',
+    summary: 'Project preview index that also exports a document-list inventory.',
+    teaches: ['Project preview', 'Document-list export', 'Screen/template/partial inventory'],
+    title: 'Project Documents',
+  },
+];
+
 export function getExamples() {
   const files = collectVspecFiles(examplesDir);
   const catalog = loadExampleCatalog(repoRoot);
@@ -45,6 +55,10 @@ export function getExamples() {
       next: entry?.next ?? [],
     };
   });
+}
+
+export function getProjectExamples() {
+  return projectExamples;
 }
 
 export function getLearningPath(examples) {

@@ -1,6 +1,7 @@
 ---
 import {
   getExamples,
+  getProjectExamples,
   groupExamplesByStage,
   githubBlobBaseUrl,
   githubRawBaseUrl,
@@ -19,6 +20,7 @@ export function getStaticPaths() {
 const { example } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const examples = getExamples();
+const projectExamples = getProjectExamples();
 const stageGroups = groupExamplesByStage(examples);
 const related = relatedDocs(example);
 const next = nextExamples(example, examples);
@@ -657,6 +659,16 @@ const metaPills = [
           </button>
         </div>
         <div id="example-sidebar-content" class="example-sidebar-content">
+          <section class="example-sidebar-section">
+            <p class="example-sidebar-heading">Project-Level Examples</p>
+            <ul>
+              {projectExamples.map((item) => (
+                <li>
+                  <a href={item.href}>{item.title}</a>
+                </li>
+              ))}
+            </ul>
+          </section>
           {stageGroups.map((stage) => (
             <section class="example-sidebar-section">
               <p class="example-sidebar-heading">{stage.label}</p>

@@ -4,11 +4,13 @@ import {
   getLearningPath,
   groupExamplesByKind,
   groupExamplesByStage,
+  getProjectExamples,
 } from '../../lib/example-data.js';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const examples = getExamples();
 const learningPath = getLearningPath(examples);
+const projectExamples = getProjectExamples();
 const stageGroups = groupExamplesByStage(examples);
 const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
 ---
@@ -207,6 +209,23 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
         <h1>MarkVSpec Examples</h1>
       </div>
       <p>Browse examples by the screen pattern you want to copy. Open a title to compare the Markdown source with the generated output.</p>
+
+      <section>
+        <h2>Project-Level Examples</h2>
+        <ul>
+          {projectExamples.map((example) => (
+            <li>
+              <div class="card-title">
+                <a href={example.href}>{example.title}</a>
+                <span class="pill">project</span>
+              </div>
+              <p class="summary">{example.summary}</p>
+              {example.teaches.length ? <p class="teaches">Teaches: {example.teaches.join(', ')}</p> : null}
+              <p class="path">{example.repoPath}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section>
         <h2>Learning Path</h2>
