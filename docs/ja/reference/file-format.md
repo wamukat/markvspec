@@ -39,8 +39,21 @@ Front Matter は文書全体のメタデータだけを書きます。
 | `title` | yes | 人が読む画面名 |
 | `route` | no | 画面の URL パス |
 | `locale` | no | `ja`、`en` などの言語 |
+| `messages` | no | renderer message file の path。MarkVSpec file からの相対 path |
+| `references.partials` | no | `PRT-*` ID から partial document path への map |
+| `screens` | project only | `.vspec.project.md` project file の screen entry |
+| `templates` | project only | `.vspec.project.md` project file の template entry |
 
 Front Matter には要素の項目、アクション、レイアウト項目は書きません。それらは Markdown 本文に書きます。
+
+`messages` は HTML/PDF export や preview label で使います。path は MarkVSpec file
+からの相対 path で、同じ file directory の内側にある必要があります。外側を指す場合、
+MarkVSpec は built-in label に fallback し、warning を出します。message file の解決順は
+[外部入力と設定](configuration.md) を参照してください。
+
+screen または template が `PRT-*` partial document を参照する場合は
+`references.partials` を使います。`display.partial` や layout の `partial.id` が Front
+Matter で宣言されていない partial ID を参照すると、missing diagnostic が出ます。
 
 ### プロジェクトファイル
 
@@ -70,11 +83,17 @@ templates:
 
 プロジェクトプレビューではプロジェクト概要と `## Notes` が表示され、画面 / テンプレート一覧や遷移図と一緒にプロジェクトの意図を確認できます。HTML/PDF 出力でもプロジェクトファイルを指定でき、列挙された画面を読み込んで1つの成果物にまとめます。CLI の [document-list 出力](./cli.md) は一覧性を優先するため、プロジェクト文書の長い概要やメモ本文は含めません。
 
+project file の entry は Front Matter に書きます。`screens:` と `templates:` の各 entry
+には `path` を含めます。安定した一覧 label や screen/template の関係が必要な場合は、
+entry に `id`、`title`、`template` も書けます。project file は directory を自動 scan
+しません。
+
 関連:
 
 - [プレビュー](../start/preview.md): プロジェクトプレビューの表示内容。
 - [出力](../start/export.md): プロジェクト HTML/PDF 出力。
 - [CLI](./cli.md): 一覧用の `export document-list`。
+- [外部入力と設定](configuration.md): 入力の一覧と renderer message file の優先順。
 
 ### 本文
 

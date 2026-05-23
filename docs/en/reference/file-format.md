@@ -39,8 +39,23 @@ Front Matter contains document-level metadata only.
 | `title` | yes | Human-readable screen name |
 | `route` | no | URL path for a screen |
 | `locale` | no | Locale such as `ja` or `en` |
+| `messages` | no | Renderer message file path, resolved relative to the MarkVSpec file |
+| `references.partials` | no | Map of `PRT-*` IDs to partial document paths |
+| `screens` | project only | Screen entries for a `.vspec.project.md` project file |
+| `templates` | project only | Template entries for a `.vspec.project.md` project file |
 
 Do not put element properties, actions, or layout items in Front Matter. Put them in the Markdown body.
+
+`messages` is used by HTML/PDF export and preview labels. The path must be
+relative to the MarkVSpec file and must stay inside that file's directory. If it
+points outside that directory, MarkVSpec falls back to built-in labels and
+reports a warning. See [External Inputs And Configuration](configuration.md) for
+the full message resolution order.
+
+Use `references.partials` when a screen or template references `PRT-*` partial
+documents. Missing `references.partials` entries are reported as diagnostics,
+for example when `display.partial` or a layout `partial.id` references a partial
+ID that is not declared in Front Matter.
 
 ### Project Files
 
@@ -70,11 +85,18 @@ Keep navigation and shared shell changes visible in one place.
 
 Project preview renders the project lead and `## Notes` so reviewers can read the project intent beside the screen/template list and transition graph. HTML/PDF export can also accept a project file; it loads the listed screens and packages those screen specifications into one artifact. CLI [document-list export](./cli.md) intentionally keeps the output compact and does not include long project lead / notes prose.
 
+Project file entries are written in Front Matter. Each `screens:` or
+`templates:` entry should include `path`; `id`, `title`, and `template` are also
+recognized on entries when you need stable inventory labels or a screen/template
+relationship. Project files do not scan directories automatically.
+
 Related:
 
 - [Preview](../start/preview.md): project preview contents.
 - [Export](../start/export.md): project HTML/PDF export.
 - [CLI](./cli.md): `export document-list` for a compact inventory.
+- [External Inputs And Configuration](configuration.md): input summary and
+  renderer message file precedence.
 
 ### Body
 
