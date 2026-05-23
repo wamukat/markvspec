@@ -13,6 +13,7 @@ PoC.
 - [Login showcase](../../../examples/showcase/login-basic.html)
 - [Form Submit Flow showcase](../../../examples/showcase/form-submit-flow.html)
 - [Profile Home showcase](../../../examples/showcase/profile-page-with-template.html)
+- [Project documents example](https://github.com/wamukat/markvspec/tree/main/examples/07-project-documents)
 
 ## Choose By Task
 
@@ -24,6 +25,7 @@ PoC.
 | Partial update | [Profile Home](../../../examples/showcase/profile-page-with-template.html) | A server response replaces part of the screen. |
 | Navigation and overlays | [Action Menu](../../../examples/showcase/action-menu.html) | You need tabs, menus, dialogs, popovers, or toasts. |
 | Reuse and templates | [Account Shell](../../../examples/showcase/template-shell.html) | Multiple screens share a shell or slot. |
+| Project preview / document list | [Project Documents](https://github.com/wamukat/markvspec/tree/main/examples/07-project-documents) | You need a `.vspec.project.md` source for project preview or `export document-list`. |
 
 ## Recommended Order
 
@@ -32,10 +34,13 @@ PoC.
 3. `Async Fetching`: model loading, empty, and error states.
 4. `Search List`: combine filters, results, paging, and replacement.
 5. `Profile Home`: see template composition and partial refresh.
+6. `Project Documents`: open a project index and export a document list.
 
 ## How To Copy An Example
 
 - Copy the closest `.vspec.md` into your workspace.
+- For project preview, copy the `.vspec.project.md` plus its listed screen,
+  template, and partial files.
 - Change Front Matter `id`, `title`, and `route`.
 - Rename states, layout groups, elements, and actions to match your screen.
 - Keep behavior semantic. Write what changes on the screen before adding framework-specific details.

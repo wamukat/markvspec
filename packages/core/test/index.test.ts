@@ -3069,7 +3069,11 @@ test("parses every release example without diagnostics", () => {
     "05-reuse/responsive-slot-page.vspec.md",
     "05-reuse/responsive-template-shell.vspec.md",
     "05-reuse/template-shell.vspec.md",
-    "06-structured-sections/history-and-errors.vspec.md"
+    "06-structured-sections/history-and-errors.vspec.md",
+    "07-project-documents/partials/account-summary.partial.vspec.md",
+    "07-project-documents/screens/account-dashboard.vspec.md",
+    "07-project-documents/screens/account-settings.vspec.md",
+    "07-project-documents/templates/account-shell.vspec.md"
   ]);
 
   for (const file of exampleFiles) {

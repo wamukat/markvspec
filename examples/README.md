@@ -44,6 +44,15 @@ Examples are organized by the screen pattern you want to copy. Start with
 - `05-reuse/responsive-slot-page.vspec.md`: viewport-specific slot content.
 - `05-reuse/default-slot-page.vspec.md`: template default content when a page supplies nothing.
 
+## Project Preview And Document Lists
+
+- `07-project-documents/account-project.vspec.project.md`: project index for project preview.
+- `07-project-documents/README.md`: document-list export command and expected inventory.
+- `07-project-documents/screens/account-dashboard.vspec.md`: indexed screen with a referenced partial and navigation.
+- `07-project-documents/screens/account-settings.vspec.md`: indexed screen that links back to the dashboard.
+- `07-project-documents/templates/account-shell.vspec.md`: template listed by the project file.
+- `07-project-documents/partials/account-summary.partial.vspec.md`: partial reached by `references.partials`.
+
 ## Content And Display Details
 
 - `02-states/source-kind-metadata.vspec.md`: source, kind, and format metadata for displayed values.

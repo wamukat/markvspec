@@ -12,6 +12,7 @@ Online Live Editor は showcase とは別物であり、ブラウザ上で編集
 - [Login サンプル](../../../examples/showcase/login-basic.html)
 - [Form Submit Flow サンプル](../../../examples/showcase/form-submit-flow.html)
 - [Profile Home サンプル](../../../examples/showcase/profile-page-with-template.html)
+- [プロジェクト文書サンプル](https://github.com/wamukat/markvspec/tree/main/examples/07-project-documents)
 
 ## 目的で選ぶ
 
@@ -23,6 +24,7 @@ Online Live Editor は showcase とは別物であり、ブラウザ上で編集
 | 部分更新 | [Profile Home](../../../examples/showcase/profile-page-with-template.html) | サーバー応答で画面の一部を差し替える。 |
 | ナビゲーションと重ね合わせ表示 | [Action Menu](../../../examples/showcase/action-menu.html) | タブ、メニュー、ダイアログ、ポップオーバー、トーストを扱う。 |
 | 再利用とテンプレート | [Account Shell](../../../examples/showcase/template-shell.html) | 複数画面でシェルや slot を共有する。 |
+| プロジェクトプレビュー / 文書一覧 | [Project Documents](https://github.com/wamukat/markvspec/tree/main/examples/07-project-documents) | project preview や `export document-list` の入力になる `.vspec.project.md` が必要。 |
 
 ## おすすめ順
 
@@ -31,10 +33,13 @@ Online Live Editor は showcase とは別物であり、ブラウザ上で編集
 3. `Async Fetching`: 読み込み、空、エラーの状態を書く。
 4. `Search List`: フィルター、結果、ページング、差し替えを組み合わせる。
 5. `Profile Home`: テンプレート構成と partial 更新を見る。
+6. `Project Documents`: project index を開き、document list を出力する。
 
 ## 自分の画面に使う
 
 - 近い `.vspec.md` を自分の作業ディレクトリにコピーする。
+- プロジェクトプレビューでは、`.vspec.project.md` と列挙された screen、template、partial
+  ファイルをまとめてコピーする。
 - Front Matter の `id`、`title`、`route` を変える。
 - 状態、レイアウトグループ、要素、アクションを自分の画面名に変える。
 - 実装方法を書く前に、画面で何が変わるかを意味で書く。

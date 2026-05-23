@@ -66,6 +66,7 @@ PDF export needs a Chrome-compatible browser.
 
 ```bash
 npx @markvspec/cli@latest export document-list path/to/markvspec.project.md --out markvspec-docs
+npx @markvspec/cli@latest export document-list examples/07-project-documents/account-project.vspec.project.md --out markvspec-docs
 ```
 
 Generate `<out>/document-list.md` from one project index file. The input is a
@@ -86,6 +87,9 @@ Use this export when reviewers need a compact screen/template/partial inventory.
 Use project preview when they need to read project intent, notes, document lists,
 and transition graph together. Long project lead / notes prose is intentionally
 not copied into `document-list.md`.
+
+See [`examples/07-project-documents/`](https://github.com/wamukat/markvspec/tree/main/examples/07-project-documents)
+for a project preview source that also produces a document-list inventory.
 
 ## Small Example
 

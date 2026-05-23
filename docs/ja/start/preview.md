@@ -59,6 +59,10 @@ templates:
 MarkVSpec: Open Preview
 ```
 
+リポジトリには、そのままコピーできるプロジェクト例として
+[`examples/07-project-documents/account-project.vspec.project.md`](https://github.com/wamukat/markvspec/blob/main/examples/07-project-documents/account-project.vspec.project.md)
+があります。
+
 プロジェクトプレビューには次が表示されます。
 
 - project file の ID、title、lead text。

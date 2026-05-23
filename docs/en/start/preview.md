@@ -59,6 +59,9 @@ Open the `.vspec.project.md` file and run the same command:
 MarkVSpec: Open Preview
 ```
 
+The repository includes a copyable project example at
+[`examples/07-project-documents/account-project.vspec.project.md`](https://github.com/wamukat/markvspec/blob/main/examples/07-project-documents/account-project.vspec.project.md).
+
 Project preview shows:
 
 - the project ID, title, and lead text from the project file;

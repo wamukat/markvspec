@@ -65,6 +65,7 @@ PDF 出力には Chrome 互換ブラウザが必要です。
 
 ```bash
 npx @markvspec/cli@latest export document-list path/to/markvspec.project.md --out markvspec-docs
+npx @markvspec/cli@latest export document-list examples/07-project-documents/account-project.vspec.project.md --out markvspec-docs
 ```
 
 1つのプロジェクトインデックスファイルから `<out>/document-list.md` を生成します。入力は
@@ -84,6 +85,10 @@ npx @markvspec/cli@latest export document-list path/to/markvspec.project.md --ou
 レビュー担当者が画面、テンプレート、partial の一覧を確認したい場合は、この出力を使います。
 プロジェクトの意図、メモ、文書一覧、遷移図を一緒に読みたい場合はプロジェクトプレビューを使います。
 プロジェクト文書の長い概要文やメモ本文は `document-list.md` には含めません。
+
+project preview と document-list の両方に使えるソース例は
+[`examples/07-project-documents/`](https://github.com/wamukat/markvspec/tree/main/examples/07-project-documents)
+を参照してください。
 
 ## 小さな例
 

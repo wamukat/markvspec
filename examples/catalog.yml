@@ -547,4 +547,84 @@ examples:
         - sections
         - rules
       recipes: []
+    next:
+      - examples/07-project-documents/screens/account-dashboard.vspec.md
+  - path: examples/07-project-documents/partials/account-summary.partial.vspec.md
+    title: Account Summary Partial
+    kind: partial
+    stage: project-documents
+    summary: Partial document reached by project document-list export.
+    showcase: true
+    learningPath: false
+    teaches:
+      - Project document list
+      - Referenced partial
+      - Partial route
+    docs:
+      guide:
+        - partial-updates
+      reference:
+        - file-format
+        - cli
+      recipes: []
+    next: []
+  - path: examples/07-project-documents/screens/account-dashboard.vspec.md
+    title: Account Dashboard
+    kind: screen
+    stage: project-documents
+    summary: Project-indexed dashboard screen with a referenced partial and navigation to settings.
+    showcase: true
+    learningPath: true
+    teaches:
+      - Project preview
+      - Document-list source
+      - Cross-screen navigation
+    docs:
+      guide:
+        - actions
+        - partial-updates
+      reference:
+        - file-format
+        - cli
+      recipes: []
+    next:
+      - examples/07-project-documents/screens/account-settings.vspec.md
+  - path: examples/07-project-documents/screens/account-settings.vspec.md
+    title: Account Settings Project Screen
+    kind: screen
+    stage: project-documents
+    summary: Project-indexed settings screen that links back to the dashboard.
+    showcase: true
+    learningPath: true
+    teaches:
+      - Project preview
+      - Transition graph
+      - Document-list source
+    docs:
+      guide:
+        - actions
+      reference:
+        - file-format
+        - cli
+      recipes: []
+    next:
+      - examples/07-project-documents/templates/account-shell.vspec.md
+  - path: examples/07-project-documents/templates/account-shell.vspec.md
+    title: Account Shell Project Template
+    kind: template
+    stage: project-documents
+    summary: Template listed by a project file and included in document-list export.
+    showcase: true
+    learningPath: true
+    teaches:
+      - Project templates
+      - Template list
+      - Slot shell
+    docs:
+      guide:
+        - partial-updates
+      reference:
+        - file-format
+        - cli
+      recipes: []
     next: []
