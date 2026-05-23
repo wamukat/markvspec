@@ -23,6 +23,7 @@ substitute for Reference coverage.
 | Renderer / preview output feature | Basic Info, History table, state views, marker chips | Reference required when output affects review semantics |
 | CLI command / option | `validate`, `export html`, `export document-list` | CLI Reference required, example recommended |
 | VS Code command / UI feature | Open Preview, diagnostics, export commands | Start/Guide required, Reference or Start page required depending on user task |
+| External input / configuration source | Front Matter `messages`, project `screens`, VS Code settings absence/presence | Reference required when users can provide or search for that input |
 | Example-supported pattern | partial update, loading/error states, history | Example required; Reference required for every syntax used |
 
 ## Coverage Levels
@@ -47,6 +48,8 @@ When a feature appears in Guide or Examples but not Reference, classify it as
 | `packages/core/src/markdown-section-semantic.ts` | Adopt | Source of truth for parser behavior that is not fully table-driven yet. |
 | `packages/core/src/validator.ts` and focused validators | Adopt | Source of truth for author-visible diagnostics and severity. |
 | `packages/core/src/project-loader.ts` | Adopt | Source for template/screen composition behavior that can affect visible docs. |
+| `packages/core/src/markdown-document.ts`, `parser.ts`, and `project-parser.ts` | Adopt | Source of truth for Front Matter parsing, document references, screen fields, and project entries. |
+| `packages/core/src/renderer-message-loader.ts` | Adopt | Source of truth for renderer message file lookup, supported file names, locale handling, and warning behavior. |
 | Renderer, document-renderer, exporter, VS Code preview | Adopt | Source for visible output semantics such as Basic Info, History table, state views, and export behavior. |
 | `packages/cli/src/index.ts` | Adopt | Source of truth for CLI commands and options. |
 | `packages/vscode-extension/package.json` and command handlers | Adopt | Source of truth for contributed commands and user-visible VS Code entry points. |
@@ -69,7 +72,10 @@ Automatable extraction:
 - Generated grammar/reference rows between `markvspec-generated:*` markers.
 - Element type names and type-specific properties from element domain and validators.
 - CLI commands/options from `packages/cli/src/index.ts`.
-- VS Code commands from `packages/vscode-extension/package.json`.
+- VS Code commands and settings presence/absence from `packages/vscode-extension/package.json`.
+- Front Matter fields, project file fields, and renderer message resolution from
+  the parser, project parser, exporter, VS Code extension, and renderer message
+  loader.
 - Example feature tags and source paths from `examples/catalog.yml`.
 - English/Japanese Reference page presence and link graph from docs link checks.
 
@@ -113,8 +119,10 @@ updates the generated Reference tables used by `npm run docs:reference` and
 `npm run audit:reference-coverage` builds a deterministic inventory/report from
 grammar sections, structured contexts, element types and properties, diagnostic
 codes and detectable diagnostic push sites, renderer/exporter/preview output
-features, CLI commands, VS Code commands, Reference page structure, generated
-Reference markers, and example catalog entries.
+features, CLI commands/options, VS Code commands/settings presence, Front Matter
+fields, project file fields, renderer message resolution coverage targets,
+Reference page structure, generated Reference markers, and example catalog
+entries.
 
 The initial checker is intentionally report-first. It fails only when the audit
 preconditions are broken:
@@ -122,13 +130,17 @@ preconditions are broken:
 - A required inventory category is empty.
 - English and Japanese Reference page sets are asymmetric.
 - Required generated Reference markers are missing.
+- A required external input/configuration inventory category is empty, or a
+  required Reference coverage target is missing.
 - Existing Reference page structure is unreadable enough that the report cannot
   be trusted.
 
 It warns, without failing release, when feature-to-Reference mapping is still
 manual, coverage markers are not present, prose depth may be thin, Guide-only or
 Example-only coverage may exist, or diagnostic/renderer/export coverage cannot
-yet be judged mechanically.
+yet be judged mechanically. External input/configuration prose depth and exact
+item-to-paragraph mapping are also warnings until stable feature IDs and marker
+coverage are introduced.
 
 `npm run audit:reference-coverage` is not included in `npm run check:release`
 yet. Missing Reference page/section findings should be promoted from warning to
@@ -158,6 +170,32 @@ mapping and warns when a required locale marker is missing. Marker absence is a
 warning while the coverage model is being introduced; individual feature
 families can become release-blocking only after their expected marker set is
 stable and triaged.
+
+## External Input / Configuration Coverage
+
+External input coverage tracks settings and inputs that users provide outside the
+ordinary Markdown section body. The report currently includes these categories:
+
+| Category | Source | Required Coverage Target |
+| --- | --- | --- |
+| CLI commands | `packages/cli/src/index.ts` usage and command branches | [CLI](../reference/cli.md) |
+| CLI options | `packages/cli/src/index.ts` flags | [CLI](../reference/cli.md), [External Inputs And Configuration](../reference/configuration.md) |
+| Front Matter fields | `markdown-document.ts`, `parser.ts`, `project-parser.ts`, exporter, VS Code extension | [File Format](../reference/file-format.md), [External Inputs And Configuration](../reference/configuration.md) |
+| Project file fields | `project-parser.ts` project `screens:` / `templates:` entries | [File Format](../reference/file-format.md) |
+| VS Code commands | `packages/vscode-extension/package.json` contributes.commands | Start/Preview docs and [External Inputs And Configuration](../reference/configuration.md) |
+| VS Code settings absence/presence | `packages/vscode-extension/package.json` contributes.configuration | [External Inputs And Configuration](../reference/configuration.md) |
+| Renderer message resolution | `renderer-message-loader.ts`, exporter, VS Code extension | [CLI](../reference/cli.md), [File Format](../reference/file-format.md), [External Inputs And Configuration](../reference/configuration.md) |
+
+`npm run audit:reference-coverage` fails when a required source category becomes
+empty or when a Reference coverage target for this matrix is missing. It reports
+the discovered items and warns, rather than failing, when a reviewer still needs
+to judge whether the prose explains syntax, precedence, boundary behavior, and
+diagnostics deeply enough.
+
+The #1425 report found these current counts: CLI options `4`, Front Matter
+fields `13`, project file fields `4`, VS Code settings entries `1` with status
+`absent`, renderer message resolution entries `3`, and external
+input/configuration categories `7`.
 
 ## Diagnostic Coverage Matrix
 

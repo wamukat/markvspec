@@ -22,6 +22,7 @@ Examples は使い方を教える場所ですが、Reference coverage の代替�
 | renderer / preview output feature | Basic Info、History table、state views、marker chip | review semantics に影響するものは Reference 必須 |
 | CLI command / option | `validate`, `export html`, `export document-list` | CLI Reference 必須、example 推奨 |
 | VS Code command / UI feature | Open Preview、diagnostics、export command | user task に応じて Start/Guide または Reference 必須 |
+| external input / configuration source | Front Matter `messages`、project `screens`、VS Code settings の有無 | users が与える、または探す入力なら Reference 必須 |
 | example-supported pattern | partial update、loading/error state、history | Example 必須。使う syntax はすべて Reference 必須 |
 
 ## coverage level
@@ -46,6 +47,8 @@ Guide や Examples に出ているのに Reference がない feature は
 | `packages/core/src/markdown-section-semantic.ts` | 採用 | まだ完全に table-driven ではない parser behavior の source。 |
 | `packages/core/src/validator.ts` と focused validators | 採用 | author-visible diagnostics と severity の source。 |
 | `packages/core/src/project-loader.ts` | 採用 | template/screen composition の visible docs への影響を確認する source。 |
+| `packages/core/src/markdown-document.ts`、`parser.ts`、`project-parser.ts` | 採用 | Front Matter parsing、document references、screen fields、project entries の source。 |
+| `packages/core/src/renderer-message-loader.ts` | 採用 | renderer message file lookup、supported file names、locale handling、warning behavior の source。 |
 | renderer、document-renderer、exporter、VS Code preview | 採用 | Basic Info、History table、state views、export behavior など visible output semantics の source。 |
 | `packages/cli/src/index.ts` | 採用 | CLI commands/options の source of truth。 |
 | `packages/vscode-extension/package.json` と command handlers | 採用 | VS Code command と user-visible entry point の source。 |
@@ -68,7 +71,9 @@ release-blocking な Reference gap を作りません。
 - `markvspec-generated:*` marker 間の generated grammar/reference rows。
 - element domain / validator から element type と type-specific property。
 - `packages/cli/src/index.ts` から CLI commands/options。
-- `packages/vscode-extension/package.json` から VS Code commands。
+- `packages/vscode-extension/package.json` から VS Code commands と settings の有無。
+- parser、project parser、exporter、VS Code extension、renderer message loader から
+  Front Matter fields、project file fields、renderer message resolution。
 - `examples/catalog.yml` から example feature tags と source path。
 - docs link check から英日 Reference page presence と link graph。
 
@@ -112,9 +117,10 @@ release-blocking な Reference gap を作りません。
 
 `npm run audit:reference-coverage` は、grammar section、structured context、
 element type/property、diagnostic code と機械的に検出できる diagnostic push site、
-renderer/exporter/preview の visible output feature、CLI command、VS Code command、
-Reference page structure、generated Reference marker、example catalog entry から
-deterministic な inventory/report を作る。
+renderer/exporter/preview の visible output feature、CLI command/option、VS Code
+command/settings の有無、Front Matter fields、project file fields、renderer message
+resolution coverage targets、Reference page structure、generated Reference marker、
+example catalog entry から deterministic な inventory/report を作る。
 
 初期 checker は report-first とする。fail するのは audit の前提が壊れている場合に
 限定する。
@@ -122,11 +128,15 @@ deterministic な inventory/report を作る。
 - 必須 inventory category が空。
 - English/Japanese の Reference page set が非対称。
 - 必須 generated Reference marker が欠落。
+- 必須 external input/configuration inventory category が空、または必須 Reference
+  coverage target が欠落。
 - 既存 Reference page structure が report を信頼できないほど壊れている。
 
 feature-to-Reference mapping がまだ手動、coverage marker が未整備、prose depth が
 薄い可能性、Guide-only / Example-only coverage の疑い、diagnostic/renderer/export
 coverage をまだ機械判定できない場合は warn に留め、release は fail させない。
+external input/configuration の prose depth と正確な item-to-paragraph mapping も、
+stable feature ID と marker coverage が入るまでは warning として扱う。
 
 `npm run audit:reference-coverage` はまだ `npm run check:release` には含めない。
 missing Reference page/section は、初回 report の triage と stable feature ID /
@@ -154,6 +164,30 @@ Reference page ごとに、English と Japanese の両方へ 1 つずつ marker 
 し、必要な locale marker が欠けている場合は warning を出します。coverage model を
 導入している間、marker 欠落は warning に留めます。個別 feature family を
 release-blocking に昇格するのは、期待 marker set が安定し triage 済みになってからです。
+
+## external input / configuration coverage
+
+external input coverage は、通常の Markdown section body の外から user が与える設定や
+入力を追跡します。現在の report は次の category を含みます。
+
+| Category | Source | Required Coverage Target |
+| --- | --- | --- |
+| CLI commands | `packages/cli/src/index.ts` の usage と command branches | [CLI](../reference/cli.md) |
+| CLI options | `packages/cli/src/index.ts` の flags | [CLI](../reference/cli.md)、[外部入力と設定](../reference/configuration.md) |
+| Front Matter fields | `markdown-document.ts`、`parser.ts`、`project-parser.ts`、exporter、VS Code extension | [ファイル形式](../reference/file-format.md)、[外部入力と設定](../reference/configuration.md) |
+| Project file fields | `project-parser.ts` の project `screens:` / `templates:` entries | [ファイル形式](../reference/file-format.md) |
+| VS Code commands | `packages/vscode-extension/package.json` の contributes.commands | Start/Preview docs と [外部入力と設定](../reference/configuration.md) |
+| VS Code settings absence/presence | `packages/vscode-extension/package.json` の contributes.configuration | [外部入力と設定](../reference/configuration.md) |
+| Renderer message resolution | `renderer-message-loader.ts`、exporter、VS Code extension | [CLI](../reference/cli.md)、[ファイル形式](../reference/file-format.md)、[外部入力と設定](../reference/configuration.md) |
+
+`npm run audit:reference-coverage` は、必須 source category が空になった場合、または
+この matrix の Reference coverage target が欠落した場合に fail します。検出した item は
+report に出しますが、syntax、優先順、boundary behavior、diagnostics を prose が十分に
+説明しているかは、現時点では reviewer が判断し、warning に留めます。
+
+#1425 の report では、CLI options `4`、Front Matter fields `13`、project file fields
+`4`、VS Code settings entries `1` かつ status `absent`、renderer message resolution
+entries `3`、external input/configuration categories `7` を検出しています。
 
 ## diagnostic coverage matrix
 

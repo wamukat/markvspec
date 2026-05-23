@@ -74,6 +74,7 @@ inventory.referencePages = await referencePageInventory();
 inventory.referenceCoverage = referenceCoverageInventory(inventory.referencePages);
 inventory.vscodeCommands = await vscodeCommandInventory();
 inventory.cliSurface = await cliSurfaceInventory();
+inventory.externalInputs = await externalInputConfigurationInventory(inventory.cliSurface, inventory.vscodeCommands);
 inventory.examples = await exampleInventory();
 
 assertCategory("grammar sections", inventory.grammarSections);
@@ -88,11 +89,18 @@ assertCategory("EN reference pages", inventory.referencePages.en);
 assertCategory("JA reference pages", inventory.referencePages.ja);
 assertCategory("VS Code commands", inventory.vscodeCommands);
 assertCategory("CLI commands", inventory.cliSurface.commands);
+assertCategory("external input/configuration categories", inventory.externalInputs.categories);
+assertCategory("CLI options", inventory.externalInputs.cliOptions);
+assertCategory("Front Matter fields", inventory.externalInputs.frontMatterFields);
+assertCategory("project file fields", inventory.externalInputs.projectFileFields);
+assertCategory("VS Code settings coverage", inventory.externalInputs.vscodeSettings);
+assertCategory("renderer message resolution coverage targets", inventory.externalInputs.rendererMessageResolution);
 assertCategory("examples", inventory.examples.catalogEntries);
 
 auditReferencePageSymmetry(inventory.referencePages);
 auditRequiredGeneratedMarkers(inventory.generatedReferenceMarkers);
 auditCoverageMarkerReadiness(inventory.referenceCoverage);
+auditExternalInputConfigurationReadiness(inventory.externalInputs, inventory.referencePages);
 auditFeatureMappingReadiness();
 printReport();
 
@@ -253,8 +261,216 @@ async function cliSurfaceInventory() {
   );
   return {
     bins: Object.keys(packageJson.bin ?? {}).map((name) => ({ id: `cli-bin.${name}`, name, path: packageJson.bin[name] })),
-    commands: unique([...commands, ...parseBranches]).map((command) => ({ id: `cli-command.${command}`, command }))
+    commands: unique([...commands, ...parseBranches]).map((command) => ({ id: `cli-command.${command}`, command })),
+    options: cliOptionInventory(source)
   };
+}
+
+async function externalInputConfigurationInventory(cliSurface, vscodeCommands) {
+  const sources = {
+    markdownDocument: await requiredSource("packages/core/src/markdown-document.ts"),
+    parser: await requiredSource("packages/core/src/parser.ts"),
+    projectParser: await requiredSource("packages/core/src/project-parser.ts"),
+    projectLoader: await requiredSource("packages/core/src/project-loader.ts"),
+    exporter: await requiredSource("packages/exporter/src/index.ts"),
+    vscodeExtension: await requiredSource("packages/vscode-extension/src/extension.ts"),
+    rendererMessageLoader: await requiredSource("packages/core/src/renderer-message-loader.ts"),
+    vscodePackageJson: await requiredSource("packages/vscode-extension/package.json")
+  };
+  const vscodePackage = JSON.parse(sources.vscodePackageJson);
+  const vscodeSettings = vscodeSettingsInventory(vscodePackage);
+  const frontMatterFields = frontMatterFieldInventory(sources);
+  const projectFileFields = projectFileFieldInventory(sources.projectParser).map((field) => ({
+    id: `project-entry.${field}`,
+    field,
+    source: "packages/core/src/project-parser.ts",
+    coverageTargets: ["docs/en/reference/file-format.md", "docs/ja/reference/file-format.md"]
+  }));
+  const rendererMessageResolution = rendererMessageResolutionInventory(sources, cliSurface);
+  const categories = [
+    externalInputCategory("cli-commands", "CLI commands", cliSurface.commands, ["docs/en/reference/cli.md", "docs/ja/reference/cli.md"]),
+    externalInputCategory("cli-options", "CLI options", cliSurface.options, ["docs/en/reference/cli.md", "docs/ja/reference/cli.md", "docs/en/reference/configuration.md", "docs/ja/reference/configuration.md"]),
+    externalInputCategory("front-matter-fields", "Front Matter fields", frontMatterFields, ["docs/en/reference/file-format.md", "docs/ja/reference/file-format.md", "docs/en/reference/configuration.md", "docs/ja/reference/configuration.md"]),
+    externalInputCategory("project-file-fields", "Project file fields", projectFileFields, ["docs/en/reference/file-format.md", "docs/ja/reference/file-format.md"]),
+    externalInputCategory("vscode-commands", "VS Code commands", vscodeCommands, ["docs/en/start/preview.md", "docs/ja/start/preview.md", "docs/en/reference/configuration.md", "docs/ja/reference/configuration.md"]),
+    externalInputCategory("vscode-settings", "VS Code settings absence/presence", vscodeSettings, ["docs/en/reference/configuration.md", "docs/ja/reference/configuration.md"]),
+    externalInputCategory("renderer-message-resolution", "Renderer message resolution", rendererMessageResolution, ["docs/en/reference/cli.md", "docs/ja/reference/cli.md", "docs/en/reference/file-format.md", "docs/ja/reference/file-format.md", "docs/en/reference/configuration.md", "docs/ja/reference/configuration.md"])
+  ];
+  return {
+    categories,
+    cliOptions: cliSurface.options,
+    frontMatterFields,
+    projectFileFields,
+    vscodeSettings,
+    rendererMessageResolution
+  };
+}
+
+async function requiredSource(filePath) {
+  try {
+    return await readFile(join(rootDir, filePath), "utf8");
+  } catch (error) {
+    failures.push(`${filePath}: required external input/configuration source could not be read (${error instanceof Error ? error.message : String(error)})`);
+    return "";
+  }
+}
+
+function frontMatterFieldInventory(sources) {
+  const fields = new Map();
+  const add = (field, scope, required, source) => {
+    const existing = fields.get(field);
+    if (existing) {
+      existing.scope = mergeCsvValue(existing.scope, scope);
+      existing.source = mergeCsvValue(existing.source, source);
+      existing.required = existing.required || required;
+      return;
+    }
+    fields.set(field, { field, scope, required, source });
+  };
+
+  for (const match of sources.parser.matchAll(/frontMatter\["([^"]+)"\]/gu)) {
+    add(match[1], "screen", ["id", "type", "title"].includes(match[1]), "packages/core/src/parser.ts");
+  }
+  for (const match of sources.parser.matchAll(/frontMatterData\["([^"]+)"\]/gu)) {
+    add(match[1], "screen", false, "packages/core/src/parser.ts");
+  }
+  for (const match of sources.projectParser.matchAll(/frontMatter\["([^"]+)"\]/gu)) {
+    add(match[1], "project", ["id", "type", "title"].includes(match[1]), "packages/core/src/project-parser.ts");
+  }
+  for (const match of sources.projectParser.matchAll(/frontMatterData\[listName\]/gu)) {
+    add("screens", "project", true, "packages/core/src/project-parser.ts");
+    add("templates", "project", false, "packages/core/src/project-parser.ts");
+  }
+  if (sources.markdownDocument.includes('source["partials"]')) {
+    add("references.partials", "screen/template/partial", false, "packages/core/src/markdown-document.ts");
+  }
+  if (sources.projectLoader.includes("references.partials")) {
+    add("references.partials", "screen/template/partial", false, "packages/core/src/project-loader.ts");
+  }
+  if (sources.exporter.includes('frontMatter["messages"]')) {
+    add("messages", "screen/project", false, "packages/exporter/src/index.ts");
+  }
+  if (sources.vscodeExtension.includes('frontMatter["messages"]')) {
+    add("messages", "screen/project", false, "packages/vscode-extension/src/extension.ts");
+  }
+
+  for (const required of ["id", "type", "title", "messages", "references.partials", "screens", "templates"]) {
+    if (!fields.has(required)) {
+      failures.push(`Front Matter field inventory is missing required field ${required}`);
+    }
+  }
+
+  return [...fields.values()]
+    .sort((left, right) => left.field.localeCompare(right.field))
+    .map((entry) => ({ id: `front-matter.${slug(entry.field)}`, ...entry }));
+}
+
+function projectFileFieldInventory(projectParserSource) {
+  const fields = [...projectParserSource.matchAll(/if \(key === "([^"]+)"\)|else if \(key === "([^"]+)"\)/gu)]
+    .map((match) => match[1] ?? match[2])
+    .filter(Boolean);
+  const uniqueFields = unique(fields);
+  for (const required of ["id", "path", "title", "template"]) {
+    if (!uniqueFields.includes(required)) {
+      failures.push(`Project file field inventory is missing required field ${required}`);
+    }
+  }
+  return uniqueFields;
+}
+
+function rendererMessageResolutionInventory(sources, cliSurface) {
+  const entries = [];
+  if (cliSurface.options.some((entry) => entry.option === "--messages") && sources.rendererMessageLoader.includes("options.explicitPath")) {
+    entries.push({
+      id: "renderer-message.cli-explicit",
+      mechanism: "CLI --messages",
+      source: "packages/cli/src/index.ts and packages/core/src/renderer-message-loader.ts",
+      coverageTargets: ["docs/en/reference/cli.md", "docs/ja/reference/cli.md", "docs/en/reference/configuration.md", "docs/ja/reference/configuration.md"]
+    });
+  }
+  if (sources.exporter.includes("resolveFrontMatterMessagesPath") && sources.vscodeExtension.includes("frontMatterPath") && sources.rendererMessageLoader.includes("options.frontMatterPath")) {
+    entries.push({
+      id: "renderer-message.front-matter",
+      mechanism: "Front Matter messages",
+      source: "packages/exporter/src/index.ts, packages/vscode-extension/src/extension.ts, and packages/core/src/renderer-message-loader.ts",
+      coverageTargets: ["docs/en/reference/file-format.md", "docs/ja/reference/file-format.md", "docs/en/reference/configuration.md", "docs/ja/reference/configuration.md"]
+    });
+  }
+  if (sources.rendererMessageLoader.includes("defaultMessageFileNames") && sources.rendererMessageLoader.includes("markvspec.messages")) {
+    entries.push({
+      id: "renderer-message.default-files",
+      mechanism: "nearby markvspec.messages.*",
+      source: "packages/core/src/renderer-message-loader.ts",
+      coverageTargets: ["docs/en/reference/cli.md", "docs/ja/reference/cli.md", "docs/en/reference/configuration.md", "docs/ja/reference/configuration.md"]
+    });
+  }
+
+  for (const required of ["renderer-message.cli-explicit", "renderer-message.front-matter", "renderer-message.default-files"]) {
+    if (!entries.some((entry) => entry.id === required)) {
+      failures.push(`Renderer message resolution inventory is missing required mechanism ${required}`);
+    }
+  }
+  return entries;
+}
+
+function cliOptionInventory(source) {
+  const longOptions = [...source.matchAll(/--[a-z][a-z0-9-]*/gu)].map((match) => match[0]);
+  const shortOptions = [...source.matchAll(/(?:^|[\s[])(-[a-z])(?=[\s\]])/gmu)].map((match) => match[1]);
+  return unique([...longOptions, ...shortOptions]).map((option) => ({
+    id: `cli-option.${option.replace(/^-+/u, "")}`,
+    option,
+    source: "packages/cli/src/index.ts"
+  }));
+}
+
+function vscodeSettingsInventory(packageJson) {
+  const properties = packageJson.contributes?.configuration?.properties ?? {};
+  const entries = Object.entries(properties);
+  if (entries.length === 0) {
+    return [{
+      id: "vscode-setting.none",
+      setting: "(none)",
+      status: "absent",
+      source: "packages/vscode-extension/package.json"
+    }];
+  }
+  return entries.map(([setting, definition]) => ({
+    id: `vscode-setting.${setting}`,
+    setting,
+    type: definition.type,
+    default: definition.default,
+    status: "present",
+    source: "packages/vscode-extension/package.json"
+  }));
+}
+
+function externalInputCategory(id, label, items, coverageTargets) {
+  return {
+    id: `external-input.${id}`,
+    label,
+    count: items.length,
+    coverageTargets
+  };
+}
+
+function mergeCsvValue(left, right) {
+  return unique(`${left}, ${right}`.split(/,\s*/u)).join(", ");
+}
+
+function auditExternalInputConfigurationReadiness(externalInputs, referencePages) {
+  const referencePagePaths = new Set([...referencePages.en, ...referencePages.ja].map((page) => page.path));
+  for (const category of externalInputs.categories) {
+    if (category.count === 0) {
+      failures.push(`External input/configuration category is empty: ${category.label}`);
+    }
+    for (const target of category.coverageTargets) {
+      if (target.includes("/reference/") && !referencePagePaths.has(target)) {
+        failures.push(`${category.label}: coverage target is missing: ${target}`);
+      }
+    }
+  }
+
+  warnings.push("External input/configuration coverage is inventoried and coverage targets are checked for presence; prose depth and exact item-to-paragraph mapping remain manual.");
 }
 
 async function exampleInventory() {
@@ -430,6 +646,12 @@ function printReport() {
     ["JA Reference pages", inventory.referencePages.ja.length],
     ["VS Code commands", inventory.vscodeCommands.length],
     ["CLI commands", inventory.cliSurface.commands.length],
+    ["CLI options", inventory.externalInputs.cliOptions.length],
+    ["Front Matter fields", inventory.externalInputs.frontMatterFields.length],
+    ["project file fields", inventory.externalInputs.projectFileFields.length],
+    ["VS Code settings entries", inventory.externalInputs.vscodeSettings.length],
+    ["renderer message resolution entries", inventory.externalInputs.rendererMessageResolution.length],
+    ["external input/configuration categories", inventory.externalInputs.categories.length],
     ["examples catalog entries", inventory.examples.catalogEntries.length],
     ["example files", inventory.examples.files.length]
   ];
@@ -440,6 +662,7 @@ function printReport() {
   }
 
   printReferenceCoverageMarkerReport();
+  printExternalInputConfigurationReport();
 
   if (warnings.length > 0) {
     console.log("\nWarnings:");
@@ -468,4 +691,25 @@ function printReferenceCoverageMarkerReport() {
     });
     console.log(`- ${feature.id}: ${statuses.join(", ")}`);
   }
+}
+
+function printExternalInputConfigurationReport() {
+  if (!inventory.externalInputs || inventory.externalInputs.categories.length === 0) {
+    return;
+  }
+  console.log("\nExternal input/configuration coverage report:");
+  for (const category of inventory.externalInputs.categories) {
+    console.log(`- ${category.label}: ${category.count} item(s); coverage: ${category.coverageTargets.join(", ")}`);
+  }
+
+  const sampleOptions = inventory.externalInputs.cliOptions.map((entry) => entry.option).join(", ");
+  const sampleFrontMatter = inventory.externalInputs.frontMatterFields.map((entry) => entry.field).join(", ");
+  const sampleProjectFields = inventory.externalInputs.projectFileFields.map((entry) => entry.field).join(", ");
+  const vscodeSettings = inventory.externalInputs.vscodeSettings.map((entry) => `${entry.setting} (${entry.status})`).join(", ");
+  const messageResolution = inventory.externalInputs.rendererMessageResolution.map((entry) => entry.mechanism).join(", ");
+  console.log(`  CLI options: ${sampleOptions}`);
+  console.log(`  Front Matter fields: ${sampleFrontMatter}`);
+  console.log(`  Project file fields: ${sampleProjectFields}`);
+  console.log(`  VS Code settings: ${vscodeSettings}`);
+  console.log(`  Renderer message resolution: ${messageResolution}`);
 }
