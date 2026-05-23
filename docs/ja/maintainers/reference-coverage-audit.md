@@ -74,7 +74,10 @@ release-blocking な Reference gap を作りません。
 - `packages/vscode-extension/package.json` から VS Code commands と settings の有無。
 - parser、project parser、exporter、VS Code extension、renderer message loader から
   Front Matter fields、project file fields、renderer message resolution。
-- `examples/catalog.yml` から example feature tags と source path。
+- `examples/catalog.yml` から example `docs.reference` target と source path。
+- `examples/**/*.vspec.md` から recognized `##` section usage。
+- `examples/catalog.yml` の example feature tags は、stable Reference feature ID を持つ
+  までは report-only の educational label として扱う。
 - docs link check から英日 Reference page presence と link graph。
 
 人手 review が必要なもの:
@@ -143,6 +146,8 @@ checker はまだ一部 report-first ですが、stable mapping family は必要
 - stable renderer/export output cluster が Renderer / Export Output Coverage Matrix に
   ない、user-facing coverage target がない、または期待する implementation signal を
   失っている。
+- example catalog の `docs.reference` target、または example が使う recognized section
+  を、coverage marker 付きの English/Japanese Reference page へ対応付けられない。
 - 既存 Reference page structure が report を信頼できないほど壊れている。
 
 feature family が report-only、prose depth が薄い可能性、Guide-only / Example-only
@@ -202,6 +207,10 @@ stable family:
 - Diagnostic push site classification family: `Stable covered` の diagnostic
   push site source は Diagnostic Coverage Matrix row と Diagnostic Push Site
   Classification Matrix の source entry を持つ。
+- Example-supported Reference mapping family: `examples/catalog.yml` の
+  `docs.reference` target は English/Japanese の Reference page と
+  `reference.page.*` marker へ解決できる必要があり、`examples/**/*.vspec.md` が使う
+  recognized section は section-level Reference coverage target に対応する必要がある。
 
 report-only family:
 
@@ -209,7 +218,7 @@ report-only family:
 - element prose-depth coverage。
 - diagnostic prose-depth coverage。
 - renderer/export output feature。
-- example と example-supported pattern。
+- example tag と nested pattern の prose-depth coverage。
 
 recognized grammar section は section level では stable です。個別 structured item の
 prose depth は、item-level marker ID と期待 coverage target を triage するまで
@@ -218,6 +227,15 @@ report-only として残します。
 element generated coverage は、element type の出現と generated element property/context
 row では stable です。type-specific property の説明 depth や property ごとの prose quality
 は、item-level coverage marker を導入するまで report-only として残します。
+
+example-supported coverage は、catalog の Reference link と recognized section heading の
+2つを stable boundary とします。checker は `examples/catalog.yml` の `docs.reference`
+を読み、各 slug が English/Japanese の Reference page と coverage marker を持つことを
+要求します。また、すべての example `.vspec.md` file から recognized `##` heading を読み、
+`Sections`、`Grammar`、および `Actions`、`Elements`、`Validations`、`Rules`、`History`
+などの section-specific Reference page に対応付けます。catalog の `teaches` tag と
+example 内の nested/item-level syntax は、まだ stable Reference feature ID ではないため
+report-only に残します。
 
 report-only family は semantic depth の manual review が必要です。stable marker ID、
 期待 target page、failure mode を triage するまでは release-blocking に昇格しません。

@@ -76,7 +76,10 @@ Automatable extraction:
 - Front Matter fields, project file fields, and renderer message resolution from
   the parser, project parser, exporter, VS Code extension, and renderer message
   loader.
-- Example feature tags and source paths from `examples/catalog.yml`.
+- Example `docs.reference` targets and source paths from `examples/catalog.yml`.
+- Recognized `##` section usage from `examples/**/*.vspec.md`.
+- Example feature tags from `examples/catalog.yml` as report-only educational
+  labels until they have stable Reference feature IDs.
 - English/Japanese Reference page presence and link graph from docs link checks.
 
 Human review remains required for:
@@ -146,6 +149,9 @@ stable coverage anchors are broken:
 - A stable renderer/export output cluster is missing from the Renderer / Export
   Output Coverage Matrix, has no user-facing coverage target, or loses its
   expected implementation signal.
+- An example catalog `docs.reference` target or a recognized section used by an
+  example cannot be mapped to English/Japanese Reference pages with coverage
+  markers.
 - Existing Reference page structure is unreadable enough that the report cannot
   be trusted.
 
@@ -210,6 +216,10 @@ Stable families:
 - Diagnostic push site classification family: every `Stable covered` diagnostic
   push site source must have a Diagnostic Coverage Matrix row and a Diagnostic
   Push Site Classification Matrix source entry.
+- Example-supported Reference mapping family: each `examples/catalog.yml`
+  `docs.reference` target must resolve to English/Japanese Reference pages with
+  `reference.page.*` markers, and each recognized section used by
+  `examples/**/*.vspec.md` must map to section-level Reference coverage targets.
 
 Report-only families:
 
@@ -217,7 +227,7 @@ Report-only families:
 - Element prose-depth coverage.
 - Diagnostic prose-depth coverage.
 - Renderer/export output features.
-- Examples and example-supported patterns.
+- Example tag and nested pattern prose-depth coverage.
 
 Recognized grammar sections are stable at section level. Individual structured
 item prose depth remains report-only until item-level marker IDs and expected
@@ -227,6 +237,16 @@ Element generated coverage is stable for element type presence and generated
 element property/context rows. Type-specific property explanation depth and
 property-by-property prose quality remain report-only until item-level coverage
 markers are introduced.
+
+Example-supported coverage is stable at two boundaries: catalog Reference links
+and recognized section headings. The checker reads `docs.reference` from
+`examples/catalog.yml` and requires those slugs to exist as English/Japanese
+Reference pages with coverage markers. It also reads recognized `##` headings
+from every example `.vspec.md` file and maps them to `Sections`, `Grammar`, and
+section-specific Reference pages such as `Actions`, `Elements`, `Validations`,
+`Rules`, or `History`. Catalog `teaches` tags and nested/item-level syntax inside
+examples remain report-only because they are educational labels, not stable
+Reference feature IDs yet.
 
 Report-only families still require manual review for semantic depth. They should
 not become release-blocking until their stable marker IDs, expected target pages,

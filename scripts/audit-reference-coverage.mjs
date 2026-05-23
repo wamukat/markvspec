@@ -7,6 +7,7 @@ import {
   supportedDiagnosticMessageCodes
 } from "../packages/core/dist/index.js";
 import {
+  grammarSectionForTitle,
   grammarSectionDefinitions,
   grammarStructuredItemContexts,
   grammarStructuredItemDefinitionsByContext
@@ -111,6 +112,8 @@ assertCategory("Front Matter fields", inventory.externalInputs.frontMatterFields
 assertCategory("project file fields", inventory.externalInputs.projectFileFields);
 assertCategory("VS Code settings coverage", inventory.externalInputs.vscodeSettings);
 assertCategory("renderer message resolution coverage targets", inventory.externalInputs.rendererMessageResolution);
+assertCategory("stable example catalog reference targets", inventory.examples.catalogReferenceTargets);
+assertCategory("stable example section usage entries", inventory.examples.sectionUsage);
 assertCategory("stable feature mapping families", inventory.featureMapping.stable);
 assertCategory("report-only feature mapping families", inventory.featureMapping.reportOnly);
 assertCategory("examples", inventory.examples.catalogEntries);
@@ -124,6 +127,7 @@ await auditExternalInputConfigurationReadiness(inventory.externalInputs, invento
 auditDiagnosticCoverageMatrixReadiness(inventory.diagnosticCoverageMatrix);
 auditDiagnosticPushSiteClassificationReadiness(inventory.diagnosticPushSiteClassification);
 auditRendererOutputCoverageMatrixReadiness(inventory.rendererOutputCoverageMatrix);
+auditExampleCoverageReadiness(inventory.examples, inventory.referencePages);
 auditFeatureMappingReadiness();
 printReport();
 
@@ -298,6 +302,13 @@ function featureMappingInventory() {
         count: inventory.diagnosticPushSites.length,
         failureMode: "A Stable covered push site must have a diagnostic matrix row, classification row source, and coverage target.",
         evidence: "Diagnostic Coverage Matrix and Diagnostic Push Site Classification Matrix"
+      },
+      {
+        id: "feature-mapping.examples-stable",
+        family: "Example-supported Reference mapping family",
+        count: inventory.examples.catalogReferenceTargets.length + inventory.examples.sectionUsage.length,
+        failureMode: "Catalog docs.reference targets and recognized example sections must resolve to EN/JA Reference pages with coverage markers.",
+        evidence: "examples/catalog.yml docs.reference and examples/**/*.vspec.md section headings"
       }
     ],
     reportOnly: [
@@ -327,9 +338,9 @@ function featureMappingInventory() {
       },
       {
         id: "feature-mapping.examples",
-        family: "Examples and example-supported patterns",
-        count: inventory.examples?.catalogEntries?.length ?? 0,
-        reason: "Examples are audited as runnable artifacts, but feature-to-prose mapping is not stable per example tag."
+        family: "Example tag and nested pattern prose-depth coverage",
+        count: inventory.examples?.reportOnlyPatternTags?.length ?? 0,
+        reason: "Catalog teaches tags and nested/item-level example patterns are educational labels, not stable Reference feature IDs yet."
       }
     ]
   };
@@ -1102,20 +1113,162 @@ async function auditExternalInputConfigurationReadiness(externalInputs, referenc
 
 async function exampleInventory() {
   const catalog = await readFile(join(rootDir, "examples/catalog.yml"), "utf8");
-  const catalogEntries = [...catalog.matchAll(/^\s+- path:\s+(.+)$/gmu)].map((match) => match[1].trim());
+  const catalogEntries = parseExampleCatalogEntries(catalog);
+  const catalogPaths = catalogEntries.map((entry) => entry.path);
   const files = (await collectFiles("examples")).filter((filePath) => filePath.endsWith(".vspec.md"));
-  const missingFromDisk = catalogEntries.filter((filePath) => !files.includes(filePath));
-  const missingFromCatalog = files.filter((filePath) => !catalogEntries.includes(filePath) && !filePath.endsWith(".partial.vspec.md"));
+  const missingFromDisk = catalogPaths.filter((filePath) => !files.includes(filePath));
+  const missingFromCatalog = files.filter((filePath) => !catalogPaths.includes(filePath) && !filePath.endsWith(".partial.vspec.md"));
   for (const filePath of missingFromDisk) {
     failures.push(`examples/catalog.yml references missing example ${filePath}`);
   }
   for (const filePath of missingFromCatalog) {
     warnings.push(`${filePath}: example is not listed in examples/catalog.yml`);
   }
+  const catalogReferenceTargets = catalogEntries.flatMap((entry) =>
+    entry.referenceDocs.map((reference) => ({
+      id: `example-reference.${entry.path}.${reference}`,
+      path: entry.path,
+      reference,
+      coverageTargets: referenceTargetsForSlugs([reference])
+    }))
+  );
+  const sectionUsage = await exampleSectionUsageInventory(files);
   return {
-    catalogEntries: catalogEntries.map((filePath) => ({ id: `example.${filePath}`, path: filePath })),
-    files: files.map((filePath) => ({ id: `example-file.${filePath}`, path: filePath }))
+    catalogEntries: catalogEntries.map((entry) => ({ id: `example.${entry.path}`, ...entry })),
+    files: files.map((filePath) => ({ id: `example-file.${filePath}`, path: filePath })),
+    catalogReferenceTargets,
+    sectionUsage,
+    reportOnlyPatternTags: unique(catalogEntries.flatMap((entry) => entry.teaches))
   };
+}
+
+function parseExampleCatalogEntries(source) {
+  const entries = [];
+  let current;
+  let listContext;
+  for (const line of source.split(/\r?\n/u)) {
+    const pathMatch = line.match(/^ {2}- path:\s+(.+)$/u);
+    if (pathMatch) {
+      current = {
+        path: unquoteYamlScalar(pathMatch[1]),
+        referenceDocs: [],
+        teaches: []
+      };
+      entries.push(current);
+      listContext = undefined;
+      continue;
+    }
+    if (!current) {
+      continue;
+    }
+    const topContextMatch = line.match(/^ {4}(teaches|docs):\s*$/u);
+    if (topContextMatch) {
+      listContext = topContextMatch[1];
+      continue;
+    }
+    const docsContextMatch = line.match(/^ {6}(guide|reference|recipes):/u);
+    if (docsContextMatch) {
+      listContext = `docs.${docsContextMatch[1]}`;
+      continue;
+    }
+    const teachesItemMatch = line.match(/^ {6}-\s+(.+)$/u);
+    if (teachesItemMatch && listContext === "teaches") {
+      current.teaches.push(unquoteYamlScalar(teachesItemMatch[1]));
+      continue;
+    }
+    const referenceItemMatch = line.match(/^ {8}-\s+(.+)$/u);
+    if (referenceItemMatch && listContext === "docs.reference") {
+      current.referenceDocs.push(unquoteYamlScalar(referenceItemMatch[1]));
+    }
+  }
+  return entries;
+}
+
+function unquoteYamlScalar(value) {
+  return value.trim().replace(/^["']|["']$/gu, "");
+}
+
+async function exampleSectionUsageInventory(files) {
+  const sectionMap = new Map();
+  for (const filePath of files) {
+    const source = await readFile(join(rootDir, filePath), "utf8");
+    for (const heading of headings(source).filter((entry) => entry.level === 2)) {
+      const section = grammarSectionForTitle(heading.text);
+      if (!section) {
+        warnings.push(`${filePath}: example section heading "${heading.text}" is not recognized; left report-only.`);
+        continue;
+      }
+      const definition = grammarSectionDefinitions.find((entry) => entry.kind === section.kind);
+      const existing = sectionMap.get(section.kind) ?? {
+        id: `example-section.${section.kind}`,
+        kind: section.kind,
+        title: definition?.title ?? section.kind,
+        examples: new Set(),
+        coverageTargets: referenceTargetsForSlugs(exampleSectionReferenceSlugs(section.kind))
+      };
+      existing.examples.add(filePath);
+      sectionMap.set(section.kind, existing);
+    }
+  }
+  return [...sectionMap.values()]
+    .sort((left, right) => left.kind.localeCompare(right.kind))
+    .map((entry) => ({
+      ...entry,
+      examples: [...entry.examples].sort()
+    }));
+}
+
+function exampleSectionReferenceSlugs(sectionKind) {
+  const sectionSpecific = {
+    Actions: ["actions"],
+    BusinessRules: ["rules"],
+    CrossFieldValidations: ["validations"],
+    Elements: ["elements"],
+    ErrorCodes: ["rules"],
+    Events: ["actions"],
+    FieldValidations: ["validations"],
+    FormGroups: ["elements", "validations"],
+    History: ["history"],
+    HistoryFields: ["history"],
+    Validations: ["validations"]
+  };
+  return unique(["sections", "grammar", ...(sectionSpecific[sectionKind] ?? [])]);
+}
+
+function referenceTargetsForSlugs(slugs) {
+  return slugs.flatMap((reference) => ["en", "ja"].map((locale) => ({
+    locale,
+    reference,
+    marker: `reference.page.${reference}`,
+    path: `docs/${locale}/reference/${reference}.md`
+  })));
+}
+
+function auditExampleCoverageReadiness(examples, referencePages) {
+  const pagesByPath = new Map(
+    [...referencePages.en, ...referencePages.ja].map((page) => [page.path, page])
+  );
+  const checkTarget = (target, label) => {
+    const page = pagesByPath.get(target.path);
+    if (!page) {
+      failures.push(`${label}: missing Reference coverage target ${target.path}.`);
+      return;
+    }
+    if (!page.coverageMarkers.includes(target.marker)) {
+      failures.push(`${label}: missing coverage marker ${target.marker} in ${target.path}.`);
+    }
+  };
+
+  for (const entry of examples.catalogReferenceTargets) {
+    for (const target of entry.coverageTargets) {
+      checkTarget(target, `${entry.id} ${target.locale}`);
+    }
+  }
+  for (const entry of examples.sectionUsage) {
+    for (const target of entry.coverageTargets) {
+      checkTarget(target, `${entry.id} ${target.locale}`);
+    }
+  }
 }
 
 async function rendererOutputFeatures() {
@@ -1395,7 +1548,10 @@ function printReport() {
     ["stable feature mapping families", inventory.featureMapping.stable.length],
     ["report-only feature mapping families", inventory.featureMapping.reportOnly.length],
     ["examples catalog entries", inventory.examples.catalogEntries.length],
-    ["example files", inventory.examples.files.length]
+    ["example files", inventory.examples.files.length],
+    ["stable example catalog reference targets", inventory.examples.catalogReferenceTargets.length],
+    ["stable example section usage entries", inventory.examples.sectionUsage.length],
+    ["report-only example pattern tags", inventory.examples.reportOnlyPatternTags.length]
   ];
 
   console.log("Reference coverage audit summary:");
@@ -1409,6 +1565,7 @@ function printReport() {
   printExternalInputConfigurationReport();
   printDiagnosticCoverageMatrixReport();
   printRendererOutputCoverageMatrixReport();
+  printExampleCoverageReport();
   printFeatureMappingReport();
 
   if (warnings.length > 0) {
@@ -1516,6 +1673,20 @@ function printExternalInputConfigurationReport() {
   console.log(`  Project file fields: ${sampleProjectFields}`);
   console.log(`  VS Code settings: ${vscodeSettings}`);
   console.log(`  Renderer message resolution: ${messageResolution}`);
+}
+
+function printExampleCoverageReport() {
+  if (!inventory.examples) {
+    return;
+  }
+  console.log("\nExample-supported Reference coverage report:");
+  console.log(`- Catalog docs.reference mappings: ${inventory.examples.catalogReferenceTargets.length}`);
+  console.log(`- Recognized example section usages: ${inventory.examples.sectionUsage.length}`);
+  console.log(`- Report-only teaches tags: ${inventory.examples.reportOnlyPatternTags.length}; reason: teaches tags and nested/item-level example patterns are not stable Reference feature IDs yet.`);
+  for (const entry of inventory.examples.sectionUsage) {
+    const targets = unique(entry.coverageTargets.map((target) => target.reference)).join(", ");
+    console.log(`  - ${entry.title}: ${entry.examples.length} example file(s); coverage: ${targets}`);
+  }
 }
 
 function printFeatureMappingReport() {
