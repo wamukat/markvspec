@@ -179,6 +179,9 @@ expectContains(projectPreviewHtml, 'data-sidebar-toggle', "_site/examples/projec
 expectContains(projectPreviewHtml, 'data-preview-maximizable', "_site/examples/project/account-project.html should make the project preview pane maximizable.");
 expectContains(projectPreviewHtml, 'data-preview-maximize', "_site/examples/project/account-project.html should expose a preview maximize button.");
 expectContains(projectPreviewHtml, "preview-maximize", "_site/examples/project/account-project.html should load the shared preview maximize behavior.");
+expectNotContains(projectPreviewHtml, 'aria-label="Project metadata"', "_site/examples/project/account-project.html should not add project-only metadata pills to the preview header.");
+expectNotContains(projectPreviewHtml, "2 screens", "_site/examples/project/account-project.html should not show project-only screen count pills in the preview header.");
+expectNotContains(projectPreviewHtml, "1 templates", "_site/examples/project/account-project.html should not show project-only template count pills in the preview header.");
 const showcaseDynamicScriptPath = dynamicScriptArtifactPath(helloShowcaseHtml, join(siteDir, "examples", "showcase", "hello-screen.html", "index.html"));
 if (!showcaseDynamicScriptPath) {
   failures.push("_site/examples/showcase/hello-screen.html should include the dynamic preview browser script.");

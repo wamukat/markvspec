@@ -36,12 +36,6 @@ const project = loadMarkVSpecProject(example.source, {
 });
 const projectPreviewHtml = renderProjectDesignDocumentHtml(project, messagesForLocale(project.project.project.frontMatter.locale));
 const sourceLineItems = sourceLines(example.source);
-const metaPills = [
-  project.project.project.id,
-  project.project.project.type,
-  `${project.screens.length} screens`,
-  `${project.templates.length} templates`,
-].filter(Boolean);
 const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
 ---
 
@@ -589,9 +583,6 @@ const githubRepositoryUrl = 'https://github.com/wamukat/markvspec';
                 <span>Generated from the project document and referenced files</span>
               </div>
               <div class="pane-tools">
-                <div class="meta-row" aria-label="Project metadata">
-                  {metaPills.map((pill) => <span class="pill">{pill}</span>)}
-                </div>
                 <button class="pane-icon-button" type="button" aria-label="Maximize preview" aria-pressed="false" title="Maximize preview" data-preview-maximize>
                   <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M8 3H3v5" />
