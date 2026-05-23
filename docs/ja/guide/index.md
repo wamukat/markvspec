@@ -15,6 +15,7 @@ MarkVSpec は、画面仕様を Markdown で書き、すぐプレビューで確
 - `## Actions`: 操作と結果。まずは [アクション](./actions.md)。
 - `## Business Rules`: 画面固有の判断条件。まずは [バリデーション](./validation.md)。
 - `## Preview Scenarios`: 確認したい表示パターン。まずは [シナリオ](./scenarios.md)。
+- `.vspec.project.md`: 複数画面をまとめて確認する project document。まずは [プロジェクト文書](./project-documents.md)。
 - `## History Fields` / `## History`: 仕様書に残す更新履歴。まずは [更新履歴](./history.md)。
 
 ## 読み方

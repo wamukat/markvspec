@@ -60,6 +60,7 @@ export default defineConfig({
             { slug: 'guide/validation' },
             { slug: 'guide/scenarios' },
             { slug: 'guide/partial-updates' },
+            { slug: 'guide/project-documents' },
             { slug: 'guide/history' },
           ],
         },

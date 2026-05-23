@@ -32,6 +32,8 @@ const requiredFiles = [
   "en/start/index.html",
   "ja/guide/index.html",
   "en/guide/index.html",
+  "ja/guide/project-documents/index.html",
+  "en/guide/project-documents/index.html",
   "ja/reference/index.html",
   "en/reference/index.html",
   "ja/recipes/index.html",
@@ -118,6 +120,12 @@ if (showcaseFiles.length !== exampleSources.length) {
 }
 
 const helloShowcaseHtml = readSiteFile("examples/showcase/hello-screen.html/index.html");
+const enGuideHtml = readSiteFile("en/guide/index.html");
+const jaGuideHtml = readSiteFile("ja/guide/index.html");
+expectContains(enGuideHtml, `${base}/en/guide/project-documents/`, "_site/en/guide/index.html should include Project Documents in the Starlight guide navigation.");
+expectContains(enGuideHtml, "Project Documents", "_site/en/guide/index.html should show the English Project Documents guide label.");
+expectContains(jaGuideHtml, `${base}/ja/guide/project-documents/`, "_site/ja/guide/index.html should include Project Documents in the Starlight guide navigation.");
+expectContains(jaGuideHtml, "プロジェクト文書", "_site/ja/guide/index.html should show the Japanese Project Documents guide label.");
 expectContains(helloShowcaseHtml, "Project-Level Examples", "_site/examples/showcase/hello-screen.html should show project-level examples in the sidebar.");
 expectContains(helloShowcaseHtml, "Project Documents", "_site/examples/showcase/hello-screen.html should link the project documents example in the sidebar.");
 expectContains(helloShowcaseHtml, "Source and dynamic preview, side by side", "_site/examples/showcase/hello-screen.html should be a dynamic-first showcase page.");
