@@ -159,6 +159,47 @@ warning while the coverage model is being introduced; individual feature
 families can become release-blocking only after their expected marker set is
 stable and triaged.
 
+## Diagnostic Coverage Matrix
+
+Diagnostic coverage starts from `supportedDiagnosticMessageCodes()`. The matrix
+does not make diagnostic prose itself canonical; it records where authors should
+go to understand and fix each diagnostic.
+
+| Diagnostic Code | Severity | Trigger Category | User-Facing Coverage | Status |
+| --- | --- | --- | --- | --- |
+| `frontMatter.missingYaml` | warning | File has no YAML Front Matter block. | [File Format](../reference/file-format.md), [Start](../start/index.md) | Covered |
+| `frontMatter.missingRequired` | error | Required Front Matter field `id`, `type`, or `title` is missing. | [File Format](../reference/file-format.md), [Start](../start/index.md) | Covered |
+| `section.recommendedOrder` | warning | Recognized section appears after a later recommended section. | [Sections](../reference/sections.md), [Grammar](../reference/grammar.md) | Covered |
+| `layout.missingViewport` | warning | `## Layout` section lacks a viewport suffix. | [Sections](../reference/sections.md), [Grammar](../reference/grammar.md) | Covered |
+| `layout.groupIgnoredWithoutViewport` | warning | Layout group appears under a Layout section that has no viewport. | [Sections](../reference/sections.md) | Covered |
+| `layout.unsupportedItemsEntry` | warning | `#### Items` contains an entry that is not an `L-*` or `E-*` item. | [Sections](../reference/sections.md), [IDs](../reference/ids.md) | Covered |
+| `element.unknownType` | warning | Element heading uses an unsupported element type. | [Elements](../reference/elements.md), [Grammar](../reference/grammar.md) | Covered |
+| `action.missingTrigger` | warning | Action has no element action, event, or response receive trigger. | [Actions](../reference/actions.md), [Elements](../reference/elements.md), [Sections](../reference/sections.md) | Covered |
+| `action.invalidTrigger` | warning | Action trigger uses an unsupported trigger shape. | [Actions](../reference/actions.md), [Grammar](../reference/grammar.md) | Covered |
+| `action.process.multipleExecutionDetails` | warning | One Process step contains more than one execution detail block. | [Actions](../reference/actions.md), [Grammar](../reference/grammar.md) | Covered |
+| `action.process.mixesExecutionDetailAndImmediateEffects` | warning | One Process step mixes execution detail with direct immediate effects. | [Actions](../reference/actions.md), [Grammar](../reference/grammar.md) | Covered |
+| `action.process.mixesResultClassificationAndImmediateEffects` | warning | One Process step mixes result classification with direct immediate effects. | [Actions](../reference/actions.md), [Grammar](../reference/grammar.md) | Covered |
+| `action.parallelProcess.caseShouldNotSetStateOrNavigate` | warning | Parallel Process case sets final state or navigation instead of deferring to Resolve. | [Actions](../reference/actions.md), [Grammar](../reference/grammar.md) | Covered |
+| `action.process.caseResponseWithoutReceive` | warning | Process case uses `response` without a `receive: response` detail. | [Actions](../reference/actions.md), [Grammar](../reference/grammar.md) | Covered |
+| `unrepresented-source-text` | warning | Source prose or list item is preserved but not represented in MarkVSpec output. | [Grammar](../reference/grammar.md), [Limitations](../reference/limitations.md) | Covered |
+| `partial.referenceMissing` | error | Partial reference is not declared in Front Matter `references.partials`. | [File Format](../reference/file-format.md), [Sections](../reference/sections.md) | Covered |
+| `validation.ruleMissingElement` | error | Validation rule targets a missing `E-*` element. | [Validations](../reference/validations.md), [Elements](../reference/elements.md), [IDs](../reference/ids.md) | Covered |
+| `previewScenario.missingState` | error | Preview Scenario omits `state`. | [Sections](../reference/sections.md) | Covered |
+| `previewScenario.samplesMissingElement` | error | Preview Scenario sample row targets a missing `E-*` element. | [Sections](../reference/sections.md), [Elements](../reference/elements.md), [IDs](../reference/ids.md) | Covered |
+
+Future machine-readable mapping should keep this shape close to the source:
+
+- `code`: one value from `supportedDiagnosticMessageCodes()`.
+- `severity`: expected severity at the source push site.
+- `category`: front matter, section order, layout, element, action process,
+  partial, validation, preview scenario, or output representation.
+- `coverageMarkers`: Reference coverage feature IDs that explain the fix.
+- `followUp`: optional Kanbalone ticket when the Reference explanation is thin.
+
+No new blocking docs gap was found in this matrix pass. The remaining automation
+gap is that `audit:reference-coverage` inventories diagnostic codes and push
+sites, but does not yet compare them against this matrix.
+
 ## First Generated Report
 
 The first checked report was generated for #1412 with

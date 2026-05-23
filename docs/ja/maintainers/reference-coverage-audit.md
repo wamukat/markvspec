@@ -155,6 +155,47 @@ Reference page ごとに、English と Japanese の両方へ 1 つずつ marker 
 導入している間、marker 欠落は warning に留めます。個別 feature family を
 release-blocking に昇格するのは、期待 marker set が安定し triage 済みになってからです。
 
+## diagnostic coverage matrix
+
+diagnostic coverage は `supportedDiagnosticMessageCodes()` を起点にします。この matrix
+は diagnostic prose 自体を canonical source にするものではなく、author が各 diagnostic
+を理解し修正するための参照先を記録します。
+
+| Diagnostic Code | Severity | Trigger Category | User-Facing Coverage | Status |
+| --- | --- | --- | --- | --- |
+| `frontMatter.missingYaml` | warning | YAML Front Matter block がない。 | [ファイル形式](../reference/file-format.md)、[はじめる](../start/index.md) | Covered |
+| `frontMatter.missingRequired` | error | 必須 Front Matter field `id`、`type`、`title` がない。 | [ファイル形式](../reference/file-format.md)、[はじめる](../start/index.md) | Covered |
+| `section.recommendedOrder` | warning | recognized section が推奨順より後にある。 | [Sections](../reference/sections.md)、[Grammar](../reference/grammar.md) | Covered |
+| `layout.missingViewport` | warning | `## Layout` section に viewport suffix がない。 | [Sections](../reference/sections.md)、[Grammar](../reference/grammar.md) | Covered |
+| `layout.groupIgnoredWithoutViewport` | warning | viewport のない Layout section 配下に layout group がある。 | [Sections](../reference/sections.md) | Covered |
+| `layout.unsupportedItemsEntry` | warning | `#### Items` に `L-*` / `E-*` 以外の entry がある。 | [Sections](../reference/sections.md)、[ID](../reference/ids.md) | Covered |
+| `element.unknownType` | warning | Element heading が unsupported element type を使っている。 | [Elements](../reference/elements.md)、[Grammar](../reference/grammar.md) | Covered |
+| `action.missingTrigger` | warning | Action に element action、event、response receive trigger がない。 | [Actions](../reference/actions.md)、[Elements](../reference/elements.md)、[Sections](../reference/sections.md) | Covered |
+| `action.invalidTrigger` | warning | Action trigger が unsupported trigger shape。 | [Actions](../reference/actions.md)、[Grammar](../reference/grammar.md) | Covered |
+| `action.process.multipleExecutionDetails` | warning | 1つの Process step に複数の execution detail block がある。 | [Actions](../reference/actions.md)、[Grammar](../reference/grammar.md) | Covered |
+| `action.process.mixesExecutionDetailAndImmediateEffects` | warning | 1つの Process step で execution detail と direct immediate effect が混在。 | [Actions](../reference/actions.md)、[Grammar](../reference/grammar.md) | Covered |
+| `action.process.mixesResultClassificationAndImmediateEffects` | warning | 1つの Process step で result classification と direct immediate effect が混在。 | [Actions](../reference/actions.md)、[Grammar](../reference/grammar.md) | Covered |
+| `action.parallelProcess.caseShouldNotSetStateOrNavigate` | warning | parallel Process case が Resolve ではなく final state / navigation を設定している。 | [Actions](../reference/actions.md)、[Grammar](../reference/grammar.md) | Covered |
+| `action.process.caseResponseWithoutReceive` | warning | `receive: response` なしで Process case が `response` を使っている。 | [Actions](../reference/actions.md)、[Grammar](../reference/grammar.md) | Covered |
+| `unrepresented-source-text` | warning | source prose / list item が保持されるが MarkVSpec output に表現されない。 | [Grammar](../reference/grammar.md)、[制限事項](../reference/limitations.md) | Covered |
+| `partial.referenceMissing` | error | partial reference が Front Matter `references.partials` に宣言されていない。 | [ファイル形式](../reference/file-format.md)、[Sections](../reference/sections.md) | Covered |
+| `validation.ruleMissingElement` | error | validation rule が存在しない `E-*` element を target にしている。 | [Validations](../reference/validations.md)、[Elements](../reference/elements.md)、[ID](../reference/ids.md) | Covered |
+| `previewScenario.missingState` | error | Preview Scenario に `state` がない。 | [Sections](../reference/sections.md) | Covered |
+| `previewScenario.samplesMissingElement` | error | Preview Scenario sample row が存在しない `E-*` element を target にしている。 | [Sections](../reference/sections.md)、[Elements](../reference/elements.md)、[ID](../reference/ids.md) | Covered |
+
+将来の machine-readable mapping は source に近い形で次を持つようにします。
+
+- `code`: `supportedDiagnosticMessageCodes()` の値。
+- `severity`: source push site で期待する severity。
+- `category`: front matter、section order、layout、element、action process、
+  partial、validation、preview scenario、output representation など。
+- `coverageMarkers`: 修正方法を説明する Reference coverage feature ID。
+- `followUp`: Reference 説明が薄い場合の Kanbalone ticket。
+
+この matrix pass では新しい blocking docs gap は見つけていません。残る automation gap
+は、`audit:reference-coverage` が diagnostic code と push site を inventory する一方、
+この matrix との照合まではまだ行わないことです。
+
 ## first generated report
 
 #1412 で最初の checked report として `npm run audit:reference-coverage` を実行した。
