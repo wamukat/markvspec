@@ -338,13 +338,17 @@ async function elementGeneratedCoverageInventory() {
       source: await requiredSource("docs/ja/reference/elements.md")
     }
   };
+  for (const target of Object.values(targets)) {
+    target.generatedRows = generatedTableFirstCellValues(generatedBlock(target.source, "reference-elements"));
+    target.elementTypeCatalogEntries = elementTypeCatalogEntries(target.source);
+  }
 
   const generatedEntries = [
     ...inventory.elementTypes.map((entry) => ({
       id: entry.id,
       label: entry.type,
       source: "element-type",
-      rowKind: "type-mention"
+      rowKind: "type-catalog-entry"
     })),
     ...inventory.elementProperties.map((entry) => ({
       id: entry.id,
@@ -374,7 +378,9 @@ async function elementGeneratedCoverageInventory() {
         path: target.path,
         hasPageMarker: page?.coverageMarkers.includes("reference.page.elements") ?? false,
         hasGeneratedMarker: generatedMarkersByPath.get(target.path)?.has("reference-elements") ?? false,
-        hasRequiredEntry: target.source.includes(`\`${entry.label}\``)
+        hasRequiredEntry: entry.rowKind === "type-catalog-entry"
+          ? target.elementTypeCatalogEntries.has(entry.label)
+          : target.generatedRows.has(entry.label)
       }];
     }))
   }));
@@ -397,7 +403,7 @@ function auditElementGeneratedCoverageReadiness(coverage) {
         failures.push(`${label}: missing generated reference-elements marker in ${target.path}.`);
       }
       if (!target.hasRequiredEntry) {
-        failures.push(`${label}: missing ${entry.rowKind === "type-mention" ? "element type mention" : "generated row"} for ${entry.label} in ${target.path}.`);
+        failures.push(`${label}: missing ${entry.rowKind === "type-catalog-entry" ? "element type catalog entry" : "generated row"} for ${entry.label} in ${target.path}.`);
       }
     }
   }
@@ -1019,6 +1025,46 @@ async function collect(directory, files) {
 
 function generatedMarkers(source) {
   return [...source.matchAll(/<!-- markvspec-generated:([^:]+):start -->/gu)].map((match) => match[1]);
+}
+
+function generatedBlock(source, marker) {
+  const pattern = new RegExp(`<!-- markvspec-generated:${escapeRegExp(marker)}:start -->([\\s\\S]*?)<!-- markvspec-generated:${escapeRegExp(marker)}:end -->`, "u");
+  return source.match(pattern)?.[1] ?? "";
+}
+
+function generatedTableFirstCellValues(source) {
+  return new Set(source.split(/\r?\n/u).flatMap((line) => {
+    const match = line.match(/^\|\s*`([^`]+)`\s*\|/u);
+    return match ? [match[1]] : [];
+  }));
+}
+
+function elementTypeCatalogEntries(source) {
+  const section = markdownSectionBeforeHeading(source, "Common Types", "Common Properties");
+  return new Set(section.split(/\r?\n/u).flatMap((line) => {
+    const tableRow = line.match(/^\|\s*`([^`]+)`\s*\|/u);
+    if (tableRow) {
+      return [tableRow[1]];
+    }
+    if (!line.match(/^-\s+/u)) {
+      return [];
+    }
+    return [...line.matchAll(/`([^`]+)`/gu)].map((match) => match[1]);
+  }));
+}
+
+function markdownSectionBeforeHeading(source, startHeading, endHeading) {
+  const lines = source.split(/\r?\n/u);
+  const start = lines.findIndex((line) => line.trim() === `### ${startHeading}`);
+  if (start < 0) {
+    return "";
+  }
+  const end = lines.findIndex((line, index) => index > start && line.trim() === `### ${endHeading}`);
+  return lines.slice(start, end < 0 ? undefined : end).join("\n");
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 }
 
 function coverageMarkers(source) {

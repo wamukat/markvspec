@@ -134,6 +134,8 @@ checker はまだ一部 report-first ですが、stable mapping family は必要
 - 必須 stable Reference coverage marker が欠落。
 - recognized grammar section の English/Japanese Sections page marker、Grammar
   page marker、generated Sections row、または Grammar production が欠落。
+- element type が Elements Reference の type catalog にない、または element
+  property/context row が `reference-elements` generated block にない。
 - diagnostic code が Diagnostic Coverage Matrix にない、または diagnostic matrix row に
   user-facing coverage target がない。
 - stable renderer/export output cluster が Renderer / Export Output Coverage Matrix に

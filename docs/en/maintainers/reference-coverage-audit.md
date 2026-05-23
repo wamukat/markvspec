@@ -136,6 +136,9 @@ stable coverage anchors are broken:
 - A required stable Reference coverage marker is missing.
 - A recognized grammar section is missing its English/Japanese Sections page
   marker, Grammar page marker, generated Sections row, or Grammar production.
+- An element type is missing from the Elements Reference type catalog, or an
+  element property/context row is missing from the `reference-elements`
+  generated block.
 - A diagnostic code is missing from the Diagnostic Coverage Matrix, or a
   diagnostic matrix row has no user-facing coverage target.
 - A stable renderer/export output cluster is missing from the Renderer / Export
