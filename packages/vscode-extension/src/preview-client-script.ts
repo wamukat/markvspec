@@ -70,6 +70,7 @@ export function renderPreviewClientScript(options: PreviewClientScriptOptions): 
       const markvspecMessages = ${scriptJson(options.messages)};
       const markvspecPreviewPositionKey = ${scriptJson(options.sourceLabel ?? options.defaultPositionKey)};
       let previewPositionRestorePending = true;
+      let previewSourceJumpEventsInitialized = false;
       const markvspecMermaidRenderIdPrefix = ${scriptJson(options.mermaidRenderIdPrefix)};
       const pendingRenderCommits = new Map();
       runPreviewInitializer("renderMermaidDiagrams", () => renderMermaidDiagrams());
@@ -78,6 +79,7 @@ export function renderPreviewClientScript(options: PreviewClientScriptOptions): 
       runPreviewInitializer("initTableOfContentsToggle", () => initTableOfContentsToggle());
       runPreviewInitializer("initRepeatedContentToggle", () => initRepeatedContentToggle());
       runPreviewInitializer("initPreviewRefreshControls", () => initPreviewRefreshControls());
+      runPreviewInitializer("initPreviewSourceJump", () => initPreviewSourceJump());
       runPreviewInitializer("initPreviewFragmentUpdates", () => initPreviewFragmentUpdates());
       runPreviewInitializer("initPreviewPositionTracking", () => initPreviewPositionTracking());
       runPreviewInitializer("restorePreviewPosition", () => restorePreviewPosition());
@@ -247,6 +249,80 @@ export function renderPreviewClientScript(options: PreviewClientScriptOptions): 
         });
       });` : ""}
 
+      function initPreviewSourceJump() {
+        document.querySelectorAll("[data-mm-source-anchor]").forEach((item) => {
+          const missing = item.getAttribute("data-mm-source-missing");
+          if (missing) {
+            item.classList.add("mm-source-jump-unavailable");
+            item.setAttribute("title", markvspecMessages.sourceJumpUnavailable + ": " + missing);
+            return;
+          }
+
+          if (!item.getAttribute("data-mm-source-start-line")) {
+            item.classList.add("mm-source-jump-unavailable");
+            item.setAttribute("title", markvspecMessages.sourceJumpUnavailable);
+            return;
+          }
+
+          item.classList.add("mm-source-jump-target");
+          item.setAttribute("title", markvspecMessages.sourceJumpHint);
+          if (!isNativeKeyboardTarget(item)) {
+            item.setAttribute("tabindex", item.getAttribute("tabindex") || "0");
+          }
+        });
+
+        if (previewSourceJumpEventsInitialized) {
+          return;
+        }
+        previewSourceJumpEventsInitialized = true;
+        document.addEventListener("dblclick", (event) => {
+          const target = sourceJumpTargetForEvent(event);
+          if (!target) {
+            return;
+          }
+          requestSourceJump(target);
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter") {
+            return;
+          }
+          const target = sourceJumpTargetForEvent(event);
+          if (!target) {
+            return;
+          }
+          ${webviewMessaging ? "event.preventDefault();" : ""}
+          requestSourceJump(target);
+        });
+      }
+
+      function sourceJumpTargetForEvent(event) {
+        const origin = event.target && event.target.closest ? event.target.closest("[data-mm-source-anchor]") : undefined;
+        if (!origin || origin.getAttribute("data-mm-source-missing")) {
+          return undefined;
+        }
+        if (!origin.getAttribute("data-mm-source-start-line")) {
+          return undefined;
+        }
+        return origin;
+      }
+
+      function requestSourceJump(target) {
+        ${webviewMessaging ? `
+        vscode.postMessage({
+          command: "jumpToSource",
+          sourceAnchor: target.getAttribute("data-mm-source-anchor") || "",
+          sourceKind: target.getAttribute("data-mm-source-kind") || "",
+          sourceId: target.getAttribute("data-mm-source-id") || "",
+          startLine: target.getAttribute("data-mm-source-start-line") || "",
+          endLine: target.getAttribute("data-mm-source-end-line") || ""
+        });` : "(void target);"}
+      }
+
+      function isNativeKeyboardTarget(item) {
+        return /^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/.test(item.tagName);
+      }
+
       function initPreviewFragmentUpdates() {
         ${webviewMessaging ? `
         window.addEventListener("message", async (event) => {
@@ -330,6 +406,7 @@ export function renderPreviewClientScript(options: PreviewClientScriptOptions): 
         initTableOfContents();
         updateTableOfContentsVisibility();
         updateStickyOffset();
+        initPreviewSourceJump();
         window.scrollTo(0, scrollYBeforePatch);
         updateActiveTableOfContents();
         savePreviewPosition(currentActiveSectionId());

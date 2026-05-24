@@ -112,7 +112,9 @@ export function previewClientMessages(
   | "mermaidRendering"
   | "mermaidShowSource"
   | "showRepeatedContent"
-  | "showContents",
+  | "showContents"
+  | "sourceJumpHint"
+  | "sourceJumpUnavailable",
   string
 > {
   return {
@@ -128,7 +130,9 @@ export function previewClientMessages(
     mermaidRendering: messages.mermaidRendering,
     mermaidShowSource: messages.mermaidShowSource,
     showRepeatedContent: messages.showRepeatedContent,
-    showContents: messages.showContents
+    showContents: messages.showContents,
+    sourceJumpHint: messages.sourceJumpHint,
+    sourceJumpUnavailable: messages.sourceJumpUnavailable
   };
 }
 

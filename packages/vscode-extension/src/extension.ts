@@ -131,6 +131,7 @@ import {
   sourceAnchorAttributesForScreen,
   sourceAnchorAttributesForSection
 } from "./source-anchor.js";
+import { previewSourceJumpTargetFromMessage } from "./preview-source-jump.js";
 export {
   defaultExportHtmlBaseName,
   renderPreviewErrorHtml,
@@ -322,8 +323,13 @@ export function activate(context: vscode.ExtensionContext): void {
         phase?: string;
         reason?: string;
         requestId?: string;
+        sourceAnchor?: string;
+        sourceId?: string;
+        sourceKind?: string;
+        startLine?: number | string;
         stack?: string;
         success?: boolean;
+        endLine?: number | string;
         updateId?: string;
         webviewPatchMs?: number;
       }) => {
@@ -395,6 +401,11 @@ export function activate(context: vscode.ExtensionContext): void {
             return;
           }
           void vscode.workspace.openTextDocument(vscode.Uri.file(message.path)).then((document) => vscode.window.showTextDocument(document, vscode.ViewColumn.One));
+          return;
+        }
+
+        if (message.command === "jumpToSource" && previewDocumentUri) {
+          void revealPreviewSourceLocation(previewDocumentUri, message);
         }
       }, undefined, context.subscriptions);
     }
@@ -521,6 +532,24 @@ function formatPreviewClientErrorDetail(detail: unknown): string {
   } catch {
     return String(detail);
   }
+}
+
+export async function revealPreviewSourceLocation(documentUri: vscode.Uri, message: Parameters<typeof previewSourceJumpTargetFromMessage>[0]): Promise<void> {
+  const target = previewSourceJumpTargetFromMessage(message);
+  if (!target) {
+    void vscode.window.showWarningMessage("MarkVSpec source location is unavailable for this preview item.");
+    return;
+  }
+
+  const document = await vscode.workspace.openTextDocument(documentUri);
+  const startLineIndex = Math.min(target.startLine - 1, Math.max(document.lineCount - 1, 0));
+  const endLineIndex = Math.min(target.endLine - 1, Math.max(document.lineCount - 1, 0));
+  const start = new vscode.Position(startLineIndex, 0);
+  const end = new vscode.Position(endLineIndex, document.lineAt(endLineIndex).text.length);
+  const range = new vscode.Range(start, end);
+  const editor = await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
+  editor.selection = new vscode.Selection(start, end);
+  editor.revealRange(range, vscode.TextEditorRevealType.InCenterIfOutsideViewport);
 }
 
 export function deactivate(): void {

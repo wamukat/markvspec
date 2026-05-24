@@ -104,6 +104,10 @@ ${baseWireframeViewportCss()}
 .mm-ref-chip{align-items:center;background:#fff;border:1px solid #cbd5e1;border-radius:6px;color:#1f2937;display:inline-flex;font-size:12px;font-weight:600;gap:5px;line-height:1.35;max-width:100%;padding:2px 6px;text-decoration:none;vertical-align:baseline}
 .mm-ref-chip .mm-id{align-self:center;margin-right:0}
 .mm-ref-chip-note{color:#64748b;font-size:11px;margin-top:2px}
+.mm-source-jump-target{cursor:zoom-in}
+.mm-source-jump-target:hover{outline:1px solid #60a5fa;outline-offset:2px}
+.mm-source-jump-target:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+.mm-source-jump-unavailable{cursor:not-allowed}
 .state-badge{background:#dbeafe;border:1px solid #60a5fa;border-radius:999px;color:#1e3a8a;font-size:var(--markvspec-heading-badge);font-weight:600;padding:1px 6px}
 .spec-table-wrap{max-width:100%;overflow:auto}
 .spec-table{border-collapse:collapse;font-size:12px;width:100%}

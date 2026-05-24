@@ -193,6 +193,8 @@ export type MessageKey =
   | "sideEffects"
   | "showRepeatedContent"
   | "showContents"
+  | "sourceJumpHint"
+  | "sourceJumpUnavailable"
   | "slot"
   | "slots"
   | "src"
@@ -434,6 +436,8 @@ const en: Record<MessageKey, string> = {
   sideEffects: "Side effects",
   showRepeatedContent: "Show repeated content",
   showContents: "Show contents",
+  sourceJumpHint: "Double-click or press Enter to jump to source",
+  sourceJumpUnavailable: "Source location unavailable",
   slot: "Slot",
   slots: "Slots",
   src: "Source",
@@ -676,6 +680,8 @@ const ja: Record<MessageKey, string> = {
   sideEffects: "副作用",
   showRepeatedContent: "既出を表示",
   showContents: "目次を表示",
+  sourceJumpHint: "ダブルクリックまたは Enter でソースへ移動",
+  sourceJumpUnavailable: "ソース位置を利用できません",
   slot: "スロット",
   slots: "スロット",
   src: "参照元",

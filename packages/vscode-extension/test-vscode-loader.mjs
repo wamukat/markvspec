@@ -10,6 +10,8 @@ export async function resolve(specifier, context, nextResolve) {
           writtenFiles: [],
           createdDirectories: [],
           saveDialogCalls: [],
+          shownDocuments: [],
+          revealedRanges: [],
           activeTextEditor: undefined,
           saveDialogResult: undefined,
           openedDocuments: new Map(),
@@ -20,6 +22,8 @@ export async function resolve(specifier, context, nextResolve) {
             this.writtenFiles.length = 0;
             this.createdDirectories.length = 0;
             this.saveDialogCalls.length = 0;
+            this.shownDocuments.length = 0;
+            this.revealedRanges.length = 0;
             this.activeTextEditor = undefined;
             this.saveDialogResult = undefined;
             this.openedDocuments.clear();
@@ -66,6 +70,19 @@ export async function resolve(specifier, context, nextResolve) {
           showWarningMessage: async (message) => {
             __vscodeMock.warningMessages.push(message);
             return message;
+          },
+          showTextDocument: async (document, column) => {
+            const editor = {
+              document,
+              column,
+              selection: undefined,
+              revealRange(range, revealType) {
+                __vscodeMock.revealedRanges.push({ range, revealType });
+              }
+            };
+            __vscodeMock.shownDocuments.push({ document, column, editor });
+            __vscodeMock.activeTextEditor = editor;
+            return editor;
           }
         };
         export const workspace = {
@@ -94,7 +111,8 @@ export async function resolve(specifier, context, nextResolve) {
           file: (path) => uriFromPath(path),
           joinPath: (base, ...parts) => uriFromPath([base.fsPath || base.path || String(base), ...parts].join("/"))
         };
-        export const ViewColumn = { Beside: 2 };
+        export const ViewColumn = { One: 1, Beside: 2 };
+        export const TextEditorRevealType = { InCenterIfOutsideViewport: 1 };
         export class CodeAction {
           constructor(title, kind) {
             this.title = title;
@@ -116,10 +134,16 @@ export async function resolve(specifier, context, nextResolve) {
         }
         export class Range {
           constructor(startLine, startCharacter, endLine, endCharacter) {
-            this.start = { line: startLine, character: startCharacter };
-            this.end = { line: endLine, character: endCharacter };
+            if (typeof startLine === "object" && typeof startCharacter === "object") {
+              this.start = startLine;
+              this.end = startCharacter;
+            } else {
+              this.start = { line: startLine, character: startCharacter };
+              this.end = { line: endLine, character: endCharacter };
+            }
           }
         }
+        export class Selection extends Range {}
         export class WorkspaceEdit {
           constructor() {
             this.edits = [];
