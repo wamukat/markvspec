@@ -342,8 +342,28 @@ Open authoring notes.</code></pre>
       <div class="rule"><strong>Lead appears before the target.</strong> A <code>Section Lead</code> appears before the section's generated table, list, or summary. An <code>Entity Lead</code> appears at the start of that entity's detail.</div>
       <div class="rule"><strong>Notes appear after the target.</strong> <code>Entity Notes</code> follow the entity's structured content. <code>Section Notes</code> follow the section's structured definitions.</div>
       <div class="rule"><strong>Structured Body is semantic data.</strong> Parser, validator, preview, and export behavior may depend on it. Prose regions are preserved as Markdown but do not define DSL semantics.</div>
-      <div class="rule"><strong>HTML comments are authoring comments.</strong> Comments such as <code>&lt;!-- todo --&gt;</code> in prose regions are not displayed in preview or export output.</div>
+      <div class="rule"><strong>Standalone HTML comments are authoring comments.</strong> A comment block that stands on its own line, such as <code>&lt;!-- todo --&gt;</code>, is removed from prose and is not displayed in preview or export output. Inline comments inside a paragraph are not hidden; use standalone comments for private authoring notes.</div>
     </div>
+  </section>
+
+  <section class="panel" aria-labelledby="comments-title">
+    <h2 id="comments-title">Authoring Comments</h2>
+    <p>Use standalone HTML comments for notes to yourself or reviewers that should stay in the source file but not appear in the rendered specification.</p>
+    <pre><code class="language-markdown">Visible paragraph before the comment.
+
+&lt;!-- todo: confirm final copy --&gt;
+
+Visible paragraph after the comment.</code></pre>
+    <p>Multiline standalone comment blocks follow the same rule. The surrounding paragraphs remain visible, but the comment block is omitted from preview and export output.</p>
+    <pre><code class="language-markdown">Visible paragraph before the comment.
+
+&lt;!--
+todo: confirm validation wording
+owner: product design
+--&gt;
+
+Visible paragraph after the comment.</code></pre>
+    <p>Do not use inline HTML comments for hidden notes. In <code>Visible text &lt;!-- note --&gt;.</code>, the comment is part of the surrounding paragraph source rather than a standalone authoring comment. Comments do not define DSL semantics and are not part of the parser or validator model.</p>
   </section>
 
   <section class="comment" aria-labelledby="language-title">

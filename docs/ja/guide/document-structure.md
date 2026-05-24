@@ -342,8 +342,28 @@ Elements 全体への補足。
       <div class="rule"><strong>Lead は対象の前に表示します。</strong> <code>Section Lead</code> は section の table / list / summary の前に、<code>Entity Lead</code> は entity detail の冒頭に表示します。</div>
       <div class="rule"><strong>Notes は対象の後に表示します。</strong> <code>Entity Notes</code> は entity の structured content の後、<code>Section Notes</code> は section の structured definitions の後に表示します。</div>
       <div class="rule"><strong>Structured Body は semantic data です。</strong> parser、validator、preview、export はこの内容に依存します。prose 領域は Markdown として保持しますが DSL semantics ではありません。</div>
-      <div class="rule"><strong>HTML comment は authoring comment です。</strong> prose 領域にある <code>&lt;!-- todo --&gt;</code> のような comment は preview / export に表示しません。</div>
+      <div class="rule"><strong>standalone HTML comment は authoring comment です。</strong> <code>&lt;!-- todo --&gt;</code> のように単独行に置いた comment block は prose から除外され、preview / export に表示しません。paragraph 内の inline comment は非表示になりません。非表示の作業メモには standalone comment を使います。</div>
     </div>
+  </section>
+
+  <section class="panel" aria-labelledby="comments-title">
+    <h2 id="comments-title">Authoring Comments</h2>
+    <p>作成者や reviewer 向けのメモを source file に残しつつ、描画される仕様書には出したくない場合は standalone HTML comment を使います。</p>
+    <pre><code class="language-markdown">comment の前に表示される paragraph。
+
+&lt;!-- todo: confirm final copy --&gt;
+
+comment の後に表示される paragraph。</code></pre>
+    <p>複数行の standalone comment block も同じ扱いです。前後の paragraph は表示されますが、comment block だけが preview / export output から除外されます。</p>
+    <pre><code class="language-markdown">comment の前に表示される paragraph。
+
+&lt;!--
+todo: confirm validation wording
+owner: product design
+--&gt;
+
+comment の後に表示される paragraph。</code></pre>
+    <p>非表示メモに inline HTML comment は使わないでください。<code>Visible text &lt;!-- note --&gt;.</code> のような comment は standalone authoring comment ではなく、周辺 paragraph source の一部として扱われます。comment は DSL semantics を持たず、parser / validator の意味構造には入りません。</p>
   </section>
 
   <section class="comment" aria-labelledby="language-title">

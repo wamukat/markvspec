@@ -112,6 +112,46 @@ entry に `id`、`title`、`template` も書けます。project file は directo
 
 JSON は作成用フォーマットではありません。ツールの内部表現や出力結果として使われることはありますが、利用者がソースとして書く形式ではありません。
 
+### Authoring Comments
+
+`.vspec.md` に作成者向けの source-only メモを残したい場合は standalone HTML
+comment を使います。standalone comment は、前後の paragraph text から分離して単独行または
+複数行に置いた HTML comment block です。
+
+```markdown
+comment の前に表示される paragraph。
+
+<!-- todo: confirm final copy -->
+
+comment の後に表示される paragraph。
+```
+
+前後の paragraph は prose として残ります。comment 行は VS Code preview、static HTML export、
+PDF export に表示されず、parser / validator が扱う DSL semantic model にも入りません。
+
+複数行の standalone comment も同じ扱いです。
+
+```markdown
+comment の前に表示される paragraph。
+
+<!--
+todo: confirm validation wording
+owner: product design
+-->
+
+comment の後に表示される paragraph。
+```
+
+非表示の authoring note には inline HTML comment を使わないでください。
+
+```markdown
+Visible text <!-- inline comment remains visible source -->.
+```
+
+inline comment は standalone authoring comment として扱われないため、preview / export output
+から note を隠すための supported な書き方ではありません。非表示の作業メモは standalone
+comment block に置いてください。
+
 ## 小さな例
 
 ```markdown markvspec

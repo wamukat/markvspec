@@ -115,6 +115,47 @@ Write the body with Markdown headings and bullets.
 
 JSON is not the authoring format. Tools may use JSON internally or in exports, but users do not write JSON as the source format.
 
+### Authoring Comments
+
+Use standalone HTML comments when you need source-only notes in a `.vspec.md`
+file. A standalone comment is an HTML comment block that occupies its own line
+or lines, separated from surrounding paragraph text.
+
+```markdown
+Visible paragraph before the comment.
+
+<!-- todo: confirm final copy -->
+
+Visible paragraph after the comment.
+```
+
+The visible paragraphs remain prose. The comment line is not displayed in VS Code
+preview, static HTML export, or PDF export, and it is not part of the DSL
+semantic model used by the parser or validator.
+
+Multiline standalone comments follow the same rule:
+
+```markdown
+Visible paragraph before the comment.
+
+<!--
+todo: confirm validation wording
+owner: product design
+-->
+
+Visible paragraph after the comment.
+```
+
+Do not use inline HTML comments for hidden authoring notes:
+
+```markdown
+Visible text <!-- inline comment remains visible source -->.
+```
+
+Inline comments are not treated as standalone authoring comments, so they are not
+the supported way to hide notes from preview or export output. Put private
+authoring notes in standalone comment blocks instead.
+
 ## Small Example
 
 ```markdown markvspec
