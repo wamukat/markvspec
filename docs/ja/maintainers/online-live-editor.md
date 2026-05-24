@@ -57,6 +57,32 @@ Online Live Editor は、ブラウザだけで試せる軽量入口である。w
 filesystem lookup や project-wide validation を前提にしない。Online Live Editor に
 入れる API は、browser-safe な parser / renderer / diagnostics に限定する。
 
+## Preview Runtime の責務境界
+
+VS Code preview と docs-site dynamic preview は、parser、renderer、browser-safe runtime
+を共有してよい。ただし、同じ product surface ではない。active editor、workspace state、
+local filesystem の挙動に依存する機能は VS Code extension の責務とする。docs-site
+dynamic preview は examples を読むための read-only rendering surface として扱い、
+編集セッション向けの責務を不用意に持ち込まない。
+
+VS Code preview ロードマップ配下の作業では、次の境界を使って変更先を判断する。
+
+| 機能 | 共通 renderer / runtime | VS Code extension preview | docs-site dynamic preview |
+|---|---|---|---|
+| parse / validate | syntax parsing、semantic validation、diagnostics data、localized diagnostic message を持つ。 | diagnostics を Problems に出し、編集者向け diagnostics UI を描画する。 | example page 内に diagnostics と runtime failure status を表示する。 |
+| generated design document HTML | 安定した document sections、wireframe、state views、tables、markers、print/export 互換 HTML を持つ。 | generated document を webview に載せ、編集用 controls を追加する。 | generated document を public showcase page に載せる。 |
+| source anchors | source location が分かる場合に安定した `data-mm-source-*` metadata を出す。 | preview-to-source jump、source-to-preview highlight、focused item retention、diagnostics indicator に使う。 | page 内 source context には使ってよいが、VS Code editor command には依存しない。 |
+| jump / highlight | metadata だけを提供する。 | double-click / keyboard jump、editor selection sync、preview highlight、source 不明時 message を持つ。 | editor jump は持たない。リンクは page 内、source panel、raw source 向けに留める。 |
+| diagnostics indicators | diagnostic severity、message、line、source-anchor data を提供する。 | toolbar summary、affected-block indicator、diagnostics からの source jump を持つ。 | read-only diagnostics 表示と runtime failure UI を持つ。 |
+| error handling | parser / renderer は可能な限り structured diagnostics を返す。 | parse-error placeholder、last-known-good stale preview、編集セッション復帰挙動を持つ。 | source / dependency fetch failure UI を持ち、generated artifact fallback ではなく diagnostics と source/raw link を表示する。 |
+| retention | stable anchors と render keys を提供する。 | scroll、focused item、source selection、refresh をまたぐ editing-session retention を持つ。 | browser の自然な scroll 維持は許容するが、VS Code 的な editor state retention は実装しない。 |
+| project / template / partial dependencies | Core API は解決入力を定義する。 | workspace-backed file resolution、file watching、project preview、local trust boundary を持つ。 | Pages build が公開した source assets と dependency manifest を使う。 |
+
+generated document の内容が変わる機能は shared renderer/runtime に置き、必要に応じて
+VS Code、standalone HTML、PDF/export、docs-site を検証する。編集セッションの挙動が変わる
+機能は `packages/vscode-extension` に置く。public examples の読み込みや browser/runtime
+failure 復帰が変わる機能は `docs-site` と Pages build pipeline に置く。
+
 ## Docs-Site 導線
 
 初期導線は docs-site 内の実験 route とする。read-only dynamic preview は examples の
