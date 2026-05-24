@@ -11,6 +11,7 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces",
+    "build:example-export-tooling": "npm run build -w @markvspec/core && npm run build -w @markvspec/document-renderer && npm run build -w @markvspec/exporter && npm run bundle -w @markvspec/cli",
     "build:pages": "node scripts/build-github-pages.mjs",
     "sync:docs-site": "node scripts/sync-docs-site-content.mjs",
     "check:docs-links": "npm run sync:docs-site && node scripts/check-docs-links.mjs",

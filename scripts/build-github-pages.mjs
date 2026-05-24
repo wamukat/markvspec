@@ -77,10 +77,7 @@ function prepareExampleArtifacts(files) {
 }
 
 function buildExampleExportTooling() {
-  execFileSync("npm", ["run", "build", "-w", "@markvspec/core"], { stdio: "inherit" });
-  execFileSync("npm", ["run", "build", "-w", "@markvspec/document-renderer"], { stdio: "inherit" });
-  execFileSync("npm", ["run", "build", "-w", "@markvspec/exporter"], { stdio: "inherit" });
-  execFileSync("npm", ["run", "build", "-w", "@markvspec/cli"], { stdio: "inherit" });
+  execFileSync("npm", ["run", "build:example-export-tooling"], { stdio: "inherit" });
 }
 
 function prepareBrandAssets() {

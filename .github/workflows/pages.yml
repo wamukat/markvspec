@@ -36,8 +36,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build CLI
-        run: npm run build -w @markvspec/cli
+      - name: Build example export tooling
+        run: npm run build:example-export-tooling
 
       - name: Generate docs-site content
         run: npm run sync:docs-site
