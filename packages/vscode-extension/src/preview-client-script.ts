@@ -71,6 +71,7 @@ export function renderPreviewClientScript(options: PreviewClientScriptOptions): 
       const markvspecPreviewPositionKey = ${scriptJson(options.sourceLabel ?? options.defaultPositionKey)};
       let previewPositionRestorePending = true;
       let previewSourceJumpEventsInitialized = false;
+      let activePreviewSourceAnchor = "";
       const markvspecMermaidRenderIdPrefix = ${scriptJson(options.mermaidRenderIdPrefix)};
       const pendingRenderCommits = new Map();
       runPreviewInitializer("renderMermaidDiagrams", () => renderMermaidDiagrams());
@@ -80,6 +81,7 @@ export function renderPreviewClientScript(options: PreviewClientScriptOptions): 
       runPreviewInitializer("initRepeatedContentToggle", () => initRepeatedContentToggle());
       runPreviewInitializer("initPreviewRefreshControls", () => initPreviewRefreshControls());
       runPreviewInitializer("initPreviewSourceJump", () => initPreviewSourceJump());
+      runPreviewInitializer("initPreviewSourceSync", () => initPreviewSourceSync());
       runPreviewInitializer("initPreviewFragmentUpdates", () => initPreviewFragmentUpdates());
       runPreviewInitializer("initPreviewPositionTracking", () => initPreviewPositionTracking());
       runPreviewInitializer("restorePreviewPosition", () => restorePreviewPosition());
@@ -323,6 +325,45 @@ export function renderPreviewClientScript(options: PreviewClientScriptOptions): 
         return /^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/.test(item.tagName);
       }
 
+      function initPreviewSourceSync() {
+        ${webviewMessaging ? `
+        window.addEventListener("message", (event) => {
+          const message = event.data || {};
+          if (message.command !== "highlightSourceAnchor") {
+            return;
+          }
+          applyPreviewSourceHighlight(typeof message.sourceAnchor === "string" ? message.sourceAnchor : "", Boolean(message.scroll));
+        });
+        vscode.postMessage({ command: "sourceSyncReady" });` : ""}
+      }
+
+      function applyPreviewSourceHighlight(sourceAnchor, scroll) {
+        activePreviewSourceAnchor = sourceAnchor;
+        document.querySelectorAll(".mm-source-highlighted").forEach((item) => {
+          item.classList.remove("mm-source-highlighted");
+          item.removeAttribute("aria-current");
+        });
+        if (!sourceAnchor) {
+          return;
+        }
+        const target = previewSourceHighlightTarget(sourceAnchor);
+        if (!target) {
+          activePreviewSourceAnchor = "";
+          return;
+        }
+        target.classList.add("mm-source-highlighted");
+        target.setAttribute("aria-current", "location");
+        if (scroll) {
+          target.scrollIntoView({ block: "center", inline: "nearest" });
+        }
+      }
+
+      function previewSourceHighlightTarget(sourceAnchor) {
+        const selector = '[data-mm-source-anchor="' + cssAttributeEscape(sourceAnchor) + '"]';
+        const candidates = Array.from(document.querySelectorAll(selector));
+        return candidates.find((item) => !item.classList.contains("mm-ref-chip")) || candidates[0];
+      }
+
       function initPreviewFragmentUpdates() {
         ${webviewMessaging ? `
         window.addEventListener("message", async (event) => {
@@ -407,6 +448,9 @@ export function renderPreviewClientScript(options: PreviewClientScriptOptions): 
         updateTableOfContentsVisibility();
         updateStickyOffset();
         initPreviewSourceJump();
+        if (activePreviewSourceAnchor) {
+          applyPreviewSourceHighlight(activePreviewSourceAnchor, false);
+        }
         window.scrollTo(0, scrollYBeforePatch);
         updateActiveTableOfContents();
         savePreviewPosition(currentActiveSectionId());

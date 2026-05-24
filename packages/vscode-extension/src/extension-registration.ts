@@ -10,6 +10,7 @@ export interface RegisterMarkVSpecExtensionOptions {
   openPreview(resource?: vscode.Uri): Promise<void> | void;
   refreshPreview(): Promise<void> | void;
   onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent): void;
+  onDidChangeTextEditorSelection(event: vscode.TextEditorSelectionChangeEvent): void;
   onDidChangeActiveTextEditor(editor: vscode.TextEditor | undefined): void;
   onDidOpenTextDocument(document: vscode.TextDocument): void;
   onDidSaveTextDocument(document: vscode.TextDocument): void;
@@ -34,6 +35,7 @@ export function registerMarkVSpecExtension(options: RegisterMarkVSpecExtensionOp
   const openPreview = vscode.commands.registerCommand("markvspec.openPreview", options.openPreview);
   const refreshPreview = vscode.commands.registerCommand("markvspec.refreshPreview", options.refreshPreview);
   const liveUpdate = vscode.workspace.onDidChangeTextDocument(options.onDidChangeTextDocument);
+  const selectionUpdate = vscode.window.onDidChangeTextEditorSelection(options.onDidChangeTextEditorSelection);
   const activeEditorUpdate = vscode.window.onDidChangeActiveTextEditor(options.onDidChangeActiveTextEditor);
   const openUpdate = vscode.workspace.onDidOpenTextDocument(options.onDidOpenTextDocument);
   const saveUpdate = vscode.workspace.onDidSaveTextDocument(options.onDidSaveTextDocument);
@@ -51,6 +53,7 @@ export function registerMarkVSpecExtension(options: RegisterMarkVSpecExtensionOp
     openPreview,
     refreshPreview,
     liveUpdate,
+    selectionUpdate,
     activeEditorUpdate,
     openUpdate,
     saveUpdate,

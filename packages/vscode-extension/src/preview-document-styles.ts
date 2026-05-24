@@ -108,6 +108,7 @@ ${baseWireframeViewportCss()}
 .mm-source-jump-target:hover{outline:1px solid #60a5fa;outline-offset:2px}
 .mm-source-jump-target:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
 .mm-source-jump-unavailable{cursor:not-allowed}
+.mm-source-highlighted{box-shadow:0 0 0 2px #2563eb,0 0 0 5px rgba(37,99,235,.18);position:relative}
 .state-badge{background:#dbeafe;border:1px solid #60a5fa;border-radius:999px;color:#1e3a8a;font-size:var(--markvspec-heading-badge);font-weight:600;padding:1px 6px}
 .spec-table-wrap{max-width:100%;overflow:auto}
 .spec-table{border-collapse:collapse;font-size:12px;width:100%}

@@ -129,7 +129,8 @@ import {
 import {
   sourceAnchorAttributesForId,
   sourceAnchorAttributesForScreen,
-  sourceAnchorAttributesForSection
+  sourceAnchorAttributesForSection,
+  sourceAnchorTargetForLine
 } from "./source-anchor.js";
 import { previewSourceJumpTargetFromMessage } from "./preview-source-jump.js";
 export {
@@ -358,6 +359,13 @@ export function activate(context: vscode.ExtensionContext): void {
           return;
         }
 
+        if (message.command === "sourceSyncReady" && previewDocumentUri) {
+          void vscode.workspace.openTextDocument(previewDocumentUri).then((previewDocument) => {
+            syncPreviewSourceSelection(previewDocument, { scroll: false });
+          });
+          return;
+        }
+
         if (message.command === "toggleMarker" && message.category && previewDocumentUri) {
           markerVisibility = {
             ...markerVisibility,
@@ -436,8 +444,25 @@ export function activate(context: vscode.ExtensionContext): void {
     scheduleDiagnostics(event.document);
   };
 
+  const onDidChangeTextEditorSelection = (event: vscode.TextEditorSelectionChangeEvent) => {
+    if (!previewPanel || !previewDocumentUri || !isMarkVSpecDocument(event.textEditor.document) || isMarkVSpecProjectDocument(event.textEditor.document)) {
+      clearPreviewSourceSelection();
+      return;
+    }
+    if (event.textEditor.document.uri.toString() !== previewDocumentUri.toString()) {
+      clearPreviewSourceSelection();
+      return;
+    }
+    const activeSelection = event.selections[0]?.active;
+    if (!activeSelection) {
+      return;
+    }
+    syncPreviewSourceSelection(event.textEditor.document, { scroll: true, line: activeSelection.line + 1 });
+  };
+
   const onDidChangeActiveTextEditor = (editor: vscode.TextEditor | undefined) => {
-    if (!previewPanel || !editor || !isMarkVSpecDocument(editor.document)) {
+    if (!previewPanel || !editor || !isMarkVSpecDocument(editor.document) || isMarkVSpecProjectDocument(editor.document)) {
+      clearPreviewSourceSelection();
       return;
     }
 
@@ -501,6 +526,7 @@ export function activate(context: vscode.ExtensionContext): void {
     openPreview,
     refreshPreview,
     onDidChangeTextDocument,
+    onDidChangeTextEditorSelection,
     onDidChangeActiveTextEditor,
     onDidOpenTextDocument: updateDiagnostics,
     onDidSaveTextDocument,
@@ -509,6 +535,42 @@ export function activate(context: vscode.ExtensionContext): void {
     exportCommandDisposables: [exportCommands.exportHtml, exportCommands.exportPdf]
   });
   logDuration("activate", activationStart);
+}
+
+function syncPreviewSourceSelection(document: vscode.TextDocument, options: { line?: number; scroll: boolean }): void {
+  if (!previewPanel || !previewDocumentUri || document.uri.toString() !== previewDocumentUri.toString() || isMarkVSpecProjectDocument(document)) {
+    return;
+  }
+  const activeEditor = vscode.window.activeTextEditor;
+  const activeEditorLine = activeEditor?.document.uri.toString() === document.uri.toString()
+    ? activeEditor.selection.active.line + 1
+    : undefined;
+  const line = options.line ?? activeEditorLine;
+  if (line === undefined) {
+    return;
+  }
+  const result = loadScreenDocumentResult(document).result;
+  const target = sourceAnchorTargetForLine(result, line);
+  void previewPanel.webview.postMessage({
+    command: "highlightSourceAnchor",
+    scroll: options.scroll,
+    sourceAnchor: target?.sourceAnchor ?? "",
+    sourceKind: target?.kind ?? "",
+    sourceId: target?.id ?? ""
+  });
+}
+
+function clearPreviewSourceSelection(): void {
+  if (!previewPanel) {
+    return;
+  }
+  void previewPanel.webview.postMessage({
+    command: "highlightSourceAnchor",
+    scroll: false,
+    sourceAnchor: "",
+    sourceKind: "",
+    sourceId: ""
+  });
 }
 
 function logPreviewClientError(
@@ -694,6 +756,7 @@ async function updatePreviewAsync(document: vscode.TextDocument, generationId: n
       });
       if (plan.kind === "noop") {
         previewSourceByUri.set(expectedDocumentUri, currentSource);
+        syncPreviewSourceSelection(document, { scroll: false });
         logDuration(`updatePreview noop ${sourceLabel}`, started);
         return;
       }
@@ -722,6 +785,7 @@ async function updatePreviewAsync(document: vscode.TextDocument, generationId: n
         }
         if (patchResult.success) {
           previewSourceByUri.set(expectedDocumentUri, currentSource);
+          syncPreviewSourceSelection(document, { scroll: false });
           logDuration(`updatePreview fragments ${sourceLabel}`, started);
           return;
         }

@@ -65,6 +65,9 @@ test("renders webview preview-to-source jump affordance without standalone VS Co
   });
   assert.match(webviewScript, /initPreviewSourceJump/);
   assert.match(webviewScript, /command: "jumpToSource"/);
+  assert.match(webviewScript, /message\.command !== "highlightSourceAnchor"/);
+  assert.match(webviewScript, /applyPreviewSourceHighlight/);
+  assert.match(webviewScript, /command: "sourceSyncReady"/);
   assert.match(webviewScript, /sourceJumpHint/);
   assert.match(webviewScript, /data-mm-source-anchor/);
   assert.match(webviewScript, /let previewSourceJumpEventsInitialized = false;/);
@@ -79,6 +82,8 @@ test("renders webview preview-to-source jump affordance without standalone VS Co
   });
   assert.match(standaloneScript, /initPreviewSourceJump/);
   assert.doesNotMatch(standaloneScript, /command: "jumpToSource"/);
+  assert.doesNotMatch(standaloneScript, /highlightSourceAnchor/);
+  assert.doesNotMatch(standaloneScript, /sourceSyncReady/);
   assert.doesNotMatch(standaloneScript, /vscode\.postMessage/);
   assert.doesNotMatch(standaloneScript, /event\.preventDefault/);
 });
