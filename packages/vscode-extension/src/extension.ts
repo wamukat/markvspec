@@ -29,6 +29,7 @@ import {
 } from "@markvspec/core";
 import type {
   DisplayContentSpecSampleRowsRef,
+  MarkVSpecDiagnosticSeverity,
   MarkVSpecProjectLoadResult,
   MessageKey,
   RendererMessages
@@ -152,6 +153,15 @@ interface ScreenDocumentResult {
   documentResult?: ReturnType<typeof parseMarkVSpec>;
   focus?: FocusScope;
   messages?: RendererMessages;
+}
+
+interface PreviewDiagnosticItem {
+  severity: MarkVSpecDiagnosticSeverity;
+  message: string;
+  line?: number;
+  sourceAnchor?: string;
+  sourceKind?: string;
+  sourceId?: string;
 }
 
 interface ScreenPreviewHtmlOptions {
@@ -1427,10 +1437,12 @@ const previewDesignFragmentRenderers = new Map<string, PreviewDesignFragmentRend
 type RenderInvalidationSummary = Pick<
   ReturnType<typeof computeMarkVSpecRenderInvalidation>,
   "requiresFullRender" | "wireframeRenderKeys" | "previewDocumentRenderKeys"
->;
+> & {
+  diagnosticsMayChange?: boolean;
+};
 
 export type PreviewUpdatePlan =
-  | { kind: "full"; reason: "no-previous-source" | "requires-full-render" }
+  | { kind: "full"; reason: "no-previous-source" | "requires-full-render" | "diagnostics-may-change" }
   | { kind: "noop"; reason: "unchanged-source" | "no-render-keys" }
   | { kind: "fragment"; expectedFragmentGroups: number }
   | { kind: "fallback-full"; reason: "fragment-generation-mismatch"; expectedFragmentGroups: number; actualFragmentGroups: number };
@@ -1449,6 +1461,9 @@ export function buildPreviewUpdatePlan(input: {
   }
   if (input.invalidation.requiresFullRender) {
     return { kind: "full", reason: "requires-full-render" };
+  }
+  if (input.invalidation.diagnosticsMayChange) {
+    return { kind: "full", reason: "diagnostics-may-change" };
   }
 
   const expectedFragmentGroups = input.invalidation.wireframeRenderKeys.length + input.invalidation.previewDocumentRenderKeys.length;
@@ -1652,6 +1667,7 @@ function renderScreenPreviewHtml(
     rendererMessagesByResult.set(documentResult, messages);
   }
   const document = renderDesignDocumentHtml(result, "", { focus, messages, documentResult });
+  const previewDiagnostics = previewDiagnosticsForResult(result);
   const title = result.screen.title ?? result.screen.id ?? "Untitled MarkVSpec Screen";
   const resolvedLocale = resolveLocale(result.screen.locale);
   const clientMessages = previewClientMessages(messages);
@@ -1691,6 +1707,7 @@ ${renderScreenPreviewStyles()}
           </label>
         </div>
         ${options.interactiveControls ? renderPreviewUpdateControls(messages, options.autoUpdate) : ""}
+        ${renderPreviewDiagnosticsSummary(previewDiagnostics, messages)}
       </div>
     </header>
     <button class="toc-toggle" type="button" aria-label="${escapeHtml(messages.toggleContents)}" aria-expanded="true" title="${escapeHtml(messages.toggleContents)}" data-toc-toggle>
@@ -1709,6 +1726,7 @@ ${renderScreenPreviewStyles()}
       ${renderPreviewClientScript({
         target: options.target,
         messages: clientMessages,
+        diagnostics: previewDiagnostics,
         sourceLabel: options.sourceLabel,
         defaultPositionKey: "__markvspec-preview__",
         mermaidRenderIdPrefix: "markvspec-mermaid-",
@@ -1738,6 +1756,54 @@ export function renderStandaloneHtml(
 
 function normalizeScreenDocumentResult(screen: ReturnType<typeof parseMarkVSpec> | ScreenDocumentResult): ScreenDocumentResult {
   return "result" in screen ? screen : { result: screen };
+}
+
+function previewDiagnosticsForResult(result: ReturnType<typeof parseMarkVSpec>): PreviewDiagnosticItem[] {
+  return result.diagnostics.map((diagnostic) => {
+    const target = diagnostic.line ? sourceAnchorTargetForLine(result, diagnostic.line) : undefined;
+    return {
+      severity: diagnostic.severity,
+      message: renderDiagnosticMessageForLocale(diagnostic, result.screen.locale),
+      line: diagnostic.line,
+      sourceAnchor: target?.sourceAnchor,
+      sourceKind: target?.kind,
+      sourceId: target?.id
+    };
+  });
+}
+
+function renderPreviewDiagnosticsSummary(diagnostics: readonly PreviewDiagnosticItem[], messages: RendererMessages): string {
+  if (diagnostics.length === 0) {
+    return "";
+  }
+  const counts = {
+    error: diagnostics.filter((diagnostic) => diagnostic.severity === "error").length,
+    warning: diagnostics.filter((diagnostic) => diagnostic.severity === "warning").length,
+    info: diagnostics.filter((diagnostic) => diagnostic.severity === "info").length
+  };
+  const affectedCounts = {
+    error: diagnostics.filter((diagnostic) => diagnostic.severity === "error" && diagnostic.sourceAnchor).length,
+    warning: diagnostics.filter((diagnostic) => diagnostic.severity === "warning" && diagnostic.sourceAnchor).length,
+    info: diagnostics.filter((diagnostic) => diagnostic.severity === "info" && diagnostic.sourceAnchor).length
+  };
+  const severities: MarkVSpecDiagnosticSeverity[] = ["error", "warning", "info"];
+  return `
+        <div class="control-group diagnostic-summary" role="group" aria-label="${escapeHtml(messages.diagnostics)}" data-mm-diagnostic-summary>
+          <span class="control-label">${escapeHtml(messages.diagnostics)}</span>
+          <span class="diagnostic-total">${diagnostics.length}</span>
+          <span class="diagnostic-severities">
+          ${severities
+            .filter((severity) => counts[severity] > 0)
+            .map((severity) => renderPreviewDiagnosticSeverityButton(severity, counts[severity], affectedCounts[severity]))
+            .join("")}
+          </span>
+        </div>`;
+}
+
+function renderPreviewDiagnosticSeverityButton(severity: MarkVSpecDiagnosticSeverity, count: number, affectedCount: number): string {
+  const icon = severity === "error" ? "circle-x" : severity === "warning" ? "triangle-alert" : "info";
+  const label = `${severity}: ${count}`;
+  return `<button class="diagnostic-severity-pill diagnostic-severity-pill-${severity}" type="button" data-mm-diagnostic-summary-severity="${severity}" ${affectedCount === 0 ? "disabled" : ""} title="${escapeHtml(label)}">${renderPreviewIcon(icon)}<span>${escapeHtml(String(count))}</span></button>`;
 }
 
 

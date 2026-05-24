@@ -48,6 +48,23 @@ test("builds preview update plans for full, fragment, and fallback paths", () =>
       hasPreviousSource: true,
       invalidation: {
         requiresFullRender: false,
+        diagnosticsMayChange: true,
+        wireframeRenderKeys: ["element:E-Title"],
+        previewDocumentRenderKeys: ["elements:list"]
+      },
+      fragmentGroupCount: 2
+    }),
+    {
+      kind: "full",
+      reason: "diagnostics-may-change"
+    }
+  );
+
+  assert.deepEqual(
+    buildPreviewUpdatePlan({
+      hasPreviousSource: true,
+      invalidation: {
+        requiresFullRender: false,
         wireframeRenderKeys: ["element:E-Title"],
         previewDocumentRenderKeys: ["elements:list"]
       },

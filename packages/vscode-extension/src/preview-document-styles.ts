@@ -109,6 +109,22 @@ ${baseWireframeViewportCss()}
 .mm-source-jump-target:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
 .mm-source-jump-unavailable{cursor:not-allowed}
 .mm-source-highlighted{box-shadow:0 0 0 2px #2563eb,0 0 0 5px rgba(37,99,235,.18);position:relative}
+.diagnostic-summary{border-left:1px solid var(--border);padding-left:10px}
+.diagnostic-total{align-items:center;background:#e5e7eb;border:1px solid #cbd5e1;border-radius:999px;color:#111827;display:inline-flex;font-size:12px;font-weight:700;justify-content:center;min-width:22px;padding:2px 7px}
+.diagnostic-severities{display:inline-flex;gap:4px}
+.diagnostic-severity-pill{align-items:center;background:#fff;border:1px solid #cbd5e1;border-radius:999px;color:#334155;display:inline-flex;font-size:12px;font-weight:700;gap:4px;min-height:24px;padding:2px 7px}
+.diagnostic-severity-pill:disabled{opacity:.45}
+.diagnostic-severity-pill-error{border-color:#fca5a5;color:#b91c1c}
+.diagnostic-severity-pill-warning{border-color:#fbbf24;color:#92400e}
+.diagnostic-severity-pill-info{border-color:#93c5fd;color:#1d4ed8}
+.mm-diagnostic-affected{outline:1px dashed #64748b;outline-offset:3px;position:relative}
+.mm-diagnostic-affected-error{outline-color:#dc2626}
+.mm-diagnostic-affected-warning{outline-color:#d97706}
+.mm-diagnostic-affected-info{outline-color:#2563eb}
+.mm-diagnostic-indicator{align-items:center;border:1px solid #cbd5e1;border-radius:999px;display:inline-flex;font-size:11px;font-weight:800;height:20px;justify-content:center;line-height:1;margin-left:6px;min-width:20px;padding:0 5px;vertical-align:middle}
+.mm-diagnostic-indicator-error{background:#fee2e2;border-color:#fca5a5;color:#991b1b}
+.mm-diagnostic-indicator-warning{background:#fef3c7;border-color:#fbbf24;color:#78350f}
+.mm-diagnostic-indicator-info{background:#dbeafe;border-color:#93c5fd;color:#1e3a8a}
 .state-badge{background:#dbeafe;border:1px solid #60a5fa;border-radius:999px;color:#1e3a8a;font-size:var(--markvspec-heading-badge);font-weight:600;padding:1px 6px}
 .spec-table-wrap{max-width:100%;overflow:auto}
 .spec-table{border-collapse:collapse;font-size:12px;width:100%}

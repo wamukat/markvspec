@@ -661,6 +661,93 @@ locale: ja
   assert.equal(localizedMessage, "Action A-Invalid の Process step P1 Validate and update で、result 分類と直接の immediate effect が混在しています。effect は分類された case 配下へ移してください。");
 });
 
+test("renders preview diagnostics summary and affected source-anchor metadata", () => {
+  const source = `---
+id: SCR-PREVIEW-DIAGNOSTICS
+type: screen
+title: Preview Diagnostics
+---
+
+# SCR-PREVIEW-DIAGNOSTICS Preview Diagnostics
+
+## States
+
+- idle*
+
+## Elements
+
+### E-Submit Button
+
+- label: Submit
+- action: A-Invalid
+
+## Actions
+
+### A-Invalid Invalid
+
+#### From
+- idle
+#### P1: Process Validate and update
+- receive:
+  - validation: V-Form.result
+- state: idle
+`;
+  const result = parseMarkVSpec(source);
+  assert(result.diagnostics.some((diagnostic) => diagnostic.severity === "warning"));
+
+  const html = renderPreviewHtml(
+    result,
+    {
+      cspSource: "vscode-resource:",
+      asWebviewUri: (uri: unknown) => uri
+    } as never,
+    { layout: true, element: true, action: true },
+    undefined,
+    "preview-diagnostics.vspec.md"
+  );
+  const toolbar = html.match(/<header class="toolbar">[\s\S]*?<\/header>/)?.[0] ?? "";
+
+  assert.match(toolbar, /<div class="control-group diagnostic-summary" role="group" aria-label="Diagnostics" data-mm-diagnostic-summary>/);
+  assert.match(toolbar, /<span class="diagnostic-total">1<\/span>/);
+  assert.match(toolbar, /data-mm-diagnostic-summary-severity="warning"/);
+  assert.match(html, /"sourceAnchor":"action:A-Invalid"/);
+  assert.match(html, /"sourceKind":"action"/);
+  assert.match(html, /initPreviewDiagnostics/);
+  assert.match(html, /mm-diagnostic-indicator-warning/);
+});
+
+test("omits preview diagnostics summary when the document has no diagnostics", () => {
+  const source = `---
+id: SCR-NO-PREVIEW-DIAGNOSTICS
+type: screen
+title: No Preview Diagnostics
+---
+
+# SCR-NO-PREVIEW-DIAGNOSTICS No Preview Diagnostics
+
+## States
+
+- idle*
+`;
+  const result = parseMarkVSpec(source);
+  assert.deepEqual(result.diagnostics, []);
+
+  const html = renderPreviewHtml(
+    result,
+    {
+      cspSource: "vscode-resource:",
+      asWebviewUri: (uri: unknown) => uri
+    } as never,
+    { layout: true, element: true, action: true },
+    undefined,
+    "no-preview-diagnostics.vspec.md"
+  );
+  const toolbar = html.match(/<header class="toolbar">[\s\S]*?<\/header>/)?.[0] ?? "";
+
+  assert.doesNotMatch(toolbar, /data-mm-diagnostic-summary/);
+  assert.match(html, /const markvspecDiagnostics = \[\];/);
+});
+
 test("keeps presentation panels out of generated layout specs", () => {
   const source = `---
 id: SCR-PRESENTATION

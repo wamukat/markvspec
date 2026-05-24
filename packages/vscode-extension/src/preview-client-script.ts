@@ -3,6 +3,7 @@ export type PreviewHtmlTarget = "webview" | "standalone";
 export interface PreviewClientScriptOptions {
   target: PreviewHtmlTarget;
   messages: unknown;
+  diagnostics?: unknown;
   sourceLabel?: string;
   defaultPositionKey: string;
   mermaidRenderIdPrefix: string;
@@ -68,9 +69,11 @@ export function renderPreviewClientScript(options: PreviewClientScriptOptions): 
         }
       }
       const markvspecMessages = ${scriptJson(options.messages)};
+      const markvspecDiagnostics = ${scriptJson(options.diagnostics ?? [])};
       const markvspecPreviewPositionKey = ${scriptJson(options.sourceLabel ?? options.defaultPositionKey)};
       let previewPositionRestorePending = true;
       let previewSourceJumpEventsInitialized = false;
+      let previewDiagnosticsSummaryInitialized = false;
       let activePreviewSourceAnchor = "";
       const markvspecMermaidRenderIdPrefix = ${scriptJson(options.mermaidRenderIdPrefix)};
       const pendingRenderCommits = new Map();
@@ -82,6 +85,7 @@ export function renderPreviewClientScript(options: PreviewClientScriptOptions): 
       runPreviewInitializer("initPreviewRefreshControls", () => initPreviewRefreshControls());
       runPreviewInitializer("initPreviewSourceJump", () => initPreviewSourceJump());
       runPreviewInitializer("initPreviewSourceSync", () => initPreviewSourceSync());
+      runPreviewInitializer("initPreviewDiagnostics", () => initPreviewDiagnostics());
       runPreviewInitializer("initPreviewFragmentUpdates", () => initPreviewFragmentUpdates());
       runPreviewInitializer("initPreviewPositionTracking", () => initPreviewPositionTracking());
       runPreviewInitializer("restorePreviewPosition", () => restorePreviewPosition());
@@ -325,6 +329,79 @@ export function renderPreviewClientScript(options: PreviewClientScriptOptions): 
         return /^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/.test(item.tagName);
       }
 
+      function initPreviewDiagnostics() {
+        annotateDiagnosticTargets();
+        if (previewDiagnosticsSummaryInitialized) {
+          return;
+        }
+        previewDiagnosticsSummaryInitialized = true;
+        document.querySelectorAll("[data-mm-diagnostic-summary-severity]").forEach((summary) => {
+          summary.addEventListener("click", () => {
+            const severity = summary.getAttribute("data-mm-diagnostic-summary-severity") || "";
+            const target = document.querySelector(".mm-diagnostic-affected-" + cssClassNamePart(severity));
+            if (target) {
+              target.scrollIntoView({ block: "center", inline: "nearest" });
+            }
+          });
+        });
+      }
+
+      function annotateDiagnosticTargets() {
+        document.querySelectorAll(".mm-diagnostic-affected").forEach((item) => {
+          item.classList.remove("mm-diagnostic-affected", "mm-diagnostic-affected-error", "mm-diagnostic-affected-warning", "mm-diagnostic-affected-info");
+          item.removeAttribute("data-mm-diagnostic-severity");
+        });
+        document.querySelectorAll(".mm-diagnostic-indicator").forEach((item) => item.remove());
+        if (!Array.isArray(markvspecDiagnostics)) {
+          return;
+        }
+        for (const diagnostic of markvspecDiagnostics) {
+          if (!diagnostic || typeof diagnostic.sourceAnchor !== "string" || !diagnostic.sourceAnchor) {
+            continue;
+          }
+          const target = previewSourceHighlightTarget(diagnostic.sourceAnchor);
+          if (!target) {
+            continue;
+          }
+          const severity = typeof diagnostic.severity === "string" ? diagnostic.severity : "info";
+          target.classList.add("mm-diagnostic-affected", "mm-diagnostic-affected-" + cssClassNamePart(severity));
+          target.setAttribute("data-mm-diagnostic-severity", severity);
+          target.appendChild(renderDiagnosticIndicator(diagnostic, severity));
+        }
+      }
+
+      function renderDiagnosticIndicator(diagnostic, severity) {
+        const indicator = document.createElement("button");
+        indicator.type = "button";
+        indicator.className = "mm-diagnostic-indicator mm-diagnostic-indicator-" + cssClassNamePart(severity);
+        indicator.textContent = severityLabel(severity);
+        indicator.setAttribute("aria-label", diagnostic.message || severity);
+        indicator.title = diagnostic.message || severity;
+        indicator.addEventListener("click", () => {
+          if (diagnostic.sourceAnchor) {
+            const target = previewSourceHighlightTarget(diagnostic.sourceAnchor);
+            if (target) {
+              requestSourceJump(target);
+            }
+          }
+        });
+        return indicator;
+      }
+
+      function severityLabel(severity) {
+        if (severity === "error") {
+          return "E";
+        }
+        if (severity === "warning") {
+          return "W";
+        }
+        return "I";
+      }
+
+      function cssClassNamePart(value) {
+        return String(value || "").replace(/[^a-z0-9_-]/gi, "-").toLowerCase();
+      }
+
       function initPreviewSourceSync() {
         ${webviewMessaging ? `
         window.addEventListener("message", (event) => {
@@ -448,6 +525,7 @@ export function renderPreviewClientScript(options: PreviewClientScriptOptions): 
         updateTableOfContentsVisibility();
         updateStickyOffset();
         initPreviewSourceJump();
+        annotateDiagnosticTargets();
         if (activePreviewSourceAnchor) {
           applyPreviewSourceHighlight(activePreviewSourceAnchor, false);
         }
