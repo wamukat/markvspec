@@ -80,8 +80,8 @@ title: Login
 
 ### A1:A-ToggleRememberMe Toggle remember me
 
-- Process P1: Toggle remembered state
-  - state: idle
+#### P1: Process Toggle remembered state
+- state: idle
 ```
 
 ![Hello Screen の ID 付きプレビュー](../../assets/vscode-previews/hello-screen-ids-vscode-preview.png)

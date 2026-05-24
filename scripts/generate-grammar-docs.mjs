@@ -197,10 +197,10 @@ action_entity = action_heading , { action_item | entity_prose } ;
 action_heading = h3 , [ marker , ":" ] , action_id , [ inline_text ] ;
 
 action_item = from_block | process_block | otherwise_block ;
-from_block = bullet , "From" , { bullet , state_name } ;
-otherwise_block = bullet , "Otherwise" , { outcome_item } ;
+from_block = h4 , "From" , { bullet , state_name } ;
+otherwise_block = h4 , "Otherwise" , { outcome_item } ;
 
-process_block = bullet , "Process" , process_marker , ":" , inline_text ,
+process_block = h4 , process_marker , ":" , "Process" , inline_text ,
                 { process_item | process_case | immediate_effect } ;
 process_item = request_block | receive_block | sync_block | server_block
              | when_item | skip_when_item | parallel_group | resolve_group ;

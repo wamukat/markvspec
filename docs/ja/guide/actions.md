@@ -19,18 +19,18 @@ Action は「操作したら何が起きるか」を書く場所です。
 
 ### A-SubmitRequest Submit request
 
-- From
-  - idle
-- Process P1: Check validation
-  - receive:
+#### From
+- idle
+#### P1: Process Check validation
+- receive:
     - validation: V-SubmitRequest.result
-  - case: invalid
+- case: invalid
     - display:
       - target: E-EmailInput.error
       - message: V-SubmitRequest.messages
     - stop
-- Process P2: Submit subscription
-  - case: sent
+#### P2: Process Submit subscription
+- case: sent
     - state: submitting
 ```
 
@@ -43,7 +43,7 @@ Action は「操作したら何が起きるか」を書く場所です。
 - ボタンからアクションを呼ぶ: 要素の `action: A-*`。
 - 画面読み込みでアクションを呼ぶ: `## Events`。
 - アクションが有効な状態を絞る: `From`。
-- HTTP リクエストを書く: `Process Pn:` の `request:`。
+- HTTP リクエストを書く: `#### Pn: Process ...` の `request:`。
 - 結果で分岐する: `case:`。
 - 表示を差し替える: `display`。
 - 画面を移動する: `navigate`。
@@ -56,14 +56,14 @@ Action は「操作したら何が起きるか」を書く場所です。
 ```markdown markvspec-skip reason=requires-actions-context
 ### A-HandleSubmitResponse Handle submit response
 
-- From
-  - submitting
-- Process P1: Handle server response
-  - receive:
+#### From
+- submitting
+#### P1: Process Handle server response
+- receive:
     - response: A-SubmitRequest.P2.response
-  - case: success
+- case: success
     - navigate: SCR-THANK-YOU
-  - case: failure
+- case: failure
     - state: idle
     - display:
       - target: L-MessageArea

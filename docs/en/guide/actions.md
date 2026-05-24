@@ -6,7 +6,12 @@ Actions describe what happens when users interact with a screen or when the scre
 
 An action describes one flow: where it is called from, what work runs, and how the screen changes as a result. Connect button and link clicks with `action: A-*` on the element. Put lifecycle events such as page load under `## Events`.
 
-Put the work under `Process Pn:`. For an HTTP request, use `request:`; for screen-local calculation or validation, use `sync:` or `receive:`. Use `server:` only for a server-side service call that is not the HTTP request itself. Put result branches under the process as `case:` entries, such as success, failure, empty, and validation-error, then describe state changes, navigation, display updates, or messages for each case.
+Put the work under `#### Pn: Process ...`. For an HTTP request, use `request:`;
+for screen-local calculation or validation, use `sync:` or `receive:`. Use
+`server:` only for a server-side service call that is not the HTTP request
+itself. Put result branches under the process as `case:` entries, such as
+success, failure, empty, and validation-error, then describe state changes,
+navigation, display updates, or messages for each case.
 
 ## Minimal Example
 
@@ -18,10 +23,10 @@ layout, elements, and the button that calls the action.
 
 ### A-SubmitRequest Submit request
 
-- From
-  - idle
-- Process P1: Submit subscription
-  - case: sent
+#### From
+- idle
+#### P1: Process Submit subscription
+- case: sent
     - state: submitting
 ```
 
@@ -30,7 +35,7 @@ The button connection lives on `E-SubmitButton` with `action: A-SubmitRequest`. 
 ## Common Patterns
 
 - Connect user events with `action: A-*` on elements and lifecycle events with `## Events`.
-- Put requests, calculations, and response handling in `Process Pn:`.
+- Put requests, calculations, and response handling in `#### Pn: Process ...`.
 - Put success, failure, empty, and other branches under the relevant process as `case:`.
 - Reference element values as request parameters, such as `email: E-EmailInput.value`.
 - If work starts a loading view, put `state: loading` under the sending process `case: sent`.
@@ -47,30 +52,30 @@ referenced states, elements, layout groups, and validation result.
 
 ### A-SubmitRequest Submit request
 
-- From
-  - idle
-- Process P1: Check validation
-  - receive:
+#### From
+- idle
+#### P1: Process Check validation
+- receive:
     - validation: V-SubmitRequest.result
-  - case: invalid
+- case: invalid
     - display:
       - target: E-EmailInput.error
       - message: V-SubmitRequest.messages
     - stop
-- Process P2: Submit subscription
-  - case: sent
+#### P2: Process Submit subscription
+- case: sent
     - state: submitting
 
 ### A-HandleSubmitResponse Handle submit response
 
-- From
-  - submitting
-- Process P1: Handle server response
-  - receive:
+#### From
+- submitting
+#### P1: Process Handle server response
+- receive:
     - response: A-SubmitRequest.P2.response
-  - case: success
+- case: success
     - navigate: SCR-THANK-YOU
-  - case: failure
+- case: failure
     - state: idle
     - display:
       - target: L-MessageArea

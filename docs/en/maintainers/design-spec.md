@@ -359,35 +359,35 @@ opaque expressions such as `${data.value}` for screen data, and `navigate` for s
 ```markdown
 ### A1:A-SubmitLogin Submit login
 
-- From
-  - idle
-  - auth-error
-- Process P1: Clear stale message
-  - when: ${state.auth-error}
-  - display:
+#### From
+- idle
+- auth-error
+#### P1: Process Clear stale message
+- when: ${state.auth-error}
+- display:
     - target: L-MessageArea
     - element: E-EmptyMessage
-- Process P2: Send login request
-  - request:
+#### P2: Process Send login request
+- request:
     - method: POST
     - path: /login
     - params:
       - email: E-SignInEmail.value
       - password: E-SignInPassword.value
-  - case: sent
+- case: sent
     - state: wait-auth
 
 ### A2:A-AuthResponse Handle auth response
 
-- From
-  - wait-auth
-- Process P1: Receive auth response
-  - receive:
+#### From
+- wait-auth
+#### P1: Process Receive auth response
+- receive:
     - response: A-SubmitLogin.P2.response
-  - case: success
+- case: success
     - response: 2xx authenticated user
     - navigate: SCR-DASHBOARD
-  - case: failure
+- case: failure
     - response: 401 invalid credentials
     - state: auth-error
     - display:
@@ -396,14 +396,14 @@ opaque expressions such as `${data.value}` for screen data, and `navigate` for s
 
 ### A4:A-ValidateEmail Validate email
 
-- Process P1: Validate email field
-  - case: empty
+#### P1: Process Validate email field
+- case: empty
     - description: empty email in idle state
     - state: validation-error
     - display:
       - target: L-EmailValidation
       - element: E-EmailRequiredMessage
-  - case: valid
+- case: valid
     - description: valid email after validation error
     - state: idle
     - display:
@@ -423,16 +423,16 @@ guards are not modeled; put operability on elements with `disabled when`, and pu
 input checks in `Validations` plus process-scoped `receive: V-....result` steps.
 
 ```markdown
-- Process P1: Send login request
-  - request:
+#### P1: Process Send login request
+- request:
     - method: POST
     - path: /login
     - params:
       - email: E-EmailInput.value
-  - case: success
+- case: success
     - response: 2xx authenticated user
     - navigate: SCR-DASHBOARD
-  - case: failure
+- case: failure
     - state: auth-error
     - display:
       - target: L-MessageArea
@@ -488,14 +488,14 @@ on htmx attribute names.
 
 Use structured action groups:
 
-- Screen-side `Process Pn: <name>` with a `request:` block for method, path, and
+- Screen-side `#### Pn: Process <name>` with a `request:` block for method, path, and
   parameters.
 - `case:` / `display` effects for result-specific targeted display updates.
 - `target`, `mode`, and `partial` under `display` for semantic update details.
 
 Example mapping:
 
-- `Process P1: Load notices` with `request: GET /mypage/partials/notices` maps to an htmx request such as `hx-get="/mypage/partials/notices"`.
+- `#### P1: Process Load notices` with `request: GET /mypage/partials/notices` maps to an htmx request such as `hx-get="/mypage/partials/notices"`.
 - `target: L-MessageArea` maps to `hx-target="#L-MessageArea"`.
 
 Actions are viewport-independent. When an action update targets a layout ID,
@@ -556,16 +556,16 @@ route: /mypage/partials/notices
 
 ### A-BuildNoticeList Build notice list
 
-- From
-  - fetching
-- Process P1: Find latest notices
-  - server:
+#### From
+- fetching
+#### P1: Process Find latest notices
+- server:
     - NoticeQueryService.findLatest()
-  - case: success
+- case: success
     - state: loaded
-  - case: empty
+- case: empty
     - state: empty
-  - case: failure
+- case: failure
     - state: fetch-error
 ```
 
@@ -734,35 +734,35 @@ route: /login
 
 ### A1:A-SubmitLogin Submit login
 
-- From
-  - idle
-  - auth-error
-- Process P1: Clear stale message
-  - when: ${state.auth-error}
-  - display:
+#### From
+- idle
+- auth-error
+#### P1: Process Clear stale message
+- when: ${state.auth-error}
+- display:
     - target: L-MessageArea
     - element: E-EmptyMessage
-- Process P2: Send login request
-  - request:
+#### P2: Process Send login request
+- request:
     - method: POST
     - path: /login
     - params:
       - email: E-SignInEmail.value
       - password: E-SignInPassword.value
-  - case: sent
+- case: sent
     - state: wait-auth
 
 ### A2:A-AuthResponse Handle auth response
 
-- From
-  - wait-auth
-- Process P1: Receive auth response
-  - receive:
+#### From
+- wait-auth
+#### P1: Process Receive auth response
+- receive:
     - response: A-SubmitLogin.P2.response
-  - case: success
+- case: success
     - response: 2xx authenticated user
     - navigate: SCR-DASHBOARD
-  - case: failure
+- case: failure
     - response: 401 invalid credentials
     - state: auth-error
     - display:
@@ -771,14 +771,14 @@ route: /login
 
 ### A4:A-ValidateEmail Validate email
 
-- Process P1: Validate email field
-  - case: empty
+#### P1: Process Validate email field
+- case: empty
     - description: empty email in idle state
     - state: validation-error
     - display:
       - target: L-EmailValidation
       - element: E-EmailRequiredMessage
-  - case: valid
+- case: valid
     - description: valid email after validation error
     - state: idle
     - display:

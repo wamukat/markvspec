@@ -35,27 +35,27 @@ React、Vue、Svelte、SSR + fetch では、同じ `display` 構造を targeted 
 
 ### A-RefreshSummary Refresh summary
 
-- Process P1: Request profile summary
-  - request:
+#### P1: Process Request profile summary
+- request:
     - GET /profile/summary
     - params:
       - userId: route.userId
-  - case: sent
+- case: sent
     - state: refreshing-summary
 
 ### A-HandleSummaryResponse Handle summary response
 
-- From
-  - refreshing-summary
-- Process P1: Apply profile summary response
-  - receive:
+#### From
+- refreshing-summary
+#### P1: Process Apply profile summary response
+- receive:
     - response: A-RefreshSummary.P1.response
-  - case: success
+- case: success
     - response: 200 profile summary partial
     - display:
       - target: L-ProfileSummary
       - partial: PRT-PROFILE-SUMMARY
-  - case: failure
+- case: failure
     - response: network error or 5xx
     - display:
       - target: L-MessageArea
@@ -64,7 +64,7 @@ React、Vue、Svelte、SSR + fetch では、同じ `display` 構造を targeted 
 
 ## 書き方の要点
 
-- リクエストは `Process Pn:` の `request:` に書く。
+- リクエストは `#### Pn: Process ...` の `request:` に書く。
 - 差し替え先は `target` にレイアウト ID で書く。
 - 参照する partial 文書に対応する場合は `partial: PRT-*` を足す。
 - 既存要素を表示する場合だけ `element: E-*` を使う。

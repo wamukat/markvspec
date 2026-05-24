@@ -10,7 +10,7 @@ import {
 } from "../src/grammar-definition.js";
 
 test("grammarStructuredItemForContext classifies canonical and legacy action items", () => {
-  const from = grammarStructuredItemForContext("action.top-level", "From");
+  const from = grammarStructuredItemForContext("action.top-level", "#### From");
   assert.equal(from.known, true);
   assert.equal(from.classification, "canonical");
   assert.equal(from.represented, true);

@@ -27,10 +27,10 @@ DOM swap 命令や `hx-swap` の値ではありません。
 ```markdown markvspec-skip reason=requires-actions-context
 ### A-RefreshProfile Refresh profile
 
-- Process P1: Request profile summary
-  - request:
+#### P1: Process Request profile summary
+- request:
     - GET /profile/summary
-  - case: success
+- case: success
     - display:
       - target: L-ProfileSummary
       - partial: PRT-PROFILE-SUMMARY

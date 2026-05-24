@@ -250,7 +250,7 @@ MarkVSpec 文書内の文章と構造化 DSL の位置を説明するページ�
             </div>
             <div class="zone zone-body">
               <div class="zone-title"><span class="pill pill-body">Structured Body</span> 機械可読な DSL</div>
-              <p class="sample"><code>- Process P1: ...</code>、<code>- case: ...</code>、<code>- label: ...</code></p>
+              <p class="sample"><code>#### P1: Process ...</code>、<code>- case: ...</code>、<code>- label: ...</code></p>
               <p class="hint">parser、validator、preview が MarkVSpec semantics として解釈します。</p>
             </div>
             <div class="zone zone-body">

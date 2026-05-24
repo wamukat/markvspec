@@ -98,7 +98,7 @@ const warningMessages = result.diagnostics.filter((diagnostic) => diagnostic.sev
 
 assert(infoMessages.includes("Extension item in Element E-Submit: analytics event: submit_clicked. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
 assert(infoMessages.includes("Extension item in Action A-Submit process step Submit: correlation id: request.id. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
-assert(warningMessages.includes("Unknown structured item in Action A-Submit: Tliggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
+assert(warningMessages.includes("Unknown structured item in Action A-Submit: Tliggered. This item is not represented in MarkVSpec output. Use #### From, #### P1: Process <name>, or #### Otherwise."));
 assert.equal(warningMessages.some((message) => message.includes("request:")), false);
 });
 

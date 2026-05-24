@@ -128,7 +128,7 @@ misleading specification details:
 - Do `Layout` `Items` appear in an order that communicates the screen?
 - Is the `variant: primary` action actually the main action?
 - Do `tone: danger` and `tone: warning` match the intended state or message?
-- Do action `From`, `Process Pn:`, and `case:` entries read as a state transition?
+- Do action `#### From`, `#### Pn: Process ...`, and `case:` entries read as a state transition?
 
 After changing text or structure, save the file and re-check the preview. Reading
 the Markdown diff together with the preview makes specification reviews easier.

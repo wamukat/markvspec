@@ -88,8 +88,8 @@ action result が business rule 違反を表す場合は、`business rule:` を
 
 ### A-Submit Submit
 
-- Process P1: Submit request
-  - case: business-rule-violation
+#### P1: Process Submit request
+- case: business-rule-violation
     - business rule: R-EmailMustBeUnique
     - error code: ERR-EMAIL-ALREADY-REGISTERED
     - display:

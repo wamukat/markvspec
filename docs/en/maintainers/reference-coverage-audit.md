@@ -16,7 +16,7 @@ substitute for Reference coverage.
 | Class | Examples | Required Coverage |
 | --- | --- | --- |
 | DSL section | `## Actions`, `## Error Codes`, `## History` | Reference required, generated grammar row required, example recommended |
-| Structured item / property | `Process P1:`, `request`, `label`, `required` | Reference required, grammar-definition coverage required when structured |
+| Structured item / property | `#### P1: Process`, `request`, `label`, `required` | Reference required, grammar-definition coverage required when structured |
 | Element type | `Heading`, `Input`, `Tabs`, `ActionMenu` | Reference required, example required for non-trivial controls |
 | Element property | `text`, `label`, `value`, `action event` | Reference required when rendered, Guide recommended when confusing |
 | Validation / diagnostic behavior | duplicate IDs, non-canonical items, required fields | Reference required when source authors can trigger it |

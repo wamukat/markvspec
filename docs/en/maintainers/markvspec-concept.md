@@ -121,21 +121,21 @@ route: /login
 
 ### A1:A-SubmitLogin Submit login
 
-- From
-  - idle
-- Process P1: Send login request
-  - request:
+#### From
+- idle
+#### P1: Process Send login request
+- request:
     - method: POST
     - path: /login
     - params:
       - email: E-EmailInput.value
       - password: E-PasswordInput.value
-  - case: sent
+- case: sent
     - state: wait-auth
-  - case: success
+- case: success
     - response: 2xx authenticated user
     - navigate: SCR-DASHBOARD
-  - case: failure
+- case: failure
     - response: 401 invalid credentials
     - state: auth-error
 
@@ -313,7 +313,7 @@ Prefer Markdown that people can write quickly:
 - Headings define major objects: `# SCR-LOGIN Login`,
   `### 7:E-SignInButton Button`, or `### A1:A-SubmitLogin Submit login`.
 - Bullets define properties and rules: `- label: Sign in`.
-- Nested bullets define action groups and process details such as `From`, `Process Pn:`, direct state/display changes, and process `case:`.
+- Nested bullets define action groups and process details such as `#### From`, `#### Pn: Process ...`, direct state/display changes, and process `case:`.
 
 Short heading markers such as `7` or `A1` are preview display aids. References
 still use stable IDs such as `E-SignInButton` and `A-SubmitLogin`.

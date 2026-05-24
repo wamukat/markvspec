@@ -49,22 +49,22 @@ The following snippet belongs inside `## Actions`; `idle`, `loading`, `success`,
 
 ### A-LoadOrders Load orders
 
-- From
-  - idle
-- Process P1: Request orders
-  - request:
+#### From
+- idle
+#### P1: Process Request orders
+- request:
     - GET /orders
-  - case: sent
+- case: sent
     - state: loading
-  - case: success
+- case: success
     - state: success
-  - case: empty
+- case: empty
     - state: empty
-  - case: failure
+- case: failure
     - state: error
 ```
 
-Write state changes under `case:` entries inside `Process Pn:`. This makes it easy to trace which operation creates each state in both preview and review.
+Write state changes under `case:` entries inside `#### Pn: Process ...`. This makes it easy to trace which operation creates each state in both preview and review.
 
 ## Next Reading
 

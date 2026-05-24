@@ -34,7 +34,7 @@ design review:
   `references.partials`.
 - Referenced template/partial files that are missing, point to the wrong
   document ID, or point to the wrong document type.
-- Partial updates written without the current `Process Pn: <name>` / `request:` /
+- Partial updates written without the current `#### Pn: Process <name>` / `request:` /
   `display.partial` / `mode: replace` structure.
 
 ## Validation Gate

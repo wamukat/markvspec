@@ -50,7 +50,7 @@ MarkVSpec は生の CSS やフレームワーク属性ではなく、意図を�
 
 - `variant` は `primary` / `secondary` のような優先度を表す。
 - `tone` は `warning` / `danger` のような意味上の意図を表す。
-- `Process Pn:` と `request` / `receive` はアクションが何をするかを表す。
+- `#### Pn: Process ...` と `request` / `receive` はアクションが何をするかを表す。
 - `case:` と `display` は状態変化と部分更新を表す。
 
 この方針により、特定の実装スタックに寄せすぎず、バリデーションと表示

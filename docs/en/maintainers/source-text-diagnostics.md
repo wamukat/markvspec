@@ -6,19 +6,19 @@ diagnostic, or explicit ignore rule, it should produce a warning.
 
 ## Coverage
 
-The first implementation covered `## Actions` `Process Pn:` bullets. A
-value-less process bullet that is not a recognized block label is classified as
+The first implementation covered `## Actions` `#### Pn: Process ...` subsections.
+A value-less process bullet that is not a recognized block label is classified as
 unrepresented source text and reported with diagnostic code
 `unrepresented-source-text`.
 
 Example:
 
 ```markdown
-- Process P1: Submit login
-  - Encode request body
-  - request:
-    - method: POST
-    - path: /login
+#### P1: Process Submit login
+- Encode request body
+- request:
+  - method: POST
+  - path: /login
 ```
 
 `Encode request body` is meaningful author text, but it is not a supported

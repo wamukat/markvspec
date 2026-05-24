@@ -71,7 +71,7 @@ export function applyActionBulletToContext(
       context: `Action ${action.id}`,
       text: bullet.text,
       location: bullet.location,
-      allowed: "From, Process P1: <name>, or Otherwise"
+      allowed: "#### From, #### P1: Process <name>, or #### Otherwise"
     }));
     return { ignoredBlockIndent: bullet.indent };
   }
@@ -81,7 +81,7 @@ export function applyActionBulletToContext(
       context: `Action ${action.id}`,
       text: bullet.text,
       location: bullet.location,
-      allowed: "nest items under From, Process P1: <name>, or Otherwise"
+      allowed: "nest items under #### From, #### P1: Process <name>, or #### Otherwise"
     }));
     return { ignoredBlockIndent: Math.max(0, bullet.indent - 1) };
   }
@@ -148,7 +148,7 @@ export function applyActionBulletToContext(
     }
     diagnostics.push({
       severity: "warning",
-      message: `Action ${action.id} has malformed Process entry: ${bullet.text}. Start with a marked process such as Process P1: Submit request.`,
+      message: `Action ${action.id} has malformed Process entry: ${bullet.text}. Use a process subsection such as #### P1: Process Submit request.`,
       line: bullet.location.line
     });
     return { block: context.block };
@@ -574,7 +574,7 @@ function applyProcessStepCaseEffect(
 function createDeprecatedEffectsWrapperDiagnostic(actionId: string, line: number): MarkVSpecDiagnostic {
   return {
     severity: "warning",
-    message: `Action ${actionId} uses non-canonical Effects wrapper. Put state, display, navigate, view, or other effects directly under Process Pn: or case:.`,
+    message: `Action ${actionId} uses non-canonical Effects wrapper. Put state, display, navigate, view, or other effects directly under #### Pn: Process ... or case:.`,
     line
   };
 }

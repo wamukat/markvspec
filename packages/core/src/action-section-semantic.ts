@@ -317,7 +317,7 @@ function actionListSyntaxMigrationDiagnostic(actionId: string, bullet: ActionBul
     context: `Action ${actionId}`,
     text: bullet.text,
     location: bullet.location,
-    allowed: "From, Process P1: <name>, or Otherwise"
+    allowed: "#### From, #### P1: Process <name>, or #### Otherwise"
   });
 }
 

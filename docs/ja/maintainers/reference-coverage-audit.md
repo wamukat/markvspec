@@ -15,7 +15,7 @@ Examples は使い方を教える場所ですが、Reference coverage の代替�
 | Class | Examples | Required Coverage |
 | --- | --- | --- |
 | DSL section | `## Actions`, `## Error Codes`, `## History` | Reference 必須、generated grammar row 必須、example 推奨 |
-| structured item / property | `Process P1:`, `request`, `label`, `required` | Reference 必須。structured item は grammar-definition coverage 必須 |
+| structured item / property | `#### P1: Process`, `request`, `label`, `required` | Reference 必須。structured item は grammar-definition coverage 必須 |
 | element type | `Heading`, `Input`, `Tabs`, `ActionMenu` | Reference 必須。非自明な control は example 必須 |
 | element property | `text`, `label`, `value`, `action event` | 出力に表れるものは Reference 必須。混同しやすいものは Guide 推奨 |
 | validation / diagnostic behavior | duplicate ID、non-canonical item、required field | source author が起こせるものは Reference 必須 |

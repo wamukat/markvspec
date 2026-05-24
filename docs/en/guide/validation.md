@@ -99,12 +99,12 @@ Errors that only the server can decide belong to response cases.
 
 ### A-SubmitProfile Submit profile
 
-- Process P1: Submit profile
-  - request:
+#### P1: Process Submit profile
+- request:
     - POST /profile
     - params:
       - email: E-EmailInput.value
-  - case: email-duplicated
+- case: email-duplicated
     - state: input-error
     - display:
       - target: E-EmailError
@@ -130,10 +130,10 @@ Stock, permission, contract, or plan restrictions usually need both a rule and a
 
 ### A-ExportPdf Export PDF
 
-- Process P1: Request PDF export
-  - request:
+#### P1: Process Request PDF export
+- request:
     - POST /exports/pdf
-  - case: plan-not-allowed
+- case: plan-not-allowed
     - state: export-error
     - display:
       - target: E-ExportMessage

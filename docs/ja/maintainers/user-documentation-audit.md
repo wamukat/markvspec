@@ -44,7 +44,7 @@
 | 4 | Canonical DSL が README / Guide / Reference / Examples で一致しているか | 修正済み | marker 付き heading を `### marker:ID Name` として Reference に明記した。marker は preview 表示用で、参照に使う安定 ID は `:` より後ろ。 |
 | 5 | State の書き方が一貫しているか | 修正済み | Start / Guide / Reference の基本例を `## States` 配下の bullet に揃え、初期 state は `- idle*` のように `*` で示すと明記した。 |
 | 6 | Action / HTTP request syntax が正確か | 概ねOK | ユーザー向け docs は HTTP method/path を `request:` に統一済み。`server:` は HTTP そのものではない server-side service call の説明としてだけ残っている。 |
-| 7 | Action caller と結果が追えるか | 一部要修正 | Actions は概ね `action: A-*`、`From`、`Process Pn:`、`case:` で追える。Partial Updates guide の最小例は「refresh button をクリック」と説明するが、例の中に button / caller がない。 |
+| 7 | Action caller と結果が追えるか | 一部要修正 | Actions は概ね `action: A-*`、`#### From`、`#### Pn: Process ...`、`case:` で追える。Partial Updates guide の最小例は「refresh button をクリック」と説明するが、例の中に button / caller がない。 |
 | 8 | Validation と Business Rules の境界が明確か | 修正済み | field constraints、cross-field rules、server field validation、server business checks の4分類を日英 guide / reference / recipes で揃えた。required / format / range は input element 近くに置き、Business Rules は cross-field や product decision に限定する方針へ更新済み。 |
 | 9 | Form Groups など examples が使う section が Reference に載っているか | 修正済み | `## Form Groups`、`## Events`、`## Preview Scenarios`、`## Field Validations`、`## Cross-field Validations`、`## Slots` / `## Slot: name`、`## Error Codes`、`## History Fields` / `## History` を Sections Reference に追加した。 |
 | 10 | Element type / property が Reference に載っているか | 修正済み | Reference に `Spinner`、`Banner`、`Table`、`Badge`、`Select`、`Dialog`、`Toast`、`Tabs`、`ActionMenu` と showcase の specialized controls を追加した。`Message` は新規 source では使わず、`Banner` / `Text` / `Paragraph` / `Toast` に分ける方針を明記した。 |

@@ -41,27 +41,27 @@ A Refresh button or filter change sends a server request. The returned summary p
 
 ### A-RefreshSummary Refresh summary
 
-- Process P1: Request profile summary
-  - request:
+#### P1: Process Request profile summary
+- request:
     - GET /profile/summary
     - params:
       - userId: route.userId
-  - case: sent
+- case: sent
     - state: refreshing-summary
 
 ### A-HandleSummaryResponse Handle summary response
 
-- From
-  - refreshing-summary
-- Process P1: Apply profile summary response
-  - receive:
+#### From
+- refreshing-summary
+#### P1: Process Apply profile summary response
+- receive:
     - response: A-RefreshSummary.P1.response
-  - case: success
+- case: success
     - response: 200 profile summary partial
     - display:
       - target: L-ProfileSummary
       - partial: PRT-PROFILE-SUMMARY
-  - case: failure
+- case: failure
     - response: network error or 5xx
     - display:
       - target: L-MessageArea
@@ -70,7 +70,7 @@ A Refresh button or filter change sends a server request. The returned summary p
 
 ## Authoring Notes
 
-- Put the request under `request:` inside `Process Pn:`.
+- Put the request under `request:` inside `#### Pn: Process ...`.
 - Use a layout ID as the `target`.
 - Use `partial: PRT-*` when the returned content corresponds to a referenced partial document.
 - Use `element: E-*` only when an existing element is the replacement content.

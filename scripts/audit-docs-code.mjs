@@ -238,7 +238,7 @@ function looksLikeMarkVSpec(content) {
     /^id:\s*(SCR|TPL|PRT)-/mu,
     /^##\s+(States|Layout|Slot|Slots|Elements|Form Groups|Events|Actions|View Context|View Context Samples|Preview Scenarios|Field Validations|Cross-field Validations|Validations|Business Rules|Error Codes|History Fields|History)\b/mu,
     /^###\s+(SCR|L|P|E|A|R|V|F|ERR|TPL|PRT)-/mu,
-    /^-\s+(label|text|action|target|Process P\d+:|case:|request:|state:)\b/mu
+    /^(?:-\s+(label|text|action|target|case:|request:|state:)\b|####\s+P\d+:\s+Process\b)/mu
   ].some((pattern) => pattern.test(content));
 }
 

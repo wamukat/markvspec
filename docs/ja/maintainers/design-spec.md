@@ -255,32 +255,32 @@ Action レベルの guard / `When` は使わず、操作可否は要素の `disa
 ```markdown
 ### A1:A-SubmitLogin ログイン送信
 
-- From
-  - idle
-  - auth-error
-- Process P1: Validate login form
-  - receive:
+#### From
+- idle
+- auth-error
+#### P1: Process Validate login form
+- receive:
     - validation: V-LoginForm.result
-  - case: invalid
+- case: invalid
     - state: validation-error
     - stop
-  - case: valid
+- case: valid
     - continue
-- Process P2: Clear stale message
-  - when: ${state.auth-error}
-  - display:
+#### P2: Process Clear stale message
+- when: ${state.auth-error}
+- display:
     - target: L-MessageArea
     - element: E-EmptyMessage
-- Process P3: Send login request
-  - request:
+#### P3: Process Send login request
+- request:
     - method: POST
     - path: /login
     - params:
       - email: E-EmailInput.value
       - password: E-PasswordInput.value
-  - case: sent
+- case: sent
     - state: wait-auth
-  - case: send-failed
+- case: send-failed
     - state: auth-error
 ```
 
@@ -293,15 +293,15 @@ HTTP request のクリック Action では、送信できたかどうかを requ
 ```markdown
 ### A2:A-HandleLoginResponse ログイン応答処理
 
-- From
-  - wait-auth
-- Process P1: Receive auth response
-  - receive:
+#### From
+- wait-auth
+#### P1: Process Receive auth response
+- receive:
     - response: A-SubmitLogin.P3.response
-  - case: success
+- case: success
     - response: 2xx authenticated user
     - navigate: SCR-DASHBOARD
-  - case: failure
+- case: failure
     - response: 401 invalid credentials
     - state: auth-error
     - display:
@@ -315,7 +315,7 @@ HTTP request のクリック Action では、送信できたかどうかを requ
 
 Thymeleaf と htmx は、MarkVSpec の targeted display update に対する実装マッピングの一つです。authored DSL では htmx 属性そのものに依存せず、表示変化の意味を書きます。
 
-- screen 側の `Process Pn:` / `request:`: method、path、パラメータ、送信結果。
+- screen 側の `#### Pn: Process ...` / `request:`: method、path、パラメータ、送信結果。
 - response handler Action の `case:` / `display`: 結果ごとの対象領域の表示更新。
 - `target`: 更新対象の layout または element。
 - `content`: 差し替える内容の意味。
@@ -369,16 +369,16 @@ route: /mypage/partials/notices
 
 ### A-BuildNoticeList Build notice list
 
-- From
-  - fetching
-- Process P1: Find latest notices
-  - server:
+#### From
+- fetching
+#### P1: Process Find latest notices
+- server:
     - NoticeQueryService.findLatest()
-  - case: success
+- case: success
     - state: loaded
-  - case: empty
+- case: empty
     - state: empty
-  - case: failure
+- case: failure
     - state: fetch-error
 ```
 

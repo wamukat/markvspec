@@ -90,17 +90,17 @@ route: /login
 
 ### A1:A-SubmitLogin ログイン送信
 
-- From
-  - idle
-- Process P1: Send login request
-  - request:
+#### From
+- idle
+#### P1: Process Send login request
+- request:
     - method: POST
     - path: /login
     - params:
       - email: E-EmailInput.value
-  - case: sent
+- case: sent
     - state: wait-auth
-  - case: send-failed
+- case: send-failed
     - state: auth-error
 ```
 
@@ -247,7 +247,7 @@ ID 例です。
 - Front Matter は文書全体の機械向けメタデータ。
 - 見出しは major object。例: `# SCR-LOGIN Login`, `### 7:E-SignInButton Button`, `### A1:A-SubmitLogin Submit login`。
 - 箇条書きは property や rule。例: `- label: ログイン`。
-- ネストした箇条書きは `From`, `Process Pn:`, 直接の state/display 変更、process step 直下の `case:` などの詳細。
+- ネストした箇条書きは `#### From`, `#### Pn: Process ...`, 直接の state/display 変更、process step 直下の `case:` などの詳細。
 
 `7` や `A1` のような短い heading marker は preview 表示用です。参照には `E-SignInButton` や `A-SubmitLogin` のような安定 ID を使います。
 

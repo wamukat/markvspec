@@ -6,18 +6,18 @@ diagnostic、または明示的な ignore rule のどれにも分類されない
 
 ## coverage
 
-最初の実装対象は `## Actions` の `Process Pn:` bullet です。value-less な
+最初の実装対象は `## Actions` の `#### Pn: Process ...` subsection です。value-less な
 process bullet が認識済み block label ではない場合、unrepresented source text
 として分類し、diagnostic code `unrepresented-source-text` の warning を出す。
 
 例:
 
 ```markdown
-- Process P1: Submit login
-  - Encode request body
-  - request:
-    - method: POST
-    - path: /login
+#### P1: Process Submit login
+- Encode request body
+- request:
+  - method: POST
+  - path: /login
 ```
 
 `Encode request body` は著者が書いた meaningful text だが、サポート済み process

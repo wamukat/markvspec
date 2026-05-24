@@ -64,27 +64,27 @@
 
 ### A-SubmitLogin Submit login
 
-- From
-  - idle
-- Process P1: Send login request
-  - request:
+#### From
+- idle
+#### P1: Process Send login request
+- request:
     - POST /login
     - params:
       - email: E-EmailInput.value
       - password: E-PasswordInput.value
-  - case: sent
+- case: sent
     - state: submitting
 
 ### A-HandleLoginResponse Handle login response
 
-- From
-  - submitting
-- Process P1: Apply login response
-  - receive:
+#### From
+- submitting
+#### P1: Process Apply login response
+- receive:
     - response: A-SubmitLogin.P1.response
-  - case: success
+- case: success
     - navigate: SCR-DASHBOARD
-  - case: failure
+- case: failure
     - state: auth-error
     - display:
       - target: L-MessageArea

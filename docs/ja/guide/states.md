@@ -40,16 +40,16 @@ state は `## States` の下に箇条書きで書き、初期状態には `*` �
 ```markdown markvspec-skip reason=requires-actions-context
 ### A-LoadOrders Load orders
 
-- From
-  - idle
-- Process P1: Request orders
-  - request:
+#### From
+- idle
+#### P1: Process Request orders
+- request:
     - GET /orders
-  - case: sent
+- case: sent
     - state: loading
-  - case: empty
+- case: empty
     - state: empty
-  - case: failure
+- case: failure
     - state: error
 ```
 

@@ -98,12 +98,12 @@ Business Rule は、入力形式そのものや単純なフィールド比較で
 
 ### A-SubmitProfile Submit profile
 
-- Process P1: Submit profile
-  - request:
+#### P1: Process Submit profile
+- request:
     - POST /profile
     - params:
       - email: E-EmailInput.value
-  - case: email-duplicated
+- case: email-duplicated
     - state: input-error
     - display:
       - target: E-EmailError
@@ -129,10 +129,10 @@ Business Rule は、入力形式そのものや単純なフィールド比較で
 
 ### A-ExportPdf Export PDF
 
-- Process P1: Request PDF export
-  - request:
+#### P1: Process Request PDF export
+- request:
     - POST /exports/pdf
-  - case: plan-not-allowed
+- case: plan-not-allowed
     - state: export-error
     - display:
       - target: E-ExportMessage

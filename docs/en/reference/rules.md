@@ -88,8 +88,8 @@ reported as non-canonical.
 
 ### A-Submit Submit
 
-- Process P1: Submit request
-  - case: business-rule-violation
+#### P1: Process Submit request
+- case: business-rule-violation
     - business rule: R-EmailMustBeUnique
     - error code: ERR-EMAIL-ALREADY-REGISTERED
     - display:

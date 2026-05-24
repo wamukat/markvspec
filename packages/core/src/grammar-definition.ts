@@ -105,9 +105,9 @@ export const grammarSectionDefinitions = [
 export const grammarSectionOrderText = "States, Layout:<viewport>/Slot:<name>, Slots, Elements, Form Groups, Events, Actions, View Context, View Context Samples, Preview Scenarios, Field Validations, Cross-field Validations, Validations, Business Rules, Error Codes, History Fields, History";
 
 export const actionTopLevelItemDefinitions = [
-  item("From", "canonical", true, "Action source states.", "Action の遷移元 state。"),
-  item("Process Pn:", "canonical", true, "Marked process step.", "marker 付き process step。"),
-  item("Otherwise", "canonical", true, "Fallback outcome.", "fallback outcome。"),
+  item("#### From", "canonical", true, "Action source states subsection.", "Action の遷移元 state subsection。"),
+  item("#### Pn: Process", "canonical", true, "Marked process step subsection.", "marker 付き process step subsection。"),
+  item("#### Otherwise", "canonical", true, "Fallback outcome subsection.", "fallback outcome subsection。"),
   item("Triggered", "non-canonical", false, "Legacy trigger wrapper. Use Element action or Events.", "legacy trigger wrapper。Element の action または Events を使います。")
 ] as const satisfies readonly GrammarStructuredItemDefinition[];
 

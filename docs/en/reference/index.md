@@ -27,7 +27,7 @@ Learning-oriented explanations live in [Guide](../guide/index.md). Reference is 
 | [Grammar](grammar.md) | Canonical EBNF, semantic constraints, and non-canonical forms |
 | [Sections](sections.md) | Recognized sections, including layout, events, form groups, validations, slots, error codes, and history |
 | [Elements](elements.md) | Elements such as `Heading`, `Paragraph`, `Text`, `Input`, and `Button` |
-| [Actions](actions.md) | `action: A-*`, `## Events`, `Process Pn:`, `request`, `receive`, `case:`, and `display` |
+| [Actions](actions.md) | `action: A-*`, `## Events`, `#### Pn: Process`, `request`, `receive`, `case:`, and `display` |
 | [Validations](validations.md) | `## Field Validations`, `constraints`, and validation messages |
 | [Business Rules](rules.md) | Business rules and screen-specific conditions in `## Business Rules` |
 | [History](history.md) | `## History Fields`, `## History`, entry metadata, and rendering behavior |

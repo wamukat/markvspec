@@ -1281,8 +1281,8 @@ title: Action AST Diagnostics
   const parseResult = parseMarkVSpec(source);
   const expectedDiagnostics = [
     ["warning", "Malformed Action heading. Expected ### [<marker>:]A-* <name>.", lineNumber(source, "### Submit without ID")],
-    ["warning", "Unknown structured item in Action A-Submit: request: POST /login. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.", lineNumber(source, "- request: POST /login")],
-    ["warning", "Unknown structured item in Action A-Submit: Process: POST /login. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.", lineNumber(source, "- Process: POST /login")]
+    ["warning", "Unknown structured item in Action A-Submit: request: POST /login. This item is not represented in MarkVSpec output. Use #### From, #### P1: Process <name>, or #### Otherwise.", lineNumber(source, "- request: POST /login")],
+    ["warning", "Unknown structured item in Action A-Submit: Process: POST /login. This item is not represented in MarkVSpec output. Use #### From, #### P1: Process <name>, or #### Otherwise.", lineNumber(source, "- Process: POST /login")]
   ];
 
   assert.deepEqual(

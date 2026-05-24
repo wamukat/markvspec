@@ -41,10 +41,10 @@ layout group, caller element, and any states used by the result cases.
 
 ### A-RefreshProfile Refresh profile
 
-- Process P1: Request profile summary
-  - request:
+#### P1: Process Request profile summary
+- request:
     - GET /profile/summary
-  - case: success
+- case: success
     - display:
       - target: L-ProfileSummary
       - partial: PRT-PROFILE-SUMMARY
@@ -56,7 +56,7 @@ is not a raw library attribute.
 
 ## Common Patterns
 
-- Put requests under `request:` inside `Process Pn:`.
+- Put requests under `request:` inside `#### Pn: Process ...`.
 - Put result-specific partial changes under process `case:` entries with `display`.
 - Keep `target` and display payloads semantic.
 - Use the ID of the updated layout group or message element as `target`.
@@ -95,24 +95,24 @@ the referenced elements.
 
 ### A-SearchProducts Search products
 
-- Process P1: Search products
-  - request:
+#### P1: Process Search products
+- request:
     - GET /products/search
     - params:
       - q: E-SearchInput.value
-  - case: sent
+- case: sent
     - state: searching
-  - case: success
+- case: success
     - state: results
     - display:
       - target: L-ResultList
       - partial: PRT-PRODUCT-RESULTS
-  - case: empty
+- case: empty
     - state: empty
     - display:
       - target: L-ResultList
       - element: E-EmptyResults
-  - case: failure
+- case: failure
     - state: error
     - display:
       - target: E-SearchMessage

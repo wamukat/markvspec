@@ -18,31 +18,31 @@ document.
 
 ### A-SubmitLogin Submit login
 
-- From
-  - idle
-- Process P1: Send login request
-  - request:
+#### From
+- idle
+#### P1: Process Send login request
+- request:
     - POST /login
     - params:
       - email: E-EmailInput.value
       - password: E-PasswordInput.value
-  - case: sent
+- case: sent
     - state: wait-auth
-  - case: send-failed
+- case: send-failed
     - state: auth-error
 
 ### A-HandleLoginResponse Handle login response
 
-- From
-  - wait-auth
-- Process P1: Apply login response
-  - receive:
+#### From
+- wait-auth
+#### P1: Process Apply login response
+- receive:
     - response: A-SubmitLogin.P1.response
-  - case: success
+- case: success
     - from: wait-auth
     - response: 2xx authenticated user
     - navigate: SCR-DASHBOARD
-  - case: failure
+- case: failure
     - from: wait-auth
     - response: 401 invalid credentials
     - state: auth-error
@@ -73,9 +73,9 @@ This block is generated from `packages/core/src/grammar-definition.ts`. Do not h
 
 | Item | Classification | Output | Diagnostic | Description |
 | --- | --- | --- | --- | --- |
-| `From` | `canonical` | represented | - | Action source states. |
-| `Process Pn:` | `canonical` | represented | - | Marked process step. |
-| `Otherwise` | `canonical` | represented | - | Fallback outcome. |
+| `#### From` | `canonical` | represented | - | Action source states subsection. |
+| `#### Pn: Process` | `canonical` | represented | - | Marked process step subsection. |
+| `#### Otherwise` | `canonical` | represented | - | Fallback outcome subsection. |
 | `Triggered` | `non-canonical` | not represented | `warning` | Legacy trigger wrapper. Use Element action or Events. |
 
 #### Process Structured Items
@@ -111,13 +111,16 @@ This block is generated from `packages/core/src/grammar-definition.ts`. Do not h
 
 ### HTTP Request
 
-Put HTTP request details under `request:` inside `Process Pn:`, then write the method/path and request parameters. Use `server:` only when you need to describe a server-side service call that is not the HTTP request itself.
+Put HTTP request details under `request:` inside a `#### Pn: Process ...`
+subsection, then write the method/path and request parameters. Use `server:`
+only when you need to describe a server-side service call that is not the HTTP
+request itself.
 
 This is a `Process` snippet inside an action.
 
 ```markdown markvspec-skip reason=requires-action-heading
-- Process P1: Load profile
-  - request:
+#### P1: Process Load profile
+- request:
     - GET /profile
     - params:
       - userId: route.userId
@@ -132,8 +135,8 @@ framework attributes.
 This is a `Process` snippet inside an action.
 
 ```markdown markvspec-skip reason=requires-action-heading
-- Process P1: Apply profile response
-  - case: success
+#### P1: Process Apply profile response
+- case: success
     - response: 200 profile partial
     - display:
       - target: L-ProfileSummary
@@ -173,8 +176,8 @@ element and any valid states.
 ```markdown markvspec-skip reason=requires-actions-context
 ### A-OpenSettings Open settings
 
-- Process P1: Navigate to settings
-  - navigate: SCR-SETTINGS
+#### P1: Process Navigate to settings
+- navigate: SCR-SETTINGS
 ```
 
 ![Form Submit Flow actions preview](../../assets/vscode-previews/form-submit-flow-vscode-preview.png)
@@ -191,7 +194,7 @@ element and any valid states.
   choosing `message`, `element`, or `partial`.
 - Use `message`, `element`, or `partial` as the display payload.
 - Request parameters are easiest to review when written as references to element values.
-- Write result branches as `case:` entries under the relevant `Process Pn:`.
+- Write result branches as `case:` entries under the relevant `#### Pn: Process ...`.
 
 ## Related Pages
 

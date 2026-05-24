@@ -13,31 +13,31 @@ targeted display update を結びます。button や link は element の `actio
 
 ### A-SubmitLogin Submit login
 
-- From
-  - idle
-- Process P1: Send login request
-  - request:
+#### From
+- idle
+#### P1: Process Send login request
+- request:
     - POST /login
     - params:
       - email: E-EmailInput.value
       - password: E-PasswordInput.value
-  - case: sent
+- case: sent
     - state: wait-auth
-  - case: send-failed
+- case: send-failed
     - state: auth-error
 
 ### A-HandleLoginResponse Handle login response
 
-- From
-  - wait-auth
-- Process P1: Apply login response
-  - receive:
+#### From
+- wait-auth
+#### P1: Process Apply login response
+- receive:
     - response: A-SubmitLogin.P1.response
-  - case: success
+- case: success
     - from: wait-auth
     - response: 2xx authenticated user
     - navigate: SCR-DASHBOARD
-  - case: failure
+- case: failure
     - from: wait-auth
     - response: 401 invalid credentials
     - state: auth-error
@@ -66,9 +66,9 @@ Action は `### A-* Name` で宣言します。preview に action marker を出�
 
 | Item | 分類 | 出力 | 診断 | 説明 |
 | --- | --- | --- | --- | --- |
-| `From` | `canonical` | 出力対象 | - | Action の遷移元 state。 |
-| `Process Pn:` | `canonical` | 出力対象 | - | marker 付き process step。 |
-| `Otherwise` | `canonical` | 出力対象 | - | fallback outcome。 |
+| `#### From` | `canonical` | 出力対象 | - | Action の遷移元 state subsection。 |
+| `#### Pn: Process` | `canonical` | 出力対象 | - | marker 付き process step subsection。 |
+| `#### Otherwise` | `canonical` | 出力対象 | - | fallback outcome subsection。 |
 | `Triggered` | `non-canonical` | 出力対象外 | `warning` | legacy trigger wrapper。Element の action または Events を使います。 |
 
 #### Process 配下の structured item
@@ -104,11 +104,11 @@ Action は `### A-* Name` で宣言します。preview に action marker を出�
 
 ### HTTP Request
 
-HTTP request は `Process Pn:` の `request:` の下に置き、method/path と request parameter を書きます。`server:` は必要な場合だけ、サーバ側の service call など HTTP request ではない処理を書くために使います。
+HTTP request は `#### Pn: Process ...` subsection の `request:` の下に置き、method/path と request parameter を書きます。`server:` は必要な場合だけ、サーバ側の service call など HTTP request ではない処理を書くために使います。
 
 ```markdown markvspec-skip reason=requires-action-heading
-- Process P1: Load profile
-  - request:
+#### P1: Process Load profile
+- request:
     - GET /profile
     - params:
       - userId: route.userId
@@ -121,8 +121,8 @@ implementation-neutral な契約です。raw framework attributes ではなく�
 見える結果を書きます。
 
 ```markdown markvspec-skip reason=requires-action-heading
-- Process P1: Apply profile response
-  - case: success
+#### P1: Process Apply profile response
+- case: success
     - response: 200 profile partial
     - display:
       - target: L-ProfileSummary
@@ -157,8 +157,8 @@ MarkVSpec の ID と semantic message で、ユーザーに見える content の
 ```markdown markvspec-skip reason=requires-state-action-definitions
 ### A-OpenSettings Open settings
 
-- Process P1: Navigate to settings
-  - navigate: SCR-SETTINGS
+#### P1: Process Navigate to settings
+- navigate: SCR-SETTINGS
 ```
 
 ![Form Submit Flow の actions preview](../../assets/vscode-previews/form-submit-flow-vscode-preview.png)
@@ -174,7 +174,7 @@ MarkVSpec の ID と semantic message で、ユーザーに見える content の
   `partial` のいずれかで semantic に書きます。
 - display payload は `message`、`element`、`partial` のいずれかで書きます。
 - request の parameter は element value への参照として書くと、AI と reviewer が追いやすくなります。
-- 結果分岐は `Process Pn:` 配下の `case:` として書きます。
+- 結果分岐は `#### Pn: Process ...` 配下の `case:` として書きます。
 
 ## 関連ページ
 

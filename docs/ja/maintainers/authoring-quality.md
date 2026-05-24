@@ -34,7 +34,7 @@ lint は、パース、プレビュー、ナビゲーション、設計レビュ
   `references.partials` に定義されていない。
 - 参照先 template/partial ファイルが存在しない、ID が一致しない、または document type が
   合っていない。
-- 現行の `Process Pn: <name>` / `request:` / `display.partial` /
+- 現行の `#### Pn: Process <name>` / `request:` / `display.partial` /
   `mode: replace` 構造ではない partial update を使っている。
 
 ## Validation gate
