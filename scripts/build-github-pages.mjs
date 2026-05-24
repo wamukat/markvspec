@@ -80,6 +80,12 @@ function buildExampleExportTooling() {
   execFileSync("npm", ["run", "build:example-export-tooling"], { stdio: "inherit" });
 }
 
+function syncDocsSiteContent() {
+  execFileSync("node", ["scripts/sync-docs-site-content.mjs"], {
+    stdio: "inherit",
+  });
+}
+
 function prepareBrandAssets() {
   rmSync(publicAssetsDir, { recursive: true, force: true });
   cpSync(brandAssetsDir, publicAssetsDir, { recursive: true });
@@ -134,6 +140,7 @@ const releaseBuildLock = acquireBuildLock();
 try {
   const files = collectVspecFiles(examplesDir);
   assertUniqueOutputNames(files);
+  syncDocsSiteContent();
   validateCatalog(files);
   buildExampleExportTooling();
   console.log(`Preparing ${files.length} example source assets and shared preview assets.`);
@@ -148,9 +155,7 @@ try {
     stdio: "inherit",
   });
 
-  execFileSync("node", ["scripts/sync-docs-site-content.mjs"], {
-    stdio: "inherit",
-  });
+  syncDocsSiteContent();
 
   execFileSync("npm", ["--prefix", "docs-site", "run", "build"], {
     stdio: "inherit",
