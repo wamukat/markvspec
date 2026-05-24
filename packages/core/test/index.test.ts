@@ -143,6 +143,76 @@ This prose is represented as section prose.
   assert.deepEqual(result.diagnostics.filter((item) => item.code === "unrepresented-source-text"), []);
 });
 
+test("warns when Layout metadata source text is not represented", () => {
+  const source = `---
+id: SCR-LAYOUT-UNREPRESENTED
+type: screen
+title: Layout Unrepresented
+---
+
+# SCR-LAYOUT-UNREPRESENTED Layout Unrepresented
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Page
+
+- stack
+- gap: md
+- unsupported layout sentence
+- analytics scope: login screen
+
+#### Items
+
+- E-Title
+- L-Child
+- "CTA": E-Button
+- slot: content
+
+### L-Child
+
+- row
+
+## Slot: content
+
+### L-SlotContent
+
+- inline
+- unsupported slot layout sentence
+
+#### Items
+
+- E-Title
+
+## Elements
+
+### E-Title Text
+
+- text: Welcome
+
+### E-Button Button
+
+- label: Continue
+`;
+
+  const result = parseMarkVSpec(source);
+  const unrepresented = result.diagnostics.filter((item) => item.code === "unrepresented-source-text");
+  const extension = result.diagnostics.find((item) => item.message.includes("analytics scope: login screen"));
+
+  assert.equal(unrepresented.length, 2);
+  assert.equal(unrepresented[0]?.severity, "warning");
+  assert.equal(unrepresented[0]?.line, lineNumber(source, "- unsupported layout sentence"));
+  assert.match(unrepresented[0]?.message ?? "", /unsupported layout sentence/);
+  assert.equal(unrepresented[1]?.severity, "warning");
+  assert.equal(unrepresented[1]?.line, lineNumber(source, "- unsupported slot layout sentence"));
+  assert.match(unrepresented[1]?.message ?? "", /unsupported slot layout sentence/);
+  assert.equal(extension?.severity, "info");
+  assert.match(extension?.message ?? "", /preserved in MarkVSpec output/);
+});
+
 function examplePath(relativePath: string): string {
   return resolve("../../examples", relativePath);
 }

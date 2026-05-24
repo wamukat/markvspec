@@ -43,6 +43,29 @@ Example:
 scenario property. It is not represented by the preview scenario model and is
 therefore reported as unrepresented source text.
 
+Layout metadata coverage reports value-less unknown bullets directly under a
+`## Layout:*` or `## Slot:*` layout group. Canonical value-less layout flags such
+as `stack`, `row`, `grid`, and `inline` are represented as layout kinds and do
+not warn. Key/value metadata such as `gap: md` is also represented; unsupported
+key/value metadata remains an extension item and produces an `info` diagnostic
+instead of this warning.
+
+Example:
+
+```markdown
+## Layout: mobile
+
+### L-Page
+
+- stack
+- gap: md
+- unsupported layout sentence
+```
+
+`unsupported layout sentence` looks like meaningful author text, but it is not a
+supported layout flag or property and is not rendered. The parser reports it as
+unrepresented source text on the bullet line.
+
 ## Intentional Ignores
 
 The classifier intentionally ignores syntax-only labels such as
@@ -57,9 +80,15 @@ Supported process details, result entries, case entries, state effects, layout
 items, element properties, and section prose/notes are represented by existing
 models and should not produce this warning.
 
+`#### Items` entries under layout groups are intentionally handled by the layout
+item classifier, not the layout metadata classifier. Element references, layout
+group references, field mappings, and slot references under `#### Items` should
+not produce this warning.
+
 ## Known Limits
 
 This is not yet a complete soundness guarantee for every Markdown text node in
-the document. Current coverage is scoped to confirmed `Actions > Process` and
-`Preview Scenarios` blind spots. Future expansion should add section-specific
-classifiers rather than searching rendered HTML for raw strings.
+the document. Current coverage is scoped to confirmed `Actions > Process`,
+`Preview Scenarios`, and Layout metadata blind spots. Future expansion should
+add section-specific classifiers rather than searching rendered HTML for raw
+strings.

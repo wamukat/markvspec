@@ -312,7 +312,31 @@ title: ${title}
 }
 
 test("maps unrepresented source text warnings to VS Code diagnostics", () => {
-  const source = screenWithUnrepresentedProcessText("SCR-VSCODE-UNREPRESENTED", "VS Code Unrepresented", "Encode request body");
+  const source = `---
+id: SCR-VSCODE-UNREPRESENTED
+type: screen
+title: VS Code Unrepresented
+---
+
+# SCR-VSCODE-UNREPRESENTED VS Code Unrepresented
+
+## States
+
+- idle*
+
+## Layout: mobile
+
+### L-Page
+
+- stack
+- unsupported layout sentence
+
+## Elements
+
+### E-Title Text
+
+- text: Welcome
+`;
   const document = createTextDocument(source);
   const calls: Array<{ uri: unknown; diagnostics: vscode.Diagnostic[] }> = [];
   const controller = new MarkVSpecDiagnosticsController({
@@ -338,9 +362,9 @@ test("maps unrepresented source text warnings to VS Code diagnostics", () => {
   controller.update(document as unknown as vscode.TextDocument);
 
   assert.equal(calls.length, 1);
-  const diagnostic = calls[0]?.diagnostics.find((item) => item.message.includes("Encode request body"));
+  const diagnostic = calls[0]?.diagnostics.find((item) => item.message.includes("unsupported layout sentence"));
   assert.equal(diagnostic?.severity, vscode.DiagnosticSeverity.Warning);
-  assert.equal(diagnostic?.range.start.line, lineNumber(source, "- Encode request body") - 1);
+  assert.equal(diagnostic?.range.start.line, lineNumber(source, "- unsupported layout sentence") - 1);
 });
 
 test("maps Action migration and process item warnings to VS Code diagnostic lines", () => {

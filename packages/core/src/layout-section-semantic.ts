@@ -8,7 +8,11 @@ import type {
   SourceLocation
 } from "./types.js";
 import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
-import { createRepresentedExtensionItemDiagnostic, createUnsupportedStructuredItemDiagnostic } from "./source-text-diagnostics.js";
+import {
+  createRepresentedExtensionItemDiagnostic,
+  createUnrepresentedSourceTextDiagnostic,
+  createUnsupportedStructuredItemDiagnostic
+} from "./source-text-diagnostics.js";
 import { elementIdPattern, isLayoutItemId, layoutGroupIdPattern } from "./ids.js";
 import type { MarkdownDocument } from "./markdown-document.js";
 import {
@@ -21,6 +25,9 @@ import { grammarAllowedStructuredItemKeys } from "./grammar-definition.js";
 
 const slotDefinitionPropertyKeys: ReadonlySet<string> = new Set(grammarAllowedStructuredItemKeys("slot.definition"));
 const layoutGroupMetadataPropertyKeys: ReadonlySet<string> = new Set(grammarAllowedStructuredItemKeys("layout.metadata"));
+const layoutKindFlags: ReadonlySet<string> = new Set(["stack", "row", "grid", "inline"]);
+const layoutKindCandidatePattern = /^[A-Za-z][\w-]*$/u;
+const layoutKindPrefixPattern = /^(?:stack|row|grid|inline)(?:\W|$)/u;
 
 interface ListItemView {
   text: string;
@@ -463,13 +470,26 @@ function applyLayoutMetadataBullet(
     return undefined;
   }
 
-  if (!layout.kind) {
-    layout.kind = bullet.text;
+  const normalizedFlag = bullet.text.trim();
+  const isLayoutKindFlag = layoutKindFlags.has(normalizedFlag);
+  const startsWithLayoutKindFlag = layoutKindPrefixPattern.test(normalizedFlag);
+  const isLayoutKindCandidate = !layout.kind && (layoutKindCandidatePattern.test(normalizedFlag) || startsWithLayoutKindFlag);
+  const isDirectChildReference = isLayoutItemId(normalizedFlag);
+
+  if (!isLayoutKindFlag && !isLayoutKindCandidate && !isDirectChildReference) {
+    diagnostics.push(createUnrepresentedSourceTextDiagnostic({
+      text: bullet.text,
+      location: bullet.location
+    }));
+  }
+
+  if (!layout.kind && (isLayoutKindFlag || isLayoutKindCandidate)) {
+    layout.kind = normalizedFlag;
   }
 
   layout.items.push({
     type: "flag",
-    value: bullet.text,
+    value: normalizedFlag,
     scope: "metadata",
     location: bullet.location,
     raw: bullet.text
