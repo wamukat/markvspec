@@ -8,6 +8,7 @@ import {
   escapeHtml,
   text
 } from "./design-document-renderer.js";
+import { sourceAnchorAttributesForId } from "./source-anchor.js";
 
 export type EntityReferenceKind = "action" | "layout" | "element" | "form-group" | "message" | "document" | "error-code";
 
@@ -18,6 +19,7 @@ export interface EntityReference {
   readonly label?: string;
   readonly href?: string;
   readonly displaySource?: string;
+  readonly sourceAnchorAttributes?: string;
 }
 
 export function referenceForDetailId(result: MarkVSpecParseResult, id: string | undefined): string {
@@ -125,10 +127,11 @@ export function renderEntityRefChip(input: EntityReference): string {
   const classes = `mm-ref-chip mm-ref-chip-${input.category}`;
   const title = input.label ? ` title="${escapeHtml(`${input.id} ${input.label}`)}"` : ` title="${escapeHtml(input.id)}"`;
   const refIdAttribute = ` data-mm-ref-id="${escapeHtml(input.id)}"`;
+  const sourceAnchorAttributes = input.sourceAnchorAttributes ?? "";
   const body = `${markerHtml}${labelHtml}`;
   return input.href
-    ? `<a class="${classes}" href="${escapeHtml(input.href)}"${refIdAttribute}${title}>${body}</a>`
-    : `<span class="${classes}"${refIdAttribute}${title}>${body}</span>`;
+    ? `<a class="${classes}" href="${escapeHtml(input.href)}"${refIdAttribute}${sourceAnchorAttributes}${title}>${body}</a>`
+    : `<span class="${classes}"${refIdAttribute}${sourceAnchorAttributes}${title}>${body}</span>`;
 }
 
 export function markerBadgeForId(result: MarkVSpecParseResult, id: string | undefined, linkAction = true): string {
@@ -156,7 +159,8 @@ export function referenceChipForId(result: MarkVSpecParseResult, id: string, lin
       category: "document",
       marker: id,
       label: result.screen.id === id ? result.screen.title ?? result.screen.heading ?? id : id,
-      href: linkEntity && result.screen.id === id ? `#${screenAnchor()}` : undefined
+      href: linkEntity && result.screen.id === id ? `#${screenAnchor()}` : undefined,
+      sourceAnchorAttributes: sourceAnchorAttributesForId(result, id)
     });
   }
 
@@ -167,7 +171,8 @@ export function referenceChipForId(result: MarkVSpecParseResult, id: string, lin
       category: "action",
       marker: findMarker(result, id) || id,
       label: action?.name || id,
-      href: linkAction ? `#${actionDetailAnchor(id)}` : undefined
+      href: linkAction ? `#${actionDetailAnchor(id)}` : undefined,
+      sourceAnchorAttributes: sourceAnchorAttributesForId(result, id)
     });
   }
 
@@ -178,7 +183,8 @@ export function referenceChipForId(result: MarkVSpecParseResult, id: string, lin
       category: "layout",
       marker: findMarker(result, id) || id,
       label: layout?.name || id,
-      href: linkEntity ? `#${stateViewsAnchor()}` : undefined
+      href: linkEntity ? `#${stateViewsAnchor()}` : undefined,
+      sourceAnchorAttributes: sourceAnchorAttributesForId(result, id)
     });
   }
 
@@ -188,7 +194,8 @@ export function referenceChipForId(result: MarkVSpecParseResult, id: string, lin
       category: "element",
       marker: findMarker(result, id) || id,
       label: id,
-      href: linkEntity ? `#${stateViewsAnchor()}` : undefined
+      href: linkEntity ? `#${stateViewsAnchor()}` : undefined,
+      sourceAnchorAttributes: sourceAnchorAttributesForId(result, id)
     });
   }
 
@@ -199,7 +206,8 @@ export function referenceChipForId(result: MarkVSpecParseResult, id: string, lin
       category: "form-group",
       marker: findMarker(result, id) || id,
       label: formGroup?.name || id,
-      href: `#${formGroupsAnchor()}`
+      href: `#${formGroupsAnchor()}`,
+      sourceAnchorAttributes: sourceAnchorAttributesForId(result, id)
     });
   }
 

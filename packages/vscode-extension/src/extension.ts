@@ -126,6 +126,11 @@ import {
   screenAnchor,
   validationRulesAnchor
 } from "./entity-reference-presenter.js";
+import {
+  sourceAnchorAttributesForId,
+  sourceAnchorAttributesForScreen,
+  sourceAnchorAttributesForSection
+} from "./source-anchor.js";
 export {
   defaultExportHtmlBaseName,
   renderPreviewErrorHtml,
@@ -1906,7 +1911,8 @@ function stateViewsRenderContext(
       id: layout.id,
       category: "layout",
       marker: layoutDisplaySettings(layout).marker || layout.id,
-      label: layout.name || layout.id
+      label: layout.name || layout.id,
+      sourceAnchorAttributes: sourceAnchorAttributesForId(result, layout.id)
     }),
     renderIcon: renderPreviewIcon,
     renderEntityNotes: (notes) => renderEntityNotes(markdownResult, notes),
@@ -1919,7 +1925,7 @@ function stateViewsRenderContext(
     renderInputSpec: elementSpec.renderInputSpec,
     renderElementConditionSummary: (element) => renderElementConditionSummary(result, element),
     renderContentElementState: (element) => renderContentElementState(result, element),
-    renderDisplayContentValue,
+    renderDisplayContentValue: (element, value, sections, sampleRowsRef) => renderDisplayContentValue(result, element, value, sections, sampleRowsRef),
     renderSourceSummary,
     renderElementLabelSummary: elementSpec.renderElementLabelSummary,
     renderElementValueSummary,
@@ -2147,7 +2153,7 @@ function renderElementSpecFragment(
 ): string {
   const headingTag = headingLevel === 5 ? renderStateScreenSubheading(heading) : `<h3>${escapeHtml(heading)}</h3>`;
   const body = headingLevel === 5 ? demoteStateScreenDetailHeadings(content) : content;
-  return `<div class="element-spec-fragment" data-mm-render-key="elements:list"${repeatedHiddenEmptyAttr(emptyWhenRepeatedHidden)}>
+  return `<div class="element-spec-fragment" data-mm-render-key="elements:list"${sourceAnchorAttributesForSection(result, "Elements")}${repeatedHiddenEmptyAttr(emptyWhenRepeatedHidden)}>
     ${headingTag}
     ${renderSectionOverview(result, sectionProse)}
     ${body}
@@ -2164,7 +2170,7 @@ function renderActionSpecFragment(
   emptyWhenRepeatedHidden = false
 ): string {
   const headingTag = headingLevel === 5 ? renderStateScreenSubheading(heading) : `<h3>${escapeHtml(heading)}</h3>`;
-  return `<div class="action-spec-fragment"${repeatedHiddenEmptyAttr(emptyWhenRepeatedHidden)}>
+  return `<div class="action-spec-fragment"${sourceAnchorAttributesForSection(result, "Actions")}${repeatedHiddenEmptyAttr(emptyWhenRepeatedHidden)}>
     ${headingTag}
     ${renderSectionOverview(result, sectionProse)}
     ${content}
@@ -2215,7 +2221,7 @@ function renderLayoutSpecFragment(
   emptyWhenRepeatedHidden = false
 ): string {
   const headingTag = headingLevel === 5 ? renderStateScreenSubheading(heading) : `<h3>${escapeHtml(heading)}</h3>`;
-  return `<div class="layout-spec-fragment" data-mm-render-key="layouts:list"${repeatedHiddenEmptyAttr(emptyWhenRepeatedHidden)}>
+  return `<div class="layout-spec-fragment" data-mm-render-key="layouts:list"${sourceAnchorAttributesForSection(result, "Layout")}${repeatedHiddenEmptyAttr(emptyWhenRepeatedHidden)}>
     ${headingTag}
     ${content}
   </div>`;
@@ -2235,7 +2241,7 @@ function renderScreenSpec(result: ReturnType<typeof parseMarkVSpec>): string {
   const references = renderScreenReferences(result);
   const otherMetadata = renderScreenOtherMetadata(result);
 
-  return `<section class="doc-section screen-spec-section">
+  return `<section class="doc-section screen-spec-section"${sourceAnchorAttributesForScreen(result)}>
     <h2 id="${screenAnchor()}">${heading}</h2>
     <div class="screen-overview">
       <div class="screen-overview-badges">
@@ -2361,9 +2367,9 @@ function renderDefaultAlways(result: ReturnType<typeof parseMarkVSpec>): string 
   return `<span class="spec-default-always">${text(label(result, "always"))}</span>`;
 }
 
-function renderDisplayContentValue(element: ParsedElement, value: string, sections?: Array<{ title: string; rows: string[] }>, sampleRowsRef?: DisplayContentSpecSampleRowsRef): string {
+function renderDisplayContentValue(result: ReturnType<typeof parseMarkVSpec>, element: ParsedElement, value: string, sections?: Array<{ title: string; rows: string[] }>, sampleRowsRef?: DisplayContentSpecSampleRowsRef): string {
   if (sampleRowsRef) {
-    return `${text(value)}: ${renderSampleRowsRef(element, sampleRowsRef)}`;
+    return `${text(value)}: ${renderSampleRowsRef(result, element, sampleRowsRef)}`;
   }
   if (sections && sections.length > 0) {
     return renderSpecSections(sections.map((section) => ({
@@ -2380,14 +2386,15 @@ function renderDisplayContentValue(element: ParsedElement, value: string, sectio
     : text(value);
 }
 
-function renderSampleRowsRef(element: ParsedElement, sampleRowsRef: DisplayContentSpecSampleRowsRef): string {
+function renderSampleRowsRef(result: ReturnType<typeof parseMarkVSpec>, element: ParsedElement, sampleRowsRef: DisplayContentSpecSampleRowsRef): string {
   const summary = displaySummaryForElement(element);
   const ref = renderEntityRefChip({
     id: sampleRowsRef.elementId,
     category: "element",
     marker: summary.marker || sampleRowsRef.elementId,
     label: element.id,
-    href: sampleRowsRef.anchorId ? `#${sampleRowsRef.anchorId}` : undefined
+    href: sampleRowsRef.anchorId ? `#${sampleRowsRef.anchorId}` : undefined,
+    sourceAnchorAttributes: sourceAnchorAttributesForId(result, sampleRowsRef.elementId)
   });
   return prependHtmlInsideFirstTag(ref, renderPreviewIcon("table"));
 }
@@ -2532,7 +2539,7 @@ function renderPartialUpdateContent(result: ReturnType<typeof parseMarkVSpec>, u
 
 function renderActionDetailsSpec(result: ReturnType<typeof parseMarkVSpec>, markdownResult: ReturnType<typeof parseMarkVSpec> = result): string {
   const cards = result.actions.map((action) => renderActionDetail(result, action, markdownResult)).join("");
-  return `<section class="doc-section">
+  return `<section class="doc-section"${sourceAnchorAttributesForSection(result, "Actions")}>
     <h2>${label(result, "actionDetails")}</h2>
     ${cards ? `<div class="action-detail-list">${cards}</div>` : `<p class="spec-empty">${label(result, "none")}</p>`}
   </section>`;
@@ -2816,7 +2823,7 @@ function mermaidLabel(value: string): string {
 
 function renderStatesSpec(result: ReturnType<typeof parseMarkVSpec>, markdownResult: ReturnType<typeof parseMarkVSpec> = result): string {
   const sectionProse = sectionProseForKind(result, "States");
-  return `<section class="doc-section">
+  return `<section class="doc-section"${sourceAnchorAttributesForSection(result, "States")}>
     <h2>${label(result, "states")}</h2>
     ${renderSectionOverview(markdownResult, sectionProse)}
     ${renderLocalizedTable(result,
@@ -3068,7 +3075,7 @@ function renderActionDetail(
     [label(result, "notes"), renderEntityNotes(markdownResult, action.notes)]
   ].filter(([, value]) => value);
 
-  return `<article class="action-detail">
+  return `<article class="action-detail"${sourceAnchorAttributesForId(result, action.id)}>
     <h3 id="${actionDetailAnchor(action.id)}">${markerBadgeForId(result, action.id, false) || renderDetailRefId(action.id)} ${text(action.name)}</h3>
     <dl>${rows.map(([label, value]) => `<dt>${escapeHtml(label)}</dt><dd>${value}</dd>`).join("")}</dl>
   </article>`;
@@ -3838,7 +3845,8 @@ function renderLayoutReferenceForId(result: ReturnType<typeof parseMarkVSpec>, i
     id: layout.id,
     category: "layout",
     marker: layoutDisplaySettings(layout).marker || layout.id,
-    label: layout.name || layout.id
+    label: layout.name || layout.id,
+    sourceAnchorAttributes: sourceAnchorAttributesForId(result, layout.id)
   });
 }
 

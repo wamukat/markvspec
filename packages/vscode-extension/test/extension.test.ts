@@ -419,7 +419,7 @@ test("renders generated design document sections without launching VS Code", () 
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
   const html = renderDesignDocumentHtml(result, preview);
 
-  assert.match(html, /<section class="doc-section screen-spec-section">/);
+  assert.match(html, /<section class="doc-section screen-spec-section"[^>]*>/);
   assertPatternsInOrder(html, [
     /<h2 id="screen">Screen<\/h2>/,
     /<nav class="toc-inline"/,
@@ -497,8 +497,8 @@ test("renders generated design document sections without launching VS Code", () 
   assert.match(html, /element[\s\S]*E-ValidationMessage/);
   assert.match(html, new RegExp(`set state ${docLabel("idle", "state")}[\\s\\S]*element[\\s\\S]*E-AuthErrorBanner`));
   const actionDetailsSection = docSectionByHeading(html, "Action Details", "Validations");
-  const submitActionDetail = actionDetailsSection.match(/<article class="action-detail">\s*<h3 id="action-detail-A-SubmitLogin">[\s\S]*?<\/article>/)?.[0] ?? "";
-  const responseActionDetail = actionDetailsSection.match(/<article class="action-detail">\s*<h3 id="action-detail-A-HandleLoginResponse">[\s\S]*?<\/article>/)?.[0] ?? "";
+  const submitActionDetail = actionDetailsSection.match(/<article class="action-detail"[^>]*>\s*<h3 id="action-detail-A-SubmitLogin">[\s\S]*?<\/article>/)?.[0] ?? "";
+  const responseActionDetail = actionDetailsSection.match(/<article class="action-detail"[^>]*>\s*<h3 id="action-detail-A-HandleLoginResponse">[\s\S]*?<\/article>/)?.[0] ?? "";
   assert.match(actionDetailsSection, new RegExp(`<h3 id="action-detail-A-SubmitLogin">${actionBadge("A1", "A-SubmitLogin", false)} Submit login</h3>`));
   assert.doesNotMatch(actionDetailsSection, /<dt>Transitions<\/dt>/);
   assert.doesNotMatch(actionDetailsSection, /<dt>Kind<\/dt>/);
@@ -5137,7 +5137,7 @@ references:
     assert.doesNotMatch(html, /<h2>スロット<\/h2>/);
     assert.doesNotMatch(html, /<h3>差し込み内容<\/h3>/);
     assert.match(html, /<h3>参照設計書<\/h3>/);
-    const screenSection = html.match(/<section class="doc-section screen-spec-section">[\s\S]*?<\/section>/)?.[0] ?? "";
+    const screenSection = html.match(/<section class="doc-section screen-spec-section"[^>]*>[\s\S]*?<\/section>/)?.[0] ?? "";
     assert.doesNotMatch(screenSection, /<dt>Locale<\/dt>/);
     assert.doesNotMatch(screenSection, /<dt>Default State<\/dt>/);
     assert.match(html, /<h3>参照設計書<\/h3>\s*<div class="spec-table-wrap"><table class="spec-table"><colgroup><col class="spec-table-col spec-table-col-default"><col class="spec-table-col spec-table-col-id"><col class="spec-table-col spec-table-col-default"><col class="spec-table-col spec-table-col-default"><\/colgroup><thead><tr><th>種別<\/th><th>ID<\/th><th>タイトル<\/th><th>ステータス<\/th><\/tr><\/thead>/);
@@ -6593,7 +6593,7 @@ This note remains attached to the first request step.
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
   const html = renderDesignDocumentHtml(result, preview);
-  const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-NextPage">[\s\S]*?<\/article>/)?.[0] ?? "";
+  const actionDetail = html.match(/<article class="action-detail"[^>]*>\s*<h3 id="action-detail-A-NextPage">[\s\S]*?<\/article>/)?.[0] ?? "";
 
   assert.doesNotMatch(actionDetail, /<dt>Request<\/dt>|<dt>Parameters<\/dt>/);
   assert.doesNotMatch(actionDetail, /<dt>Overview<\/dt>/);
@@ -6658,7 +6658,7 @@ Keep the retry caveat visible in generated artifacts.
   const result = parseMarkVSpec(source);
   const html = renderStandaloneHtml(result, undefined, "process-notes.vspec.md");
 
-  assert.match(html, new RegExp(`<article class="action-detail">[\\s\\S]*<dt>From</dt><dd>${docLabel("idle", "state")}</dd>`));
+  assert.match(html, new RegExp(`<article class="action-detail"[^>]*>[\\s\\S]*<dt>From</dt><dd>${docLabel("idle", "state")}</dd>`));
   assert.match(html, new RegExp(`${processTitleGroupPattern("unplug", `${docLabel("P1", "result")} Send request`)}[\\s\\S]*<div class="entity-overview"><p class="note-paragraph">Prepare the request before sending it\\.</p></div>[\\s\\S]*<li>path: /api/items</li>[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*effect set state ${docLabel("loaded", "state")}[\\s\\S]*<div class="entity-notes"><p class="note-paragraph">Keep the retry caveat visible in generated artifacts\\.</p></div>`));
   assert.match(html, /<section class="doc-section"[^>]*id="state-transition-table"[^>]*>[\s\S]*<td><a class="mm-ref-chip mm-ref-chip-action" href="#action-detail-A-Load"/);
   assert.doesNotMatch(html, /acquireVsCodeApi/);
@@ -6668,7 +6668,7 @@ test("renders process control at the end of process cases", () => {
   const source = readFileSync(resolve("../../examples/04-real-world-screens/profile-edit-rich.vspec.md"), "utf8");
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
-  const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-RequestDiscardDialog">[\s\S]*?<\/article>/)?.[0] ?? "";
+  const actionDetail = html.match(/<article class="action-detail"[^>]*>\s*<h3 id="action-detail-A-RequestDiscardDialog">[\s\S]*?<\/article>/)?.[0] ?? "";
 
   assert.match(actionDetail, new RegExp(`<strong>${docLabel("done", "result")}</strong>[\\s\\S]*<li>display <ul class="spec-list spec-effect-list"><li>modal overlay</li><li>element ${detailElementRef("20", "E-DiscardDialog")}</li></ul></li><li>stop process</li>`));
   assert.doesNotMatch(actionDetail, /<strong><code class="mm-doc-label mm-doc-label-result">done<\/code><\/strong>[\s\S]*<li>stop process<\/li><li>display /);
@@ -6710,7 +6710,7 @@ title: Direct Process
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
   const html = renderDesignDocumentHtml(result, preview);
-  const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Continue">[\s\S]*?<\/article>/)?.[0] ?? "";
+  const actionDetail = html.match(/<article class="action-detail"[^>]*>\s*<h3 id="action-detail-A-Continue">[\s\S]*?<\/article>/)?.[0] ?? "";
 
   assert.match(actionDetail, new RegExp(`<div class="process-card process-step-card" role="listitem">[\\s\\S]*<span class="process-card-title">${docLabel("P1", "result")} Apply immediate effect</span>[\\s\\S]*<li>effect navigate to ${documentRef("SCR-NEXT")}</li>`));
   assert.match(actionDetail, new RegExp(`<span class="process-card-title">${docLabel("P2", "result")} Set loaded</span>[\\s\\S]*<li>effect set state ${docLabel("loaded", "state")}</li>`));
@@ -6791,7 +6791,7 @@ title: Process Icons
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
-  const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Run">[\s\S]*?<\/article>/)?.[0] ?? "";
+  const actionDetail = html.match(/<article class="action-detail"[^>]*>\s*<h3 id="action-detail-A-Run">[\s\S]*?<\/article>/)?.[0] ?? "";
 
   assert.match(actionDetail, new RegExp(processTitleGroupPattern("square-check-big", `${docLabel("P1", "result")} Check validation`)));
   assert.match(actionDetail, new RegExp(processTitleGroupPattern("unplug", `${docLabel("P2", "result")} Send request`)));
@@ -6880,7 +6880,7 @@ locale: ja
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
-  const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Run">[\s\S]*?<\/article>/)?.[0] ?? "";
+  const actionDetail = html.match(/<article class="action-detail"[^>]*>\s*<h3 id="action-detail-A-Run">[\s\S]*?<\/article>/)?.[0] ?? "";
 
   assert.match(actionDetail, /並列グループ: initial-load/);
   assert.match(actionDetail, /実行条件/);
@@ -6967,7 +6967,7 @@ title: Nested Process Details
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
   const html = renderDesignDocumentHtml(result, preview);
-  const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Submit">[\s\S]*?<\/article>/)?.[0] ?? "";
+  const actionDetail = html.match(/<article class="action-detail"[^>]*>\s*<h3 id="action-detail-A-Submit">[\s\S]*?<\/article>/)?.[0] ?? "";
 
   assert.match(actionDetail, new RegExp(`<li>request<ul class="spec-list spec-nested-list">[\\s\\S]*<li>method: POST</li>[\\s\\S]*<li>path: /subscriptions</li>[\\s\\S]*<li>Parameters<ul class="spec-list spec-nested-list"><li>email: ${detailElementRef("1", "E-EmailInput")}\\.value</li><li>plan: ${detailElementRef("2", "E-PlanSelect")}\\.value</li></ul></li>[\\s\\S]*</ul></li>`));
   assert.match(actionDetail, new RegExp(`SubscriptionService\\.prepare\\(\\)[\\s\\S]*email: ${detailElementRef("1", "E-EmailInput")}\\.value`));
@@ -7033,7 +7033,7 @@ title: Parallel Process
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
   const html = renderDesignDocumentHtml(result, preview);
-  const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-InitialLoad">[\s\S]*?<\/article>/)?.[0] ?? "";
+  const actionDetail = html.match(/<article class="action-detail"[^>]*>\s*<h3 id="action-detail-A-InitialLoad">[\s\S]*?<\/article>/)?.[0] ?? "";
 
   assert.match(actionDetail, /<div class="process-card process-parallel-group-card" role="listitem" data-process-group="initial-load">[\s\S]*<span class="process-card-title">Parallel group: initial-load<\/span>/);
   assert.match(actionDetail, /<span class="process-card-title"><code class="mm-doc-label mm-doc-label-result">P1<\/code> Call server service<\/span>[\s\S]*<li>MemberQueryService\.findSelfProfile\(\)<\/li>[\s\S]*continue process/);
@@ -7095,7 +7095,7 @@ title: Entity Notes
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
   const html = renderDesignDocumentHtml(result, preview);
-  const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-NextPage">[\s\S]*?<\/article>/)?.[0] ?? "";
+  const actionDetail = html.match(/<article class="action-detail"[^>]*>\s*<h3 id="action-detail-A-NextPage">[\s\S]*?<\/article>/)?.[0] ?? "";
   const idleSection = stateSection(html, "idle");
 
   assert.match(actionDetail, /<dt>Overview<\/dt><dd><div class="entity-overview"><p class="note-paragraph">次ページへ移動するための一覧取得を開始する。<\/p><\/div><\/dd>/);
@@ -7543,7 +7543,7 @@ locale: en
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
-  const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-SearchNotices">[\s\S]*?<\/article>/)?.[0] ?? "";
+  const actionDetail = html.match(/<article class="action-detail"[^>]*>\s*<h3 id="action-detail-A-SearchNotices">[\s\S]*?<\/article>/)?.[0] ?? "";
   const idleSection = stateSection(html, "idle");
   const emptySection = stateSection(html, "empty");
   const loadingEffect = `set state ${docLabel("loading", "state")}`;
@@ -7700,7 +7700,7 @@ locale: en
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
-  const actionDetail = html.match(/<article class="action-detail">[\s\S]*?<h3 id="action-detail-A-Submit">[\s\S]*?<\/article>/)?.[0] ?? "";
+  const actionDetail = html.match(/<article class="action-detail"[^>]*>[\s\S]*?<h3 id="action-detail-A-Submit">[\s\S]*?<\/article>/)?.[0] ?? "";
   const stateChanges = actionDetail.match(/<dt>State Changes<\/dt><dd><ul class="spec-list">([\s\S]*?)<\/ul><\/dd>/)?.[1] ?? "";
   const idleSent = stateChanges.indexOf(`From: ${docLabel("idle", "state")}; Case: ${docLabel("sent", "result")}; To: ${docLabel("loading", "state")}`);
   const idleFailed = stateChanges.indexOf(`From: ${docLabel("idle", "state")}; Case: ${docLabel("failed", "result")}; To: ${docLabel("error", "state")}`);
@@ -7769,9 +7769,9 @@ locale: en
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
-  const submitDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Submit">[\s\S]*?<\/article>/)?.[0] ?? "";
-  const helpDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-ExternalHelp">[\s\S]*?<\/article>/)?.[0] ?? "";
-  const settingsDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Settings">[\s\S]*?<\/article>/)?.[0] ?? "";
+  const submitDetail = html.match(/<article class="action-detail"[^>]*>\s*<h3 id="action-detail-A-Submit">[\s\S]*?<\/article>/)?.[0] ?? "";
+  const helpDetail = html.match(/<article class="action-detail"[^>]*>\s*<h3 id="action-detail-A-ExternalHelp">[\s\S]*?<\/article>/)?.[0] ?? "";
+  const settingsDetail = html.match(/<article class="action-detail"[^>]*>\s*<h3 id="action-detail-A-Settings">[\s\S]*?<\/article>/)?.[0] ?? "";
 
   assert.doesNotMatch(submitDetail, /<dt>Transitions<\/dt>|idle -&gt; SCR-DONE| -> /);
   assert.match(submitDetail, new RegExp(`<dt>State Changes</dt><dd><ul class="spec-list">[\\s\\S]*From: ${docLabel("idle", "state")}; To: ${docLabel("loading", "state")}[\\s\\S]*From: ${docLabel("idle", "state")}; Case: ${docLabel("failure", "result")}; To: ${docLabel("error", "state")}`));
@@ -8032,7 +8032,7 @@ Use **strong** text, *emphasis*, [help](./my_file_name.md), and \`token\`.
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
   const html = renderDesignDocumentHtml(result, preview);
-  const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Submit">[\s\S]*?<\/article>/)?.[0] ?? "";
+  const actionDetail = html.match(/<article class="action-detail"[^>]*>\s*<h3 id="action-detail-A-Submit">[\s\S]*?<\/article>/)?.[0] ?? "";
 
   assert.match(actionDetail, /Use <strong>strong<\/strong> text, <em>emphasis<\/em>, <a href="\.\/my_file_name\.md">help<\/a>, and <span class="mm-inline-token">token<\/span>\./);
   assert.doesNotMatch(actionDetail, /href="[^"]*<em>/);
@@ -8125,7 +8125,7 @@ Refer to #{R-Eligibility}; keep \`#{E-NameInput}\`, \`\`#{A-Submit}\`\`, and \`\
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, "");
-  const actionDetail = html.match(/<article class="action-detail">\s*<h3 id="action-detail-A-Submit">[\s\S]*?<\/article>/)?.[0] ?? "";
+  const actionDetail = html.match(/<article class="action-detail"[^>]*>\s*<h3 id="action-detail-A-Submit">[\s\S]*?<\/article>/)?.[0] ?? "";
 
   assert.match(html, /<a class="mm-ref-chip mm-ref-chip-document" href="#screen"[^>]*data-mm-ref-id="SCR-ENTITY-REFS"[^>]*>/);
   assert.match(html, /<a class="mm-ref-chip mm-ref-chip-layout" href="#state-views"[^>]*data-mm-ref-id="L-Form"[^>]*>/);

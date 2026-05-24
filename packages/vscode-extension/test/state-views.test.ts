@@ -1048,9 +1048,9 @@ title: All Repeated State Specs
   assert.equal(loadedModel?.repeatedContent.actionSpecEmptyWhenRepeatedHidden, true);
   assert.equal(loadedModel?.repeatedContent.hasSuppressedRepeatedContent, true);
   assert.equal(loadedModel?.repeatedContent.hasVisibleStateSpecWhenRepeatedHidden, false);
-  assert.match(loadedSection, /<div class="layout-spec-fragment" data-mm-render-key="layouts:list" data-mm-repeated-empty="true">/);
-  assert.match(loadedSection, /<div class="element-spec-fragment" data-mm-render-key="elements:list" data-mm-repeated-empty="true">/);
-  assert.match(loadedSection, /<div class="action-spec-fragment" data-mm-repeated-empty="true">/);
+  assert.match(loadedSection, /<div class="layout-spec-fragment" data-mm-render-key="layouts:list"[^>]*data-mm-repeated-empty="true">/);
+  assert.match(loadedSection, /<div class="element-spec-fragment" data-mm-render-key="elements:list"[^>]*data-mm-repeated-empty="true">/);
+  assert.match(loadedSection, /<div class="action-spec-fragment"[^>]*data-mm-repeated-empty="true">/);
   assert.match(loadedSection, new RegExp(`<td>${detailLayoutRefById("L1", "L-Page")} ${repeatedBadge()}</td>`));
   assert.match(loadedSection, new RegExp(`<td>${detailElementRef("E-Title", "E-Title")} ${repeatedBadge()}</td>`));
   assert.match(loadedSection, new RegExp(`<td>${refActionChip("A1", "A-Refresh", "Refresh profile")} ${repeatedBadge()}</td>`));
