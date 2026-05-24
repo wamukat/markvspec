@@ -2034,10 +2034,13 @@ test("does not render viewport filter controls in the preview shell", () => {
   assert.match(html, /const markvspecPreviewPositionKey = "examples\/04-real-world-screens\/login-basic\.vspec\.md";/);
   assert.match(html, /activeSectionId/);
   assert.match(html, /scrollY/);
-  assert.match(html, /positionsBySource\[markvspecPreviewPositionKey\] = \{\s*activeSectionId,\s*scrollY: window\.scrollY\s*\};/);
+  assert.match(html, /positionsBySource\[markvspecPreviewPositionKey\] = \{\s*activeSectionId,\s*activeSectionOffset,\s*scrollY: window\.scrollY,\s*sourceAnchor: sourceAnchor \|\| activePreviewSourceAnchor \|\| ""\s*\};/);
   assert.match(html, /function previewPositionState\(\)/);
   assert.match(html, /return positionsBySource\[markvspecPreviewPositionKey\] \|\| \{\};/);
-  assert.match(html, /if \(Number\.isFinite\(state\.scrollY\)\) \{\s*window\.scrollTo\(0, state\.scrollY\);\s*return;\s*\}\s*if \(state\.activeSectionId\)/);
+  assert.match(html, /if \(state\.sourceAnchor\) \{\s*const sourceTarget = previewSourceHighlightTarget\(state\.sourceAnchor\);/);
+  assert.match(html, /sourceTarget\.scrollIntoView\(\{ block: "center", inline: "nearest" \}\);/);
+  assert.match(html, /if \(section && Number\.isFinite\(state\.activeSectionOffset\)\) \{\s*window\.scrollTo\(0, Math\.max\(0, section\.offsetTop \+ state\.activeSectionOffset\)\);/);
+  assert.match(html, /if \(Number\.isFinite\(state\.scrollY\)\) \{\s*window\.scrollTo\(0, state\.scrollY\);/);
   assert.match(html, /window\.scrollTo\(0, 0\);\s*\}\s*finally \{\s*previewPositionRestorePending = false;/);
   assert.doesNotMatch(toolbar, /Hide Layout<\/button>/);
   assert.doesNotMatch(html, /function applyViewportFilter/);
@@ -6655,8 +6658,10 @@ route: /users/:id
   assert.doesNotMatch(previewHtml, /document\.querySelectorAll\(".document .doc-section > h2"\)/);
   assert.match(previewHtml, /function updateActiveTableOfContents\(\)/);
   assert.match(previewHtml, /const markvspecPreviewPositionKey = "vspec\.project\.md";/);
-  assert.match(previewHtml, /positionsBySource\[markvspecPreviewPositionKey\] = \{\s*activeSectionId,\s*scrollY: window\.scrollY\s*\};/);
+  assert.match(previewHtml, /positionsBySource\[markvspecPreviewPositionKey\] = \{\s*activeSectionId,\s*activeSectionOffset,\s*scrollY: window\.scrollY,\s*sourceAnchor: sourceAnchor \|\| activePreviewSourceAnchor \|\| ""\s*\};/);
   assert.match(previewHtml, /function previewPositionState\(\)/);
+  assert.match(previewHtml, /if \(state\.sourceAnchor\) \{\s*const sourceTarget = previewSourceHighlightTarget\(state\.sourceAnchor\);/);
+  assert.match(previewHtml, /if \(section && Number\.isFinite\(state\.activeSectionOffset\)\) \{\s*window\.scrollTo\(0, Math\.max\(0, section\.offsetTop \+ state\.activeSectionOffset\)\);/);
   assert.match(previewHtml, /window\.scrollTo\(0, 0\);\s*\}\s*finally \{\s*previewPositionRestorePending = false;/);
   assert.match(previewHtml, /function updateStickyOffset\(\)/);
   assert.match(previewHtml, /const anchorY = updateStickyOffset\(\) \+ 16;/);

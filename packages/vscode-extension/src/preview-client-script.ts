@@ -314,6 +314,7 @@ export function renderPreviewClientScript(options: PreviewClientScriptOptions): 
       }
 
       function requestSourceJump(target) {
+        rememberFocusedSourceAnchor(target.getAttribute("data-mm-source-anchor") || "");
         ${webviewMessaging ? `
         vscode.postMessage({
           command: "jumpToSource",
@@ -438,18 +439,33 @@ export function renderPreviewClientScript(options: PreviewClientScriptOptions): 
           item.removeAttribute("aria-current");
         });
         if (!sourceAnchor) {
+          saveFocusedSourceAnchor("");
           return;
         }
         const target = previewSourceHighlightTarget(sourceAnchor);
         if (!target) {
           activePreviewSourceAnchor = "";
+          saveFocusedSourceAnchor("");
           return;
         }
         target.classList.add("mm-source-highlighted");
         target.setAttribute("aria-current", "location");
+        saveFocusedSourceAnchor(sourceAnchor);
         if (scroll) {
           target.scrollIntoView({ block: "center", inline: "nearest" });
         }
+      }
+
+      function rememberFocusedSourceAnchor(sourceAnchor) {
+        activePreviewSourceAnchor = sourceAnchor || "";
+        saveFocusedSourceAnchor(activePreviewSourceAnchor);
+      }
+
+      function saveFocusedSourceAnchor(sourceAnchor) {
+        if (previewPositionRestorePending) {
+          return;
+        }
+        savePreviewPosition(currentActiveSectionId(), sourceAnchor);
       }
 
       function previewSourceHighlightTarget(sourceAnchor) {
@@ -548,7 +564,7 @@ export function renderPreviewClientScript(options: PreviewClientScriptOptions): 
         }
         window.scrollTo(0, scrollYBeforePatch);
         updateActiveTableOfContents();
-        savePreviewPosition(currentActiveSectionId());
+        savePreviewPosition(currentActiveSectionId(), activePreviewSourceAnchor);
         return patchResult(true, "applied", preCommitPatchMs + (performance.now() - domPatchStarted));
       }
 
@@ -881,7 +897,7 @@ export function renderPreviewClientScript(options: PreviewClientScriptOptions): 
         items.forEach((item) => {
           item.classList.toggle("is-active", !item.hidden && item.getAttribute("data-toc-target") === activeId);
         });
-        savePreviewPosition(activeId);
+        savePreviewPosition(activeId, activePreviewSourceAnchor);
       }
 
       function findActiveSection() {
@@ -909,21 +925,25 @@ export function renderPreviewClientScript(options: PreviewClientScriptOptions): 
 
       function initPreviewPositionTracking() {
         window.addEventListener("scroll", () => {
-          savePreviewPosition(currentActiveSectionId());
+          savePreviewPosition(currentActiveSectionId(), activePreviewSourceAnchor);
         }, { passive: true });
       }
 
-      function savePreviewPosition(activeSectionId) {
+      function savePreviewPosition(activeSectionId, sourceAnchor) {
         if (previewPositionRestorePending) {
           return;
         }
+        const activeSection = activeSectionId ? document.getElementById(activeSectionId) : undefined;
+        const activeSectionOffset = activeSection ? window.scrollY - activeSection.offsetTop : undefined;
         const state = previewState();
         const positionsBySource = {
           ...(state.positionsBySource && typeof state.positionsBySource === "object" ? state.positionsBySource : {})
         };
         positionsBySource[markvspecPreviewPositionKey] = {
           activeSectionId,
-          scrollY: window.scrollY
+          activeSectionOffset,
+          scrollY: window.scrollY,
+          sourceAnchor: sourceAnchor || activePreviewSourceAnchor || ""
         };
         savePreviewState({
           ...state,
@@ -935,16 +955,28 @@ export function renderPreviewClientScript(options: PreviewClientScriptOptions): 
         const state = previewPositionState();
         requestAnimationFrame(() => {
           try {
-            if (Number.isFinite(state.scrollY)) {
-              window.scrollTo(0, state.scrollY);
-              return;
+            if (state.sourceAnchor) {
+              const sourceTarget = previewSourceHighlightTarget(state.sourceAnchor);
+              if (sourceTarget) {
+                applyPreviewSourceHighlight(state.sourceAnchor, false);
+                sourceTarget.scrollIntoView({ block: "center", inline: "nearest" });
+                return;
+              }
             }
             if (state.activeSectionId) {
               const section = document.getElementById(state.activeSectionId);
+              if (section && Number.isFinite(state.activeSectionOffset)) {
+                window.scrollTo(0, Math.max(0, section.offsetTop + state.activeSectionOffset));
+                return;
+              }
               if (section) {
                 section.scrollIntoView({ block: "start" });
                 return;
               }
+            }
+            if (Number.isFinite(state.scrollY)) {
+              window.scrollTo(0, state.scrollY);
+              return;
             }
             window.scrollTo(0, 0);
           } finally {
