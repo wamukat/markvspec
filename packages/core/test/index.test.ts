@@ -116,22 +116,22 @@ title: Represented Text
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Submit request
-  - request:
-    - method: POST
-    - path: /submit
-    - params:
-      - email: E-EmailInput.value
-  - result:
-    - submission request
-  - case: sent
-    - state: loaded
-  - case: failed
-    - display:
-      - target: L-Page
-      - content: Submit failed
+#### From
+- idle
+#### P1: Process Submit request
+- request:
+  - method: POST
+  - path: /submit
+  - params:
+    - email: E-EmailInput.value
+- result:
+  - submission request
+- case: sent
+  - state: loaded
+- case: failed
+  - display:
+    - target: L-Page
+    - content: Submit failed
 
 ## Notes
 
@@ -182,37 +182,37 @@ title: ${title}
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Submit login
-  - ${prose}
-  - request:
-    - method: POST
-    - path: /login
-  - result:
-    - login submission request
-  - case: sent
-    - state: authenticating
+#### From
+- idle
+#### P1: Process Submit login
+- ${prose}
+- request:
+  - method: POST
+  - path: /login
+- result:
+  - login submission request
+- case: sent
+  - state: authenticating
 `;
 }
 
 function listExampleVspecFiles(relativeDir = "."): string[] {
-  const root = examplePath(relativeDir);
-  const walk = (dir: string): string[] => readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const fullPath = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      return walk(fullPath);
-    }
-    if (!entry.isFile() || !entry.name.endsWith(".vspec.md")) {
-      return [];
-    }
-    return [fullPath.slice(root.length + 1).split("\\").join("/")];
-  });
-  return walk(root).sort();
+const root = examplePath(relativeDir);
+const walk = (dir: string): string[] => readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+  const fullPath = join(dir, entry.name);
+  if (entry.isDirectory()) {
+    return walk(fullPath);
+  }
+  if (!entry.isFile() || !entry.name.endsWith(".vspec.md")) {
+    return [];
+  }
+  return [fullPath.slice(root.length + 1).split("\\").join("/")];
+});
+return walk(root).sort();
 }
 
 test("allows layout headings without duplicated display names", () => {
-  const source = `---
+const source = `---
 id: SCR-LAYOUT-ID-ONLY
 type: screen
 title: Layout ID Only
@@ -553,27 +553,27 @@ title: Entity Notes
 overview code block
 \`\`\`
 
-- From
-  - idle
-- Process P1: Send request
-  - GET /users
-    - page: \${model.requestedPage}
-- Process P1: Submit request
-  - case: success
-    - state: loading
+#### From
+- idle
+#### P1: Process Send request
+- GET /users
+  - page: \${model.requestedPage}
+#### P1: Process Submit request
+- case: success
+  - state: loading
 
 備考をこういうところに書きたいよね。
 `;
-  const result = parseMarkVSpec(source);
+const result = parseMarkVSpec(source);
 
-  assert.deepEqual(result.layoutGroups[0]?.notes, ["このレイアウトは初期リリースでは固定配置にする。"]);
-  assert.deepEqual(result.elements[0]?.notes, ["このボタンは二重クリック対策を実装側で行う。"]);
-  assert.deepEqual(result.actions[0]?.overview, ["次ページへ移動するための一覧取得を開始する。", "", "```text", "overview code block", "```"]);
-  assert.deepEqual(result.actions[0]?.notes, ["備考をこういうところに書きたいよね。"]);
+assert.deepEqual(result.layoutGroups[0]?.notes, ["このレイアウトは初期リリースでは固定配置にする。"]);
+assert.deepEqual(result.elements[0]?.notes, ["このボタンは二重クリック対策を実装側で行う。"]);
+assert.deepEqual(result.actions[0]?.overview, ["次ページへ移動するための一覧取得を開始する。", "", "```text", "overview code block", "```"]);
+assert.deepEqual(result.actions[0]?.processSteps[1]?.notes, ["備考をこういうところに書きたいよね。"]);
 });
 
 test("preserves markdown source in entity prose blocks", () => {
-  const source = `---
+const source = `---
 id: SCR-MARKDOWN-PROSE
 type: screen
 title: Markdown Prose
@@ -600,10 +600,10 @@ Use **strong** text and [help](./help.md).
 
 - first item
   - nested item
-- From
-  - idle
-- Process P1: Submit request
-  - state: idle
+#### From
+- idle
+#### P1: Process Submit request
+- state: idle
 
 #### Additional note
 
@@ -667,10 +667,10 @@ multi-line hidden action note
 
 Visible action overview <!-- inline comment remains visible source -->.
 
-- From
-  - idle
-- Process P1: Submit request
-  - state: idle
+#### From
+- idle
+#### P1: Process Submit request
+- state: idle
 
 <div>non-comment html keeps existing prose behavior</div>
 
@@ -686,7 +686,7 @@ Visible note.
   assert.deepEqual(elementsProse?.overview, ["Elements overview stays visible."]);
   assert.deepEqual(elementsProse?.notes, ["Elements section notes stay visible."]);
   assert.deepEqual(result.actions[0]?.overview, ["Visible action overview <!-- inline comment remains visible source -->."]);
-  assert.deepEqual(result.actions[0]?.notes, ["<div>non-comment html keeps existing prose behavior</div>"]);
+  assert.deepEqual(result.actions[0]?.processSteps[0]?.notes, ["<div>non-comment html keeps existing prose behavior</div>"]);
   assert(result.notes[0]?.lines.includes("Visible note."));
   assert(!result.diagnostics.some((diagnostic) => diagnostic.message.includes("unsupported Markdown block html")));
   assert(!JSON.stringify(result.sectionProse).includes("hidden"));
@@ -787,8 +787,8 @@ Actions section overview.
 
 Action overview.
 
-- From
-  - idle
+#### From
+- idle
 
 Action notes.
 
@@ -1394,12 +1394,12 @@ title: Users
 
 ### A-OpenDetail Open detail
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - navigate: SCR-USER-DETAIL
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- navigate: SCR-USER-DETAIL
 `;
-  const detailSource = `---
+const detailSource = `---
 id: SCR-USER-DETAIL
 type: screen
 title: User Detail
@@ -1495,50 +1495,50 @@ title: Points Content
 
 ### A-Refresh Refresh
 
-- From
-  - loaded
-- Process P1: Request partial
-  - request:
-    - method: GET
-    - path: /points/content
-  - case: success
-    - display:
-      - target: L-PointsContent
-      - partial: PRT-POINTS-CONTENT
+#### From
+- loaded
+#### P1: Process Request partial
+- request:
+  - method: GET
+  - path: /points/content
+- case: success
+  - display:
+    - target: L-PointsContent
+    - partial: PRT-POINTS-CONTENT
 `;
-  const files = new Map([
-    ["project/screens/points.vspec.md", screenSource],
-    ["project/partials/points-content.vspec.md", partialSource]
-  ]);
-  const result = loadMarkVSpecProject(projectSource, {
-    projectPath: "project/vspec.project.md",
-    readFile: (path) => files.get(path)
-  });
+const files = new Map([
+  ["project/screens/points.vspec.md", screenSource],
+  ["project/partials/points-content.vspec.md", partialSource]
+]);
+const result = loadMarkVSpecProject(projectSource, {
+  projectPath: "project/vspec.project.md",
+  readFile: (path) => files.get(path)
+});
 
-  assert.deepEqual(result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message]), [
-    [
-      "error",
-      "Action A-Refresh process step P1 Request partial case success display.partial PRT-POINTS-CONTENT targets L-PointsContent, but layout L-PointsContent is not a partial host with partial.id."
-    ],
-    ["error", "Partial reference PRT-POINTS-CONTENT is not defined in Front Matter references.partials."]
-  ]);
-  assert.deepEqual(
-    result.documentGraph.edges.filter((edge) => edge.kind === "document-partial").map((edge) => [edge.fromPath, edge.toPath, edge.documentId]),
-    [["project/screens/points.vspec.md", "project/partials/points-content.vspec.md", "PRT-POINTS-CONTENT"]]
-  );
+assert.deepEqual(result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message]), [
+  [
+    "error",
+    "Action A-Refresh process step P1 Request partial case success display.partial PRT-POINTS-CONTENT targets L-PointsContent, but layout L-PointsContent is not a partial host with partial.id."
+  ],
+  ["error", "Partial reference PRT-POINTS-CONTENT is not defined in Front Matter references.partials."]
+]);
+assert.deepEqual(
+  result.documentGraph.edges.filter((edge) => edge.kind === "document-partial").map((edge) => [edge.fromPath, edge.toPath, edge.documentId]),
+  [["project/screens/points.vspec.md", "project/partials/points-content.vspec.md", "PRT-POINTS-CONTENT"]]
+);
 });
 
 test("loads project templates and composes screen slot content", () => {
-  const projectSource = `---
+const projectSource = `---
 id: PRJ-MYPAGE
 type: project
 title: My Page
 templates:
-  - id: TPL-MYPAGE-SHELL
-    path: templates/mypage-shell.vspec.md
+- id: TPL-MYPAGE-SHELL
+  path: templates/mypage-shell.vspec.md
 screens:
-  - id: SCR-MYPAGE-HOME
-    path: screens/home.vspec.md
+- id: SCR-MYPAGE-HOME
+  path: screens/home.vspec.md
 ---
 
 # PRJ-MYPAGE My Page
@@ -2234,36 +2234,36 @@ title: Users Actual
 
 ### A-OpenMissing Open missing
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - navigate: SCR-NOT-IN-PROJECT
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- navigate: SCR-NOT-IN-PROJECT
 `;
-  const result = loadMarkVSpecProject(projectSource, {
-    projectPath: "project/vspec.project.md",
-    readFile: (path) => path === "project/screens/users.vspec.md" ? usersSource : undefined
-  });
+const result = loadMarkVSpecProject(projectSource, {
+  projectPath: "project/vspec.project.md",
+  readFile: (path) => path === "project/screens/users.vspec.md" ? usersSource : undefined
+});
 
-  assert.deepEqual(
-    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
-    [
-      ["error", "Project screen SCR-USERS points to file with screen ID SCR-USERS-ACTUAL.", lineNumber(projectSource, "  - id: SCR-USERS")],
-      ["error", "Project screen SCR-MISSING-FILE file not found: screens/missing.vspec.md.", lineNumber(projectSource, "    path: screens/missing.vspec.md")],
-      ["error", "Project transition from SCR-USERS-ACTUAL action A-OpenMissing targets missing screen SCR-NOT-IN-PROJECT.", lineNumber(usersSource, "  - navigate: SCR-NOT-IN-PROJECT")]
-    ]
-  );
+assert.deepEqual(
+  result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+  [
+    ["error", "Project screen SCR-USERS points to file with screen ID SCR-USERS-ACTUAL.", lineNumber(projectSource, "  - id: SCR-USERS")],
+    ["error", "Project screen SCR-MISSING-FILE file not found: screens/missing.vspec.md.", lineNumber(projectSource, "    path: screens/missing.vspec.md")],
+    ["error", "Project transition from SCR-USERS-ACTUAL action A-OpenMissing targets missing screen SCR-NOT-IN-PROJECT.", lineNumber(usersSource, "  - navigate: SCR-NOT-IN-PROJECT")]
+  ]
+);
 });
 
 test("validates screen navigation params against target routes", () => {
-  const projectSource = `---
+const projectSource = `---
 id: PRJ-NAV
 type: project
 title: Navigation Project
 screens:
-  - id: SCR-LIST
-    path: screens/list.vspec.md
-  - id: SCR-DETAIL
-    path: screens/detail.vspec.md
+- id: SCR-LIST
+  path: screens/list.vspec.md
+- id: SCR-DETAIL
+  path: screens/detail.vspec.md
 ---
 
 # PRJ-NAV Navigation Project
@@ -2295,28 +2295,28 @@ title: List
 
 - Triggered
   - E-お知らせリンク.click
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - case: success
-    - params:
-      - noticeId: \${model.notice.noticeId}
-    - navigate: SCR-DETAIL
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- case: success
+  - params:
+    - noticeId: \${model.notice.noticeId}
+  - navigate: SCR-DETAIL
 
 ### A-StepOpenNotice Open notice after request
 
 - Triggered
   - E-お知らせリンク.click
-- From
-  - idle
-- Process P1: Send request
-  - GET /notices/current
-  - case: success
-    - params:
-      - extra: \${model.notice.extra}
-    - navigate: SCR-DETAIL
+#### From
+- idle
+#### P1: Process Send request
+- GET /notices/current
+- case: success
+  - params:
+    - extra: \${model.notice.extra}
+  - navigate: SCR-DETAIL
 `;
-  const detailSource = `---
+const detailSource = `---
 id: SCR-DETAIL
 type: screen
 title: Detail
@@ -2348,7 +2348,7 @@ route: /notices/:noticeId
       ["error", "Project navigation from SCR-LIST element E-お知らせリンク to SCR-DETAIL is missing route parameter noticeId.", lineNumber(listSource, "  - extra: \${model.notice.extra}")],
       ["warning", "Project navigation from SCR-LIST element E-お知らせリンク to SCR-DETAIL defines route parameter extra, but target route /notices/:noticeId has no matching placeholder.", lineNumber(listSource, "  - extra: \${model.notice.extra}")],
       ["error", "Project navigation from SCR-LIST action A-StepOpenNotice to SCR-DETAIL is missing route parameter noticeId.", lineNumber(listSource, "    - navigate: SCR-DETAIL", 2)],
-      ["warning", "Project navigation from SCR-LIST action A-StepOpenNotice to SCR-DETAIL defines route parameter extra, but target route /notices/:noticeId has no matching placeholder.", lineNumber(listSource, "      - extra: \${model.notice.extra}")]
+      ["warning", "Project navigation from SCR-LIST action A-StepOpenNotice to SCR-DETAIL defines route parameter extra, but target route /notices/:noticeId has no matching placeholder.", lineNumber(listSource, "      - extra: \${model.notice.extra}", 2)]
     ]
   );
 });
@@ -2411,14 +2411,14 @@ route: /users/:userId
 
 ### A-Load Load user
 
-- From
-  - before-load
-  - loading
-- Process P0: Enter loading
-  - state: loading
-- Process P1: Send request
-  - GET /users/:userId
-    - userId: \${route.missingUserId}
+#### From
+- before-load
+- loading
+#### P0: Process Enter loading
+- state: loading
+#### P1: Process Send request
+- GET /users/:userId
+  - userId: \${route.missingUserId}
 
 ## Validations
 
@@ -2515,19 +2515,19 @@ title: Users
 
 ### A5:A-OpenDetail Open detail
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - navigate: SCR-USER-DETAIL
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- navigate: SCR-USER-DETAIL
 
 ### A6:A-OpenNewUser Open new user
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - navigate: /users/new
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- navigate: /users/new
 `;
-  const detailSource = `---
+const detailSource = `---
 id: SCR-USER-DETAIL
 type: screen
 title: User Detail
@@ -2610,24 +2610,24 @@ title: Users
 
 ### A-OpenMissing Open missing
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - navigate: SCR-MISSING
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- navigate: SCR-MISSING
 `;
-  const project = loadMarkVSpecProject(projectSource, {
-    projectPath: "project/vspec.project.md",
-    readFile: (path) => path === "project/screens/users.vspec.md" ? usersSource : undefined
-  });
-  const graph = buildProjectTransitionGraph(project);
-  const mermaid = renderProjectTransitionMermaid(graph);
+const project = loadMarkVSpecProject(projectSource, {
+  projectPath: "project/vspec.project.md",
+  readFile: (path) => path === "project/screens/users.vspec.md" ? usersSource : undefined
+});
+const graph = buildProjectTransitionGraph(project);
+const mermaid = renderProjectTransitionMermaid(graph);
 
-  assert.deepEqual(graph.edges.map((edge) => [edge.target, edge.targetType]), [["SCR-MISSING", "missing-screen"]]);
-  assert.match(mermaid, /SCR_USERS -\. "A-OpenMissing Open missing" \.-> SCR_MISSING\["SCR-MISSING"\]/u);
+assert.deepEqual(graph.edges.map((edge) => [edge.target, edge.targetType]), [["SCR-MISSING", "missing-screen"]]);
+assert.match(mermaid, /SCR_USERS -\. "A-OpenMissing Open missing" \.-> SCR_MISSING\["SCR-MISSING"\]/u);
 });
 
 test("composes States section prose with the same owner as composed states", () => {
-  const templateSource = `---
+const templateSource = `---
 id: TPL-STATE-PROSE
 type: template
 title: State Prose Template
@@ -3351,34 +3351,34 @@ title: Japanese IDs
 
 ### A-保存 save
 
-- From
-  - idle
-- Process P1: Send request
-  - request:
-    - method: POST
-    - path: /save
-    - params:
-      - email: E-メール入力.value
-- Process P2: Apply immediate effect
-  - state: validation-error
+#### From
+- idle
+#### P1: Process Send request
+- request:
+  - method: POST
+  - path: /save
+  - params:
+    - email: E-メール入力.value
+#### P2: Process Apply immediate effect
+- state: validation-error
 `;
-  const result = parseMarkVSpec(source);
+const result = parseMarkVSpec(source);
 
-  assert.equal(result.diagnostics.length, 0);
-  assert(result.layoutGroups.some((group) => group.id === "L-ページ"));
-  assert.equal(result.elements.find((element) => element.id === "E-ページヘッダ")?.type, "Heading");
-  assert.equal(result.elements.find((element) => element.id === "E-ページヘッダ")?.properties["marker"], "1");
-  assert.equal(result.elements.find((element) => element.id === "E-メール入力")?.properties["required"], true);
-  assert.equal(result.elements.find((element) => element.id === "E-メール入力")?.properties["value"], "\${model.email}");
-  assert.equal(result.elements.find((element) => element.id === "E-メール入力")?.properties["initial value"], "taro@example.com");
-  assert.deepEqual(result.actions[0]?.trigger, { elementId: "E-保存ボタン", event: "click" });
-  assert.deepEqual(result.actions[0]?.processSteps.find((step) => step.name === "Send request")?.details.filter((detail) => detail.key.includes(".params.")).map((detail) => [detail.key, detail.value]), [
-    ["request.params.email", "E-メール入力.value"]
-  ]);
+assert.equal(result.diagnostics.length, 0);
+assert(result.layoutGroups.some((group) => group.id === "L-ページ"));
+assert.equal(result.elements.find((element) => element.id === "E-ページヘッダ")?.type, "Heading");
+assert.equal(result.elements.find((element) => element.id === "E-ページヘッダ")?.properties["marker"], "1");
+assert.equal(result.elements.find((element) => element.id === "E-メール入力")?.properties["required"], true);
+assert.equal(result.elements.find((element) => element.id === "E-メール入力")?.properties["value"], "\${model.email}");
+assert.equal(result.elements.find((element) => element.id === "E-メール入力")?.properties["initial value"], "taro@example.com");
+assert.deepEqual(result.actions[0]?.trigger, { elementId: "E-保存ボタン", event: "click" });
+assert.deepEqual(result.actions[0]?.processSteps.find((step) => step.name === "Send request")?.details.filter((detail) => detail.key.includes(".params.")).map((detail) => [detail.key, detail.value]), [
+  ["request.params.email", "E-メール入力.value"]
+]);
 });
 
 test("keeps brace-containing literal text values unchanged", () => {
-  const source = `---
+const source = `---
 id: SCR-BRACES
 type: screen
 title: Braces
@@ -3524,54 +3524,54 @@ title: Broken
 
 - Triggered
   - E-999.click
-- From
-  - idle
-- Process P1: Preprocess
-  - update:
-    - target: L-999
-    - content: Missing
-- Process P2: Render
-  - update:
-    - target: F-001
-    - content: Invalid form target
-- Process P3: Apply immediate effect
-  - state: missing
+#### From
+- idle
+#### P1: Process Preprocess
+- update:
+  - target: L-999
+  - content: Missing
+#### P2: Process Render
+- update:
+  - target: F-001
+  - content: Invalid form target
+#### P3: Process Apply immediate effect
+- state: missing
 `;
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+const result = parseMarkVSpec(source);
+const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Layout L-001 contains missing target E-999."));
-  assert(messages.includes("Element E-001 references missing action A-999."));
-  assert(messages.includes("Unknown structured item in Action A-001: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Action A-001 has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response."));
-  assert(messages.includes("Action A-001 process step Preprocess targets missing layout or element L-999."));
-  assert(messages.includes("Action A-001 process step Render cannot target FormGroup F-001. Use an L-* layout target for updates."));
-  assert(messages.includes("Condition references missing ID E-404."));
-  assert(messages.includes("Transition references missing target state missing."));
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message === "Element E-001 references missing action A-999.")
-      ?.line,
-    lineNumber(source, "- action: A-999")
-  );
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-001 process step Preprocess targets missing layout or element L-999.")
-      ?.line,
-    lineNumber(source, "    - target: L-999")
-  );
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-001 process step Render cannot target FormGroup F-001. Use an L-* layout target for updates.")
-      ?.line,
-    lineNumber(source, "    - target: F-001")
-  );
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message === "Condition references missing ID E-404.")?.severity,
-    "warning"
-  );
-  assert(result.diagnostics.every((diagnostic) => typeof diagnostic.line === "number"));
+assert(messages.includes("Layout L-001 contains missing target E-999."));
+assert(messages.includes("Element E-001 references missing action A-999."));
+assert(messages.includes("Unknown structured item in Action A-001: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
+assert(messages.includes("Action A-001 has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response."));
+assert(messages.includes("Action A-001 process step Preprocess targets missing layout or element L-999."));
+assert(messages.includes("Action A-001 process step Render cannot target FormGroup F-001. Use an L-* layout target for updates."));
+assert(messages.includes("Condition references missing ID E-404."));
+assert(messages.includes("Transition references missing target state missing."));
+assert.equal(
+  result.diagnostics.find((diagnostic) => diagnostic.message === "Element E-001 references missing action A-999.")
+    ?.line,
+  lineNumber(source, "- action: A-999")
+);
+assert.equal(
+  result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-001 process step Preprocess targets missing layout or element L-999.")
+    ?.line,
+  lineNumber(source, "    - target: L-999")
+);
+assert.equal(
+  result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-001 process step Render cannot target FormGroup F-001. Use an L-* layout target for updates.")
+    ?.line,
+  lineNumber(source, "    - target: F-001")
+);
+assert.equal(
+  result.diagnostics.find((diagnostic) => diagnostic.message === "Condition references missing ID E-404.")?.severity,
+  "warning"
+);
+assert(result.diagnostics.every((diagnostic) => typeof diagnostic.line === "number"));
 });
 
 test("warns for missing initial state and unknown semantic kinds", () => {
-  const source = `---
+const source = `---
 id: SCR-WARN
 type: screen
 title: Warn
@@ -4119,14 +4119,14 @@ title: Input Contract
 
 ### A-Save Save
 
-- From
-  - idle
-- Process P1: Check validation
-  - validate: V-メール形式.result
-- Process P2: Apply immediate effect
-  - case: validationError
-    - error code: ERR-EMAIL-FORMAT
-    - state: idle
+#### From
+- idle
+#### P1: Process Check validation
+- validate: V-メール形式.result
+#### P2: Process Apply immediate effect
+- case: validationError
+  - error code: ERR-EMAIL-FORMAT
+  - state: idle
 
 ## Field Validations
 
@@ -4358,25 +4358,25 @@ title: Missing Trigger
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 `;
-  const result = parseMarkVSpec(source);
+const result = parseMarkVSpec(source);
 
-  assert.deepEqual(
-    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
-    [[
-      "warning",
-      "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.",
-      lineNumber(source, "### A-Submit Submit")
-    ]]
-  );
+assert.deepEqual(
+  result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+  [[
+    "warning",
+    "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.",
+    lineNumber(source, "### A-Submit Submit")
+  ]]
+);
 });
 
 test("warns for unknown structured items across semantic sections", () => {
-  const source = `---
+const source = `---
 id: SCR-UNKNOWN-STRUCTURED
 type: screen
 title: Unknown Structured
@@ -4412,8 +4412,8 @@ title: Unknown Structured
 
 - Tliggered
   - E-Name.change
-- From
-  - idle
+#### From
+- idle
 
 ## View Context
 
@@ -4535,21 +4535,21 @@ title: Event
 
 ### A-001 save
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 `;
-  const result = parseMarkVSpec(source);
+const result = parseMarkVSpec(source);
 
-  assert.deepEqual(
-    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
-    [["warning", "Action A-001 uses unsupported event hover.", lineNumber(source, "- action: A-001")]]
-  );
+assert.deepEqual(
+  result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+  [["warning", "Action A-001 uses unsupported event hover.", lineNumber(source, "- action: A-001")]]
+);
 });
 
 test("warns when outcome details do not match transition results", () => {
-  const source = `---
+const source = `---
 id: SCR-OUTCOME
 type: screen
 title: Outcome
@@ -4575,38 +4575,38 @@ title: Outcome
 
 - Triggered
   - service.response
-- Process P1: Apply immediate effect
-  - case: failure
-    - update:
-      - target: L-Message
-      - content: Failure message
+#### P1: Process Apply immediate effect
+- case: failure
+  - update:
+    - target: L-Message
+    - content: Failure message
 `;
-  const result = parseMarkVSpec(source);
+const result = parseMarkVSpec(source);
 
-  assert.deepEqual(
-    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+assert.deepEqual(
+  result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+  [
     [
-      [
-        "warning",
-        "Unknown structured item in Action A-Submit: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.",
-        lineNumber(source, "- Triggered")
-      ],
-      [
-        "warning",
-        "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.",
-        lineNumber(source, "### A-Submit submit")
-      ],
-      [
-        "warning",
-        "Action A-Submit process step Apply immediate effect defines failure outcome details but has no failure transition.",
-        lineNumber(source, "      - target: L-Message")
-      ]
+      "warning",
+      "Unknown structured item in Action A-Submit: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.",
+      lineNumber(source, "- Triggered")
+    ],
+    [
+      "warning",
+      "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.",
+      lineNumber(source, "### A-Submit submit")
+    ],
+    [
+      "warning",
+      "Action A-Submit process step Apply immediate effect defines failure outcome details but has no failure transition.",
+      lineNumber(source, "      - target: L-Message")
     ]
-  );
+  ]
+);
 });
 
 test("parses canonical action groups with four-space indentation", () => {
-  const source = `---
+const source = `---
 id: SCR-NESTED-ACTION
 type: screen
 title: Nested Action
@@ -4636,33 +4636,33 @@ title: Nested Action
 
 ### A-Submit submit
 
-- From
-    - idle
-- Process P1: Send request
-    - POST /submit
-        - email: E-Submit.value
-- Process P2: Apply immediate effect
-    - case: failure
-        - description: 400
-          - state: error
-          - update:
-              - target: L-MessageArea
-              - content: Failure message
+#### From
+- idle
+#### P1: Process Send request
+- POST /submit
+  - email: E-Submit.value
+#### P2: Process Apply immediate effect
+- case: failure
+  - description: 400
+  - state: error
+  - update:
+    - target: L-MessageArea
+    - content: Failure message
 `;
-  const result = parseMarkVSpec(source);
-  const action = result.actions.find((candidate) => candidate.id === "A-Submit");
+const result = parseMarkVSpec(source);
+const action = result.actions.find((candidate) => candidate.id === "A-Submit");
 
-  assert.equal(result.diagnostics.length, 0);
-  assert.deepEqual(action?.processSteps.find((step) => step.name === "Send request")?.details.filter((detail) => detail.key !== "request").map((detail) => [detail.key, detail.value]), [["email", "E-Submit.value"]]);
-  assert.deepEqual(action?.responses, []);
-  assert.deepEqual(action?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [["idle", "failure", "error"]]);
-  assert.deepEqual(action?.processSteps.find((step) => step.name === "Apply immediate effect")?.outcomes.map((outcome) => [outcome.result, outcome.target, outcome.content]), [
-    ["failure", "L-MessageArea", "Failure message"]
-  ]);
+assert.equal(result.diagnostics.length, 0);
+assert.deepEqual(action?.processSteps.find((step) => step.name === "Send request")?.details.filter((detail) => detail.key !== "request").map((detail) => [detail.key, detail.value]), [["email", "E-Submit.value"]]);
+assert.deepEqual(action?.responses, []);
+assert.deepEqual(action?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [["idle", "failure", "error"]]);
+assert.deepEqual(action?.processSteps.find((step) => step.name === "Apply immediate effect")?.outcomes.map((outcome) => [outcome.result, outcome.target, outcome.content]), [
+  ["failure", "L-MessageArea", "Failure message"]
+]);
 });
 
 test("parses Otherwise as an action fallback branch", () => {
-  const source = `---
+const source = `---
 id: SCR-OTHERWISE
 type: screen
 title: Otherwise
@@ -4693,31 +4693,31 @@ title: Otherwise
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Submit request
-  - state: authenticating
-- Otherwise
-  - state: validation-error
-  - update:
-    - target: L-MessageArea
-    - content: Validation message
+#### From
+- idle
+#### P1: Process Submit request
+- state: authenticating
+#### Otherwise
+- state: validation-error
+- update:
+  - target: L-MessageArea
+  - content: Validation message
 `;
-  const result = parseMarkVSpec(source);
-  const action = result.actions.find((candidate) => candidate.id === "A-Submit");
+const result = parseMarkVSpec(source);
+const action = result.actions.find((candidate) => candidate.id === "A-Submit");
 
-  assert.equal(result.diagnostics.length, 0);
-  assert.deepEqual(action?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
-    ["idle", undefined, "authenticating"],
-    ["idle", "otherwise", "validation-error"]
-  ]);
-  assert.deepEqual(action?.outcomes.map((outcome) => [outcome.result, outcome.target, outcome.content]), [
-    ["otherwise", "L-MessageArea", "Validation message"]
-  ]);
+assert.equal(result.diagnostics.length, 0);
+assert.deepEqual(action?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
+  ["idle", undefined, "authenticating"],
+  ["idle", "otherwise", "validation-error"]
+]);
+assert.deepEqual(action?.outcomes.map((outcome) => [outcome.result, outcome.target, outcome.content]), [
+  ["otherwise", "L-MessageArea", "Validation message"]
+]);
 });
 
 test("rejects singular action group aliases", () => {
-  const source = `---
+const source = `---
 id: SCR-ACTION-ALIASES
 type: screen
 title: Action Aliases
@@ -4738,31 +4738,30 @@ title: Action Aliases
 
 ### A-Submit Submit
 
-- From
-  - before-load
-  - idle
+- before-load
+- idle
 - Effect
-  - state: loading
+- state: loading
 - Case
-  - success:
-    - state: idle
-- Else
+- success:
   - state: idle
+- Else
+- state: idle
 `;
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+const result = parseMarkVSpec(source);
+const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Unknown structured item in Action A-Submit: Effect. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Unknown structured item in Action A-Submit: Case. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Unknown structured item in Action A-Submit: Else. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message === "Unknown structured item in Action A-Submit: Effect. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.")?.line,
-    lineNumber(source, "- Effect")
-  );
+assert(messages.includes("Unknown structured item in Action A-Submit: Effect. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
+assert(messages.includes("Unknown structured item in Action A-Submit: Case. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
+assert(messages.includes("Unknown structured item in Action A-Submit: Else. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
+assert.equal(
+  result.diagnostics.find((diagnostic) => diagnostic.message === "Unknown structured item in Action A-Submit: Effect. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.")?.line,
+  lineNumber(source, "- Effect")
+);
 });
 
 test("rejects unsupported action entries when they are the only action list", () => {
-  const source = `---
+const source = `---
 id: SCR-UNSUPPORTED-ACTION-ENTRY
 type: screen
 title: Unsupported Action Entry
@@ -4818,19 +4817,19 @@ title: Condition Ref
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Preprocess
-  - when: E-Missing is not empty
+#### From
+- idle
+#### P1: Process Preprocess
+- when: E-Missing is not empty
 `;
-  const result = parseMarkVSpec(source);
-  const diagnostic = result.diagnostics.find((candidate) => candidate.message === "Condition references missing ID E-Missing.");
+const result = parseMarkVSpec(source);
+const diagnostic = result.diagnostics.find((candidate) => candidate.message === "Condition references missing ID E-Missing.");
 
-  assert.equal(diagnostic?.line, lineNumber(source, "  - when: E-Missing is not empty"));
+assert.equal(diagnostic?.line, lineNumber(source, "  - when: E-Missing is not empty"));
 });
 
 test("warns for non-canonical process block labels on process entries", () => {
-  const source = `---
+const source = `---
 id: SCR-NONCANONICAL-PROCESS-LABELS
 type: screen
 title: Noncanonical Process Labels
@@ -4853,48 +4852,48 @@ title: Noncanonical Process Labels
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Input
-  - input:
-- Process P2: Cases
-  - cases:
-- Process P3: Condition
-  - condition: E-Submit is enabled
-- Process P4: Conditions
-  - conditions:
-- Process P5: Submit
-  - case: success
-    - state: idle
+#### From
+- idle
+#### P1: Process Input
+- input:
+#### P2: Process Cases
+- cases:
+#### P3: Process Condition
+- condition: E-Submit is enabled
+#### P4: Process Conditions
+- conditions:
+#### P5: Process Submit
+- case: success
+  - state: idle
 `;
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics
-    .filter((diagnostic) => diagnostic.message.includes("uses non-canonical process entry"))
-    .map((diagnostic) => [diagnostic.message, diagnostic.line]);
+const result = parseMarkVSpec(source);
+const messages = result.diagnostics
+  .filter((diagnostic) => diagnostic.message.includes("uses non-canonical process entry"))
+  .map((diagnostic) => [diagnostic.message, diagnostic.line]);
 
-  assert.deepEqual(messages, [
-    [
-      "Action A-Submit process step Input uses non-canonical process entry: input:. Use request: with params: for request input, case: for result branches, when: or skip when: for guards, or receive: for external results.",
-      lineNumber(source, "  - input:")
-    ],
-    [
-      "Action A-Submit process step Cases uses non-canonical process entry: cases:. Use request: with params: for request input, case: for result branches, when: or skip when: for guards, or receive: for external results.",
-      lineNumber(source, "  - cases:")
-    ],
-    [
-      "Action A-Submit process step Condition uses non-canonical process entry: condition: E-Submit is enabled. Use request: with params: for request input, case: for result branches, when: or skip when: for guards, or receive: for external results.",
-      lineNumber(source, "  - condition: E-Submit is enabled")
-    ],
-    [
-      "Action A-Submit process step Conditions uses non-canonical process entry: conditions:. Use request: with params: for request input, case: for result branches, when: or skip when: for guards, or receive: for external results.",
-      lineNumber(source, "  - conditions:")
-    ]
-  ]);
-  assert.equal(result.diagnostics.some((diagnostic) => diagnostic.message.includes("contains multiple execution detail blocks")), false);
+assert.deepEqual(messages, [
+  [
+    "Action A-Submit process step Input uses non-canonical process entry: input:. Use request: with params: for request input, case: for result branches, when: or skip when: for guards, or receive: for external results.",
+    lineNumber(source, "  - input:")
+  ],
+  [
+    "Action A-Submit process step Cases uses non-canonical process entry: cases:. Use request: with params: for request input, case: for result branches, when: or skip when: for guards, or receive: for external results.",
+    lineNumber(source, "  - cases:")
+  ],
+  [
+    "Action A-Submit process step Condition uses non-canonical process entry: condition: E-Submit is enabled. Use request: with params: for request input, case: for result branches, when: or skip when: for guards, or receive: for external results.",
+    lineNumber(source, "  - condition: E-Submit is enabled")
+  ],
+  [
+    "Action A-Submit process step Conditions uses non-canonical process entry: conditions:. Use request: with params: for request input, case: for result branches, when: or skip when: for guards, or receive: for external results.",
+    lineNumber(source, "  - conditions:")
+  ]
+]);
+assert.equal(result.diagnostics.some((diagnostic) => diagnostic.message.includes("contains multiple execution detail blocks")), false);
 });
 
 test("does not warn for canonical process guards params cases or preview scenario cases", () => {
-  const source = `---
+const source = `---
 id: SCR-CANONICAL-PROCESS-LABELS
 type: screen
 title: Canonical Process Labels
@@ -4922,17 +4921,17 @@ title: Canonical Process Labels
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Submit
-  - when: E-EmailInput.value is present
-  - skip when: E-Submit is disabled
-  - request:
-    - POST /login
-    - params:
-      - input: E-EmailInput.value
-  - case: sent
-    - state: sent
+#### From
+- idle
+#### P1: Process Submit
+- when: E-EmailInput.value is present
+- skip when: E-Submit is disabled
+- request:
+  - POST /login
+  - params:
+    - input: E-EmailInput.value
+- case: sent
+  - state: sent
 
 ## Preview Scenarios
 
@@ -4984,37 +4983,37 @@ title: Server Call
 
 ### A-Load Load
 
-- From
-  - before-load
-  - idle
-- Process P1: Call server service
-  - server:
-    - MemberQueryService.findSelfProfile()
-    - params:
-      - includePreferences: true
-  - case: success
-    - description: ApiBridgeResult.Success<MemberProfileDto>
-    - state: idle
+#### From
+- before-load
+- idle
+#### P1: Process Call server service
+- server:
+  - MemberQueryService.findSelfProfile()
+  - params:
+    - includePreferences: true
+- case: success
+  - description: ApiBridgeResult.Success<MemberProfileDto>
+  - state: idle
 `;
-  const result = parseMarkVSpec(source);
-  const action = result.actions.find((candidate) => candidate.id === "A-Load");
-  const clientCall = action?.processSteps[0];
-  const success = clientCall?.outcomes.find((outcome) => outcome.result === "success");
+const result = parseMarkVSpec(source);
+const action = result.actions.find((candidate) => candidate.id === "A-Load");
+const clientCall = action?.processSteps[0];
+const success = clientCall?.outcomes.find((outcome) => outcome.result === "success");
 
-  assert.equal(result.diagnostics.length, 0);
-  assert.equal(action?.triggeredBy, "page.load");
-  assert.equal(clientCall?.name, "Call server service");
-  assert.deepEqual(clientCall?.details.map((detail) => [detail.key, detail.value]), [
-    ["server", "MemberQueryService.findSelfProfile()"],
-    ["server.params.includePreferences", "true"]
-  ]);
-  assert.deepEqual(success?.description ? [["success", success.description]] : [], [
-    ["success", "ApiBridgeResult.Success<MemberProfileDto>"]
-  ]);
+assert.equal(result.diagnostics.length, 0);
+assert.equal(action?.triggeredBy, "page.load");
+assert.equal(clientCall?.name, "Call server service");
+assert.deepEqual(clientCall?.details.map((detail) => [detail.key, detail.value]), [
+  ["server", "MemberQueryService.findSelfProfile()"],
+  ["server.params.includePreferences", "true"]
+]);
+assert.deepEqual(success?.description ? [["success", success.description]] : [], [
+  ["success", "ApiBridgeResult.Success<MemberProfileDto>"]
+]);
 });
 
 test("warns when HTTP request method paths are nested under server blocks", () => {
-  const source = `---
+const source = `---
 id: SCR-SERVER-HTTP
 type: screen
 title: Server HTTP
@@ -5030,32 +5029,32 @@ title: Server HTTP
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Send login request
-  - server:
-    - POST /login
-    - params:
-      - email: E-EmailInput.value
-  - case: success
-    - state: idle
+#### From
+- idle
+#### P1: Process Send login request
+- server:
+  - POST /login
+  - params:
+    - email: E-EmailInput.value
+- case: success
+  - state: idle
 `;
-  const result = parseMarkVSpec(source);
-  const diagnostic = result.diagnostics.find((candidate) =>
-    candidate.message === "Action A-Submit process step Send login request has HTTP request entry under server: POST /login. Put HTTP method and path under a request block."
-  );
-  const action = result.actions.find((candidate) => candidate.id === "A-Submit");
+const result = parseMarkVSpec(source);
+const diagnostic = result.diagnostics.find((candidate) =>
+  candidate.message === "Action A-Submit process step Send login request has HTTP request entry under server: POST /login. Put HTTP method and path under a request block."
+);
+const action = result.actions.find((candidate) => candidate.id === "A-Submit");
 
-  assert.equal(diagnostic?.severity, "warning");
-  assert.equal(diagnostic?.line, lineNumber(source, "    - POST /login"));
-  assert.deepEqual(action?.processSteps[0]?.details.map((detail) => [detail.key, detail.value]), [
-    ["server", "POST /login"],
-    ["server.params.email", "E-EmailInput.value"]
-  ]);
+assert.equal(diagnostic?.severity, "warning");
+assert.equal(diagnostic?.line, lineNumber(source, "    - POST /login"));
+assert.deepEqual(action?.processSteps[0]?.details.map((detail) => [detail.key, detail.value]), [
+  ["server", "POST /login"],
+  ["server.params.email", "E-EmailInput.value"]
+]);
 });
 
 test("keeps canonical request and server service call process details warning-free", () => {
-  const source = `---
+const source = `---
 id: SCR-REQUEST-SERVER
 type: screen
 title: Request Server
@@ -5087,45 +5086,45 @@ title: Request Server
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Send login request
-  - request:
-    - POST /login
-    - params:
-      - email: E-EmailInput.value
-  - case: success
-    - state: idle
+#### From
+- idle
+#### P1: Process Send login request
+- request:
+  - POST /login
+  - params:
+    - email: E-EmailInput.value
+- case: success
+  - state: idle
 
 ### A-Load Load
 
-- From
-  - before-load
-  - idle
-- Process P1: Call account service
-  - server:
-    - AccountService.load()
-    - Uses cached profile when available
-    - GET /accounts uses cache fallback
-  - case: success
-    - state: idle
+#### From
+- before-load
+- idle
+#### P1: Process Call account service
+- server:
+  - AccountService.load()
+  - Uses cached profile when available
+  - GET /accounts uses cache fallback
+- case: success
+  - state: idle
 `;
-  const result = parseMarkVSpec(source);
+const result = parseMarkVSpec(source);
 
-  assert.deepEqual(result.diagnostics, []);
-  assert.deepEqual(result.actions.find((candidate) => candidate.id === "A-Submit")?.processSteps[0]?.details.map((detail) => [detail.key, detail.value]), [
-    ["request", "POST /login"],
-    ["request.params.email", "E-EmailInput.value"]
-  ]);
-  assert.deepEqual(result.actions.find((candidate) => candidate.id === "A-Load")?.processSteps[0]?.details.map((detail) => [detail.key, detail.value]), [
-    ["server", "AccountService.load()"],
-    ["server", "Uses cached profile when available"],
-    ["server", "GET /accounts uses cache fallback"]
-  ]);
+assert.deepEqual(result.diagnostics, []);
+assert.deepEqual(result.actions.find((candidate) => candidate.id === "A-Submit")?.processSteps[0]?.details.map((detail) => [detail.key, detail.value]), [
+  ["request", "POST /login"],
+  ["request.params.email", "E-EmailInput.value"]
+]);
+assert.deepEqual(result.actions.find((candidate) => candidate.id === "A-Load")?.processSteps[0]?.details.map((detail) => [detail.key, detail.value]), [
+  ["server", "AccountService.load()"],
+  ["server", "Uses cached profile when available"],
+  ["server", "GET /accounts uses cache fallback"]
+]);
 });
 
 test("parses built-in Events lifecycle dispatches", () => {
-  const source = `---
+const source = `---
 id: SCR-EVENTS
 type: screen
 title: Events
@@ -5148,41 +5147,41 @@ title: Events
 
 ### A-Load Load
 
-- From
-  - before-load
-- Process P1: Load
-  - request:
-    - method: GET
-    - path: /items
-  - case: sent
-    - state: initializing
-  - case: success
-    - state: idle
+#### From
+- before-load
+#### P1: Process Load
+- request:
+  - method: GET
+  - path: /items
+- case: sent
+  - state: initializing
+- case: success
+  - state: idle
 
 ### A-RefreshPartial Refresh partial
 
-- From
-  - idle
-- Process P1: Refresh partial
-  - request:
-    - method: GET
-    - path: /summary
-  - case: success
-    - state: idle
+#### From
+- idle
+#### P1: Process Refresh partial
+- request:
+  - method: GET
+  - path: /summary
+- case: success
+  - state: idle
 `;
-  const result = parseMarkVSpec(source);
+const result = parseMarkVSpec(source);
 
-  assert.equal(result.diagnostics.length, 0);
-  assert.deepEqual(result.events.map((event) => [event.event, event.actionId]), [
-    ["page.load", "A-Load"],
-    ["partial.render", "A-RefreshPartial"]
-  ]);
-  assert.equal(result.actions.find((action) => action.id === "A-Load")?.triggeredBy, "page.load");
-  assert.equal(result.actions.find((action) => action.id === "A-RefreshPartial")?.triggeredBy, "partial.render");
+assert.equal(result.diagnostics.length, 0);
+assert.deepEqual(result.events.map((event) => [event.event, event.actionId]), [
+  ["page.load", "A-Load"],
+  ["partial.render", "A-RefreshPartial"]
+]);
+assert.equal(result.actions.find((action) => action.id === "A-Load")?.triggeredBy, "page.load");
+assert.equal(result.actions.find((action) => action.id === "A-RefreshPartial")?.triggeredBy, "partial.render");
 });
 
 test("infers action callers from Element action events", () => {
-  const source = `---
+const source = `---
 id: SCR-ACTION-EVENTS
 type: screen
 title: Action Events
@@ -5283,78 +5282,78 @@ title: Action Events
 
 ### A-MarkChanged Mark changed
 
-- Process P1: Apply immediate effect
-  - state: idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ### A-ValidateEmail Validate email
 
-- Process P1: Apply immediate effect
-  - state: idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ### A-SubmitPreferences Submit preferences
 
-- Process P1: Apply immediate effect
-  - state: idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ### A-ShowHelp Show help
 
-- Process P1: Apply immediate effect
-  - state: idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ### A-CloseDialog Close dialog
 
-- Process P1: Apply immediate effect
-  - state: idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ### A-SelectProfileTab Select profile tab
 
-- Process P1: Apply immediate effect
-  - state: idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ### A-SelectBillingTab Select billing tab
 
-- Process P1: Apply immediate effect
-  - state: idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ### A-SelectKeyboardProfileTab Select keyboard profile tab
 
-- Process P1: Apply immediate effect
-  - state: idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ### A-ToggleProfileFilters Toggle profile filters
 
-- Process P1: Apply immediate effect
-  - state: idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ### A-ToggleShippingDetails Toggle shipping details
 
-- Process P1: Apply immediate effect
-  - state: idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ### A-EditRow Edit row
 
-- Process P1: Apply immediate effect
-  - state: idle
+#### P1: Process Apply immediate effect
+- state: idle
 `;
-  const result = parseMarkVSpec(source);
-  const triggers = new Map(result.actions.map((action) => [action.id, action.triggeredBy]));
+const result = parseMarkVSpec(source);
+const triggers = new Map(result.actions.map((action) => [action.id, action.triggeredBy]));
 
-  assert.equal(result.diagnostics.length, 0);
-  assert.equal(triggers.get("A-MarkChanged"), "E-SearchInput.change");
-  assert.equal(triggers.get("A-ValidateEmail"), "E-EmailInput.blur");
-  assert.equal(triggers.get("A-SubmitPreferences"), "E-PreferencesForm.submit");
-  assert.equal(triggers.get("A-ShowHelp"), "E-HelpIcon.focus");
-  assert.equal(triggers.get("A-CloseDialog"), "E-ConfirmDialog.close");
-  assert.equal(triggers.get("A-SelectProfileTab"), "E-SettingsTabs.click");
-  assert.equal(triggers.get("A-SelectBillingTab"), "E-SettingsTabs.click");
-  assert.equal(triggers.get("A-SelectKeyboardProfileTab"), "E-KeyboardTabs.change");
-  assert.equal(triggers.get("A-ToggleProfileFilters"), "E-AdvancedFilters.click");
-  assert.equal(triggers.get("A-ToggleShippingDetails"), "E-ShippingDetails.click");
-  assert.equal(triggers.get("A-EditRow"), "E-RowActions.click");
+assert.equal(result.diagnostics.length, 0);
+assert.equal(triggers.get("A-MarkChanged"), "E-SearchInput.change");
+assert.equal(triggers.get("A-ValidateEmail"), "E-EmailInput.blur");
+assert.equal(triggers.get("A-SubmitPreferences"), "E-PreferencesForm.submit");
+assert.equal(triggers.get("A-ShowHelp"), "E-HelpIcon.focus");
+assert.equal(triggers.get("A-CloseDialog"), "E-ConfirmDialog.close");
+assert.equal(triggers.get("A-SelectProfileTab"), "E-SettingsTabs.click");
+assert.equal(triggers.get("A-SelectBillingTab"), "E-SettingsTabs.click");
+assert.equal(triggers.get("A-SelectKeyboardProfileTab"), "E-KeyboardTabs.change");
+assert.equal(triggers.get("A-ToggleProfileFilters"), "E-AdvancedFilters.click");
+assert.equal(triggers.get("A-ToggleShippingDetails"), "E-ShippingDetails.click");
+assert.equal(triggers.get("A-EditRow"), "E-RowActions.click");
 });
 
 test("validates built-in Events dispatches", () => {
-  const source = `---
+const source = `---
 id: SCR-EVENTS-DIAGNOSTICS
 type: screen
 title: Events Diagnostics
@@ -5373,29 +5372,29 @@ title: Events Diagnostics
 
 ### A-Load Load
 
-- Process P1: Load
-  - request:
-    - method: GET
-    - path: /items
+#### P1: Process Load
+- request:
+  - method: GET
+  - path: /items
 `;
-  const result = parseMarkVSpec(source);
-  const diagnostics = result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]);
+const result = parseMarkVSpec(source);
+const diagnostics = result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]);
 
-  assert.deepEqual(diagnostics, [
-    [
-      "warning",
-      "page.load event has no pre-initial state. Add a + state such as before-load+ to show lifecycle entry transitions.",
-      lineNumber(source, "- page.load: A-Missing")
-    ],
-    ["error", "Event page.load references missing action A-Missing.", lineNumber(source, "- page.load: A-Missing")],
-    ["error", "Event timer.elapsed is not supported. Use page.load or partial.render.", lineNumber(source, "- timer.elapsed: A-Load")],
-    ["error", "Event E-SubmitButton.click is not supported. Use page.load or partial.render.", lineNumber(source, "- E-SubmitButton.click: A-Load")],
-    ["error", "Event E-SubmitButton.click is a user operation. Connect user operations with Element action: instead of ## Events.", lineNumber(source, "- E-SubmitButton.click: A-Load")]
-  ]);
+assert.deepEqual(diagnostics, [
+  [
+    "warning",
+    "page.load event has no pre-initial state. Add a + state such as before-load+ to show lifecycle entry transitions.",
+    lineNumber(source, "- page.load: A-Missing")
+  ],
+  ["error", "Event page.load references missing action A-Missing.", lineNumber(source, "- page.load: A-Missing")],
+  ["error", "Event timer.elapsed is not supported. Use page.load or partial.render.", lineNumber(source, "- timer.elapsed: A-Load")],
+  ["error", "Event E-SubmitButton.click is not supported. Use page.load or partial.render.", lineNumber(source, "- E-SubmitButton.click: A-Load")],
+  ["error", "Event E-SubmitButton.click is a user operation. Connect user operations with Element action: instead of ## Events.", lineNumber(source, "- E-SubmitButton.click: A-Load")]
+]);
 });
 
 test("validates page.load pre-initial lifecycle entries", () => {
-  const source = `---
+const source = `---
 id: SCR-PAGE-LOAD-PRE-INITIAL
 type: screen
 title: Page Load Pre Initial
@@ -5419,48 +5418,48 @@ title: Page Load Pre Initial
 
 ### A-Load Load
 
-- From
-  - before-load
-- Process P1: Apply immediate effect
-  - state: initializing
+#### From
+- before-load
+#### P1: Process Apply immediate effect
+- state: initializing
 
 ### A-MissingFrom Missing From
 
-- From
-  - initializing
-- Process P1: Apply immediate effect
-  - state: loaded
+#### From
+- initializing
+#### P1: Process Apply immediate effect
+- state: loaded
 
 ### A-MissingInitial Missing Initial
 
-- From
-  - before-load
-- Process P1: Apply immediate effect
-  - state: loaded
+#### From
+- before-load
+#### P1: Process Apply immediate effect
+- state: loaded
 `;
-  const result = parseMarkVSpec(source);
+const result = parseMarkVSpec(source);
 
-  assert.deepEqual(result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]), [
-    [
-      "warning",
-      "page.load action A-MissingFrom should include pre-initial state before-load in From.",
-      lineNumber(source, "- page.load: A-MissingFrom")
-    ],
-    [
-      "warning",
-      "page.load action A-MissingFrom should transition from before-load to initial state initializing.",
-      lineNumber(source, "- page.load: A-MissingFrom")
-    ],
-    [
-      "warning",
-      "page.load action A-MissingInitial should transition from before-load to initial state initializing.",
-      lineNumber(source, "- page.load: A-MissingInitial")
-    ]
-  ]);
+assert.deepEqual(result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]), [
+  [
+    "warning",
+    "page.load action A-MissingFrom should include pre-initial state before-load in From.",
+    lineNumber(source, "- page.load: A-MissingFrom")
+  ],
+  [
+    "warning",
+    "page.load action A-MissingFrom should transition from before-load to initial state initializing.",
+    lineNumber(source, "- page.load: A-MissingFrom")
+  ],
+  [
+    "warning",
+    "page.load action A-MissingInitial should transition from before-load to initial state initializing.",
+    lineNumber(source, "- page.load: A-MissingInitial")
+  ]
+]);
 });
 
 test("warns when page.load has no pre-initial state marker", () => {
-  const source = `---
+const source = `---
 id: SCR-PAGE-LOAD-NO-PRE-INITIAL
 type: screen
 title: Page Load No Pre Initial
@@ -5480,24 +5479,24 @@ title: Page Load No Pre Initial
 
 ### A-Load Load
 
-- From
-  - initializing
-- Process P1: Apply immediate effect
-  - state: initializing
+#### From
+- initializing
+#### P1: Process Apply immediate effect
+- state: initializing
 `;
-  const result = parseMarkVSpec(source);
+const result = parseMarkVSpec(source);
 
-  assert.deepEqual(result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]), [
-    [
-      "warning",
-      "page.load event has no pre-initial state. Add a + state such as before-load+ to show lifecycle entry transitions.",
-      lineNumber(source, "- page.load: A-Load")
-    ]
-  ]);
+assert.deepEqual(result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]), [
+  [
+    "warning",
+    "page.load event has no pre-initial state. Add a + state such as before-load+ to show lifecycle entry transitions.",
+    lineNumber(source, "- page.load: A-Load")
+  ]
+]);
 });
 
 test("parses partial documents with partial render actions", () => {
-  const source = `---
+const source = `---
 id: PRT-NOTICE-CARD
 type: partial
 title: Notice Card
@@ -5534,26 +5533,26 @@ route: /mypage/partials/notices
 
 ### A-Build Build notices
 
-- From
-  - loaded
-- Process P1: Call server service
-  - NoticeQueryService.findLatest()
-  - case: success
-    - description: 200 notices
-    - state: loaded
+#### From
+- loaded
+#### P1: Process Call server service
+- NoticeQueryService.findLatest()
+- case: success
+  - description: 200 notices
+  - state: loaded
 `;
-  const result = parseMarkVSpec(source);
-  const action = result.actions.find((candidate) => candidate.id === "A-Build");
-  const success = action?.processSteps[0]?.outcomes.find((outcome) => outcome.result === "success");
+const result = parseMarkVSpec(source);
+const action = result.actions.find((candidate) => candidate.id === "A-Build");
+const success = action?.processSteps[0]?.outcomes.find((outcome) => outcome.result === "success");
 
-  assert.equal(result.screen.type, "partial");
-  assert.equal(result.diagnostics.length, 0);
-  assert.equal(action?.triggeredBy, "partial.render");
-  assert.deepEqual(success?.sideEffects, []);
+assert.equal(result.screen.type, "partial");
+assert.equal(result.diagnostics.length, 0);
+assert.equal(action?.triggeredBy, "partial.render");
+assert.deepEqual(success?.sideEffects, []);
 });
 
 test("reports missing process step references", () => {
-  const source = `---
+const source = `---
 id: SCR-PROCESS-REFS
 type: screen
 title: Process Refs
@@ -5577,31 +5576,31 @@ title: Process Refs
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Preprocess
-  - when: E-Missing is present
-  - skip when: E-Other is hidden
-  - update:
-    - target: L-Missing
-    - content: Missing
-- Process P2: Apply immediate effect
-  - state: done
+#### From
+- idle
+#### P1: Process Preprocess
+- when: E-Missing is present
+- skip when: E-Other is hidden
+- update:
+  - target: L-Missing
+  - content: Missing
+#### P2: Process Apply immediate effect
+- state: done
 `;
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+const result = parseMarkVSpec(source);
+const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Condition references missing ID E-Missing."));
-  assert(messages.includes("Condition references missing ID E-Other."));
-  assert(messages.includes("Action A-Submit process step Preprocess targets missing layout or element L-Missing."));
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit process step Preprocess targets missing layout or element L-Missing.")?.line,
-    lineNumber(source, "    - target: L-Missing")
-  );
+assert(messages.includes("Condition references missing ID E-Missing."));
+assert(messages.includes("Condition references missing ID E-Other."));
+assert(messages.includes("Action A-Submit process step Preprocess targets missing layout or element L-Missing."));
+assert.equal(
+  result.diagnostics.find((diagnostic) => diagnostic.message === "Action A-Submit process step Preprocess targets missing layout or element L-Missing.")?.line,
+  lineNumber(source, "    - target: L-Missing")
+);
 });
 
 test("warns when action layout targets are missing from a viewport", () => {
-  const source = `---
+const source = `---
 id: SCR-VIEWPORT-TARGETS
 type: screen
 title: Viewport Targets
@@ -5650,30 +5649,30 @@ title: Viewport Targets
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Preprocess
+#### From
+- idle
+#### P1: Process Preprocess
+- update:
+  - target: L-Message
+  - content: Clear
+#### P2: Process Apply immediate effect
+- state: error
+#### P3: Process Apply immediate effect
+- case: failure
+  - transition: idle -> error
   - update:
     - target: L-Message
-    - content: Clear
-- Process P2: Apply immediate effect
-  - state: error
-- Process P3: Apply immediate effect
-  - case: failure
-    - transition: idle -> error
-    - update:
-      - target: L-Message
-      - content: Failed
+    - content: Failed
 `;
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+const result = parseMarkVSpec(source);
+const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Action A-Submit process step Preprocess targets layout L-Message, but it is missing from viewport desktop."));
-  assert(messages.includes("Action A-Submit process step Apply immediate effect failure outcome targets layout L-Message, but it is missing from viewport desktop."));
+assert(messages.includes("Action A-Submit process step Preprocess targets layout L-Message, but it is missing from viewport desktop."));
+assert(messages.includes("Action A-Submit process step Apply immediate effect failure outcome targets layout L-Message, but it is missing from viewport desktop."));
 });
 
 test("allows action partial update targets inside slot content", () => {
-  const source = `---
+const source = `---
 id: SCR-SLOT-TARGET
 type: screen
 title: Slot Target
@@ -5718,26 +5717,26 @@ title: Slot Target
 
 ### A-Load Load
 
-- From
-  - before-load
-  - initializing
-- Process P0: Enter initializing
-  - state: initializing
-- Process P1: Apply immediate effect
-  - case: success
-    - description: ok
-    - state: idle
-    - update:
-      - target: L-Card
-      - content: Ready content
+#### From
+- before-load
+- initializing
+#### P0: Process Enter initializing
+- state: initializing
+#### P1: Process Apply immediate effect
+- case: success
+  - description: ok
+  - state: idle
+  - update:
+    - target: L-Card
+    - content: Ready content
 `;
-  const result = parseMarkVSpec(source);
+const result = parseMarkVSpec(source);
 
-  assert.deepEqual(result.diagnostics, []);
+assert.deepEqual(result.diagnostics, []);
 });
 
 test("reports missing request parameter source references", () => {
-  const source = `---
+const source = `---
 id: SCR-PARAMS
 type: screen
 title: Params
@@ -5755,63 +5754,63 @@ title: Params
 
 - Triggered
   - service.submit
-- From
-  - idle
-- Process P1: Send request
-  - request:
-    - method: POST
-    - path: /login
-    - params:
-      - email: E-Missing.value
-- Process P2: Submit account
-  - server:
-    - AccountService.save()
-    - params:
-      - email: E-ServerMissing.value
-- Process P3: SyncService
-  - sync:
-    - AccountSync.push()
-    - params:
-      - email: E-CustomMissing.value
-- Process P4: Apply immediate effect
-  - state: idle
+#### From
+- idle
+#### P1: Process Send request
+- request:
+  - method: POST
+  - path: /login
+  - params:
+    - email: E-Missing.value
+#### P2: Process Submit account
+- server:
+  - AccountService.save()
+  - params:
+    - email: E-ServerMissing.value
+#### P3: Process SyncService
+- sync:
+  - AccountSync.push()
+  - params:
+    - email: E-CustomMissing.value
+#### P4: Process Apply immediate effect
+- state: idle
 `;
-  const result = parseMarkVSpec(source);
+const result = parseMarkVSpec(source);
 
-  assert.deepEqual(
-    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+assert.deepEqual(
+  result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+  [
     [
-      [
-        "warning",
-        "Unknown structured item in Action A-Submit: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.",
-        lineNumber(source, "- Triggered")
-      ],
-      [
-        "warning",
-        "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.",
-        lineNumber(source, "### A-Submit submit")
-      ],
-      [
-        "error",
-        "Action A-Submit process step P1 Send request parameter request.params.email references missing source E-Missing.",
-        lineNumber(source, "      - email: E-Missing.value")
-      ],
-      [
-        "error",
-        "Action A-Submit process step P2 Submit account parameter server.params.email references missing source E-ServerMissing.",
-        lineNumber(source, "      - email: E-ServerMissing.value")
-      ],
-      [
-        "error",
-        "Action A-Submit process step P3 SyncService parameter sync.params.email references missing source E-CustomMissing.",
-        lineNumber(source, "      - email: E-CustomMissing.value")
-      ]
+      "warning",
+      "Unknown structured item in Action A-Submit: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.",
+      lineNumber(source, "- Triggered")
+    ],
+    [
+      "warning",
+      "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.",
+      lineNumber(source, "### A-Submit submit")
+    ],
+    [
+      "error",
+      "Action A-Submit process step P1 Send request parameter request.params.email references missing source E-Missing.",
+      lineNumber(source, "      - email: E-Missing.value")
+    ],
+    [
+      "error",
+      "Action A-Submit process step P2 Submit account parameter server.params.email references missing source E-ServerMissing.",
+      lineNumber(source, "      - email: E-ServerMissing.value")
+    ],
+    [
+      "error",
+      "Action A-Submit process step P3 SyncService parameter sync.params.email references missing source E-CustomMissing.",
+      lineNumber(source, "      - email: E-CustomMissing.value")
     ]
-  );
+  ]
+);
 });
 
 test("reports missing route parameter source references in action cases", () => {
-  const source = `---
+const source = `---
 id: SCR-ROUTE-PARAMS
 type: screen
 title: Route Params
@@ -5834,30 +5833,30 @@ title: Route Params
 
 ### A-Open open
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - case: success
-    - params:
-      - id: E-Missing.value
-    - navigate: SCR-DETAIL
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- case: success
+  - params:
+    - id: E-Missing.value
+  - navigate: SCR-DETAIL
 `;
-  const result = parseMarkVSpec(source);
+const result = parseMarkVSpec(source);
 
-  assert.deepEqual(
-    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+assert.deepEqual(
+  result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+  [
     [
-      [
-        "error",
-        "Action A-Open process step Apply immediate effect case success route parameter id references missing source E-Missing.",
-        lineNumber(source, "      - id: E-Missing.value")
-      ]
+      "error",
+      "Action A-Open process step Apply immediate effect case success route parameter id references missing source E-Missing.",
+      lineNumber(source, "      - id: E-Missing.value")
     ]
-  );
+  ]
+);
 });
 
 test("warns when response definitions do not match transition results", () => {
-  const source = `---
+const source = `---
 id: SCR-RESPONSE
 type: screen
 title: Response
@@ -5875,40 +5874,40 @@ title: Response
 
 - Triggered
   - service.response
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - case: success
-    - response: 2xx
-  - case: failure
-    - state: idle
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- case: success
+  - response: 2xx
+- case: failure
+  - state: idle
 `;
-  const result = parseMarkVSpec(source);
+const result = parseMarkVSpec(source);
 
-  assert.deepEqual(
-    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+assert.deepEqual(
+  result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+  [
     [
-      [
-        "warning",
-        "Unknown structured item in Action A-Submit: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.",
-        lineNumber(source, "- Triggered")
-      ],
-      [
-        "warning",
-        "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.",
-        lineNumber(source, "### A-Submit submit")
-      ],
-      [
-        "warning",
-        "Action A-Submit process step P1 Apply immediate effect case success uses response without receiving a response. Use description for validation, branching, sent, send-failed, or other non-response case explanations.",
-        lineNumber(source, "    - response: 2xx")
-      ]
+      "warning",
+      "Unknown structured item in Action A-Submit: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.",
+      lineNumber(source, "- Triggered")
+    ],
+    [
+      "warning",
+      "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.",
+      lineNumber(source, "### A-Submit submit")
+    ],
+    [
+      "warning",
+      "Action A-Submit process step P1 Apply immediate effect case success uses response without receiving a response. Use description for validation, branching, sent, send-failed, or other non-response case explanations.",
+      lineNumber(source, "    - response: 2xx")
     ]
-  );
+  ]
+);
 });
 
 test("warns when action cases and request steps are structurally incomplete", () => {
-  const source = `---
+const source = `---
 id: SCR-INCOMPLETE-ACTION
 type: screen
 title: Incomplete Action
@@ -5935,34 +5934,34 @@ title: Incomplete Action
 
 ### A-Submit submit
 
-- From
-  - idle
-- Process P1: Send request
-  - request:
-    - params:
-      - email: E-メールアドレス入力.value
-- Process P2: Apply immediate effect
-  - case: success
-    - stop
+#### From
+- idle
+#### P1: Process Send request
+- request:
+  - params:
+    - email: E-メールアドレス入力.value
+#### P2: Process Apply immediate effect
+- case: success
+  - stop
 `;
-  const result = parseMarkVSpec(source);
-  const action = result.actions.find((candidate) => candidate.id === "A-Submit");
+const result = parseMarkVSpec(source);
+const action = result.actions.find((candidate) => candidate.id === "A-Submit");
 
-  assert.deepEqual(
-    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+assert.deepEqual(
+  result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+  [
     [
-      [
-        "warning",
-        "Action A-Submit request process step has no request line such as POST /path.",
-        lineNumber(source, "- Process P1: Send request")
-      ]
+      "warning",
+      "Action A-Submit request process step has no request line such as POST /path.",
+      lineNumber(source, "#### P1: Process Send request")
     ]
-  );
-  assert.equal(action?.processSteps.find((step) => step.name === "Apply immediate effect")?.outcomes.find((outcome) => outcome.result === "success")?.flow, "stop");
+  ]
+);
+assert.equal(action?.processSteps.find((step) => step.name === "Apply immediate effect")?.outcomes.find((outcome) => outcome.result === "success")?.flow, "stop");
 });
 
 test("validates process case flow directive placement", () => {
-  const source = `---
+const source = `---
 id: SCR-FLOW-PLACEMENT
 type: screen
 title: Flow Placement
@@ -5989,55 +5988,55 @@ title: Flow Placement
 
 ### A-Valid Valid flow
 
-- From
-  - before-load
-  - idle
-- Process P1: Apply immediate effect
-  - case: success
-    - state: done
-    - stop
+#### From
+- before-load
+- idle
+#### P1: Process Apply immediate effect
+- case: success
+  - state: done
+  - stop
 
 ### A-Invalid Invalid flow
 
-- From
-  - before-load
-  - idle
-- Process P1: Apply immediate effect
-  - case: under-effects
-    - Effects
-      - state: done
-      - stop
-  - case: non-final
-    - stop
+#### From
+- before-load
+- idle
+#### P1: Process Apply immediate effect
+- case: under-effects
+  - Effects
     - state: done
-  - case: both
-    - continue
     - stop
+- case: non-final
+  - stop
+  - state: done
+- case: both
+  - continue
+  - stop
 `;
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+const result = parseMarkVSpec(source);
+const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(!messages.some((message) => message.includes("A-Valid") && message.includes("flow")));
-  assert(messages.includes("Action A-Invalid process step Apply immediate effect case under-effects has stop under an Effects wrapper. Put stop directly under the case as the final entry."));
-  assert(messages.includes("Action A-Invalid process step Apply immediate effect case non-final has entries after stop. Put stop as the final entry in the case."));
-  assert(messages.includes("Action A-Invalid process step Apply immediate effect case both has both stop and continue. Use only one flow directive."));
-  assert(messages.includes("Action A-Invalid process step Apply immediate effect case both has entries after continue. Put continue as the final entry in the case."));
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("under-effects has stop under an Effects wrapper"))?.line,
-    lineNumber(source, "      - stop")
-  );
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("non-final has entries after stop"))?.line,
-    lineNumber(source, "    - state: done", 2)
-  );
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("both has both stop and continue"))?.line,
-    lineNumber(source, "    - stop", 3)
-  );
+assert(!messages.some((message) => message.includes("A-Valid") && message.includes("flow")));
+assert(messages.includes("Action A-Invalid process step Apply immediate effect case under-effects has stop under an Effects wrapper. Put stop directly under the case as the final entry."));
+assert(messages.includes("Action A-Invalid process step Apply immediate effect case non-final has entries after stop. Put stop as the final entry in the case."));
+assert(messages.includes("Action A-Invalid process step Apply immediate effect case both has both stop and continue. Use only one flow directive."));
+assert(messages.includes("Action A-Invalid process step Apply immediate effect case both has entries after continue. Put continue as the final entry in the case."));
+assert.equal(
+  result.diagnostics.find((diagnostic) => diagnostic.message.includes("under-effects has stop under an Effects wrapper"))?.line,
+  lineNumber(source, "      - stop", 2)
+);
+assert.equal(
+  result.diagnostics.find((diagnostic) => diagnostic.message.includes("non-final has entries after stop"))?.line,
+  lineNumber(source, "    - state: done", 3)
+);
+assert.equal(
+  result.diagnostics.find((diagnostic) => diagnostic.message.includes("both has both stop and continue"))?.line,
+  lineNumber(source, "    - stop", 4)
+);
 });
 
 test("warns for a request process step without its own request line", () => {
-  const source = `---
+const source = `---
 id: SCR-INCOMPLETE-REQUEST-STEP
 type: screen
 title: Incomplete Request Step
@@ -6060,33 +6059,33 @@ title: Incomplete Request Step
 
 ### A-Submit submit
 
-- From
-  - idle
-- Process P1: Send request
-  - request:
-    - params:
-      - page: \${model.page}
-- Process P2: Send request
-  - request:
-    - method: GET
-    - path: /users
+#### From
+- idle
+#### P1: Process Send request
+- request:
+  - params:
+    - page: \${model.page}
+#### P2: Process Send request
+- request:
+  - method: GET
+  - path: /users
 `;
-  const result = parseMarkVSpec(source);
+const result = parseMarkVSpec(source);
 
-  assert.deepEqual(
-    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+assert.deepEqual(
+  result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+  [
     [
-      [
-        "warning",
-        "Action A-Submit request process step has no request line such as POST /path.",
-        lineNumber(source, "- Process P1: Send request")
-      ]
+      "warning",
+      "Action A-Submit request process step has no request line such as POST /path.",
+      lineNumber(source, "#### P1: Process Send request")
     ]
-  );
+  ]
+);
 });
 
 test("renders Select elements with options and selected initial value", () => {
-  const source = `---
+const source = `---
 id: SCR-SELECT
 type: screen
 title: Select
@@ -6200,46 +6199,46 @@ title: Tabs
 
 ### A-SelectProfileTab Select profile tab
 
-- From
-  - billing-tab
+#### From
+- billing-tab
 
 ### A-SelectBillingTab Select billing tab
 
-- From
-  - profile-tab
+#### From
+- profile-tab
 `;
-  const result = parseMarkVSpec(source);
-  const tabs = result.elements.find((element) => element.id === "E-SettingsTabs");
-  const rows = buildDisplayContentSpecRows(result.elements);
-  const tabsRow = rows.find((row) => row.element.id === "E-SettingsTabs" && row.location === "tabs");
-  const html = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true });
+const result = parseMarkVSpec(source);
+const tabs = result.elements.find((element) => element.id === "E-SettingsTabs");
+const rows = buildDisplayContentSpecRows(result.elements);
+const tabsRow = rows.find((row) => row.element.id === "E-SettingsTabs" && row.location === "tabs");
+const html = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true });
 
-  assert.deepEqual(result.diagnostics, []);
-  assert.equal(tabs?.type, "Tabs");
-  assert.deepEqual(tabs?.tabs.map((item) => [item.label, item.panel, item.action, item.activeWhen]), [
-    ["Profile", "L-ProfilePanel", "A-SelectProfileTab", ["profile-tab"]],
-    ["Billing", "L-BillingPanel", "A-SelectBillingTab", ["billing-tab"]]
-  ]);
-  assert.deepEqual([tabsRow?.value, tabsRow?.contentSections], [
-    "Profile, Billing",
-    [{ title: "Tabs", rows: ["Profile (panel: L-ProfilePanel; action: A-SelectProfileTab; active when: profile-tab)", "Billing (panel: L-BillingPanel; action: A-SelectBillingTab; active when: billing-tab)"] }]
-  ]);
-  assert.match(html, /<div class="mm-element mm-element-tabs" data-mm-id="E-SettingsTabs">/);
-  assert.match(html, /<span class="mm-tab-item mm-tab-item-active" aria-selected="true" data-mm-tab-panel="L-ProfilePanel" data-mm-tab-action="A-SelectProfileTab">Profile<\/span>/);
-  assert.match(html, /<span class="mm-tab-item" data-mm-tab-panel="L-BillingPanel" data-mm-tab-action="A-SelectBillingTab">Billing<\/span>/);
-  assert.match(html, /<div class="mm-controlled-panel mm-controlled-panel-tabs" data-mm-controlled-panel="L-ProfilePanel">/);
-  assert.match(html, /Profile details/);
-  assert.doesNotMatch(html, /Billing details/);
-  assert.doesNotMatch(html, /mm-tabs-panel-note/);
+assert.deepEqual(result.diagnostics, []);
+assert.equal(tabs?.type, "Tabs");
+assert.deepEqual(tabs?.tabs.map((item) => [item.label, item.panel, item.action, item.activeWhen]), [
+  ["Profile", "L-ProfilePanel", "A-SelectProfileTab", ["profile-tab"]],
+  ["Billing", "L-BillingPanel", "A-SelectBillingTab", ["billing-tab"]]
+]);
+assert.deepEqual([tabsRow?.value, tabsRow?.contentSections], [
+  "Profile, Billing",
+  [{ title: "Tabs", rows: ["Profile (panel: L-ProfilePanel; action: A-SelectProfileTab; active when: profile-tab)", "Billing (panel: L-BillingPanel; action: A-SelectBillingTab; active when: billing-tab)"] }]
+]);
+assert.match(html, /<div class="mm-element mm-element-tabs" data-mm-id="E-SettingsTabs">/);
+assert.match(html, /<span class="mm-tab-item mm-tab-item-active" aria-selected="true" data-mm-tab-panel="L-ProfilePanel" data-mm-tab-action="A-SelectProfileTab">Profile<\/span>/);
+assert.match(html, /<span class="mm-tab-item" data-mm-tab-panel="L-BillingPanel" data-mm-tab-action="A-SelectBillingTab">Billing<\/span>/);
+assert.match(html, /<div class="mm-controlled-panel mm-controlled-panel-tabs" data-mm-controlled-panel="L-ProfilePanel">/);
+assert.match(html, /Profile details/);
+assert.doesNotMatch(html, /Billing details/);
+assert.doesNotMatch(html, /mm-tabs-panel-note/);
 
-  const billingHtml = renderMarkVSpecHtml(result, { state: "billing-tab", includeStyles: false, showIds: true });
-  assert.match(billingHtml, /<span class="mm-tab-item mm-tab-item-active" aria-selected="true" data-mm-tab-panel="L-BillingPanel" data-mm-tab-action="A-SelectBillingTab">Billing<\/span>/);
-  assert.match(billingHtml, /Billing details/);
-  assert.doesNotMatch(billingHtml, /Profile details/);
+const billingHtml = renderMarkVSpecHtml(result, { state: "billing-tab", includeStyles: false, showIds: true });
+assert.match(billingHtml, /<span class="mm-tab-item mm-tab-item-active" aria-selected="true" data-mm-tab-panel="L-BillingPanel" data-mm-tab-action="A-SelectBillingTab">Billing<\/span>/);
+assert.match(billingHtml, /Billing details/);
+assert.doesNotMatch(billingHtml, /Profile details/);
 });
 
 test("warns for invalid Tabs active panel and action references", () => {
-  const source = `---
+const source = `---
 id: SCR-TABS-DIAGNOSTICS
 type: screen
 title: Tabs Diagnostics
@@ -7030,37 +7029,37 @@ title: Media
 
 ### A-CancelDelete Cancel delete
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ### A-ConfirmDelete Confirm delete
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 `;
-  const result = parseMarkVSpec(source);
-  const html = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true });
+const result = parseMarkVSpec(source);
+const html = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true });
 
-  assert.equal(result.diagnostics.length, 0);
-  assert.match(html, /<section class="mm-element mm-element-dialog" data-mm-id="E-ConfirmDialog" role="dialog" aria-modal="true" aria-label="Delete item">/);
-  assert.match(html, /<div class="mm-dialog-actions">[\s\S]*<button class="mm-element mm-element-button mm-variant-primary mm-tone-danger" data-mm-id="E-ConfirmDeleteButton">Delete<\/button>/);
-  assert.match(html, /<div class="mm-dialog-actions">[\s\S]*<div class="mm-element-wrap mm-element-wrap-button mm-element-wrap-annotated" data-mm-render-key="element:E-CancelDeleteButton">[\s\S]*<span class="mm-annotation-row">[\s\S]*mm-marker-action[\s\S]*A-CancelDelete[\s\S]*<\/span><\/div>[\s\S]*<div class="mm-element-wrap mm-element-wrap-button mm-element-wrap-annotated" data-mm-render-key="element:E-ConfirmDeleteButton">[\s\S]*<span class="mm-annotation-row">[\s\S]*mm-marker-action[\s\S]*A-ConfirmDelete[\s\S]*<\/span><\/div>/);
-  assert.match(html, /<div class="mm-dialog-body">This action cannot be undone\.<\/div>/);
-  assert.match(html, /<div class="mm-element mm-element-toast mm-tone-success" data-mm-id="E-SavedToast" role="status" data-mm-toast-placement="top-right" data-mm-toast-duration="short"><span class="mm-toast-message">Settings saved\.<\/span><\/div>/);
-  assert.match(html, /<figure class="mm-element mm-element-image" data-mm-id="E-ProfileImage">/);
-  assert.match(html, /<div class="mm-image-placeholder">Profile photo<\/div><figcaption>\/assets\/profile\.png<\/figcaption>/);
-  assert.match(html, /<span class="mm-element mm-element-icon" data-mm-id="E-SearchIcon" aria-label="Search">/);
-  assert.match(html, /<span class="mm-icon-symbol">search<\/span>/);
-  assert.match(html, /<span class="mm-element mm-element-spinner" data-mm-id="E-読込中スピナー" role="status" aria-label="Loading results\.\.\.">/);
-  assert.match(html, /<span class="mm-spinner-label">Loading results\.\.\.<\/span>/);
+assert.equal(result.diagnostics.length, 0);
+assert.match(html, /<section class="mm-element mm-element-dialog" data-mm-id="E-ConfirmDialog" role="dialog" aria-modal="true" aria-label="Delete item">/);
+assert.match(html, /<div class="mm-dialog-actions">[\s\S]*<button class="mm-element mm-element-button mm-variant-primary mm-tone-danger" data-mm-id="E-ConfirmDeleteButton">Delete<\/button>/);
+assert.match(html, /<div class="mm-dialog-actions">[\s\S]*<div class="mm-element-wrap mm-element-wrap-button mm-element-wrap-annotated" data-mm-render-key="element:E-CancelDeleteButton">[\s\S]*<span class="mm-annotation-row">[\s\S]*mm-marker-action[\s\S]*A-CancelDelete[\s\S]*<\/span><\/div>[\s\S]*<div class="mm-element-wrap mm-element-wrap-button mm-element-wrap-annotated" data-mm-render-key="element:E-ConfirmDeleteButton">[\s\S]*<span class="mm-annotation-row">[\s\S]*mm-marker-action[\s\S]*A-ConfirmDelete[\s\S]*<\/span><\/div>/);
+assert.match(html, /<div class="mm-dialog-body">This action cannot be undone\.<\/div>/);
+assert.match(html, /<div class="mm-element mm-element-toast mm-tone-success" data-mm-id="E-SavedToast" role="status" data-mm-toast-placement="top-right" data-mm-toast-duration="short"><span class="mm-toast-message">Settings saved\.<\/span><\/div>/);
+assert.match(html, /<figure class="mm-element mm-element-image" data-mm-id="E-ProfileImage">/);
+assert.match(html, /<div class="mm-image-placeholder">Profile photo<\/div><figcaption>\/assets\/profile\.png<\/figcaption>/);
+assert.match(html, /<span class="mm-element mm-element-icon" data-mm-id="E-SearchIcon" aria-label="Search">/);
+assert.match(html, /<span class="mm-icon-symbol">search<\/span>/);
+assert.match(html, /<span class="mm-element mm-element-spinner" data-mm-id="E-読込中スピナー" role="status" aria-label="Loading results\.\.\.">/);
+assert.match(html, /<span class="mm-spinner-label">Loading results\.\.\.<\/span>/);
 });
 
 test("warns when Dialog elements have no action buttons", () => {
-  const source = `---
+const source = `---
 id: SCR-DIALOG-WARNING
 type: screen
 title: Dialog Warning
@@ -7126,35 +7125,35 @@ title: Toast Display
 
 ### A-Save Save
 
-- From
-  - idle
-- Process P1: Save
-  - case: success
-    - display:
-      - element: E-SavedToast
-    - stop
+#### From
+- idle
+#### P1: Process Save
+- case: success
+  - display:
+    - element: E-SavedToast
+  - stop
 
 ### A-Other Other
 
-- From
-  - idle
-- Process P1: Other
-  - case: done
-    - display:
-      - element: E-OtherText
-    - stop
+#### From
+- idle
+#### P1: Process Other
+- case: done
+  - display:
+    - element: E-OtherText
+  - stop
 `;
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+const result = parseMarkVSpec(source);
+const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(!messages.includes("Action A-Save process step P1 Save case success display effect must define target."));
-  assert(messages.includes("Action A-Other process step P1 Other case done display effect must define target."));
-  assert(messages.includes("Element E-BadToast placement must be one of top-right, top-left, bottom-right, bottom-left, top, bottom."));
-  assert(messages.includes("Element E-BadToast duration must be one of short, medium, long, manual."));
+assert(!messages.includes("Action A-Save process step P1 Save case success display effect must define target."));
+assert(messages.includes("Action A-Other process step P1 Other case done display effect must define target."));
+assert(messages.includes("Element E-BadToast placement must be one of top-right, top-left, bottom-right, bottom-left, top, bottom."));
+assert(messages.includes("Element E-BadToast duration must be one of short, medium, long, manual."));
 });
 
 test("renders practical UI helper elements", () => {
-  const source = `---
+const source = `---
 id: SCR-HELPERS
 type: screen
 title: Helpers
@@ -7459,26 +7458,26 @@ title: Bad Presentation Panel
 
 ### A-Refresh Refresh
 
-- From
-  - before-load
-  - idle
-- Process P1: Apply immediate effect
-  - case: success
-    - update:
-      - target: P-Fields
-      - content: refreshed fields
+#### From
+- before-load
+- idle
+#### P1: Process Apply immediate effect
+- case: success
+  - update:
+    - target: P-Fields
+    - content: refreshed fields
 `;
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+const result = parseMarkVSpec(source);
+const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Presentation panel P-Fields ignores marker. Use an L-* Layout when a layout marker is needed."));
-  assert(messages.includes("Presentation panel P-Fields cannot use visible when. Use an L-* Layout when visibility or disabled control is needed."));
-  assert(messages.includes("Presentation panel P-Fields cannot use disabled when. Use an L-* Layout when visibility or disabled control is needed."));
-  assert(messages.includes("Action A-Refresh process step Apply immediate effect success outcome cannot target presentation panel P-Fields. Use an L-* Layout when a targetable layout is needed."));
+assert(messages.includes("Presentation panel P-Fields ignores marker. Use an L-* Layout when a layout marker is needed."));
+assert(messages.includes("Presentation panel P-Fields cannot use visible when. Use an L-* Layout when visibility or disabled control is needed."));
+assert(messages.includes("Presentation panel P-Fields cannot use disabled when. Use an L-* Layout when visibility or disabled control is needed."));
+assert(messages.includes("Action A-Refresh process step Apply immediate effect success outcome cannot target presentation panel P-Fields. Use an L-* Layout when a targetable layout is needed."));
 });
 
 test("keeps stack buttons and links from stretching without overriding row alignment", () => {
-  const source = `---
+const source = `---
 id: SCR-BUTTON-LINK-SIZING
 type: screen
 title: Button Link Sizing
@@ -7740,33 +7739,33 @@ title: Markers
 
 ### Do:A-One one
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ### Do:A-Two two
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 `;
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+const result = parseMarkVSpec(source);
+const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Duplicate layout marker A in mobile: L-One and L-Two."));
-  assert(messages.includes("Duplicate element marker 1: E-One and E-Two."));
-  assert(messages.includes("Duplicate form group marker FG: F-One and F-Two."));
-  assert(messages.includes("Duplicate message marker MSG: V-One and V-Two."));
-  assert(messages.includes("Duplicate message marker MSG: V-One and R-One."));
-  assert(messages.includes("Duplicate message marker MSG: V-One and R-Two."));
-  assert(messages.includes("Duplicate error code marker ER: ERR-One and ERR-Two."));
-  assert(messages.includes("Duplicate action marker Do: A-One and A-Two."));
+assert(messages.includes("Duplicate layout marker A in mobile: L-One and L-Two."));
+assert(messages.includes("Duplicate element marker 1: E-One and E-Two."));
+assert(messages.includes("Duplicate form group marker FG: F-One and F-Two."));
+assert(messages.includes("Duplicate message marker MSG: V-One and V-Two."));
+assert(messages.includes("Duplicate message marker MSG: V-One and R-One."));
+assert(messages.includes("Duplicate message marker MSG: V-One and R-Two."));
+assert(messages.includes("Duplicate error code marker ER: ERR-One and ERR-Two."));
+assert(messages.includes("Duplicate action marker Do: A-One and A-Two."));
 });
 
 test("warns for invalid marker shapes", () => {
-  const source = `---
+const source = `---
 id: SCR-MARKER-SHAPE
 type: screen
 title: Marker Shape
@@ -7825,26 +7824,26 @@ title: Marker Shape
 
 - Triggered
   - E-Title.click
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 `;
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+const result = parseMarkVSpec(source);
+const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Invalid layout marker LayoutMarkerTooLong on L-Page. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
-  assert(messages.includes("Invalid layout marker bad.slot on L-SlotContent. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
-  assert(messages.includes("Invalid element marker bad.marker on E-Title. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
-  assert(messages.includes("Invalid form group marker FormGroupMarkerTooLong on F-LoginForm. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
-  assert(messages.includes("Invalid message marker bad.marker on V-Email. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
-  assert(messages.includes("Invalid message marker Bad!Rule on R-Policy. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
-  assert(messages.includes("Invalid error code marker Bad!Error on ERR-Policy. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
-  assert(messages.includes("Invalid action marker Do! on A-Submit. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
+assert(messages.includes("Invalid layout marker LayoutMarkerTooLong on L-Page. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
+assert(messages.includes("Invalid layout marker bad.slot on L-SlotContent. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
+assert(messages.includes("Invalid element marker bad.marker on E-Title. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
+assert(messages.includes("Invalid form group marker FormGroupMarkerTooLong on F-LoginForm. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
+assert(messages.includes("Invalid message marker bad.marker on V-Email. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
+assert(messages.includes("Invalid message marker Bad!Rule on R-Policy. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
+assert(messages.includes("Invalid error code marker Bad!Error on ERR-Policy. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
+assert(messages.includes("Invalid action marker Do! on A-Submit. Use 1-12 ASCII letters, numbers, underscores, or hyphens, starting with a letter or number."));
 });
 
 test("warns for inconsistent layout markers across viewports", () => {
-  const source = `---
+const source = `---
 id: SCR-RESPONSIVE-MARKERS
 type: screen
 title: Responsive Markers
@@ -8057,28 +8056,28 @@ title: Partial Reference
 
 ### A-LoadNotices Load notices
 
-- From
-  - before-load
-  - idle
-- Process P1: Request partial
-  - request:
-    - method: GET
-    - path: /partials/notices
-  - case: success
-    - state: idle
-    - display:
-      - target: L-PartialHost
-      - partial: PRT-OTHER-LIST
+#### From
+- before-load
+- idle
+#### P1: Process Request partial
+- request:
+  - method: GET
+  - path: /partials/notices
+- case: success
+  - state: idle
+  - display:
+    - target: L-PartialHost
+    - partial: PRT-OTHER-LIST
 `;
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+const result = parseMarkVSpec(source);
+const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Partial reference PRT-NOTICE-LIST is not defined in Front Matter references.partials."));
-  assert(messages.includes("Partial reference PRT-OTHER-LIST is not defined in Front Matter references.partials."));
+assert(messages.includes("Partial reference PRT-NOTICE-LIST is not defined in Front Matter references.partials."));
+assert(messages.includes("Partial reference PRT-OTHER-LIST is not defined in Front Matter references.partials."));
 });
 
 test("requires partial documents to declare self display.partial references", () => {
-  const source = `---
+const source = `---
 id: PRT-SELF
 type: partial
 title: Self Partial
@@ -8112,25 +8111,25 @@ title: Self Partial
 
 ### A-Refresh Refresh
 
-- From
-  - idle
-- Process P1: Request partial
-  - request:
-    - method: GET
-    - path: /partials/self
-  - case: success
-    - display:
-      - target: L-Self
-      - partial: PRT-SELF
+#### From
+- idle
+#### P1: Process Request partial
+- request:
+  - method: GET
+  - path: /partials/self
+- case: success
+  - display:
+    - target: L-Self
+    - partial: PRT-SELF
 `;
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+const result = parseMarkVSpec(source);
+const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Partial reference PRT-SELF is not defined in Front Matter references.partials."));
+assert(messages.includes("Partial reference PRT-SELF is not defined in Front Matter references.partials."));
 });
 
 test("still requires Front Matter references for non-request self partial references", () => {
-  const source = `---
+const source = `---
 id: PRT-SELF-HOST
 type: partial
 title: Self Partial Host
@@ -8218,50 +8217,50 @@ title: Extension Info
 ### A-Submit Submit
 
 - Tliggered
-- From
-  - idle
-- Process P1: Submit
-  - correlation id: request.id
-  - sync:
-    - AuditService.record()
-  - result:
-    - submit request
-  - case: sent
-    - state: idle
-- Process P2: Extension audit
-  - audit:
-    - AuditService.record()
-    - params:
-      - requestId: request.id
+#### From
+- idle
+#### P1: Process Submit
+- correlation id: request.id
+- sync:
+  - AuditService.record()
+- result:
+  - submit request
+- case: sent
+  - state: idle
+#### P2: Process Extension audit
+- audit:
+  - AuditService.record()
+  - params:
+    - requestId: request.id
 `;
 
-  const result = parseMarkVSpec(source);
-  const infoMessages = result.diagnostics.filter((diagnostic) => diagnostic.severity === "info").map((diagnostic) => diagnostic.message);
-  const warningMessages = result.diagnostics.filter((diagnostic) => diagnostic.severity === "warning").map((diagnostic) => diagnostic.message);
-  const action = result.actions.find((item) => item.id === "A-Submit");
-  const step = action?.processSteps[0];
+const result = parseMarkVSpec(source);
+const infoMessages = result.diagnostics.filter((diagnostic) => diagnostic.severity === "info").map((diagnostic) => diagnostic.message);
+const warningMessages = result.diagnostics.filter((diagnostic) => diagnostic.severity === "warning").map((diagnostic) => diagnostic.message);
+const action = result.actions.find((item) => item.id === "A-Submit");
+const step = action?.processSteps[0];
 
-  assert(infoMessages.includes("Extension item in Layout L-Page: analytics scope: login. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
-  assert(infoMessages.includes("Extension item in Element E-Submit: analytics event: submit_clicked. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
-  assert(infoMessages.includes("Extension item in Action A-Submit process step Submit: correlation id: request.id. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
-  assert(!infoMessages.includes("Extension item in Action A-Submit process step Submit: AuditService.record(). This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
-  assert(infoMessages.includes("Extension item in Action A-Submit process step Extension audit: AuditService.record(). This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
-  assert(warningMessages.includes("Unknown structured item in Action A-Submit: Tliggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
-  assert.equal(result.layoutGroups.find((layout) => layout.id === "L-Page")?.properties["analytics scope"], "login");
-  assert.equal(result.elements.find((element) => element.id === "E-Submit")?.properties["analytics event"], "submit_clicked");
-  assert.deepEqual(step?.details.map((detail) => [detail.key, detail.value]), [
-    ["correlation id", "request.id"],
-    ["sync", "AuditService.record()"]
-  ]);
-  assert.deepEqual(action?.processSteps[1]?.details.map((detail) => [detail.key, detail.value]), [
-    ["audit", "AuditService.record()"],
-    ["audit.params.requestId", "request.id"]
-  ]);
-  assert.equal(action?.triggeredBy, "E-Submit.click");
+assert(infoMessages.includes("Extension item in Layout L-Page: analytics scope: login. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
+assert(infoMessages.includes("Extension item in Element E-Submit: analytics event: submit_clicked. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
+assert(infoMessages.includes("Extension item in Action A-Submit process step Submit: correlation id: request.id. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
+assert(!infoMessages.includes("Extension item in Action A-Submit process step Submit: AuditService.record(). This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
+assert(infoMessages.includes("Extension item in Action A-Submit process step Extension audit: AuditService.record(). This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
+assert(warningMessages.includes("Unknown structured item in Action A-Submit: Tliggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
+assert.equal(result.layoutGroups.find((layout) => layout.id === "L-Page")?.properties["analytics scope"], "login");
+assert.equal(result.elements.find((element) => element.id === "E-Submit")?.properties["analytics event"], "submit_clicked");
+assert.deepEqual(step?.details.map((detail) => [detail.key, detail.value]), [
+  ["correlation id", "request.id"],
+  ["sync", "AuditService.record()"]
+]);
+assert.deepEqual(action?.processSteps[1]?.details.map((detail) => [detail.key, detail.value]), [
+  ["audit", "AuditService.record()"],
+  ["audit.params.requestId", "request.id"]
+]);
+assert.equal(action?.triggeredBy, "E-Submit.click");
 });
 
 test("ignores layout groups in bare Layout sections", () => {
-  const source = `---
+const source = `---
 id: SCR-BARE-LAYOUT
 type: screen
 title: Bare Layout
@@ -8773,71 +8772,71 @@ title: Malformed Action
   - E-メールアドレス入力.click
 - Process: POST /login
 - Process: email: E-メールアドレス入力.value
-- Process P3: Preprocess
-  - request: POST /unsupported
-  - target: L-MessageArea
+#### P3: Process Preprocess
+- request: POST /unsupported
+- target: L-MessageArea
+- update:
+  - target: L-FirstMessageArea
+- target: L-SecondMessageArea
+#### P4: Process Send request
+- request:
+  - method: POST
+  - path: /submit
+  - params:
+    - message: E-メールアドレス入力.value
+#### P5: Process Apply immediate effect
+- response: 2xx authenticated user
+- case: success
+- state: done
+#### P6: Process Apply immediate effect
+- request: POST /unsupported
+- target: L-MessageArea
+#### P7: Process Apply immediate effect
+- case: failure
   - update:
     - target: L-FirstMessageArea
-  - target: L-SecondMessageArea
-- Process P4: Send request
-  - request:
-    - method: POST
-    - path: /submit
-    - params:
-      - message: E-メールアドレス入力.value
-- Process P5: Apply immediate effect
-  - response: 2xx authenticated user
-  - case: success
-  - state: done
-- Process P6: Apply immediate effect
-  - request: POST /unsupported
   - target: L-MessageArea
-- Process P7: Apply immediate effect
-  - case: failure
-    - update:
-      - target: L-FirstMessageArea
-    - target: L-MessageArea
-    - request: POST /unsupported
+  - request: POST /unsupported
 `;
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+const result = parseMarkVSpec(source);
+const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Unknown structured item in Action A-Submit: request: POST /login. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Unknown structured item in Action A-Submit: Process: POST /login. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Unknown structured item in Action A-Submit: Process: email: E-メールアドレス入力.value. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
-  assert(messages.includes("Action A-Submit process step Preprocess has unsupported entry: request: POST /unsupported. Put request method and path under a request block."));
-  assert(messages.includes("Action A-Submit process step Preprocess has unsupported entry: target: L-MessageArea. Put update details under an update block."));
-  assert(messages.includes("Action A-Submit process step Preprocess has unsupported entry: target: L-SecondMessageArea. Put update details under an update block."));
-  assert(messages.includes("Action A-Submit process step Apply immediate effect has unsupported entry: request: POST /unsupported. Put request method and path under a request block."));
-  assert(messages.includes("Action A-Submit process step Apply immediate effect has unsupported entry: target: L-MessageArea. Put update details under an update block."));
-  assert(messages.includes("Action A-Submit has unsupported process step Apply immediate effect case failure entry: target: L-MessageArea. Put update details under an update block."));
-  assert(messages.includes("Action A-Submit has unsupported process step Apply immediate effect case failure entry: request: POST /unsupported. Use description, state, navigate, response, from, params, update, stop, or continue."));
-  const action = result.actions.find((candidate) => candidate.id === "A-Submit");
-  assert.equal(action?.target, undefined);
-  assert.deepEqual(action?.processSteps.find((step) => step.name === "Send request")?.details.map((detail) => [detail.key, detail.value]), [["request.method", "POST"], ["request.path", "/submit"], ["request.params.message", "E-メールアドレス入力.value"]]);
-  assert.deepEqual(action?.processSteps.find((step) => step.name === "Preprocess")?.details.map((detail) => [detail.key, detail.value]), []);
-  assert.equal(action?.processSteps.find((step) => step.name === "Preprocess")?.target, "L-FirstMessageArea");
-  assert.equal(action?.processSteps.flatMap((step) => step.outcomes).find((outcome) => outcome.result === "failure")?.target, "L-FirstMessageArea");
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.startsWith("Unknown structured item in Action A-Submit: request: POST /login"))?.line,
-    lineNumber(source, "- request: POST /login")
-  );
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("Apply immediate effect has unsupported entry: request: POST /unsupported"))?.line,
-    lineNumber(source, "  - request: POST /unsupported", 2)
-  );
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("Action A-Submit: Process: POST /login"))?.line,
-    lineNumber(source, "- Process: POST /login")
-  );
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("Action A-Submit: Process: email: E-メールアドレス入力.value"))?.line,
-    lineNumber(source, "- Process: email: E-メールアドレス入力.value")
-  );
+assert(messages.includes("Unknown structured item in Action A-Submit: request: POST /login. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
+assert(messages.includes("Unknown structured item in Action A-Submit: Process: POST /login. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
+assert(messages.includes("Unknown structured item in Action A-Submit: Process: email: E-メールアドレス入力.value. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
+assert(messages.includes("Action A-Submit process step Preprocess has unsupported entry: request: POST /unsupported. Put request method and path under a request block."));
+assert(messages.includes("Action A-Submit process step Preprocess has unsupported entry: target: L-MessageArea. Put update details under an update block."));
+assert(messages.includes("Action A-Submit process step Preprocess has unsupported entry: target: L-SecondMessageArea. Put update details under an update block."));
+assert(messages.includes("Action A-Submit process step Apply immediate effect has unsupported entry: request: POST /unsupported. Put request method and path under a request block."));
+assert(messages.includes("Action A-Submit process step Apply immediate effect has unsupported entry: target: L-MessageArea. Put update details under an update block."));
+assert(messages.includes("Action A-Submit has unsupported process step Apply immediate effect case failure entry: target: L-MessageArea. Put update details under an update block."));
+assert(messages.includes("Action A-Submit has unsupported process step Apply immediate effect case failure entry: request: POST /unsupported. Use description, state, navigate, response, from, params, update, stop, or continue."));
+const action = result.actions.find((candidate) => candidate.id === "A-Submit");
+assert.equal(action?.target, undefined);
+assert.deepEqual(action?.processSteps.find((step) => step.name === "Send request")?.details.map((detail) => [detail.key, detail.value]), [["request.method", "POST"], ["request.path", "/submit"], ["request.params.message", "E-メールアドレス入力.value"]]);
+assert.deepEqual(action?.processSteps.find((step) => step.name === "Preprocess")?.details.map((detail) => [detail.key, detail.value]), []);
+assert.equal(action?.processSteps.find((step) => step.name === "Preprocess")?.target, "L-FirstMessageArea");
+assert.equal(action?.processSteps.flatMap((step) => step.outcomes).find((outcome) => outcome.result === "failure")?.target, "L-FirstMessageArea");
+assert.equal(
+  result.diagnostics.find((diagnostic) => diagnostic.message.startsWith("Unknown structured item in Action A-Submit: request: POST /login"))?.line,
+  lineNumber(source, "- request: POST /login")
+);
+assert.equal(
+  result.diagnostics.find((diagnostic) => diagnostic.message.includes("Apply immediate effect has unsupported entry: request: POST /unsupported"))?.line,
+  lineNumber(source, "  - request: POST /unsupported", 2)
+);
+assert.equal(
+  result.diagnostics.find((diagnostic) => diagnostic.message.includes("Action A-Submit: Process: POST /login"))?.line,
+  lineNumber(source, "- Process: POST /login")
+);
+assert.equal(
+  result.diagnostics.find((diagnostic) => diagnostic.message.includes("Action A-Submit: Process: email: E-メールアドレス入力.value"))?.line,
+  lineNumber(source, "- Process: email: E-メールアドレス入力.value")
+);
 });
 
 test("warns for non-canonical Effects wrappers while preserving parsed effects", () => {
-  const source = `---
+const source = `---
 id: SCR-EFFECTS-WRAPPER
 type: screen
 title: Effects Wrapper
@@ -8856,49 +8855,49 @@ title: Effects Wrapper
 
 ### A-Save Save
 
-- From
-  - idle
-- Process P1: Start save
+#### From
+- idle
+#### P1: Process Start save
+- Effects
+  - state: saving
+#### P2: Process Handle response
+- case: success
   - Effects
-    - state: saving
-- Process P2: Handle response
-  - case: success
-    - Effects
-      - state: done
-  - case: failure
-    - Effects
-      - state: failed
+    - state: done
+- case: failure
+  - Effects
+    - state: failed
 `;
 
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
-  const action = result.actions.find((candidate) => candidate.id === "A-Save");
+const result = parseMarkVSpec(source);
+const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+const action = result.actions.find((candidate) => candidate.id === "A-Save");
 
-  assert.equal(action?.processSteps[0]?.to, "saving");
-  assert.equal(action?.processSteps[1]?.outcomes.find((outcome) => outcome.result === "success")?.to, "done");
-  assert.equal(action?.processSteps[1]?.outcomes.find((outcome) => outcome.result === "failure")?.to, "failed");
-  assert.equal(
-    messages.filter((message) => message.includes("uses non-canonical Effects wrapper")).length,
-    3
-  );
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("uses non-canonical Effects wrapper"))?.line,
-    lineNumber(source, "  - Effects")
-  );
-  assert.deepEqual(
-    result.diagnostics
-      .filter((diagnostic) => diagnostic.message.includes("uses non-canonical Effects wrapper"))
-      .map((diagnostic) => diagnostic.line),
-    [
-      lineNumber(source, "  - Effects"),
-      lineNumber(source, "    - Effects"),
-      lineNumber(source, "    - Effects", 2)
-    ]
-  );
+assert.equal(action?.processSteps[0]?.to, "saving");
+assert.equal(action?.processSteps[1]?.outcomes.find((outcome) => outcome.result === "success")?.to, "done");
+assert.equal(action?.processSteps[1]?.outcomes.find((outcome) => outcome.result === "failure")?.to, "failed");
+assert.equal(
+  messages.filter((message) => message.includes("uses non-canonical Effects wrapper")).length,
+  3
+);
+assert.equal(
+  result.diagnostics.find((diagnostic) => diagnostic.message.includes("uses non-canonical Effects wrapper"))?.line,
+  lineNumber(source, "  - Effects")
+);
+assert.deepEqual(
+  result.diagnostics
+    .filter((diagnostic) => diagnostic.message.includes("uses non-canonical Effects wrapper"))
+    .map((diagnostic) => diagnostic.line),
+  [
+    lineNumber(source, "  - Effects"),
+    lineNumber(source, "    - Effects", 2),
+    lineNumber(source, "    - Effects", 3)
+  ]
+);
 });
 
 test("parses display partial update effects from request step cases", () => {
-  const source = `---
+const source = `---
 id: SCR-PARTIAL-REQUEST
 type: screen
 title: Partial Request
@@ -8928,33 +8927,33 @@ references:
 
 ### A-LoadPartial Load partial
 
-- From
-  - before-load
-  - initializing
-- Process P1: Request partial
-  - request:
-    - method: GET
-    - path: /partials/profile
-  - case: success
-    - description: 200 partial HTML
-    - state: initializing
-    - display:
-      - target: L-PartialHost
-      - partial: PRT-PROFILE
+#### From
+- before-load
+- initializing
+#### P1: Process Request partial
+- request:
+  - method: GET
+  - path: /partials/profile
+- case: success
+  - description: 200 partial HTML
+  - state: initializing
+  - display:
+    - target: L-PartialHost
+    - partial: PRT-PROFILE
 `;
-  const result = parseMarkVSpec(source);
-  const partialAction = result.actions.find((action) => action.id === "A-LoadPartial");
+const result = parseMarkVSpec(source);
+const partialAction = result.actions.find((action) => action.id === "A-LoadPartial");
 
-  assert.equal(partialAction?.processSteps[0]?.name, "Request partial");
-  assert.deepEqual(partialAction?.processSteps[0]?.details.map((detail) => [detail.key, detail.value]), [
-    ["request.method", "GET"],
-    ["request.path", "/partials/profile"]
-  ]);
-  assert.equal(partialAction?.processSteps[0]?.outcomes.find((outcome) => outcome.result === "success")?.display?.partial, "PRT-PROFILE");
+assert.equal(partialAction?.processSteps[0]?.name, "Request partial");
+assert.deepEqual(partialAction?.processSteps[0]?.details.map((detail) => [detail.key, detail.value]), [
+  ["request.method", "GET"],
+  ["request.path", "/partials/profile"]
+]);
+assert.equal(partialAction?.processSteps[0]?.outcomes.find((outcome) => outcome.result === "success")?.display?.partial, "PRT-PROFILE");
 });
 
 test("parses process step cases under request steps", () => {
-  const source = `---
+const source = `---
 id: SCR-STEP-CASES
 type: screen
 title: Step Cases
@@ -8989,72 +8988,72 @@ references:
 
 ### A-LoadPoints Load points
 
-- From
-  - before-load
-  - loading
-- Process P0: Enter loading
-  - state: loading
-- Process P1: Request partial
-  - request:
-    - method: GET
-    - path: /points/panel
-    - params:
-      - page: 1
-  - receive:
-    - response: A-LoadPoints.response
-  - case: success-items
-    - response: HTTP 200 items > 0
-    - state: idle
-    - display:
-      - target: L-PointsPanel
-      - partial: PRT-POINTS-PANEL
-    - Stop
-  - case: success-empty
-    - response: HTTP 200 items = 0
-    - state: empty
-    - display:
-      - target: L-PointsPanel
-      - partial: PRT-POINTS-PANEL
-    - Continue
-  - case: failure
-    - response: HTTP error
-    - state: load-error
-    - display:
-      - target: L-PointsPanel
-      - partial: PRT-POINTS-PANEL
+#### From
+- before-load
+- loading
+#### P0: Process Enter loading
+- state: loading
+#### P1: Process Request partial
+- request:
+  - method: GET
+  - path: /points/panel
+  - params:
+    - page: 1
+- receive:
+  - response: A-LoadPoints.response
+- case: success-items
+  - response: HTTP 200 items > 0
+  - state: idle
+  - display:
+    - target: L-PointsPanel
+    - partial: PRT-POINTS-PANEL
+  - Stop
+- case: success-empty
+  - response: HTTP 200 items = 0
+  - state: empty
+  - display:
+    - target: L-PointsPanel
+    - partial: PRT-POINTS-PANEL
+  - Continue
+- case: failure
+  - response: HTTP error
+  - state: load-error
+  - display:
+    - target: L-PointsPanel
+    - partial: PRT-POINTS-PANEL
 `;
-  const result = parseMarkVSpec(source);
-  const action = result.actions.find((candidate) => candidate.id === "A-LoadPoints");
-  const step = action?.processSteps.find((candidate) => candidate.name === "Request partial");
+const result = parseMarkVSpec(source);
+const action = result.actions.find((candidate) => candidate.id === "A-LoadPoints");
+const step = action?.processSteps.find((candidate) => candidate.name === "Request partial");
 
-  assert.equal(result.diagnostics.length, 0);
-  assert.equal(step?.name, "Request partial");
-  assert.deepEqual(step?.outcomes.map((outcome) => [outcome.result, outcome.response?.definition]), [
-    ["success-items", "HTTP 200 items > 0"],
-    ["success-empty", "HTTP 200 items = 0"],
-    ["failure", "HTTP error"]
-  ]);
-  assert.deepEqual(step?.outcomes.map((outcome) => [outcome.result, outcome.to]), [
-    ["success-items", "idle"],
-    ["success-empty", "empty"],
-    ["failure", "load-error"]
-  ]);
-  assert.deepEqual(step?.outcomes.map((outcome) => [outcome.result, outcome.flow ?? "continue"]), [
-    ["success-items", "stop"],
-    ["success-empty", "continue"],
-    ["failure", "continue"]
-  ]);
-  assert.deepEqual(action?.outcomes, []);
-  assert.deepEqual(action?.responses, []);
-  assert.deepEqual(action?.transitions.filter((transition) => transition.from === "loading" && transition.result).map((transition) => [transition.from, transition.result, transition.to]), [
-    ["loading", "success-items", "idle"],
-    ["loading", "success-empty", "empty"],
-    ["loading", "failure", "load-error"]
-  ]);
+assert.equal(result.diagnostics.length, 0);
+assert.equal(step?.name, "Request partial");
+assert.deepEqual(step?.outcomes.map((outcome) => [outcome.result, outcome.response?.definition]), [
+  ["success-items", "HTTP 200 items > 0"],
+  ["success-empty", "HTTP 200 items = 0"],
+  ["failure", "HTTP error"]
+]);
+assert.deepEqual(step?.outcomes.map((outcome) => [outcome.result, outcome.to]), [
+  ["success-items", "idle"],
+  ["success-empty", "empty"],
+  ["failure", "load-error"]
+]);
+assert.deepEqual(step?.outcomes.map((outcome) => [outcome.result, outcome.flow ?? "continue"]), [
+  ["success-items", "stop"],
+  ["success-empty", "continue"],
+  ["failure", "continue"]
+]);
+assert.deepEqual(action?.outcomes, []);
+assert.deepEqual(action?.responses, []);
+assert.deepEqual(action?.transitions.filter((transition) => transition.from === "loading" && transition.result).map((transition) => [transition.from, transition.result, transition.to]), [
+  ["loading", "success-items", "idle"],
+  ["loading", "success-empty", "empty"],
+  ["loading", "failure", "load-error"]
+]);
 });
 
 test("parses parallel process groups and resolve steps", () => {
-  const source = `---
+const source = `---
 id: SCR-PARALLEL-PROCESS
 type: screen
 title: Parallel Process
@@ -9077,71 +9076,71 @@ title: Parallel Process
 
 ### A-InitialLoad Initial load
 
-- From
-  - before-load
-  - loading
-- Process P0: Enter loading
-  - state: loading
-- Process P1: Call server service
-  - group: initial-load
-  - server:
-    - MemberQueryService.findSelfProfile()
-  - case: success
-    - description: 200 member profile
-    - continue
-  - case: failure
-    - description: 5xx or timeout
-    - continue
-- Process P2: Call server service
-  - group: initial-load
-  - server:
-    - PointQueryService.findSelfPoints()
-  - case: success
-    - description: 200 points
-    - continue
-  - case: failure
-    - description: 5xx or timeout
-    - continue
-- Process P3: Resolve responses
-  - group: initial-load
-  - case: ready
-    - description: profile and points loaded
-    - state: idle
-    - stop
-  - case: failed
-    - description: one or more calls failed
-    - state: load-error
-    - stop
+#### From
+- before-load
+- loading
+#### P0: Process Enter loading
+- state: loading
+#### P1: Process Call server service
+- group: initial-load
+- server:
+  - MemberQueryService.findSelfProfile()
+- case: success
+  - description: 200 member profile
+  - continue
+- case: failure
+  - description: 5xx or timeout
+  - continue
+#### P2: Process Call server service
+- group: initial-load
+- server:
+  - PointQueryService.findSelfPoints()
+- case: success
+  - description: 200 points
+  - continue
+- case: failure
+  - description: 5xx or timeout
+  - continue
+#### P3: Process Resolve responses
+- group: initial-load
+- case: ready
+  - description: profile and points loaded
+  - state: idle
+  - stop
+- case: failed
+  - description: one or more calls failed
+  - state: load-error
+  - stop
 `;
-  const result = parseMarkVSpec(source);
-  const action = result.actions.find((candidate) => candidate.id === "A-InitialLoad");
-  const [, profile, points, resolve] = action?.processSteps ?? [];
+const result = parseMarkVSpec(source);
+const action = result.actions.find((candidate) => candidate.id === "A-InitialLoad");
+const [, profile, points, resolve] = action?.processSteps ?? [];
 
-  assert.deepEqual(result.diagnostics, []);
-  assert.equal(profile?.parallelGroup, "initial-load");
-  assert.equal(points?.parallelGroup, "initial-load");
-  assert.equal(resolve?.name, "Resolve responses");
-  assert.equal(resolve?.resolveGroup, "initial-load");
-  assert.deepEqual(profile?.details.map((detail) => [detail.key, detail.value]), [
-    ["server", "MemberQueryService.findSelfProfile()"]
-  ]);
-  assert.deepEqual(profile?.outcomes.find((outcome) => outcome.result === "success")?.sideEffects, []);
-  assert.deepEqual(resolve?.outcomes.map((outcome) => [outcome.result, outcome.to, outcome.flow]), [
-    ["ready", "idle", "stop"],
-    ["failed", "load-error", "stop"]
-  ]);
-  assert.deepEqual(resolve?.outcomes.map((outcome) => [outcome.result, outcome.description]), [
-    ["ready", "profile and points loaded"],
-    ["failed", "one or more calls failed"]
-  ]);
-  assert.deepEqual(action?.transitions.filter((transition) => transition.from === "loading" && transition.result).map((transition) => [transition.from, transition.result, transition.to]), [
-    ["loading", "ready", "idle"],
-    ["loading", "failed", "load-error"]
-  ]);
+assert.deepEqual(result.diagnostics, []);
+assert.equal(profile?.parallelGroup, "initial-load");
+assert.equal(points?.parallelGroup, "initial-load");
+assert.equal(resolve?.name, "Resolve responses");
+assert.equal(resolve?.resolveGroup, "initial-load");
+assert.deepEqual(profile?.details.map((detail) => [detail.key, detail.value]), [
+  ["server", "MemberQueryService.findSelfProfile()"]
+]);
+assert.deepEqual(profile?.outcomes.find((outcome) => outcome.result === "success")?.sideEffects, []);
+assert.deepEqual(resolve?.outcomes.map((outcome) => [outcome.result, outcome.to, outcome.flow]), [
+  ["ready", "idle", "stop"],
+  ["failed", "load-error", "stop"]
+]);
+assert.deepEqual(resolve?.outcomes.map((outcome) => [outcome.result, outcome.description]), [
+  ["ready", "profile and points loaded"],
+  ["failed", "one or more calls failed"]
+]);
+assert.deepEqual(action?.transitions.filter((transition) => transition.from === "loading" && transition.result).map((transition) => [transition.from, transition.result, transition.to]), [
+  ["loading", "ready", "idle"],
+  ["loading", "failed", "load-error"]
+]);
 });
 
 test("parses case description and warns on case-level result or response without receive", () => {
-  const source = `---
+const source = `---
 id: SCR-CASE-DESCRIPTION
 type: screen
 title: Case Description
@@ -9166,38 +9165,38 @@ title: Case Description
 
 ### A-Save Save
 
-- From
-  - idle
-- Process P1: Send save request
-  - request:
-    - method: POST
-    - path: /save
-  - result:
-    - save request send result
-  - case: sent
-    - description: request accepted for sending
-    - state: saving
-  - case: send-failed
-    - response: network error
-    - state: save-error
-  - case: skipped
-    - result: already clean
-    - state: idle
-- Process P2: Handle save response
-  - receive:
-    - response: A-Save.P1.response
-  - case: failure
-    - response: 500 save failed
-    - state: save-error
-- Process P3: Check validation result
-  - receive:
-    - validation: V-SaveForm.result
-  - case: invalid
-    - response: required field missing
-    - state: validation-error
-  - case: branch
-    - response: branch selected
-    - state: idle
+#### From
+- idle
+#### P1: Process Send save request
+- request:
+  - method: POST
+  - path: /save
+- result:
+  - save request send result
+- case: sent
+  - description: request accepted for sending
+  - state: saving
+- case: send-failed
+  - response: network error
+  - state: save-error
+- case: skipped
+  - result: already clean
+  - state: idle
+#### P2: Process Handle save response
+- receive:
+  - response: A-Save.P1.response
+- case: failure
+  - response: 500 save failed
+  - state: save-error
+#### P3: Process Check validation result
+- receive:
+  - validation: V-SaveForm.result
+- case: invalid
+  - response: required field missing
+  - state: validation-error
+- case: branch
+  - response: branch selected
+  - state: idle
 
 ## Validations
 
@@ -9246,34 +9245,34 @@ title: Bad Parallel Process
 
 ### A-InitialLoad Initial load
 
-- From
-  - before-load
-  - loading
-- Process P1: Call server service
-  - group: initial-load
-  - server:
-    - MemberQueryService.findSelfProfile()
-  - case: success
-    - response: 200 member profile
-    - state: idle
-    - stop
-- Process P2: Resolve responses
-  - group: missing-load
-  - case: failed
-    - description: missing group
-    - state: load-error
-    - stop
+#### From
+- before-load
+- loading
+#### P1: Process Call server service
+- group: initial-load
+- server:
+  - MemberQueryService.findSelfProfile()
+- case: success
+  - response: 200 member profile
+  - state: idle
+  - stop
+#### P2: Process Resolve responses
+- group: missing-load
+- case: failed
+  - description: missing group
+  - state: load-error
+  - stop
 `;
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+const result = parseMarkVSpec(source);
+const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Action A-InitialLoad parallel process step Call server service case success should not set state or navigate. Use a Resolve step for final transitions."));
-  assert(messages.includes("Action A-InitialLoad parallel process step Call server service case success should continue and leave final state decisions to a Resolve step."));
-  assert(messages.includes("Action A-InitialLoad Resolve step references missing parallel group missing-load."));
+assert(messages.includes("Action A-InitialLoad parallel process step Call server service case success should not set state or navigate. Use a Resolve step for final transitions."));
+assert(messages.includes("Action A-InitialLoad parallel process step Call server service case success should continue and leave final state decisions to a Resolve step."));
+assert(messages.includes("Action A-InitialLoad Resolve step references missing parallel group missing-load."));
 });
 
 test("warns for malformed headings and indented non-action bullets", () => {
-  const source = `---
+const source = `---
 id: SCR-MALFORMED-SECTIONS
 type: screen
 title: Malformed Sections
@@ -9313,42 +9312,42 @@ title: Malformed Sections
 
 - Triggered
   - A-Missing.response
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 `;
-  const result = parseMarkVSpec(source);
+const result = parseMarkVSpec(source);
 
-  assert.deepEqual(
-    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+assert.deepEqual(
+  result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+  [
     [
-      [
-        "warning",
-        "Malformed Layout heading. Expected ### [<marker>:]L-* [name] or ### P-* [name].",
-        lineNumber(source, "### Page Without ID"),
-      ],
-      ["warning", "Layout L-Page has indented metadata entry: stack. Use an unindented list item.", lineNumber(source, "  - stack")],
-      ["warning", "Layout L-Page has indented Items entry: E-Message. Use an unindented list item.", lineNumber(source, "  - E-Message")],
-      ["warning", "Malformed Element heading. Expected ### [<marker>:]E-* <type>.", lineNumber(source, "### Message Text")],
-      ["warning", "Element E-Message has indented property entry: value: Hello. Use an unindented list item.", lineNumber(source, "  - value: Hello")],
-      ["warning", "Malformed Action heading. Expected ### [<marker>:]A-* <name>.", lineNumber(source, "### Submit without ID")],
-      [
-        "warning",
-        "Unknown structured item in Action A-Submit: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.",
-        lineNumber(source, "- Triggered")
-      ],
-      [
-        "warning",
-        "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.",
-        lineNumber(source, "### A-Submit Submit")
-      ]
+      "warning",
+      "Malformed Layout heading. Expected ### [<marker>:]L-* [name] or ### P-* [name].",
+      lineNumber(source, "### Page Without ID"),
+    ],
+    ["warning", "Layout L-Page has indented metadata entry: stack. Use an unindented list item.", lineNumber(source, "  - stack")],
+    ["warning", "Layout L-Page has indented Items entry: E-Message. Use an unindented list item.", lineNumber(source, "  - E-Message")],
+    ["warning", "Malformed Element heading. Expected ### [<marker>:]E-* <type>.", lineNumber(source, "### Message Text")],
+    ["warning", "Element E-Message has indented property entry: value: Hello. Use an unindented list item.", lineNumber(source, "  - value: Hello")],
+    ["warning", "Malformed Action heading. Expected ### [<marker>:]A-* <name>.", lineNumber(source, "### Submit without ID")],
+    [
+      "warning",
+      "Unknown structured item in Action A-Submit: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.",
+      lineNumber(source, "- Triggered")
+    ],
+    [
+      "warning",
+      "Action A-Submit has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.",
+      lineNumber(source, "### A-Submit Submit")
     ]
-  );
+  ]
+);
 });
 
 test("validates action lifecycle trigger events", () => {
-  const source = `---
+const source = `---
 id: SCR-ACTION-LIFECYCLE
 type: screen
 title: Action Lifecycle
@@ -9372,60 +9371,60 @@ title: Action Lifecycle
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Submit request
-  - state: wait
+#### From
+- idle
+#### P1: Process Submit request
+- state: wait
 
 ### A-HandleResponse Handle response
 
-- From
-  - wait
-- Process P1: Handle response
-  - receive:
-    - response: A-Submit.P1.response
-  - case: success
-    - state: idle
+#### From
+- wait
+#### P1: Process Handle response
+- receive:
+  - response: A-Submit.P1.response
+- case: success
+  - state: idle
 
 ### A-HandleProgress Handle progress
 
 - Triggered
   - A-Submit.progress
-- From
-  - wait
-- Process P1: Handle progress
-  - state: idle
+#### From
+- wait
+#### P1: Process Handle progress
+- state: idle
 `;
-  const result = parseMarkVSpec(source);
+const result = parseMarkVSpec(source);
 
-  assert.deepEqual(
-    result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+assert.deepEqual(
+  result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.message, diagnostic.line]),
+  [
     [
-      [
-        "warning",
-        "Unknown structured item in Action A-HandleProgress: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.",
-        lineNumber(source, "- Triggered")
-      ],
-      [
-        "warning",
-        "Action A-HandleProgress has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.",
-        lineNumber(source, "### A-HandleProgress Handle progress")
-      ]
+      "warning",
+      "Unknown structured item in Action A-HandleProgress: Triggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise.",
+      lineNumber(source, "- Triggered")
+    ],
+    [
+      "warning",
+      "Action A-HandleProgress has no trigger. Add Element action:, a ## Events entry with page.load or partial.render, or receive A-ActionId.P-marker.response.",
+      lineNumber(source, "### A-HandleProgress Handle progress")
     ]
-  );
+  ]
+);
 });
 
 test("keeps message-only banners out of baseline state rendering", () => {
-  const source = readFileSync(examplePath("04-real-world-screens/login-basic.vspec.md"), "utf8");
-  const result = parseMarkVSpec(source);
-  const html = renderMarkVSpecHtml(result, { state: "idle" });
+const source = readFileSync(examplePath("04-real-world-screens/login-basic.vspec.md"), "utf8");
+const result = parseMarkVSpec(source);
+const html = renderMarkVSpecHtml(result, { state: "idle" });
 
-  assert.doesNotMatch(html, /The email address or password is incorrect\./);
-  assert.doesNotMatch(html, /data-mm-id="E-AuthErrorBanner"/);
+assert.doesNotMatch(html, /The email address or password is incorrect\./);
+assert.doesNotMatch(html, /data-mm-id="E-AuthErrorBanner"/);
 });
 
 test("renders action markers only in explicit From states", () => {
-  const source = `---
+const source = `---
 id: SCR-ACTION-FROM
 type: screen
 title: Action From
@@ -9457,31 +9456,31 @@ title: Action From
 
 ### A1:A-StartEdit Start edit
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - case: done
-    - state: editing
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- case: done
+  - state: editing
 `;
-  const result = parseMarkVSpec(source);
-  const idleHtml = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true, state: "idle", viewport: "desktop" });
-  const editingHtml = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true, state: "editing", viewport: "desktop" });
-  const idleFragment = renderMarkVSpecHtmlFragment(result, "layout:desktop:L-Root", { includeStyles: false, showIds: true, state: "idle" })?.html ?? "";
-  const editingFragment = renderMarkVSpecHtmlFragment(result, "layout:desktop:L-Root", { includeStyles: false, showIds: true, state: "editing" })?.html ?? "";
-  const startEditAction = result.actions.find((action) => action.id === "A-StartEdit");
+const result = parseMarkVSpec(source);
+const idleHtml = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true, state: "idle", viewport: "desktop" });
+const editingHtml = renderMarkVSpecHtml(result, { includeStyles: false, showIds: true, state: "editing", viewport: "desktop" });
+const idleFragment = renderMarkVSpecHtmlFragment(result, "layout:desktop:L-Root", { includeStyles: false, showIds: true, state: "idle" })?.html ?? "";
+const editingFragment = renderMarkVSpecHtmlFragment(result, "layout:desktop:L-Root", { includeStyles: false, showIds: true, state: "editing" })?.html ?? "";
+const startEditAction = result.actions.find((action) => action.id === "A-StartEdit");
 
-  assert.match(idleHtml, /<code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1<\/code>/);
-  assert.doesNotMatch(editingHtml, /<code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1<\/code>/);
-  assert.match(editingHtml, /Edit/);
-  assert.match(idleFragment, /<code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1<\/code>/);
-  assert.doesNotMatch(editingFragment, /<code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1<\/code>/);
-  assert.match(editingFragment, /Edit/);
-  assert.ok(startEditAction);
-  assert.equal(actionAppliesToState(startEditAction, undefined, { unscoped: "always" }), false);
+assert.match(idleHtml, /<code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1<\/code>/);
+assert.doesNotMatch(editingHtml, /<code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1<\/code>/);
+assert.match(editingHtml, /Edit/);
+assert.match(idleFragment, /<code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1<\/code>/);
+assert.doesNotMatch(editingFragment, /<code class="mm-id mm-marker mm-marker-action" data-mm-marker-category="action">A1<\/code>/);
+assert.match(editingFragment, /Edit/);
+assert.ok(startEditAction);
+assert.equal(actionAppliesToState(startEditAction, undefined, { unscoped: "always" }), false);
 });
 
 test("honors layout hidden conditions for state-specific rendering", () => {
-  const source = `---
+const source = `---
 id: SCR-LAYOUT-HIDDEN
 type: screen
 title: Layout Hidden
@@ -10497,21 +10496,21 @@ route: /users/:userId#details
 
 ### A-Load Load
 
-- From
-  - before-load
-  - idle
-- Process P1: Load
-  - case: success
-    - state: loaded
+#### From
+- before-load
+- idle
+#### P1: Process Load
+- case: success
+  - state: loaded
 `;
 
-  const result = parseMarkVSpec(source);
+const result = parseMarkVSpec(source);
 
-  assert.deepEqual(result.diagnostics.filter((item) => item.code === "unrepresented-source-text"), []);
+assert.deepEqual(result.diagnostics.filter((item) => item.code === "unrepresented-source-text"), []);
 });
 
 test("validates Preview Scenario sample targets and data source sample rows", () => {
-  const source = `---
+const source = `---
 id: SCR-BAD-SCENARIO-SAMPLES
 type: screen
 title: Bad Scenario Samples
@@ -10948,30 +10947,30 @@ title: Bad View Context
 
 ### A-ToggleHelp Toggle help
 
-- From
-  - before-load
-  - idle
-- Process P1: Apply immediate effect
-  - view: \${view.isHelpPanelOpen} = true
-  - view: \${view.missingActionView} = true
+#### From
+- before-load
+- idle
+#### P1: Process Apply immediate effect
+- view: \${view.isHelpPanelOpen} = true
+- view: \${view.missingActionView} = true
 `;
 
-  const messages = parseMarkVSpec(source).diagnostics.map((diagnostic) => diagnostic.message);
+const messages = parseMarkVSpec(source).diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("View Context isHelpPanelOpen has multiple default values marked with *."));
-  assert(messages.includes("View Context isHelpPanelOpen boolean value must be true or false, not open."));
-  assert(messages.includes("View Context isHelpPanelOpen boolean value must be true or false, not closed."));
-  assert(messages.includes("View Context trueFalseMode enum only defines true and false. Use type: boolean for binary flags."));
-  assert(messages.includes("View Context Sample default sets isHelpPanelOpen to unsupported value maybe."));
-  assert(messages.includes("View Context Sample default references missing view context missing."));
-  assert(messages.includes("Preview Scenario idle references missing view context sample missing."));
-  assert(messages.includes("Preview Scenario idle references missing before target missing-preview."));
-  assert(messages.includes("View effect sets isHelpPanelOpen to unsupported value true."));
-  assert(messages.includes("View effect references missing view context missingActionView."));
+assert(messages.includes("View Context isHelpPanelOpen has multiple default values marked with *."));
+assert(messages.includes("View Context isHelpPanelOpen boolean value must be true or false, not open."));
+assert(messages.includes("View Context isHelpPanelOpen boolean value must be true or false, not closed."));
+assert(messages.includes("View Context trueFalseMode enum only defines true and false. Use type: boolean for binary flags."));
+assert(messages.includes("View Context Sample default sets isHelpPanelOpen to unsupported value maybe."));
+assert(messages.includes("View Context Sample default references missing view context missing."));
+assert(messages.includes("Preview Scenario idle references missing view context sample missing."));
+assert(messages.includes("Preview Scenario idle references missing before target missing-preview."));
+assert(messages.includes("View effect sets isHelpPanelOpen to unsupported value true."));
+assert(messages.includes("View effect references missing view context missingActionView."));
 });
 
 test("adds preview scenarios to baseline state previews and orders before scenarios", () => {
-  const source = `---
+const source = `---
 id: SCR-PREVIEW-SCENARIO-ORDER
 type: screen
 title: Preview Scenario Order
@@ -11054,38 +11053,38 @@ title: Process Model Propagation
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Prepare unrelated model flag
-  - model: \${model.unrelated.ready} = true
-- Process P2: Send request
-  - request:
-    - method: POST
-    - path: /submit
-  - case: sent
-    - model: \${model.related.ready} = true
-    - state: waiting
+#### From
+- idle
+#### P1: Process Prepare unrelated model flag
+- model: \${model.unrelated.ready} = true
+#### P2: Process Send request
+- request:
+  - method: POST
+  - path: /submit
+- case: sent
+  - model: \${model.related.ready} = true
+  - state: waiting
 
 ### A-HandleResponse Handle response
 
-- From
-  - waiting
-- Process P1: Receive response
-  - receive:
-    - response: A-Submit.P2.response
-  - case: success
-    - response: 200 submitted
-    - state: ready
+#### From
+- waiting
+#### P1: Process Receive response
+- receive:
+  - response: A-Submit.P2.response
+- case: success
+  - response: 200 submitted
+  - state: ready
 `;
-  const result = parseMarkVSpec(source);
+const result = parseMarkVSpec(source);
 
-  assert.deepEqual(result.diagnostics, []);
-  assert.equal(modelValuesForState(result, "ready")["${model.related.ready}"], true);
-  assert.equal(modelValuesForState(result, "ready")["${model.unrelated.ready}"], undefined);
+assert.deepEqual(result.diagnostics, []);
+assert.equal(modelValuesForState(result, "ready")["${model.related.ready}"], true);
+assert.equal(modelValuesForState(result, "ready")["${model.unrelated.ready}"], undefined);
 });
 
 test("renders namespaced state and view conditions", () => {
-  const source = `---
+const source = `---
 id: SCR-VIEW-RENDER
 type: screen
 title: View Render
@@ -11166,42 +11165,42 @@ title: Compact Action
 
 ### A-Search Search
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - view: \${view.selectedTab} = results
-- Process P2: UpdateView
-  - view: \${view.selectedTab} = results
-- Process P3: Send request
-  - request:
-    - method: GET
-    - path: /search
-    - params:
-      - keyword: E-KeywordInput.value
-  - case: success
-    - description: 200 search result
-    - state: loaded
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- view: \${view.selectedTab} = results
+#### P2: Process UpdateView
+- view: \${view.selectedTab} = results
+#### P3: Process Send request
+- request:
+  - method: GET
+  - path: /search
+  - params:
+    - keyword: E-KeywordInput.value
+- case: success
+  - description: 200 search result
+  - state: loaded
 `;
 
-  const result = parseMarkVSpec(source);
-  const action = result.actions[0];
+const result = parseMarkVSpec(source);
+const action = result.actions[0];
 
-  assert.deepEqual(action.processSteps.map((step) => step.name), ["Apply immediate effect", "UpdateView", "Send request"]);
-  assert.deepEqual(action.processSteps[0]?.sideEffects, ["view: ${view.selectedTab} = results"]);
-  assert.deepEqual(action.processSteps[1]?.sideEffects, ["view: ${view.selectedTab} = results"]);
-  assert.deepEqual(action.processSteps[2]?.details.map((detail) => [detail.key, detail.value]), [
-    ["request.method", "GET"],
-    ["request.path", "/search"],
-    ["request.params.keyword", "E-KeywordInput.value"]
-  ]);
-  assert.deepEqual(action.processSteps[2]?.outcomes[0]?.sideEffects, []);
-  assert.deepEqual(action.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
-    ["idle", "success", "loaded"]
-  ]);
+assert.deepEqual(action.processSteps.map((step) => step.name), ["Apply immediate effect", "UpdateView", "Send request"]);
+assert.deepEqual(action.processSteps[0]?.sideEffects, ["view: ${view.selectedTab} = results"]);
+assert.deepEqual(action.processSteps[1]?.sideEffects, ["view: ${view.selectedTab} = results"]);
+assert.deepEqual(action.processSteps[2]?.details.map((detail) => [detail.key, detail.value]), [
+  ["request.method", "GET"],
+  ["request.path", "/search"],
+  ["request.params.keyword", "E-KeywordInput.value"]
+]);
+assert.deepEqual(action.processSteps[2]?.outcomes[0]?.sideEffects, []);
+assert.deepEqual(action.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
+  ["idle", "success", "loaded"]
+]);
 });
 
 test("validates process granularity and direct immediate effects", () => {
-  const source = `---
+const source = `---
 id: SCR-PROCESS-GRANULARITY
 type: screen
 title: Process Granularity
@@ -11235,58 +11234,58 @@ title: Process Granularity
 
 ### A-Open Open
 
-- From
-  - idle
-- Process P1: Open immediately
-  - state: opened
-  - display:
-    - target: L-Message
-    - element: E-OpenedMessage
+#### From
+- idle
+#### P1: Process Open immediately
+- state: opened
+- display:
+  - target: L-Message
+  - element: E-OpenedMessage
 
 ### A-Invalid Invalid
 
-- From
-  - idle
-- Process P1: Mixed request and direct effect
-  - request:
-    - method: POST
-    - path: /open
-  - state: opened
-- Process P2: Multiple calls
-  - request:
-    - method: POST
-    - path: /open
-  - sync:
-    - AuditService.record()
-- Process P3: Custom detail and direct effect
-  - audit:
-    - AuditService.record()
-  - state: opened
-- Process P4: Request and custom detail
-  - request:
-    - method: POST
-    - path: /open
-  - audit:
-    - AuditService.record()
+#### From
+- idle
+#### P1: Process Mixed request and direct effect
+- request:
+  - method: POST
+  - path: /open
+- state: opened
+#### P2: Process Multiple calls
+- request:
+  - method: POST
+  - path: /open
+- sync:
+  - AuditService.record()
+#### P3: Process Custom detail and direct effect
+- audit:
+  - AuditService.record()
+- state: opened
+#### P4: Process Request and custom detail
+- request:
+  - method: POST
+  - path: /open
+- audit:
+  - AuditService.record()
 `;
 
-  const result = parseMarkVSpec(source);
-  const validStep = result.actions.find((action) => action.id === "A-Open")?.processSteps[0];
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+const result = parseMarkVSpec(source);
+const validStep = result.actions.find((action) => action.id === "A-Open")?.processSteps[0];
+const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert.equal(validStep?.to, "opened");
-  assert.equal(validStep?.display?.target, "L-Message");
-  assert.equal(validStep?.display?.element, "E-OpenedMessage");
-  assert.deepEqual(result.actions.find((action) => action.id === "A-Open")?.transitions.map((transition) => [transition.from, transition.to]), [["idle", "opened"]]);
-  assert(!messages.some((message) => message.includes("unsupported effect entry: display")));
-  assert(messages.includes("Action A-Invalid process step P1 Mixed request and direct effect mixes an execution detail with direct immediate effects. Move effects under a case or split the Process."));
-  assert(messages.includes("Action A-Invalid process step P2 Multiple calls contains multiple execution detail blocks (request, sync). Split them into separate Process steps."));
-  assert(messages.includes("Action A-Invalid process step P3 Custom detail and direct effect mixes an execution detail with direct immediate effects. Move effects under a case or split the Process."));
-  assert(messages.includes("Action A-Invalid process step P4 Request and custom detail contains multiple execution detail blocks (request, audit). Split them into separate Process steps."));
+assert.equal(validStep?.to, "opened");
+assert.equal(validStep?.display?.target, "L-Message");
+assert.equal(validStep?.display?.element, "E-OpenedMessage");
+assert.deepEqual(result.actions.find((action) => action.id === "A-Open")?.transitions.map((transition) => [transition.from, transition.to]), [["idle", "opened"]]);
+assert(!messages.some((message) => message.includes("unsupported effect entry: display")));
+assert(messages.includes("Action A-Invalid process step P1 Mixed request and direct effect mixes an execution detail with direct immediate effects. Move effects under a case or split the Process."));
+assert(messages.includes("Action A-Invalid process step P2 Multiple calls contains multiple execution detail blocks (request, sync). Split them into separate Process steps."));
+assert(messages.includes("Action A-Invalid process step P3 Custom detail and direct effect mixes an execution detail with direct immediate effects. Move effects under a case or split the Process."));
+assert(messages.includes("Action A-Invalid process step P4 Request and custom detail contains multiple execution detail blocks (request, audit). Split them into separate Process steps."));
 });
 
 test("localizes Action/Process diagnostics while preserving English fallback", () => {
-  const source = `---
+const source = `---
 id: SCR-DIAG-I18N
 type: screen
 title: Diagnostic i18n
@@ -11320,64 +11319,64 @@ locale: ja
 
 ### A-Invalid Invalid
 
-- From
-  - idle
-- Process P1: Validate and update
-  - receive:
-    - validation: V-Form.result
-  - state: idle
-- Process P2: Multiple calls
-  - request:
-    - method: POST
-    - path: /submit
-  - sync:
-    - AuditService.record()
+#### From
+- idle
+#### P1: Process Validate and update
+- receive:
+  - validation: V-Form.result
+- state: idle
+#### P2: Process Multiple calls
+- request:
+  - method: POST
+  - path: /submit
+- sync:
+  - AuditService.record()
 `;
 
-  const result = parseMarkVSpec(source);
-  const mixed = result.diagnostics.find((diagnostic) => diagnostic.code === "action.process.mixesResultClassificationAndImmediateEffects");
-  const multiple = result.diagnostics.find((diagnostic) => diagnostic.code === "action.process.multipleExecutionDetails");
+const result = parseMarkVSpec(source);
+const mixed = result.diagnostics.find((diagnostic) => diagnostic.code === "action.process.mixesResultClassificationAndImmediateEffects");
+const multiple = result.diagnostics.find((diagnostic) => diagnostic.code === "action.process.multipleExecutionDetails");
 
-  assert.equal(mixed?.message, "Action A-Invalid process step P1 Validate and update mixes result classification with direct immediate effects. Put effects under the classified case.");
-  assert.equal(renderDiagnosticMessageForLocale(mixed!, result.screen.locale), "Action A-Invalid の Process step P1 Validate and update で、result 分類と直接の immediate effect が混在しています。effect は分類された case 配下へ移してください。");
-  assert.equal(renderDiagnosticMessageForLocale(multiple!, "en"), "Action A-Invalid process step P2 Multiple calls contains multiple execution detail blocks (request, sync). Split them into separate Process steps.");
-  assert.deepEqual(
-    supportedDiagnosticMessageCodes().sort(),
-    [
-      "action.invalidTrigger",
-      "action.missingTrigger",
-      "action.parallelProcess.caseShouldNotSetStateOrNavigate",
-      "action.process.caseResponseWithoutReceive",
-      "action.process.mixesExecutionDetailAndImmediateEffects",
-      "action.process.mixesResultClassificationAndImmediateEffects",
-      "action.process.multipleExecutionDetails",
-      "element.unknownType",
-      "frontMatter.missingRequired",
-      "frontMatter.missingYaml",
-      "layout.groupIgnoredWithoutViewport",
-      "layout.missingViewport",
-      "layout.unsupportedItemsEntry",
-      "partial.referenceMissing",
-      "previewScenario.missingState",
-      "previewScenario.samplesMissingElement",
-      "section.recommendedOrder",
-      "unrepresented-source-text",
-      "validation.ruleMissingElement"
-    ].sort()
-  );
+assert.equal(mixed?.message, "Action A-Invalid process step P1 Validate and update mixes result classification with direct immediate effects. Put effects under the classified case.");
+assert.equal(renderDiagnosticMessageForLocale(mixed!, result.screen.locale), "Action A-Invalid の Process step P1 Validate and update で、result 分類と直接の immediate effect が混在しています。effect は分類された case 配下へ移してください。");
+assert.equal(renderDiagnosticMessageForLocale(multiple!, "en"), "Action A-Invalid process step P2 Multiple calls contains multiple execution detail blocks (request, sync). Split them into separate Process steps.");
+assert.deepEqual(
+  supportedDiagnosticMessageCodes().sort(),
+  [
+    "action.invalidTrigger",
+    "action.missingTrigger",
+    "action.parallelProcess.caseShouldNotSetStateOrNavigate",
+    "action.process.caseResponseWithoutReceive",
+    "action.process.mixesExecutionDetailAndImmediateEffects",
+    "action.process.mixesResultClassificationAndImmediateEffects",
+    "action.process.multipleExecutionDetails",
+    "element.unknownType",
+    "frontMatter.missingRequired",
+    "frontMatter.missingYaml",
+    "layout.groupIgnoredWithoutViewport",
+    "layout.missingViewport",
+    "layout.unsupportedItemsEntry",
+    "partial.referenceMissing",
+    "previewScenario.missingState",
+    "previewScenario.samplesMissingElement",
+    "section.recommendedOrder",
+    "unrepresented-source-text",
+    "validation.ruleMissingElement"
+  ].sort()
+);
 });
 
 test("localizes representative diagnostics across authoring categories", () => {
-  const cases = [
-    {
-      code: "frontMatter.missingYaml",
-      ja: "YAML Front Matter がありません",
-      source: "# Missing Front Matter\n"
-    },
-    {
-      code: "frontMatter.missingRequired",
-      ja: "必須 Front Matter field id がありません",
-      source: `---
+const cases = [
+  {
+    code: "frontMatter.missingYaml",
+    ja: "YAML Front Matter がありません",
+    source: "# Missing Front Matter\n"
+  },
+  {
+    code: "frontMatter.missingRequired",
+    ja: "必須 Front Matter field id がありません",
+    source: `---
 type: screen
 title: Missing ID
 ---
@@ -11493,14 +11492,14 @@ locale: ja
 
 ### A-Save Save
 
-- From
-  - idle
+#### From
+- idle
 `
-    },
-    {
-      code: "partial.referenceMissing",
-      ja: "references.partials",
-      source: `---
+  },
+  {
+    code: "partial.referenceMissing",
+    ja: "references.partials",
+    source: `---
 id: SCR-PARTIAL-REF
 type: screen
 title: Partial Ref
@@ -11562,16 +11561,16 @@ locale: ja
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Prepare request
-  - Encode request body
+#### From
+- idle
+#### P1: Process Prepare request
+- Encode request body
 `
-    },
-    {
-      code: "previewScenario.missingState",
-      ja: "- state: <state-name>",
-      source: `---
+  },
+  {
+    code: "previewScenario.missingState",
+    ja: "- state: <state-name>",
+    source: `---
 id: SCR-SCENARIO-STATE
 type: screen
 title: Scenario State
@@ -11690,39 +11689,39 @@ references:
 
 ### A-NextSearchPage Show next search page
 
-- From
-  - loaded
-- Process P1: Request next search page
-  - request:
-    - method: GET
-    - path: /search/results
-    - params:
-      - page: E-NextPageButton.value
-  - result:
-    - next search page request
-  - case: sent
-    - description: request was sent
-    - state: loading
-    - display:
-      - target: L-SearchResultsArea
-      - element: E-LoadingResults
-    - continue
-- Process P2: Handle search results response
-  - receive:
-    - response: A-NextSearchPage.P1.response
-    - validation: V-SearchResult.result
-  - case: success
-    - response: 200 search results partial
-    - state: loaded
-    - display:
-      - target: L-SearchResultsArea
-      - element: L-SearchResultsList
-  - case: empty
-    - response: 200 empty result partial
-    - state: empty
-    - display:
-      - target: L-MessageArea
-      - element: E-NoResults
+#### From
+- loaded
+#### P1: Process Request next search page
+- request:
+  - method: GET
+  - path: /search/results
+  - params:
+    - page: E-NextPageButton.value
+- result:
+  - next search page request
+- case: sent
+  - description: request was sent
+  - state: loading
+  - display:
+    - target: L-SearchResultsArea
+    - element: E-LoadingResults
+  - continue
+#### P2: Process Handle search results response
+- receive:
+  - response: A-NextSearchPage.P1.response
+  - validation: V-SearchResult.result
+- case: success
+  - response: 200 search results partial
+  - state: loaded
+  - display:
+    - target: L-SearchResultsArea
+    - element: L-SearchResultsList
+- case: empty
+  - response: 200 empty result partial
+  - state: empty
+  - display:
+    - target: L-MessageArea
+    - element: E-NoResults
 
 ## Preview Scenarios
 
@@ -11850,17 +11849,17 @@ references:
 
 ### A-RefreshProfile Refresh profile
 
-- From
-  - before-load
-  - idle
-- Process P0: Enter idle
-  - state: idle
-- Process P1: Handle profile summary response
-  - case: success
-    - description: 200 profile summary partial
-    - display:
-      - target: L-ProfileSummaryHost
-      - partial: PRT-PROFILE-SUMMARY
+#### From
+- before-load
+- idle
+#### P0: Process Enter idle
+- state: idle
+#### P1: Process Handle profile summary response
+- case: success
+  - description: 200 profile summary partial
+  - display:
+    - target: L-ProfileSummaryHost
+    - partial: PRT-PROFILE-SUMMARY
 
 ## Preview Scenarios
 
@@ -11942,69 +11941,69 @@ references:
 
 ### A-InvalidPartial Invalid partial
 
-- From
-  - before-load
-  - idle
-- Process P1: Direct partial alias
-  - partial: PRT-PROFILE
-- Process P2: Missing target
-  - case: done
-    - display:
-      - partial: PRT-PROFILE
-- Process P3: Element target
-  - case: done
-    - display:
-      - target: E-Target
-      - partial: PRT-PROFILE
-- Process P4: Missing layout target
-  - case: done
-    - display:
-      - target: L-Missing
-      - partial: PRT-PROFILE
-- Process P5: Non partial host
-  - case: done
-    - display:
-      - target: L-PlainHost
-      - partial: PRT-PROFILE
-- Process P6: Mismatched partial host
-  - case: done
-    - display:
-      - target: L-OtherHost
-      - partial: PRT-PROFILE
-- Process P7: Combined content sources
-  - case: done
-    - display:
-      - target: L-OtherHost
-      - partial: PRT-OTHER
-      - element: E-Target
-      - message: V-Required.messages
-- Process P8: Invalid partial id
-  - case: done
-    - display:
-      - target: L-OtherHost
-      - partial: E-Target
+#### From
+- before-load
+- idle
+#### P1: Process Direct partial alias
+- partial: PRT-PROFILE
+#### P2: Process Missing target
+- case: done
+  - display:
+    - partial: PRT-PROFILE
+#### P3: Process Element target
+- case: done
+  - display:
+    - target: E-Target
+    - partial: PRT-PROFILE
+#### P4: Process Missing layout target
+- case: done
+  - display:
+    - target: L-Missing
+    - partial: PRT-PROFILE
+#### P5: Process Non partial host
+- case: done
+  - display:
+    - target: L-PlainHost
+    - partial: PRT-PROFILE
+#### P6: Process Mismatched partial host
+- case: done
+  - display:
+    - target: L-OtherHost
+    - partial: PRT-PROFILE
+#### P7: Process Combined content sources
+- case: done
+  - display:
+    - target: L-OtherHost
+    - partial: PRT-OTHER
+    - element: E-Target
+    - message: V-Required.messages
+#### P8: Process Invalid partial id
+- case: done
+  - display:
+    - target: L-OtherHost
+    - partial: E-Target
 `;
 
-  const result = parseMarkVSpec(source);
-  const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
+const result = parseMarkVSpec(source);
+const messages = result.diagnostics.map((diagnostic) => diagnostic.message);
 
-  assert(messages.includes("Action A-InvalidPartial process step P1 Direct partial alias has unsupported process-level partial PRT-PROFILE. Put returned partial content under display.partial on the response case."));
-  assert(messages.includes("Action A-InvalidPartial process step P2 Missing target case done display.partial PRT-PROFILE requires target to reference an L-* partial host."));
-  assert(messages.includes("Action A-InvalidPartial process step P3 Element target case done display.partial PRT-PROFILE targets E-Target, but target must be an existing L-* partial host (element)."));
-  assert(messages.includes("Action A-InvalidPartial process step P4 Missing layout target case done display.partial PRT-PROFILE targets L-Missing, but target must be an existing L-* partial host (missing layout)."));
-  assert(messages.includes("Action A-InvalidPartial process step P5 Non partial host case done display.partial PRT-PROFILE targets L-PlainHost, but layout L-PlainHost is not a partial host with partial.id."));
-  assert(messages.includes("Action A-InvalidPartial process step P6 Mismatched partial host case done display.partial PRT-PROFILE targets L-OtherHost, but layout L-OtherHost declares partial.id PRT-OTHER."));
-  assert(messages.includes("Action A-InvalidPartial process step P7 Combined content sources case done display.partial PRT-OTHER cannot be combined with display.element E-Target. Use exactly one display content source."));
-  assert(messages.includes("Action A-InvalidPartial process step P7 Combined content sources case done display.partial PRT-OTHER cannot be combined with display.message V-Required.messages. Use exactly one display content source."));
-  assert(messages.includes("Action A-InvalidPartial process step P8 Invalid partial id case done display.partial E-Target must use a PRT-* partial ID."));
-  assert.equal(
-    result.diagnostics.find((diagnostic) => diagnostic.message.includes("unsupported process-level partial"))?.line,
-    lineNumber(source, "  - partial: PRT-PROFILE")
-  );
+assert(messages.includes("Action A-InvalidPartial process step P1 Direct partial alias has unsupported process-level partial PRT-PROFILE. Put returned partial content under display.partial on the response case."));
+assert(messages.includes("Action A-InvalidPartial process step P2 Missing target case done display.partial PRT-PROFILE requires target to reference an L-* partial host."));
+assert(messages.includes("Action A-InvalidPartial process step P3 Element target case done display.partial PRT-PROFILE targets E-Target, but target must be an existing L-* partial host (element)."));
+assert(messages.includes("Action A-InvalidPartial process step P4 Missing layout target case done display.partial PRT-PROFILE targets L-Missing, but target must be an existing L-* partial host (missing layout)."));
+assert(messages.includes("Action A-InvalidPartial process step P5 Non partial host case done display.partial PRT-PROFILE targets L-PlainHost, but layout L-PlainHost is not a partial host with partial.id."));
+assert(messages.includes("Action A-InvalidPartial process step P6 Mismatched partial host case done display.partial PRT-PROFILE targets L-OtherHost, but layout L-OtherHost declares partial.id PRT-OTHER."));
+assert(messages.includes("Action A-InvalidPartial process step P7 Combined content sources case done display.partial PRT-OTHER cannot be combined with display.element E-Target. Use exactly one display content source."));
+assert(messages.includes("Action A-InvalidPartial process step P7 Combined content sources case done display.partial PRT-OTHER cannot be combined with display.message V-Required.messages. Use exactly one display content source."));
+assert(messages.includes("Action A-InvalidPartial process step P8 Invalid partial id case done display.partial E-Target must use a PRT-* partial ID."));
+assert.equal(
+  result.diagnostics.find((diagnostic) => diagnostic.message.includes("unsupported process-level partial"))?.line,
+  lineNumber(source, "  - partial: PRT-PROFILE")
+);
 });
 
 test("preserves custom process details with nested params", () => {
-  const source = `---
+const source = `---
 id: SCR-CUSTOM-PROCESS-DETAIL
 type: screen
 title: Custom Process Detail
@@ -12032,32 +12031,32 @@ title: Custom Process Detail
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Submit with project sync
-  - sync:
-    - SubscriptionService.create()
-    - mode: immediate
-    - params:
-      - email: E-EmailInput.value
-  - result:
-    - subscription creation request
-  - case: sent
-    - state: submitting
+#### From
+- idle
+#### P1: Process Submit with project sync
+- sync:
+  - SubscriptionService.create()
+  - mode: immediate
+  - params:
+    - email: E-EmailInput.value
+- result:
+  - subscription creation request
+- case: sent
+  - state: submitting
 `;
-  const result = parseMarkVSpec(source);
-  const step = result.actions[0]?.processSteps[0];
+const result = parseMarkVSpec(source);
+const step = result.actions[0]?.processSteps[0];
 
-  assert.deepEqual(result.diagnostics, []);
-  assert.deepEqual(step?.details.map((detail) => [detail.key, detail.value]), [
-    ["sync", "SubscriptionService.create()"],
-    ["sync.mode", "immediate"],
-    ["sync.params.email", "E-EmailInput.value"]
-  ]);
+assert.deepEqual(result.diagnostics, []);
+assert.deepEqual(step?.details.map((detail) => [detail.key, detail.value]), [
+  ["sync", "SubscriptionService.create()"],
+  ["sync.mode", "immediate"],
+  ["sync.params.email", "E-EmailInput.value"]
+]);
 });
 
 test("parses and validates display message field error targets", () => {
-  const source = `---
+const source = `---
 id: SCR-FIELD-ERROR-DISPLAY
 type: screen
 title: Field Error Display
@@ -12099,44 +12098,44 @@ title: Field Error Display
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Check validation
-  - receive:
-    - validation: V-EmailRules.result
-  - case: invalid
-    - display:
-      - target: E-EmailInput.error
-      - message: V-EmailRules.messages
-  - case: invalid-rich
-    - display:
-      - target: E-Title.error
-      - element: E-SubmitButton
-      - message: V-Missing.messages
-  - case: invalid-missing-target
-    - display:
-      - target: E-MissingInput.error
-      - message: V-EmailRules.messages
-  - case: invalid-business-rule
-    - display:
-      - target: L-Form
-      - message: R-RequiredFields.messages
-  - case: invalid-missing-rule
-    - display:
-      - target: L-Form
-      - message: R-Missing.messages
-  - case: invalid-validation-without-message
-    - display:
-      - target: L-Form
-      - message: V-NoMessage.messages
-  - case: invalid-rule-without-message
-    - display:
-      - target: L-Form
-      - message: R-Empty.messages
-  - case: invalid-unsupported-message
-    - display:
-      - target: L-Form
-      - message: EmailRules.messages
+#### From
+- idle
+#### P1: Process Check validation
+- receive:
+  - validation: V-EmailRules.result
+- case: invalid
+  - display:
+    - target: E-EmailInput.error
+    - message: V-EmailRules.messages
+- case: invalid-rich
+  - display:
+    - target: E-Title.error
+    - element: E-SubmitButton
+    - message: V-Missing.messages
+- case: invalid-missing-target
+  - display:
+    - target: E-MissingInput.error
+    - message: V-EmailRules.messages
+- case: invalid-business-rule
+  - display:
+    - target: L-Form
+    - message: R-RequiredFields.messages
+- case: invalid-missing-rule
+  - display:
+    - target: L-Form
+    - message: R-Missing.messages
+- case: invalid-validation-without-message
+  - display:
+    - target: L-Form
+    - message: V-NoMessage.messages
+- case: invalid-rule-without-message
+  - display:
+    - target: L-Form
+    - message: R-Empty.messages
+- case: invalid-unsupported-message
+  - display:
+    - target: L-Form
+    - message: EmailRules.messages
 
 ## Field Validations
 
@@ -12212,15 +12211,15 @@ title: Unmarked Display Message
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Check validation
-  - receive:
-    - validation: V-Unmarked.result
-  - case: invalid
-    - display:
-      - target: L-Message
-      - message: V-Unmarked.messages
+#### From
+- idle
+#### P1: Process Check validation
+- receive:
+  - validation: V-Unmarked.result
+- case: invalid
+  - display:
+    - target: L-Message
+    - message: V-Unmarked.messages
 
 ## Preview Scenarios
 
@@ -12278,18 +12277,18 @@ title: Unmarked Rule Message
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Submit request
-  - server:
-    - SubscriptionService.create()
-  - result:
-    - subscription creation request
-  - case: business-rule-violation
-    - business rule: R-Unmarked
-    - display:
-      - target: L-Message
-      - message: R-Unmarked.messages
+#### From
+- idle
+#### P1: Process Submit request
+- server:
+  - SubscriptionService.create()
+- result:
+  - subscription creation request
+- case: business-rule-violation
+  - business rule: R-Unmarked
+  - display:
+    - target: L-Message
+    - message: R-Unmarked.messages
 
 ## Preview Scenarios
 
@@ -12341,15 +12340,15 @@ title: Business Rule Placement
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Submit request
-  - receive:
-    - business rule: R-EmailMustBeUnique
-  - result:
-    - business rule: R-EmailMustBeUnique
-  - case: duplicate-email
-    - business rule: R-EmailMustBeUnique
+#### From
+- idle
+#### P1: Process Submit request
+- receive:
+  - business rule: R-EmailMustBeUnique
+- result:
+  - business rule: R-EmailMustBeUnique
+- case: duplicate-email
+  - business rule: R-EmailMustBeUnique
 
 ## Business Rules
 
@@ -12401,40 +12400,40 @@ title: Action Neutral Diagnostics
 
 ### A-Run Run
 
-- From
-  - idle
-- Process P1: Missing result
-  - case: done
-    - state: loaded
-    - display:
-      - target: L-Target
-      - element: E-Button
-      - element: E-Other
-- Process P1: Duplicate marker
-  - receive:
-    - response: A-Run.P9.response
-    - external: A-Other.P9.result
-  - case: done
-    - display:
-      - target: L-Missing
-      - element: E-Button E-Other
-      - elements: E-Button, E-Other
-      - content:
-        - partial: PRT-Missing
+#### From
+- idle
+#### P1: Process Missing result
+- case: done
+  - state: loaded
+  - display:
+    - target: L-Target
+    - element: E-Button
+    - element: E-Other
+#### P1: Process Duplicate marker
+- receive:
+  - response: A-Run.P9.response
+  - external: A-Other.P9.result
+- case: done
+  - display:
+    - target: L-Missing
+    - element: E-Button E-Other
+    - elements: E-Button, E-Other
+    - content:
+      - partial: PRT-Missing
 
 ### A-Other Other
 
 - Triggered
   - A-Run.response
-- From
-  - idle
-- Process P1: Other process
-  - receive:
-    - validation: V-SearchResult.result
-  - case: done
-    - state: loaded
-    - display:
-      - element: E-Other
+#### From
+- idle
+#### P1: Process Other process
+- receive:
+  - validation: V-SearchResult.result
+- case: done
+  - state: loaded
+  - display:
+    - element: E-Other
 
 ## Preview Scenarios
 

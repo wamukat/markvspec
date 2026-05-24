@@ -461,23 +461,23 @@ title: Invalidation Action
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Call server service
-  - submit form
+#### From
+- idle
+#### P1: Process Call server service
+- submit form
 `;
-  const current = previous.replace("  - submit form", "  - submit updated form");
-  const invalidation = computeMarkVSpecRenderInvalidation(previous, current);
+const current = previous.replace("- submit form", "- submit updated form");
+const invalidation = computeMarkVSpecRenderInvalidation(previous, current);
 
-  assert.deepEqual(invalidation.changedSectionIds, ["section:Actions"]);
-  assert(invalidation.impactedRenderKeys.includes("actions:list"));
-  assert(invalidation.impactedRenderKeys.includes("action:A-Submit"));
-  assert.equal(invalidation.requiresFullRender, true);
-  assert.deepEqual(invalidation.fullRenderReasons, ["Changed sections are not limited to Elements or a safe Layout."]);
+assert.deepEqual(invalidation.changedSectionIds, ["section:Actions"]);
+assert(invalidation.impactedRenderKeys.includes("actions:list"));
+assert(invalidation.impactedRenderKeys.includes("action:A-Submit"));
+assert.equal(invalidation.requiresFullRender, true);
+assert.deepEqual(invalidation.fullRenderReasons, ["Changed sections are not limited to Elements or a safe Layout."]);
 });
 
 test("allows safe leaf layout changes on partial update", () => {
-  const previous = `---
+const previous = `---
 id: SCR-INVALIDATION-LAYOUT
 type: screen
 title: Invalidation Layout

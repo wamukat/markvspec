@@ -68,33 +68,33 @@ Settings screen used to make the project transition graph visible.
 
 ### A1:A-SaveSettings Save settings
 
-- From
-  - idle
-  - saved
-- Process P1: Submit settings
-  - request:
-    - method: POST
-    - path: /account/settings
-    - params:
-      - email: E-EmailInput.value
-      - productUpdates: E-NotificationSwitch.value
-  - case: sent
-    - state: saving
-    - stop
-  - case: success
-    - description: 2xx saved
-    - state: saved
-    - stop
+#### From
+- idle
+- saved
+#### P1: Process Submit settings
+- request:
+  - method: POST
+  - path: /account/settings
+  - params:
+    - email: E-EmailInput.value
+    - productUpdates: E-NotificationSwitch.value
+- case: sent
+  - state: saving
+  - stop
+- case: success
+  - description: 2xx saved
+  - state: saved
+  - stop
 
 ### A2:A-BackToDashboard Back to dashboard
 
-- From
-  - idle
-  - saved
-- Process P1: Return to dashboard
-  - case: selected
-    - navigate: SCR-ACCOUNT-DASHBOARD
-    - stop
+#### From
+- idle
+- saved
+#### P1: Process Return to dashboard
+- case: selected
+  - navigate: SCR-ACCOUNT-DASHBOARD
+  - stop
 
 ## History
 

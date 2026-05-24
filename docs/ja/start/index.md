@@ -70,10 +70,13 @@ locale: ja
 
 ### A-Continue Continue
 
-- From
-  - idle
-- Process P1: Stay on the current screen
-  - state: idle
+#### From
+
+- idle
+
+#### P1: Process Stay on the current screen
+
+- state: idle
 ```
 
 ### Step 3: プレビューを開く

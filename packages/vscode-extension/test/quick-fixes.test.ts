@@ -44,8 +44,8 @@ title: Quick Fix
 
 ### A-Submit Submit
 
-- From
-  - idle
+#### From
+- idle
 `;
   const document = createTextDocument(source) as never;
   const diagnostic = createDiagnostic(

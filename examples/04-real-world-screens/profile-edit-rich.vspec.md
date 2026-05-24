@@ -248,27 +248,27 @@ the primary purpose.
 
 ### A1:A-RequestDiscardDialog Request discard dialog
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - case: done
-    - display:
-      - element: E-DiscardDialog
-    - stop
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- case: done
+  - display:
+    - element: E-DiscardDialog
+  - stop
 
 ### A2:A-CloseDiscardDialog Close discard dialog
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ### A3:A-ConfirmDiscard Confirm discard
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ## Preview Scenarios
 

@@ -161,140 +161,140 @@ outside this example.
 
 ### A1:A-SearchUsers Search users
 
-- From
-  - idle
-  - empty
-  - fetch-error
-- Process P1: Request matching users
-  - request:
-    - method: GET
-    - path: /users
-    - params:
-      - keyword: E-KeywordInput.value
-      - status: E-StatusFilter.value
-      - page: 1
-  - result:
-    - first search page request
-  - case: sent
-    - state: fetching
-  - case: send-failed
-    - state: fetch-error
-    - display:
-      - target: L-StatusArea
-      - element: E-LoadErrorBanner
+#### From
+- idle
+- empty
+- fetch-error
+#### P1: Process Request matching users
+- request:
+  - method: GET
+  - path: /users
+  - params:
+    - keyword: E-KeywordInput.value
+    - status: E-StatusFilter.value
+    - page: 1
+- result:
+  - first search page request
+- case: sent
+  - state: fetching
+- case: send-failed
+  - state: fetch-error
+  - display:
+    - target: L-StatusArea
+    - element: E-LoadErrorBanner
 
 ### A2:A-HandleSearchUsersResponse Handle search users response
 
-- From
-  - fetching
-- Process P1: Handle response
-  - receive:
-    - response: A-SearchUsers.P1.response
-  - case: success
-    - response: 200 with one or more rows
-    - state: idle
-    - display:
-      - target: L-Results
-      - element: E-UsersTable
-  - case: empty
-    - response: 200 with no rows
-    - state: empty
-    - display:
-      - target: L-Results
-      - element: E-EmptyText
-  - case: failure
-    - response: 5xx or timeout
-    - state: fetch-error
-    - display:
-      - target: L-StatusArea
-      - element: E-LoadErrorBanner
+#### From
+- fetching
+#### P1: Process Handle response
+- receive:
+  - response: A-SearchUsers.P1.response
+- case: success
+  - response: 200 with one or more rows
+  - state: idle
+  - display:
+    - target: L-Results
+    - element: E-UsersTable
+- case: empty
+  - response: 200 with no rows
+  - state: empty
+  - display:
+    - target: L-Results
+    - element: E-EmptyText
+- case: failure
+  - response: 5xx or timeout
+  - state: fetch-error
+  - display:
+    - target: L-StatusArea
+    - element: E-LoadErrorBanner
 
 ### A3:A-NextPage Next page
 
-- From
-  - idle
-- Process P1: Request next page
-  - request:
-    - method: GET
-    - path: /users
-    - params:
-      - keyword: E-KeywordInput.value
-      - status: E-StatusFilter.value
-      - page: next page
-  - result:
-    - next search page request
-  - case: sent
-    - state: fetching
-  - case: send-failed
-    - state: fetch-error
+#### From
+- idle
+#### P1: Process Request next page
+- request:
+  - method: GET
+  - path: /users
+  - params:
+    - keyword: E-KeywordInput.value
+    - status: E-StatusFilter.value
+    - page: next page
+- result:
+  - next search page request
+- case: sent
+  - state: fetching
+- case: send-failed
+  - state: fetch-error
 
 ### A4:A-PreviousPage Previous page
 
-- From
-  - idle
-- Process P1: Request previous page
-  - request:
-    - method: GET
-    - path: /users
-    - params:
-      - keyword: E-KeywordInput.value
-      - status: E-StatusFilter.value
-      - page: previous page
-  - result:
-    - previous search page request
-  - case: sent
-    - state: fetching
-  - case: send-failed
-    - state: fetch-error
+#### From
+- idle
+#### P1: Process Request previous page
+- request:
+  - method: GET
+  - path: /users
+  - params:
+    - keyword: E-KeywordInput.value
+    - status: E-StatusFilter.value
+    - page: previous page
+- result:
+  - previous search page request
+- case: sent
+  - state: fetching
+- case: send-failed
+  - state: fetch-error
 
 ### A5:A-HandleNextPageResponse Handle next page response
 
-- From
-  - fetching
-- Process P1: Handle response
-  - receive:
-    - response: A-NextPage.P1.response
-  - case: success
-    - response: 200 with one or more rows
-    - state: idle
-    - display:
-      - target: L-Results
-      - element: E-UsersTable
-  - case: empty
-    - response: 200 with no rows
-    - state: empty
-    - display:
-      - target: L-Results
-      - element: E-EmptyText
-  - case: failure
-    - response: 5xx or timeout
-    - state: fetch-error
-    - display:
-      - target: L-StatusArea
-      - element: E-LoadErrorBanner
+#### From
+- fetching
+#### P1: Process Handle response
+- receive:
+  - response: A-NextPage.P1.response
+- case: success
+  - response: 200 with one or more rows
+  - state: idle
+  - display:
+    - target: L-Results
+    - element: E-UsersTable
+- case: empty
+  - response: 200 with no rows
+  - state: empty
+  - display:
+    - target: L-Results
+    - element: E-EmptyText
+- case: failure
+  - response: 5xx or timeout
+  - state: fetch-error
+  - display:
+    - target: L-StatusArea
+    - element: E-LoadErrorBanner
 
 ### A6:A-HandlePreviousPageResponse Handle previous page response
 
-- From
-  - fetching
-- Process P1: Handle response
-  - receive:
-    - response: A-PreviousPage.P1.response
-  - case: success
-    - response: 200 with one or more rows
-    - state: idle
-    - display:
-      - target: L-Results
-      - element: E-UsersTable
-  - case: empty
-    - response: 200 with no rows
-    - state: empty
-    - display:
-      - target: L-Results
-      - element: E-EmptyText
-  - case: failure
-    - response: 5xx or timeout
-    - state: fetch-error
-    - display:
-      - target: L-StatusArea
-      - element: E-LoadErrorBanner
+#### From
+- fetching
+#### P1: Process Handle response
+- receive:
+  - response: A-PreviousPage.P1.response
+- case: success
+  - response: 200 with one or more rows
+  - state: idle
+  - display:
+    - target: L-Results
+    - element: E-UsersTable
+- case: empty
+  - response: 200 with no rows
+  - state: empty
+  - display:
+    - target: L-Results
+    - element: E-EmptyText
+- case: failure
+  - response: 5xx or timeout
+  - state: fetch-error
+  - display:
+    - target: L-StatusArea
+    - element: E-LoadErrorBanner

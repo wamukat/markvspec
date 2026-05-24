@@ -290,29 +290,29 @@ Inline [bad](javascript:globalThis.__markvspecXss = true) text.
 
 ### A-ShowDanger Show danger
 
-- From
-  - idle
-- Process P1: Show unsafe display text
-  - display.content: <script>globalThis.__markvspecXss = true</script>
+#### From
+- idle
+#### P1: Process Show unsafe display text
+- display.content: <script>globalThis.__markvspecXss = true</script>
 `;
-  const result = parseMarkVSpec(source);
-  const html = renderMarkVSpecHtml(result, {
-    includeStyles: false,
-    routeValues: { payload: "javascript:globalThis.__markvspecXss = true" },
-    showIds: true,
-    state: "idle",
-    viewport: "desktop"
-  });
+const result = parseMarkVSpec(source);
+const html = renderMarkVSpecHtml(result, {
+  includeStyles: false,
+  routeValues: { payload: "javascript:globalThis.__markvspecXss = true" },
+  showIds: true,
+  state: "idle",
+  viewport: "desktop"
+});
 
-  assert.doesNotMatch(html, /<script\b/iu);
-  assert.doesNotMatch(html, /<iframe\b/iu);
-  assert.doesNotMatch(html, /<svg\b/iu);
-  assert.doesNotMatch(html, /<[^>]+\son[a-z]+\s*=/iu);
-  assert.doesNotMatch(html, /href="javascript:/iu);
-  assert.doesNotMatch(html, /href="vbscript:/iu);
-  assert.doesNotMatch(html, /href="data:/iu);
-  assert.match(html, /&lt;script&gt;globalThis\.__markvspecXss = true&lt;\/script&gt;/u);
-  assert.match(html, /Dangerous &lt;img src=x onerror=&quot;globalThis\.__markvspecXss = true&quot;&gt;/u);
-  assert.match(html, /href="#"/u);
-  assert.match(html, /href="\/safe\/path"/u);
+assert.doesNotMatch(html, /<script\b/iu);
+assert.doesNotMatch(html, /<iframe\b/iu);
+assert.doesNotMatch(html, /<svg\b/iu);
+assert.doesNotMatch(html, /<[^>]+\son[a-z]+\s*=/iu);
+assert.doesNotMatch(html, /href="javascript:/iu);
+assert.doesNotMatch(html, /href="vbscript:/iu);
+assert.doesNotMatch(html, /href="data:/iu);
+assert.match(html, /&lt;script&gt;globalThis\.__markvspecXss = true&lt;\/script&gt;/u);
+assert.match(html, /Dangerous &lt;img src=x onerror=&quot;globalThis\.__markvspecXss = true&quot;&gt;/u);
+assert.match(html, /href="#"/u);
+assert.match(html, /href="\/safe\/path"/u);
 });

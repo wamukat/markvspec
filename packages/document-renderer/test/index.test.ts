@@ -935,37 +935,37 @@ title: Static Transitions
 
 ### A1:A-LoadAccount Load account
 
-- From
-  - before-load
-- Process P1: Send request
-  - request:
-    - method: GET
-    - path: /account
-  - case: sent
-    - response: account request sent
-    - state: initializing
+#### From
+- before-load
+#### P1: Process Send request
+- request:
+  - method: GET
+  - path: /account
+- case: sent
+  - response: account request sent
+  - state: initializing
 
 ### A2:A-PrimeTelemetry Prime telemetry
 
-- From
-  - before-load
-- Process P1: Apply immediate effect
-  - state: initializing
-  - display: E-TelemetryStatus = ready
+#### From
+- before-load
+#### P1: Process Apply immediate effect
+- state: initializing
+- display: E-TelemetryStatus = ready
 
 ### A3:A-HandleAccountResponse Handle account response
 
-- From
-  - initializing
-- Process P1: Apply response
-  - receive:
-    - response: A-LoadAccount.P1.response
-  - case: success
-    - response: 200
-    - state: loaded
-  - case: failure
-    - response: 500
-    - state: initialize-error
+#### From
+- initializing
+#### P1: Process Apply response
+- receive:
+  - response: A-LoadAccount.P1.response
+- case: success
+  - response: 200
+  - state: loaded
+- case: failure
+  - response: 500
+  - state: initialize-error
 `);
   const html = renderStaticDesignDocumentHtml(result);
   const loadAction = result.actions.find((action) => action.id === "A-LoadAccount");
@@ -1023,36 +1023,36 @@ title: Static Process Icons
 
 ### A-Run Run
 
-- From
-  - idle
-- Process P1: Check validation
-  - validation: V-Email.result
-- Process P2: Send request
-  - request:
-    - method: GET
-    - path: /account
-- Process P3: Call server service
-  - call: AccountService.load()
-- Process P4: Receive response
-  - receive:
-    - response: A-Run.P2.response
-- Process P5: Show display
-  - display: E-Status = Loaded
-- Process P6: Navigate away
-  - navigate: SCR-NEXT
-- Process P7: Set loaded
+#### From
+- idle
+#### P1: Process Check validation
+- validation: V-Email.result
+#### P2: Process Send request
+- request:
+  - method: GET
+  - path: /account
+#### P3: Process Call server service
+- call: AccountService.load()
+#### P4: Process Receive response
+- receive:
+  - response: A-Run.P2.response
+#### P5: Process Show display
+- display: E-Status = Loaded
+#### P6: Process Navigate away
+- navigate: SCR-NEXT
+#### P7: Process Set loaded
+- state: loaded
+#### P8: Process Failure handler
+#### P1: Process Call server service
+- group: initial-load
+- server:
+  - ProfileService.load()
+- continue
+#### P2: Process Resolve responses
+- group: initial-load
+- case: ready
   - state: loaded
-- Process P8: Failure handler
-- Process P1: Call server service
-  - group: initial-load
-  - server:
-    - ProfileService.load()
-  - continue
-- Process P2: Resolve responses
-  - group: initial-load
-  - case: ready
-    - state: loaded
-    - stop
+  - stop
 `);
   const html = renderStaticDesignDocumentHtml(result);
 

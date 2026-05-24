@@ -196,64 +196,66 @@ profile fields and reusable templates are left to later examples.
 Validate required fields and submit the current form values. This action does
 not decide whether credentials are correct.
 
-- From
-  - idle
-- Process P1: Check validation
-  - receive:
-    - validation: V-LoginForm.result
-  - case: invalid
-    - description: required field missing
-    - display:
-      - target: L-MessageArea
-      - element: E-ValidationMessage
-    - stop
-  - case: valid
-    - description: all required fields are valid
-    - continue
-- Process P2: Submit login
-  - request:
-    - method: POST
-    - path: /login
-    - params:
-      - email: E-EmailInput.value
-      - password: E-PasswordInput.value
-      - rememberMe: E-RememberMe.value
-  - result:
-    - login submission request
-  - case: sent
-    - state: authenticating
-  - case: send-failed
-    - state: idle
-    - display:
-      - target: L-MessageArea
-      - element: E-RequestErrorBanner
+#### From
+- idle
 
 The `sent` case means only that the browser submitted the request. Authentication
 success or failure is handled by `A-HandleLoginResponse`.
 
+#### P1: Process Check validation
+- receive:
+  - validation: V-LoginForm.result
+- case: invalid
+  - description: required field missing
+  - display:
+    - target: L-MessageArea
+    - element: E-ValidationMessage
+  - stop
+- case: valid
+  - description: all required fields are valid
+  - continue
+
+#### P2: Process Submit login
+- request:
+  - method: POST
+  - path: /login
+  - params:
+    - email: E-EmailInput.value
+    - password: E-PasswordInput.value
+    - rememberMe: E-RememberMe.value
+- result:
+  - login submission request
+- case: sent
+  - state: authenticating
+- case: send-failed
+  - state: idle
+  - display:
+    - target: L-MessageArea
+    - element: E-RequestErrorBanner
+
 ### A2:A-HandleLoginResponse Handle login response
 
-- From
-  - authenticating
-- Process P1: Handle response
-  - receive:
-    - response: A-SubmitLogin.P2.response
-  - case: success
-    - response: 200 authenticated
-    - navigate: SCR-HOME
-  - case: failure
-    - response: 401 invalid credentials
-    - state: idle
-    - display:
-      - target: L-MessageArea
-      - element: E-AuthErrorBanner
+#### From
+- authenticating
+#### P1: Process Handle response
+- receive:
+  - response: A-SubmitLogin.P2.response
+- case: success
+  - response: 200 authenticated
+  - navigate: SCR-HOME
+- case: failure
+  - response: 401 invalid credentials
+  - state: idle
+  - display:
+    - target: L-MessageArea
+    - element: E-AuthErrorBanner
 
 ### A3:A-ForgotPassword Open password reset
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - navigate: SCR-PASSWORD-RESET
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- navigate: SCR-PASSWORD-RESET
 
 ## Preview Scenarios
 

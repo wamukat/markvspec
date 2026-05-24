@@ -65,7 +65,7 @@ modeling hover, focus, or interactive popover controls.
 
 ### A1:A-OpenPasswordHelp Open password help
 
-- From
-  - idle
-- Process P1: Immediate
-  - state: help-open
+#### From
+- idle
+#### P1: Process Immediate
+- state: help-open

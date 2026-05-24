@@ -226,33 +226,33 @@ title: Scenario Display
 
 ### A-ShowHelp Show help
 
-- From
-  - editing
-- Process P1: Show help
-  - case: help
-    - display:
-      - target: L-Message
-      - element: E-HelpText
+#### From
+- editing
+#### P1: Process Show help
+- case: help
+  - display:
+    - target: L-Message
+    - element: E-HelpText
 
 ### A-ReplaceStatus Replace status
 
-- From
-  - editing
-- Process P1: Replace status
-  - case: changed
-    - display:
-      - target: E-Status
-      - element: E-StatusDraft
+#### From
+- editing
+#### P1: Process Replace status
+- case: changed
+  - display:
+    - target: E-Status
+    - element: E-StatusDraft
 
 ### A-ReplaceStatusAgain Replace status again
 
-- From
-  - editing
-- Process P1: Replace status again
-  - case: changed
-    - display:
-      - target: E-Status
-      - element: E-StatusFinal
+#### From
+- editing
+#### P1: Process Replace status again
+- case: changed
+  - display:
+    - target: E-Status
+    - element: E-StatusFinal
 
 ## Preview Scenarios
 
@@ -335,19 +335,19 @@ title: Field Error Preview
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Check validation
-  - receive:
-    - validation: V-EmailRequired.result
-  - case: invalid
-    - display:
-      - target: E-EmailInput.error
-      - message: V-EmailRequired.messages
-  - case: invalid-summary
-    - display:
-      - target: L-MessageArea
-      - message: V-EmailRequired.messages
+#### From
+- idle
+#### P1: Process Check validation
+- receive:
+  - validation: V-EmailRequired.result
+- case: invalid
+  - display:
+    - target: E-EmailInput.error
+    - message: V-EmailRequired.messages
+- case: invalid-summary
+  - display:
+    - target: L-MessageArea
+    - message: V-EmailRequired.messages
 
 ## Preview Scenarios
 
@@ -461,15 +461,15 @@ title: Cross-field Preview
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Check validation
-  - receive:
-    - validation: V-LoginFormRequired.result
-  - case: invalid
-    - display:
-      - target: L-MessageArea
-      - message: V-LoginFormRequired.messages
+#### From
+- idle
+#### P1: Process Check validation
+- receive:
+  - validation: V-LoginFormRequired.result
+- case: invalid
+  - display:
+    - target: L-MessageArea
+    - message: V-LoginFormRequired.messages
 
 ## Preview Scenarios
 
@@ -541,19 +541,19 @@ title: Business Rule Display
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Submit subscription
-  - server:
-    - SubscriptionService.create()
-  - result:
-    - subscription creation request
-  - case: business-rule-violation
-    - description: 409 duplicate email
-    - business rule: R-EmailMustBeUnique
-    - display:
-      - target: E-EmailInput.error
-      - message: R-EmailMustBeUnique.messages
+#### From
+- idle
+#### P1: Process Submit subscription
+- server:
+  - SubscriptionService.create()
+- result:
+  - subscription creation request
+- case: business-rule-violation
+  - description: 409 duplicate email
+  - business rule: R-EmailMustBeUnique
+  - display:
+    - target: E-EmailInput.error
+    - message: R-EmailMustBeUnique.messages
 
 ## Preview Scenarios
 
@@ -727,10 +727,10 @@ title: Responsive State Dedup
 
 ### A1:A-Ready Ready
 
-- From
-  - init
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- init
+#### P1: Process Apply immediate effect
+- state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -849,12 +849,12 @@ title: Scenario Base Selection
 
 ### A1:A-Submit Submit
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - case: success
-    - from: idle
-    - state: loaded
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- case: success
+  - from: idle
+  - state: loaded
 
 ## Preview Scenarios
 
@@ -1030,11 +1030,11 @@ title: All Repeated State Specs
 
 ### A1:A-Refresh Refresh profile
 
-- From
-  - idle
-  - loaded
-- Process P1: Apply immediate effect
-  - state: loaded
+#### From
+- idle
+- loaded
+#### P1: Process Apply immediate effect
+- state: loaded
 `;
   const result = parseMarkVSpec(source);
   const loadedModel = buildViewportStateScreenReadModels(result, result)
@@ -1268,11 +1268,11 @@ title: Repeated System Events
 
 ### A1:A-Load Load
 
-- From
-  - before-load
-  - idle
-- Process P1: Call server service
-  - LoadService.fetch()
+#### From
+- before-load
+- idle
+#### P1: Process Call server service
+- LoadService.fetch()
 `;
   const result = parseMarkVSpec(source);
   const desktopModel = buildViewportStateScreenReadModels(result, result)
@@ -1337,13 +1337,13 @@ title: System Event From
 
 ### A1:A-SystemEvent System event
 
-- From
-  - before-load
-  - idle
-- Process P1: Apply immediate effect
-  - case: background
-    - from: loading
-    - state: idle
+#### From
+- before-load
+- idle
+#### P1: Process Apply immediate effect
+- case: background
+  - from: loading
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -1410,19 +1410,19 @@ title: Hidden Element Trigger
 
 ### A1:A-Load Load
 
-- From
-  - before-load
-  - idle
-- Process P1: Load
-  - case: done
-    - state: idle
+#### From
+- before-load
+- idle
+#### P1: Process Load
+- case: done
+  - state: idle
 
 ### A2:A-ForgotPassword Open password reset
 
-- From
-  - idle
-- Process P1: Navigate
-  - navigate: SCR-PASSWORD-RESET
+#### From
+- idle
+#### P1: Process Navigate
+- navigate: SCR-PASSWORD-RESET
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -1490,21 +1490,21 @@ title: Repeated Diff System Events
 
 ### A1:A-Submit Submit
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: loading
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: loading
 
 ### A2:A-HandleSubmitResponse Handle submit response
 
-- From
-  - loading
-- Process P1: Apply immediate effect
-  - receive:
-    - response: A-Submit.P1.response
-  - case: success
-    - response: 200
-    - state: idle
+#### From
+- loading
+#### P1: Process Apply immediate effect
+- receive:
+  - response: A-Submit.P1.response
+- case: success
+  - response: 200
+  - state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -1736,13 +1736,13 @@ title: Markerless
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Send request
-  - POST /login
-    - email: E-メールアドレス入力.value
-- Process P2: Apply immediate effect
-  - state: authenticating
+#### From
+- idle
+#### P1: Process Send request
+- POST /login
+  - email: E-メールアドレス入力.value
+#### P2: Process Apply immediate effect
+- state: authenticating
 `;
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });

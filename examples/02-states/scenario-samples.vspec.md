@@ -114,32 +114,32 @@ account data without creating extra states.
 
 ### A1:A-LoadAccount Load account
 
-- From
-  - before-load
-- Process P1: Send request
-  - request:
-    - method: GET
-    - path: /account/subscriptions
-  - case: sent
-    - description: account subscription request sent
-    - state: initializing
+#### From
+- before-load
+#### P1: Process Send request
+- request:
+  - method: GET
+  - path: /account/subscriptions
+- case: sent
+  - description: account subscription request sent
+  - state: initializing
 
 ### A2:A-HandleAccountResponse Handle account response
 
-- From
-  - initializing
-- Process P1: Apply response
-  - receive:
-    - response: A-LoadAccount.P1.response
-  - case: has-subscriptions
-    - response: HTTP 200 with subscription rows
-    - state: loaded
-  - case: empty
-    - response: HTTP 200 with no subscription rows
-    - state: loaded
-  - case: failure
-    - response: HTTP 5xx or network failure
-    - state: initialize-error
+#### From
+- initializing
+#### P1: Process Apply response
+- receive:
+  - response: A-LoadAccount.P1.response
+- case: has-subscriptions
+  - response: HTTP 200 with subscription rows
+  - state: loaded
+- case: empty
+  - response: HTTP 200 with no subscription rows
+  - state: loaded
+- case: failure
+  - response: HTTP 5xx or network failure
+  - state: initialize-error
 
 ## Preview Scenarios
 

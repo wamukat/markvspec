@@ -60,27 +60,27 @@ Dashboard screen used by the project preview and document-list example.
 
 ### A1:A-OpenSettings Open settings
 
-- From
-  - idle
-- Process P1: Open settings screen
-  - case: selected
-    - navigate: SCR-ACCOUNT-SETTINGS
-    - stop
+#### From
+- idle
+#### P1: Process Open settings screen
+- case: selected
+  - navigate: SCR-ACCOUNT-SETTINGS
+  - stop
 
 ### A2:A-RefreshSummary Refresh account summary
 
-- From
-  - idle
-- Process P1: Request summary partial
-  - request:
-    - method: GET
-    - path: /account/summary
-  - case: sent
-    - state: loading-summary
-    - display:
-      - target: L-SummaryHost
-      - partial: PRT-ACCOUNT-SUMMARY
-    - stop
+#### From
+- idle
+#### P1: Process Request summary partial
+- request:
+  - method: GET
+  - path: /account/summary
+- case: sent
+  - state: loading-summary
+  - display:
+    - target: L-SummaryHost
+    - partial: PRT-ACCOUNT-SUMMARY
+  - stop
 
 ## History
 

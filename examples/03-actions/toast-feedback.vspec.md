@@ -84,36 +84,36 @@ toast stack.
 
 ### A1:A-SaveSettings Save settings
 
-- From
-  - idle
-- Process P1: Save settings
-  - server:
-    - SettingsService.save()
-    - params:
-      - displayName: E-DisplayNameInput.value
-  - result:
-    - settings save request
-  - case: success
-    - description: settings saved
-    - display:
-      - element: E-SavedToast
-    - continue
-  - case: failure
-    - description: save failed
-    - error code: ERR-SETTINGS-SAVE-FAILED
-    - state: idle
-    - display:
-      - element: E-SaveFailedToast
-    - stop
-- Process P2: Queue background sync
-  - server:
-    - SettingsSyncService.queue()
-  - result:
-    - settings sync queue request
-  - case: queued
-    - display:
-      - element: E-SyncQueuedToast
-    - stop
+#### From
+- idle
+#### P1: Process Save settings
+- server:
+  - SettingsService.save()
+  - params:
+    - displayName: E-DisplayNameInput.value
+- result:
+  - settings save request
+- case: success
+  - description: settings saved
+  - display:
+    - element: E-SavedToast
+  - continue
+- case: failure
+  - description: save failed
+  - error code: ERR-SETTINGS-SAVE-FAILED
+  - state: idle
+  - display:
+    - element: E-SaveFailedToast
+  - stop
+#### P2: Process Queue background sync
+- server:
+  - SettingsSyncService.queue()
+- result:
+  - settings sync queue request
+- case: queued
+  - display:
+    - element: E-SyncQueuedToast
+  - stop
 
 ## Preview Scenarios
 

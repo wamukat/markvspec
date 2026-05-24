@@ -73,57 +73,57 @@ and danger tone can be reviewed without introducing a generic menu.
 
 ### A3:A-OpenMenu Open action menu
 
-- From
-  - menu-closed
-- Process P1: Open menu
-  - case: done
-    - description: More actions trigger opens the action menu.
-    - state: menu-open
-    - stop
+#### From
+- menu-closed
+#### P1: Process Open menu
+- case: done
+  - description: More actions trigger opens the action menu.
+  - state: menu-open
+  - stop
 
 ### A4:A-CloseMenu Close action menu
 
-- From
-  - menu-open
-  - menu-open-locked
-- Process P1: Close menu
-  - case: done
-    - description: Outside click or escape closes the open action menu.
-    - state: menu-closed
-    - stop
+#### From
+- menu-open
+- menu-open-locked
+#### P1: Process Close menu
+- case: done
+  - description: Outside click or escape closes the open action menu.
+  - state: menu-closed
+  - stop
 
 ### A5:A-LockRow Lock selected row
 
-- From
-  - menu-open
-- Process P1: Lock row
-  - case: done
-    - description: Selected row becomes locked while the action menu remains open.
-    - state: menu-open-locked
-    - stop
+#### From
+- menu-open
+#### P1: Process Lock row
+- case: done
+  - description: Selected row becomes locked while the action menu remains open.
+  - state: menu-open-locked
+  - stop
 
 ### A1:A-EditAccount Edit account
 
-- From
-  - menu-open
-  - menu-open-locked
-- Process P1: Select menu item
-  - case: done
-    - description: Edit action item is selected from the open action menu.
-    - state: menu-open
-    - stop
+#### From
+- menu-open
+- menu-open-locked
+#### P1: Process Select menu item
+- case: done
+  - description: Edit action item is selected from the open action menu.
+  - state: menu-open
+  - stop
 
 ### A2:A-DisableAccount Disable account
 
-- From
-  - menu-open
-  - menu-open-locked
-- Process P1: Select menu item
-  - case: blocked
-    - description: Disable action is unavailable while the menu is open and the selected row is locked.
-    - state: menu-open-locked
-    - stop
-  - case: done
-    - description: Disable action item is selected with danger tone.
-    - state: menu-open
-    - stop
+#### From
+- menu-open
+- menu-open-locked
+#### P1: Process Select menu item
+- case: blocked
+  - description: Disable action is unavailable while the menu is open and the selected row is locked.
+  - state: menu-open-locked
+  - stop
+- case: done
+  - description: Disable action item is selected with danger tone.
+  - state: menu-open
+  - stop

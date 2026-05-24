@@ -1,10 +1,11 @@
 import type {
   MarkVSpecAction,
   MarkVSpecDiagnostic,
+  MarkVSpecProcessStep,
   MarkVSpecSectionProse,
   SourceLocation
 } from "./types.js";
-import { applyActionBulletToContext, createActionParseContext } from "./action-parser.js";
+import { applyActionBulletToContext, createActionParseContext, createProcessStep, type ActionBulletInput } from "./action-parser.js";
 import { actionIdPattern } from "./ids.js";
 import type { MarkdownDocument } from "./markdown-document.js";
 import {
@@ -14,6 +15,7 @@ import {
 } from "./markdown-section-ast.js";
 import { buildMarkVSpecProcessStepReadModel } from "./action-process-read-model.js";
 import type { SemanticDependency } from "./markdown-section-semantic.js";
+import { createUnsupportedStructuredItemDiagnostic } from "./source-text-diagnostics.js";
 
 interface ListItemView {
   text: string;
@@ -87,6 +89,8 @@ function parseActionsSection(section: SectionAst, support: ActionSectionSemantic
   let currentAction: MarkVSpecAction | undefined;
   let currentActionContext = createActionParseContext();
   let currentActionHasStructuredContent = false;
+  let currentProcessStep: MarkVSpecProcessStep | undefined;
+  let currentProcessHasStructuredContent = false;
   let hasSeenEntity = false;
   let inSectionNotes = false;
   const sectionOverviewBlocks: BlockAst[] = [];
@@ -97,6 +101,8 @@ function parseActionsSection(section: SectionAst, support: ActionSectionSemantic
       currentAction = undefined;
       currentActionContext = createActionParseContext();
       currentActionHasStructuredContent = false;
+      currentProcessStep = undefined;
+      currentProcessHasStructuredContent = false;
       inSectionNotes = true;
       hasSeenEntity = true;
       continue;
@@ -107,8 +113,51 @@ function parseActionsSection(section: SectionAst, support: ActionSectionSemantic
       }
       continue;
     }
+    if (currentAction && block.type === "heading" && block.depth === 4) {
+      const processSection = parseActionProcessSectionHeading(block.text);
+      if (normalizeActionSubsectionHeading(block.text) === "from") {
+        currentActionContext = { block: "from" };
+        currentActionHasStructuredContent = true;
+        currentProcessStep = undefined;
+        currentProcessHasStructuredContent = false;
+        continue;
+      }
+      if (normalizeActionSubsectionHeading(block.text) === "otherwise") {
+        currentActionContext = { block: "otherwise", outcome: "otherwise" };
+        currentActionHasStructuredContent = true;
+        currentProcessStep = undefined;
+        currentProcessHasStructuredContent = false;
+        continue;
+      }
+      if (processSection) {
+        currentProcessStep = createProcessStep(`${processSection.marker}: ${processSection.name}`, -1, support.locationFromBlock(block));
+        currentAction.processSteps.push(currentProcessStep);
+        currentActionContext = { block: "process", processStep: currentProcessStep };
+        currentActionHasStructuredContent = true;
+        currentProcessHasStructuredContent = false;
+        continue;
+      }
+      if (looksLikeUnsupportedActionProcessSectionHeading(block.text)) {
+        diagnostics.push({
+          severity: "warning",
+          message: `Unsupported Action process heading in Action ${currentAction.id}: ${block.text}. Use #### P1: Process <name>.`,
+          line: support.locationFromBlock(block).line
+        });
+      }
+      currentProcessStep = undefined;
+      currentProcessHasStructuredContent = false;
+      currentActionContext = createActionParseContext();
+    }
     if (currentAction && block.type === "heading" && block.depth > 3) {
-      support.appendEntityProseLines(currentAction, block, currentActionHasStructuredContent);
+      if (currentProcessStep) {
+        support.appendEntityProseLines(currentProcessStep, block, currentProcessHasStructuredContent);
+        if (currentProcessHasStructuredContent) {
+          currentActionContext = createActionParseContext();
+        }
+      } else {
+        support.appendEntityProseLines(currentAction, block, currentActionHasStructuredContent);
+        currentActionContext = createActionParseContext();
+      }
       continue;
     }
     if (block.type === "heading" && block.depth === 3) {
@@ -129,6 +178,8 @@ function parseActionsSection(section: SectionAst, support: ActionSectionSemantic
       const headingLocation = support.locationFromBlock(block);
       currentActionContext = createActionParseContext();
       currentActionHasStructuredContent = false;
+      currentProcessStep = undefined;
+      currentProcessHasStructuredContent = false;
       currentAction = {
         id: heading[2],
         name: heading[3],
@@ -150,36 +201,56 @@ function parseActionsSection(section: SectionAst, support: ActionSectionSemantic
     }
 
     if (currentAction && block.type === "list") {
-      const structuredStartLine = firstActionStructuredListItemLine(block, support);
-      if (structuredStartLine === undefined) {
-        if (!currentActionHasStructuredContent && isActionMalformedStructuredListBlock(block, support)) {
-          for (const item of support.listItems([block])) {
-            const bullet = support.parsedBulletFromListItem(item);
-            currentActionContext = applyActionBulletToContext(currentAction, bullet, currentActionContext, diagnostics);
-          }
-          continue;
+      if (currentProcessStep && currentActionContext.block === "process") {
+        currentProcessHasStructuredContent = true;
+        for (const item of support.listItems([block])) {
+          const bullet = support.parsedBulletFromListItem(item);
+          currentActionContext = applyActionBulletToContext(currentAction, sectionNestedBullet(bullet), currentActionContext, diagnostics);
         }
-        support.appendEntityProseLines(currentAction, block, currentActionHasStructuredContent);
         continue;
       }
-      const splitProsePrefix = isActionProseListPrefix(block, structuredStartLine, support);
-      if (splitProsePrefix) {
-        support.appendListProseBeforeLine(currentAction, block, structuredStartLine, currentActionHasStructuredContent);
+      if (currentProcessStep) {
+        support.appendEntityProseLines(currentProcessStep, block, currentProcessHasStructuredContent);
+        continue;
       }
-      currentActionHasStructuredContent = true;
-      const actionItems = splitProsePrefix
-        ? support.listItems([block]).filter((candidate) => (candidate.range?.start.line ?? 1) >= structuredStartLine)
-        : support.listItems([block]);
-      for (const item of actionItems) {
+      if (currentActionContext.block === "from" || currentActionContext.block === "otherwise") {
+        currentActionHasStructuredContent = true;
+        for (const item of support.listItems([block])) {
+          const bullet = support.parsedBulletFromListItem(item);
+          currentActionContext = applyActionBulletToContext(currentAction, sectionNestedBullet(bullet), currentActionContext, diagnostics);
+        }
+        continue;
+      }
+      let emittedUnsupportedStructuredItem = false;
+      for (const item of support.listItems([block])) {
+        if (item.depth !== 0 || !isActionStructuredListItemText(item.text, support)) {
+          continue;
+        }
         const bullet = support.parsedBulletFromListItem(item);
-        currentActionContext = applyActionBulletToContext(currentAction, bullet, currentActionContext, diagnostics);
+        emittedUnsupportedStructuredItem = true;
+        diagnostics.push(createUnsupportedStructuredItemDiagnostic({
+          context: `Action ${currentAction.id}`,
+          text: bullet.text,
+          location: bullet.location,
+          allowed: "From, Process P1: <name>, or Otherwise"
+        }));
       }
+      if (emittedUnsupportedStructuredItem) {
+        continue;
+      }
+      support.appendEntityProseLines(currentAction, block, currentActionHasStructuredContent);
       continue;
     }
 
     if (!currentAction || block.type !== "list") {
-      if (currentAction && support.isEntityNoteBlock(block)) {
+      if (currentProcessStep && support.isEntityNoteBlock(block)) {
+        support.appendEntityProseLines(currentProcessStep, block, currentProcessHasStructuredContent);
+        if (currentProcessHasStructuredContent) {
+          currentActionContext = createActionParseContext();
+        }
+      } else if (currentAction && support.isEntityNoteBlock(block)) {
         support.appendEntityProseLines(currentAction, block, currentActionHasStructuredContent);
+        currentActionContext = createActionParseContext();
       } else if (!currentAction && !hasSeenEntity && support.isEntityNoteBlock(block)) {
         sectionOverviewBlocks.push(block);
       }
@@ -200,6 +271,32 @@ function parseActionsSection(section: SectionAst, support: ActionSectionSemantic
     diagnostics: [...diagnostics, ...support.structuredSectionOwnershipDiagnostics(section, { emitMalformedHeading: false })],
     dependencies: support.dedupeDependencies(dependencies),
     renderKeys
+  };
+}
+
+function parseActionProcessSectionHeading(text: string): { marker: string; name: string } | undefined {
+  const match = /^(P(?:0|[1-9][0-9]*|[A-Za-z_][A-Za-z0-9_-]*)):\s+Process\s+(.+?)\s*$/u.exec(text.trim());
+  if (!match) {
+    return undefined;
+  }
+  return {
+    marker: match[1],
+    name: match[2].trim()
+  };
+}
+
+function looksLikeUnsupportedActionProcessSectionHeading(text: string): boolean {
+  return /^P\S*/u.test(text.trim()) && /process/iu.test(text);
+}
+
+function normalizeActionSubsectionHeading(text: string): string {
+  return text.trim().replace(/:$/, "").trim().toLowerCase();
+}
+
+function sectionNestedBullet(bullet: ActionBulletInput): ActionBulletInput {
+  return {
+    ...bullet,
+    indent: bullet.indent + 1
   };
 }
 

@@ -44,8 +44,9 @@ MarkVSpec は、画面仕様を Markdown で書き、すぐプレビューで確
 
 ### A-Continue Continue
 
-- Process P1: Navigate
-  - state: idle
+#### P1: Process Navigate
+
+- state: idle
 ```
 
 このくらいから始めます。最初から完全な仕様にしようとしないでください。

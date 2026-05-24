@@ -64,18 +64,18 @@ global layout are handled by the host screen.
 
 ### A1:A-BuildProfileSummary Build profile summary
 
-- From
-  - fetching
-- Process P1: Call server service
-  - server:
-    - MemberQueryService.findCurrent()
-  - result:
-    - current member profile result
-  - case: success
-    - description: 200 member profile
-    - state: loaded
-    - stop
-  - case: failure
-    - description: 5xx or timeout
-    - state: fetch-error
-    - stop
+#### From
+- fetching
+#### P1: Process Call server service
+- server:
+  - MemberQueryService.findCurrent()
+- result:
+  - current member profile result
+- case: success
+  - description: 200 member profile
+  - state: loaded
+  - stop
+- case: failure
+  - description: 5xx or timeout
+  - state: fetch-error
+  - stop

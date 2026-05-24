@@ -89,60 +89,60 @@ try to cover non-submit element events.
 
 ### A1:A-SubmitRequest Submit request
 
-- From
-  - idle
-- Process P1: Check validation
-  - receive:
-    - validation: V-SubmitRequest.result
-  - case: invalid
-    - description: required field missing
-    - display:
-      - target: E-EmailInput.error
-      - message: V-SubmitRequest.messages
-    - stop
-  - case: valid
-    - description: all required fields are valid
-    - continue
-- Process P2: Submit subscription
-  - server:
-    - SubscriptionService.create()
-    - params:
-      - email: E-EmailInput.value
-      - plan: E-PlanSelect.value
-  - result:
-    - subscription creation request
-  - case: sent
-    - state: submitting
-  - case: send-failed
-    - state: idle
-    - display:
-      - target: L-MessageArea
-      - element: E-SubmitError
+#### From
+- idle
+#### P1: Process Check validation
+- receive:
+  - validation: V-SubmitRequest.result
+- case: invalid
+  - description: required field missing
+  - display:
+    - target: E-EmailInput.error
+    - message: V-SubmitRequest.messages
+  - stop
+- case: valid
+  - description: all required fields are valid
+  - continue
+#### P2: Process Submit subscription
+- server:
+  - SubscriptionService.create()
+  - params:
+    - email: E-EmailInput.value
+    - plan: E-PlanSelect.value
+- result:
+  - subscription creation request
+- case: sent
+  - state: submitting
+- case: send-failed
+  - state: idle
+  - display:
+    - target: L-MessageArea
+    - element: E-SubmitError
 
 ### A2:A-HandleSubmitResponse Handle submit response
 
-- From
-  - submitting
-- Process P1: Handle server response
-  - receive:
-    - response: A-SubmitRequest.P2.response
-  - case: success
-    - response: 201 created
-    - navigate: SCR-THANK-YOU
-  - case: failure
-    - response: 4xx or 5xx
-    - state: idle
-    - display:
-      - target: L-MessageArea
-      - element: E-SubmitError
-  - case: business-rule-violation
-    - response: 409 duplicate email
-    - business rule: R-EmailMustBeUnique
-    - error code: ERR-EMAIL-ALREADY-REGISTERED
-    - state: idle
-    - display:
-      - target: E-EmailInput.error
-      - message: R-EmailMustBeUnique.messages
+#### From
+- submitting
+#### P1: Process Handle server response
+- receive:
+  - response: A-SubmitRequest.P2.response
+- case: success
+  - response: 201 created
+  - navigate: SCR-THANK-YOU
+- case: failure
+  - response: 4xx or 5xx
+  - state: idle
+  - display:
+    - target: L-MessageArea
+    - element: E-SubmitError
+- case: business-rule-violation
+  - response: 409 duplicate email
+  - business rule: R-EmailMustBeUnique
+  - error code: ERR-EMAIL-ALREADY-REGISTERED
+  - state: idle
+  - display:
+    - target: E-EmailInput.error
+    - message: R-EmailMustBeUnique.messages
 
 ## Preview Scenarios
 

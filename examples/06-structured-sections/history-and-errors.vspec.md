@@ -95,39 +95,39 @@ to the main screen examples.
 This action shows how a validation error code and a server error code can be
 referenced from the same flow.
 
-- From
-  - idle
-- Process P1: Check validation
-  - receive:
-    - validation: V-AccountSettings.result
-  - case: invalid
-    - description: required field missing
-    - error code: ERR-ACCOUNT-REQUIRED
-    - state: idle
-    - display:
-      - target: L-MessageArea
-      - element: E-ValidationMessage
-    - stop
-  - case: valid
-    - description: all required fields are present
-    - continue
-- Process P2: Call server service
-  - server:
-    - AccountSettingsService.save()
-    - params:
-      - displayName: E-DisplayNameInput.value
-      - email: E-EmailInput.value
-  - result:
-    - account settings save request
-  - case: sent
-    - state: idle
-  - case: send-failed
-    - description: network error
-    - error code: ERR-ACCOUNT-SAVE-FAILED
-    - state: idle
-    - display:
-      - target: L-MessageArea
-      - element: E-SaveErrorBanner
+#### From
+- idle
+#### P1: Process Check validation
+- receive:
+  - validation: V-AccountSettings.result
+- case: invalid
+  - description: required field missing
+  - error code: ERR-ACCOUNT-REQUIRED
+  - state: idle
+  - display:
+    - target: L-MessageArea
+    - element: E-ValidationMessage
+  - stop
+- case: valid
+  - description: all required fields are present
+  - continue
+#### P2: Process Call server service
+- server:
+  - AccountSettingsService.save()
+  - params:
+    - displayName: E-DisplayNameInput.value
+    - email: E-EmailInput.value
+- result:
+  - account settings save request
+- case: sent
+  - state: idle
+- case: send-failed
+  - description: network error
+  - error code: ERR-ACCOUNT-SAVE-FAILED
+  - state: idle
+  - display:
+    - target: L-MessageArea
+    - element: E-SaveErrorBanner
 
 ## Preview Scenarios
 

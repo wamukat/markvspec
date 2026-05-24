@@ -126,57 +126,57 @@ behavior are intentionally excluded.
 
 ### A1:A-Submit Submit form
 
-- From
-  - idle
-- Process P1: Check validation
-  - receive:
-    - validation: V-EmailRequired.result
-  - case: invalid
-    - description: field validation failed
-    - display:
-      - target: E-EmailInput.error
-      - message: V-EmailRequired.messages
-    - stop
-  - case: duplicate
-    - description: business rule failed after a valid field value
-    - display:
-      - target: L-MessageArea
-      - message: R-EmailMustBeUnique.messages
-    - stop
-  - case: missing-form-data
-    - description: show a rich element in a layout target
-    - display:
-      - target: L-MessageArea
-      - element: E-FormBanner
-    - stop
+#### From
+- idle
+#### P1: Process Check validation
+- receive:
+  - validation: V-EmailRequired.result
+- case: invalid
+  - description: field validation failed
+  - display:
+    - target: E-EmailInput.error
+    - message: V-EmailRequired.messages
+  - stop
+- case: duplicate
+  - description: business rule failed after a valid field value
+  - display:
+    - target: L-MessageArea
+    - message: R-EmailMustBeUnique.messages
+  - stop
+- case: missing-form-data
+  - description: show a rich element in a layout target
+  - display:
+    - target: L-MessageArea
+    - element: E-FormBanner
+  - stop
 
 ### A2:A-RequestDelete Request delete dialog
 
-- From
-  - idle
-- Process P1: Show dialog
-  - case: done
-    - display:
-      - element: E-DeleteDialog
-    - stop
+#### From
+- idle
+#### P1: Process Show dialog
+- case: done
+  - display:
+    - element: E-DeleteDialog
+  - stop
 
 ### A3:A-CloseDeleteDialog Close delete dialog
 
-- From
-  - idle
-- Process P1: Close dialog
-  - case: done
-    - state: idle
+#### From
+- idle
+#### P1: Process Close dialog
+- case: done
+  - state: idle
 
 ### A4:A-SaveDraft Save draft
 
-- From
-  - idle
-- Process P1: Show toast
-  - case: saved
-    - display:
-      - element: E-SavedToast
-    - stop
+#### From
+- idle
+#### P1: Process Show toast
+- case: saved
+  - display:
+    - element: E-SavedToast
+  - stop
 
 ## Preview Scenarios
 

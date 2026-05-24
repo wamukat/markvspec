@@ -85,25 +85,25 @@ title: Grammar Boundaries
 ### A-Submit Submit
 
 - Tliggered
-- From
-  - idle
-- Process P1: Submit
-  - request:
-    - POST /submit
-  - correlation id: request.id
+#### From
+- idle
+#### P1: Process Submit
+- request:
+  - POST /submit
+- correlation id: request.id
 `);
 
-  const infoMessages = result.diagnostics.filter((diagnostic) => diagnostic.severity === "info").map((diagnostic) => diagnostic.message);
-  const warningMessages = result.diagnostics.filter((diagnostic) => diagnostic.severity === "warning").map((diagnostic) => diagnostic.message);
+const infoMessages = result.diagnostics.filter((diagnostic) => diagnostic.severity === "info").map((diagnostic) => diagnostic.message);
+const warningMessages = result.diagnostics.filter((diagnostic) => diagnostic.severity === "warning").map((diagnostic) => diagnostic.message);
 
-  assert(infoMessages.includes("Extension item in Element E-Submit: analytics event: submit_clicked. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
-  assert(infoMessages.includes("Extension item in Action A-Submit process step Submit: correlation id: request.id. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
-  assert(warningMessages.includes("Unknown structured item in Action A-Submit: Tliggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
-  assert.equal(warningMessages.some((message) => message.includes("request:")), false);
+assert(infoMessages.includes("Extension item in Element E-Submit: analytics event: submit_clicked. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
+assert(infoMessages.includes("Extension item in Action A-Submit process step Submit: correlation id: request.id. This is not a standard MarkVSpec key, but it is preserved in MarkVSpec output."));
+assert(warningMessages.includes("Unknown structured item in Action A-Submit: Tliggered. This item is not represented in MarkVSpec output. Use From, Process P1: <name>, or Otherwise."));
+assert.equal(warningMessages.some((message) => message.includes("request:")), false);
 });
 
 test("semantic parser diagnostics use grammar definition allowed keys across section groups", () => {
-  const result = parseMarkVSpec(`---
+const result = parseMarkVSpec(`---
 id: SCR-GRAMMAR-CONTRACT
 type: screen
 title: Grammar Contract

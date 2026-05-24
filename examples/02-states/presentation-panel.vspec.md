@@ -99,37 +99,37 @@ one row. Read `P-NameFields` as a visual grouping inside the meaningful
 
 ### A1:A-SaveProfile Save profile
 
-- From
-  - idle
-  - save-error
-- Process P1: Submit profile
-  - request:
-    - PUT /profile
-    - params:
-      - firstName: E-FirstNameInput.value
-      - lastName: E-LastNameInput.value
-      - email: E-EmailInput.value
-  - case: sent
-    - state: saving
-  - case: send-failed
-    - state: save-error
-    - display:
-      - target: L-MessageArea
-      - element: E-SaveError
+#### From
+- idle
+- save-error
+#### P1: Process Submit profile
+- request:
+  - PUT /profile
+  - params:
+    - firstName: E-FirstNameInput.value
+    - lastName: E-LastNameInput.value
+    - email: E-EmailInput.value
+- case: sent
+  - state: saving
+- case: send-failed
+  - state: save-error
+  - display:
+    - target: L-MessageArea
+    - element: E-SaveError
 
 ### A2:A-HandleSaveResponse Handle save response
 
-- From
-  - saving
-- Process P1: Apply save response
-  - receive:
-    - response: A-SaveProfile.P1.response
-  - case: success
-    - response: HTTP 200
-    - state: idle
-  - case: failure
-    - response: HTTP error
-    - state: save-error
-    - display:
-      - target: L-MessageArea
-      - element: E-SaveError
+#### From
+- saving
+#### P1: Process Apply save response
+- receive:
+  - response: A-SaveProfile.P1.response
+- case: success
+  - response: HTTP 200
+  - state: idle
+- case: failure
+  - response: HTTP error
+  - state: save-error
+  - display:
+    - target: L-MessageArea
+    - element: E-SaveError

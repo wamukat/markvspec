@@ -75,8 +75,8 @@ locale: ja
 
 ### A-Save Save
 
-- From
-  - idle
+#### From
+- idle
 `);
 
     const result = renderStandaloneHtmlForFile(sourcePath);
@@ -1023,17 +1023,17 @@ title: ${title}
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Submit login
-  - ${prose}
-  - request:
-    - method: POST
-    - path: /login
-  - result:
-    - login submission request
-  - case: sent
-    - state: authenticating
+#### From
+- idle
+#### P1: Process Submit login
+- ${prose}
+- request:
+  - method: POST
+  - path: /login
+- result:
+  - login submission request
+- case: sent
+  - state: authenticating
 `;
 }
 

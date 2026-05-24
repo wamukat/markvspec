@@ -419,6 +419,8 @@ export interface MarkVSpecProcessStep {
   name: string;
   marker?: string;
   indent: number;
+  overview?: string[];
+  notes?: string[];
   parallelGroup?: string;
   resolveGroup?: string;
   when: string[];

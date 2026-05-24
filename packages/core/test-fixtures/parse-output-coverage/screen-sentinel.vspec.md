@@ -124,42 +124,43 @@ Actions section overview sentinel.
 
 ### A-LoadCoverage Load coverage
 
-- From
-  - before-load
-- Process P1: Immediate
-  - case: success
-    - state: idle
+#### From
+- before-load
+#### P1: Process Immediate
+- case: success
+  - state: idle
 
 ### A-SaveCoverage Save coverage
 
 Action overview sentinel.
 
-- From
-  - idle
-- Process P1: Immediate
-  - when: ${view.isHelpOpen} = false
-  - receive:
-    - validation: V-CoverageName.result
-  - result:
-    - coverage validation accepted
-  - case: success
-    - state: loaded
-    - view: ${view.isHelpOpen} = false
-- Process P2: Submit coverage
-  - sync:
-    - CoverageService.save()
-    - params:
-      - memberId: ${route.memberId}
-      - name: E-NameInput.value
-  - result:
-    - coverage request sent
-  - case: sent
-    - state: loaded
-    - display:
-      - target: E-HelpText
-      - element: E-HelpText
+#### From
+- idle
 
 Action notes sentinel.
+
+#### P1: Process Immediate
+- when: ${view.isHelpOpen} = false
+- receive:
+  - validation: V-CoverageName.result
+- result:
+  - coverage validation accepted
+- case: success
+  - state: loaded
+  - view: ${view.isHelpOpen} = false
+#### P2: Process Submit coverage
+- sync:
+  - CoverageService.save()
+  - params:
+    - memberId: ${route.memberId}
+    - name: E-NameInput.value
+- result:
+  - coverage request sent
+- case: sent
+  - state: loaded
+  - display:
+    - target: E-HelpText
+    - element: E-HelpText
 
 ### Section Notes
 

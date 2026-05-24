@@ -211,112 +211,112 @@ initial load separates the `page.load` request action from its response handler.
 
 ### A1:A-LoadPreferences Load saved preferences
 
-- From
-  - before-load
-- Process P1: Call server service
-  - server:
-    - PreferencesQueryService.findSaved()
-  - result:
-    - saved preferences load result
-  - case: sent
-    - description: saved preferences request sent
-    - state: initializing
+#### From
+- before-load
+#### P1: Process Call server service
+- server:
+  - PreferencesQueryService.findSaved()
+- result:
+  - saved preferences load result
+- case: sent
+  - description: saved preferences request sent
+  - state: initializing
 
 ### A2:A-HandlePreferencesResponse Handle saved preferences response
 
-- From
-  - initializing
-- Process P1: Apply response
-  - receive:
-    - response: A-LoadPreferences.P1.response
-  - case: success
-    - response: 200 saved preferences
-    - state: idle
-  - case: failure
-    - response: 5xx or timeout
-    - state: initialize-error
+#### From
+- initializing
+#### P1: Process Apply response
+- receive:
+  - response: A-LoadPreferences.P1.response
+- case: success
+  - response: 200 saved preferences
+  - state: idle
+- case: failure
+  - response: 5xx or timeout
+  - state: initialize-error
 
 ### A3:A-MarkPreferencesChanged Mark preferences changed
 
-- From
-  - idle
-- Process P1: Mark changed
-  - case: done
-    - display:
-      - target: L-StatusArea
-      - element: E-UnsavedNotice
-    - stop
+#### From
+- idle
+#### P1: Process Mark changed
+- case: done
+  - display:
+    - target: L-StatusArea
+    - element: E-UnsavedNotice
+  - stop
 
 ### A4:A-ValidateEmail Validate email on blur
 
-- From
-  - idle
-- Process P1: Check validation
-  - receive:
-    - validation: V-PreferencesForm.result
-  - case: invalid
-    - description: email is empty or malformed
-    - display:
-      - target: L-ValidationArea
-      - element: E-ValidationBanner
-    - stop
-  - case: valid
-    - description: email is valid
-    - state: idle
-    - stop
+#### From
+- idle
+#### P1: Process Check validation
+- receive:
+  - validation: V-PreferencesForm.result
+- case: invalid
+  - description: email is empty or malformed
+  - display:
+    - target: L-ValidationArea
+    - element: E-ValidationBanner
+  - stop
+- case: valid
+  - description: email is valid
+  - state: idle
+  - stop
 
 ### A5:A-ShowDeliveryHelp Show delivery help
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - case: done
-    - display:
-      - target: L-HelpArea
-      - element: E-HelpText
-    - stop
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- case: done
+  - display:
+    - target: L-HelpArea
+    - element: E-HelpText
+  - stop
 
 ### A6:A-RequestDiscardDialog Request discard dialog
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - case: done
-    - display:
-      - element: E-ConfirmDialog
-    - stop
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- case: done
+  - display:
+    - element: E-ConfirmDialog
+  - stop
 
 ### A7:A-CloseDiscardDialog Close discard dialog
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ### A8:A-ConfirmDiscard Confirm discard
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ### A9:A-SubmitPreferences Submit preferences
 
-- From
-  - idle
-- Process P1: Check validation
-  - receive:
-    - validation: V-PreferencesForm.result
-  - case: invalid
-    - description: required field missing or invalid
-    - display:
-      - target: L-ValidationArea
-      - element: E-ValidationBanner
-    - stop
-  - case: valid
-    - description: form fields are valid
-    - state: idle
-    - stop
+#### From
+- idle
+#### P1: Process Check validation
+- receive:
+  - validation: V-PreferencesForm.result
+- case: invalid
+  - description: required field missing or invalid
+  - display:
+    - target: L-ValidationArea
+    - element: E-ValidationBanner
+  - stop
+- case: valid
+  - description: form fields are valid
+  - state: idle
+  - stop
 
 ## Preview Scenarios
 

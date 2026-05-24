@@ -297,17 +297,17 @@ title: ${title}
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Submit login
-  - ${prose}
-  - request:
-    - method: POST
-    - path: /login
-  - result:
-    - login submission request
-  - case: sent
-    - state: authenticating
+#### From
+- idle
+#### P1: Process Submit login
+- ${prose}
+- request:
+  - method: POST
+  - path: /login
+- result:
+  - login submission request
+- case: sent
+  - state: authenticating
 `;
 }
 
@@ -340,7 +340,7 @@ test("maps unrepresented source text warnings to VS Code diagnostics", () => {
   assert.equal(calls.length, 1);
   const diagnostic = calls[0]?.diagnostics.find((item) => item.message.includes("Encode request body"));
   assert.equal(diagnostic?.severity, vscode.DiagnosticSeverity.Warning);
-  assert.equal(diagnostic?.range.start.line, lineNumber(source, "  - Encode request body") - 1);
+  assert.equal(diagnostic?.range.start.line, lineNumber(source, "- Encode request body") - 1);
 });
 
 test("maps info diagnostics to VS Code information severity", () => {
@@ -576,12 +576,12 @@ locale: ja
 
 ### A-Invalid Invalid
 
-- From
-  - idle
-- Process P1: Validate and update
-  - receive:
-    - validation: V-Form.result
-  - state: idle
+#### From
+- idle
+#### P1: Process Validate and update
+- receive:
+  - validation: V-Form.result
+- state: idle
 `;
   const result = parseMarkVSpec(source);
   const diagnostic = result.diagnostics.find((candidate) => candidate.code === "action.process.mixesResultClassificationAndImmediateEffects");
@@ -836,45 +836,45 @@ default-state: loaded
 
 ### A1:A-StartLoad Start load
 
-- From
-  - before-load
-  - initializing
-- Process P1: Apply immediate effect
-  - state: loading
+#### From
+- before-load
+- initializing
+#### P1: Process Apply immediate effect
+- state: loading
 
 ### A2:A-HandleLoadResponse Handle load response
 
-- From
-  - loading
-- Process P1: Apply immediate effect
-  - receive:
-    - response: A-StartLoad.P1.response
-  - case: success
-    - response: 200
-    - state: loaded
-  - case: failure
-    - response: 500
-    - state: load-error
+#### From
+- loading
+#### P1: Process Apply immediate effect
+- receive:
+  - response: A-StartLoad.P1.response
+- case: success
+  - response: 200
+  - state: loaded
+- case: failure
+  - response: 500
+  - state: load-error
 
 ### A3:A-ResolveReady Resolve ready
 
-- From
-  - loading
-  - initializing
-- Process P1: Apply immediate effect
-  - receive:
-    - response: A-HandleLoadResponse.P1.response
-  - state: ready
+#### From
+- loading
+- initializing
+#### P1: Process Apply immediate effect
+- receive:
+  - response: A-HandleLoadResponse.P1.response
+- state: ready
 
 ### A4:A-ResolveReadyAuto Resolve ready automatically
 
-- From
-  - loading
-  - initializing
-- Process P1: Apply immediate effect
-  - receive:
-    - response: A-HandleLoadResponse.P1.response
-  - state: ready-auto
+#### From
+- loading
+- initializing
+#### P1: Process Apply immediate effect
+- receive:
+  - response: A-HandleLoadResponse.P1.response
+- state: ready-auto
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -968,13 +968,13 @@ locale: en
 
 ### A1:A-Load Load
 
-- From
-  - before-load
-  - idle
-- Process P1: Apply immediate effect
-  - case: success
-    - model: \${model.loaded} = true
-    - state: loaded
+#### From
+- before-load
+- idle
+#### P1: Process Apply immediate effect
+- case: success
+  - model: \${model.loaded} = true
+  - state: loaded
 `;
   const result = parseMarkVSpec(source);
   const models = buildStateScreenReadModels(result, result, "mobile", undefined, {
@@ -1064,11 +1064,11 @@ locale: en
 
 ### A1:A-Submit Submit
 
-- From
-  - idle
-  - loaded
-- Process P1: Send request
-  - POST /submit
+#### From
+- idle
+- loaded
+#### P1: Process Send request
+- POST /submit
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -1171,28 +1171,28 @@ locale: en
 
 ### A1:A-Shared Shared action
 
-- From
-  - before-load
-  - idle
-  - loaded
-- Process P1: Apply immediate effect
-  - state: loaded
+#### From
+- before-load
+- idle
+- loaded
+#### P1: Process Apply immediate effect
+- state: loaded
 
 ### A2:A-Removed Removed action
 
-- From
-  - before-load
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- before-load
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ### A3:A-New New action
 
-- From
-  - before-load
-  - loaded
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- before-load
+- loaded
+#### P1: Process Apply immediate effect
+- state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -1396,9 +1396,9 @@ locale: en
 
 ### A1:A-Submit Submit
 
-- From
-  - idle
-  - loaded
+#### From
+- idle
+- loaded
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -1452,17 +1452,17 @@ locale: en
 
 Author overview only.
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ### A2:A-Secondary Secondary
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -1538,11 +1538,11 @@ locale: ja
 
 ### A1:A-Loaded Loaded action
 
-- From
-  - before-load
-  - loaded
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- before-load
+- loaded
+#### P1: Process Apply immediate effect
+- state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -1599,8 +1599,8 @@ locale: en
 
 ### A-TemplateLoad Template load
 
-- From
-  - before-load
+#### From
+- before-load
 `);
   const screen = parseMarkVSpec(`---
 id: SCR-SCOPE
@@ -1984,17 +1984,17 @@ title: Scenario Display
 
 ### A-Submit Submit
 
-- From
-  - before-load
-  - idle
-- Process P1: Submit request
-  - result:
-    - request result
-  - case: failure
-    - state: failed
-    - display:
-      - target: E-Message
-      - content: Request failed message
+#### From
+- before-load
+- idle
+#### P1: Process Submit request
+- result:
+  - request result
+- case: failure
+  - state: failed
+  - display:
+    - target: E-Message
+    - content: Request failed message
 
 ## Preview Scenarios
 
@@ -2076,27 +2076,27 @@ title: Dialog Scenario
 
 ### A-OpenDialog Open dialog
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - case: done
-    - display:
-      - element: E-ConfirmDialog
-    - stop
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- case: done
+  - display:
+    - element: E-ConfirmDialog
+  - stop
 
 ### A-CancelDialog Cancel dialog
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ### A-ConfirmDialog Confirm dialog
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ## Preview Scenarios
 
@@ -2184,23 +2184,23 @@ title: Toast Scenario
 
 ### A-SaveSettings Save settings
 
-- From
-  - idle
-- Process P1: Save settings
-  - case: success
-    - display:
-      - element: E-SavedToast
-    - stop
+#### From
+- idle
+#### P1: Process Save settings
+- case: success
+  - display:
+    - element: E-SavedToast
+  - stop
 
 ### A-QueueSync Queue sync
 
-- From
-  - idle
-- Process P1: Queue sync
-  - case: done
-    - display:
-      - element: E-SyncToast
-    - stop
+#### From
+- idle
+#### P1: Process Queue sync
+- case: done
+  - display:
+    - element: E-SyncToast
+  - stop
 
 ## Preview Scenarios
 
@@ -2336,13 +2336,13 @@ title: Scenario Unplaced Layout
 
 ### A-ShowDeferred Show deferred
 
-- From
-  - idle
-- Process P1: Show deferred
-  - case: shown
-    - display:
-      - target: L-Page
-      - element: L-DeferredPanel
+#### From
+- idle
+#### P1: Process Show deferred
+- case: shown
+  - display:
+    - target: L-Page
+    - element: L-DeferredPanel
 
 ## Preview Scenarios
 
@@ -2990,13 +2990,13 @@ title: List
 
 ### A-OpenNotice Open notice
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - case: success
-    - navigate: SCR-NOTICE-DETAIL
-    - params:
-      - noticeId: \${model.notice.noticeId}
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- case: success
+  - navigate: SCR-NOTICE-DETAIL
+  - params:
+    - noticeId: \${model.notice.noticeId}
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -3035,22 +3035,22 @@ locale: ja
 
 ### A1:A-LoadNotice お知らせ取得
 
-- From
-  - before-load
-  - loading
-- Process P1: Call server service
-  - server:
-    - NoticeQueryService.findNotice()
-    - params:
-      - noticeId: \${route.noticeId}
-  - case: success
-    - response: 200 お知らせ本文
-    - model: \${model.notice} = NoticeDetailResult
-    - model: \${model.notice.noticeId} = \${route.noticeId}
-    - state: idle
-  - case: failure
-    - response: 404
-    - state: error
+#### From
+- before-load
+- loading
+#### P1: Process Call server service
+- server:
+  - NoticeQueryService.findNotice()
+  - params:
+    - noticeId: \${route.noticeId}
+- case: success
+  - response: 200 お知らせ本文
+  - model: \${model.notice} = NoticeDetailResult
+  - model: \${model.notice.noticeId} = \${route.noticeId}
+  - state: idle
+- case: failure
+  - response: 404
+  - state: error
 
 ## Events
 
@@ -3060,11 +3060,11 @@ locale: ja
 
 ### A2:A-RefreshMeta メタ情報更新
 
-- From
-  - idle
-- Process P1: RefreshMeta
-  - case: success
-    - model: \${model.noticeMeta} = NoticeMetaResult
+#### From
+- idle
+#### P1: Process RefreshMeta
+- case: success
+  - model: \${model.noticeMeta} = NoticeMetaResult
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -3120,27 +3120,27 @@ locale: ja
 
 ### A1:A-SearchUsers ユーザー検索
 
-- From
-  - idle
-- Process P1: Request partial
-  - request:
-    - method: POST
-    - path: /users/search
-  - update
+#### From
+- idle
+#### P1: Process Request partial
+- request:
+  - method: POST
+  - path: /users/search
+- update
+  - target: L-UserTable
+  - content: 更新後のユーザー一覧
+  - mode: replace
+  - side effect: レスポンスのユーザー一覧を \${model.users.items} に格納する
+  - side effect: レスポンスのページ番号を \${model.page} に格納する
+  - side effect: \${model.error} を空にする
+#### P2: Process Apply immediate effect
+- case: success
+  - response: 200 ユーザー一覧
+  - state: idle
+  - update:
     - target: L-UserTable
-    - content: 更新後のユーザー一覧
-    - mode: replace
-    - side effect: レスポンスのユーザー一覧を \${model.users.items} に格納する
-    - side effect: レスポンスのページ番号を \${model.page} に格納する
-    - side effect: \${model.error} を空にする
-- Process P2: Apply immediate effect
-  - case: success
-    - response: 200 ユーザー一覧
-    - state: idle
-    - update:
-      - target: L-UserTable
-      - content: 検索結果を表示する
-      - side effect: \${model.audit} < value & retry
+    - content: 検索結果を表示する
+    - side effect: \${model.audit} < value & retry
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -3640,24 +3640,24 @@ States section notes for the matrix.
 
 ### A1:A-Submit Submit
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: submitting
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: submitting
 
 ### A2:A-SubmitResponse Submit response
 
-- From
-  - submitting
-- Process P1: Apply immediate effect
-  - receive:
-    - response: A-Submit.P1.response
-  - case: failure
-    - response: 500
-    - state: error
-  - case: success
-    - response: 200
-    - navigate: SCR-DONE
+#### From
+- submitting
+#### P1: Process Apply immediate effect
+- receive:
+  - response: A-Submit.P1.response
+- case: failure
+  - response: 500
+  - state: error
+- case: success
+  - response: 200
+  - navigate: SCR-DONE
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -3736,34 +3736,34 @@ title: Multi Page Load
 
 ### A1:A-LoadAccount Load account
 
-- From
-  - before-load
-- Process P1: Send request
-  - request:
-    - method: GET
-    - path: /account
-  - case: sent
-    - response: account request sent
-    - state: initializing
+#### From
+- before-load
+#### P1: Process Send request
+- request:
+  - method: GET
+  - path: /account
+- case: sent
+  - response: account request sent
+  - state: initializing
 
 ### A2:A-PrimeTelemetry Prime telemetry
 
-- From
-  - before-load
-- Process P1: Apply immediate effect
-  - state: initializing
-  - display: E-TelemetryStatus = ready
+#### From
+- before-load
+#### P1: Process Apply immediate effect
+- state: initializing
+- display: E-TelemetryStatus = ready
 
 ### A3:A-HandleAccountResponse Handle account response
 
-- From
-  - initializing
-- Process P1: Apply response
-  - receive:
-    - response: A-LoadAccount.P1.response
-  - case: success
-    - response: 200
-    - state: loaded
+#### From
+- initializing
+#### P1: Process Apply response
+- receive:
+  - response: A-LoadAccount.P1.response
+- case: success
+  - response: 200
+  - state: loaded
 `);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
   const stateFlow = html.match(/<section class="doc-section state-flow-section"[^>]*>[\s\S]*?(?=<section class="doc-section state-views-section")/)?.[0] ?? "";
@@ -3820,50 +3820,50 @@ title: Screen Transitions
 
 ### A1:A-ForgotPassword Open password reset
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - navigate: SCR-PASSWORD-RESET
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- navigate: SCR-PASSWORD-RESET
 
 ### A2:A-Submit Submit login
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: submitting
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: submitting
 
 ### A3:A-SubmitResponse Handle response
 
-- From
-  - submitting
-- Process P1: Apply immediate effect
-  - receive:
-    - response: A-Submit.P1.response
-  - case: success
-    - state: submitting
-- Process P2: Apply immediate effect
-  - case: success
-    - response: 200
-    - navigate: SCR-HOME
-    - params:
-      - userId: \${model.auth.userId}
-  - case: failure
-    - response: 401
-    - state: idle
+#### From
+- submitting
+#### P1: Process Apply immediate effect
+- receive:
+  - response: A-Submit.P1.response
+- case: success
+  - state: submitting
+#### P2: Process Apply immediate effect
+- case: success
+  - response: 200
+  - navigate: SCR-HOME
+  - params:
+    - userId: \${model.auth.userId}
+- case: failure
+  - response: 401
+  - state: idle
 
 ### A4:A-OpenDocs Open docs
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - navigate: https://example.com/help
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- navigate: https://example.com/help
 
 ### A5:A-OpenSettings Open settings
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - navigate: /settings
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- navigate: /settings
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -3898,56 +3898,56 @@ title: State Flow Aggregate
 
 ### A1:A-StartLoad Start load
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: loading
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: loading
 
 ### A2:A-PollResponse Poll response
 
-- From
-  - loading
-- Process P1: Apply immediate effect
-  - case: success
-    - state: idle
-  - case: failure
-    - state: error
-  - case: done
-    - navigate: SCR-DONE
+#### From
+- loading
+#### P1: Process Apply immediate effect
+- case: success
+  - state: idle
+- case: failure
+  - state: error
+- case: done
+  - navigate: SCR-DONE
 
 ### A3:A-RefreshResponse Refresh response
 
-- From
-  - loading
-- Process P1: Apply immediate effect
-  - case: success
-    - state: idle
-  - case: failure
-    - state: error
-  - case: done
-    - navigate: SCR-DONE
+#### From
+- loading
+#### P1: Process Apply immediate effect
+- case: success
+  - state: idle
+- case: failure
+  - state: error
+- case: done
+  - navigate: SCR-DONE
 
 ### A4:A-DuplicateFailure Duplicate; failure
 
-- From
-  - loading
-- Process P1: Apply immediate effect
-  - state: error
-  - state: error
+#### From
+- loading
+#### P1: Process Apply immediate effect
+- state: error
+- state: error
 
 ### A5:A-Cancel Cancel
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - navigate: SCR-DONE
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- navigate: SCR-DONE
 
 ### A6:A-KeepLoading Keep loading
 
-- From
-  - loading
-- Process P1: Apply immediate effect
-  - state: loading
+#### From
+- loading
+#### P1: Process Apply immediate effect
+- state: loading
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -4241,10 +4241,10 @@ locale: ja
 
 ### A-Edit 編集
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: editing
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: editing
 
 ## Validations
 
@@ -4337,13 +4337,13 @@ locale: ja
 
 ### A1:A-Create 新規作成
 
-- From
-  - idle
+#### From
+- idle
 
 ### A2:A-Export CSV出力
 
-- From
-  - idle
+#### From
+- idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -4423,11 +4423,11 @@ title: Any Model
 
 ### A-Resolve Resolve
 
-- From
-  - before-load
-  - loading
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- before-load
+- loading
+#### P1: Process Apply immediate effect
+- state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, "");
@@ -4484,13 +4484,13 @@ title: Opaque Model
 
 ### A-Resolve Resolve
 
-- From
-  - before-load
-  - loading
-- Process P1: Apply immediate effect
-  - case: success
-    - model: \${model.profile.loaded} = true
-    - state: ready
+#### From
+- before-load
+- loading
+#### P1: Process Apply immediate effect
+- case: success
+  - model: \${model.profile.loaded} = true
+  - state: ready
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, "");
@@ -4592,17 +4592,17 @@ title: Home
 
 Load profile references #{L-TopBar}.
 
-- From
-  - before-load
-  - idle
-- Process P1: Request partial
-  - request:
-    - method: GET
-    - path: /profile-card
-  - partial: PRT-PROFILE-CARD
-  - case: sent
-    - model: ${"${model.profile.loaded}"} = true
-    - state: idle
+#### From
+- before-load
+- idle
+#### P1: Process Request partial
+- request:
+  - method: GET
+  - path: /profile-card
+- partial: PRT-PROFILE-CARD
+- case: sent
+  - model: ${"${model.profile.loaded}"} = true
+  - state: idle
 `);
   const composed = composeMarkVSpecTemplate(template, screen);
   const html = renderDesignDocumentHtml(composed, "", {
@@ -4847,17 +4847,17 @@ references:
 
 ### A-RefreshProfile Refresh profile
 
-- From
-  - before-load
-  - idle
-- Process P0: Enter idle
-  - state: idle
-- Process P1: Handle profile summary response
-  - case: success
-    - description: 200 profile summary partial
-    - display:
-      - target: L-ProfileSummaryHost
-      - partial: PRT-PROFILE-SUMMARY
+#### From
+- before-load
+- idle
+#### P0: Process Enter idle
+- state: idle
+#### P1: Process Handle profile summary response
+- case: success
+  - description: 200 profile summary partial
+  - display:
+    - target: L-ProfileSummaryHost
+    - partial: PRT-PROFILE-SUMMARY
 
 ## Preview Scenarios
 
@@ -5514,12 +5514,12 @@ title: Points Content
 
 ### A-Refresh Refresh
 
-- From
-  - loaded
-- Process P1: Refresh content
-  - request:
-    - method: GET
-    - path: /points/content
+#### From
+- loaded
+#### P1: Process Refresh content
+- request:
+  - method: GET
+  - path: /points/content
 `);
     const source = `---
 id: SCR-POINTS
@@ -6267,13 +6267,13 @@ route: /users
 
 ### A7:A-OpenDetail Open detail
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - case: success
-    - navigate: SCR-USER-DETAIL
-    - params:
-      - id: user.id
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- case: success
+  - navigate: SCR-USER-DETAIL
+  - params:
+    - id: user.id
 `;
   const detailSource = `---
 id: SCR-USER-DETAIL
@@ -6492,32 +6492,32 @@ title: Multi Request
 
 ### A3:A-NextPage Next page
 
-- From
-  - idle
-- Process P1: Send request
-  - request:
-    - method: GET
-    - path: /users?filter=<active>
-    - params:
-      - page: \${model.requestedPage}
-  - case: success
-    - response: HTTP 200 users
-    - model: \${model.requestedPage} = \${model.nextPage}
-    - state: loaded
-    - stop
-- Process P2: Send request
-  - request:
-    - method: GET
-    - path: /roles
-    - params:
-      - requestedPage: \${model.requestedPage}
-  - case: success
-    - response: HTTP 200 roles
-    - state: roles-loaded
-    - continue
-  - case: failure
-    - response: HTTP error
-    - state: load-error
+#### From
+- idle
+#### P1: Process Send request
+- request:
+  - method: GET
+  - path: /users?filter=<active>
+  - params:
+    - page: \${model.requestedPage}
+- case: success
+  - response: HTTP 200 users
+  - model: \${model.requestedPage} = \${model.nextPage}
+  - state: loaded
+  - stop
+#### P2: Process Send request
+- request:
+  - method: GET
+  - path: /roles
+  - params:
+    - requestedPage: \${model.requestedPage}
+- case: success
+  - response: HTTP 200 roles
+  - state: roles-loaded
+  - continue
+- case: failure
+  - response: HTTP error
+  - state: load-error
 `;
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
@@ -6568,13 +6568,13 @@ title: Direct Process
 
 ### A1:A-Continue Continue
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - navigate: SCR-NEXT
-- Process P2: Set loaded
-  - state: loaded
-- Process P3: Label only
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- navigate: SCR-NEXT
+#### P2: Process Set loaded
+- state: loaded
+#### P3: Process Label only
 `;
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
@@ -6627,36 +6627,36 @@ title: Process Icons
 
 ### A1:A-Run Run
 
-- From
-  - idle
-- Process P1: Check validation
-  - validation: V-Email.result
-- Process P2: Send request
-  - request:
-    - method: GET
-    - path: /account
-- Process P3: Call server service
-  - call: AccountService.load()
-- Process P4: Receive response
-  - receive:
-    - response: A-Run.P2.response
-- Process P5: Show display
-  - display: E-Status = Loaded
-- Process P6: Navigate away
-  - navigate: SCR-NEXT
-- Process P7: Set loaded
+#### From
+- idle
+#### P1: Process Check validation
+- validation: V-Email.result
+#### P2: Process Send request
+- request:
+  - method: GET
+  - path: /account
+#### P3: Process Call server service
+- call: AccountService.load()
+#### P4: Process Receive response
+- receive:
+  - response: A-Run.P2.response
+#### P5: Process Show display
+- display: E-Status = Loaded
+#### P6: Process Navigate away
+- navigate: SCR-NEXT
+#### P7: Process Set loaded
+- state: loaded
+#### P8: Process Failure handler
+#### P1: Process Call server service
+- group: initial-load
+- server:
+  - ProfileService.load()
+- continue
+#### P2: Process Resolve responses
+- group: initial-load
+- case: ready
   - state: loaded
-- Process P8: Failure handler
-- Process P1: Call server service
-  - group: initial-load
-  - server:
-    - ProfileService.load()
-  - continue
-- Process P2: Resolve responses
-  - group: initial-load
-  - case: ready
-    - state: loaded
-    - stop
+  - stop
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -6722,30 +6722,30 @@ locale: ja
 
 ### A-Run Run
 
-- From
-  - idle
-- Process P1: Call server service
-  - group: initial-load
-  - when: E-RunButton is enabled
-  - skip when: E-RunButton is hidden
-  - case: success
-    - description: keep this English author text
-    - response: 200 loaded
-    - display:
-      - target: L-MessageArea
-      - element: E-Message
-    - continue
-- Process P2: Resolve responses
-  - group: initial-load
-  - case: ready
-    - response: all done
-    - state: loaded
-    - stop
-- Process P3: Apply immediate effect
-  - navigate: SCR-NEXT
-- Process P4: Apply immediate effect
+#### From
+- idle
+#### P1: Process Call server service
+- group: initial-load
+- when: E-RunButton is enabled
+- skip when: E-RunButton is hidden
+- case: success
+  - description: keep this English author text
+  - response: 200 loaded
   - display:
-    - element: E-SavedToast
+    - target: L-MessageArea
+    - element: E-Message
+  - continue
+#### P2: Process Resolve responses
+- group: initial-load
+- case: ready
+  - response: all done
+  - state: loaded
+  - stop
+#### P3: Process Apply immediate effect
+- navigate: SCR-NEXT
+#### P4: Process Apply immediate effect
+- display:
+  - element: E-SavedToast
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
@@ -6799,39 +6799,39 @@ title: Nested Process Details
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: SubmitSubscription
-  - request:
-    - method: POST
-    - path: /subscriptions
-    - params:
-      - email: E-EmailInput.value
-      - plan: E-PlanSelect.value
-  - server:
-    - SubscriptionService.prepare()
-    - params:
-      - email: E-EmailInput.value
-  - sync:
-    - SubscriptionService.create()
-    - params:
-      - email: E-EmailInput.value
-      - plan: E-PlanSelect.value
-  - result:
-    - subscription request
-- Process P2: Call server service
-  - server:
-    - SubscriptionService.persist()
-    - params:
-      - email: E-EmailInput.value
-  - response:
-    - HTTP 200 persisted subscription
-    - params:
-      - subscriptionId: response.id
-  - validation:
-    - V-SubscriptionForm.result
-    - params:
-      - email: E-EmailInput.value
+#### From
+- idle
+#### P1: Process SubmitSubscription
+- request:
+  - method: POST
+  - path: /subscriptions
+  - params:
+    - email: E-EmailInput.value
+    - plan: E-PlanSelect.value
+- server:
+  - SubscriptionService.prepare()
+  - params:
+    - email: E-EmailInput.value
+- sync:
+  - SubscriptionService.create()
+  - params:
+    - email: E-EmailInput.value
+    - plan: E-PlanSelect.value
+- result:
+  - subscription request
+#### P2: Process Call server service
+- server:
+  - SubscriptionService.persist()
+  - params:
+    - email: E-EmailInput.value
+- response:
+  - HTTP 200 persisted subscription
+  - params:
+    - subscriptionId: response.id
+- validation:
+  - V-SubscriptionForm.result
+  - params:
+    - email: E-EmailInput.value
 `;
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
@@ -6871,33 +6871,33 @@ title: Parallel Process
 
 ### A-InitialLoad Initial load
 
-- From
-  - before-load
-  - loading
-- Process P1: Call server service
-  - group: initial-load
-  - server:
-    - MemberQueryService.findSelfProfile()
-  - case: success
-    - response: 200 member profile
-    - continue
-- Process P2: Call server service
-  - group: initial-load
-  - server:
-    - PointQueryService.findSelfPoints()
-  - case: success
-    - response: 200 points
-    - continue
-- Process P3: Resolve responses
-  - group: initial-load
-  - case: ready
-    - response: profile and points loaded
-    - state: idle
-    - stop
-  - case: failed
-    - response: one or more calls failed
-    - state: load-error
-    - stop
+#### From
+- before-load
+- loading
+#### P1: Process Call server service
+- group: initial-load
+- server:
+  - MemberQueryService.findSelfProfile()
+- case: success
+  - response: 200 member profile
+  - continue
+#### P2: Process Call server service
+- group: initial-load
+- server:
+  - PointQueryService.findSelfPoints()
+- case: success
+  - response: 200 points
+  - continue
+#### P3: Process Resolve responses
+- group: initial-load
+- case: ready
+  - response: profile and points loaded
+  - state: idle
+  - stop
+- case: failed
+  - response: one or more calls failed
+  - state: load-error
+  - stop
 `;
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
@@ -6951,14 +6951,15 @@ title: Entity Notes
 
 次ページへ移動するための一覧取得を開始する。
 
-- From
-  - idle
-- Process P1: Send request
-  - GET /users
-- Process P2: Apply immediate effect
-  - state: loading
+#### From
+- idle
 
 備考をこういうところに書きたいよね。
+
+#### P1: Process Send request
+- GET /users
+#### P2: Process Apply immediate effect
+- state: loading
 `;
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
@@ -7016,10 +7017,10 @@ Actions section overview.
 
 Action overview.
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 Action notes.
 
@@ -7306,10 +7307,10 @@ title: Action Anchors
 
 ### 送信:A-日本語操作 日本語操作
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -7360,11 +7361,11 @@ locale: en
 
 ### A1:A-Refresh Refresh
 
-- From
-  - before-load
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- before-load
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -7400,14 +7401,14 @@ locale: en
 
 ### A1:A-SearchNotices Search notices
 
-- From
-  - before-load
-  - idle
-  - empty
-  - load-error
-- Process P1: Apply immediate effect
-  - state: loading
-  - navigate: SCR-RESULTS
+#### From
+- before-load
+- idle
+- empty
+- load-error
+#### P1: Process Apply immediate effect
+- state: loading
+- navigate: SCR-RESULTS
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -7477,29 +7478,29 @@ locale: en
 
 ### A-Submit Submit
 
-- From
-  - idle
-  - error
-- Process P1: Send request
-  - POST /submit
-- Process P2: Apply immediate effect
-  - case: failure
-    - from: idle
-    - response: 400 invalid
-    - state: error
-    - update:
-      - target: L-Message
-      - content: Invalid
+#### From
+- idle
+- error
+#### P1: Process Send request
+- POST /submit
+#### P2: Process Apply immediate effect
+- case: failure
+  - from: idle
+  - response: 400 invalid
+  - state: error
+  - update:
+    - target: L-Message
+    - content: Invalid
 
 ### A-OutcomeOnly Outcome only
 
-- Process P1: Apply immediate effect
-  - case: failure
-    - response: 422 invalid
-    - state: error
-    - update:
-      - target: L-Message
-      - content: Outcome only invalid
+#### P1: Process Apply immediate effect
+- case: failure
+  - response: 422 invalid
+  - state: error
+  - update:
+    - target: L-Message
+    - content: Outcome only invalid
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -7555,16 +7556,16 @@ locale: en
 
 ### A-Submit Submit
 
-- Process P1: Apply immediate effect
-  - case: retry
-    - from: error
-    - state: loading
-  - case: sent
-    - from: idle
-    - state: loading
-  - case: failed
-    - from: idle
-    - state: error
+#### P1: Process Apply immediate effect
+- case: retry
+  - from: error
+  - state: loading
+- case: sent
+  - from: idle
+  - state: loading
+- case: failed
+  - from: idle
+  - state: error
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -7609,31 +7610,31 @@ locale: en
 
 ### A-Submit Submit
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: loading
-- Process P2: Apply immediate effect
-  - case: success
-    - navigate: SCR-DONE
-    - params:
-      - userId: \${model.userId}
-  - case: failure
-    - state: error
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: loading
+#### P2: Process Apply immediate effect
+- case: success
+  - navigate: SCR-DONE
+  - params:
+    - userId: \${model.userId}
+- case: failure
+  - state: error
 
 ### A-ExternalHelp External help
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - navigate: https://example.com/help
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- navigate: https://example.com/help
 
 ### A-Settings Settings
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - navigate: /settings
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- navigate: /settings
 `;
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false }));
@@ -7888,14 +7889,14 @@ Use **strong** text, *emphasis*, [help](./my_file_name.md), and \`token\`.
 
 #### Supplement
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
-
 ![Diagram](./diagram.png)
 
 <script>alert("x")</script>
+
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 `;
   const result = parseMarkVSpec(source);
   const preview = renderMarkVSpecHtml(result, { includeConditionalContent: true, includeStyles: false });
@@ -7956,10 +7957,10 @@ Refer to #{R-Eligibility}; keep \`#{E-NameInput}\`, \`\`#{A-Submit}\`\`, and \`\
 #{R-Eligibility}
 \`\`\`
 
-- From
-  - idle
-- Process P1: Apply immediate effect
-  - state: idle
+#### From
+- idle
+#### P1: Process Apply immediate effect
+- state: idle
 
 ## Business Rules
 

@@ -93,8 +93,9 @@ route: /hello
 
 ### A1:A-Continue Continue
 
-- Process P1: Stay on the current screen
-  - state: idle
+#### P1: Process Stay on the current screen
+
+- state: idle
 ```
 
 ![Hello Screen source and rendered preview](../../assets/vscode-previews/hello-screen-vscode-preview.png)

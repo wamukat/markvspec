@@ -210,7 +210,7 @@ function isProcessCaseFlowDirective(text: string): boolean {
   return normalized === "stop" || normalized === "continue";
 }
 
-function createProcessStep(name: string, indent: number, location: SourceLocation): MarkVSpecProcessStep {
+export function createProcessStep(name: string, indent: number, location: SourceLocation): MarkVSpecProcessStep {
   const canonical = parseCanonicalProcess(name);
   return {
     name: canonical?.name ?? name,

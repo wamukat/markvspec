@@ -40,8 +40,8 @@ Project screen summary sentinel for document-list export.
 
 ### A-OpenProject Open project
 
-- From
-  - idle
-- Process P1: Immediate
-  - case: success
-    - navigate: SCR-COVERAGE-PROJECT
+#### From
+- idle
+#### P1: Process Immediate
+- case: success
+  - navigate: SCR-COVERAGE-PROJECT

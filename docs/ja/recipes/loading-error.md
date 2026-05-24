@@ -66,35 +66,42 @@
 
 ### A-LoadItems Load items
 
-- From
-  - before-load
-  - loaded
-  - empty
-  - error
-- Process P1: Request items
-  - request:
-    - GET /items
-  - case: sent
-    - state: loading
-  - case: send-failed
-    - state: error
+#### From
+
+- before-load
+- loaded
+- empty
+- error
+
+#### P1: Process Request items
+
+- request:
+  - method: GET
+  - path: /items
+- case: sent
+  - state: loading
+- case: send-failed
+  - state: error
 
 ### A-HandleItemsResponse Handle items response
 
-- From
-  - loading
-- Process P1: Apply items response
-  - receive:
-    - response: A-LoadItems.P1.response
-  - case: success
-    - response: 200 item list
-    - state: loaded
-  - case: empty
-    - response: 200 empty list
-    - state: empty
-  - case: failure
-    - response: network error or 5xx
-    - state: error
+#### From
+
+- loading
+
+#### P1: Process Apply items response
+
+- receive:
+  - response: A-LoadItems.P1.response
+- case: success
+  - response: 200 item list
+  - state: loaded
+- case: empty
+  - response: 200 empty list
+  - state: empty
+- case: failure
+  - response: network error or 5xx
+  - state: error
 ```
 
 ## 書き方の要点

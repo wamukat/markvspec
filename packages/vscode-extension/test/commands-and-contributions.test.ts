@@ -46,8 +46,8 @@ title: Format
 
 ## Actions
 ### A-Submit Submit
-- From
-  - idle${spaces}
+#### From
+- idle${spaces}
 `;
 
   assert.equal(formatMarkVSpecStructure(source), `---
@@ -83,8 +83,9 @@ title: Format
 
 ### A-Submit Submit
 
-- From
-  - idle
+#### From
+
+- idle
 `);
 });
 
@@ -325,8 +326,8 @@ test("declares MarkVSpec syntax highlighting contributions", () => {
   assert(snippets["MarkVSpec Select Element"].body?.includes("- options:"));
   assert(snippets["MarkVSpec Select Element"].body?.includes("  - ${4:Active}"));
   assert(!snippets["MarkVSpec Action"].body?.includes("- Triggered"));
-  assert(snippets["MarkVSpec Action"].body?.includes("- Process ${5:P1}: ${6:Submit request}"));
-  assert(snippets["MarkVSpec Action"].body?.includes("  - case: ${11:sent}"));
+  assert(snippets["MarkVSpec Action"].body?.includes("#### ${5:P1}: Process ${6:Submit request}"));
+  assert(snippets["MarkVSpec Action"].body?.includes("- case: ${11:sent}"));
   assert(!snippets["MarkVSpec Action"].body?.includes("- Effects"));
   assert(!snippets["MarkVSpec Action"].body?.includes("- Cases"));
 

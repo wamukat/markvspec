@@ -81,42 +81,42 @@ the ordering and final state decision are clear.
 
 ### A1:A-InitialLoad Initial dashboard load
 
-- From
-  - before-load
-- Process P0: Start initial loading
-  - state: initializing
-- Process P1: Call server service
-  - group: initial-load
-  - server:
-    - MemberQueryService.findSelfProfile()
-  - result:
-    - member profile load request
-  - case: sent
-    - description: member profile request sent
-    - continue
-- Process P2: Call server service
-  - group: initial-load
-  - server:
-    - PointQueryService.findSelfPoints()
-  - result:
-    - points load request
-  - case: sent
-    - description: points request sent
-    - continue
+#### From
+- before-load
+#### P0: Process Start initial loading
+- state: initializing
+#### P1: Process Call server service
+- group: initial-load
+- server:
+  - MemberQueryService.findSelfProfile()
+- result:
+  - member profile load request
+- case: sent
+  - description: member profile request sent
+  - continue
+#### P2: Process Call server service
+- group: initial-load
+- server:
+  - PointQueryService.findSelfPoints()
+- result:
+  - points load request
+- case: sent
+  - description: points request sent
+  - continue
 
 ### A2:A-HandleInitialLoadResponse Handle initial load response
 
-- From
-  - initializing
-- Process P1: Apply initial load responses
-  - receive:
-    - response: A-InitialLoad.P1.response
-    - response: A-InitialLoad.P2.response
-  - case: ready
-    - response: profile and points loaded
-    - state: idle
-    - stop
-  - case: failed
-    - response: one or more calls failed
-    - state: initialize-error
-    - stop
+#### From
+- initializing
+#### P1: Process Apply initial load responses
+- receive:
+  - response: A-InitialLoad.P1.response
+  - response: A-InitialLoad.P2.response
+- case: ready
+  - response: profile and points loaded
+  - state: idle
+  - stop
+- case: failed
+  - response: one or more calls failed
+  - state: initialize-error
+  - stop

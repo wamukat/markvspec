@@ -940,90 +940,262 @@ title: Action AST
 
 ### main:A-Submit Submit
 
+#### From
+- idle
+#### P1: Process Send request
+- request:
+  - method: POST
+  - path: /login
+  - params:
+    - email: E-メールアドレス入力.value
+- case: success
+  - response: 2xx authenticated
+  - params:
+    - id: E-UserId.value
+  - state: done
+  - update:
+    - target: L-Message
+    - mode: replace
+    - content: PRT-SUCCESS
+- case: failure
+  - from: idle
+  - state: error
+#### P2: Process Call server service
+- server:
+  - ProfileService.load()
+  - params:
+    - memberId: E-MemberId.value
+`;
+const diagnostics: MarkVSpecDiagnostic[] = [];
+const document = parseMarkdownDocument(source, diagnostics);
+const astResult = parseActionSectionSemantics(document);
+const parseResult = parseMarkVSpec(source);
+const action = astResult.actions[0];
+
+assert.deepEqual(diagnostics, []);
+assert.equal(action?.id, "A-Submit");
+assert.equal(action?.name, "Submit");
+assert.equal(action?.properties["marker"], "main");
+assert.equal(action?.triggeredBy, undefined);
+assert.equal(action?.trigger, undefined);
+assert.deepEqual(action?.fromStates, ["idle"]);
+assert.deepEqual(action?.processSteps.map((step) => [step.name, step.details.map((detail) => [detail.key, detail.value])]), [
+  ["Send request", [["request.method", "POST"], ["request.path", "/login"], ["request.params.email", "E-メールアドレス入力.value"]]],
+  ["Call server service", [["server", "ProfileService.load()"], ["server.params.memberId", "E-MemberId.value"]]]
+]);
+assert.deepEqual(action?.responses, []);
+assert.deepEqual(action?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
+  ["idle", "success", "done"],
+  ["idle", "failure", "error"]
+]);
+assert.deepEqual(action?.outcomes, []);
+assert.deepEqual(action?.processSteps[0]?.outcomes.map((outcome) => [outcome.result, outcome.target, outcome.mode, outcome.content]), [
+  ["success", "L-Message", "replace", "PRT-SUCCESS"],
+  ["failure", undefined, undefined, undefined]
+]);
+assert.deepEqual(action?.processSteps[0]?.outcomes.find((outcome) => outcome.result === "success")?.routeParams, [
+  { name: "id", source: "E-UserId.value", location: { line: lineNumber(source, "      - id: E-UserId.value") } }
+]);
+assert.deepEqual(action?.propertyLocations["marker"], [{ line: lineNumber(source, "### main:A-Submit Submit") }]);
+assert.equal(action?.propertyLocations["request"], undefined);
+assert.equal(action?.propertyLocations["param email"], undefined);
+assert.deepEqual(action?.processSteps[0]?.propertyLocations["request"], [
+  { line: lineNumber(source, "    - method: POST") },
+  { line: lineNumber(source, "    - path: /login") }
+]);
+assert.deepEqual(action?.processSteps[0]?.propertyLocations["request.params"], [{ line: lineNumber(source, "      - email: E-メールアドレス入力.value") }]);
+assert.deepEqual(parseResult.actions, astResult.actions);
+assert.deepEqual(astResult.sectionResults.map((result) => [result.sectionId, result.renderKeys]), [
+  ["section:Actions", ["actions:list", "action:A-Submit"]]
+]);
+assert.deepEqual(astResult.sectionResults.flatMap((result) => result.dependencies).map((dependency) => [dependency.source, dependency.target, dependency.kind]), [
+  [{ type: "section", id: "section:Actions" }, { type: "render", id: "actions:list" }, "renders"],
+  [{ type: "section", id: "section:Actions" }, { type: "render", id: "action:A-Submit" }, "renders"],
+  [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "state:idle" }, "references"],
+  [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "state:done" }, "derives"],
+  [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "state:error" }, "derives"],
+  [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "L-Message" }, "references"],
+  [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "PRT-SUCCESS" }, "references"],
+  [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "E-メールアドレス入力.value" }, "references"],
+  [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "E-UserId.value" }, "references"],
+  [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "E-MemberId.value" }, "references"]
+]);
+});
+
+test("retains paragraph notes on section-based action process steps", () => {
+const source = `---
+id: SCR-ACTION-PROCESS-NOTES
+type: screen
+title: Action Process Notes
+---
+
+# SCR-ACTION-PROCESS-NOTES Action Process Notes
+
+## Actions
+
+### A-Submit Submit
+
+#### From
+- idle
+
+#### P1: Process Send request
+
+パラメータはBASE64エンコードする。
+
+- request:
+  - method: POST
+  - path: /login
+`;
+  const result = parseMarkVSpec(source);
+  const action = result.actions[0];
+
+  assert.deepEqual(action?.fromStates, ["idle"]);
+  assert.equal(action?.processSteps[0]?.marker, "P1");
+  assert.deepEqual(action?.processSteps[0]?.overview, ["パラメータはBASE64エンコードする。"]);
+  assert.deepEqual(action?.processSteps[0]?.details.map((detail) => [detail.key, detail.value]), [
+    ["request.method", "POST"],
+    ["request.path", "/login"]
+  ]);
+});
+
+test("does not leak action subsection context into later action prose lists", () => {
+const source = `---
+id: SCR-ACTION-SUBSECTION-NOTES
+type: screen
+title: Action Subsection Notes
+---
+
+# SCR-ACTION-SUBSECTION-NOTES Action Subsection Notes
+
+## Actions
+
+### A-Submit Submit
+
+#### From
+- idle
+
+##### Notes
+
+Action notes.
+
+- Visible note
+`;
+  const result = parseMarkVSpec(source);
+  const action = result.actions[0];
+
+  assert.deepEqual(action?.fromStates, ["idle"]);
+  assert.deepEqual(action?.notes, ["##### Notes", "", "Action notes.", "", "- Visible note"]);
+});
+
+test("does not leak process subsection context into later process prose lists", () => {
+const source = `---
+id: SCR-ACTION-PROCESS-LIST-NOTES
+type: screen
+title: Action Process List Notes
+---
+
+# SCR-ACTION-PROCESS-LIST-NOTES Action Process List Notes
+
+## Actions
+
+### A-Submit Submit
+
+#### PLongMarker13: Process Send request
+
+Process overview.
+
+- request:
+  - method: POST
+  - path: /login
+
+Process notes.
+
+- Visible note
+`;
+  const result = parseMarkVSpec(source);
+  const action = result.actions[0];
+  const process = action?.processSteps[0];
+
+  assert.equal(process?.marker, "PLongMarker13");
+  assert.deepEqual(process?.overview, ["Process overview."]);
+  assert.deepEqual(process?.details.map((detail) => [detail.key, detail.value]), [
+    ["request.method", "POST"],
+    ["request.path", "/login"]
+  ]);
+  assert.deepEqual(process?.notes, ["Process notes.", "", "- Visible note"]);
+});
+
+test("does not adopt old list-based Action syntax into the semantic model", () => {
+const source = `---
+id: SCR-OLD-ACTION-SYNTAX
+type: screen
+title: Old Action Syntax
+---
+
+# SCR-OLD-ACTION-SYNTAX Old Action Syntax
+
+## Actions
+
+### A-Submit Submit
+
 - From
   - idle
 - Process P1: Send request
   - request:
     - method: POST
     - path: /login
-    - params:
-      - email: E-メールアドレス入力.value
-  - case: success
-    - response: 2xx authenticated
-    - params:
-      - id: E-UserId.value
-    - state: done
-    - update:
-      - target: L-Message
-      - mode: replace
-      - content: PRT-SUCCESS
-  - case: failure
-    - from: idle
-    - state: error
-- Process P2: Call server service
-  - server:
-    - ProfileService.load()
-    - params:
-      - memberId: E-MemberId.value
 `;
-  const diagnostics: MarkVSpecDiagnostic[] = [];
-  const document = parseMarkdownDocument(source, diagnostics);
-  const astResult = parseActionSectionSemantics(document);
-  const parseResult = parseMarkVSpec(source);
-  const action = astResult.actions[0];
+  const result = parseMarkVSpec(source);
+  const action = result.actions[0];
 
-  assert.deepEqual(diagnostics, []);
-  assert.equal(action?.id, "A-Submit");
-  assert.equal(action?.name, "Submit");
-  assert.equal(action?.properties["marker"], "main");
-  assert.equal(action?.triggeredBy, undefined);
-  assert.equal(action?.trigger, undefined);
-  assert.deepEqual(action?.fromStates, ["idle"]);
-  assert.deepEqual(action?.processSteps.map((step) => [step.name, step.details.map((detail) => [detail.key, detail.value])]), [
-    ["Send request", [["request.method", "POST"], ["request.path", "/login"], ["request.params.email", "E-メールアドレス入力.value"]]],
-    ["Call server service", [["server", "ProfileService.load()"], ["server.params.memberId", "E-MemberId.value"]]]
-  ]);
-  assert.deepEqual(action?.responses, []);
-  assert.deepEqual(action?.transitions.map((transition) => [transition.from, transition.result, transition.to]), [
-    ["idle", "success", "done"],
-    ["idle", "failure", "error"]
-  ]);
-  assert.deepEqual(action?.outcomes, []);
-  assert.deepEqual(action?.processSteps[0]?.outcomes.map((outcome) => [outcome.result, outcome.target, outcome.mode, outcome.content]), [
-    ["success", "L-Message", "replace", "PRT-SUCCESS"],
-    ["failure", undefined, undefined, undefined]
-  ]);
-  assert.deepEqual(action?.processSteps[0]?.outcomes.find((outcome) => outcome.result === "success")?.routeParams, [
-    { name: "id", source: "E-UserId.value", location: { line: lineNumber(source, "      - id: E-UserId.value") } }
-  ]);
-  assert.deepEqual(action?.propertyLocations["marker"], [{ line: lineNumber(source, "### main:A-Submit Submit") }]);
-  assert.equal(action?.propertyLocations["request"], undefined);
-  assert.equal(action?.propertyLocations["param email"], undefined);
-  assert.deepEqual(action?.processSteps[0]?.propertyLocations["request"], [
-    { line: lineNumber(source, "    - method: POST") },
-    { line: lineNumber(source, "    - path: /login") }
-  ]);
-  assert.deepEqual(action?.processSteps[0]?.propertyLocations["request.params"], [{ line: lineNumber(source, "      - email: E-メールアドレス入力.value") }]);
-  assert.deepEqual(parseResult.actions, astResult.actions);
-  assert.deepEqual(astResult.sectionResults.map((result) => [result.sectionId, result.renderKeys]), [
-    ["section:Actions", ["actions:list", "action:A-Submit"]]
-  ]);
-  assert.deepEqual(astResult.sectionResults.flatMap((result) => result.dependencies).map((dependency) => [dependency.source, dependency.target, dependency.kind]), [
-    [{ type: "section", id: "section:Actions" }, { type: "render", id: "actions:list" }, "renders"],
-    [{ type: "section", id: "section:Actions" }, { type: "render", id: "action:A-Submit" }, "renders"],
-    [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "state:idle" }, "references"],
-    [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "state:done" }, "derives"],
-    [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "state:error" }, "derives"],
-    [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "L-Message" }, "references"],
-    [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "PRT-SUCCESS" }, "references"],
-    [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "E-メールアドレス入力.value" }, "references"],
-    [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "E-UserId.value" }, "references"],
-    [{ type: "entity", id: "A-Submit" }, { type: "entity", id: "E-MemberId.value" }, "references"]
-  ]);
+  assert.deepEqual(action?.fromStates, []);
+  assert.deepEqual(action?.processSteps, []);
+  assert(result.diagnostics.some((diagnostic) => diagnostic.message.includes("Unknown structured item in Action A-Submit: From.")));
+  assert(result.diagnostics.some((diagnostic) => diagnostic.message.includes("Unknown structured item in Action A-Submit: Process P1: Send request.")));
+});
+
+test("reports unsupported section-based Action process headings without adopting their body", () => {
+const source = `---
+id: SCR-UNSUPPORTED-ACTION-PROCESS-HEADING
+type: screen
+title: Unsupported Action Process Heading
+---
+
+# SCR-UNSUPPORTED-ACTION-PROCESS-HEADING Unsupported Action Process Heading
+
+## Actions
+
+### A-Submit Submit
+
+#### P01: Process Send request
+- request:
+  - method: POST
+  - path: /login
+
+#### P1 Process Missing colon
+- state: sent
+
+#### P2: process Lowercase keyword
+- state: done
+`;
+  const result = parseMarkVSpec(source);
+  const action = result.actions[0];
+
+  assert.deepEqual(action?.processSteps, []);
+  for (const heading of [
+    "#### P01: Process Send request",
+    "#### P1 Process Missing colon",
+    "#### P2: process Lowercase keyword"
+  ]) {
+    assert(result.diagnostics.some((diagnostic) =>
+      diagnostic.line === lineNumber(source, heading) &&
+      diagnostic.message.includes(`Unsupported Action process heading in Action A-Submit: ${heading.replace(/^####\s+/u, "")}.`)
+    ));
+  }
 });
 
 test("reports action diagnostics from AST semantics", () => {
-  const source = `---
+const source = `---
 id: SCR-ACTION-AST-DIAG
 type: screen
 title: Action AST Diagnostics

@@ -109,22 +109,22 @@ so field-level contracts remain the main topic.
 
 ### A1:A-CheckFields Check fields
 
-- From
-  - idle
-- Process P1: Check field validation
-  - receive:
-    - validation: V-UsernameRules.result
-    - validation: V-EmailRules.result
-    - validation: V-AgeRange.result
-  - case: invalid
-    - description: one or more single-field validation results are invalid
-    - display:
-      - target: L-MessageArea
-      - element: E-ValidationMessage
-    - stop
-  - case: valid
-    - description: all single-field validation results are valid
-    - state: idle
+#### From
+- idle
+#### P1: Process Check field validation
+- receive:
+  - validation: V-UsernameRules.result
+  - validation: V-EmailRules.result
+  - validation: V-AgeRange.result
+- case: invalid
+  - description: one or more single-field validation results are invalid
+  - display:
+    - target: L-MessageArea
+    - element: E-ValidationMessage
+  - stop
+- case: valid
+  - description: all single-field validation results are valid
+  - state: idle
 
 ## Preview Scenarios
 

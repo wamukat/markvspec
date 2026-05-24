@@ -95,41 +95,41 @@ loaded, empty, and error previews are the focus.
 
 ### A1:A-RefreshItems Refresh items
 
-- From
-  - idle
-  - loaded
-  - empty
-  - fetch-error
-- Process P1: Send request
-  - request:
-    - method: GET
-    - path: /items
-  - result:
-    - item list request
-  - case: sent
-    - state: fetching
-  - case: send-failed
-    - state: fetch-error
-    - display:
-      - target: L-StatusArea
-      - element: E-ErrorBanner
+#### From
+- idle
+- loaded
+- empty
+- fetch-error
+#### P1: Process Send request
+- request:
+  - method: GET
+  - path: /items
+- result:
+  - item list request
+- case: sent
+  - state: fetching
+- case: send-failed
+  - state: fetch-error
+  - display:
+    - target: L-StatusArea
+    - element: E-ErrorBanner
 
 ### A2:A-HandleItemsResponse Handle items response
 
-- From
-  - fetching
-- Process P1: Handle response
-  - receive:
-    - response: A-RefreshItems.P1.response
-  - case: success
-    - response: HTTP 200 with rows
-    - state: loaded
-    - display:
-      - target: E-ItemsTable
-      - element: E-ItemsTable
-  - case: empty
-    - response: HTTP 200 with no rows
-    - state: empty
-  - case: failure
-    - response: HTTP error or timeout
-    - state: fetch-error
+#### From
+- fetching
+#### P1: Process Handle response
+- receive:
+  - response: A-RefreshItems.P1.response
+- case: success
+  - response: HTTP 200 with rows
+  - state: loaded
+  - display:
+    - target: E-ItemsTable
+    - element: E-ItemsTable
+- case: empty
+  - response: HTTP 200 with no rows
+  - state: empty
+- case: failure
+  - response: HTTP error or timeout
+  - state: fetch-error

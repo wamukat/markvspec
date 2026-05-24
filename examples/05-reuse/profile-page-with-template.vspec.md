@@ -77,39 +77,39 @@ updates; the reusable shell itself is defined in the template example.
 
 ### A1:A-RefreshProfile Refresh profile partial
 
-- From
-  - idle
-  - fetch-error
-- Process P1: Refresh partial content
-  - request:
-    - method: GET
-    - path: /members/:memberId/profile-summary
-    - params:
-      - memberId: ${route.memberId}
-  - case: sent
-    - description: request accepted
-    - state: fetching
-    - stop
-  - case: send-failed
-    - description: network error
-    - state: fetch-error
-    - stop
+#### From
+- idle
+- fetch-error
+#### P1: Process Refresh partial content
+- request:
+  - method: GET
+  - path: /members/:memberId/profile-summary
+  - params:
+    - memberId: ${route.memberId}
+- case: sent
+  - description: request accepted
+  - state: fetching
+  - stop
+- case: send-failed
+  - description: network error
+  - state: fetch-error
+  - stop
 
 ### A2:A-HandleProfileSummaryResponse Handle profile summary response
 
-- From
-  - fetching
-- Process P1: PartialResponse
-  - receive:
-    - response: A-RefreshProfile.P1.response
-  - case: success
-    - response: 200 partial HTML
-    - state: idle
-    - display:
-      - target: L-ProfileSummaryHost
-      - partial: PRT-PROFILE-SUMMARY
-    - stop
-  - case: failure
-    - response: 5xx or timeout
-    - state: fetch-error
-    - stop
+#### From
+- fetching
+#### P1: Process PartialResponse
+- receive:
+  - response: A-RefreshProfile.P1.response
+- case: success
+  - response: 200 partial HTML
+  - state: idle
+  - display:
+    - target: L-ProfileSummaryHost
+    - partial: PRT-PROFILE-SUMMARY
+  - stop
+- case: failure
+  - response: 5xx or timeout
+  - state: fetch-error
+  - stop
