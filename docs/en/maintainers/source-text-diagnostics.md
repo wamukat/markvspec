@@ -66,6 +66,86 @@ Example:
 supported layout flag or property and is not rendered. The parser reports it as
 unrepresented source text on the bullet line.
 
+## Coverage Matrix
+
+Classifications:
+
+- `represented`: the source contributes to the semantic model, render model,
+  generated document, preview, or static export.
+- `represented-extension`: the source is not standard DSL, but it is preserved
+  and reported as an extension `info` diagnostic.
+- `unrepresented`: the source is parsed but not represented in output, so it
+  reports `unrepresented-source-text`.
+- `unsupported`: the source is a malformed or unsupported structured item and
+  reports a warning or error.
+- `intentional-ignore`: the source is a syntax marker, empty line, standalone
+  authoring comment, or other explicitly non-rendered construct.
+- `unknown`: current tests or docs are not strong enough to classify the source
+  confidently.
+
+### Cross-Cutting Block Coverage
+
+| Source shape | Classification | Evidence / rule |
+| --- | --- | --- |
+| YAML Front Matter required and known fields | `represented` | Parsed by `parseMarkVSpec` / `parseMarkVSpecProject`; required-field and reference tests cover missing or malformed values. |
+| YAML Front Matter unknown fields | `unknown` | YAML is parsed, but unknown document metadata is not part of the source text diagnostic contract yet. Follow-up only if a concrete field is expected to appear in output. |
+| `# SCR-*` screen heading | `represented` | Heading ID/title are validated against Front Matter and drive screen metadata. |
+| Top-level prose before the first `##` section | `represented` | Stored as the screen description; covered by `uses top-level prose as the screen description`. |
+| Unknown or free-form `##` sections | `represented` | Preserved as free-form Markdown sections and do not affect semantic section ordering. |
+| Section lead, entity lead, entity notes, and `### Section Notes` | `represented` | `sectionProse`, `overview`, and `notes` are rendered by preview/static export; covered by structured-section-prose tests. |
+| Standalone HTML comment blocks | `intentional-ignore` | File-format and document-structure docs define these as source-only authoring comments; tests verify they are removed from prose and render invalidation. |
+| Inline HTML comments inside paragraph text | `represented` | Not treated as hidden authoring comments; they remain part of the paragraph source. |
+| Markdown tables in prose/notes | `represented` | `isEntityNoteBlock` and structured prose docs preserve tables as supplemental Markdown unless a section grammar consumes them. |
+| Fenced code blocks in prose/notes | `represented` | Entity prose tests preserve code fences in overview/notes. |
+| Blockquotes in prose/notes | `represented` | `isEntityNoteBlock` includes blockquotes as supplemental Markdown. |
+| Raw HTML blocks other than standalone comments | `unknown` | They are not reported by current diagnostics, but display policy is weaker than paragraph/table/code/blockquote prose. Follow-up: classify as `represented` or `unsupported` once a concrete output expectation is defined. |
+| Thematic breaks in structured prose | `unknown` | They are accepted as note blocks but have no source text diagnostic-specific assertion. Follow-up with raw HTML if output loss is observed. |
+
+### Section Coverage
+
+| Section / area | Headings and prose | Top-level list or table entries | Nested list entries | Current classification and follow-up |
+| --- | --- | --- | --- | --- |
+| Front Matter | N/A | YAML fields are `represented`; malformed YAML or missing required fields are `unsupported`. | Nested `references.*` values are `represented` when they define templates/partials. | Unknown YAML keys are `unknown`; no `unrepresented-source-text` coverage yet. |
+| Top-level overview prose | Paragraphs before the first `##` are `represented`. | N/A | N/A | Standalone comments are `intentional-ignore`. |
+| Unknown/free-form sections | `##` heading and Markdown body are `represented`. | Lists/tables/code are `represented` as free-form Markdown. | Nested lists are `represented` as Markdown. | No structured diagnostics expected. |
+| `## States` | Section lead/notes are `represented`. | State bullets are `represented`; malformed suffix markers are `unsupported`. | Nested bullets under a state are `represented` as the state message; nested bullets without a parent are `unsupported`. | Covered by state parser tests and structured prose tests. |
+| `## Layout:*` | Section lead, layout group heading, layout overview, and notes are `represented`. | Canonical metadata (`stack`, `row`, `grid`, `inline`, `gap: md`) is `represented`; unknown key/value metadata is `represented-extension`; direct `L-*` / `E-*` child refs outside `#### Items` are `unsupported`; unknown value-less metadata is `unrepresented` (#1453). | `partial:` children are `represented`; other indented metadata is `unsupported`. | `#### Items` is classified separately and is not part of layout metadata diagnostics. |
+| `## Slot:*` | Same as `## Layout:*`, scoped to slot content. | Same as `## Layout:*`; #1453 tests include Slot unknown value-less metadata. | Same as `## Layout:*`. | Covered by the same parser path as Layout. |
+| `## Slots` | Section lead/notes and slot definition headings are `represented`. | Slot definition key/value bullets are `represented`; unsupported keys are `unsupported`. | Unexpected nested entries are `unsupported` or ignored by the slot-definition classifier. | No `unrepresented-source-text` coverage currently needed. |
+| `## Elements` | Section/entity lead and notes are `represented`; malformed headings are `unsupported`. | Canonical element properties are `represented`; unknown element properties are `represented-extension`; malformed structured data is `unsupported`. | Recognized nested option/table/sample/control entries are `represented`; malformed nested entries are `unsupported`. | Covered by element validator and structured prose tests. |
+| `## Actions` | Section/action lead and notes are `represented`; malformed headings are `unsupported`. | `#### From` and section-based process headings are `represented`; unsupported action/process structured items are `unsupported`. | Recognized process details, result entries, cases, effects, and syntax labels are `represented` or `intentional-ignore`; value-less unsupported process text is `unrepresented` (#1325/#1332). | Current `unrepresented-source-text` baseline coverage is here. |
+| `## Events` | Section lead/notes are `represented`. | `event: A-ActionId` entries are `represented`; malformed value-less or empty action entries are `unsupported`. | Nested event entries are `unsupported` because they are ignored. | Covered by `parseEventsSection`; no text-specific warning currently needed. |
+| `## Preview Scenarios` | Section/scenario lead and notes are `represented`; scenario headings are `represented`. | Canonical scalar properties (`state`, `view`, `model`, `before`) are `represented`; unknown value-less or unsupported keys are `unsupported`. | Children under `route`, `samples`, and `cases` are `represented`; children under scalar entries are `unrepresented` (#1332). | Syntax-only labels such as `route:`, `samples:`, and `cases:` are `intentional-ignore`. |
+| `## Field Validations` / `## Cross-field Validations` / `## Validations` | Section/validation lead and notes are `represented`. | Validation headings and canonical rules/properties are `represented`; structured-looking list items before a valid heading are `unsupported`. | Rule targets and nested rule metadata are `represented`; unsupported nested validation items are `unsupported`. | Covered by validation-section semantic tests. |
+| `## Business Rules` | Section/rule lead and notes are `represented`. | `### R-*` rules and free-form rule bullets are `represented`; unsupported rule properties are `unsupported`. | Rule nested body/properties are `represented` when accepted by the rule parser. | Free-form list-only Business Rules are intentionally `represented` as `R-BusinessRules`. |
+| `## Error Codes` | Section/error-code lead and notes are `represented`. | `ERR-*` headings and key/value properties are `represented`; unsupported keys are `unsupported`. | Nested metadata follows the error-code structured item parser. | Covered by error-code parser and reference coverage docs. |
+| `## History Fields` | Section overview/trailing notes are `represented`. | Field schema bullets are `represented`. | Nested schema metadata is `represented` where accepted; other content becomes notes only after structured content. | Uses raw-line section prose; covered by history tests. |
+| `## History` | Section overview and notes are `represented`. | History entry headings and metadata bullets are `represented`; body paragraphs/lists are `represented`. | Nested body lists are `represented` as history body Markdown. | Covered by history tests. |
+| `## Notes` | Section heading and Markdown body are `represented`. | Lists/tables/code are `represented` as note Markdown. | Nested lists are `represented`. | This is the preferred home for author text that is not DSL semantics. |
+| `## Open Questions` | Section heading and Markdown body are `represented`. | Lists/tables/code are `represented` as note Markdown. | Nested lists are `represented`. | Same treatment as Notes. |
+
+### Unknowns And Follow-Up Policy
+
+Current `unknown` entries are not known false negatives; they are areas where
+the source text diagnostics contract is not specific enough yet. If an issue is
+reported for one of these cases, create a follow-up ticket with:
+
+- the exact source example
+- whether the expected classification is `represented`, `unsupported`, or
+  `unrepresented`
+- the expected diagnostic code, severity, and source line
+- the preview/export/generated-document surface where the text should appear or
+  where the author should be warned
+
+Known follow-up candidates:
+
+- Unknown Front Matter metadata fields: decide whether they should become
+  `represented-extension` metadata or remain outside the source text diagnostic
+  contract.
+- Raw HTML blocks and thematic breaks in structured prose: confirm whether the
+  renderer represents them consistently or whether they should receive an
+  `unsupported` diagnostic.
+
 ## Intentional Ignores
 
 The classifier intentionally ignores syntax-only labels such as
