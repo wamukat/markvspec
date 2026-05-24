@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.7.1 - 2026-05-24
+
+### Added
+
+- Added source text diagnostics coverage for YAML Front Matter extension fields:
+  scalar unknown fields are reported as represented extensions, while non-scalar
+  unknown fields are reported as unsupported.
+- Added release coverage documentation for source text diagnostics across Front
+  Matter, layout metadata, raw HTML prose blocks, and thematic breaks.
+
+### Changed
+
+- Render thematic breaks in generated/static design document prose as
+  `<hr class="note-break">`, matching VS Code preview behavior.
+- Clarified that raw HTML prose blocks are represented as escaped Markdown
+  prose text, while standalone HTML comments remain intentionally ignored.
+
+### Fixed
+
+- Fixed unrepresented Layout and Slot metadata text diagnostics so value-less
+  unsupported author text no longer disappears silently.
+
 ## 0.7.0 - 2026-05-24
 
 ### Added

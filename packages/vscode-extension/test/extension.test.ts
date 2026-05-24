@@ -8444,7 +8444,10 @@ History section notes.
   const result = parseMarkVSpec(source);
   const html = renderDesignDocumentHtml(result, renderMarkVSpecHtml(result, { includeStyles: false }));
 
-  assert.deepEqual(result.diagnostics, []);
+  assert.equal(result.diagnostics.length, 1);
+  assert.equal(result.diagnostics[0]?.severity, "info");
+  assert.equal(result.diagnostics[0]?.code, "frontMatter.representedExtension");
+  assert.match(result.diagnostics[0]?.message ?? "", /version: 9\.9/);
   assert.match(html, /<h3>Basic Info<\/h3>/);
   assert.match(html, /<dt>Version<\/dt><dd>ver 0\.9<\/dd>/);
   assert.match(html, /<dt>Date<\/dt><dd>2026-05-01<\/dd>/);

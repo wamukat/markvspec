@@ -2,7 +2,7 @@
   "name": "markvspec",
   "displayName": "MarkVSpec",
   "description": "Live preview and diagnostics for MarkVSpec screen specifications.",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "publisher": "wamukat",
   "icon": "assets/markvspec-icon.png",
   "type": "module",
@@ -149,12 +149,12 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@markvspec/document-renderer": "file:../document-renderer",
-    "@markvspec/exporter": "file:../exporter",
+    "@markvspec/document-renderer": "0.7.1",
+    "@markvspec/exporter": "0.7.1",
     "mermaid": "^11.14.0"
   },
   "devDependencies": {
-    "@markvspec/core": "file:../core",
+    "@markvspec/core": "0.7.1",
     "@types/vscode": "1.100.0",
     "@vscode/vsce": "^3.9.1",
     "esbuild": "^0.28.0"

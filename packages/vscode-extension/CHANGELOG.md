@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.7.1 - 2026-05-24
+
+### Added
+
+- Added shared diagnostics for unknown YAML Front Matter extension fields.
+- Added source text diagnostics coverage documentation for Front Matter, Layout
+  and Slot metadata, raw HTML prose blocks, and thematic breaks.
+
+### Changed
+
+- Aligned generated/static document thematic break rendering with VS Code
+  preview output.
+- Clarified raw HTML prose handling as escaped represented text.
+
+### Fixed
+
+- Fixed Layout and Slot metadata diagnostics so unsupported value-less author
+  text is reported instead of being silently dropped.
+
 ## 0.7.0 - 2026-05-24
 
 ### Added
