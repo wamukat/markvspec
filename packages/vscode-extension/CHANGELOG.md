@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.7.0 - 2026-05-24
+
+### Added
+
+- Added section-based Action authoring syntax with parser support, migration
+  diagnostics, renderer/export integration, and updated documentation/examples.
+- Added source-aware VS Code preview editing support: source anchors,
+  preview-to-source jump, source-to-preview highlight/scroll, diagnostics
+  summary and affected block indicators.
+- Added parse-error placeholders, last-known-good stale preview overlays, and
+  scroll/focused-item retention across preview refreshes.
+- Added project preview and document-list example documentation in the docs
+  site.
+
+### Changed
+
+- Clarified framework-neutral partial update guidance and removed wording that
+  implied HTMX-only authoring.
+- Documented the responsibility boundary between shared preview runtime,
+  VS Code extension preview UI, and docs-site dynamic preview.
+- Updated Pages/example artifact generation so it bundles the current CLI
+  before export and syncs docs-site content before catalog validation.
+
+### Fixed
+
+- Fixed clean checkout docs-site checks that failed before generated
+  docs-site content existed.
+- Fixed stale CLI bundle usage in Pages builds after Action syntax changes.
+
 ## 0.6.4 - 2026-05-23
 
 ### Fixed

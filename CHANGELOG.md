@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.7.0 - 2026-05-24
+
+### Added
+
+- Added section-based Action authoring syntax, including parser/model support,
+  migration diagnostics, renderer/export output, and updated guide/reference
+  examples.
+- Added VS Code preview editing support with source anchors, preview-to-source
+  jump, source-to-preview highlight/scroll, diagnostics summary and affected
+  block indicators, parse-error placeholders, last-known-good error overlays,
+  and refresh retention.
+- Added project preview and document-list examples and documentation for the
+  docs site.
+- Added Reference coverage for external inputs, Front Matter, source metadata,
+  file format fields, comments, diagnostics, renderer/export output, and
+  example-to-reference mappings.
+
+### Changed
+
+- Clarified partial update documentation so MarkVSpec remains
+  framework-neutral across server-rendered, HTMX-style, React, Vue, and other
+  SPA workflows.
+- Documented the responsibility boundary between shared renderer/runtime,
+  VS Code extension preview behavior, and docs-site dynamic preview behavior.
+- Updated generated docs-site and Pages build flow so example artifact
+  generation uses the current CLI bundle and works from a clean checkout.
+
+### Fixed
+
+- Fixed stale CLI bundle usage in Pages/example artifact generation.
+- Fixed clean checkout Pages builds by syncing generated docs-site content
+  before example catalog validation.
+- Fixed VS Code preview recovery behavior around parse/validation errors and
+  refresh state retention.
+
 ## 0.6.2 - 2026-05-22
 
 ### Added

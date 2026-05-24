@@ -1,6 +1,6 @@
 {
   "name": "@markvspec/cli",
-  "version": "0.6.4",
+  "version": "0.7.0",
   "description": "Command line tools for validating and exporting MarkVSpec screen specifications.",
   "license": "MIT",
   "type": "module",
@@ -34,8 +34,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
-    "@markvspec/core": "0.6.4",
-    "@markvspec/exporter": "0.6.4",
+    "@markvspec/core": "0.7.0",
+    "@markvspec/exporter": "0.7.0",
     "esbuild": "^0.28.0"
   }
 }
