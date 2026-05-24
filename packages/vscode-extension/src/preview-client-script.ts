@@ -325,6 +325,18 @@ export function renderPreviewClientScript(options: PreviewClientScriptOptions): 
         });` : "(void target);"}
       }
 
+      function requestDiagnosticSourceJump(line) {
+        ${webviewMessaging ? `
+        vscode.postMessage({
+          command: "jumpToSource",
+          sourceAnchor: "diagnostic:" + line,
+          sourceKind: "diagnostic",
+          sourceId: "diagnostic:" + line,
+          startLine: line,
+          endLine: line
+        });` : "(void line);"}
+      }
+
       function isNativeKeyboardTarget(item) {
         return /^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/.test(item.tagName);
       }
@@ -342,6 +354,11 @@ export function renderPreviewClientScript(options: PreviewClientScriptOptions): 
             if (target) {
               target.scrollIntoView({ block: "center", inline: "nearest" });
             }
+          });
+        });
+        document.querySelectorAll("[data-mm-diagnostic-line]").forEach((item) => {
+          item.addEventListener("click", () => {
+            requestDiagnosticSourceJump(item.getAttribute("data-mm-diagnostic-line") || "");
           });
         });
       }

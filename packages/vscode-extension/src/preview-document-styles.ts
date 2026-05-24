@@ -117,6 +117,15 @@ ${baseWireframeViewportCss()}
 .diagnostic-severity-pill-error{border-color:#fca5a5;color:#b91c1c}
 .diagnostic-severity-pill-warning{border-color:#fbbf24;color:#92400e}
 .diagnostic-severity-pill-info{border-color:#93c5fd;color:#1d4ed8}
+.preview-error-placeholder{background:#fff7ed;border:1px solid #fed7aa;border-left:4px solid #ea580c;border-radius:6px;display:grid;gap:8px;margin:16px auto 0;max-width:1180px;padding:14px 16px}
+.preview-error-placeholder-title{color:#9a3412;font-size:14px;font-weight:750}
+.preview-error-placeholder p{color:#7c2d12;font-size:13px;line-height:1.5;margin:0}
+.preview-error-placeholder ul{display:grid;gap:6px;list-style:none;margin:0;padding:0}
+.preview-error-placeholder li{align-items:flex-start;display:flex;gap:8px}
+.preview-error-source-link,.preview-error-source-line{background:#fff;border:1px solid #fdba74;border-radius:999px;color:#9a3412;flex:0 0 auto;font-size:12px;font-weight:700;line-height:1.2;padding:3px 8px}
+.preview-error-source-link{cursor:pointer}
+.preview-error-source-link:focus-visible{outline:2px solid #fb923c;outline-offset:2px}
+.preview-error-message{color:#431407;font-size:12px;line-height:1.45}
 .mm-diagnostic-affected{outline:1px dashed #64748b;outline-offset:3px;position:relative}
 .mm-diagnostic-affected-error{outline-color:#dc2626}
 .mm-diagnostic-affected-warning{outline-color:#d97706}

@@ -748,6 +748,78 @@ title: No Preview Diagnostics
   assert.match(html, /const markvspecDiagnostics = \[\];/);
 });
 
+test("renders parse error placeholder while keeping renderable preview content", () => {
+  const source = `---
+id: [unterminated
+type: screen
+title: Parse Error Preview
+---
+
+# SCR-PARSE-ERROR Parse Error Preview
+
+## States
+
+- idle*
+`;
+  const result = parseMarkVSpec(source);
+  assert(result.diagnostics.some((diagnostic) => diagnostic.severity === "error" && diagnostic.message.startsWith("Invalid YAML Front Matter:")));
+
+  const html = renderPreviewHtml(
+    result,
+    {
+      cspSource: "vscode-resource:",
+      asWebviewUri: (uri: unknown) => uri
+    } as never,
+    { layout: true, element: true, action: true },
+    undefined,
+    "parse-error.vspec.md"
+  );
+
+  assert.match(html, /data-preview-error-placeholder/);
+  assert.match(html, /Fix source errors to complete the preview/);
+  assert.match(html, /data-mm-diagnostic-line="\d+"/);
+  assert.match(html, /requestDiagnosticSourceJump/);
+  assert.match(html, /<section class="preview">\s*<article class="document">/);
+  assert.match(html, /SCR-PARSE-ERROR/);
+  assert.match(html, /<div class="control-group diagnostic-summary" role="group" aria-label="Diagnostics" data-mm-diagnostic-summary>/);
+});
+
+test("does not render parse error placeholder for validation-only diagnostics", () => {
+  const source = `---
+id: SCR-VALIDATION-PREVIEW
+type: screen
+title: Validation Preview
+---
+
+# SCR-VALIDATION-PREVIEW Validation Preview
+
+## States
+
+- idle*
+
+## Validations
+
+### V-Email Required email
+`;
+  const result = parseMarkVSpec(source);
+  assert(result.diagnostics.some((diagnostic) => diagnostic.message === "Validation V-Email must specify target."));
+
+  const html = renderPreviewHtml(
+    result,
+    {
+      cspSource: "vscode-resource:",
+      asWebviewUri: (uri: unknown) => uri
+    } as never,
+    { layout: true, element: true, action: true },
+    undefined,
+    "validation-preview.vspec.md"
+  );
+
+  assert.doesNotMatch(html, /data-preview-error-placeholder/);
+  assert.match(html, /<section class="preview">\s*<article class="document">/);
+  assert.match(html, /data-mm-diagnostic-summary/);
+});
+
 test("keeps presentation panels out of generated layout specs", () => {
   const source = `---
 id: SCR-PRESENTATION

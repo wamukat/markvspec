@@ -1677,6 +1677,7 @@ function renderScreenPreviewHtml(
     ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${options.cspSource}; style-src ${options.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}' ${options.cspSource};">`
     : "";
   const mermaidScriptTag = renderPreviewMermaidScriptTag(options, scriptNonce);
+  const parseErrorPlaceholder = renderPreviewParseErrorPlaceholder(result);
 
   return `<!doctype html>
 <html lang="${escapeHtml(resolvedLocale)}">
@@ -1714,6 +1715,7 @@ ${renderScreenPreviewStyles()}
       <span class="toc-toggle-bars" aria-hidden="true"></span>
     </button>
     <main class="content">
+      ${parseErrorPlaceholder}
       <section class="preview">${document}</section>
     </main>
     ${renderPreviewPrintWireframeOverrideStyle({ includePartialPreviewClamp: true })}
@@ -1804,6 +1806,44 @@ function renderPreviewDiagnosticSeverityButton(severity: MarkVSpecDiagnosticSeve
   const icon = severity === "error" ? "circle-x" : severity === "warning" ? "triangle-alert" : "info";
   const label = `${severity}: ${count}`;
   return `<button class="diagnostic-severity-pill diagnostic-severity-pill-${severity}" type="button" data-mm-diagnostic-summary-severity="${severity}" ${affectedCount === 0 ? "disabled" : ""} title="${escapeHtml(label)}">${renderPreviewIcon(icon)}<span>${escapeHtml(String(count))}</span></button>`;
+}
+
+function renderPreviewParseErrorPlaceholder(result: ReturnType<typeof parseMarkVSpec>): string {
+  const diagnostics = result.diagnostics.filter((diagnostic) => isPreviewParseErrorDiagnostic(diagnostic));
+  if (diagnostics.length === 0) {
+    return "";
+  }
+  const isJapanese = resolveLocale(result.screen.locale) === "ja";
+  const title = isJapanese ? "プレビューを生成する前にソース修正が必要です" : "Fix source errors to complete the preview";
+  const message = isJapanese
+    ? "Front Matter または基本メタデータにエラーがあります。描画可能な範囲は下に表示し、診断は Problems とこの preview に表示します。"
+    : "Front Matter or basic metadata has errors. Renderable content remains below, with diagnostics shown in Problems and this preview.";
+  return `
+      <section class="preview-error-placeholder" data-preview-error-placeholder aria-live="polite">
+        <div class="preview-error-placeholder-title">${escapeHtml(title)}</div>
+        <p>${escapeHtml(message)}</p>
+        <ul>
+          ${diagnostics.map((diagnostic) => renderPreviewParseErrorItem(diagnostic, result.screen.locale)).join("")}
+        </ul>
+      </section>`;
+}
+
+function renderPreviewParseErrorItem(diagnostic: ReturnType<typeof parseMarkVSpec>["diagnostics"][number], locale: string | undefined): string {
+  const line = diagnostic.line;
+  const lineText = line ? `Line ${line}` : "Source";
+  const lineControl = line
+    ? `<button type="button" class="preview-error-source-link" data-mm-diagnostic-line="${line}">${escapeHtml(lineText)}</button>`
+    : `<span class="preview-error-source-line">${escapeHtml(lineText)}</span>`;
+  return `<li>${lineControl}<span class="preview-error-message">${escapeHtml(renderDiagnosticMessageForLocale(diagnostic, locale))}</span></li>`;
+}
+
+function isPreviewParseErrorDiagnostic(diagnostic: ReturnType<typeof parseMarkVSpec>["diagnostics"][number]): boolean {
+  if (diagnostic.severity !== "error") {
+    return false;
+  }
+  return diagnostic.code?.startsWith("frontMatter.") === true ||
+    diagnostic.message === "Unclosed YAML Front Matter." ||
+    diagnostic.message.startsWith("Invalid YAML Front Matter:");
 }
 
 
