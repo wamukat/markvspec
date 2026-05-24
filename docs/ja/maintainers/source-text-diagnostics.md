@@ -95,8 +95,8 @@ unrepresented source text warning を出す。
 | prose / notes 内の Markdown table | `represented` | section grammar が consume する場合を除き、`isEntityNoteBlock` と structured prose docs で supplemental Markdown として保持する。 |
 | prose / notes 内の fenced code block | `represented` | entity prose tests が overview / notes 内の code fence 保持を確認している。 |
 | prose / notes 内の blockquote | `represented` | `isEntityNoteBlock` が blockquote を supplemental Markdown として扱う。 |
-| standalone comment 以外の raw HTML block | `unknown` | 現在の diagnostic では報告しないが、paragraph/table/code/blockquote prose より表示方針の根拠が弱い。具体的な出力期待を定義した時点で `represented` または `unsupported` に分類する。 |
-| structured prose 内の thematic break | `unknown` | note block として受け入れるが、source text diagnostic 固有の assertion はない。出力欠落が確認されたら raw HTML と同じ follow-up に含める。 |
+| standalone comment 以外の raw HTML block | `represented` | Markdown prose source として保持し、VS Code preview と generated/static document では escape 済み text として表示する。standalone HTML comment は引き続き `intentional-ignore`。 |
+| structured prose 内の thematic break | `represented` | Markdown prose source として保持し、VS Code preview と generated/static document では `<hr class="note-break">` として表示する。 |
 
 ### section coverage
 
@@ -123,9 +123,7 @@ unrepresented source text warning を出す。
 
 ### unknown と follow-up 方針
 
-現在の `unknown` entry は既知の false negative ではなく、source text diagnostics
-contract がまだ十分に具体化されていない領域です。該当ケースの issue が出た場合は、
-次の内容で follow-up ticket を作る。
+新しい不確定ケースが見つかった場合は、次の内容で follow-up ticket を作る。
 
 - exact source example
 - 期待する分類が `represented` / `unsupported` / `unrepresented` のどれか
@@ -133,10 +131,7 @@ contract がまだ十分に具体化されていない領域です。該当ケ�
 - text が表示されるべき preview / export / generated document surface、または
   warning すべき理由
 
-既知の follow-up 候補:
-
-- structured prose 内の raw HTML block と thematic break: renderer が一貫して
-  表現しているか、または `unsupported` diagnostic にするべきかを確認する。
+この matrix から残っている既知の source text diagnostics follow-up 候補はありません。
 
 ## intentional ignore
 

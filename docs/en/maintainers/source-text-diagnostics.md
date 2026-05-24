@@ -98,8 +98,8 @@ Classifications:
 | Markdown tables in prose/notes | `represented` | `isEntityNoteBlock` and structured prose docs preserve tables as supplemental Markdown unless a section grammar consumes them. |
 | Fenced code blocks in prose/notes | `represented` | Entity prose tests preserve code fences in overview/notes. |
 | Blockquotes in prose/notes | `represented` | `isEntityNoteBlock` includes blockquotes as supplemental Markdown. |
-| Raw HTML blocks other than standalone comments | `unknown` | They are not reported by current diagnostics, but display policy is weaker than paragraph/table/code/blockquote prose. Follow-up: classify as `represented` or `unsupported` once a concrete output expectation is defined. |
-| Thematic breaks in structured prose | `unknown` | They are accepted as note blocks but have no source text diagnostic-specific assertion. Follow-up with raw HTML if output loss is observed. |
+| Raw HTML blocks other than standalone comments | `represented` | Preserved as Markdown prose source and rendered as escaped text in VS Code preview and generated/static documents. Standalone HTML comments remain `intentional-ignore`. |
+| Thematic breaks in structured prose | `represented` | Preserved as Markdown prose source and rendered as `<hr class="note-break">` in VS Code preview and generated/static documents. |
 
 ### Section Coverage
 
@@ -126,9 +126,7 @@ Classifications:
 
 ### Unknowns And Follow-Up Policy
 
-Current `unknown` entries are not known false negatives; they are areas where
-the source text diagnostics contract is not specific enough yet. If an issue is
-reported for one of these cases, create a follow-up ticket with:
+When a new uncertain case appears, create a follow-up ticket with:
 
 - the exact source example
 - whether the expected classification is `represented`, `unsupported`, or
@@ -137,11 +135,7 @@ reported for one of these cases, create a follow-up ticket with:
 - the preview/export/generated-document surface where the text should appear or
   where the author should be warned
 
-Known follow-up candidates:
-
-- Raw HTML blocks and thematic breaks in structured prose: confirm whether the
-  renderer represents them consistently or whether they should receive an
-  `unsupported` diagnostic.
+No known source text diagnostics follow-up candidates remain from this matrix.
 
 ## Intentional Ignores
 

@@ -1084,6 +1084,12 @@ function renderMarkdownLines(lines: string[], result: MarkVSpecParseResult): str
       flushList();
       continue;
     }
+    if (isMarkdownThematicBreak(trimmed)) {
+      flushParagraph();
+      flushList();
+      blocks.push(`<hr class="note-break">`);
+      continue;
+    }
     const bullet = /^[-*]\s+(.+)$/.exec(trimmed);
     if (bullet) {
       flushParagraph();
@@ -1100,6 +1106,10 @@ function renderMarkdownLines(lines: string[], result: MarkVSpecParseResult): str
     blocks.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
   }
   return blocks.join("");
+}
+
+function isMarkdownThematicBreak(line: string): boolean {
+  return /^\s{0,3}(?:-{3,}|\*{3,}|_{3,})\s*$/u.test(line);
 }
 
 function renderInlineMarkdown(value: string, result: MarkVSpecParseResult): string {

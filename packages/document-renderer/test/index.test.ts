@@ -126,6 +126,49 @@ locale: ja
   assert.match(html, /data-mm-id="L-Loaded"/);
 });
 
+test("renders raw HTML and thematic breaks in static prose surfaces", () => {
+  const result = parseMarkVSpec(`---
+id: SCR-STATIC-PROSE-BLOCKS
+type: screen
+title: Static Prose Blocks
+---
+
+# SCR-STATIC-PROSE-BLOCKS Static Prose Blocks
+
+## States
+
+States section overview.
+
+<aside>Escaped states note</aside>
+
+---
+
+- idle*
+
+## Implementation Notes
+
+<div>Escaped free-form note</div>
+
+---
+
+## Notes
+
+<section>Escaped notes section</section>
+
+---
+`);
+  const html = renderStaticDesignDocumentHtml(result);
+
+  assert.deepEqual(result.diagnostics, []);
+  assert.match(html, /&lt;aside&gt;Escaped states note&lt;\/aside&gt;/);
+  assert.match(html, /&lt;div&gt;Escaped free-form note&lt;\/div&gt;/);
+  assert.match(html, /&lt;section&gt;Escaped notes section&lt;\/section&gt;/);
+  assert.equal((html.match(/<hr class="note-break">/gu) ?? []).length, 3);
+  assert.doesNotMatch(html, /<aside>Escaped states note<\/aside>/);
+  assert.doesNotMatch(html, /<div>Escaped free-form note<\/div>/);
+  assert.doesNotMatch(html, /<section>Escaped notes section<\/section>/);
+});
+
 test("renders static controlled panel rows only for active state view panels", () => {
   const result = parseMarkVSpec(`---
 id: SCR-STATIC-CONTROLLED-PANELS
