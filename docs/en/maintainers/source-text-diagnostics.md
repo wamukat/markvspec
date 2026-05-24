@@ -88,7 +88,7 @@ Classifications:
 | Source shape | Classification | Evidence / rule |
 | --- | --- | --- |
 | YAML Front Matter required and known fields | `represented` | Parsed by `parseMarkVSpec` / `parseMarkVSpecProject`; required-field and reference tests cover missing or malformed values. |
-| YAML Front Matter unknown fields | `unknown` | YAML is parsed, but unknown document metadata is not part of the source text diagnostic contract yet. Follow-up only if a concrete field is expected to appear in output. |
+| YAML Front Matter unknown fields | `represented-extension` / `unsupported` | Unknown scalar top-level keys such as `x-owner: team-a` are preserved in Front Matter metadata and reported as `frontMatter.representedExtension` info diagnostics on the source line. Unknown non-scalar fields are `unsupported` because they cannot be preserved in the public `frontMatter` metadata map. |
 | `# SCR-*` screen heading | `represented` | Heading ID/title are validated against Front Matter and drive screen metadata. |
 | Top-level prose before the first `##` section | `represented` | Stored as the screen description; covered by `uses top-level prose as the screen description`. |
 | Unknown or free-form `##` sections | `represented` | Preserved as free-form Markdown sections and do not affect semantic section ordering. |
@@ -105,7 +105,7 @@ Classifications:
 
 | Section / area | Headings and prose | Top-level list or table entries | Nested list entries | Current classification and follow-up |
 | --- | --- | --- | --- | --- |
-| Front Matter | N/A | YAML fields are `represented`; malformed YAML or missing required fields are `unsupported`. | Nested `references.*` values are `represented` when they define templates/partials. | Unknown YAML keys are `unknown`; no `unrepresented-source-text` coverage yet. |
+| Front Matter | N/A | YAML fields are `represented`; malformed YAML or missing required fields are `unsupported`; unknown scalar top-level keys are `represented-extension`; unknown non-scalar top-level keys are `unsupported`. | Nested `references.*` values are `represented` when they define templates/partials. | Unknown scalar YAML keys report `frontMatter.representedExtension` info diagnostics and do not become `unrepresented-source-text` warnings. Unknown non-scalar keys report `frontMatter.unsupportedExtension`. |
 | Top-level overview prose | Paragraphs before the first `##` are `represented`. | N/A | N/A | Standalone comments are `intentional-ignore`. |
 | Unknown/free-form sections | `##` heading and Markdown body are `represented`. | Lists/tables/code are `represented` as free-form Markdown. | Nested lists are `represented` as Markdown. | No structured diagnostics expected. |
 | `## States` | Section lead/notes are `represented`. | State bullets are `represented`; malformed suffix markers are `unsupported`. | Nested bullets under a state are `represented` as the state message; nested bullets without a parent are `unsupported`. | Covered by state parser tests and structured prose tests. |
@@ -139,9 +139,6 @@ reported for one of these cases, create a follow-up ticket with:
 
 Known follow-up candidates:
 
-- Unknown Front Matter metadata fields: decide whether they should become
-  `represented-extension` metadata or remain outside the source text diagnostic
-  contract.
 - Raw HTML blocks and thematic breaks in structured prose: confirm whether the
   renderer represents them consistently or whether they should receive an
   `unsupported` diagnostic.

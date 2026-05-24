@@ -1347,6 +1347,32 @@ screens:
   assert.deepEqual(result.diagnostics, []);
 });
 
+test("reports unknown project Front Matter metadata as represented extensions", () => {
+  const source = `---
+id: PRJ-OWNER
+type: project
+title: Owner Project
+x-owner: team-a
+screens:
+  - id: SCR-USERS
+    path: examples/04-real-world-screens/search-list.vspec.md
+---
+
+# PRJ-OWNER Owner Project
+`;
+  const result = parseMarkVSpecProject(source);
+
+  assert.equal(result.project.frontMatter["x-owner"], "team-a");
+  assert.deepEqual(result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.code, diagnostic.message, diagnostic.line]), [
+    [
+      "info",
+      "frontMatter.representedExtension",
+      "Extension item in Front Matter: x-owner: team-a. This is not a standard MarkVSpec key, but it is preserved in Front Matter metadata.",
+      lineNumber(source, "x-owner: team-a")
+    ]
+  ]);
+});
+
 test("preserves project entry locations for bare YAML list entries", () => {
   const source = `---
 id: PRJ-YAML
@@ -3302,7 +3328,40 @@ tags:
   assert.equal(result.screen.heading, "# SCR-YAML Settings: Account");
   assert.equal(result.screen.location?.line, lineNumber(source, "# SCR-YAML Settings: Account"));
   assert.deepEqual(result.screen.frontMatter["tags"], undefined);
-  assert.deepEqual(result.diagnostics, []);
+  assert.deepEqual(result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.code, diagnostic.message, diagnostic.line]), [
+    [
+      "warning",
+      "frontMatter.unsupportedExtension",
+      "Unsupported Front Matter extension field tags. Unknown Front Matter fields must use scalar values to be preserved.",
+      lineNumber(source, "tags:")
+    ]
+  ]);
+});
+
+test("reports unknown scalar Front Matter metadata as represented extensions", () => {
+  for (const type of ["screen", "template", "partial"] as const) {
+    const prefix = type === "screen" ? "SCR" : type === "template" ? "TPL" : "PRT";
+    const source = `---
+id: ${prefix}-OWNER
+type: ${type}
+title: Owner Metadata
+x-owner: team-a
+---
+
+# ${prefix}-OWNER Owner Metadata
+`;
+    const result = parseMarkVSpec(source);
+
+    assert.equal(result.screen.frontMatter["x-owner"], "team-a");
+    assert.deepEqual(result.diagnostics.map((diagnostic) => [diagnostic.severity, diagnostic.code, diagnostic.message, diagnostic.line]), [
+      [
+        "info",
+        "frontMatter.representedExtension",
+        "Extension item in Front Matter: x-owner: team-a. This is not a standard MarkVSpec key, but it is preserved in Front Matter metadata.",
+        lineNumber(source, "x-owner: team-a")
+      ]
+    ]);
+  }
 });
 
 test("reports YAML Front Matter parser errors", () => {

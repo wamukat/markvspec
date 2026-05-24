@@ -1,5 +1,6 @@
 import { validateMarkVSpec } from "./validator.js";
 import { firstHeading, parseMarkdownDocument, topLevelProseLines } from "./markdown-document.js";
+import { addUnknownFrontMatterDiagnostics } from "./front-matter-diagnostics.js";
 import { parseActionSectionSemantics, parseElementSectionSemantics, parseLayoutSectionSemantics, parseSmallSectionSemantics } from "./markdown-section-semantic.js";
 import { createMarkVSpecDiagnostic } from "./diagnostic-messages.js";
 import type {
@@ -13,6 +14,7 @@ import type {
 export function parseMarkVSpec(source: string): MarkVSpecParseResult {
   const diagnostics: MarkVSpecDiagnostic[] = [];
   const document = parseMarkdownDocument(source, diagnostics);
+  addUnknownFrontMatterDiagnostics(document, screenFrontMatterKeys, diagnostics);
   const screen = parseScreen(document.lines, document.bodyStartIndex, document.frontMatter, document.frontMatterData, document.references, firstHeading(document, 1), diagnostics);
   const topLevelDescription = topLevelProseLines(document).join("\n").trim();
   if (topLevelDescription) {
@@ -50,6 +52,20 @@ export function parseMarkVSpec(source: string): MarkVSpecParseResult {
   validateMarkVSpec(result);
   return result;
 }
+
+const screenFrontMatterKeys = new Set([
+  "id",
+  "type",
+  "title",
+  "description",
+  "route",
+  "locale",
+  "messages",
+  "default-state",
+  "default state",
+  "template",
+  "references"
+]);
 
 function applyActionSectionSemantics(
   result: MarkVSpecParseResult,

@@ -6,6 +6,7 @@ import type {
   MarkVSpecProjectSummary,
   SourceLocation
 } from "./types.js";
+import { addUnknownFrontMatterDiagnostics } from "./front-matter-diagnostics.js";
 import { firstHeading, parseMarkdownDocument, topLevelProseLines, type MarkdownDocument } from "./markdown-document.js";
 import { collectSectionAst, sectionBodyLines, type SourceRange } from "./markdown-section-ast.js";
 import { filterLinesWithoutStandaloneHtmlComments } from "./markdown-html-comments.js";
@@ -76,12 +77,24 @@ function projectReferenceKey(screen: MarkVSpecProjectScreen): string {
 }
 
 function parseProjectFrontMatter(document: MarkdownDocument, diagnostics: MarkVSpecDiagnostic[]): ProjectFrontMatterResult {
+  addUnknownFrontMatterDiagnostics(document, projectFrontMatterKeys, diagnostics);
   return {
     frontMatter: document.frontMatter,
     templates: parseProjectScreenList(document, "templates", diagnostics),
     screens: parseProjectScreenList(document, "screens", diagnostics)
   };
 }
+
+const projectFrontMatterKeys = new Set([
+  "id",
+  "type",
+  "title",
+  "description",
+  "locale",
+  "messages",
+  "templates",
+  "screens"
+]);
 
 function parseProjectScreenList(
   document: MarkdownDocument,

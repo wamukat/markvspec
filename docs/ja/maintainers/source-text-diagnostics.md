@@ -85,7 +85,7 @@ unrepresented source text warning を出す。
 | source shape | classification | 根拠 / rule |
 | --- | --- | --- |
 | YAML Front Matter の required / known field | `represented` | `parseMarkVSpec` / `parseMarkVSpecProject` で parse され、required field と reference の test が missing / malformed value を確認している。 |
-| YAML Front Matter の unknown field | `unknown` | YAML としては parse されるが、unknown document metadata は source text diagnostic contract の対象としてまだ定義していない。具体的な field を出力したい場合だけ follow-up とする。 |
+| YAML Front Matter の unknown field | `represented-extension` / `unsupported` | `x-owner: team-a` のような unknown scalar top-level key は Front Matter metadata として保持し、source line に `frontMatter.representedExtension` info diagnostic を出す。unknown non-scalar field は public `frontMatter` metadata map に保持できないため `unsupported`。 |
 | `# SCR-*` screen heading | `represented` | heading の ID/title は Front Matter と照合され、screen metadata になる。 |
 | 最初の `##` section より前の top-level prose | `represented` | screen description として保持される。`uses top-level prose as the screen description` で確認済み。 |
 | unknown / free-form `##` section | `represented` | free-form Markdown section として保持され、semantic section ordering には影響しない。 |
@@ -102,7 +102,7 @@ unrepresented source text warning を出す。
 
 | section / area | heading and prose | top-level list / table entry | nested list entry | current classification and follow-up |
 | --- | --- | --- | --- | --- |
-| Front Matter | N/A | YAML field は `represented`。malformed YAML / missing required field は `unsupported`。 | `references.*` の nested value は template / partial 定義として `represented`。 | unknown YAML key は `unknown`。`unrepresented-source-text` coverage はまだない。 |
+| Front Matter | N/A | YAML field は `represented`。malformed YAML / missing required field は `unsupported`。unknown scalar top-level key は `represented-extension`。unknown non-scalar top-level key は `unsupported`。 | `references.*` の nested value は template / partial 定義として `represented`。 | unknown scalar YAML key は `frontMatter.representedExtension` info diagnostic になり、`unrepresented-source-text` warning にはしない。unknown non-scalar key は `frontMatter.unsupportedExtension`。 |
 | top-level overview prose | 最初の `##` より前の paragraph は `represented`。 | N/A | N/A | standalone comment は `intentional-ignore`。 |
 | unknown / free-form sections | `##` heading と Markdown body は `represented`。 | list / table / code は free-form Markdown として `represented`。 | nested list は Markdown として `represented`。 | structured diagnostic は期待しない。 |
 | `## States` | section lead / notes は `represented`。 | state bullet は `represented`。malformed suffix marker は `unsupported`。 | state 配下の nested bullet は state message として `represented`。parent state がない nested bullet は `unsupported`。 | state parser tests と structured prose tests で確認済み。 |
@@ -135,8 +135,6 @@ contract がまだ十分に具体化されていない領域です。該当ケ�
 
 既知の follow-up 候補:
 
-- Front Matter の unknown metadata field: `represented-extension` metadata にするか、
-  source text diagnostic contract の対象外に据え置くかを決める。
 - structured prose 内の raw HTML block と thematic break: renderer が一貫して
   表現しているか、または `unsupported` diagnostic にするべきかを確認する。
 
