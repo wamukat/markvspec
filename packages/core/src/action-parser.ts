@@ -252,6 +252,18 @@ function applyProcessStepBullet(
     });
   }
 
+  if (currentNestedBlock === undefined && (value === undefined || value === "")) {
+    const unsupportedProcessItem = unsupportedProcessSectionItemMessage(action.id, step.name, bullet.text, normalizedEntryLabel);
+    if (unsupportedProcessItem) {
+      diagnostics.push({
+        severity: "warning",
+        message: unsupportedProcessItem,
+        line: bullet.location.line
+      });
+      return;
+    }
+  }
+
   if (currentNestedBlock === "receive" && value !== undefined) {
     step.receives.push({ key, value, location: bullet.location });
     addPropertyLocation(step.propertyLocations, `receive ${key}`, bullet.location);
@@ -443,6 +455,60 @@ function processExtensionItemDiagnostic(
 
 function isCustomProcessDetailKey(key: string): boolean {
   return !isKnownProcessDetailBlock(key) && key !== "params" && key !== "display-content" && !key.includes(".");
+}
+
+function unsupportedProcessSectionItemMessage(actionId: string, stepName: string, text: string, normalized: string): string | undefined {
+  if (normalized === "params") {
+    return `Action ${actionId} process step ${stepName} has params: at the process level. Put params under request:, server:, sync:, response:, validation:, or case-specific params:.`;
+  }
+
+  const canonical = [
+    "request",
+    "receive",
+    "sync",
+    "server",
+    "response",
+    "validation",
+    "when",
+    "skip when",
+    "parallel",
+    "resolve",
+    "case",
+    "state",
+    "navigate",
+    "display",
+    "update",
+    "model",
+    "view",
+    "stop",
+    "continue"
+  ];
+  if (canonical.includes(normalized)) {
+    return undefined;
+  }
+
+  const suggestion = canonical.find((candidate) => editDistance(normalized, candidate) <= 2);
+  if (!suggestion) {
+    return undefined;
+  }
+
+  return `Action ${actionId} process step ${stepName} has unknown process item: ${text}. Did you mean ${suggestion}:?`;
+}
+
+function editDistance(left: string, right: string): number {
+  const previous = Array.from({ length: right.length + 1 }, (_value, index) => index);
+  for (let leftIndex = 0; leftIndex < left.length; leftIndex += 1) {
+    let diagonal = previous[0];
+    previous[0] = leftIndex + 1;
+    for (let rightIndex = 0; rightIndex < right.length; rightIndex += 1) {
+      const insert = previous[rightIndex + 1] + 1;
+      const deleteCost = previous[rightIndex] + 1;
+      const replace = diagonal + (left[leftIndex] === right[rightIndex] ? 0 : 1);
+      diagonal = previous[rightIndex + 1];
+      previous[rightIndex + 1] = Math.min(insert, deleteCost, replace);
+    }
+  }
+  return previous[right.length];
 }
 
 function isImplicitProcessParameter(key: string, value: string): boolean {

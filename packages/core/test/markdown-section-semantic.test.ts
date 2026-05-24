@@ -1150,8 +1150,14 @@ title: Old Action Syntax
 
   assert.deepEqual(action?.fromStates, []);
   assert.deepEqual(action?.processSteps, []);
-  assert(result.diagnostics.some((diagnostic) => diagnostic.message.includes("Unknown structured item in Action A-Submit: From.")));
-  assert(result.diagnostics.some((diagnostic) => diagnostic.message.includes("Unknown structured item in Action A-Submit: Process P1: Send request.")));
+  assert(result.diagnostics.some((diagnostic) =>
+    diagnostic.line === lineNumber(source, "- From") &&
+    diagnostic.message === "Action A-Submit uses legacy list-based From syntax. Use #### From followed by state list items."
+  ));
+  assert(result.diagnostics.some((diagnostic) =>
+    diagnostic.line === lineNumber(source, "- Process P1: Send request") &&
+    diagnostic.message === "Action A-Submit uses legacy list-based Process syntax: Process P1: Send request. Use #### P1: Process Send request."
+  ));
 });
 
 test("reports unsupported section-based Action process headings without adopting their body", () => {
@@ -1177,6 +1183,9 @@ title: Unsupported Action Process Heading
 
 #### P2: process Lowercase keyword
 - state: done
+
+#### P3: Send request without keyword
+- state: queued
 `;
   const result = parseMarkVSpec(source);
   const action = result.actions[0];
@@ -1185,13 +1194,66 @@ title: Unsupported Action Process Heading
   for (const heading of [
     "#### P01: Process Send request",
     "#### P1 Process Missing colon",
-    "#### P2: process Lowercase keyword"
+    "#### P2: process Lowercase keyword",
+    "#### P3: Send request without keyword"
   ]) {
     assert(result.diagnostics.some((diagnostic) =>
       diagnostic.line === lineNumber(source, heading) &&
       diagnostic.message.includes(`Unsupported Action process heading in Action A-Submit: ${heading.replace(/^####\s+/u, "")}.`)
     ));
   }
+});
+
+test("reports duplicate From and key-like unknown process section items", () => {
+const source = `---
+id: SCR-ACTION-DIAGNOSTICS
+type: screen
+title: Action Diagnostics
+---
+
+# SCR-ACTION-DIAGNOSTICS Action Diagnostics
+
+## Actions
+
+### A-Submit Submit
+
+#### From
+- idle
+
+#### From
+- loaded
+
+#### P1: Process Send request
+
+Encode request body.
+
+- requset:
+  - method: POST
+- cas:
+  - state: sent
+- params:
+  - userId: E-User.value
+`;
+  const result = parseMarkVSpec(source);
+  const action = result.actions[0];
+
+  assert.deepEqual(action?.processSteps[0]?.overview, ["Encode request body."]);
+  assert(result.diagnostics.some((diagnostic) =>
+    diagnostic.line === lineNumber(source, "#### From", 2) &&
+    diagnostic.message === "Action A-Submit has duplicate From subsection. Keep a single #### From subsection."
+  ));
+  assert(result.diagnostics.some((diagnostic) =>
+    diagnostic.line === lineNumber(source, "- requset:") &&
+    diagnostic.message === "Action A-Submit process step Send request has unknown process item: requset:. Did you mean request:?"
+  ));
+  assert(result.diagnostics.some((diagnostic) =>
+    diagnostic.line === lineNumber(source, "- cas:") &&
+    diagnostic.message === "Action A-Submit process step Send request has unknown process item: cas:. Did you mean case:?"
+  ));
+  assert(result.diagnostics.some((diagnostic) =>
+    diagnostic.line === lineNumber(source, "- params:") &&
+    diagnostic.message === "Action A-Submit process step Send request has params: at the process level. Put params under request:, server:, sync:, response:, validation:, or case-specific params:."
+  ));
 });
 
 test("reports action diagnostics from AST semantics", () => {

@@ -91,6 +91,7 @@ function parseActionsSection(section: SectionAst, support: ActionSectionSemantic
   let currentActionHasStructuredContent = false;
   let currentProcessStep: MarkVSpecProcessStep | undefined;
   let currentProcessHasStructuredContent = false;
+  let hasSeenFromSubsection = false;
   let hasSeenEntity = false;
   let inSectionNotes = false;
   const sectionOverviewBlocks: BlockAst[] = [];
@@ -103,6 +104,7 @@ function parseActionsSection(section: SectionAst, support: ActionSectionSemantic
       currentActionHasStructuredContent = false;
       currentProcessStep = undefined;
       currentProcessHasStructuredContent = false;
+      hasSeenFromSubsection = false;
       inSectionNotes = true;
       hasSeenEntity = true;
       continue;
@@ -116,6 +118,14 @@ function parseActionsSection(section: SectionAst, support: ActionSectionSemantic
     if (currentAction && block.type === "heading" && block.depth === 4) {
       const processSection = parseActionProcessSectionHeading(block.text);
       if (normalizeActionSubsectionHeading(block.text) === "from") {
+        if (hasSeenFromSubsection) {
+          diagnostics.push({
+            severity: "warning",
+            message: `Action ${currentAction.id} has duplicate From subsection. Keep a single #### From subsection.`,
+            line: support.locationFromBlock(block).line
+          });
+        }
+        hasSeenFromSubsection = true;
         currentActionContext = { block: "from" };
         currentActionHasStructuredContent = true;
         currentProcessStep = undefined;
@@ -180,6 +190,7 @@ function parseActionsSection(section: SectionAst, support: ActionSectionSemantic
       currentActionHasStructuredContent = false;
       currentProcessStep = undefined;
       currentProcessHasStructuredContent = false;
+      hasSeenFromSubsection = false;
       currentAction = {
         id: heading[2],
         name: heading[3],
@@ -228,12 +239,7 @@ function parseActionsSection(section: SectionAst, support: ActionSectionSemantic
         }
         const bullet = support.parsedBulletFromListItem(item);
         emittedUnsupportedStructuredItem = true;
-        diagnostics.push(createUnsupportedStructuredItemDiagnostic({
-          context: `Action ${currentAction.id}`,
-          text: bullet.text,
-          location: bullet.location,
-          allowed: "From, Process P1: <name>, or Otherwise"
-        }));
+        diagnostics.push(actionListSyntaxMigrationDiagnostic(currentAction.id, bullet));
       }
       if (emittedUnsupportedStructuredItem) {
         continue;
@@ -286,7 +292,33 @@ function parseActionProcessSectionHeading(text: string): { marker: string; name:
 }
 
 function looksLikeUnsupportedActionProcessSectionHeading(text: string): boolean {
-  return /^P\S*/u.test(text.trim()) && /process/iu.test(text);
+  return /^P\S*/u.test(text.trim()) && (/process/iu.test(text) || /^P\S*:\s+\S+/u.test(text.trim()));
+}
+
+function actionListSyntaxMigrationDiagnostic(actionId: string, bullet: ActionBulletInput): MarkVSpecDiagnostic {
+  const process = /^Process\s+(\S+):\s*(.+)$/u.exec(bullet.text.trim());
+  if (process) {
+    return {
+      severity: "warning",
+      message: `Action ${actionId} uses legacy list-based Process syntax: ${bullet.text}. Use #### ${process[1]}: Process ${process[2]}.`,
+      line: bullet.location.line
+    };
+  }
+
+  if (normalizeActionSubsectionHeading(bullet.text) === "from") {
+    return {
+      severity: "warning",
+      message: `Action ${actionId} uses legacy list-based From syntax. Use #### From followed by state list items.`,
+      line: bullet.location.line
+    };
+  }
+
+  return createUnsupportedStructuredItemDiagnostic({
+    context: `Action ${actionId}`,
+    text: bullet.text,
+    location: bullet.location,
+    allowed: "From, Process P1: <name>, or Otherwise"
+  });
 }
 
 function normalizeActionSubsectionHeading(text: string): string {

@@ -343,6 +343,71 @@ test("maps unrepresented source text warnings to VS Code diagnostics", () => {
   assert.equal(diagnostic?.range.start.line, lineNumber(source, "- Encode request body") - 1);
 });
 
+test("maps Action migration and process item warnings to VS Code diagnostic lines", () => {
+  const source = `---
+id: SCR-VSCODE-ACTION-DIAGNOSTICS
+type: screen
+title: VS Code Action Diagnostics
+---
+
+# SCR-VSCODE-ACTION-DIAGNOSTICS VS Code Action Diagnostics
+
+## Actions
+
+### A-LegacySubmit Legacy submit
+
+- From
+  - idle
+- Process P1: Send request
+  - request:
+    - method: POST
+
+### A-TypoSubmit Typo submit
+
+#### P1: Process Send request
+
+- requset:
+  - method: POST
+`;
+  const document = createTextDocument(source);
+  const calls: Array<{ uri: unknown; diagnostics: vscode.Diagnostic[] }> = [];
+  const controller = new MarkVSpecDiagnosticsController({
+    collection: {
+      set: (uri: unknown, diagnostics: vscode.Diagnostic[]) => {
+        calls.push({ uri, diagnostics });
+      },
+      delete: () => undefined,
+      clear: () => undefined,
+      dispose: () => undefined,
+      forEach: () => undefined,
+      get: () => undefined,
+      has: () => false,
+      name: "MarkVSpec Test"
+    } as unknown as vscode.DiagnosticCollection,
+    debounceMs: 0,
+    isMarkVSpecDocument: () => true,
+    loadResult: () => parseMarkVSpec(source),
+    documentLabel: () => "test",
+    logDuration: () => undefined
+  });
+
+  controller.update(document as unknown as vscode.TextDocument);
+
+  assert.equal(calls.length, 1);
+  const diagnostics = calls[0]?.diagnostics ?? [];
+  const fromDiagnostic = diagnostics.find((item) => item.message.includes("uses legacy list-based From syntax"));
+  const processDiagnostic = diagnostics.find((item) => item.message.includes("uses legacy list-based Process syntax"));
+  const typoDiagnostic = diagnostics.find((item) => item.message.includes("unknown process item: requset:"));
+
+  assert.equal(fromDiagnostic?.severity, vscode.DiagnosticSeverity.Warning);
+  assert.equal(fromDiagnostic?.range.start.line, lineNumber(source, "- From") - 1);
+  assert.equal(fromDiagnostic?.range.end.character, "- From".length);
+  assert.equal(processDiagnostic?.severity, vscode.DiagnosticSeverity.Warning);
+  assert.equal(processDiagnostic?.range.start.line, lineNumber(source, "- Process P1: Send request") - 1);
+  assert.equal(typoDiagnostic?.severity, vscode.DiagnosticSeverity.Warning);
+  assert.equal(typoDiagnostic?.range.start.line, lineNumber(source, "- requset:") - 1);
+});
+
 test("maps info diagnostics to VS Code information severity", () => {
   assert.equal(vscodeDiagnosticSeverityForMarkVSpec("info"), vscode.DiagnosticSeverity.Information);
 });
