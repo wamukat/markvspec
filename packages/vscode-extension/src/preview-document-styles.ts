@@ -126,6 +126,10 @@ ${baseWireframeViewportCss()}
 .preview-error-source-link{cursor:pointer}
 .preview-error-source-link:focus-visible{outline:2px solid #fb923c;outline-offset:2px}
 .preview-error-message{color:#431407;font-size:12px;line-height:1.45}
+.preview-stale-overlay{background:#fffbeb;border:1px solid #fcd34d;border-left:4px solid #d97706;border-radius:6px;display:grid;gap:8px;margin:16px auto 0;max-width:1180px;padding:14px 16px}
+.preview-stale-overlay-title{color:#92400e;font-size:14px;font-weight:750}
+.preview-stale-overlay p{color:#78350f;font-size:13px;line-height:1.5;margin:0}
+.preview-stale-overlay ul{display:grid;gap:6px;list-style:none;margin:0;padding:0}
 .mm-diagnostic-affected{outline:1px dashed #64748b;outline-offset:3px;position:relative}
 .mm-diagnostic-affected-error{outline-color:#dc2626}
 .mm-diagnostic-affected-warning{outline-color:#d97706}

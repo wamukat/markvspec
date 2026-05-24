@@ -820,6 +820,55 @@ title: Validation Preview
   assert.match(html, /data-mm-diagnostic-summary/);
 });
 
+test("renders stale preview overlay with current diagnostics over last valid content", () => {
+  const lastValid = parseMarkVSpec(`---
+id: SCR-LAST-GOOD
+type: screen
+title: Last Good Preview
+---
+
+# SCR-LAST-GOOD Last Good Preview
+
+## States
+
+- idle*
+`);
+  const currentInvalid = parseMarkVSpec(`---
+id: [unterminated
+type: screen
+title: Broken Preview
+---
+
+# SCR-BROKEN Broken Preview
+`);
+  assert(currentInvalid.diagnostics.some((diagnostic) => diagnostic.message.startsWith("Invalid YAML Front Matter:")));
+
+  const html = renderPreviewHtml(
+    lastValid,
+    {
+      cspSource: "vscode-resource:",
+      asWebviewUri: (uri: unknown) => uri
+    } as never,
+    { layout: true, element: true, action: true },
+    undefined,
+    "stale-preview.vspec.md",
+    true,
+    true,
+    false,
+    currentInvalid
+  );
+
+  assert.match(html, /data-preview-stale-overlay/);
+  assert.match(html, /Showing the last valid preview/);
+  assert.match(html, /The current source has errors/);
+  assert.match(html, /data-mm-diagnostic-line="\d+"/);
+  assert.match(html, /Invalid YAML Front Matter:/);
+  assert.match(html, /SCR-LAST-GOOD/);
+  assert.doesNotMatch(html, /SCR-BROKEN/);
+  assert.doesNotMatch(html, /data-preview-error-placeholder/);
+  assert.match(html, /<div class="control-group diagnostic-summary" role="group" aria-label="Diagnostics" data-mm-diagnostic-summary>/);
+});
+
 test("keeps presentation panels out of generated layout specs", () => {
   const source = `---
 id: SCR-PRESENTATION

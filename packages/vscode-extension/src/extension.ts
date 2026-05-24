@@ -171,6 +171,7 @@ interface ScreenPreviewHtmlOptions {
   autoUpdate: boolean;
   interactiveControls: boolean;
   showRepeatedContent: boolean;
+  staleDiagnosticsResult?: ReturnType<typeof parseMarkVSpec>;
   nonce?: string;
   cspSource?: string;
   mermaidScriptUri?: string;
@@ -201,6 +202,7 @@ const projectDocumentResultCache = new Map<string, MarkVSpecProjectLoadResult>()
 const projectFileContentCache = new Map<string, { fingerprint: string; source: string }>();
 const parsedProjectFileCache = new Map<string, { fingerprint: string; result: ReturnType<typeof parseMarkVSpec> }>();
 const previewSourceByUri = new Map<string, string>();
+const lastGoodPreviewByUri = new Map<string, ScreenDocumentResult>();
 export const PREVIEW_UPDATE_DEBOUNCE_MS = 150;
 export const PREVIEW_AUTO_UPDATE_DEFAULT = true;
 export const PREVIEW_WEBVIEW_UPDATE_TIMEOUT_MS = 3000;
@@ -313,6 +315,7 @@ export function activate(context: vscode.ExtensionContext): void {
         previewPanel = undefined;
         previewDocumentUri = undefined;
         previewSourceByUri.clear();
+        lastGoodPreviewByUri.clear();
         resolvePendingFragmentUpdates(false);
         previewUpdateController.invalidateGeneration();
         markerVisibility = {
@@ -738,6 +741,44 @@ async function updatePreviewAsync(document: vscode.TextDocument, generationId: n
       return;
     }
     panel.title = screen.result.screen.title ? `MarkVSpec: ${screen.result.screen.title}` : "MarkVSpec Preview";
+    const hasPreviewParseError = hasPreviewParseErrorDiagnostics(screen.result);
+    const lastGoodPreview = lastGoodPreviewByUri.get(expectedDocumentUri);
+    if (hasPreviewParseError && lastGoodPreview) {
+      const staleRenderStarted = Date.now();
+      const staleHtml = renderPreviewHtml(
+        lastGoodPreview,
+        panel.webview,
+        markerVisibility,
+        extensionRootUri,
+        sourceLabel,
+        previewAutoUpdate,
+        true,
+        previewShowRepeatedContent,
+        screen.result
+      );
+      const fullRenderMs = Date.now() - staleRenderStarted;
+      const stalePatchStarted = Date.now();
+      const stalePatchResult = await commitPreviewHtml(panel, staleHtml, generationId, expectedDocumentUri);
+      logPreviewUpdateTelemetry({
+        sourceLabel,
+        generationId,
+        phase: "full-render",
+        patchSuccess: stalePatchResult.success,
+        patchReason: stalePatchResult.reason,
+        elapsedMs: Date.now() - started,
+        parseMs,
+        patchMs: Date.now() - stalePatchStarted,
+        webviewPatchMs: stalePatchResult.webviewPatchMs,
+        fullRenderMs,
+        reason: "last-known-good-stale-preview"
+      });
+      if (!stalePatchResult.success) {
+        return;
+      }
+      previewSourceByUri.set(expectedDocumentUri, currentSource);
+      logDuration(`updatePreview stale ${sourceLabel}`, started);
+      return;
+    }
     if (previousSource !== undefined && shouldUseIncrementalPreviewUpdate(true, options.force)) {
       const invalidationStarted = Date.now();
       const invalidation = computeMarkVSpecRenderInvalidation(previousSource, currentSource);
@@ -766,6 +807,7 @@ async function updatePreviewAsync(document: vscode.TextDocument, generationId: n
       });
       if (plan.kind === "noop") {
         previewSourceByUri.set(expectedDocumentUri, currentSource);
+        rememberLastGoodPreview(expectedDocumentUri, screen);
         syncPreviewSourceSelection(document, { scroll: false });
         logDuration(`updatePreview noop ${sourceLabel}`, started);
         return;
@@ -795,6 +837,7 @@ async function updatePreviewAsync(document: vscode.TextDocument, generationId: n
         }
         if (patchResult.success) {
           previewSourceByUri.set(expectedDocumentUri, currentSource);
+          rememberLastGoodPreview(expectedDocumentUri, screen);
           syncPreviewSourceSelection(document, { scroll: false });
           logDuration(`updatePreview fragments ${sourceLabel}`, started);
           return;
@@ -847,6 +890,7 @@ async function updatePreviewAsync(document: vscode.TextDocument, generationId: n
       return;
     }
     previewSourceByUri.set(expectedDocumentUri, currentSource);
+    rememberLastGoodPreview(expectedDocumentUri, screen);
     logDuration(`updatePreview screen ${sourceLabel}`, started);
   } catch (error) {
     if (!isCurrentPreviewGeneration(generationId, expectedDocumentUri)) {
@@ -887,6 +931,13 @@ function currentPreviewUpdateState(): { hasPreviewPanel: boolean; currentDocumen
     hasPreviewPanel: Boolean(previewPanel),
     currentDocumentUri: previewDocumentUri?.toString()
   };
+}
+
+function rememberLastGoodPreview(documentUri: string, screen: ScreenDocumentResult): void {
+  if (hasPreviewParseErrorDiagnostics(screen.result)) {
+    return;
+  }
+  lastGoodPreviewByUri.set(documentUri, screen);
 }
 
 function yieldToWebview(): Promise<void> {
@@ -1640,7 +1691,8 @@ export function renderPreviewHtml(
   sourceLabel?: string,
   autoUpdate = PREVIEW_AUTO_UPDATE_DEFAULT,
   interactiveControls = true,
-  showRepeatedContent = false
+  showRepeatedContent = false,
+  staleDiagnosticsResult?: ReturnType<typeof parseMarkVSpec>
 ): string {
   return renderScreenPreviewHtml(screen, {
     target: "webview",
@@ -1649,6 +1701,7 @@ export function renderPreviewHtml(
     autoUpdate,
     interactiveControls,
     showRepeatedContent,
+    staleDiagnosticsResult,
     nonce: createNonce(),
     cspSource: webview.cspSource,
     mermaidScriptUri: extensionUri ? String(mermaidScriptWebviewUri(webview, extensionUri)) : undefined
@@ -1667,7 +1720,7 @@ function renderScreenPreviewHtml(
     rendererMessagesByResult.set(documentResult, messages);
   }
   const document = renderDesignDocumentHtml(result, "", { focus, messages, documentResult });
-  const previewDiagnostics = previewDiagnosticsForResult(result);
+  const previewDiagnostics = previewDiagnosticsForResult(options.staleDiagnosticsResult ?? result);
   const title = result.screen.title ?? result.screen.id ?? "Untitled MarkVSpec Screen";
   const resolvedLocale = resolveLocale(result.screen.locale);
   const clientMessages = previewClientMessages(messages);
@@ -1678,6 +1731,9 @@ function renderScreenPreviewHtml(
     : "";
   const mermaidScriptTag = renderPreviewMermaidScriptTag(options, scriptNonce);
   const parseErrorPlaceholder = renderPreviewParseErrorPlaceholder(result);
+  const staleOverlay = options.staleDiagnosticsResult
+    ? renderPreviewStaleOverlay(options.staleDiagnosticsResult)
+    : "";
 
   return `<!doctype html>
 <html lang="${escapeHtml(resolvedLocale)}">
@@ -1715,6 +1771,7 @@ ${renderScreenPreviewStyles()}
       <span class="toc-toggle-bars" aria-hidden="true"></span>
     </button>
     <main class="content">
+      ${staleOverlay}
       ${parseErrorPlaceholder}
       <section class="preview">${document}</section>
     </main>
@@ -1828,6 +1885,21 @@ function renderPreviewParseErrorPlaceholder(result: ReturnType<typeof parseMarkV
       </section>`;
 }
 
+function renderPreviewStaleOverlay(result: ReturnType<typeof parseMarkVSpec>): string {
+  const diagnostics = result.diagnostics.filter((diagnostic) => diagnostic.severity === "error");
+  const isJapanese = resolveLocale(result.screen.locale) === "ja";
+  const title = isJapanese ? "直前の正常なプレビューを表示しています" : "Showing the last valid preview";
+  const message = isJapanese
+    ? "現在のソースにはエラーがあります。下の preview は現在のソースと一致していない可能性があります。"
+    : "The current source has errors. The preview below may not match the current source.";
+  return `
+      <section class="preview-stale-overlay" data-preview-stale-overlay aria-live="polite">
+        <div class="preview-stale-overlay-title">${escapeHtml(title)}</div>
+        <p>${escapeHtml(message)}</p>
+        ${diagnostics.length > 0 ? `<ul>${diagnostics.map((diagnostic) => renderPreviewParseErrorItem(diagnostic, result.screen.locale)).join("")}</ul>` : ""}
+      </section>`;
+}
+
 function renderPreviewParseErrorItem(diagnostic: ReturnType<typeof parseMarkVSpec>["diagnostics"][number], locale: string | undefined): string {
   const line = diagnostic.line;
   const lineText = line ? `Line ${line}` : "Source";
@@ -1835,6 +1907,10 @@ function renderPreviewParseErrorItem(diagnostic: ReturnType<typeof parseMarkVSpe
     ? `<button type="button" class="preview-error-source-link" data-mm-diagnostic-line="${line}">${escapeHtml(lineText)}</button>`
     : `<span class="preview-error-source-line">${escapeHtml(lineText)}</span>`;
   return `<li>${lineControl}<span class="preview-error-message">${escapeHtml(renderDiagnosticMessageForLocale(diagnostic, locale))}</span></li>`;
+}
+
+function hasPreviewParseErrorDiagnostics(result: ReturnType<typeof parseMarkVSpec>): boolean {
+  return result.diagnostics.some((diagnostic) => isPreviewParseErrorDiagnostic(diagnostic));
 }
 
 function isPreviewParseErrorDiagnostic(diagnostic: ReturnType<typeof parseMarkVSpec>["diagnostics"][number]): boolean {
