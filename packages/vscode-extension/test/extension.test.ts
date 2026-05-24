@@ -6560,6 +6560,9 @@ title: Multi Request
 #### From
 - idle
 #### P1: Process Send request
+
+Prepare a paged user request.
+
 - request:
   - method: GET
   - path: /users?filter=<active>
@@ -6570,6 +6573,9 @@ title: Multi Request
   - model: \${model.requestedPage} = \${model.nextPage}
   - state: loaded
   - stop
+
+This note remains attached to the first request step.
+
 #### P2: Process Send request
 - request:
   - method: GET
@@ -6591,11 +6597,71 @@ title: Multi Request
 
   assert.doesNotMatch(actionDetail, /<dt>Request<\/dt>|<dt>Parameters<\/dt>/);
   assert.doesNotMatch(actionDetail, /<dt>Overview<\/dt>/);
-  assert.match(actionDetail, new RegExp(`<dt>Process</dt><dd><div class="process-flow" role="list">[\\s\\S]*${processTitleGroupPattern("unplug", `${docLabel("P1", "result")} Send request`)}[\\s\\S]*<li>path: /users\\?filter=&lt;active&gt;</li>[\\s\\S]*<li>page: ${sourceCodePattern("${model.requestedPage}")}</li>[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 users[\\s\\S]*effect set state ${docLabel("loaded", "state")}[\\s\\S]*stop process`));
+  assert.match(actionDetail, new RegExp(`<dt>Process</dt><dd><div class="process-flow" role="list">[\\s\\S]*${processTitleGroupPattern("unplug", `${docLabel("P1", "result")} Send request`)}[\\s\\S]*<div class="entity-overview"><p class="note-paragraph">Prepare a paged user request\\.</p></div>[\\s\\S]*<li>path: /users\\?filter=&lt;active&gt;</li>[\\s\\S]*<li>page: ${sourceCodePattern("${model.requestedPage}")}</li>[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 users[\\s\\S]*effect set state ${docLabel("loaded", "state")}[\\s\\S]*stop process[\\s\\S]*<div class="entity-notes"><p class="note-paragraph">This note remains attached to the first request step\\.</p></div>`));
   assert.match(actionDetail, new RegExp(`${processTitleGroupPattern("unplug", `${docLabel("P2", "result")} Send request`)}[\\s\\S]*<li>path: /roles</li>[\\s\\S]*<li>requestedPage: ${sourceCodePattern("${model.requestedPage}")}</li>[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*response HTTP 200 roles[\\s\\S]*effect set state ${docLabel("roles-loaded", "state")}[\\s\\S]*<strong>${docLabel("failure", "result")}</strong>[\\s\\S]*response HTTP error`));
   assert.doesNotMatch(actionDetail, /flow (?:stop|continue)/);
   assert.doesNotMatch(actionDetail, /<dt>Case success<\/dt>|<dt>Case failure<\/dt>|<dt>Responses<\/dt>/);
   assert.doesNotMatch(actionDetail, /<active>/);
+});
+
+test("renders section-based process notes in standalone exported HTML", () => {
+  const source = `---
+id: SCR-PROCESS-NOTES
+type: screen
+title: Process Notes
+---
+
+# SCR-PROCESS-NOTES Process Notes
+
+## States
+
+- idle*
+- loaded
+
+## Elements
+
+### E-LoadButton Button
+
+- action: A-Load
+- label: Load
+
+## Layout: mobile
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- E-LoadButton
+
+## Actions
+
+### A1:A-Load Load
+
+#### From
+- idle
+
+#### P1: Process Send request
+
+Prepare the request before sending it.
+
+- request:
+  - method: GET
+  - path: /api/items
+- case: success
+  - response: HTTP 200 items
+  - state: loaded
+
+Keep the retry caveat visible in generated artifacts.
+`;
+  const result = parseMarkVSpec(source);
+  const html = renderStandaloneHtml(result, undefined, "process-notes.vspec.md");
+
+  assert.match(html, new RegExp(`<article class="action-detail">[\\s\\S]*<dt>From</dt><dd>${docLabel("idle", "state")}</dd>`));
+  assert.match(html, new RegExp(`${processTitleGroupPattern("unplug", `${docLabel("P1", "result")} Send request`)}[\\s\\S]*<div class="entity-overview"><p class="note-paragraph">Prepare the request before sending it\\.</p></div>[\\s\\S]*<li>path: /api/items</li>[\\s\\S]*<strong>${docLabel("success", "result")}</strong>[\\s\\S]*effect set state ${docLabel("loaded", "state")}[\\s\\S]*<div class="entity-notes"><p class="note-paragraph">Keep the retry caveat visible in generated artifacts\\.</p></div>`));
+  assert.match(html, /<section class="doc-section"[^>]*id="state-transition-table"[^>]*>[\s\S]*<td><a class="mm-ref-chip mm-ref-chip-action" href="#action-detail-A-Load"/);
+  assert.doesNotMatch(html, /acquireVsCodeApi/);
 });
 
 test("renders process control at the end of process cases", () => {

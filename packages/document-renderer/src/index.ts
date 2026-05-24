@@ -654,9 +654,13 @@ function renderStaticProcessStepCard(
   ].filter(Boolean).join(" ");
   const resolveGroup = step.resolveGroup ? `<span class="process-card-meta">${escapeHtml(messages.processGroup)} ${escapeHtml(step.resolveGroup)}</span>` : "";
   const detailList = renderStaticProcessStepDetailList(result, messages, step);
+  const overview = renderStaticEntityOverview(result, step.overview ?? []);
+  const notes = renderStaticEntityNotes(result, step.notes ?? []);
   return `<div class="${classes}" role="${variant === "root" ? "listitem" : "group"}"${step.resolveGroup ? ` data-resolve-group="${escapeHtml(step.resolveGroup)}"` : ""}>
     <div class="process-card-header"><span class="process-card-title-group">${renderStaticProcessStepIcon(step)}<span class="process-card-title">${renderStaticProcessStepLabel(step)}</span></span>${resolveGroup}</div>
+    ${overview}
     ${detailList}
+    ${notes}
   </div>`;
 }
 

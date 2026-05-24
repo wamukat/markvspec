@@ -106,6 +106,26 @@ test("exports unrepresented source text warnings in diagnostics section", () => 
   }
 });
 
+test("exports section-based process notes in standalone HTML", () => {
+  const dir = mkdtempSync(join(tmpdir(), "markvspec-exporter-process-notes-"));
+  try {
+    const sourcePath = join(dir, "process-notes.vspec.md");
+    writeFileSync(sourcePath, screenWithProcessNotes());
+
+    const result = renderStandaloneHtmlForFile(sourcePath);
+
+    assert.equal(result.diagnostics.filter((diagnostic) => diagnostic.severity === "error").length, 0);
+    assert.match(result.html, /<dt>From<\/dt><dd><code class="mm-doc-label mm-doc-label-state">idle<\/code><\/dd>/);
+    assert.match(result.html, /<span class="process-card-title"><code class="mm-doc-label mm-doc-label-result">P1<\/code> Send request<\/span>/);
+    assert.match(result.html, /<div class="entity-overview"><p>Prepare the request before sending it\.<\/p><\/div>/);
+    assert.match(result.html, /<li>request\.path: \/api\/items<\/li>/);
+    assert.match(result.html, /<strong><code class="mm-doc-label mm-doc-label-result">success<\/code><\/strong>[\s\S]*effect set state <code class="mm-doc-label mm-doc-label-state">loaded<\/code>/);
+    assert.match(result.html, /<div class="entity-notes"><p>Keep the retry caveat visible in generated artifacts\.<\/p><\/div>/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("exports retained extension item info in diagnostics section", () => {
   const dir = mkdtempSync(join(tmpdir(), "markvspec-exporter-extension-info-"));
   try {
@@ -1034,6 +1054,58 @@ title: ${title}
   - login submission request
 - case: sent
   - state: authenticating
+`;
+}
+
+function screenWithProcessNotes(): string {
+  return `---
+id: SCR-PROCESS-NOTES
+type: screen
+title: Process Notes
+---
+
+# SCR-PROCESS-NOTES Process Notes
+
+## States
+
+- idle*
+- loaded
+
+## Layout: mobile
+
+### L-Page Page
+
+- stack
+
+#### Items
+
+- E-LoadButton
+
+## Elements
+
+### E-LoadButton Button
+
+- action: A-Load
+- label: Load
+
+## Actions
+
+### A1:A-Load Load
+
+#### From
+- idle
+
+#### P1: Process Send request
+
+Prepare the request before sending it.
+
+- request:
+  - method: GET
+  - path: /api/items
+- case: success
+  - state: loaded
+
+Keep the retry caveat visible in generated artifacts.
 `;
 }
 

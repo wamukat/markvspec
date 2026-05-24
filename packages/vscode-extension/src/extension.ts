@@ -3126,9 +3126,13 @@ function renderProcessStepCard(
     step.resolveGroup ? "process-resolve-card" : ""
   ].filter(Boolean).join(" ");
   const resolveGroup = step.resolveGroup ? `<span class="process-card-meta">${escapeHtml(label(result, "processGroup"))} ${text(step.resolveGroup)}</span>` : "";
+  const overview = renderEntityOverview(result, step.overview);
+  const notes = renderEntityNotes(result, step.notes);
   return `<div class="${classes}" role="${variant === "root" ? "listitem" : "group"}"${step.resolveGroup ? ` data-resolve-group="${escapeHtml(step.resolveGroup)}"` : ""}>
     <div class="process-card-header"><span class="process-card-title-group">${renderProcessStepIcon(step)}<span class="process-card-title">${renderProcessStepLabel(step)}</span></span>${resolveGroup}</div>
+    ${overview}
     ${detailList}
+    ${notes}
   </div>`;
 }
 
